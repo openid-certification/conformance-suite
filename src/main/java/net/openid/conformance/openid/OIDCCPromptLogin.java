@@ -2,15 +2,16 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptLoginToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaimsDifferIfPresent;
+import net.openid.conformance.condition.client.CheckSecondIdTokenAuthTimeIsLaterIfPresent;
 import net.openid.conformance.condition.client.ExpectSecondLoginPage;
+import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-prompt-login.json
 @PublishTestModule(
 	testName = "oidcc-prompt-login",
 	displayName = "OIDCC: prompt=login",
-	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=login, so that the authorization server is required to ask the user to login a second time. A screenshot of the second authorization should be uploaded.",
+	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=login, so that the authorization server is required to ask the user to login a second time. If auth_time is present in the id_tokens, the value from the second login must be later than the time in the original token. A screenshot of the second authorization should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
 			"server.discoveryUrl"
@@ -42,6 +43,8 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 			super.createAuthorizationRequest();
 		} else {
 			env.unmapKey("id_token");
+			// make sure the auth definitely happens at least 1 second after the original one, so auth_time will be different
+			callAndStopOnFailure(WaitForOneSecond.class);
 			call(new CreateAuthorizationRequestSteps()
 				.then(condition(AddPromptLoginToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 		}
@@ -62,7 +65,7 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 			// do the process again, but with prompt=login this time
 			performAuthorizationFlow();
 		} else {
-			callAndContinueOnFailure(CheckIdTokenAuthTimeClaimsDifferIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+			callAndContinueOnFailure(CheckSecondIdTokenAuthTimeIsLaterIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 
 			setStatus(Status.WAITING);
 			waitForPlaceholders();

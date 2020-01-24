@@ -19,7 +19,7 @@ public class AddPromptLoginToAuthorizationEndpointRequest extends AbstractCondit
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added prompt=\"login\" to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added prompt=login to authorization endpoint request", authorizationEndpointRequest);
 
 		return env;
 

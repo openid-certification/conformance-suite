@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckIdTokenAuthTimeClaimsDifferIfPresent_UnitTest {
+public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,7 +24,7 @@ public class CheckIdTokenAuthTimeClaimsDifferIfPresent_UnitTest {
 
 	private JsonObject claims;
 
-	private CheckIdTokenAuthTimeClaimsDifferIfPresent cond;
+	private CheckSecondIdTokenAuthTimeIsLaterIfPresent cond;
 
 	private JsonObject createToken(String json) {
 		var claims = new JsonParser().parse(json).getAsJsonObject();
@@ -37,14 +37,22 @@ public class CheckIdTokenAuthTimeClaimsDifferIfPresent_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckIdTokenAuthTimeClaimsDifferIfPresent();
+		cond = new CheckSecondIdTokenAuthTimeIsLaterIfPresent();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test
-	public void testEvaluate_differentAuthTimes() {
+	public void testEvaluate_secondHasLaterAuthTime() {
 		env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
 		env.putObject("id_token", createToken("{ \"auth_time\": 16 }"));
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_secondHasEarlierAuthTime() {
+		env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
+		env.putObject("id_token", createToken("{ \"auth_time\": 14 }"));
 
 		cond.execute(env);
 	}
