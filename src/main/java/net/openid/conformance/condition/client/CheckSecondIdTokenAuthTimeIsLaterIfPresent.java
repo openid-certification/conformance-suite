@@ -22,8 +22,8 @@ public class CheckSecondIdTokenAuthTimeIsLaterIfPresent extends AbstractConditio
 		JsonObject secondIdToken = env.getObject("id_token").getAsJsonObject("claims");
 
 		if (firstIdToken.has(CLAIM_AUTH_TIME) && secondIdToken.has(CLAIM_AUTH_TIME)) {
-			var firstAuthTime = OIDFJSON.getInt(firstIdToken.get(CLAIM_AUTH_TIME));
-			var secondAuthTime = OIDFJSON.getInt(secondIdToken.get(CLAIM_AUTH_TIME));
+			var firstAuthTime = OIDFJSON.getLong(firstIdToken.get(CLAIM_AUTH_TIME));
+			var secondAuthTime = OIDFJSON.getLong(secondIdToken.get(CLAIM_AUTH_TIME));
 
 			if (firstAuthTime == secondAuthTime) {
 				throw error("prompt=login means the server was required to reauthenticate the user, the id_token from the second authorization incorrectly has the same auth_time as the id_token from the first authorization", args("first_id_token", firstIdToken, "second_id_token", secondIdToken));
