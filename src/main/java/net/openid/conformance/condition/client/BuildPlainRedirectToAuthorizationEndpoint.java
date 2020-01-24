@@ -39,8 +39,11 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 
 			// for nonce, state, client_id, redirect_uri, etc.
 			if (element.isJsonPrimitive()) {
-
-				builder.queryParam(key, OIDFJSON.getString(element));
+				if (key.equals("max_age")) {
+					builder.queryParam(key, OIDFJSON.getNumber(element));
+				} else {
+					builder.queryParam(key, OIDFJSON.getString(element));
+				}
 			}
 			// for claims
 			else {
