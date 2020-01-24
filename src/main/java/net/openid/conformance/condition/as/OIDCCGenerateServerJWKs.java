@@ -48,7 +48,8 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	protected JWSAlgorithm psSigningAlgorithm = JWSAlgorithm.PS256;
 	protected JWSAlgorithm esSigningAlgorithm = JWSAlgorithm.ES256;
 
-	protected JWEAlgorithm encryptionAlgorithmForRSAKeys = JWEAlgorithm.RSA_OAEP_256;
+	@SuppressWarnings("deprecation")
+	protected JWEAlgorithm encryptionAlgorithmForRSAKeys = JWEAlgorithm.RSA_OAEP;
 	protected JWEAlgorithm encryptionAlgorithmForECKeys = JWEAlgorithm.ECDH_ES;
 
 	/**
