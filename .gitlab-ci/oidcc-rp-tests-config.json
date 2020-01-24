@@ -1,0 +1,147 @@
+{
+    "tests": [
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {"id_token_encrypted_response_alg":"A128KW",
+                                         "userinfo_encrypted_response_alg":"A128GCMKW",
+                                         "request_object_encryption_alg":"RSA-OAEP"}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {
+                "userinfo_encrypted_response_alg":"ECDH-ES"
+            }
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_post",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_jwt",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "none",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "none",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "none",
+            "response_type": "id_token token",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "response_mode": "form_post",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "response_mode": "form_post",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "request_object",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {}
+        },
+        {
+            "client_auth_type": "client_secret_basic",
+            "response_type": "code id_token token",
+            "response_mode": "default",
+            "request_type": "request_object",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {
+                "request_object_encryption_alg":"ECDH-ES"
+            }
+        }
+
+    ]
+}

@@ -14,6 +14,7 @@ import fnmatch
 import requests
 import json
 import argparse
+import traceback
 
 from conformance import Conformance
 
@@ -42,14 +43,106 @@ def split_name_and_variant(test_plan):
         vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
         variant = { v.group(1) : v.group(2) for v in vs }
         return (name, variant)
+    elif '(' in test_plan:
+        #only for oidcc RP tests
+        matches = re.match(r'(.*)\((.*)\)$', test_plan)
+        name = matches.group(1)
+        oidcc_configfile = matches.group(2)
+        return (name, oidcc_configfile)
     else:
         return (test_plan, None)
+
+#Run OIDCC RP tests
+#OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
+def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile):
+    oidcc_test_config_json = []
+    with open(oidcc_rptest_configfile) as f:
+        oidcc_test_config = f.read()
+        oidcc_test_config_json = json.loads(oidcc_test_config)
+
+    for test_plan_config in oidcc_test_config_json['tests']:
+        client_metadata_defaults = test_plan_config['client_metadata_defaults']
+        client_metadata_defaults_str = json.dumps(client_metadata_defaults)
+        print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
+
+        #remove client_metadata_defaults otherwise plan api call will fail
+        del test_plan_config['client_metadata_defaults']
+        test_plan_info = conformance.create_test_plan(test_plan_name, json_config, test_plan_config)
+
+        variantstr = json.dumps(test_plan_config)
+        print('VARIANT {}'.format(variantstr))
+
+        plan_id = test_plan_info['id']
+        plan_modules = test_plan_info['modules']
+        test_info = {}  # key is module name
+        test_time_taken = {}  # key is module_id
+        overall_start_time = time.time()
+        print('Created test plan, new id: {}'.format(plan_id))
+        print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
+        print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
+        for module in plan_modules:
+            test_start_time = time.time()
+            module_id = ''
+            module_info = {}
+
+            try:
+                print('Running test module: {}'.format(module))
+                test_module_info = conformance.create_test_from_plan(plan_id, module)
+                module_id = test_module_info['id']
+                module_info['id'] = module_id
+                test_info[module] = module_info
+                print('Created test module, new id: {}'.format(module_id))
+                print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+
+                state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+
+                if state == "WAITING":
+                    if re.match(r'(oidcc-client-.*)', module):
+                        print('Running OIDCC Client tests')
+                        print('MODULE_NAME {}'.format(module))
+
+                        oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+                        print('ISSUER {}'.format(oidcc_issuer_str))
+
+                        os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
+                        os.putenv('VARIANT', variantstr)
+                        os.putenv('MODULE_NAME', module)
+                        os.putenv('ISSUER', oidcc_issuer_str)
+                        subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+
+                    conformance.wait_for_state(module_id, ["FINISHED"])
+
+            except Exception as e:
+                traceback.print_exc()
+                print('Exception: Test {} failed to run to completion: {}'.format(module, e))
+            if module_id != '':
+                test_time_taken[module_id] = time.time() - test_start_time
+                module_info['info'] = conformance.get_module_info(module_id)
+                module_info['logs'] = conformance.get_test_log(module_id)
+
+    overall_time = time.time() - overall_start_time
+    print('\n\n')
+    rv = {
+        'test_plan': test_plan_name,
+        'config_file': config_file,
+        'plan_id': plan_id,
+        'plan_modules': plan_modules,
+        'test_info': test_info,
+        'test_time_taken': test_time_taken,
+        'overall_time': overall_time
+    }
+    print('-------- Finished test plan ---------')
+    print(json.dumps(rv, indent=4))
+    return rv
 
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
         json_config = f.read()
     (test_plan_name, variant) = split_name_and_variant(test_plan)
+    if 'oidcc-client-test-plan'==test_plan_name:
+        #for oidcc client tests 'variant' will contain the rp tests configuration file name
+        return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant)
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
