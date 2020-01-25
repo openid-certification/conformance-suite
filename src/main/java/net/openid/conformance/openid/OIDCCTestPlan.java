@@ -38,6 +38,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCIdTokenHint.class,
 		OIDCCLoginHint.class,
 		OIDCCMaxAge1.class,
+		OIDCCMaxAge10000.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class,
