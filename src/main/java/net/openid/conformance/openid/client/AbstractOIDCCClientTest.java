@@ -63,6 +63,7 @@ import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRe
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.dynregistration.EnsureRegistrationRequestContainsAtLeastOneContact;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
@@ -619,6 +620,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void validateRegistrationRequest() {
 		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class);
+		callAndContinueOnFailure(EnsureRegistrationRequestContainsAtLeastOneContact.class);
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
