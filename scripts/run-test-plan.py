@@ -59,6 +59,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
     with open(oidcc_rptest_configfile) as f:
         oidcc_test_config = f.read()
         oidcc_test_config_json = json.loads(oidcc_test_config)
+    all_plan_results = []
 
     for test_plan_config in oidcc_test_config_json['tests']:
         client_metadata_defaults = test_plan_config['client_metadata_defaults']
@@ -120,20 +121,20 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                 module_info['info'] = conformance.get_module_info(module_id)
                 module_info['logs'] = conformance.get_test_log(module_id)
 
-    overall_time = time.time() - overall_start_time
-    print('\n\n')
-    rv = {
-        'test_plan': test_plan_name,
-        'config_file': config_file,
-        'plan_id': plan_id,
-        'plan_modules': plan_modules,
-        'test_info': test_info,
-        'test_time_taken': test_time_taken,
-        'overall_time': overall_time
-    }
-    print('-------- Finished test plan ---------')
-    print(json.dumps(rv, indent=4))
-    return rv
+        overall_time = time.time() - overall_start_time
+        print('\n\n')
+        result_for_plan = {
+            'test_plan': test_plan_name,
+            'config_file': config_file,
+            'plan_id': plan_id,
+            'plan_modules': plan_modules,
+            'test_info': test_info,
+            'test_time_taken': test_time_taken,
+            'overall_time': overall_time
+        }
+        all_plan_results.append(result_for_plan)
+    print('--- Finished OIDCC RP tests. Total time: {} '.format(overall_time))
+    return all_plan_results
 
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
@@ -862,7 +863,10 @@ if __name__ == '__main__':
     results = []
     for (plan_name, config_json) in to_run:
         result = run_test_plan(plan_name, config_json)
-        results.append(result)
+        if isinstance(result, list):
+            results.extend(result)
+        else:
+            results.append(result)
 
     print("\n\nScript complete - results:")
 
