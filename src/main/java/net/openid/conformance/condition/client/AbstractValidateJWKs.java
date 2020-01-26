@@ -64,8 +64,26 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
 			}
-
+			parseJWKWithNimbus(keyObject);
 		});
+	}
+
+	/**
+	 * Nimbusds performs various checks (including the ones manually implemented in this class)
+	 * @param keyObject
+	 */
+	protected void parseJWKWithNimbus(JsonObject keyObject) {
+		try {
+			//https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.2
+			//jwks
+			//    The JWK x5c parameter MAY be used to provide X.509 representations of keys provided.
+			//    When used, the bare key values MUST still be present and MUST match those in the certificate
+			//Nimbusds performs this check besides other checks like missing properties etc while parsing
+
+			JWK jwk = JWK.parse(keyObject.toString());
+		} catch (ParseException ex) {
+			throw error("Invalid JWK", ex, args("key", keyObject));
+		}
 	}
 
 	private void verifyPrivatePart(JsonElement jwks, JsonObject keyObject) {
