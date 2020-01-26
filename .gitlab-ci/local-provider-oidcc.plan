@@ -5,15 +5,10 @@
         "discoveryUrl": "https://oidcc-provider:3000/.well-known/openid-configuration"
     },
     "client": {
-        "client_name": "first-openid-client",
-        "scope": "openid address email phone profile offline_access"
+        "client_name": "first-openid-client"
     },
     "client2": {
-        "client_name": "first-openid-client",
-        "scope": "openid address email phone profile offline_access"
-    },
-    "resource": {
-        "resourceUrl": "https://oidcc-provider:3000/me"
+        "client_name": "second-openid-client"
     },
     "browser": [
         {
