@@ -50,6 +50,10 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	}
 
 	protected final void performRedirectAndWaitForPlaceholdersOrCallback() {
+		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder");
+	}
+
+	protected final void performRedirectAndWaitForPlaceholdersOrCallback(String placeholderKey) {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
@@ -62,7 +66,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		waitForPlaceholders();
 
-		browser.goToUrl(redirectTo, env.getString("error_callback_placeholder"));
+		browser.goToUrl(redirectTo, env.getString(placeholderKey));
 	}
 
 	// performs the redirect with a placeholder to fill in, but does NOT start 'waitForPlaceholders()' so

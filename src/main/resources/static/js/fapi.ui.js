@@ -427,6 +427,7 @@ var FAPI_UI = {
 			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#",
 			"OBRW-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#",
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
+			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
 			"MTLS-" : "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",

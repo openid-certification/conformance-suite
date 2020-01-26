@@ -4,16 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
-import net.openid.conformance.condition.client.AddImplicitGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
@@ -31,7 +25,6 @@ import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
@@ -50,7 +43,6 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
-import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -85,6 +77,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
@@ -344,30 +337,13 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void createDynamicClientRegistrationRequest() {
 
-		callAndStopOnFailure(GenerateRS256ClientJWKs.class);
+		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-
-		// create basic dynamic registration request
-		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		if (profileDynamicClientConfiguration != null) {
 			call(sequence(profileDynamicClientConfiguration));
 		}
-
-		if (responseType.includesCode()) {
-			callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
-		}
-
-		if (responseType.includesIdToken() || responseType.includesToken()) {
-			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
-		}
-
-		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
-		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
-		callAndStopOnFailure(AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment.class);
-		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 	}
 
 	protected void configureDynamicClient() {

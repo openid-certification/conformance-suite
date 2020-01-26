@@ -9,6 +9,15 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		OIDCCDiscoveryEndpointVerification.class,
+
+		// Dynamic registration tests
+		OIDCCRegistrationDynamic.class,
+		OIDCCRegistrationJwksUri.class,
+		OIDCCRegistrationLogoUri.class,
+		OIDCCRegistrationPolicyUri.class,
+		OIDCCRegistrationTosUri.class,
+
+		// Positive tests
 		OIDCCServerTest.class,
 		OIDCCAuthCodeReuse.class,
 		OIDCCRefreshToken.class,
@@ -37,6 +46,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRegisteredRedirectUri.class,
 		OIDCCEnsureRequestObjectWithRedirectUri.class,
 		OIDCCEnsureRequestWithoutNonceFails.class,
+		OIDCCRegistrationSectorBad.class,
 		OIDCCResponseTypeMissing.class,
 	}
 )
