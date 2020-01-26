@@ -68,7 +68,15 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
+import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
 import net.openid.conformance.condition.as.EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientRegistrationRequestSectorIdentifierUri;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateIdTokenSignedResponseAlg;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -620,13 +628,42 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * http request is mapped to "dynamic_registration_request" before this call
 	 */
 	protected void validateRegistrationRequest() {
-		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class, "OIDCR-2");
+		//because the python suite requires this
 		callAndContinueOnFailure(EnsureRegistrationRequestContainsAtLeastOneContact.class);
+
+		//the following conditions are used for both static client validation and dynamic registration validation
+		//so they require "client" env entry
 		env.mapKey("client", "dynamic_registration_request");
+		callAndContinueOnFailure(OIDCCValidateClientRedirectUris.class, Condition.ConditionResult.FAILURE,
+					"OIDCR-2");
+
+		//jwks
 		skipIfElementMissing("dynamic_registration_request", "jwks", Condition.ConditionResult.INFO,
-			EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys.class, Condition.ConditionResult.FAILURE,
-			"OIDCR-2");
+			ValidateClientJWKsPublicPart.class, Condition.ConditionResult.FAILURE,
+			"OIDCR-2", "RFC7517-1.1");
+		//jwks_uri
+		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class, "OIDCR-2");
+		skipIfElementMissing("dynamic_registration_request", "jwks_uri", Condition.ConditionResult.INFO,
+			FetchClientKeys.class, Condition.ConditionResult.FAILURE);
+
+		if(env.getElementFromObject("client", "jwks")!=null) {
+			env.putObject("client_jwks", env.getElementFromObject("client", "jwks").getAsJsonObject());
+			validateClientJwks();
+			env.removeObject("client_jwks");
+		}
+
+		callAndContinueOnFailure(ValidateClientLogoUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+		callAndContinueOnFailure(ValidateClientUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+		callAndContinueOnFailure(ValidateClientPolicyUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+		callAndContinueOnFailure(ValidateClientTosUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+
+		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+		skipIfElementMissing("dynamic_registration_request", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
+			ValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
 		env.unmapKey("client");
+		callAndContinueOnFailure(ValidateClientRegistrationRequestSectorIdentifierUri.class,
+									Condition.ConditionResult.FAILURE,"OIDCR-2","OIDCR-5");
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
@@ -691,7 +728,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			//initial validation
 			callAndStopOnFailure(EnsureClientHasJwksOrJwksUri.class);
 		}
-		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class);
+		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class, "OIDCR-2");
 
 		//TODO should jwks_uri download be skipped if jwks won't be needed?
 		//fetch client jwks from jwks_uri, if a jwks_uri is found

@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.validation.RedirectURIValidationUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,6 +50,19 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 			for(JsonElement e : redirectUris) {
 				String uri = OIDFJSON.getString(e);
 				if(actual.equals(uri)) {
+					//require https if application_type is web and response_type is not equal to code
+					String applicationType = env.getString("client", "application_type");
+					String responseType = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE);
+					if(!RedirectURIValidationUtil.requireHttpsIfWebAndResponseTypeNotCode(applicationType, responseType, actual)) {
+						throw error("redirect_uri is one of the registered uris but uses http scheme which " +
+								"is not allowed when application_type is web and response type is not code",
+							args("actual", actual, "expected", redirectUris));
+					}
+					if(!RedirectURIValidationUtil.dontAllowHttpIfNativeAndNotLocalhost(applicationType, actual)) {
+						throw error("redirect_uri is one of the registered uris but http scheme  " +
+								" is only allowed for localhost for native applications",
+							args("actual", actual, "expected", redirectUris));
+					}
 					logSuccess("redirect_uri is one of the allowed redirect uris",
 								args("actual", actual, "expected", redirectUris));
 					env.putString("authorization_endpoint_request_redirect_uri", actual);
