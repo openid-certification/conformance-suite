@@ -68,6 +68,7 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
+import net.openid.conformance.condition.as.EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -619,8 +620,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * http request is mapped to "dynamic_registration_request" before this call
 	 */
 	protected void validateRegistrationRequest() {
-		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class);
+		callAndStopOnFailure(OIDCCValidateDynamicRegistrationRedirectUris.class, "OIDCR-2");
 		callAndContinueOnFailure(EnsureRegistrationRequestContainsAtLeastOneContact.class);
+		env.mapKey("client", "dynamic_registration_request");
+		skipIfElementMissing("dynamic_registration_request", "jwks", Condition.ConditionResult.INFO,
+			EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys.class, Condition.ConditionResult.FAILURE,
+			"OIDCR-2");
+		env.unmapKey("client");
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
@@ -701,6 +707,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateClientJwks() {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		skipIfElementMissing("client", "jwks", Condition.ConditionResult.INFO,
+			EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys.class, Condition.ConditionResult.FAILURE,
+			"OIDCR-2");
 		//TODO add requirements
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 	}
