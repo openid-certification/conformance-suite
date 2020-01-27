@@ -1,9 +1,18 @@
 package net.openid.conformance.openid;
 
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -13,6 +22,7 @@ import net.openid.conformance.condition.client.AddSubjectTypePairwiseToDynamicRe
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpointExpectingError;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidConfigurationParameterOrInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateInvalidSectorRedirectUris;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Registration_Sector_Bad
@@ -85,6 +95,16 @@ public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistration
 	}
 
 	private Object handleRedirectUrisRequest(JsonObject requestParts) {
-		return env.getObject("sector_redirect_uris").get("value");
+		JsonArray value = env.getObject("sector_redirect_uris").get("value").getAsJsonArray();
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(StreamSupport.stream(
+						Spliterators.spliterator(
+								value.iterator(),
+								value.size(),
+								Spliterator.ORDERED),
+						false)
+						.map(OIDFJSON::getString)
+						.collect(Collectors.toList()));
 	}
 }
