@@ -35,7 +35,7 @@ public class SignUserInfoResponse extends AbstractSignJWT {
 			JsonObject client = env.getObject("client");
 
 			JWK selectedKey = selectOrCreateKey(jwks, signingAlg, client);
-			env = signJWTUsingKey(env, claims, selectedKey);
+			env = signJWTUsingKey(env, claims, selectedKey, signingAlg);
 			return env;
 		}
 	}

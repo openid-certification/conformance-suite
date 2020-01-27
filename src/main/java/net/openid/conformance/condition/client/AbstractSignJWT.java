@@ -7,6 +7,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.ECKey;
@@ -14,6 +15,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
@@ -21,6 +23,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.util.List;
@@ -29,6 +32,13 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 	public static final Base64URL ALG_NONE_HEADER = Base64URL.encode("{\"alg\":\"none\"}");
 
 
+	/**
+	 * Expects only one JWK in jwks
+	 * @param env
+	 * @param claims
+	 * @param jwks
+	 * @return
+	 */
 	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks) {
 
 		if (claims == null) {
@@ -132,7 +142,7 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 				JWKSet jwkSet = JWKSet.parse(jwks.toString());
 				if(jwkSet!=null) {
 					List<JWK> keys = jwkSet.getKeys();
-					selectedKey = selectAsymmetricKey(jwsAlgorithm, keys);
+					selectedKey = JWKUtil.selectAsymmetricJWSKey(jwsAlgorithm, keys);
 				}
 			} catch (ParseException e) {
 				throw error("Could not parse server jwks. Failed to find a signing key.", e,
@@ -146,59 +156,9 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 		return selectedKey;
 	}
 
-	/**
-	 * will select the first key with the correct type, use and alg if possible
-	 * in the worst case it will select the last key with the correct type
-	 * Note: The jwks will contain only 1 matching key since we create it, but just in case...
-	 * @param jwsAlgorithm
-	 * @param keys
-	 * @return null if not found
-	 */
-	protected JWK selectAsymmetricKey(JWSAlgorithm jwsAlgorithm, List<JWK> keys) {
-		JWK selectedKey = null;
-		for(JWK key : keys) {
-			if(JWSAlgorithm.Family.EC.contains(jwsAlgorithm) && KeyType.EC.equals(key.getKeyType())) {
-				if(key.getKeyUse()!=null) {
-					if(KeyUse.SIGNATURE.equals(key.getKeyUse()) && JWSAlgorithm.Family.SIGNATURE.contains(key.getAlgorithm())) {
-						selectedKey = key;
-						break;
-					}
-				} else {
-					selectedKey = key;
-				}
-			} else if(JWSAlgorithm.Family.ED.contains(jwsAlgorithm) && KeyType.EC.equals(key.getKeyType())) {
-				if(key.getKeyUse()!=null) {
-					if(KeyUse.SIGNATURE.equals(key.getKeyUse()) && JWSAlgorithm.Family.SIGNATURE.contains(key.getAlgorithm())) {
-						selectedKey = key;
-						break;
-					}
-				} else {
-					selectedKey = key;
-				}
-			} else if(jwsAlgorithm.getName().startsWith("PS") && KeyType.RSA.equals(key.getKeyType())) {
-				if(key.getKeyUse()!=null) {
-					if(KeyUse.SIGNATURE.equals(key.getKeyUse()) && JWSAlgorithm.Family.SIGNATURE.contains(key.getAlgorithm())) {
-						selectedKey = key;
-						break;
-					}
-				} else {
-					selectedKey = key;
-				}
-			} else if(jwsAlgorithm.getName().startsWith("RS") && KeyType.RSA.equals(key.getKeyType())) {
-				if(key.getKeyUse()!=null) {
-					if(KeyUse.SIGNATURE.equals(key.getKeyUse()) && JWSAlgorithm.Family.SIGNATURE.contains(key.getAlgorithm())) {
-						selectedKey = key;
-						break;
-					}
-				} else {
-					selectedKey = key;
-				}
-			}
-		}
-		return selectedKey;
-	}
 
-	protected Environment signJWTUsingKey(Environment env, JsonObject claims, JWK jwk) {
+
+	protected Environment signJWTUsingKey(Environment env, JsonObject claims, JWK jwk, String alg) {
 
 		if (claims == null) {
 			throw error("Couldn't find claims");
@@ -218,19 +178,16 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 				signer = new ECDSASigner((ECKey) jwk);
 			} else if (KeyType.OCT.equals(jwk.getKeyType())) {
 				signer = new MACSigner((OctetSequenceKey) jwk);
+			} else if (KeyType.OKP.equals(jwk.getKeyType())) {
+				signer = new Ed25519Signer((OctetKeyPair) jwk);
 			}
 
 			if (signer == null) {
 				throw error("Couldn't create signer from key; kty must be one of 'oct', 'rsa', 'ec'", args("jwk", jwk.toJSONString()));
 			}
 
-			Algorithm alg = jwk.getAlgorithm();
-			if (alg == null) {
-				//unlikely to happen but just in case
-				throw error("No 'alg' field specified in key", args("jwk", jwk.toJSONString()));
-			}
 
-			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.parse(alg.getName()))
+			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.parse(alg))
 				.keyID(jwk.getKeyID())
 				.build();
 

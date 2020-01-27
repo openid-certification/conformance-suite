@@ -44,7 +44,7 @@ public class OIDCCSignIdToken extends AbstractSignJWT {
 		JsonObject client = env.getObject("client");
 
 		JWK selectedKey = selectOrCreateKey(jwks, signingAlg, client);
-		signJWTUsingKey(env, claims, selectedKey);
+		signJWTUsingKey(env, claims, selectedKey, signingAlg);
 		return env;
 	}
 

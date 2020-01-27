@@ -14,6 +14,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.JWKGenerator;
+import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -27,10 +28,14 @@ import java.util.UUID;
 
 public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
-	protected int numberOfRSSigningKeys = 2;
-	protected int numberOfPSSigningKeys = 2;
-	protected int numberOfESSigningKeys = 2;
-	protected int numberOfEdSigningKeys = 2;
+	protected int numberOfRSASigningKeysWithNoAlg = 2;
+	protected int numberOfECSigningKeysWithNoAlg = 2;
+	protected int numberOfOKPSigningKeysWithNoAlg = 0;
+
+	protected int numberOfRSSigningKeys = 0;
+	protected int numberOfPSSigningKeys = 0;
+	protected int numberOfESSigningKeys = 0;
+	protected int numberOfEdSigningKeys = 0;
 
 	protected int numberOfRSAEncKeys = 1;
 	protected int numberOfECEncKeys = 1;
@@ -39,6 +44,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	protected int rsaKeySize = 2048;
 	protected Curve ecCurve = Curve.P_256;
+	protected Curve edCurve = Curve.Ed25519;
 
 	protected List<JWK> allGeneratedKeys;
 	protected List<JWK> signingKeyToBeUsed;
@@ -53,7 +59,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	protected JWEAlgorithm encryptionAlgorithmForECKeys = JWEAlgorithm.ECDH_ES;
 
 	/**
-	 * override this and call setters
+	 * override this and call setters to set number of keys
 	 */
 	protected void setupParameters() {
 
@@ -68,11 +74,16 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		setupParameters();
 
 		try {
-			//changing the order of createKeys calls here may change the selected keys and signing algorithm
+			//changing the order of createKeys calls here may affect the signing key selection
+			//See JWKUtil.selectAsymmetricJWSKey for full details
+			createKeys(numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null);
+			createKeys(numberOfECSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null);
+			createKeys(numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null);
+
 			createKeys(numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm);
 			createKeys(numberOfESSigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm);
 			createKeys(numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm);
-			createKeys(numberOfEdSigningKeys, KeyType.EC, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA);
+			createKeys(numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA);
 
 			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys);
 			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys);
@@ -103,6 +114,14 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	}
 
+	/**
+	 *
+	 * @param keyCount
+	 * @param keyType EC, RSA or OKP
+	 * @param keyUse if null keys won't have use
+	 * @param algorithm if null keys won't have alg
+	 * @throws JOSEException
+	 */
 	protected void createKeys(int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm) throws JOSEException {
 		if(keyCount<1) {
 			return;
@@ -115,12 +134,18 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 				jwkGenerator = new ECKeyGenerator(ecCurve);
 			} else if (KeyType.RSA.equals(keyType)) {
 				jwkGenerator = new RSAKeyGenerator(rsaKeySize);
+			} else if (KeyType.OKP.equals(keyType)) {
+				jwkGenerator = new OctetKeyPairGenerator(edCurve);
 			}
-			jwkGenerator.keyUse(keyUse);
+			if(keyUse!=null) {
+				jwkGenerator.keyUse(keyUse);
+			}
 			if(generateKids) {
 				jwkGenerator.keyID(UUID.randomUUID().toString());
 			}
-			jwkGenerator.algorithm(algorithm);
+			if(algorithm!=null) {
+				jwkGenerator.algorithm(algorithm);
+			}
 
 			JWK generatedJWK = jwkGenerator.generate();
 			allGeneratedKeys.add(generatedJWK);
@@ -227,6 +252,13 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		return ecCurve;
 	}
 
+	public Curve getEdCurve() {
+		return edCurve;
+	}
+
+	public void setEdCurve(Curve edCurve) {
+		this.edCurve = edCurve;
+	}
 
 	public JWSAlgorithm getRsSigningAlgorithm() {
 		return rsSigningAlgorithm;
@@ -262,5 +294,29 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	public JWEAlgorithm getEncryptionAlgorithmForECKeys() {
 		return encryptionAlgorithmForECKeys;
+	}
+
+	public int getNumberOfRSASigningKeysWithNoAlg() {
+		return numberOfRSASigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfRSASigningKeysWithNoAlg(int numberOfRSASigningKeysWithNoAlg) {
+		this.numberOfRSASigningKeysWithNoAlg = numberOfRSASigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfECSigningKeysWithNoAlg() {
+		return numberOfECSigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfECSigningKeysWithNoAlg(int numberOfECSigningKeysWithNoAlg) {
+		this.numberOfECSigningKeysWithNoAlg = numberOfECSigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfOKPSigningKeysWithNoAlg() {
+		return numberOfOKPSigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfOKPSigningKeysWithNoAlg(int numberOfOKPSigningKeysWithNoAlg) {
+		this.numberOfOKPSigningKeysWithNoAlg = numberOfOKPSigningKeysWithNoAlg;
 	}
 }

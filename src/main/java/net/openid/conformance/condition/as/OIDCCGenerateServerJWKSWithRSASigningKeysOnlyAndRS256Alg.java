@@ -14,6 +14,12 @@ public class OIDCCGenerateServerJWKSWithRSASigningKeysOnlyAndRS256Alg extends OI
 		this.setNumberOfESSigningKeys(0);
 		this.setNumberOfEdSigningKeys(0);
 		this.setNumberOfPSSigningKeys(0);
+		this.setNumberOfECSigningKeysWithNoAlg(0);
+		this.setNumberOfOKPSigningKeysWithNoAlg(0);
+		//note that in this test, all keys will have alg set to RS256
+		this.setNumberOfRSASigningKeysWithNoAlg(0);
+
+		this.setNumberOfRSSigningKeys(3);
 		this.setRsSigningAlgorithm(JWSAlgorithm.RS256);
 	}
 }
