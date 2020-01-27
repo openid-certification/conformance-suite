@@ -52,7 +52,8 @@ public class OIDCCSignIdToken extends AbstractSignJWT {
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 		env.putString("id_token", jws);
 		logSuccess("Signed the ID token",
-			args("id_token", verifiableObj, "algorithm", header.getAlgorithm(), "key", jwk));
+			args("id_token", verifiableObj, "algorithm", header.getAlgorithm().getName(),
+					"key", jwk.toJSONString()));
 	}
 
 }
