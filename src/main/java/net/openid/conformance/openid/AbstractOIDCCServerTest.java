@@ -337,6 +337,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void createDynamicClientRegistrationRequest() {
 
+		// Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Registration_Dynamic
 		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));

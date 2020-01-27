@@ -11,7 +11,6 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCDiscoveryEndpointVerification.class,
 
 		// Dynamic registration tests
-		OIDCCRegistrationDynamic.class,
 		OIDCCRegistrationJwksUri.class,
 		OIDCCRegistrationLogoUri.class,
 		OIDCCRegistrationPolicyUri.class,
