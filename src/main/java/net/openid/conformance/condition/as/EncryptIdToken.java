@@ -6,7 +6,8 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EncryptIdToken extends AbstractJWEEncryptString {
+public class EncryptIdToken extends AbstractJWEEncryptStringToClient
+{
 
 	@Override
 	@PreEnvironment(strings = "id_token", required = "client")

@@ -28,7 +28,7 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
-public class OIDCCSignIdToken extends AbstractOIDCCSignJWT {
+public class OIDCCSignIdToken extends AbstractSignJWT {
 
 	@Override
 	@PreEnvironment(required = { "id_token_claims", "server_jwks", "client"}, strings = {"signing_algorithm" })
@@ -51,7 +51,8 @@ public class OIDCCSignIdToken extends AbstractOIDCCSignJWT {
 	@Override
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 		env.putString("id_token", jws);
-		logSuccess("Signed the ID token", args("id_token", verifiableObj));
+		logSuccess("Signed the ID token",
+			args("id_token", verifiableObj, "algorithm", header.getAlgorithm(), "key", jwk));
 	}
 
 }

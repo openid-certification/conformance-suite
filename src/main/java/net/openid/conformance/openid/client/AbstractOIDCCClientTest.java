@@ -217,15 +217,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateConfiguredServerJWKS();
 
-		if(clientRegistrationType==ClientRegistration.STATIC_CLIENT) {
-			setServerSigningAlgorithm();
-		}
-
 		configureUserInfo();
 
 		configureClientConfiguration();
 
 		onBeforeFireSetupDone();
+
+		if(clientRegistrationType==ClientRegistration.STATIC_CLIENT) {
+			setServerSigningAlgorithm();
+		}
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}

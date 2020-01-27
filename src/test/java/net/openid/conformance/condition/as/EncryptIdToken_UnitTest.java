@@ -158,7 +158,6 @@ public class EncryptIdToken_UnitTest
 		env.putString("id_token", "eyJraWQiOiIwNzk2Zjg2ZC01MmNkLTQwMTAtYWRjNS1hNjk1N2JhMTc0OGQiLCJhbGciOiJIUzUxMiJ9.eyJhdF9oYXNoIjoiOE5qdWludmR1VXpkZFowYmtHVW9OQ1UzWkhvNGgwWGFqd0ZyeUNGOFZJayIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiYXVkIjoiY2xpZW50X0taV1h5VmhDWnJIeUVDYTY5NDY4KiMrJSkiLCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0LmVtb2JpeC5jby51azo4NDQzXC90ZXN0XC9hXC9vcGVuaWQtY2xpZW50XC8iLCJleHAiOjE1NzkzMzA5NDEsImlhdCI6MTU3OTMzMDY0MX0.q9_V3Hxz74D2xvFgU0SLDmt7nz6UGzTwK3icoNdQJkARitdwKqG9PfoUdlZ4wQuOjiwFTcQQMt_u-ClMOoBPkA");
 		cond.execute(env);
 		String encrypted = env.getString("id_token");
-		System.out.println(encrypted);
 		assertNotNull(encrypted);
 	}
 
@@ -171,7 +170,6 @@ public class EncryptIdToken_UnitTest
 		env.putString("id_token", idToken);
 		cond.execute(env);
 		String encrypted = env.getString("id_token");
-		System.out.println(encrypted);
 		String clientSecret = env.getString("client", "client_secret");
 		try
 		{
@@ -201,7 +199,6 @@ public class EncryptIdToken_UnitTest
 		env.putString("id_token", idToken);
 		cond.execute(env);
 		String encrypted = env.getString("id_token");
-		System.out.println(encrypted);
 		String clientSecret = env.getString("client", "client_secret");
 		try
 		{
@@ -265,7 +262,6 @@ public class EncryptIdToken_UnitTest
 		env.putString("id_token", idToken);
 		cond.execute(env);
 		String encrypted = env.getString("id_token");
-		System.out.println(encrypted);
 		String clientSecret = env.getString("client", "client_secret");
 		try
 		{
@@ -329,7 +325,6 @@ public class EncryptIdToken_UnitTest
 		env.putString("id_token", idToken);
 		cond.execute(env);
 		String encrypted = env.getString("id_token");
-		System.out.println(encrypted);
 		String clientSecret = env.getString("client", "client_secret");
 		try
 		{

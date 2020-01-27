@@ -6,7 +6,8 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EncryptUserInfoResponse extends AbstractJWEEncryptString {
+public class EncryptUserInfoResponse extends AbstractJWEEncryptStringToClient
+{
 
 	/**
 	 * Also requires, either signed_user_info_endpoint_response or user_info_endpoint_response

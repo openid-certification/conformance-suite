@@ -81,11 +81,11 @@ public class JWTUtil {
 	 * use if the JWT may be encrypted, e.g an encrypted request object
 	 * @param jwtAsString
 	 * @param client
-	 * @param serverJwksWithEncKeys
+	 * @param publicJwksWithEncKeys
 	 * @return may return null if decryption fails
 	 * @throws ParseException
 	 */
-	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject serverJwksWithEncKeys)
+	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject publicJwksWithEncKeys)
 		throws ParseException, JOSEException {
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 		if(token instanceof EncryptedJWT) {
@@ -96,20 +96,13 @@ public class JWTUtil {
 				decryptionKey = JWEUtil.createSymmetricJWKForAlgAndSecret(OIDFJSON.getString(client.get("client_secret")),
 										alg, encryptedJWT.getHeader().getEncryptionMethod(), UUID.randomUUID().toString());
 			} else {
-				JWKSet jwkSet = JWKUtil.parseJWKSet(serverJwksWithEncKeys.toString());
+				JWKSet jwkSet = JWKUtil.parseJWKSet(publicJwksWithEncKeys.toString());
 				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
 			}
 			JWEDecrypter decrypter = null;
 			decrypter = JWEUtil.createDecrypter(decryptionKey);
-			if(decrypter==null){
-				return null;
-			}
 			encryptedJWT.decrypt(decrypter);
-			if(encryptedJWT.getPayload()==null){
-				return null;
-			} else {
-				return JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
-			}
+			return JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
 		} else {
 			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
 			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);

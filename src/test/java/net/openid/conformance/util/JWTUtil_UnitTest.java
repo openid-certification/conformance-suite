@@ -235,7 +235,6 @@ public class JWTUtil_UnitTest {
 		JsonObject jwksJsonObject = new JsonParser().parse(serverJwks).getAsJsonObject();
 		try {
 			JsonObject jsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObject,clientJsonObject, jwksJsonObject);
-			System.out.println(jsonObject.toString());
 			assertNotNull(jsonObject);
 			assertNotNull(jsonObject.get("claims"));
 		} catch (Exception e) {

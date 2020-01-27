@@ -215,8 +215,7 @@ public class JWEUtil {
 			ECDHDecrypter ecdhDecrypter = new ECDHDecrypter((ECKey)key);
 			return ecdhDecrypter;
 		} else {
-			//TODO what to do in this case?
-			return null;
+			throw new RuntimeException("Unexpected algorithm for key: " + key.toJSONString());
 		}
 	}
 }

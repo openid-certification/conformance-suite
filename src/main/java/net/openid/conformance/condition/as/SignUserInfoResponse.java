@@ -10,7 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignUserInfoResponse extends AbstractOIDCCSignJWT {
+public class SignUserInfoResponse extends AbstractSignJWT {
 
 
 	/**
