@@ -5,15 +5,10 @@
         "discoveryUrl": "https://oidcc-provider:3000/.well-known/openid-configuration"
     },
     "client": {
-        "client_name": "first-openid-client",
-        "scope": "openid address email phone profile offline_access"
+        "client_name": "first-openid-client"
     },
     "client2": {
-        "client_name": "first-openid-client",
-        "scope": "openid address email phone profile offline_access"
-    },
-    "resource": {
-        "resourceUrl": "https://oidcc-provider:3000/me"
+        "client_name": "second-openid-client"
     },
     "browser": [
         {
@@ -82,6 +77,74 @@
     ],
     "override": {
         "oidcc-prompt-login": {
+            "browser": [
+                {
+                    "comment": "updates placeholder during the second authorization",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Login",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-in",
+                                    "update-image-placeholder-optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "login",
+                                    "foo",
+                                    "optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "password",
+                                    "bar",
+                                    "optional"
+                                ],
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Consent",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Verify Complete",
+                            "match": "*/test/a/local-oidcc/callback*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "id",
+                                    "submission_complete",
+                                    10
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-max-age-1": {
             "browser": [
                 {
                     "comment": "updates placeholder during the second authorization",

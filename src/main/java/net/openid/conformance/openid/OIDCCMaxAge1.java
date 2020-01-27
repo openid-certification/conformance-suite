@@ -1,23 +1,26 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddPromptLoginToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddMaxAge1ToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaimPresent;
+import net.openid.conformance.condition.client.CheckIdTokenAuthTimeIsRecentIfPresent;
 import net.openid.conformance.condition.client.CheckSecondIdTokenAuthTimeIsLaterIfPresent;
 import net.openid.conformance.condition.client.ExpectSecondLoginPage;
-import net.openid.conformance.condition.client.WaitForOneSecond;
+import net.openid.conformance.condition.client.WaitFor2Seconds;
 import net.openid.conformance.testmodule.PublishTestModule;
 
-// Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-prompt-login.json
+// Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Req_max_age=1
+// https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-Req-max_age=1.json
 @PublishTestModule(
-	testName = "oidcc-prompt-login",
-	displayName = "OIDCC: prompt=login",
-	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=login, so that the authorization server is required to ask the user to login a second time. If auth_time is present in the id_tokens, the value from the second login must be later than the time in the original token. A screenshot of the second authorization should be uploaded.",
+	testName = "oidcc-max-age-1",
+	displayName = "OIDCC: max-age=1",
+	summary = "This test calls the authorization endpoint test twice. The second time it waits 1 second and includes max_age=1, so that the authorization server is required to ask the user to login a second time and must return an auth_time claim in the second id_token. A screenshot of the second authorization should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
 			"server.discoveryUrl"
 	}
 )
-public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
+public class OIDCCMaxAge1 extends AbstractOIDCCServerTest {
 	private boolean firstTime = true;
 
 	@Override
@@ -43,10 +46,11 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 			super.createAuthorizationRequest();
 		} else {
 			env.unmapKey("id_token");
-			// make sure the auth definitely happens at least 1 second after the original one, so auth_time will be different
-			callAndStopOnFailure(WaitForOneSecond.class);
+			// we're sending max_age=2, so after 1 second the previous authentication is just still valid - so wait for
+			// 2 seconds
+			callAndStopOnFailure(WaitFor2Seconds.class);
 			call(new CreateAuthorizationRequestSteps()
-				.then(condition(AddPromptLoginToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
+				.then(condition(AddMaxAge1ToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 		}
 	}
 
@@ -59,14 +63,22 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 		}
 	}
 
+	@Override
+	protected void performIdTokenValidation() {
+		super.performIdTokenValidation();
+		if (!firstTime) {
+			callAndContinueOnFailure(CheckIdTokenAuthTimeClaimPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2", "OIDCC-3.1.2.1");
+			callAndContinueOnFailure(CheckSecondIdTokenAuthTimeIsLaterIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+			callAndContinueOnFailure(CheckIdTokenAuthTimeIsRecentIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+		}
+	}
+
 	protected void onPostAuthorizationFlowComplete() {
 		if (firstTime) {
 			firstTime = false;
 			// do the process again, but with prompt=login this time
 			performAuthorizationFlow();
 		} else {
-			callAndContinueOnFailure(CheckSecondIdTokenAuthTimeIsLaterIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
-
 			setStatus(Status.WAITING);
 			waitForPlaceholders();
 		}

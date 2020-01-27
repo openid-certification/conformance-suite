@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddPromptLoginToAuthorizationEndpointRequest extends AbstractCondition {
+public class AddMaxAge1ToAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
@@ -15,11 +15,11 @@ public class AddPromptLoginToAuthorizationEndpointRequest extends AbstractCondit
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		authorizationEndpointRequest.addProperty("prompt", "login");
+		authorizationEndpointRequest.addProperty("max_age", 1);
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added prompt=login to authorization endpoint request", authorizationEndpointRequest);
+		logSuccess("Added max_age=1 to authorization endpoint request", authorizationEndpointRequest);
 
 		return env;
 
