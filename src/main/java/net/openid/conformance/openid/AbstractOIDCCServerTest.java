@@ -129,7 +129,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected ResponseType responseType;
 
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
-	protected Class<? extends ConditionSequence> profileDynamicClientConfiguration;
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
@@ -188,7 +187,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupNone() {
 		profileStaticClientConfiguration = null;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = null;
 	}
@@ -196,7 +194,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
 		profileStaticClientConfiguration = null;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
@@ -204,7 +201,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		profileStaticClientConfiguration = null;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
@@ -212,7 +208,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJwt() {
 		profileStaticClientConfiguration = null;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
@@ -220,7 +215,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = null;
 		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
 	}
@@ -228,7 +222,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
 		profileStaticClientConfiguration = null;
-		profileDynamicClientConfiguration = null;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
@@ -341,10 +334,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
-
-		if (profileDynamicClientConfiguration != null) {
-			call(sequence(profileDynamicClientConfiguration));
-		}
 	}
 
 	protected void configureDynamicClient() {
