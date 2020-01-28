@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "oidcc-registration-logo-uri",
 	displayName = "OIDCC: dynamic registration with Logo URI",
-	summary = "This test calls the dynamic registration endpoint with a logo URI. This should result in the browser being redirected to a login page with the RP logo displayed.",
+	summary = "This test calls the dynamic registration endpoint with a logo URI. This should result in the browser being redirected to a login page with the RP logo displayed. To make sure you get a fresh login page, you need to remove any cookies you may have received from the OP before proceeding. A screenshot of the login page should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl"
