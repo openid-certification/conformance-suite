@@ -14,12 +14,16 @@ import com.nimbusds.jose.crypto.ECDHDecrypter;
 import com.nimbusds.jose.crypto.ECDHEncrypter;
 import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
+import com.nimbusds.jose.crypto.X25519Decrypter;
+import com.nimbusds.jose.crypto.X25519Encrypter;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKMatcher;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
@@ -116,14 +120,14 @@ public class JWEUtil {
 				break;
 			default:
 				//TODO handle this better?
-				return null;
+				throw new RuntimeException("Unexpected algorithm:" + algorithm);
 		}
 
 		try {
 			digester = MessageDigest.getInstance(digestAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			//TODO throw this error? should not happen in practice. possible only if sha256 is not available
-			return null;
+			//should not happen in practice. possible only if sha256 is not available
+			throw new RuntimeException(e);
 		}
 
 		byte[] digest = digester.digest(inputString.getBytes(StandardCharsets.UTF_8));
@@ -176,11 +180,13 @@ public class JWEUtil {
 		}
 		if(KeyType.OCT.equals(key.getKeyType())) {
 			if(AESEncrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm()) ) {
-				AESEncrypter encrypter = new AESEncrypter((OctetSequenceKey)key);
-				return encrypter;
+				AESEncrypter aesEncrypter = new AESEncrypter((OctetSequenceKey)key);
+				return aesEncrypter;
 			} else if(DirectEncrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
 				DirectEncrypter directEncrypter = new DirectEncrypter((OctetSequenceKey)key);
 				return directEncrypter;
+			} else {
+				throw new RuntimeException("Unexpected algorithm:" + key.getAlgorithm());
 			}
 		} else if(KeyType.RSA.equals(key.getKeyType())) {
 			RSAEncrypter rsaEncrypter = new RSAEncrypter((RSAKey)key);
@@ -188,16 +194,19 @@ public class JWEUtil {
 		} else if(KeyType.EC.equals(key.getKeyType())) {
 			ECDHEncrypter ecdhEncrypter = new ECDHEncrypter((ECKey)key);
 			return ecdhEncrypter;
-		} else {
-			//TODO what to do in this case?
-			return null;
+		} else if(KeyType.OKP.equals(key.getKeyType())) {
+			OctetKeyPair octetKeyPair = (OctetKeyPair)key;
+			if(Curve.Ed25519.equals(octetKeyPair.getCurve())) {
+				X25519Encrypter edEncrypter = new X25519Encrypter(octetKeyPair);
+				return edEncrypter;
+			}
 		}
-		return null;
+		throw new RuntimeException("Unexpected key type:" + key.getKeyType());
 	}
 
 	/**
 	 * @param key
-	 * @return AESDecrypter or DirectDecrypter or RSADecrypter or ECDHDecrypter or null
+	 * @return AESDecrypter or DirectDecrypter or RSADecrypter or ECDHDecrypter or X25519Decrypter or null
 	 * @throws JOSEException
 	 */
 	public static JWEDecrypter createDecrypter(JWK key) throws JOSEException
@@ -212,8 +221,11 @@ public class JWEUtil {
 			RSADecrypter rsaDecrypter = new RSADecrypter((RSAKey)key);
 			return rsaDecrypter;
 		} else if(ECDHDecrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
-			ECDHDecrypter ecdhDecrypter = new ECDHDecrypter((ECKey)key);
+			ECDHDecrypter ecdhDecrypter = new ECDHDecrypter((ECKey) key);
 			return ecdhDecrypter;
+		} else if(X25519Decrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+			X25519Decrypter decrypter = new X25519Decrypter((OctetKeyPair) key);
+			return decrypter;
 		} else {
 			throw new RuntimeException("Unexpected algorithm for key: " + key.toJSONString());
 		}

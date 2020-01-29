@@ -145,13 +145,14 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 					selectedKey = JWKUtil.selectAsymmetricJWSKey(jwsAlgorithm, keys);
 				}
 			} catch (ParseException e) {
-				throw error("Could not parse server jwks. Failed to find a signing key.", e,
-							args("server_jwks", jwks, "alg", signingAlg));
+				throw error("Could not parse jwks. Failed to find a signing key.", e,
+							args("jwks", jwks, "alg", signingAlg));
 			}
-		}
-		//throw an error if a key that will satisfy the alg cannot be found
-		if(selectedKey == null) {
-			throw error("Could not find a signing key", args("signing_algorithm", signingAlg));
+			//throw an error if a key that will satisfy the alg cannot be found
+			if(selectedKey == null) {
+				throw error("Jwks does not contain a suitable signing key for the selected algorithm",
+							args("signing_algorithm", signingAlg));
+			}
 		}
 		return selectedKey;
 	}

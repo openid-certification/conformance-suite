@@ -99,8 +99,7 @@ public class JWTUtil {
 				JWKSet jwkSet = JWKUtil.parseJWKSet(publicJwksWithEncKeys.toString());
 				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
 			}
-			JWEDecrypter decrypter = null;
-			decrypter = JWEUtil.createDecrypter(decryptionKey);
+			JWEDecrypter decrypter = JWEUtil.createDecrypter(decryptionKey);
 			encryptedJWT.decrypt(decrypter);
 			return JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
 		} else {
