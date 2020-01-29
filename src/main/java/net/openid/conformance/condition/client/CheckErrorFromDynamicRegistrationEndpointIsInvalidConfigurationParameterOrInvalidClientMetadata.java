@@ -27,7 +27,7 @@ public class CheckErrorFromDynamicRegistrationEndpointIsInvalidConfigurationPara
 			throw error("'error' field has unexpected value", args("permitted", PERMITTED_ERRORS, "actual", error));
 		}
 
-		logSuccess("Authorization endpoint returned 'error'", args("permitted", PERMITTED_ERRORS, "error", error));
+		logSuccess("Dynamic registration endpoint returned 'error'", args("permitted", PERMITTED_ERRORS, "error", error));
 
 		return env;
 	}

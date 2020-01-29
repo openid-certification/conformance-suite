@@ -150,7 +150,7 @@ makeServerTest() {
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=id_token\ token][client_registration=static_client] authlete-oidcc-privatekey.json"
 
     # private_key_jwt - dynamic client
-    #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+    TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][client_registration=dynamic_client] authlete-oidcc-dcr.json"

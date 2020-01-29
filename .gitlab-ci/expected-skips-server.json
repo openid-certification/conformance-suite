@@ -25,5 +25,14 @@
             "client_registration": "dynamic_client"
         },
         "configuration-filename": "authlete-oidcc-dcr.json"
+    },
+    {
+        "test-name": "oidcc-idtoken-unsigned",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "response_type": "code",
+            "client_registration": "dynamic_client"
+        },
+        "configuration-filename": "authlete-oidcc-dcr.json"
     }
 ]

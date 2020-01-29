@@ -20,14 +20,6 @@
                     "match": "https://oidcc-provider:3000/interaction*",
                     "commands": [
                         [
-                            "wait",
-                            "xpath",
-                            "//*",
-                            10,
-                            "Sign-in",
-                            "update-image-placeholder-optional"
-                        ],
-                        [
                             "text",
                             "name",
                             "login",
@@ -252,6 +244,78 @@
                                     "//*",
                                     10,
                                     "oops! something went wrong",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-registration-logo-uri": {
+            "browser": [
+                {
+                    "comment": "expect a login page with logo",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect a login page with logo",
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-in",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-registration-policy-uri": {
+            "browser": [
+                {
+                    "comment": "expect a login page with policy document link",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect a login page with policy document link",
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-in",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-registration-tos-uri": {
+            "browser": [
+                {
+                    "comment": "expect a login page with TOS document link",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect a login page with TOS document link",
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-in",
                                     "update-image-placeholder"
                                 ]
                             ]
