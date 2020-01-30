@@ -47,6 +47,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRegisteredRedirectUri.class,
 		OIDCCEnsureRequestObjectWithRedirectUri.class,
 		OIDCCEnsureRequestWithoutNonceFails.class,
+		OIDCCRedirectUriQueryAdded.class,
 		OIDCCRegistrationSectorBad.class,
 		OIDCCResponseTypeMissing.class,
 	}
