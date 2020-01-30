@@ -38,7 +38,7 @@ public class OIDCCEnsureRedirectUriInAuthorizationRequest extends AbstractOIDCCS
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(RemoveRedirectUriFromAuthorizationEndpointRequest.class)));
 	}
 

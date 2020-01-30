@@ -1,13 +1,12 @@
 package net.openid.conformance.openid;
 
-import java.util.function.Supplier;
-
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
+import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
@@ -26,15 +25,19 @@ import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrati
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
+import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
+import java.util.function.Supplier;
+
 @VariantParameters({
 	ClientAuthType.class,
 	ResponseType.class,
+	ResponseMode.class,
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
@@ -49,6 +52,7 @@ import net.openid.conformance.variant.VariantSetup;
 public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
+	protected boolean formPost;
 
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration = null;
 	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases = null;
@@ -73,6 +77,8 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
+
+		formPost = getVariant(ResponseMode.class) == ResponseMode.FORM_POST;
 
 		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
 		env.putString("client_auth_type", clientAuthType.toString());
@@ -141,7 +147,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	abstract protected void performAuthorizationFlow();
 
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps());
+		call(new CreateAuthorizationRequestSteps(formPost));
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -152,7 +158,13 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	protected void processCallback() {
 		// We're not expecting a callback, but we need to handle any potential error response
 
-		if (responseType.equals(ResponseType.CODE)) {
+		if (formPost) {
+			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
+			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+		} else if (responseType.equals(ResponseType.CODE)) {
 			env.mapKey("authorization_endpoint_response", "callback_query_params");
 		} else {
 			env.mapKey("authorization_endpoint_response", "callback_params");

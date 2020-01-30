@@ -37,7 +37,7 @@ public class OIDCCRedirectUriQueryMismatch extends AbstractOIDCCServerTestExpect
 	}
 
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(ReplaceRedirectUriQueryInAuthorizationRequest.class)));
 	}
 

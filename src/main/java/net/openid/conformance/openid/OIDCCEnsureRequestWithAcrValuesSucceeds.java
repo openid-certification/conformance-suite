@@ -19,7 +19,7 @@ public class OIDCCEnsureRequestWithAcrValuesSucceeds extends AbstractOIDCCServer
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(OIDCCAddAcrValuesToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 	}
 

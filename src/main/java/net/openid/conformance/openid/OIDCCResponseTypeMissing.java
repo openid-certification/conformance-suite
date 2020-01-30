@@ -20,7 +20,7 @@ public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAu
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.skip(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class, "Miss out the response_type"));
 	}
 

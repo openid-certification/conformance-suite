@@ -17,7 +17,7 @@ public class OIDCCClaimsLocales extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.then(condition(AddClaimsLocalesSeToAuthorizationEndpointRequest.class).requirements("OIDCC-5.2", "OIDCC-15.1")));
 	}
 

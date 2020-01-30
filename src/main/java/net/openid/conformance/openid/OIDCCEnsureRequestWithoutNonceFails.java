@@ -29,7 +29,7 @@ public class OIDCCEnsureRequestWithoutNonceFails extends AbstractOIDCCServerTest
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.skip(AddNonceToAuthorizationEndpointRequest.class,
 						"NOT adding nonce to request object"));
 	}

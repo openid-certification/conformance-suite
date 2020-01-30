@@ -12,6 +12,8 @@ import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorization
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
@@ -48,6 +50,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
@@ -79,6 +82,7 @@ import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrati
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
+import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -90,6 +94,7 @@ import java.util.function.Supplier;
 @VariantParameters({
 	ClientAuthType.class,
 	ResponseType.class,
+	ResponseMode.class,
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
@@ -125,6 +130,7 @@ import java.util.function.Supplier;
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
+	protected boolean formPost;
 
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
@@ -239,6 +245,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			fireTestFinished();
 			return;
 		}
+		formPost = getVariant(ResponseMode.class) == ResponseMode.FORM_POST;
 
 		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
 		env.putString("client_auth_type", clientAuthType.toString());
@@ -364,6 +371,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
+		protected boolean formPost;
+
+		CreateAuthorizationRequestSteps(boolean formPost) {
+			this.formPost = formPost;
+		}
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
@@ -377,11 +389,15 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
+
+			if (formPost) {
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToFormPost.class);
+			}
 		}
 	}
 
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps());
+		call(new CreateAuthorizationRequestSteps(formPost));
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -391,7 +407,13 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void processCallback() {
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		if (isCodeFlow()) {
+		if (formPost) {
+			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
+			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+		} else if (isCodeFlow()) {
 			env.mapKey("authorization_endpoint_response", "callback_query_params");
 		} else {
 			env.mapKey("authorization_endpoint_response", "callback_params");

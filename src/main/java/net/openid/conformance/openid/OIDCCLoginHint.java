@@ -19,7 +19,7 @@ public class OIDCCLoginHint extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.then(condition(AddLoginHintFromConfigurationToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1")));
 	}
 
