@@ -33,6 +33,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCPromptLogin.class,
 		OIDCCPromptNoneLoggedIn.class,
 		OIDCCPromptNoneNotLoggedIn.class,
+		OIDCCRedirectUriQueryOK.class,
 		OIDCCClaimsLocales.class,
 		OIDCCIdTokenHint.class,
 		OIDCCLoginHint.class,
