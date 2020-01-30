@@ -7,13 +7,17 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddIssAndAudToUserInfoResponse;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
+import net.openid.conformance.condition.as.EncryptIdToken;
+import net.openid.conformance.condition.as.EncryptUserInfoResponse;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -32,19 +36,19 @@ import net.openid.conformance.condition.as.EnsureValidRedirectUriForAuthorizatio
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FetchClientKeys;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.OIDCCExtractServerSigningAlg;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
+import net.openid.conformance.condition.as.OIDCCSignIdToken;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
@@ -53,7 +57,7 @@ import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedT
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
-import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.SignUserInfoResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
@@ -62,6 +66,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
+import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -96,6 +101,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -211,13 +217,16 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateConfiguredServerJWKS();
 
-		setServerSigningAlgorithm();
-
 		configureUserInfo();
 
 		configureClientConfiguration();
 
 		onBeforeFireSetupDone();
+
+		if(clientRegistrationType==ClientRegistration.STATIC_CLIENT) {
+			setServerSigningAlgorithm();
+		}
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -296,6 +305,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
+			//signing_algorithm will be also set after registration
 		}
 
 	}
@@ -368,7 +378,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		setStatus(Status.RUNNING);
+		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
+			//TODO temporary fix, until a finish-test endpoint is added
+			//don't change state. we finish the test after userinfo but clients may send
+			//a request to jwks endpoint when userinfo response is signed
+		} else {
+			setStatus(Status.RUNNING);
+		}
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
 
@@ -382,8 +398,13 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		Object responseObject = handleClientRequestForPath(requestId, path);
 
-		if(!finishTestIfAllRequestsAreReceived()) {
-			setStatus(Status.WAITING);
+		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
+			//TODO temporary fix, until a finish-test endpoint is added
+			//we want to allow jwks calls after the test is finished
+		} else {
+			if (!finishTestIfAllRequestsAreReceived()) {
+				setStatus(Status.WAITING);
+			}
 		}
 
 		return responseObject;
@@ -446,10 +467,45 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
+		signUserInfoResponseIfNecessary();
+
+		encryptUserInfoResponseIfNecessary();
+
 		call(exec().unmapKey("incoming_request").endBlock());
 
+		String encryptedUserinfoResponse = env.getString("encrypted_user_info_endpoint_response");
+		//If the UserInfo Response is signed and/or encrypted, then the Claims are returned in a
+		//JWT and the content-type MUST be application/jwt.
+		if(encryptedUserinfoResponse!=null) {
+			return createApplicationJwtResponse(encryptedUserinfoResponse);
+		} else {
+			String signedUserinfoResponse = env.getString("signed_user_info_endpoint_response");
+			if(signedUserinfoResponse!=null) {
+				return createApplicationJwtResponse(signedUserinfoResponse);
+			}
+		}
+		//neither signed nor encrypted
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
+	}
 
+	protected void signUserInfoResponseIfNecessary() {
+		//If signed, the UserInfo Response SHOULD contain the Claims iss (issuer) and aud (audience) as members.
+		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
+			AddIssAndAudToUserInfoResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+
+		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
+			SignUserInfoResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+	}
+
+	protected void encryptUserInfoResponseIfNecessary() {
+		skipIfElementMissing("client", "userinfo_encrypted_response_alg", Condition.ConditionResult.INFO,
+			EncryptUserInfoResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+	}
+
+	protected ResponseEntity<Object> createApplicationJwtResponse(String body) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8);
+		return new ResponseEntity<Object>(body, headers, HttpStatus.OK);
 	}
 
 	/**
@@ -607,6 +663,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 		processAndValidateClientJwks();
 
+		//set signing_algorithm after registration
+		setServerSigningAlgorithm();
+		//set id_token_signed_response_alg to the actual server signing algorithm
+		callAndStopOnFailure(SetClientIdTokenSignedResponseAlgToServerSigningAlg.class);
+
 		JsonObject client = env.getObject("client");
 		return client;
 	}
@@ -685,7 +746,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		signIdToken();
 
 		customizeIdTokenSignature();
+
+		encryptIdTokenIfNecessary();
 	}
+
+	protected void encryptIdTokenIfNecessary() {
+		skipIfElementMissing("client", "id_token_encrypted_response_alg", Condition.ConditionResult.INFO,
+			EncryptIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2");
+	}
+
 /*
 	//s_hash is not applicable to core tests. Commenting out just in case it's needed in the future
 	protected void addSHashToIdToken() {
@@ -723,7 +792,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
+		callAndStopOnFailure(OIDCCSignIdToken.class);
 	}
 
 	protected void fetchAndProcessRequestUri() {
@@ -835,7 +904,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void setServerSigningAlgorithm() {
-		callAndStopOnFailure(ExtractServerSigningAlg.class);
+		callAndStopOnFailure(OIDCCExtractServerSigningAlg.class);
 	}
 
 	protected void createAuthorizationCode() {

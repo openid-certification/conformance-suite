@@ -21,14 +21,15 @@ import java.util.UUID;
 
 /**
  * There will be EC keys as well in the JWKS but the RSA one will be used for signing
+ * so there will be only one matching key
  */
 public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGenerateServerJWKs {
 
 	@Override
 	protected void setupParameters()
 	{
-		this.setSigningKeyTypeToUse(KeyTypeToUse.RSA);
 		this.setGenerateKids(false);
-		this.setNumberOfRSASigningKeys(1);
+		this.setNumberOfRSASigningKeysWithNoAlg(1);
+		this.setNumberOfECSigningKeysWithNoAlg(2);
 	}
 }

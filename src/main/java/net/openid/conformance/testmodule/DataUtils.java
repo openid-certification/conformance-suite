@@ -27,6 +27,7 @@ public interface DataUtils {
 	// https://github.com/spring-projects/spring-framework/issues/22788
 	// https://bitbucket.org/openid/fapi/issues/236/charset-not-needed-for-application-json
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
+	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8 = new MediaType("application", "jwt",StandardCharsets.UTF_8);
 
 	/**
 	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.

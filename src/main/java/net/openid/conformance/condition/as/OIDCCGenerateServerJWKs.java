@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -8,9 +9,12 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.jwk.gen.JWKGenerator;
+import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -23,28 +27,39 @@ import java.util.Random;
 import java.util.UUID;
 
 public class OIDCCGenerateServerJWKs extends AbstractCondition {
-	public enum KeyTypeToUse { RSA, EC };
-	protected KeyTypeToUse signingKeyTypeToUse = KeyTypeToUse.RSA;
-	protected KeyTypeToUse encKeyTypeToUse = KeyTypeToUse.RSA;
-	protected boolean generateRSAKeys = true;
-	protected boolean generateECKeys = true;
-	protected int numberOfRSASigningKeys = 2;
-	protected int numberOfECSigningKeys = 2;
+
+	protected int numberOfRSASigningKeysWithNoAlg = 2;
+	protected int numberOfECSigningKeysWithNoAlg = 2;
+	protected int numberOfOKPSigningKeysWithNoAlg = 0;
+
+	protected int numberOfRSSigningKeys = 0;
+	protected int numberOfPSSigningKeys = 0;
+	protected int numberOfESSigningKeys = 0;
+	protected int numberOfEdSigningKeys = 0;
+
 	protected int numberOfRSAEncKeys = 1;
 	protected int numberOfECEncKeys = 1;
+
 	protected boolean generateKids = true;
+
 	protected int rsaKeySize = 2048;
 	protected Curve ecCurve = Curve.P_256;
+	protected Curve edCurve = Curve.Ed25519;
+
 	protected List<JWK> allGeneratedKeys;
 	protected List<JWK> signingKeyToBeUsed;
 	protected List<JWK> encryptionKeysToBeUsed;
-	protected JWSAlgorithm signingAlgorithmForRSAKeys = JWSAlgorithm.RS256;
-	protected JWEAlgorithm encryptionAlgorithmForRSAKeys = JWEAlgorithm.RSA_OAEP_256;
-	protected JWSAlgorithm signingAlgorithmForECKeys = JWSAlgorithm.ES256;
+
+	protected JWSAlgorithm rsSigningAlgorithm = JWSAlgorithm.RS256;
+	protected JWSAlgorithm psSigningAlgorithm = JWSAlgorithm.PS256;
+	protected JWSAlgorithm esSigningAlgorithm = JWSAlgorithm.ES256;
+
+	@SuppressWarnings("deprecation")
+	protected JWEAlgorithm encryptionAlgorithmForRSAKeys = JWEAlgorithm.RSA_OAEP;
 	protected JWEAlgorithm encryptionAlgorithmForECKeys = JWEAlgorithm.ECDH_ES;
 
 	/**
-	 * override this and call setters
+	 * override this and call setters to set number of keys
 	 */
 	protected void setupParameters() {
 
@@ -59,15 +74,19 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		setupParameters();
 
 		try {
+			//changing the order of createKeys calls here may affect the signing key selection
+			//See JWKUtil.selectAsymmetricJWSKey for full details
+			createKeys(numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null);
+			createKeys(numberOfECSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null);
+			createKeys(numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null);
 
-			if(generateRSAKeys) {
-				createRSAKeys(KeyUse.SIGNATURE);
-				createRSAKeys(KeyUse.ENCRYPTION);
-			}
-			if(generateECKeys) {
-				createECKeys(KeyUse.SIGNATURE);
-				createECKeys(KeyUse.ENCRYPTION);
-			}
+			createKeys(numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm);
+			createKeys(numberOfESSigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm);
+			createKeys(numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm);
+			createKeys(numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA);
+
+			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys);
+			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys);
 
 			JWKSet publicJwkSet = new JWKSet(allGeneratedKeys);
 			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJwkSet);
@@ -95,170 +114,209 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	}
 
-	protected void createRSAKeys(KeyUse keyUse) throws JOSEException {
-		int whichKeyToUse = getIndexOfKeyToUse(keyUse);
-		int loopMax = numberOfRSASigningKeys;
-		if (keyUse == KeyUse.ENCRYPTION) {
-			loopMax = numberOfRSAEncKeys;
+	/**
+	 *
+	 * @param keyCount
+	 * @param keyType EC, RSA or OKP
+	 * @param keyUse if null keys won't have use
+	 * @param algorithm if null keys won't have alg
+	 * @throws JOSEException
+	 */
+	protected void createKeys(int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm) throws JOSEException {
+		if(keyCount<1) {
+			return;
 		}
+		int whichKeyToUse = getIndexOfKeyToUse(keyCount);
 
-		for(int i=0; i<loopMax; i++) {
-			RSAKeyGenerator rsaKeyGenerator = new RSAKeyGenerator(rsaKeySize);
-			rsaKeyGenerator.keyUse(keyUse);
+		for(int i=0; i<keyCount; i++) {
+			JWKGenerator<? extends JWK> jwkGenerator = null;
+			if (KeyType.EC.equals(keyType)) {
+				jwkGenerator = new ECKeyGenerator(ecCurve);
+			} else if (KeyType.RSA.equals(keyType)) {
+				jwkGenerator = new RSAKeyGenerator(rsaKeySize);
+			} else if (KeyType.OKP.equals(keyType)) {
+				jwkGenerator = new OctetKeyPairGenerator(edCurve);
+			}
+			if(keyUse!=null) {
+				jwkGenerator.keyUse(keyUse);
+			}
 			if(generateKids) {
-				rsaKeyGenerator.keyID(UUID.randomUUID().toString());
+				jwkGenerator.keyID(UUID.randomUUID().toString());
 			}
-			if(keyUse == KeyUse.SIGNATURE) {
-				rsaKeyGenerator.algorithm(signingAlgorithmForRSAKeys);
-			} else {
-				rsaKeyGenerator.algorithm(encryptionAlgorithmForRSAKeys);
-			}
-			RSAKey rsaKey = rsaKeyGenerator.generate();
-			allGeneratedKeys.add(rsaKey);
-			if (keyUse == KeyUse.ENCRYPTION) {
-				encryptionKeysToBeUsed.add(rsaKey);
+			if(algorithm!=null) {
+				jwkGenerator.algorithm(algorithm);
 			}
 
-			if(i==whichKeyToUse && (keyUse==KeyUse.SIGNATURE && signingKeyTypeToUse == KeyTypeToUse.RSA)) {
-				signingKeyToBeUsed.add(rsaKey);
+			JWK generatedJWK = jwkGenerator.generate();
+			allGeneratedKeys.add(generatedJWK);
+			if (keyUse == KeyUse.ENCRYPTION) {
+				encryptionKeysToBeUsed.add(generatedJWK);
+			}
+
+			if(i==whichKeyToUse && (keyUse==KeyUse.SIGNATURE)) {
+				signingKeyToBeUsed.add(generatedJWK);
 			}
 		}
 	}
 
-	protected void createECKeys(KeyUse keyUse) throws JOSEException {
-		int whichKeyToUse = getIndexOfKeyToUse(keyUse);
-		int loopMax = numberOfECSigningKeys;
-		if (keyUse == KeyUse.ENCRYPTION) {
-			loopMax = numberOfECEncKeys;
-		}
-		for(int i=0; i<loopMax; i++) {
-			ECKeyGenerator ecKeyGenerator = new ECKeyGenerator(ecCurve);
-			ecKeyGenerator.keyUse(keyUse);
-			if(generateKids) {
-				ecKeyGenerator.keyID(UUID.randomUUID().toString());
-			}
-			if(keyUse == KeyUse.SIGNATURE) {
-				ecKeyGenerator.algorithm(signingAlgorithmForECKeys);
-			} else {
-				ecKeyGenerator.algorithm(encryptionAlgorithmForECKeys);
-			}
-			ECKey ecKey = ecKeyGenerator.generate();
-			allGeneratedKeys.add(ecKey);
-			if (keyUse == KeyUse.ENCRYPTION) {
-				encryptionKeysToBeUsed.add(ecKey);
-			}
-
-			if(i==whichKeyToUse && (keyUse==KeyUse.SIGNATURE && signingKeyTypeToUse == KeyTypeToUse.EC)) {
-				signingKeyToBeUsed.add(ecKey);
-			}
-		}
-	}
 
 	/**
 	 * Returns a random key index
 	 * Override to use a constant index
-	 * @param keyUse
 	 * @return
 	 */
-	protected int getIndexOfKeyToUse(KeyUse keyUse) {
+	protected int getIndexOfKeyToUse(int keyCount) {
+		if(keyCount<2) {
+			return 0;
+		}
 		Random random = new Random();
 		int index = 0;
-		if(keyUse==KeyUse.SIGNATURE) {
-			if(signingKeyTypeToUse==KeyTypeToUse.RSA) {
-				if(numberOfRSASigningKeys>1) {
-					index = random.ints(1, 0, numberOfRSASigningKeys - 1).findFirst().getAsInt();
-				}
-			} else {
-				if(numberOfECSigningKeys>1) {
-					index = random.ints(1, 0, numberOfECSigningKeys - 1).findFirst().getAsInt();
-				}
-			}
-		} else {
-			if(encKeyTypeToUse==KeyTypeToUse.RSA) {
-				if(numberOfRSAEncKeys>1) {
-					index = random.ints(1, 0, numberOfRSAEncKeys - 1).findFirst().getAsInt();
-				}
-			} else {
-				if(numberOfECEncKeys>1) {
-					index = random.ints(1, 0, numberOfECEncKeys - 1).findFirst().getAsInt();
-				}
-			}
-		}
+		index = random.ints(1, 0, keyCount - 1).findFirst().getAsInt();
 		return index;
 	}
 
-	public void setSigningKeyTypeToUse(KeyTypeToUse signingKeyTypeToUse)
-	{
-		this.signingKeyTypeToUse = signingKeyTypeToUse;
-	}
 
-	public void setEncKeyTypeToUse(KeyTypeToUse encKeyTypeToUse)
-	{
-		this.encKeyTypeToUse = encKeyTypeToUse;
-	}
-
-	public void setGenerateRSAKeys(boolean generateRSAKeys)
-	{
-		this.generateRSAKeys = generateRSAKeys;
-	}
-
-	public void setGenerateECKeys(boolean generateECKeys)
-	{
-		this.generateECKeys = generateECKeys;
-	}
-
-	public void setNumberOfRSASigningKeys(int numberOfRSASigningKeys)
-	{
-		this.numberOfRSASigningKeys = numberOfRSASigningKeys;
-	}
-
-	public void setNumberOfECSigningKeys(int numberOfECSigningKeys)
-	{
-		this.numberOfECSigningKeys = numberOfECSigningKeys;
-	}
-
-	public void setNumberOfRSAEncKeys(int numberOfRSAEncKeys)
-	{
+	public void setNumberOfRSAEncKeys(int numberOfRSAEncKeys) {
 		this.numberOfRSAEncKeys = numberOfRSAEncKeys;
 	}
 
-	public void setNumberOfECEncKeys(int numberOfECEncKeys)
-	{
+	public void setNumberOfECEncKeys(int numberOfECEncKeys) {
 		this.numberOfECEncKeys = numberOfECEncKeys;
 	}
 
-	public void setGenerateKids(boolean generateKids)
-	{
+	public void setGenerateKids(boolean generateKids) {
 		this.generateKids = generateKids;
 	}
 
-	public void setRsaKeySize(int rsaKeySize)
-	{
+	public void setRsaKeySize(int rsaKeySize) {
 		this.rsaKeySize = rsaKeySize;
 	}
 
-	public void setEcCurve(Curve ecCurve)
-	{
+	public void setEcCurve(Curve ecCurve) {
 		this.ecCurve = ecCurve;
 	}
 
-	public void setSigningAlgorithmForRSAKeys(JWSAlgorithm signingAlgorithmForRSAKeys)
-	{
-		this.signingAlgorithmForRSAKeys = signingAlgorithmForRSAKeys;
+	public void setEncryptionAlgorithmForECKeys(JWEAlgorithm encryptionAlgorithmForECKeys) {
+		this.encryptionAlgorithmForECKeys = encryptionAlgorithmForECKeys;
 	}
 
-	public void setEncryptionAlgorithmForRSAKeys(JWEAlgorithm encryptionAlgorithmForRSAKeys)
-	{
+	public int getNumberOfRSSigningKeys() {
+		return numberOfRSSigningKeys;
+	}
+
+	public void setNumberOfRSSigningKeys(int numberOfRSSigningKeys) {
+		this.numberOfRSSigningKeys = numberOfRSSigningKeys;
+	}
+
+	public int getNumberOfPSSigningKeys() {
+		return numberOfPSSigningKeys;
+	}
+
+	public void setNumberOfPSSigningKeys(int numberOfPSSigningKeys) {
+		this.numberOfPSSigningKeys = numberOfPSSigningKeys;
+	}
+
+	public int getNumberOfESSigningKeys() {
+		return numberOfESSigningKeys;
+	}
+
+	public void setNumberOfESSigningKeys(int numberOfESSigningKeys) {
+		this.numberOfESSigningKeys = numberOfESSigningKeys;
+	}
+
+	public int getNumberOfEdSigningKeys() {
+		return numberOfEdSigningKeys;
+	}
+
+	public void setNumberOfEdSigningKeys(int numberOfEdSigningKeys) {
+		this.numberOfEdSigningKeys = numberOfEdSigningKeys;
+	}
+
+	public int getNumberOfRSAEncKeys() {
+		return numberOfRSAEncKeys;
+	}
+
+	public int getNumberOfECEncKeys() {
+		return numberOfECEncKeys;
+	}
+
+	public boolean isGenerateKids() {
+		return generateKids;
+	}
+
+	public int getRsaKeySize() {
+		return rsaKeySize;
+	}
+
+	public Curve getEcCurve() {
+		return ecCurve;
+	}
+
+	public Curve getEdCurve() {
+		return edCurve;
+	}
+
+	public void setEdCurve(Curve edCurve) {
+		this.edCurve = edCurve;
+	}
+
+	public JWSAlgorithm getRsSigningAlgorithm() {
+		return rsSigningAlgorithm;
+	}
+
+	public void setRsSigningAlgorithm(JWSAlgorithm rsSigningAlgorithm) {
+		this.rsSigningAlgorithm = rsSigningAlgorithm;
+	}
+
+	public JWSAlgorithm getPsSigningAlgorithm() {
+		return psSigningAlgorithm;
+	}
+
+	public void setPsSigningAlgorithm(JWSAlgorithm psSigningAlgorithm) {
+		this.psSigningAlgorithm = psSigningAlgorithm;
+	}
+
+	public JWSAlgorithm getEsSigningAlgorithm() {
+		return esSigningAlgorithm;
+	}
+
+	public void setEsSigningAlgorithm(JWSAlgorithm esSigningAlgorithm) {
+		this.esSigningAlgorithm = esSigningAlgorithm;
+	}
+
+	public JWEAlgorithm getEncryptionAlgorithmForRSAKeys() {
+		return encryptionAlgorithmForRSAKeys;
+	}
+
+	public void setEncryptionAlgorithmForRSAKeys(JWEAlgorithm encryptionAlgorithmForRSAKeys) {
 		this.encryptionAlgorithmForRSAKeys = encryptionAlgorithmForRSAKeys;
 	}
 
-	public void setSigningAlgorithmForECKeys(JWSAlgorithm signingAlgorithmForECKeys)
-	{
-		this.signingAlgorithmForECKeys = signingAlgorithmForECKeys;
+	public JWEAlgorithm getEncryptionAlgorithmForECKeys() {
+		return encryptionAlgorithmForECKeys;
 	}
 
-	public void setEncryptionAlgorithmForECKeys(JWEAlgorithm encryptionAlgorithmForECKeys)
-	{
-		this.encryptionAlgorithmForECKeys = encryptionAlgorithmForECKeys;
+	public int getNumberOfRSASigningKeysWithNoAlg() {
+		return numberOfRSASigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfRSASigningKeysWithNoAlg(int numberOfRSASigningKeysWithNoAlg) {
+		this.numberOfRSASigningKeysWithNoAlg = numberOfRSASigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfECSigningKeysWithNoAlg() {
+		return numberOfECSigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfECSigningKeysWithNoAlg(int numberOfECSigningKeysWithNoAlg) {
+		this.numberOfECSigningKeysWithNoAlg = numberOfECSigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfOKPSigningKeysWithNoAlg() {
+		return numberOfOKPSigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfOKPSigningKeysWithNoAlg(int numberOfOKPSigningKeysWithNoAlg) {
+		this.numberOfOKPSigningKeysWithNoAlg = numberOfOKPSigningKeysWithNoAlg;
 	}
 }

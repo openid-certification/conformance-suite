@@ -2,10 +2,19 @@ package net.openid.conformance.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEDecrypter;
+import com.nimbusds.jose.KeyLengthException;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
+import java.util.UUID;
 
 public class JWTUtil {
 
@@ -57,11 +66,47 @@ public class JWTUtil {
 		JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
 		JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);
 
+		return createJsonObjectForEnvironment(jwtAsString, header, claims);
+	}
+
+	private static JsonObject createJsonObjectForEnvironment(String jwtString, JsonObject header, JsonObject claims) {
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("value", jwtAsString); // save the original string to allow for crypto operations
+		jsonObject.addProperty("value", jwtString);
 		jsonObject.add("header", header);
 		jsonObject.add("claims", claims);
 		return jsonObject;
+	}
+
+	/**
+	 * use if the JWT may be encrypted, e.g an encrypted request object
+	 * @param jwtAsString
+	 * @param client
+	 * @param publicJwksWithEncKeys
+	 * @return may return null if decryption fails
+	 * @throws ParseException
+	 */
+	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject publicJwksWithEncKeys)
+		throws ParseException, JOSEException {
+		JWT token = JWTUtil.parseJWT(jwtAsString);
+		if(token instanceof EncryptedJWT) {
+			EncryptedJWT encryptedJWT = (EncryptedJWT) token;
+			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
+			JWK decryptionKey = null;
+			if(JWEAlgorithm.Family.SYMMETRIC.contains(alg)) {
+				decryptionKey = JWEUtil.createSymmetricJWKForAlgAndSecret(OIDFJSON.getString(client.get("client_secret")),
+										alg, encryptedJWT.getHeader().getEncryptionMethod(), UUID.randomUUID().toString());
+			} else {
+				JWKSet jwkSet = JWKUtil.parseJWKSet(publicJwksWithEncKeys.toString());
+				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
+			}
+			JWEDecrypter decrypter = JWEUtil.createDecrypter(decryptionKey);
+			encryptedJWT.decrypt(decrypter);
+			return JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
+		} else {
+			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
+			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);
+			return createJsonObjectForEnvironment(jwtAsString, header, claims);
+		}
 	}
 
 }
