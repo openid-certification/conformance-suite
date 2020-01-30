@@ -1,7 +1,9 @@
 package net.openid.conformance.openid;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
+import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources;
 import net.openid.conformance.condition.client.EnsureUserInfoBirthDateValid;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsSub;
@@ -12,12 +14,14 @@ import net.openid.conformance.condition.client.VerifyUserInfoAndIdTokenInTokenEn
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
+// can't call userinfo endpoint if there's no access token, so exclude response_type=id_token
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token"})
 public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		callUserInfoEndpoint();
+		callAndContinueOnFailure(CheckUserInfoEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
 		callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
 		validateUserInfoResponse();
 		fireTestFinished();
