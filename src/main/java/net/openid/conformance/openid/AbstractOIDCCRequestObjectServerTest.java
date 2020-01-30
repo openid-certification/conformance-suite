@@ -34,7 +34,7 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 	protected void skipTestIfRequestObjectNotSupported() {
 		String error = env.getString("authorization_endpoint_response", "error");
 		if (error != null && error.equals("request_not_supported")) {
-			fireTestSkipped("The response from the authorization endpoint indicates that it does not support request objects, so request objects cannot be tested.");
+			fireTestSkipped("The 'request_not_supported' error from the authorization endpoint indicates that it does not support request objects, so request objects cannot be tested.");
 		}
 	}
 }
