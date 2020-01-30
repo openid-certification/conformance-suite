@@ -515,6 +515,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				Thread.sleep(100); // sleep before we check again
 			}
 
+			// really at this point there should be no other threads running (though the placeholder watcher may be)
+			// kill everything else anyway - we don't hold any locks so we don't want anything else doing anything
+			// whilst or after we tidy up.
+			getTestExecutionManager().cancelAllBackgroundTasksExceptFinalisation();
+
 			if (getResult() == Result.UNKNOWN) {
 				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
 				if (filledPlaceholders.size() > 0) {
@@ -552,7 +557,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				setStatus(Status.FINISHED);
 			}
 
-			// stop() might interrupt the current thread, so don't do any logging after this
+			// stop() will also cancel the current thread, so don't do any logging etc after this
 			stop("Test has run to completion.");
 
 			return "done";
@@ -819,7 +824,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 
 		// This might interrupt the current thread, so don't do any logging after this
-		getTestExecutionManager().clearBackgroundTasks();
+		getTestExecutionManager().cancelAllBackgroundTasks();
 	}
 
 	protected void performFinalCleanup() {

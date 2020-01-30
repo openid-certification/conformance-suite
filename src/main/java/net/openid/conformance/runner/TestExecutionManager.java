@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestExecutionManager {
 
-
 	private class BackgroundTask implements Callable<Object> {
 		private String testId;
 		private Callable<?> myCallable;
@@ -76,6 +75,8 @@ public class TestExecutionManager {
 
 	private List<Future<?>> futures = new ArrayList<>();
 
+	private Future<?> finalisationFuture;
+
 	private AtomicBoolean finalisationStarted = new AtomicBoolean(false);
 
 	private ExecutorCompletionService<Object> executorCompletionService;
@@ -103,8 +104,19 @@ public class TestExecutionManager {
 	/**
 	 * Clean up queued tasks for this test id
 	 */
-	public void clearBackgroundTasks() {
+	public void cancelAllBackgroundTasks() {
 		for (Future<?> f : futures) {
+			if (!f.isDone()) {
+				f.cancel(true); // True allows the task to be interrupted.
+			}
+		}
+	}
+
+	public void cancelAllBackgroundTasksExceptFinalisation() {
+		for (Future<?> f : futures) {
+			if (f.equals(finalisationFuture)) {
+				continue;
+			}
 			if (!f.isDone()) {
 				f.cancel(true); // True allows the task to be interrupted.
 			}
@@ -125,7 +137,9 @@ public class TestExecutionManager {
 		// and the placeholder watcher to try and run the finalisation block at the same time
 		boolean oldValue = finalisationStarted.getAndSet(true);
 		if (!oldValue) {
-			futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
+			Future<?> f = executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport));
+			futures.add(f);
+			finalisationFuture = f;
 		}
 	}
 
