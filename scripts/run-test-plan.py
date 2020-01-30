@@ -54,17 +54,18 @@ def split_name_and_variant(test_plan):
 
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
+#this function runs plans in a loop and returns an array of results
 def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile):
     oidcc_test_config_json = []
     with open(oidcc_rptest_configfile) as f:
         oidcc_test_config = f.read()
         oidcc_test_config_json = json.loads(oidcc_test_config)
     all_plan_results = []
+    overall_starttime = time.time()
 
     for test_plan_config in oidcc_test_config_json['tests']:
         client_metadata_defaults = test_plan_config['client_metadata_defaults']
         client_metadata_defaults_str = json.dumps(client_metadata_defaults)
-        print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
 
         #remove client_metadata_defaults otherwise plan api call will fail
         del test_plan_config['client_metadata_defaults']
@@ -77,7 +78,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
         plan_modules = test_plan_info['modules']
         test_info = {}  # key is module name
         test_time_taken = {}  # key is module_id
-        overall_start_time = time.time()
+        start_time_for_plan = time.time()
         print('Created test plan, new id: {}'.format(plan_id))
         print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
         print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
@@ -98,18 +99,15 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                 state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
                 if state == "WAITING":
-                    if re.match(r'(oidcc-client-.*)', module):
-                        print('Running OIDCC Client tests')
-                        print('MODULE_NAME {}'.format(module))
+                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+                    print('ISSUER {}'.format(oidcc_issuer_str))
+                    print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
 
-                        oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
-                        print('ISSUER {}'.format(oidcc_issuer_str))
-
-                        os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
-                        os.putenv('VARIANT', variantstr)
-                        os.putenv('MODULE_NAME', module)
-                        os.putenv('ISSUER', oidcc_issuer_str)
-                        subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+                    os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
+                    os.putenv('VARIANT', variantstr)
+                    os.putenv('MODULE_NAME', module)
+                    os.putenv('ISSUER', oidcc_issuer_str)
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
 
                     conformance.wait_for_state(module_id, ["FINISHED"])
 
@@ -121,7 +119,8 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                 module_info['info'] = conformance.get_module_info(module_id)
                 module_info['logs'] = conformance.get_test_log(module_id)
 
-        overall_time = time.time() - overall_start_time
+        time_for_plan = time.time() - start_time_for_plan
+        print('Finished test plan - id: {} total time: {}'.format(plan_id, time_for_plan))
         print('\n\n')
         result_for_plan = {
             'test_plan': test_plan_name,
@@ -130,9 +129,11 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
             'plan_modules': plan_modules,
             'test_info': test_info,
             'test_time_taken': test_time_taken,
-            'overall_time': overall_time
+            'overall_time': time_for_plan
         }
         all_plan_results.append(result_for_plan)
+
+    overall_time = time.time() - overall_starttime
     print('--- Finished OIDCC RP tests. Total time: {} '.format(overall_time))
     return all_plan_results
 
@@ -170,22 +171,8 @@ def run_test_plan(test_plan, config_file):
             state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
-                if re.match(r'(oidcc-client-.*)', module):
-                    print('Running OIDCC Client tests')
-
-                    oidcc_variant_str = json.dumps(variant)
-                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
-
-                    print('VARIANT {}'.format(oidcc_variant_str))
-                    print('MODULE_NAME {}'.format(module))
-                    print('ISSUER {}'.format(oidcc_issuer_str))
-
-                    os.putenv('VARIANT', oidcc_variant_str)
-                    os.putenv('MODULE_NAME', module)
-                    os.putenv('ISSUER', oidcc_issuer_str)
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                 # If it's a client test, we need to run the client
-                elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
