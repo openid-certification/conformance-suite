@@ -543,14 +543,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			// if we weren't interrupted already, then we're finished
 			if (!getStatus().equals(Status.INTERRUPTED)) {
+				// log the environment here, as "stop" won't do so for the 'finished' case
+				logFinalEnv();
 
 				// this must be pretty much the last thing we do, we must NEVER mark the test as finished until
 				// everything has happen, as 'FINISHED' is the cue for run-test-plan.py to fetch the results, start
 				// the next test, etc.
 				setStatus(Status.FINISHED);
-
-				// log the environment here in case "stop" doesn't get it it
-				logFinalEnv();
 			}
 
 			// stop() might interrupt the current thread, so don't do any logging after this
