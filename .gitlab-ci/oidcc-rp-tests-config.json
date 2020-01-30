@@ -17,7 +17,8 @@
             "request_type": "plain_http_request",
             "client_registration": "dynamic_client",
             "client_metadata_defaults": {
-                "userinfo_encrypted_response_alg":"ECDH-ES"
+                "userinfo_encrypted_response_alg":"ECDH-ES",
+                "userinfo_signed_response_alg":"ES256"
             }
         },
         {
@@ -26,7 +27,9 @@
             "response_mode": "default",
             "request_type": "plain_http_request",
             "client_registration": "dynamic_client",
-            "client_metadata_defaults": {}
+            "client_metadata_defaults": {
+                "id_token_signed_response_alg": "PS256"
+            }
         },
         {
             "client_auth_type": "client_secret_basic",
@@ -34,7 +37,9 @@
             "response_mode": "default",
             "request_type": "plain_http_request",
             "client_registration": "dynamic_client",
-            "client_metadata_defaults": {}
+            "client_metadata_defaults": {
+                "id_token_signed_response_alg": "ES256"
+            }
         },
         {
             "client_auth_type": "client_secret_post",
