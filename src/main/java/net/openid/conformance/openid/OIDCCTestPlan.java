@@ -43,6 +43,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCUserInfoPostHeader.class,
 		OIDCCEnsureRequestWithAcrValuesSucceeds.class,
 		OIDCCEnsureRequestWithUnknownParameterSucceeds.class,
+		OIDCCUiLocales.class,
 
 		// negative tests
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
