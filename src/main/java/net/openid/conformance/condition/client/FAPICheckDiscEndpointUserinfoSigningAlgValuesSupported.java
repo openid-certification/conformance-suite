@@ -1,11 +1,11 @@
 package net.openid.conformance.condition.client;
 
-import java.util.Arrays;
-
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointUserinfoSigningAlgValuesSupported extends ValidateJsonArray {
+import java.util.Arrays;
+
+public class FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported extends ValidateJsonArray {
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 
