@@ -1,6 +1,5 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJsonContentType;
@@ -21,17 +20,21 @@ public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		callUserInfoEndpoint();
-		callAndContinueOnFailure(CheckUserInfoEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
-		callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
-		validateUserInfoResponse();
+		extractUserInfoResponse();
+		validateExtractedUserInfoResponse();
 		fireTestFinished();
+	}
+
+	protected void extractUserInfoResponse() {
+		callAndContinueOnFailure(CheckUserInfoEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
+		callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
 	}
 
 	protected void callUserInfoEndpoint() {
 		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, "OIDCC-5.3.1");
 	}
 
-	protected void validateUserInfoResponse() {
+	protected void validateExtractedUserInfoResponse() {
 		callAndContinueOnFailure(ValidateUserInfoStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureUserInfoContainsSub.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
 		callAndContinueOnFailure(EnsureUserInfoBirthDateValid.class, ConditionResult.FAILURE, "OIDCC-5.1");

@@ -41,6 +41,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class,
+		OIDCCUserInfoRS256.class,
 		OIDCCEnsureRequestWithAcrValuesSucceeds.class,
 		OIDCCEnsureRequestWithUnknownParameterSucceeds.class,
 		OIDCCUiLocales.class,
