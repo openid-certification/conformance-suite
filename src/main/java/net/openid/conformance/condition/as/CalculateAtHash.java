@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWAUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,16 +27,12 @@ public class CalculateAtHash extends AbstractCondition {
 		MessageDigest digester;
 
 		try {
-			Matcher matcher = Pattern.compile("^(HS|RS|ES|PS)(256|384|512)$").matcher(algorithm);
-			if (!matcher.matches()) {
-				throw error("Invalid algorithm", args("algorithm", algorithm));
-			}
-
-			String digestAlgorithm = "SHA-" + matcher.group(2);
+			String digestAlgorithm = JWAUtil.getDigestAlgorithmForSigAlg(algorithm);
 			digester = MessageDigest.getInstance(digestAlgorithm);
-
 		} catch (NoSuchAlgorithmException e) {
 			throw error("Unsupported digest for algorithm", e, args("alg", algorithm));
+		} catch (JWAUtil.InvalidAlgorithmException e) {
+			throw error("Unsupported algorithm", e, args("alg", algorithm));
 		}
 
 		byte[] stateDigest = digester.digest(accessToken.getBytes(StandardCharsets.US_ASCII));

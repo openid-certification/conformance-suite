@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * There will be 1 EC key 1 RSA signing key in the generated jwks
- */
 public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGenerateServerJWKs {
 
 	@Override
@@ -29,6 +26,8 @@ public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGen
 	{
 		this.setGenerateKids(false);
 		this.setNumberOfRSASigningKeysWithNoAlg(1);
-		this.setNumberOfECSigningKeysWithNoAlg(1);
+		this.setNumberOfECCurveP256SigningKeysWithNoAlg(1);
+		this.setNumberOfECCurveSECP256KSigningKeysWithNoAlg(1);
+		this.setNumberOfOKPSigningKeysWithNoAlg(1);
 	}
 }

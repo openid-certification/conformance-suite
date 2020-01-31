@@ -3,6 +3,8 @@ package net.openid.conformance.util;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKMatcher;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -44,6 +46,13 @@ public class JWKUtil {
 		//TODO consider using nimbusds JWKMatcher?
 		for(JWK key : keys) {
 			if(JWSAlgorithm.Family.EC.contains(jwsAlgorithm) && KeyType.EC.equals(key.getKeyType())) {
+				ECKey ecKey = (ECKey)key;
+				if(JWSAlgorithm.ES256.equals(jwsAlgorithm) && !Curve.P_256.equals(ecKey.getCurve())) {
+					continue;
+				}
+				if(JWSAlgorithm.ES256K.equals(jwsAlgorithm) && !Curve.SECP256K1.equals(ecKey.getCurve())) {
+					continue;
+				}
 				if(key.getKeyUse()!=null) {
 					if(KeyUse.SIGNATURE.equals(key.getKeyUse())) {
 						if(key.getAlgorithm()==null) {

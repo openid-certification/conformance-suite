@@ -6,12 +6,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
@@ -29,12 +27,13 @@ import java.util.UUID;
 public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	protected int numberOfRSASigningKeysWithNoAlg = 2;
-	protected int numberOfECSigningKeysWithNoAlg = 2;
-	protected int numberOfOKPSigningKeysWithNoAlg = 0;
+	protected int numberOfECCurveP256SigningKeysWithNoAlg = 2;
+	protected int numberOfECCurveSECP256KSigningKeysWithNoAlg = 1;
+	protected int numberOfOKPSigningKeysWithNoAlg = 1;
 
 	protected int numberOfRSSigningKeys = 0;
 	protected int numberOfPSSigningKeys = 0;
-	protected int numberOfESSigningKeys = 0;
+	protected int numberOfES256SigningKeys = 0;
 	protected int numberOfEdSigningKeys = 0;
 
 	protected int numberOfRSAEncKeys = 1;
@@ -43,7 +42,8 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	protected boolean generateKids = true;
 
 	protected int rsaKeySize = 2048;
-	protected Curve ecCurve = Curve.P_256;
+	protected Curve esCurve = Curve.P_256;
+	protected Curve esKCurve = Curve.SECP256K1;
 	protected Curve edCurve = Curve.Ed25519;
 
 	protected List<JWK> allGeneratedKeys;
@@ -76,17 +76,18 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		try {
 			//changing the order of createKeys calls here may affect the signing key selection
 			//See JWKUtil.selectAsymmetricJWSKey for full details
-			createKeys(numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null);
-			createKeys(numberOfECSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null);
-			createKeys(numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null);
+			createKeys(numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null, null);
+			createKeys(numberOfECCurveP256SigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esCurve);
+			createKeys(numberOfECCurveSECP256KSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esKCurve);
+			createKeys(numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null, null);
 
-			createKeys(numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm);
-			createKeys(numberOfESSigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm);
-			createKeys(numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm);
-			createKeys(numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA);
+			createKeys(numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm, null);
+			createKeys(numberOfES256SigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm, esCurve);
+			createKeys(numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm, null);
+			createKeys(numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA, null);
 
-			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys);
-			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys);
+			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys, null);
+			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys, esCurve);
 
 			JWKSet publicJwkSet = new JWKSet(allGeneratedKeys);
 			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJwkSet);
@@ -122,7 +123,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	 * @param algorithm if null keys won't have alg
 	 * @throws JOSEException
 	 */
-	protected void createKeys(int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm) throws JOSEException {
+	protected void createKeys(int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm, Curve curveForECKeys) throws JOSEException {
 		if(keyCount<1) {
 			return;
 		}
@@ -131,7 +132,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		for(int i=0; i<keyCount; i++) {
 			JWKGenerator<? extends JWK> jwkGenerator = null;
 			if (KeyType.EC.equals(keyType)) {
-				jwkGenerator = new ECKeyGenerator(ecCurve);
+				jwkGenerator = new ECKeyGenerator(curveForECKeys);
 			} else if (KeyType.RSA.equals(keyType)) {
 				jwkGenerator = new RSAKeyGenerator(rsaKeySize);
 			} else if (KeyType.OKP.equals(keyType)) {
@@ -192,10 +193,6 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		this.rsaKeySize = rsaKeySize;
 	}
 
-	public void setEcCurve(Curve ecCurve) {
-		this.ecCurve = ecCurve;
-	}
-
 	public void setEncryptionAlgorithmForECKeys(JWEAlgorithm encryptionAlgorithmForECKeys) {
 		this.encryptionAlgorithmForECKeys = encryptionAlgorithmForECKeys;
 	}
@@ -216,12 +213,12 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		this.numberOfPSSigningKeys = numberOfPSSigningKeys;
 	}
 
-	public int getNumberOfESSigningKeys() {
-		return numberOfESSigningKeys;
+	public int getNumberOfES256SigningKeys() {
+		return numberOfES256SigningKeys;
 	}
 
-	public void setNumberOfESSigningKeys(int numberOfESSigningKeys) {
-		this.numberOfESSigningKeys = numberOfESSigningKeys;
+	public void setNumberOfES256SigningKeys(int numberOfES256SigningKeys) {
+		this.numberOfES256SigningKeys = numberOfES256SigningKeys;
 	}
 
 	public int getNumberOfEdSigningKeys() {
@@ -246,10 +243,6 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 	public int getRsaKeySize() {
 		return rsaKeySize;
-	}
-
-	public Curve getEcCurve() {
-		return ecCurve;
 	}
 
 	public Curve getEdCurve() {
@@ -304,19 +297,43 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		this.numberOfRSASigningKeysWithNoAlg = numberOfRSASigningKeysWithNoAlg;
 	}
 
-	public int getNumberOfECSigningKeysWithNoAlg() {
-		return numberOfECSigningKeysWithNoAlg;
-	}
-
-	public void setNumberOfECSigningKeysWithNoAlg(int numberOfECSigningKeysWithNoAlg) {
-		this.numberOfECSigningKeysWithNoAlg = numberOfECSigningKeysWithNoAlg;
-	}
-
 	public int getNumberOfOKPSigningKeysWithNoAlg() {
 		return numberOfOKPSigningKeysWithNoAlg;
 	}
 
 	public void setNumberOfOKPSigningKeysWithNoAlg(int numberOfOKPSigningKeysWithNoAlg) {
 		this.numberOfOKPSigningKeysWithNoAlg = numberOfOKPSigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfECCurveP256SigningKeysWithNoAlg() {
+		return numberOfECCurveP256SigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfECCurveP256SigningKeysWithNoAlg(int numberOfECCurveP256SigningKeysWithNoAlg) {
+		this.numberOfECCurveP256SigningKeysWithNoAlg = numberOfECCurveP256SigningKeysWithNoAlg;
+	}
+
+	public int getNumberOfECCurveP256KSigningKeysWithNoAlg() {
+		return numberOfECCurveSECP256KSigningKeysWithNoAlg;
+	}
+
+	public void setNumberOfECCurveSECP256KSigningKeysWithNoAlg(int numberOfECCurveSECP256KSigningKeysWithNoAlg) {
+		this.numberOfECCurveSECP256KSigningKeysWithNoAlg = numberOfECCurveSECP256KSigningKeysWithNoAlg;
+	}
+
+	public Curve getEsCurve() {
+		return esCurve;
+	}
+
+	public void setEsCurve(Curve esCurve) {
+		this.esCurve = esCurve;
+	}
+
+	public Curve getEsKCurve() {
+		return esKCurve;
+	}
+
+	public void setEsKCurve(Curve esKCurve) {
+		this.esKCurve = esKCurve;
 	}
 }
