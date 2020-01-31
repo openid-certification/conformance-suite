@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningA
 import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJwtContentType;
 import net.openid.conformance.condition.client.ExtractSignedUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.condition.client.ValidateUserInfoResponseSignature;
+import net.openid.conformance.condition.client.ValidateUserInfoSigningAlgIsRS256;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
@@ -46,6 +47,9 @@ public class OIDCCUserInfoRS256 extends AbstractOIDCCUserInfoTest {
 		callAndContinueOnFailure(ValidateUserInfoResponseSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
 		// should probably also use AbstractVerifyJwsSignatureUsingKid at some point
 		callAndStopOnFailure(ExtractSignedUserInfoFromUserInfoEndpointResponse.class);
+		callAndContinueOnFailure(ValidateUserInfoSigningAlgIsRS256.class, Condition.ConditionResult.FAILURE);
+		// we don't do any checking of the standard jwt claims (exp/iat/etc) - we perhaps should. I'm not sure the
+		// python suite did either.
 	}
 
 }
