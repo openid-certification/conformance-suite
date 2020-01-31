@@ -13,7 +13,8 @@ import net.openid.conformance.testmodule.Environment;
  *   The public key for validating the signature is provided by retrieving the JWK Set referenced
  *   by the jwks_uri element from OpenID Connect Discovery 1.0 [OpenID.Discovery].
  *
- *   TODO does not validate if the current test actually supports the alg, it will fail later anyway
+ *   Please note: This condition does not validate if the current test actually supports the alg,
+ *   it will fail later anyway
  */
 public class ValidateIdTokenSignedResponseAlg extends AbstractClientValidationCondition
 {

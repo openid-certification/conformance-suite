@@ -570,11 +570,11 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 	 * If omitted, the default value is false.
 	 * @return
 	 */
-	protected boolean isRequireAuthTime() {
+	protected Boolean getRequireAuthTime() {
 		if(client.has("require_auth_time")){
 			return OIDFJSON.getBoolean(client.get("require_auth_time"));
 		}
-		return false;
+		return null;
 	}
 
 	/**

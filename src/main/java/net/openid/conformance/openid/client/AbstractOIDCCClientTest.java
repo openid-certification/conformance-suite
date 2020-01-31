@@ -63,10 +63,12 @@ import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRe
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRegistrationRequestContainsAtLeastOneContact;
+import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
+import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
-import net.openid.conformance.condition.as.dynregistration.OIDCCValidateDynamicRegistrationRedirectUris;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
 import net.openid.conformance.condition.as.EnsureClientJwksContainsKidsForAllKeysIfJwksContainsBothSigAndEncKeys;
@@ -76,7 +78,15 @@ import net.openid.conformance.condition.as.dynregistration.ValidateClientRegistr
 import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateDefaultAcrValues;
+import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
 import net.openid.conformance.condition.as.dynregistration.ValidateIdTokenSignedResponseAlg;
+import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequestObjectSigningAlg;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequestUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
+import net.openid.conformance.condition.as.dynregistration.ValidateTokenEndpointAuthSigningAlg;
+import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -660,6 +670,39 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 		skipIfElementMissing("dynamic_registration_request", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+
+		//userinfo
+		skipIfElementMissing("dynamic_registration_request", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
+			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+
+
+		//request object
+		skipIfElementMissing("dynamic_registration_request", "request_object_signing_alg", Condition.ConditionResult.INFO,
+			ValidateRequestObjectSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+
+		//not validating token_endpoint_auth_method as we will override it anyway
+
+		skipIfElementMissing("dynamic_registration_request", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
+			ValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		skipIfElementMissing("dynamic_registration_request", "default_max_age", Condition.ConditionResult.INFO,
+			ValidateDefaultMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		skipIfElementMissing("dynamic_registration_request", "require_auth_time", Condition.ConditionResult.INFO,
+			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		skipIfElementMissing("dynamic_registration_request", "default_acr_values", Condition.ConditionResult.INFO,
+			ValidateDefaultAcrValues.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		skipIfElementMissing("dynamic_registration_request", "initiate_login_uri", Condition.ConditionResult.INFO,
+			ValidateInitiateLoginUri.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+
+		skipIfElementMissing("dynamic_registration_request", "request_uris", Condition.ConditionResult.INFO,
+			ValidateRequestUris.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
 		env.unmapKey("client");
 		callAndContinueOnFailure(ValidateClientRegistrationRequestSectorIdentifierUri.class,
