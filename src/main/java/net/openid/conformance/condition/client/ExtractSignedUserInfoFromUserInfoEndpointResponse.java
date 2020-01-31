@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractExtractJWT;
 import net.openid.conformance.condition.PostEnvironment;
@@ -8,6 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
+import java.util.List;
 
 public class ExtractSignedUserInfoFromUserInfoEndpointResponse extends AbstractExtractJWT {
 
@@ -29,8 +31,18 @@ public class ExtractSignedUserInfoFromUserInfoEndpointResponse extends AbstractE
 			// save the parsed token
 			env.putObject("userinfo_object", jwtAsJsonObject);
 
-			var claims = jwtAsJsonObject.getAsJsonObject("claims");
-			env.putObject("userinfo", claims);
+			// deepcopy to avoid modifying userinfo_object
+			var userinfo = jwtAsJsonObject.getAsJsonObject("claims").deepCopy();
+
+			// this list doesn't contain 'sub' as sub is also a standard claim in userinfo
+			List<String> jwtClaims = ImmutableList.of("iss", "aud", "exp", "nbf", "iat", "jti");
+
+			// the JWT standard claims aren't part of the userinfo response (apart from 'sub'), so remove them
+			for (String claim : jwtClaims) {
+				userinfo.remove(claim);
+			}
+
+			env.putObject("userinfo", userinfo);
 
 			logSuccess("Found and parsed the userinfo from " + USERINFO_ENDPOINT_RESPONSE, jwtAsJsonObject);
 
