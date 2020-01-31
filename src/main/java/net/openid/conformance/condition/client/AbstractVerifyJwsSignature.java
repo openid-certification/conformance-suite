@@ -22,11 +22,17 @@ import java.util.List;
 
 public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 
-	protected void verifyJwsSignature(String token, JsonObject serverJwks, String tokenName) {
+	/**
+	 *
+	 * @param token JWS to be checked
+	 * @param publicJwks public keys to use to check the token
+	 * @param tokenName String to be used in log messages/keys to describe the item being checked to the user
+	 */
+	protected void verifyJwsSignature(String token, JsonObject publicJwks, String tokenName) {
 		try {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(token);
-			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
+			JWKSet jwkSet = JWKSet.parse(publicJwks.toString());
 			JWKSet jwkSetWithKeyValid = null;
 
 			boolean validSignature = false;
@@ -40,7 +46,7 @@ public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 			}
 
 			if (!validSignature) {
-				throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", serverJwks, tokenName, token));
+				throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", publicJwks, tokenName, token));
 			}
 
 			String publicKeySetString = jwkSetWithKeyValid.toPublicJWKSet().getKeys().size() > 0 ? jwkSetWithKeyValid.toPublicJWKSet().getKeys().iterator().next().toString() : null;

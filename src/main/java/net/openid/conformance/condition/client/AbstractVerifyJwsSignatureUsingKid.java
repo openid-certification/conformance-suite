@@ -17,11 +17,11 @@ import java.text.ParseException;
 public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJwsSignature {
 
 	@Override
-	protected void verifyJwsSignature(String token, JsonObject serverJwks, String tokenName) {
+	protected void verifyJwsSignature(String token, JsonObject publicJwks, String tokenName) {
 		try {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(token);
-			JWKSet jwkSet = JWKSet.parse(serverJwks.toString());
+			JWKSet jwkSet = JWKSet.parse(publicJwks.toString());
 			JWKSet jwkSetWithKeyValid = null;
 
 			JWSHeader header = jwt.getHeader();
@@ -39,7 +39,7 @@ public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJ
 
 					numberOfKeyValid++;
 					if (numberOfKeyValid > 1) {
-						throw error("Found more than one key that has the right kid, kty, alg and 'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
+						throw error("Found more than one key that has the right kid, kty, alg and 'use':'sig'", args("jwks", publicJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 					}
 				}
 			}
@@ -60,12 +60,12 @@ public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJ
 							jwkSetWithKeyValid = new JWKSet(jwkKey);
 							break;
 						} else {
-							throw error("Unable to verify "+tokenName+" signature based on server key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
+							throw error("Unable to verify "+tokenName+" signature based on server key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", publicJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 						}
 					}
 				}
 				if (key == null) {
-					throw error("Server JWKS does not contain a key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
+					throw error("Server JWKS does not contain a key with the correct kid, kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", publicJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 				}
 			} else {
 				// if a kid isn't given
@@ -85,10 +85,10 @@ public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJ
 					}
 				}
 				if (key == null) {
-					throw error("Server JWKS does not contain a key with the correct kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", serverJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
+					throw error("Server JWKS does not contain a key with the correct kty that also matches (or does not have) alg/x5t#S256/'use':'sig'", args("jwks", publicJwks, "kid", headerKeyID, "alg", headerAlg, "kty", headerKty, tokenName, token));
 				}
 				if (!validSignature) {
-					throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", serverJwks, tokenName, token));
+					throw error("Unable to verify "+tokenName+" signature based on server keys", args("jwks", publicJwks, tokenName, token));
 				}
 			}
 
