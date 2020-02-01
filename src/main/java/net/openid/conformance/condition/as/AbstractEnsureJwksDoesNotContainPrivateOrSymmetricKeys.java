@@ -30,7 +30,7 @@ public abstract class AbstractEnsureJwksDoesNotContainPrivateOrSymmetricKeys ext
 			throw error("Invalid jwks", args("jwks", jwks));
 		}
 		if(privateKeys.isEmpty() && symmetricKeys.isEmpty()) {
-			logSuccess("Jwks does not any contain private or symmetric keys");
+			logSuccess("Jwks does not contain any private or symmetric keys");
 			return env;
 		}
 		throw error("Jwks contains private and/or symmetric keys",

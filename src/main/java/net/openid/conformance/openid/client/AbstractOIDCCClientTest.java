@@ -323,6 +323,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(clientRegistrationType == ClientRegistration.STATIC_CLIENT) {
 			callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 			processAndValidateClientJwks();
+			validateClientMetadata();
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
@@ -645,23 +646,18 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		//the following conditions are used for both static client validation and dynamic registration validation
 		//so they require "client" env entry
 		env.mapKey("client", "dynamic_registration_request");
+		validateClientMetadata();
+		env.unmapKey("client");
+		callAndContinueOnFailure(ValidateClientRegistrationRequestSectorIdentifierUri.class,
+									Condition.ConditionResult.FAILURE,"OIDCR-2","OIDCR-5");
+	}
+
+	/**
+	 * jwks and jwks_uri will be validated in validateClientJwks
+	 */
+	protected void validateClientMetadata() {
 		callAndContinueOnFailure(OIDCCValidateClientRedirectUris.class, Condition.ConditionResult.FAILURE,
-					"OIDCR-2");
-
-		//jwks
-		skipIfElementMissing("dynamic_registration_request", "jwks", Condition.ConditionResult.INFO,
-			ValidateClientJWKsPublicPart.class, Condition.ConditionResult.FAILURE,
-			"OIDCR-2", "RFC7517-1.1");
-		//jwks_uri
-		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class, "OIDCR-2");
-		skipIfElementMissing("dynamic_registration_request", "jwks_uri", Condition.ConditionResult.INFO,
-			FetchClientKeys.class, Condition.ConditionResult.FAILURE);
-
-		if(env.getElementFromObject("client", "jwks")!=null) {
-			env.putObject("client_jwks", env.getElementFromObject("client", "jwks").getAsJsonObject());
-			validateClientJwks();
-			env.removeObject("client_jwks");
-		}
+			"OIDCR-2");
 
 		callAndContinueOnFailure(ValidateClientLogoUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 		callAndContinueOnFailure(ValidateClientUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
@@ -669,45 +665,40 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateClientTosUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-		skipIfElementMissing("dynamic_registration_request", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		//userinfo
-		skipIfElementMissing("dynamic_registration_request", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
-
 		//request object
-		skipIfElementMissing("dynamic_registration_request", "request_object_signing_alg", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "request_object_signing_alg", Condition.ConditionResult.INFO,
 			ValidateRequestObjectSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		//not validating token_endpoint_auth_method as we will override it anyway
 
-		skipIfElementMissing("dynamic_registration_request", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
 			ValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		skipIfElementMissing("dynamic_registration_request", "default_max_age", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "default_max_age", Condition.ConditionResult.INFO,
 			ValidateDefaultMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		skipIfElementMissing("dynamic_registration_request", "require_auth_time", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "require_auth_time", Condition.ConditionResult.INFO,
 			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		skipIfElementMissing("dynamic_registration_request", "default_acr_values", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "default_acr_values", Condition.ConditionResult.INFO,
 			ValidateDefaultAcrValues.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		skipIfElementMissing("dynamic_registration_request", "initiate_login_uri", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "initiate_login_uri", Condition.ConditionResult.INFO,
 			ValidateInitiateLoginUri.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		skipIfElementMissing("dynamic_registration_request", "request_uris", Condition.ConditionResult.INFO,
+		skipIfElementMissing("client", "request_uris", Condition.ConditionResult.INFO,
 			ValidateRequestUris.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
-		env.unmapKey("client");
-		callAndContinueOnFailure(ValidateClientRegistrationRequestSectorIdentifierUri.class,
-									Condition.ConditionResult.FAILURE,"OIDCR-2","OIDCR-5");
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {

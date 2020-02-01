@@ -7,10 +7,12 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractClientValidationCondition extends AbstractCondition {
 
@@ -57,7 +59,8 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 	}
 
 	/**
-	 * checks if response type contains token or id_token
+	 * checks if response type contains only code or not
+	 * return true if it's not only code or null
 	 * @return
 	 */
 	protected boolean hasImplicitResponseTypes() {
@@ -65,14 +68,10 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 		if(responseTypes==null) {
 			return false;
 		}
-		JsonElement token = new JsonPrimitive("token");
-		JsonElement idToken = new JsonPrimitive("id_token");
-		for(JsonElement element : responseTypes) {
-			if(token.equals(element) || idToken.equals(element)) {
-				return true;
-			}
+		if(responseTypes.size()==1 && "code".equals(OIDFJSON.getString(responseTypes.get(0)))) {
+			return false;
 		}
-		return false;
+		return true;
 	}
 	/**
 	 * OPTIONAL. Kind of the application. The default, if omitted, is web. The defined values are native or web.
