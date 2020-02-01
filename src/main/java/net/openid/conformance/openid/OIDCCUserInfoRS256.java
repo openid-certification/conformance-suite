@@ -5,7 +5,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddUserinfoSignedResponseAlgRS256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256;
 import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJwtContentType;
+import net.openid.conformance.condition.client.EnsureUserInfoDoesNotContainNonce;
 import net.openid.conformance.condition.client.ExtractSignedUserInfoFromUserInfoEndpointResponse;
+import net.openid.conformance.condition.client.ValidateSignedUserInfoResponseStandardJWTClaims;
 import net.openid.conformance.condition.client.ValidateUserInfoResponseSignature;
 import net.openid.conformance.condition.client.ValidateUserInfoSigningAlgIsRS256;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
@@ -48,8 +50,8 @@ public class OIDCCUserInfoRS256 extends AbstractOIDCCUserInfoTest {
 		// should probably also use AbstractVerifyJwsSignatureUsingKid at some point
 		callAndStopOnFailure(ExtractSignedUserInfoFromUserInfoEndpointResponse.class);
 		callAndContinueOnFailure(ValidateUserInfoSigningAlgIsRS256.class, Condition.ConditionResult.FAILURE);
-		// we don't do any checking of the standard jwt claims (exp/iat/etc) - we perhaps should. I'm not sure the
-		// python suite did either.
+		callAndContinueOnFailure(ValidateSignedUserInfoResponseStandardJWTClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+		callAndContinueOnFailure(EnsureUserInfoDoesNotContainNonce.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2", "OIDCC-5.1");
 	}
 
 }
