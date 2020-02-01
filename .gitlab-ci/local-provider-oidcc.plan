@@ -252,6 +252,54 @@
                 }
             ]
         },
+        "oidcc-redirect-uri-query-added": {
+            "browser": [
+                {
+                    "comment": "expect an immediate error page",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect redirect uri mismatch error page",
+                            "match": "https://oidcc-provider:3000/auth*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "oops! something went wrong",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "oidcc-redirect-uri-query-mismatch": {
+            "browser": [
+                {
+                    "comment": "expect an immediate error page",
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Expect redirect uri mismatch error page",
+                            "match": "https://oidcc-provider:3000/auth*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "oops! something went wrong",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
         "oidcc-registration-logo-uri": {
             "browser": [
                 {

@@ -9,9 +9,9 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckErrorFromDynamicRegistrationEndpointIsInvalidConfigurationParameterOrInvalidClientMetadata extends AbstractCondition {
+public class CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata extends AbstractCondition {
 
-	private static final List<String> PERMITTED_ERRORS = ImmutableList.of("invalid_configuration_parameter", "invalid_client_metadata");
+	private static final List<String> PERMITTED_ERRORS = ImmutableList.of("invalid_redirect_uri", "invalid_client_metadata");
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_endpoint_response")

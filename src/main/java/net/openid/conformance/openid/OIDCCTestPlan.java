@@ -33,6 +33,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCPromptLogin.class,
 		OIDCCPromptNoneLoggedIn.class,
 		OIDCCPromptNoneNotLoggedIn.class,
+		OIDCCRedirectUriQueryOK.class,
 		OIDCCClaimsLocales.class,
 		OIDCCIdTokenHint.class,
 		OIDCCLoginHint.class,
@@ -47,6 +48,9 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRegisteredRedirectUri.class,
 		OIDCCEnsureRequestObjectWithRedirectUri.class,
 		OIDCCEnsureRequestWithoutNonceFails.class,
+		OIDCCRedirectUriQueryAdded.class,
+		OIDCCRedirectUriQueryMismatch.class,
+		OIDCCRedirectUriRegFrag.class,
 		OIDCCRegistrationSectorBad.class,
 		OIDCCResponseTypeMissing.class,
 	}

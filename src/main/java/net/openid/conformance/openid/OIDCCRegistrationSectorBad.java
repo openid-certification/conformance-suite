@@ -17,10 +17,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddSectorIdentifierUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddSubjectTypePairwiseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpointExpectingError;
-import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidConfigurationParameterOrInvalidClientMetadata;
+import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateInvalidSectorRedirectUris;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -68,9 +69,9 @@ public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistration
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpointExpectingError.class);
+		callAndStopOnFailure(CallDynamicRegistrationEndpointExpectingError.class, "OIDCR-5");
 
-		callAndStopOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidConfigurationParameterOrInvalidClientMetadata.class, "OIDCR-5");
+		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.WARNING, "OIDCR-3.3");
 	}
 
 	@Override
