@@ -16,14 +16,12 @@ public class ValidateClientTosUris extends AbstractValidateUrisBasedOnHttpStatus
 {
 
 	@Override
-	protected Map<String, String> getUrisToTest()
-	{
-		return getAllPolicyUris();
+	protected Map<String, String> getUrisToTest() {
+		return getAllTosUris();
 	}
 
 	@Override
-	protected String getMetadataName()
-	{
+	protected String getMetadataName() {
 		return "tos_uri";
 	}
 

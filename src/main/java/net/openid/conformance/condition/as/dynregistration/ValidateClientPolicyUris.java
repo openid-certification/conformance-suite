@@ -16,14 +16,12 @@ public class ValidateClientPolicyUris extends AbstractValidateUrisBasedOnHttpSta
 {
 
 	@Override
-	protected Map<String, String> getUrisToTest()
-	{
+	protected Map<String, String> getUrisToTest() {
 		return getAllPolicyUris();
 	}
 
 	@Override
-	protected String getMetadataName()
-	{
+	protected String getMetadataName() {
 		return "policy_uri";
 	}
 
