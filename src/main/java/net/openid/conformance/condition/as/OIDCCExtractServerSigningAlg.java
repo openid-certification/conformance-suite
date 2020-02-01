@@ -13,13 +13,14 @@ import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.as.dynregistration.AbstractClientValidationCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 import java.util.Iterator;
 import java.util.List;
 
-public class OIDCCExtractServerSigningAlg extends AbstractCondition {
+public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondition {
 
 	/**
 	 * if client has id_token_signed_response_alg use that if we have a suitable key
@@ -33,11 +34,20 @@ public class OIDCCExtractServerSigningAlg extends AbstractCondition {
 	@PreEnvironment(required = {"server_jwks", "client"})
 	@PostEnvironment(strings = "signing_algorithm")
 	public Environment evaluate(Environment env) {
-
+		this.client = env.getObject("client");
 		String configuredAlg = env.getString("client", "id_token_signed_response_alg");
 		if(configuredAlg==null) {
 			return selectFirstSigningKeyFromServerJwks(env);
 		} else {
+			if("none".equals(configuredAlg)) {
+				if(hasImplicitResponseTypes()) {
+					throw error("none algorithm can only be used when only 'code' response type will be used");
+				}
+				env.putString("signing_algorithm", "none");
+				logSuccess("Using client id_token_signed_response_alg, which is 'none', as the signing algorithm",
+					args("signing_algorithm", configuredAlg));
+				return env;
+			}
 			JWK selectedKey = null;
 			JWSAlgorithm configuredJwsAlgorithm = JWSAlgorithm.parse(configuredAlg);
 			if (configuredAlg.startsWith("HS")) {

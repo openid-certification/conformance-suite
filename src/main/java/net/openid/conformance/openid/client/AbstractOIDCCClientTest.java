@@ -245,6 +245,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		if(clientRegistrationType==ClientRegistration.STATIC_CLIENT) {
 			setServerSigningAlgorithm();
+			callAndStopOnFailure(SetClientIdTokenSignedResponseAlgToServerSigningAlg.class);
 		}
 
 		setStatus(Status.CONFIGURED);

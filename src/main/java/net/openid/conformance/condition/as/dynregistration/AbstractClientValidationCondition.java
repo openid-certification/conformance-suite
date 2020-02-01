@@ -62,6 +62,9 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 	 */
 	protected boolean hasImplicitResponseTypes() {
 		JsonArray responseTypes = getResponseTypes();
+		if(responseTypes==null) {
+			return false;
+		}
 		JsonElement token = new JsonPrimitive("token");
 		JsonElement idToken = new JsonPrimitive("id_token");
 		for(JsonElement element : responseTypes) {
