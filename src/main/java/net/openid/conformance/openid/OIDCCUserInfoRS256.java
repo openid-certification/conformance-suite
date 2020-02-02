@@ -50,7 +50,13 @@ public class OIDCCUserInfoRS256 extends AbstractOIDCCUserInfoTest {
 		// should probably also use AbstractVerifyJwsSignatureUsingKid at some point
 		callAndStopOnFailure(ExtractSignedUserInfoFromUserInfoEndpointResponse.class);
 		callAndContinueOnFailure(ValidateUserInfoSigningAlgIsRS256.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateSignedUserInfoResponseStandardJWTClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+
+		// This is just a warning since https://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse is fairly
+		// lax on what is required
+		callAndContinueOnFailure(ValidateSignedUserInfoResponseStandardJWTClaims.class, Condition.ConditionResult.WARNING, "OIDCC-5.3.2");
+
+		// This is not a 'must not' in the spec, but equally including nonce here is almost certainly a mistake by the
+		// implementor there is nothing in the spec that suggests including nonce
 		callAndContinueOnFailure(EnsureUserInfoDoesNotContainNonce.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2", "OIDCC-5.1");
 	}
 
