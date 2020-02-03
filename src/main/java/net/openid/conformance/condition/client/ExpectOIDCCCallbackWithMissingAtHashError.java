@@ -7,7 +7,7 @@ public class ExpectOIDCCCallbackWithMissingAtHashError extends AbstractCondition
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that 'at_hash' value is missing - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that 'at_hash' value is missing - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

@@ -7,7 +7,7 @@ public class ExpectCallbackWithInvalidOpenBankingIntentIdError extends AbstractC
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that the openbanking_intent_id returned in id_token from authorization endpoint does not match the value sent in the request object - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that the openbanking_intent_id returned in id_token from authorization endpoint does not match the value sent in the request object - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

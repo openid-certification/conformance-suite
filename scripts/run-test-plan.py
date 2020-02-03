@@ -89,29 +89,30 @@ def run_test_plan(test_plan, config_file):
                     os.putenv('VARIANT', oidcc_variant_str)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('ISSUER', oidcc_issuer_str)
-                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openid-client-nodejs", stdout=subprocess.PIPE, universal_newlines=True)
-                    out = process.communicate()[0]
-                    print(out)
+                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openid-client-nodejs", stdout=subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines=True)
+                    stdout, stderr = process.communicate()
+                    print('========= STDOUT =========\n{}\n========= STDERR =========\n{}'.format(stdout, stderr))
 
-                    state_placeholder = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
-                    if state_placeholder == "WAITING":
+                    state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+                    if state == "WAITING":
                         # If the status is waiting for an upload log content to an existing entry
-                        conformance.upload_log_file(module_id, out)
+                        conformance.upload_log_file_to_placeholder(module_id, stdout, stderr)
 
                 elif re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs", stdout=subprocess.PIPE, universal_newlines=True)
-                    out = process.communicate()[0]
-                    print(out)
+                    process = subprocess.Popen(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs", stdout=subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines=True)
+                    stdout, stderr = process.communicate()
+                    print('========= STDOUT =========\n{}\n========= STDERR =========\n{}'.format(stdout, stderr))
 
-                    state_placeholder = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
-                    if state_placeholder == "WAITING":
+                    state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+                    if state == "WAITING":
                         # If the status is waiting for an upload log content to an existing entry
-                        conformance.upload_log_file(module_id, out)
+                        conformance.upload_log_file_to_placeholder(module_id, stdout, stderr)
 
-                conformance.wait_for_state(module_id, ["FINISHED"])
+                if state != "FINISHED":
+                    conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
             print('Exception: Test {} failed to run to completion: {}'.format(module, e))

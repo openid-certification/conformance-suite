@@ -186,6 +186,10 @@
 					var startBlock = '';
 					$.each(data, function(i, item) {
 
+					    if (item.allowLogFile) {
+                            FAPI_UI.allowLogFile = true;
+                        }
+
 					    var existing = $(`[data-item-entry-id='${item._id}']`);
 
 					    // check to see if we've seen it before
@@ -287,6 +291,13 @@
 				    });
 				    $('#testResultSummary').html(results);
 
+				    // show button upload log file at header if the log file is acceptable
+				    if (FAPI_UI.allowLogFile) {
+                        $('#uploadLogFileBtn').show();
+                    } else {
+                        $('#uploadLogFileBtn').hide();
+                    }
+
                     // count up any "image or log required" items
                     var uploadCount = $('[data-image-required]').length;
                     if (uploadCount) {
@@ -294,7 +305,7 @@
                         $('#uploadImagesCount').addClass('btn-info');
                         $('#uploadImagesCount').removeClass('btn-default');
 
-                        if (_.includes(FAPI_UI.testName, '-client-test')) {
+                        if (FAPI_UI.allowLogFile) {
                             $('#uploadLogFilesCount').html(uploadCount);
                             $('#uploadLogFilesCount').addClass('btn-info');
                             $('#uploadLogFilesCount').removeClass('btn-default');
@@ -304,7 +315,7 @@
                         $('#uploadImagesCount').removeClass('btn-info');
                         $('#uploadImagesCount').addClass('btn-default');
 
-                        if (_.includes(FAPI_UI.testName, '-client-test')) {
+                        if (FAPI_UI.allowLogFile) {
                             $('#uploadLogFilesCount').html('');
                             $('#uploadLogFilesCount').removeClass('btn-info');
                             $('#uploadLogFilesCount').addClass('btn-default');
@@ -323,15 +334,17 @@
 		}
 
 		function getHeader(testId, public) {
+            // hide button upload log file when render header page
+            if (!FAPI_UI.allowLogFile) {
+                $('#uploadLogFileBtn').hide();
+            }
+
 			// this is the page header, fill it in with log details
 			return $.ajax({
 				type: 'GET',
 				url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
 				data: {},
 				success: function(data) {
-
-					// save test name
-					FAPI_UI.testName = data.testName;
 
 					// save the status for the 'active' panel later
 					if (data.status) {

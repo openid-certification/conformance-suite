@@ -50,7 +50,7 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 		Object returnValue = super.handleAuthorizationEndpointRequest(requestId);
 		if(responseType.includesIdToken()) {
-			waitForPlaceHolderToUploadLogFileOrScreenshot();
+			startWaitingForTimeout();
 		}
 		return returnValue;
 	}
@@ -63,11 +63,7 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 		Object returnValue = super.authorizationCodeGrantType(requestId);
-		if (responseType.includesIdToken()) {
-			startWaitingForTimeout();
-		} else {
-			waitForPlaceHolderToUploadLogFileOrScreenshot();
-		}
+		startWaitingForTimeout();
 		return returnValue;
 	}
 

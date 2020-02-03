@@ -1058,22 +1058,21 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(waitTimeoutSeconds * 1000);
 			if (getStatus().equals(Status.WAITING)) {
-				setStatus(Status.RUNNING);
-				fireTestFinished();
+				waitForPlaceHolderToUploadLogFileOrScreenshot();
 			}
 			return "done";
 		});
 	}
 
 	protected void waitForPlaceHolderToUploadLogFileOrScreenshot() {
-		setStatus(Status.WAITING);
+		setStatus(Status.RUNNING);
 		createPlaceholder();
+		setStatus(Status.WAITING);
 		waitForPlaceholders();
 	}
 
 	protected void createPlaceholder() {
 		// Use for create new placeholder in subclass
-		fireTestFailure();
 		throw new TestFailureException(getId(), "Placeholder must be created for test " + getName());
 	}
 

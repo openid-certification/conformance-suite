@@ -7,7 +7,7 @@ public class ExpectOIDCCCallbackWithKidAbsentMultipleMatchingKeysInJWKsError ext
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client show an error message that multiple matching keys found in issuer's jwks_uri, kid must provided  - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client show an error message that multiple matching keys found in issuer's jwks_uri, kid must provided  - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

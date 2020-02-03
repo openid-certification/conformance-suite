@@ -24,7 +24,7 @@
                       <% } %>
 
 					  <% if (item.upload) { %>
-                        <% if (_.includes(FAPI_UI.testName, '-client-test')) { %>
+                        <% if (item.allowLogFile) { %>
                             <span class="label label-warning"><span class="glyphicon glyphicon-file"></span> IMAGE OR LOG REQUIRED</span>
                         <% } else { %>
                             <span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>

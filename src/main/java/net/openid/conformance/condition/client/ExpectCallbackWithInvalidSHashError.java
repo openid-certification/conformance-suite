@@ -7,7 +7,7 @@ public class ExpectCallbackWithInvalidSHashError extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that the s_hash value in the id_token does not match the state the client sent - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that the s_hash value in the id_token does not match the state the client sent - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

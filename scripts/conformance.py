@@ -100,16 +100,34 @@ class Conformance(object):
 
             time.sleep(1)
 
-    def upload_log_file(self, module_id, content_log_file):
-        test_entry_logs = self.get_test_log(module_id)
+    def upload_log_file_to_placeholder(self, module_id, stdout_log_content, stderr_log_content, timeout=30):
+        timeout_at = time.time() + timeout
 
-        if len(test_entry_logs):
-            for entry in test_entry_logs:
-                if 'upload' in entry:
-                    api_url = '{0}api/log/{1}/logfile/{2}'.format(self.api_url_base, module_id, entry['upload'])
-                    response = self.requests_session.post(api_url, data=content_log_file.encode('utf-8'))
+        while True:
+            if time.time() > timeout_at:
+                raise Exception("Timed out waiting for test module {} upload log file".format(module_id))
 
-                    if response.status_code != 200:
-                        raise Exception("upload_log_file failed - HTTP {:d} {}".format(response.status_code, response.content))
-        else:
-            raise Exception("Upload log_file failed, test logs is not an array - {}".format(test_entry_logs))
+            test_entry_logs = self.get_test_log(module_id)
+            if len(test_entry_logs):
+
+                if any('upload' in entry for entry in test_entry_logs):
+                    if sum('upload' in entry for entry in test_entry_logs) > 1:
+                        raise Exception("Test module {} existing more than one placeholder".format(module_id))
+
+                    for entry in test_entry_logs:
+                        if 'upload' in entry:
+                            api_url = '{0}api/log/{1}/logfile/{2}'.format(self.api_url_base, module_id, entry['upload'])
+                            content_log = '========= STDOUT =========\n{}\n========= STDERR =========\n{}'.format(stdout_log_content, stderr_log_content)
+                            response = self.requests_session.post(api_url, data=content_log.encode('utf-8'))
+
+                            if response.status_code != 200:
+                                raise Exception("Upload log file to placeholder failed - HTTP {:d} {}".format(response.status_code, response.content))
+
+                            break
+                    break
+
+                else:
+                    time.sleep(1)
+
+            else:
+                raise Exception("Upload log file to placeholder failed, test logs is not an array - {}".format(test_entry_logs))

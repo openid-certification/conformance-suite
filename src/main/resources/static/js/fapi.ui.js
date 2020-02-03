@@ -257,7 +257,7 @@ var FAPI_UI = {
 			);
 		},
 
-		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
+		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "allowLogFile", "testOwner", "testId", "http", "blockId", "startBlock"],
 
 		availableTests : {},
 
@@ -454,6 +454,6 @@ var FAPI_UI = {
 
 		selectedVariant: undefined,
 
-		testName: '',
+		allowLogFile: false,
 
 };

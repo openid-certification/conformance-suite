@@ -424,6 +424,22 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return requirements;
 	}
 
+	protected String createBrowserInteractionPlaceholder(String msg, boolean allowLogFile) {
+		String placeholder = RandomStringUtils.randomAlphanumeric(10);
+
+		if (!allowLogFile) {
+			placeholder = createBrowserInteractionPlaceholder(msg);
+		} else {
+			if (getRequirements().isEmpty()) {
+				log(msg, args("upload", placeholder, "allowLogFile", true, "result", ConditionResult.REVIEW));
+			} else {
+				log(msg, args("upload", placeholder, "allowLogFile", true, "result", ConditionResult.REVIEW, "requirements", getRequirements()));
+			}
+		}
+
+		return placeholder;
+	}
+
 	protected String createBrowserInteractionPlaceholder(String msg) {
 		String placeholder = RandomStringUtils.randomAlphanumeric(10);
 		if (getRequirements().isEmpty()) {

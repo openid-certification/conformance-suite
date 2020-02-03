@@ -7,7 +7,7 @@ public class ExpectOIDCCCallbackWithMissingSubInIdTokenError extends AbstractCon
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that 'sub' claim is missing - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that 'sub' claim is missing - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

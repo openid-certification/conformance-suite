@@ -7,7 +7,7 @@ public class ExpectCallbackWithInvalidMissingSHashError extends AbstractConditio
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that the shash in the id_token from the authorization_endpoint is missing - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that the shash in the id_token from the authorization_endpoint is missing - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

@@ -57,7 +57,8 @@ public class ImageAPI {
 	@ApiOperation(value = "Upload image or log file for a test log")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Uploaded image or log file successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner")
+		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner"),
+		@ApiResponse(code = 400, message = "Value of uploadType is invalid, You must supply 'images' or 'logfile'")
 	})
 	public ResponseEntity<Object> uploadImageOrLogFileToNewLogEntry(@RequestBody String encoded,
 		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
@@ -82,9 +83,11 @@ public class ImageAPI {
 			if ("images".equals(uploadType)) {
 				document.append("src", "_image-api")
 					.append("img", encoded);
-			} else {
+			} else if ("logfile".equals(uploadType)){
 				document.append("src", "_log-file-api")
 					.append("logContent", encoded);
+			} else {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
 			mongoTemplate.insert(document, DBEventLog.COLLECTION);
@@ -104,7 +107,8 @@ public class ImageAPI {
 	@ApiOperation(value = "Upload the image or log file to existing log entry")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Uploaded image or log file successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner")
+		@ApiResponse(code = 403, message = "In order to upload an image or log file, You must be admin or test owner"),
+		@ApiResponse(code = 400, message = "Value of uploadType is invalid, You must supply 'images' or 'logfile'")
 	})
 	public ResponseEntity<Object> uploadImageOrLogFileToExistingLogEntry(
 		@ApiParam(value = "Image or log file should be encoded as a string") @RequestBody String encoded,
@@ -121,8 +125,10 @@ public class ImageAPI {
 
 			if ("images".equals(uploadType)) {
 				update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
-			} else {
+			} else if ("logfile".equals(uploadType)){
 				update = ImmutableMap.of("logContent", encoded, "updatedAt", new Date().getTime());
+			} else {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
 			Document result = imageService.fillPlaceholder(testId, placeholder, update, false);

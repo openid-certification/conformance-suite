@@ -73,12 +73,8 @@
                 <div class="col-md-2"> <!-- controls -->
                     <% if (!public) { %>
                     <button class="btn btn-default btn-block" id="reloadBtn"><span class="glyphicon glyphicon-retweet"></span> Repeat Test</button>
-                    <% if (_.includes(FAPI_UI.testName, '-client-test')) { %>
-                        <button class="btn btn-default btn-block" id="uploadImageBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadImagesCount"></span></button>
-                        <button class="btn btn-default btn-block" id="uploadLogFileBtn"><span class="glyphicon glyphicon-file"></span> Upload Log files <span class="badge" id="uploadLogFilesCount"></span></button>
-                    <% } else { %>
-                        <button class="btn btn-default btn-block" id="uploadImageBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadImagesCount"></span></button>
-                    <% } %>
+                    <button class="btn btn-default btn-block" id="uploadImageBtn"><span class="glyphicon glyphicon-picture"></span> Upload Images <span class="badge" id="uploadImagesCount"></span></button>
+                    <button class="btn btn-default btn-block" id="uploadLogFileBtn"><span class="glyphicon glyphicon-file"></span> Upload Log files <span class="badge" id="uploadLogFilesCount"></span></button>
                     <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
                     <button class="btn btn-default btn-block" id="editConfigBtn"><span class="glyphicon glyphicon-edit"></span> Edit configuration</button>
                     <% } %>

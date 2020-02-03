@@ -7,7 +7,7 @@ public class ExpectOIDCCCallbackWithInvalidIssError extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that the 'iss' value is incorrect - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that the 'iss' value is incorrect - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

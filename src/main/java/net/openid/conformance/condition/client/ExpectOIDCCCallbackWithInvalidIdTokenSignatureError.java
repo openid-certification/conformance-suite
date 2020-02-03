@@ -7,7 +7,7 @@ public class ExpectOIDCCCallbackWithInvalidIdTokenSignatureError extends Abstrac
 
 	@Override
 	public Environment evaluate(Environment env) {
-		createBrowserInteractionPlaceholder("The client must show an error message that the ID token signature is invalid - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that the ID token signature is invalid - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 

@@ -7,7 +7,7 @@ public class ExpectCallbackWithInvalidSecondaryAudError extends AbstractConditio
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String placeholder = createBrowserInteractionPlaceholder("The client must show an error message that there are multiple aud values in the id_token from the authorization_endpoint, and this behaviour is not expected - upload a log file or screenshot of the error.");
+		createBrowserInteractionPlaceholder("The client must show an error message that there are multiple aud values in the id_token from the authorization_endpoint, and this behaviour is not expected - upload a log file or screenshot of the error.", true);
 		return env;
 	}
 
