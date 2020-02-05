@@ -788,6 +788,8 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - some tests did not run to completion **"))
         sys.exit(1)
 
+    failed = False
+
     # analyze_plan_results will remove expected failures and skips from the list, so if
     # any remain at this point, they are unused and should be warned about.
     def is_unused(obj):
@@ -795,7 +797,7 @@ if __name__ == '__main__':
 
     unused_expected_failures = list(filter(is_unused, expected_failures_list))
     if unused_expected_failures:
-        print(warning("** Some expected failures were not found in any test module of the system **"))
+        print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
         for entry in unused_expected_failures:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -806,9 +808,10 @@ if __name__ == '__main__':
                 'expected-result': entry['expected-result']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        failed = True
 
     if expected_skips_list:
-        print(warning("** Some expected skips were not found in any test module of the system **"))
+        print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
         for entry in expected_skips_list:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -816,11 +819,12 @@ if __name__ == '__main__':
                 'configuration-filename': entry['configuration-filename']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        failed = True
 
     if failed_plan_results:
         summary_unexpected_failures_all_test_plan(failed_plan_results)
         print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings **"))
-        sys.exit(1)
+        failed = True
 
     # filter untested list, as we don't currently have test environments for these
     for m in untested_test_modules[:]:
@@ -848,6 +852,9 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - not all available modules were tested:"))
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
+        failed = True
+
+    if failed:
         sys.exit(1)
 
     print(success("All tests ran to completion. See above for any test condition failures."))
