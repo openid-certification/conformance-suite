@@ -2,7 +2,6 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerTokenInBodyAllowingFailure;
-import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.condition.client.UserInfoEndpointWithAccessTokenInBodyNotSupported;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.HttpStatus;
@@ -28,8 +27,8 @@ public class OIDCCUserInfoPostBody extends AbstractOIDCCUserInfoTest {
 		if (!HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
 			callAndContinueOnFailure(UserInfoEndpointWithAccessTokenInBodyNotSupported.class, Condition.ConditionResult.WARNING);
 		} else {
-			callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
-			validateUserInfoResponse();
+			extractUserInfoResponse();
+			validateExtractedUserInfoResponse();
 		}
 
 		fireTestFinished();

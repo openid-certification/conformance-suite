@@ -215,9 +215,20 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="A value that the server accepts in the login_hint parameter. If not specified a default value will be used."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="A value that the server accepts in the login_hint parameter. If not specified a default value ('buffy@<your issuer>') will be used."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="server.login_hint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">ui_locales</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="A value that the server accepts in the ui_locales parameter. If not specified a default value ('se') will be used."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.ui_locales"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -253,7 +264,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client name"></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client name to use in dynamic registration request"></span>
 											</div>
 											<input type="text" class="form-control config-form-element" data-json-target="client.client_name"></input>
 										</div>

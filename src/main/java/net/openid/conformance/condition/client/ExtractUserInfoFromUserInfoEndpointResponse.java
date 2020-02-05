@@ -17,6 +17,8 @@ public class ExtractUserInfoFromUserInfoEndpointResponse extends AbstractConditi
 	@PostEnvironment(required = "userinfo")
 	public Environment evaluate(Environment env) {
 
+		env.removeObject("userinfo");
+
 		String userInfoStr = env.getString("userinfo_endpoint_response");
 		try {
 			JsonElement elt = new JsonParser().parse(userInfoStr);
