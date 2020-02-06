@@ -9,6 +9,7 @@ import re
 import sys
 import time
 import subprocess
+import fnmatch
 
 import requests
 import json
@@ -382,9 +383,31 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
     (test_plan_name, variant) = split_name_and_variant(test_plan)
 
     def is_expected_for_this_test(obj):
-        return (obj['test-name'] == test_name
-                and obj['configuration-filename'] == config_filename
-                and obj.get('variant', None) == variant)
+        """
+        Check if an expected failure/warning read from an 'expected' JSON file matches the current test module
+
+        The match is lose and allows the following:
+        - configuration-filename may contain shell-style wildcards (mainly '*')
+        - variant may be listed as a "*" to match all variants
+        - if variant is an object, only the keys/values listed in JSON will be checked (i.e. the entry will be assumed
+        to apply to all unlisted variants)
+
+        :param obj: expected_failure_obj entry from json expected list to test
+        :return: True if entry matches the current test module
+        """
+        if obj['test-name'] != test_name:
+            return False
+        if not fnmatch.fnmatch(config_filename, obj['configuration-filename']):
+            return False
+        expected_variant = obj.get('variant', None)
+        if expected_variant == "*":
+            return True
+        for k in expected_variant:
+            if not k in variant:
+                return False
+            if expected_variant[k] != variant[k]:
+                return False
+        return True
 
     test_expected_failures = list(filter(is_expected_for_this_test, expected_failures_list))
     test_expected_skips = list(filter(is_expected_for_this_test, expected_skips_list))
@@ -439,8 +462,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
                         continue
 
                     log_entry_exist_in_expected_list = True
-                    test_expected_failures.remove(expected_failure_obj)
-                    expected_failures_list.remove(expected_failure_obj)
+                    expected_failure_obj['__used'] = True
                     break
 
             # list all the unexpected failures/warnings of a test module
@@ -455,6 +477,8 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
 
     # list all the expected failures/warnings did not happen of a test module
     for expected_failure_obj in test_expected_failures:
+        if expected_failure_obj['__used']:
+            continue
         expected_result = expected_failure_obj['expected-result']
         expected_block = expected_failure_obj['current-block']
         expected_condition = expected_failure_obj['condition']
@@ -764,11 +788,17 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - some tests did not run to completion **"))
         sys.exit(1)
 
+    failed = False
+
     # analyze_plan_results will remove expected failures and skips from the list, so if
     # any remain at this point, they are unused and should be warned about.
-    if expected_failures_list:
-        print(warning("** Some expected failures were not found in any test module of the system **"))
-        for entry in expected_failures_list:
+    def is_unused(obj):
+        return not '__used' in obj
+
+    unused_expected_failures = list(filter(is_unused, expected_failures_list))
+    if unused_expected_failures:
+        print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
+        for entry in unused_expected_failures:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
                 'variant': entry.get('variant', None),
@@ -778,9 +808,10 @@ if __name__ == '__main__':
                 'expected-result': entry['expected-result']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        failed = True
 
     if expected_skips_list:
-        print(warning("** Some expected skips were not found in any test module of the system **"))
+        print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
         for entry in expected_skips_list:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -788,11 +819,12 @@ if __name__ == '__main__':
                 'configuration-filename': entry['configuration-filename']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        failed = True
 
     if failed_plan_results:
         summary_unexpected_failures_all_test_plan(failed_plan_results)
         print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings **"))
-        sys.exit(1)
+        failed = True
 
     # filter untested list, as we don't currently have test environments for these
     for m in untested_test_modules[:]:
@@ -820,6 +852,9 @@ if __name__ == '__main__':
         print(failure("** Exiting with failure - not all available modules were tested:"))
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
+        failed = True
+
+    if failed:
         sys.exit(1)
 
     print(success("All tests ran to completion. See above for any test condition failures."))
