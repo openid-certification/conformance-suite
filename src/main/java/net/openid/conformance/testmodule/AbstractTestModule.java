@@ -38,7 +38,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.UNKNOWN; // current status of the test
+	private Status status = Status.NOT_YET_CREATED; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
@@ -505,8 +505,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		// then this happens in the background so that we can check the state of the browser controller
 
-		getTestExecutionManager().runInBackground(() -> {
-
+		getTestExecutionManager().runFinalisationTaskInBackground(() -> {
 
 			// wait for web runners to wrap up first
 
@@ -515,6 +514,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				&& Instant.now().isBefore(timeout)) {
 				Thread.sleep(100); // sleep before we check again
 			}
+
+			// really at this point there should be no other threads running (though the placeholder watcher may be)
+			// kill everything else anyway - we don't hold any locks so we don't want anything else doing anything
+			// whilst or after we tidy up.
+			getTestExecutionManager().cancelAllBackgroundTasksExceptFinalisation();
 
 			if (getResult() == Result.UNKNOWN) {
 				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
@@ -544,17 +548,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			// if we weren't interrupted already, then we're finished
 			if (!getStatus().equals(Status.INTERRUPTED)) {
+				// log the environment here, as "stop" won't do so for the 'finished' case
+				logFinalEnv();
 
 				// this must be pretty much the last thing we do, we must NEVER mark the test as finished until
 				// everything has happen, as 'FINISHED' is the cue for run-test-plan.py to fetch the results, start
 				// the next test, etc.
 				setStatus(Status.FINISHED);
-
-				// log the environment here in case "stop" doesn't get it it
-				logFinalEnv();
 			}
 
-			// stop() might interrupt the current thread, so don't do any logging after this
+			// stop() will also cancel the current thread, so don't do any logging etc after this
 			stop("Test has run to completion.");
 
 			return "done";
@@ -635,109 +638,119 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *                         \     ^--v      ^              ^
 	 *                          \-> WAITING --/--------------/
 	 *
-	 * Any state can go to "UNKNOWN"
 	 */
 	protected void setStatus(Status newStatus) {
-		Status oldStatus = getStatus();
+		try {
+			boolean releaseLockBeforeReturning = false;
 
-		logger.info(getId() + ": setStatus("+newStatus.toString()+"): current status = "+oldStatus.toString());
+			logger.info(getId() + ": setStatus(" + newStatus.toString() + "): current status = " + getStatus().toString());
 
-		if (newStatus == oldStatus) {
-			// nothing to change
-			return;
+			if (newStatus == Status.RUNNING) {
+				if (env.getLock().isHeldByCurrentThread()) {
+					// RUNNING->RUNNING isn't good, and moved /to/ RUNNING when we already hold the lock probably isn't right either?
+					throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + getStatus() + " -> " + newStatus);
+				}
+				// in all other cases [where it is a valid state transition] we want to take the lock before moving to running; do so
+				acquireLock();
+			} else if (newStatus == getStatus()) {
+				// nothing to change
+				throw new TestFailureException(getId(), "setStatus() called but status is the same: " + getStatus() + " -> " + newStatus);
+			}
+
+			// must be after lock acquired, or the status might've changed by the time we wake up
+			Status oldStatus = getStatus();
+
+			switch (oldStatus) {
+				case NOT_YET_CREATED:
+					switch (newStatus) {
+						case CREATED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case CREATED:
+					switch (newStatus) {
+						case CONFIGURED:
+						case WAITING:
+						case INTERRUPTED:
+						case FINISHED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case CONFIGURED:
+					switch (newStatus) {
+						case RUNNING:
+						case INTERRUPTED:
+						case FINISHED:
+						case WAITING:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case RUNNING:  // We should have the lock when we're running
+					switch (newStatus) {
+						case INTERRUPTED:
+							clearLockIfHeld();
+							break;
+						case FINISHED:
+						case WAITING:
+							releaseLockBeforeReturning = true;
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case WAITING:  // we shouldn't have the lock if we're waiting.
+					switch (newStatus) {
+						case RUNNING:
+						case INTERRUPTED:
+						case FINISHED:
+							break;
+						default:
+							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+					}
+					break;
+				case INTERRUPTED:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+				case FINISHED:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+				default:
+					throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
+			}
+
+			if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
+				// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
+				if (!releaseLockBeforeReturning) {
+					acquireLock();
+					releaseLockBeforeReturning = true;
+				}
+				performFinalCleanup();
+			}
+
+			if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
+				throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
+			}
+
+			this.status = newStatus;
+			testInfo.updateTestStatus(getId(), newStatus);
+
+			this.statusUpdated = Instant.now();
+
+			if (releaseLockBeforeReturning) {
+				// don't release the lock till the very final step; this ensure other threads won't start reading the
+				// test status until after it's been updated, etc.
+				clearLock();
+			}
+		} catch (Exception e) {
+			// It's really best if we don't exit with the lock held, ensuring any other threads trying to take the
+			// lock won't end up blocked forever.
+			clearLockIfHeld();
+			throw e;
 		}
-
-		switch (oldStatus) {
-			case CREATED:
-				switch (newStatus) {
-					case CONFIGURED:
-					case WAITING:
-					case INTERRUPTED:
-					case FINISHED:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case CONFIGURED:
-				switch (newStatus) {
-					case RUNNING:
-						acquireLock();
-						break;
-					case INTERRUPTED:
-					case FINISHED:
-					case WAITING:
-						break;
-					default:
-						clearLock();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case RUNNING:  // We should have the lock when we're running
-				switch (newStatus) {
-					case INTERRUPTED:
-						clearLockIfHeld();
-						break;
-					case FINISHED:
-					case WAITING:
-						clearLock();
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case WAITING:  // we shouldn't have the lock if we're waiting.
-				switch (newStatus) {
-					case RUNNING:
-						acquireLock();  // we want to grab the lock whenever we start running
-						break;
-					case INTERRUPTED:
-					case FINISHED:
-						break;
-					default:
-						clearLockIfHeld();
-						throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-				}
-				break;
-			case INTERRUPTED:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-			case FINISHED:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-			case UNKNOWN:
-				// we can go from unknown to anything
-				switch (newStatus) {
-					case RUNNING:
-						acquireLock();  // we want to grab the lock whenever we start running
-						break;
-					default:
-						clearLockIfHeld();
-						break;
-				}
-				break;
-			default:
-				clearLockIfHeld();
-				throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
-		}
-
-		if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
-			// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
-			acquireLock();
-			performFinalCleanup();
-			clearLock();
-		}
-
-		if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
-			throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
-		}
-
-		this.status = newStatus;
-		testInfo.updateTestStatus(getId(), newStatus);
-
-		this.statusUpdated = Instant.now();
 	}
 
 
@@ -811,7 +824,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 
 		// This might interrupt the current thread, so don't do any logging after this
-		getTestExecutionManager().clearBackgroundTasks();
+		getTestExecutionManager().cancelAllBackgroundTasks();
 	}
 
 	protected void performFinalCleanup() {
@@ -930,9 +943,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			Thread.sleep(delayMillis);
 
-			boolean cont = true;
-
-			while (cont) {
+			while (true) {
 
 				// grab the lock before we check anything in case something is finishing up
 				acquireLock();
@@ -942,17 +953,17 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 				if (getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED)) {
 					// if the test is finished/interrupted, nothing for us to do, stop looking
-					cont = false;
-				} else if (remainingPlaceholders.isEmpty() && getStatus().equals(Status.WAITING)) {
-					// if the test is still waiting, but all the placeholders are gone, then we can call it finished, stop looking
-					fireTestFinished();
-					cont = false;
-				} else {
-					// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
-					cont = true;
+					clearLock();
+					break;
 				}
-
-				// let go of the lock
+				if (remainingPlaceholders.isEmpty() && getStatus().equals(Status.WAITING)) {
+					// if the test is still waiting, but all the placeholders are gone, then we can call it finished, stop looking
+					clearLock();
+					setStatus(Status.RUNNING);
+					fireTestFinished();
+					break;
+				}
+				// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
 				clearLock();
 
 				if (delayMillis < 30 * 1000) {
