@@ -57,7 +57,6 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
-import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12;
 import net.openid.conformance.condition.common.EnsureIncomingTlsSecureCipher;
@@ -166,8 +165,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(LoadServerJWKs.class);
 
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
