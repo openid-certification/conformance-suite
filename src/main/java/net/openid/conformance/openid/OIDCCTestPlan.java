@@ -45,6 +45,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRequestWithAcrValuesSucceeds.class,
 		OIDCCEnsureRequestWithUnknownParameterSucceeds.class,
 		OIDCCUiLocales.class,
+		OIDCCDisplayPage.class,
+		OIDCCDisplayPopup.class,
 		OIDCCUnsignedRequestObject.class,
 
 		// negative tests
