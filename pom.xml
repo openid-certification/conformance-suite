@@ -112,6 +112,11 @@
 			<artifactId>nimbus-jose-jwt</artifactId>
 		</dependency>
 		<dependency>
+			<!-- needed by nimbusds for OKP keys -->
+			<groupId>com.google.crypto.tink</groupId>
+			<artifactId>tink</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>io.specto</groupId>
 			<artifactId>hoverfly-java</artifactId>
 			<scope>test</scope>
@@ -202,6 +207,12 @@
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
 						<arg>-Xlint</arg>
+						<!--
+						Needed after adding google tink dependency because tink includes an annotation processed
+						at compile time which leads to a warning about unhandled annotations which are normally
+						runtime annotations that don't need to be handled at compile time.
+						 -->
+						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
 						<arg>-Werror</arg>
@@ -314,6 +325,11 @@
 				<groupId>com.nimbusds</groupId>
 				<artifactId>nimbus-jose-jwt</artifactId>
 				<version>8.4</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.crypto.tink</groupId>
+				<artifactId>tink</artifactId>
+				<version>1.2.2</version>
 			</dependency>
 			<dependency>
 				<groupId>io.specto</groupId>

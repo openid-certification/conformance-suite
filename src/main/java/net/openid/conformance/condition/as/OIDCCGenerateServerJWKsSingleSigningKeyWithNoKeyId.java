@@ -19,10 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * There will be EC keys as well in the JWKS but the RSA one will be used for signing
- * so there will be only one matching key
- */
 public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGenerateServerJWKs {
 
 	@Override
@@ -30,6 +26,8 @@ public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGen
 	{
 		this.setGenerateKids(false);
 		this.setNumberOfRSASigningKeysWithNoAlg(1);
-		this.setNumberOfECSigningKeysWithNoAlg(2);
+		this.setNumberOfECCurveP256SigningKeysWithNoAlg(1);
+		this.setNumberOfECCurveSECP256KSigningKeysWithNoAlg(1);
+		this.setNumberOfOKPSigningKeysWithNoAlg(1);
 	}
 }
