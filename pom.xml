@@ -207,7 +207,11 @@
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
 						<arg>-Xlint</arg>
-						<!-- needed after adding tink -->
+						<!--
+						Needed after adding google tink dependency because tink includes an annotation processed
+						at compile time which leads to a warning about unhandled annotations which are normally
+						runtime annotations that don't need to be handled at compile time.
+						 -->
 						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
