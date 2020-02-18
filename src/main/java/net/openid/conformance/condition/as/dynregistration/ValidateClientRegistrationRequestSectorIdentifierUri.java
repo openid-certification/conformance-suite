@@ -50,17 +50,20 @@ public class ValidateClientRegistrationRequestSectorIdentifierUri extends Abstra
 		try {
 			responseBody = HttpUtil.getAsString(sectorIdentifierUri);
 			if(responseBody == null || responseBody.isEmpty()) {
-				throw error("Invalid sector_identifier_uri", args("uri", sectorIdentifierUri));
+				throw error("Invalid sector_identifier_uri. When fetching sector_identifier_uri " +
+							"the server returned an empty body", args("uri", sectorIdentifierUri));
 			}
-			JsonElement jsonElement = new JsonParser().parse(responseBody);
-			JsonArray jsonArray = jsonElement.getAsJsonArray();
-			JsonArray redirectUris = getRedirectUris();
-			if(jsonArray == null) {
-				throw error("Invalid sector_identifier_uri");
+			JsonArray jsonArray = new JsonParser().parse(responseBody).getAsJsonArray();
+			JsonArray redirectUris = null;
+			try {
+				redirectUris = getRedirectUris();
+				if(redirectUris == null) {
+					throw error("redirect_uris is empty");
+				}
+			} catch(IllegalStateException ex) {
+				throw error("redirect_uris is not encoded as a json array");
 			}
-			if(redirectUris == null) {
-				throw error("Invalid redirect_uris");
-			}
+
 			Set<String> urisFromSectorIdentifierUri = new HashSet<>();
 			Set<String> urisFromRedirectUris = new HashSet<>();
 			for(JsonElement element : jsonArray) {
@@ -75,7 +78,8 @@ public class ValidateClientRegistrationRequestSectorIdentifierUri extends Abstra
 			//to retrieve or revalidate its contents in the future.
 			for(String redirUri : urisFromRedirectUris) {
 				if(!urisFromSectorIdentifierUri.contains(redirUri)) {
-					throw error("redirect_uri not found in sector_identifier_uri response",
+					throw error("A redirect_uri provided in registration request is not found in " +
+									"sector_identifier_uri response",
 								args("redirect_uri", redirUri, "sector_identifier_uri_response", jsonArray));
 				}
 			}

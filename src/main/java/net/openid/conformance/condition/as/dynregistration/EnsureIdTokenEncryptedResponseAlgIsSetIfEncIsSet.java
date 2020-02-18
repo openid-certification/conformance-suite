@@ -29,7 +29,7 @@ public class EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet extends AbstractCl
 			logSuccess("id_token_encrypted_response_enc is not set");
 			return env;
 		}
-		logSuccess("id_token_signed_response_alg is sets",
+		logSuccess("id_token_signed_response_alg is set",
 					args("id_token_encrypted_response_alg", alg, "id_token_encrypted_response_enc", enc));
 		return env;
 	}

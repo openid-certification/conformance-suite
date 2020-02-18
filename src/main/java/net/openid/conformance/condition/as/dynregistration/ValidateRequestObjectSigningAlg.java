@@ -3,6 +3,7 @@ package net.openid.conformance.condition.as.dynregistration;
 import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWSUtil;
 
 /**
  *  request_object_signing_alg
@@ -35,12 +36,8 @@ public class ValidateRequestObjectSigningAlg extends AbstractClientValidationCon
 			logSuccess("request_object_signing_alg is 'none'");
 			return env;
 		}
-		JWSAlgorithm jwsAlgorithm = JWSAlgorithm.parse(alg);
-		if(JWSAlgorithm.Family.EC.contains(jwsAlgorithm)
-			||JWSAlgorithm.Family.ED.contains(jwsAlgorithm)
-			||JWSAlgorithm.Family.HMAC_SHA.contains(jwsAlgorithm)
-			||JWSAlgorithm.Family.RSA.contains(jwsAlgorithm)
-		) {
+
+		if(JWSUtil.isValidJWSAlgorithm(alg)) {
 			logSuccess("request_object_signing_alg is one of the known algorithms",
 						args("alg", alg));
 			return env;

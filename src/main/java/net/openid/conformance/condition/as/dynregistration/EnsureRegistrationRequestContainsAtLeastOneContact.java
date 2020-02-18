@@ -15,6 +15,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
  *
  * Although contacts is optional, the python suite requires at least one contact in registration requests.
  * Python suite also checks if the first entry in contacts contains a @ character
+ * See Provider.registration_endpoint in oidctest/src/oidctest/rp/provider.py
  */
 public class EnsureRegistrationRequestContainsAtLeastOneContact extends AbstractCondition {
 	private static final String CONTACTS = "contacts";

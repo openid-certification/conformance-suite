@@ -20,6 +20,7 @@ import java.util.Set;
  */
 public class ValidateClientSubjectType extends AbstractClientValidationCondition
 {
+	public static final Set<String> ALLOWED_SUBJECT_TYPES = Set.of("public", "pairwise");
 
 	@Override
 	@PreEnvironment(required = { "client"})
@@ -31,8 +32,8 @@ public class ValidateClientSubjectType extends AbstractClientValidationCondition
 			logSuccess("A subject_type was not provided");
 			return env;
 		}
-		//TODO allow other values?
-		if("public".equals(subjectType) || "pairwise".equals(subjectType)) {
+
+		if(ALLOWED_SUBJECT_TYPES.contains(subjectType)) {
 			logSuccess("subject_type is valid", args("subject_type", subjectType));
 			return env;
 		}
