@@ -1,15 +1,8 @@
 package net.openid.conformance.condition.as.dynregistration;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.HttpUtil;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**

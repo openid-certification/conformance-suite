@@ -7,11 +7,16 @@ import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.HttpUtil;
-import net.openid.conformance.util.validation.RedirectURIValidationUtil;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +53,8 @@ public class ValidateClientRegistrationRequestSectorIdentifierUri extends Abstra
 		}
 		String responseBody = "";
 		try {
-			responseBody = HttpUtil.getAsString(sectorIdentifierUri);
+			RestTemplate restTemplate = createRestTemplate(env, false);
+			responseBody = restTemplate.getForObject(sectorIdentifierUri, String.class);
 			if(responseBody == null || responseBody.isEmpty()) {
 				throw error("Invalid sector_identifier_uri. When fetching sector_identifier_uri " +
 							"the server returned an empty body", args("uri", sectorIdentifierUri));
@@ -87,15 +93,19 @@ public class ValidateClientRegistrationRequestSectorIdentifierUri extends Abstra
 						"All uris in redirect_uris are included in sector_identifier_uri response");
 			return env;
 
-		} catch (HttpUtil.HttpUtilException ex) {
+		} catch (RestClientException ex) {
 			throw error("Failed to retrieve sector_identifier_uri", ex,
-						args("uri", sectorIdentifierUri, "error", ex.getCause().getMessage()));
+						args("uri", sectorIdentifierUri, "error", ex.getMessage()));
 		} catch (IllegalStateException ex) {
 			throw error("sector_identifier_uri response does not contain a json array", ex,
 						args("uri", sectorIdentifierUri, "response", responseBody));
 		} catch (JsonSyntaxException ex) {
 			throw error("sector_identifier_uri response does not contain a valid json", ex,
 				args("uri", sectorIdentifierUri, "response", responseBody));
+		} catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException |
+				KeyStoreException | InvalidKeySpecException | KeyManagementException e) {
+			throw error("Error creating http client", e);
 		}
-	}
+
+}
 }

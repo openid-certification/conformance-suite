@@ -1,26 +1,18 @@
 package net.openid.conformance.condition.as.dynregistration;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.HttpUtil;
-import net.openid.conformance.util.validation.RedirectURIValidationUtil;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +42,13 @@ public class ValidateClientLogoUris extends AbstractClientValidationCondition
 		//  https://www.example.com/a.png contains dots but no replacement was configured!
 		//  Make sure map keys don't contain dots in the first place or configure an appropriate replacement!
 		List<String> uriContentTypesMap = new LinkedList<>();
+		RestTemplate restTemplate = null;
+		try {
+			restTemplate = createRestTemplate(env, false);
+		} catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException |
+			KeyStoreException | InvalidKeySpecException | KeyManagementException e) {
+			throw error("Error creating http client", e);
+		}
 
 		for(String lang : logoUris.keySet()) {
 			String uri = logoUris.get(lang);
@@ -70,39 +69,26 @@ public class ValidateClientLogoUris extends AbstractClientValidationCondition
 						uriContentTypesMap.add(uri + " : " + uri.substring(5, mimeTypeEndPos));
 					}
 				}
-			} else
-			{
-				try
-				{
-					HttpResponse response = HttpUtil.headRequest(uri);
-					if (response == null) {
-						appendError("failure_reason", "Failed to fetch logo_uri",
-							"details", args("uri", uri));
-						continue;
-					}
-					if (response.getStatusLine().getStatusCode() > 399) {
-						appendError("failure_reason", "Server returned an error for the logo_uri",
-							"details", args("uri", uri, "http_status_code", response.getStatusLine().getStatusCode()));
-						continue;
-					}
-					Header contentTypeHeader = response.getFirstHeader("Content-Type");
-					if (contentTypeHeader == null) {
+			} else {
+				try {
+					HttpHeaders httpHeaders = restTemplate.headForHeaders(uri);
+					if (httpHeaders.getContentType() == null) {
 						appendError("failure_reason", "Response does not contain a content-type header",
 							"details", args("uri", uri));
 						continue;
 					}
-					String contentType = contentTypeHeader.getValue();
-					if (contentType != null && contentType.contains("image/")) {
-						uriContentTypesMap.add(uri + " : " + contentType);
+
+					if ("image".equals(httpHeaders.getContentType().getType())) {
+						uriContentTypesMap.add(uri + " : " + httpHeaders.getContentType());
 					} else {
 						appendError("failure_reason", "Invalid content type, " +
-								"content-type header does not contain 'image/'",
-							"details", args("uri", uri, "content_type", contentType));
+								"content-type is not 'image'",
+							"details", args("uri", uri, "content_type", httpHeaders.getContentType().toString()));
 						continue;
 					}
-				} catch (HttpUtil.HttpUtilException ex) {
+				} catch (RestClientException ex) {
 					appendError("failure_reason", "Http error",
-						"details", args("uri", uri, "exception", ex.getCause().getMessage()));
+						"details", args("uri", uri, "exception", ex.getMessage()));
 				}
 			}
 		}

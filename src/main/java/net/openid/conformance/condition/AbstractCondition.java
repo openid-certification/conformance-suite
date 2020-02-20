@@ -447,7 +447,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
-	protected HttpClient createHttpClient(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
+	protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions)
+		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
+				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
+
 		HttpClientBuilder builder = HttpClientBuilder.create()
 			.useSystemProperties();
 
@@ -509,7 +512,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		builder.setSSLContext(sc);
 
 		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-			new String[] { "TLSv1.2" },
+			(restrictAllowedTLSVersions ? new String[] { "TLSv1.2" } : null),
 			null,
 			NoopHostnameVerifier.INSTANCE);
 
@@ -528,7 +531,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
-		HttpClient httpClient = createHttpClient(env);
+		return createRestTemplate(env, true);
+	}
+
+	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
+		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
