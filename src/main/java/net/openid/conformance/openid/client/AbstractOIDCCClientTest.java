@@ -71,7 +71,6 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
-import net.openid.conformance.condition.as.EnsureClientJwksContainsKeyUseForAllKeysIfJwksContainsBothSigAndEncKeys;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientRegistrationRequestSectorIdentifierUri;
@@ -778,9 +777,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateClientJwks() {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		skipIfElementMissing("client", "jwks", Condition.ConditionResult.INFO,
-			EnsureClientJwksContainsKeyUseForAllKeysIfJwksContainsBothSigAndEncKeys.class, Condition.ConditionResult.FAILURE,
-			"OIDCR-2");
 		//TODO add requirements
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 	}
