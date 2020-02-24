@@ -39,4 +39,6 @@ public enum ResponseType {
 		return types.contains("token");
 	}
 
+	public boolean isIdToken() { return types.size() == 1 && includesIdToken(); }
+
 }

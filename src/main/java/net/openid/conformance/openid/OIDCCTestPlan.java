@@ -25,6 +25,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCIdTokenRS256.class,
 		OIDCCIdTokenSignature.class,
 		OIDCCIdTokenUnsigned.class,
+		OIDCCClaimsEssential.class,
 		OIDCCScopeAddress.class,
 		OIDCCScopeAll.class,
 		OIDCCScopeEmail.class,
