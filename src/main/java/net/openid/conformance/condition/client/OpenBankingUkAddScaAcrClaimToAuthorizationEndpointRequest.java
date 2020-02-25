@@ -10,7 +10,7 @@ public class OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest extends A
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		return addClaim(env, "acr", "urn:openbanking:psd2:sca", true);
+		return addClaim(env, Location.ID_TOKEN, "acr", "urn:openbanking:psd2:sca", true);
 	}
 
 }

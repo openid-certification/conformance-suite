@@ -6,9 +6,24 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends AbstractCondition {
+	public enum Location {
+		ID_TOKEN,
+		USERINFO
+	}
 
-	public Environment addClaim(Environment env, String claim, String value, boolean essential) {
+	public Environment addClaim(Environment env, Location location, String claim, String value, boolean essential) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
+		String locationStr;
+		switch (location) {
+			case ID_TOKEN:
+				locationStr = "id_token";
+				break;
+			case USERINFO:
+				locationStr = "userinfo";
+				break;
+			default:
+				throw error("Unknown location value, this is a bug in the test condition");
+		}
 
 		JsonObject claims;
 		if (authorizationEndpointRequest.has("claims")) {
@@ -16,7 +31,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 			if (claimsElement.isJsonObject()) {
 				claims = claimsElement.getAsJsonObject();
 			} else {
-				throw error("Invalid claims in request", args("authorization_endpoint_request", authorizationEndpointRequest));
+				throw error("Invalid claims entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
 			}
 		} else {
 			claims = new JsonObject();
@@ -24,26 +39,28 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 		}
 
 		JsonObject claimsIdToken;
-		if (claims.has("id_token")) {
-			JsonElement idTokenElement = claims.get("id_token");
+		if (claims.has(locationStr)) {
+			JsonElement idTokenElement = claims.get(locationStr);
 			if (idTokenElement.isJsonObject()) {
 				claimsIdToken = idTokenElement.getAsJsonObject();
 			} else {
-				throw error("Invalid id_token in request claims", args("authorization_endpoint_request", authorizationEndpointRequest));
+				throw error("Invalid "+locationStr+" entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
 			}
 		} else {
 			claimsIdToken = new JsonObject();
-			claims.add("id_token", claimsIdToken);
+			claims.add(locationStr, claimsIdToken);
 		}
 
 		JsonObject claimBody = new JsonObject();
-		claimBody.addProperty("value",value);
+		if (value != null) {
+			claimBody.addProperty("value", value);
+		}
 		claimBody.addProperty("essential", essential);
 		claimsIdToken.add(claim, claimBody);
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess("Added "+claim+" claim to request", args("authorization_endpoint_request", authorizationEndpointRequest));
+		logSuccess("Added "+claim+" claim to authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
 
 		return env;
 	}
