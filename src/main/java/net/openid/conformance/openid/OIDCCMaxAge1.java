@@ -2,7 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddMaxAge1ToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaimPresent;
+import net.openid.conformance.condition.client.CheckIdTokenAuthTimeClaimPresentDueToMaxAge;
 import net.openid.conformance.condition.client.CheckIdTokenAuthTimeIsRecentIfPresent;
 import net.openid.conformance.condition.client.CheckSecondIdTokenAuthTimeIsLaterIfPresent;
 import net.openid.conformance.condition.client.ExpectSecondLoginPage;
@@ -67,7 +67,7 @@ public class OIDCCMaxAge1 extends AbstractOIDCCServerTest {
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
 		if (!firstTime) {
-			callAndContinueOnFailure(CheckIdTokenAuthTimeClaimPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2", "OIDCC-3.1.2.1");
+			callAndContinueOnFailure(CheckIdTokenAuthTimeClaimPresentDueToMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-2", "OIDCC-3.1.2.1");
 			callAndContinueOnFailure(CheckSecondIdTokenAuthTimeIsLaterIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 			callAndContinueOnFailure(CheckIdTokenAuthTimeIsRecentIfPresent.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 		}
