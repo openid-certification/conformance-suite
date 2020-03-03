@@ -33,7 +33,6 @@ import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpo
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
@@ -53,7 +52,6 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
-import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
@@ -456,12 +454,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void performAuthorizationCodeValidation() {
-		if (responseType.includesIdToken()) {
-			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-			skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO,
-					ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		}
 	}
 
 	protected void performPostAuthorizationFlow() {
