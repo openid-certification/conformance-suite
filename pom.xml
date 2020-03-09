@@ -22,7 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
-		<pmdVersion>6.20.0</pmdVersion>
+		<pmdVersion>6.21.0</pmdVersion>
 	</properties>
 
 	<dependencies>

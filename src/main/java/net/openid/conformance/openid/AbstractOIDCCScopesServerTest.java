@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerTok
 import net.openid.conformance.condition.client.EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources;
 import net.openid.conformance.condition.client.EnsureUserInfoBirthDateValid;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsSub;
+import net.openid.conformance.condition.client.EnsureUserInfoUpdatedAtValid;
 import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.condition.client.OIDCCCheckScopesSupportedContainScopeTest;
 import net.openid.conformance.condition.client.ValidateUserInfoStandardClaims;
@@ -49,6 +50,7 @@ public class AbstractOIDCCScopesServerTest extends AbstractOIDCCServerTest {
 		callAndContinueOnFailure(ValidateUserInfoStandardClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureUserInfoContainsSub.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
 		callAndContinueOnFailure(EnsureUserInfoBirthDateValid.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
+		callAndContinueOnFailure(EnsureUserInfoUpdatedAtValid.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources.class, Condition.ConditionResult.FAILURE, "OIDCC-5.6.2");
 
 		if (responseType.includesIdToken()) {
