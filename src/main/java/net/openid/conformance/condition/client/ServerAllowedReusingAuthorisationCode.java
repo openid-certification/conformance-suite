@@ -8,7 +8,7 @@ public class ServerAllowedReusingAuthorisationCode extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		throw error("Server has incorrectly allowed reusing authorisation code while it shouldn't.");
+		throw error("Server has incorrectly allowed reusing authorisation code; an authorization code is expected to be single use.");
 
 	}
 
