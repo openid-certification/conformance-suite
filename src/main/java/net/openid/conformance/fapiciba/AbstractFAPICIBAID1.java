@@ -780,7 +780,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 

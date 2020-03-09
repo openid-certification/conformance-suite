@@ -18,8 +18,7 @@ public class ExtractExpiresInFromTokenEndpointResponse extends AbstractCondition
 
 		JsonElement expiresInValue = tokenEndpoint.get("expires_in");
 		if (expiresInValue == null) {
-			log("Couldn't find 'expires_in'", tokenEndpoint);
-			return env;
+			throw error("'expires_in' not present this token endpoint response. RFC6749 recommends expires_in is included.", tokenEndpoint);
 		}
 
 		/* Create our cut down JsonObject with just a single value in it */
