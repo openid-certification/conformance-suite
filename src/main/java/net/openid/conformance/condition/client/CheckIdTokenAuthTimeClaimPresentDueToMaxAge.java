@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 /**
  * Equivalent of https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-Req-max_age=1.json#L66
  */
-public class CheckIdTokenAuthTimeClaimPresent extends AbstractCondition {
+public class CheckIdTokenAuthTimeClaimPresentDueToMaxAge extends AbstractCondition {
 	private static final String CLAIM_AUTH_TIME = "auth_time";
 
 	@Override

@@ -25,6 +25,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCIdTokenRS256.class,
 		OIDCCIdTokenSignature.class,
 		OIDCCIdTokenUnsigned.class,
+		OIDCCClaimsEssential.class,
 		OIDCCScopeAddress.class,
 		OIDCCScopeAll.class,
 		OIDCCScopeEmail.class,
@@ -38,6 +39,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCIdTokenHint.class,
 		OIDCCLoginHint.class,
 		OIDCCMaxAge1.class,
+		OIDCCMaxAge10000.class,
 		OIDCCUserInfoGet.class,
 		OIDCCUserInfoPostBody.class,
 		OIDCCUserInfoPostHeader.class,
@@ -45,6 +47,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCEnsureRequestWithAcrValuesSucceeds.class,
 		OIDCCEnsureRequestWithUnknownParameterSucceeds.class,
 		OIDCCUiLocales.class,
+		OIDCCDisplayPage.class,
+		OIDCCDisplayPopup.class,
 		OIDCCUnsignedRequestObject.class,
 
 		// negative tests

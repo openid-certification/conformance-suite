@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 			"server.discoveryUrl"
 	}
 )
-public class OIDCCScopePhone extends AbstractOIDCCScopesServerTest {
+public class OIDCCScopePhone extends AbstractOIDCCReturnedClaimsServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {

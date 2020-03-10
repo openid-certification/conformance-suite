@@ -14,7 +14,10 @@ import net.openid.conformance.condition.client.VerifyScopesReturnedInUserInfoCla
 import net.openid.conformance.condition.client.VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub;
 import net.openid.conformance.condition.client.VerifyUserInfoAndIdTokenInTokenEndpointSameSub;
 
-public class AbstractOIDCCScopesServerTest extends AbstractOIDCCServerTest {
+/**
+ * Base class for tests that request that the OP return particular claims
+ */
+public class AbstractOIDCCReturnedClaimsServerTest extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void skipTestIfScopesNotSupported() {
@@ -36,10 +39,14 @@ public class AbstractOIDCCScopesServerTest extends AbstractOIDCCServerTest {
 			callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
 			validateUserInfoResponse();
 		} else {
-			callAndContinueOnFailure(VerifyScopesReturnedInAuthorizationEndpointIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.4");
+			validateIdTokenForResponseTypeIdToken();
 		}
 
 		fireTestFinished();
+	}
+
+	protected void validateIdTokenForResponseTypeIdToken() {
+		callAndContinueOnFailure(VerifyScopesReturnedInAuthorizationEndpointIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.4");
 	}
 
 	protected void callUserInfoEndpoint() {
