@@ -45,7 +45,7 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 			env.unmapKey("id_token");
 			// make sure the auth definitely happens at least 1 second after the original one, so auth_time will be different
 			callAndStopOnFailure(WaitForOneSecond.class);
-			call(new CreateAuthorizationRequestSteps()
+			call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(AddPromptLoginToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 		}
 	}

@@ -29,23 +29,18 @@ public class OIDCCEnsureRequestWithoutNonceFails extends AbstractOIDCCServerTest
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.skip(AddNonceToAuthorizationEndpointRequest.class,
 						"NOT adding nonce to request object"));
 	}
 
 	@Override
-	protected void processCallback() {
-		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
-
-		env.mapKey("authorization_endpoint_response", "callback_params");
-
+	protected void onAuthorizationCallbackResponse() {
 		performGenericAuthorizationEndpointErrorResponseValidation();
 		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequest.class,
-				Condition.ConditionResult.FAILURE,
-				"OIDCC-3.2.2.1");
-
-		eventLog.endBlock();
+			Condition.ConditionResult.FAILURE,
+			"OIDCC-3.2.2.1");
 		fireTestFinished();
 	}
+
 }

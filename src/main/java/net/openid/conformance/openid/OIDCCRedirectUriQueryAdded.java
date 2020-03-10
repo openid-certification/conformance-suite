@@ -25,7 +25,7 @@ public class OIDCCRedirectUriQueryAdded extends AbstractOIDCCServerTestExpecting
 	}
 
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(AddQueryToRedirectUriInAuthorizationRequest.class)));
 	}
 

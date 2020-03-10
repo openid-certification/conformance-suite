@@ -17,7 +17,7 @@ public class OIDCCEnsureRequestWithUnknownParameterSucceeds extends AbstractOIDC
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.then(condition(AddExtraFoobarToAuthorizationEndpointRequest.class).requirements("RFC6749-3.1")));
 	}
 

@@ -1,7 +1,11 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrUnsupportedResponseType;
+import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
+import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.common.ExpectResponseTypeMissingErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -10,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "oidcc-response-type-missing",
 	displayName = "OIDCC: response type missing",
-	summary = "This test sends an authorization request that is missing the response_type parameter. The authorization server should display an error saying the response type is missing, a screenshot of which should be uploaded.",
+	summary = "This test sends an authorization request that is missing the response_type parameter. The authorization server must either redirect back with an 'unsupported_response_type' or 'invalid_request' error, or must display an error saying the response type is missing, a screenshot of which should be uploaded.",
 	profile = "OIDCC",
 	configurationFields = {
 			"server.discoveryUrl"
@@ -20,7 +24,7 @@ public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAu
 
 	@Override
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.skip(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class, "Miss out the response_type"));
 	}
 
@@ -34,8 +38,16 @@ public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAu
 	protected void processCallback() {
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		// response must be in url query as we didn't specify a response_type
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
+		if (formPost) {
+			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
+			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, Condition.ConditionResult.FAILURE, "OAuth2-FP-2");
+			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
+		} else {
+			// response must be in url query as we didn't specify a response_type
+			env.mapKey("authorization_endpoint_response", "callback_query_params");
+		}
 
 		performGenericAuthorizationEndpointErrorResponseValidation();
 

@@ -95,7 +95,13 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		setStatus(Status.RUNNING);
 
+		final JsonElement body_form_params = requestParts.get("body_form_params");
+		if (body_form_params != null) {
+			env.putObject("callback_body_form_params", body_form_params.getAsJsonObject());
+		}
 		env.putObject("callback_query_params", requestParts.get("query_string_params").getAsJsonObject());
+		env.putObject("callback_headers", requestParts.get("headers").getAsJsonObject());
+		env.putString("callback_http_method", OIDFJSON.getString(requestParts.get("method")));
 
 		callAndStopOnFailure(CreateRandomImplicitSubmitUrl.class);
 
@@ -114,7 +120,12 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	/**
 	 * Called after the redirect response has been fully received
 	 *
-	 * 'callback_params' and 'callback_query_params' will be available in the environment
+	 * These will be available in the environment:
+	 *
+	 * 'callback_params': fragment passed to redirect uri
+	 * 'callback_query_params': url query passed to redirect uri
+	 * 'callback_http_method': http method used at redirect uri (usually GET or POST)
+	 * 'callback_body_form_params': any form encoded body passed to redirect uri
 	 */
 	abstract protected void processCallback();
 
@@ -144,8 +155,11 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 			eventLog.log(getName(), args(
 				"msg", "Authorization endpoint response captured",
 				"http", "redirect-in",
+				"http_method", env.getString("callback_http_method"),
 				"url_query", env.getObject("callback_query_params"),
-				"url_fragment", env.getObject("callback_params")));
+				"url_fragment", env.getObject("callback_params"),
+				"headers", env.getObject("callback_headers"),
+				"post_body", env.getObject("callback_body_form_params")));
 
 			processCallback();
 

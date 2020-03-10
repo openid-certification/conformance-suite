@@ -22,7 +22,7 @@ public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {
 		// use a longer state value to check OP doesn't corrupt it in the error response
 		env.putInteger("requested_state_length", 128);
 
-		call(new CreateAuthorizationRequestSteps()
+		call(new CreateAuthorizationRequestSteps(formPost)
 			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 
 	}
