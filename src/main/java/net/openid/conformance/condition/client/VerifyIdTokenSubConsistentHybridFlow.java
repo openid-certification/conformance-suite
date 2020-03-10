@@ -14,7 +14,7 @@ public class VerifyIdTokenSubConsistentHybridFlow extends AbstractCondition {
 		String subToken = env.getString("token_endpoint_id_token", "claims.sub");
 
 		if (!subAuth.equals(subToken)) {
-			throw error("\"sub\" is authorization endpoint id_token doesn't match with \"sub\" in token endpoint id_token",
+			throw error("\"sub\" in authorization endpoint id_token doesn't match with \"sub\" in token endpoint id_token",
 				args("sub_auth_endpoint", subAuth, "sub_token_endpoint", subToken));
 		}
 
