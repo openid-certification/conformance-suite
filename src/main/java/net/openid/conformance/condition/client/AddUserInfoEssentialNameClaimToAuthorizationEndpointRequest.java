@@ -25,7 +25,7 @@ public class AddUserInfoEssentialNameClaimToAuthorizationEndpointRequest extends
 
 		 */
 
-		return addClaim(env, Location.USERINFO, "name", null, true);
+		return addClaim(env, LocationToRequestClaim.USERINFO, "name", null, true);
 
 	}
 

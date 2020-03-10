@@ -6,15 +6,15 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends AbstractCondition {
-	public enum Location {
+	public enum LocationToRequestClaim {
 		ID_TOKEN,
 		USERINFO
 	}
 
-	public Environment addClaim(Environment env, Location location, String claim, String value, boolean essential) {
+	public Environment addClaim(Environment env, LocationToRequestClaim locationToRequestClaim, String claim, String value, boolean essential) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		String locationStr;
-		switch (location) {
+		switch (locationToRequestClaim) {
 			case ID_TOKEN:
 				locationStr = "id_token";
 				break;
@@ -22,7 +22,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 				locationStr = "userinfo";
 				break;
 			default:
-				throw error("Unknown location value, this is a bug in the test condition");
+				throw error("Unknown locationToRequestClaim value, this is a bug in the test condition");
 		}
 
 		JsonObject claims;

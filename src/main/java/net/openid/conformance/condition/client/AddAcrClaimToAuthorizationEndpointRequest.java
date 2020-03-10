@@ -10,7 +10,7 @@ public class AddAcrClaimToAuthorizationEndpointRequest extends AbstractAddClaimT
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		return addClaim(env, Location.ID_TOKEN, "acr", "urn:mace:incommon:iap:silver", true);
+		return addClaim(env, LocationToRequestClaim.ID_TOKEN, "acr", "urn:mace:incommon:iap:silver", true);
 	}
 
 }

@@ -25,7 +25,7 @@ public class AddIdTokenEssentialNameClaimToAuthorizationEndpointRequest extends 
 
 		 */
 
-		return addClaim(env, Location.ID_TOKEN, "name", null, true);
+		return addClaim(env, LocationToRequestClaim.ID_TOKEN, "name", null, true);
 
 	}
 
