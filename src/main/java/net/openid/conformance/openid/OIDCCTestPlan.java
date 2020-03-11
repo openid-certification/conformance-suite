@@ -51,6 +51,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCUnsignedRequestObject.class,
 
 		// negative tests
+		OIDCCAuthCodeReuse.class,
 		OIDCCAuthCodeReuseAfter30Seconds.class,
 		OIDCCEnsureRedirectUriInAuthorizationRequest.class,
 		OIDCCEnsureRegisteredRedirectUri.class,
