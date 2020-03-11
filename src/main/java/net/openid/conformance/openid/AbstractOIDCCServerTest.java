@@ -512,11 +512,15 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// save the id_token returned from the token endpoint
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
 
-		performIdTokenValidation();
+		performTokenEndpointIdTokenValidation();
 
 		if (responseType.includesIdToken()) {
 			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, ConditionResult.FAILURE, "OIDCC-2");
 		}
+	}
+
+	protected void performTokenEndpointIdTokenValidation() {
+		performIdTokenValidation();
 	}
 
 	protected void requestProtectedResource() {

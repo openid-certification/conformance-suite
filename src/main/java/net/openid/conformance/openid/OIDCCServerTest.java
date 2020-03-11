@@ -41,6 +41,20 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 	}
 
 	@Override
+	protected void performTokenEndpointIdTokenValidation() {
+		super.performTokenEndpointIdTokenValidation();
+
+		// at_hash and c_hash are optional in the token endpoint id_token, but if present must be correct
+		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11", "OIDCC-3.3.3.6");
+		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
+			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11", "OIDCC-3.3.3.6");
+		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO ,
+			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	@Override
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
 
