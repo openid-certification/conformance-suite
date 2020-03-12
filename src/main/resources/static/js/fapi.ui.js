@@ -319,15 +319,15 @@ var FAPI_UI = {
 		getResultHelp : function(value) {
 			switch (value ? value.toLowerCase() : undefined) {
 				case "passed":
-					return "The test has passed all conditions";
+					return "The test has passed all conditions.";
 				case "failed":
-					return "The test has failed at least one critical condition";
+					return "The test has failed at least one critical condition. This means an important error has been detected and the system under test cannot be certified.";
 				case "warning":
-					return "The test has generated some warnings during its execution, see the log for details";
+					return "The test has generated some warnings during its execution, see the log for details. Test results with warnings are accepted for certification, but they generally indicate that the software under test is behaving unexpected or not following recommendations, and the tester should check the results to ensure any warnings are expected behaviour of the software being tested.";
 				case "review":
-					return "The test requires manual review";
+					return "The test requires manual review, for example it contains images that need to be manually checked. These images will be checked by the certification team when a certification request is submitted.";
 				case "skipped":
-					return "The test could not be completed due to configuration or optional features";
+					return "The test could not be completed due to configuration or optional features. Please check if the feature being tested is supported, if it is please check the configuration of the test and of the software under test. If the feature being tested is not supported by the software under test then skipped tests do not prevent certification.";
 				default:
 					return "";
 

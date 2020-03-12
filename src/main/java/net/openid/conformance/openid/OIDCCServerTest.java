@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainName;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.ExtractAtHash;
@@ -37,6 +38,28 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 				"OIDCC-3.3.2.11");
 		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO ,
 				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	@Override
+	protected void performTokenEndpointIdTokenValidation() {
+		super.performTokenEndpointIdTokenValidation();
+
+		// at_hash and c_hash are optional in the token endpoint id_token, but if present must be correct
+		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11", "OIDCC-3.3.3.6");
+		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
+			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11", "OIDCC-3.3.3.6");
+		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO ,
+			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	@Override
+	protected void performIdTokenValidation() {
+		super.performIdTokenValidation();
+
+		// the python test did not check this as far as I know
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
 	}
 
 	@Override

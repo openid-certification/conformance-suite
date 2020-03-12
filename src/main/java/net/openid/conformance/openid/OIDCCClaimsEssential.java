@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIdTokenEssentialNameClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddUserInfoEssentialNameClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsName;
+import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainName;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsName;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -39,6 +40,9 @@ public class OIDCCClaimsEssential extends AbstractOIDCCReturnedClaimsServerTest 
 	protected void validateUserInfoResponse() {
 		super.validateUserInfoResponse();
 		callAndContinueOnFailure(EnsureUserInfoContainsName.class, Condition.ConditionResult.WARNING, "OIDCC-5.5", "OIDC-5.5.1");
+
+		// the python test did not check this as far as I know
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
 	}
 
 	@Override
