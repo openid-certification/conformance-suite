@@ -1,7 +1,5 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
@@ -14,10 +12,6 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-			callAndStopOnFailure(AddAudToRequestObject.class);
-
-			callAndStopOnFailure(AddIssToRequestObject.class);
 
 			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 
