@@ -14,6 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * As per https://gitlab.com/openid/conformance-suite/-/merge_requests/865#note_294594618
+ * having a Condition class with accessor/utility methods which are intended to be used
+ * by Condition classes extending from that class is not considered as a good pattern and
+ * should not be used.
+ * The recommended approach is to place methods in individual condition classes without using
+ * a common base class with utility methods.
+ * This is not a good pattern and shouldn't be followed elsewhere.
+ */
 public abstract class AbstractClientValidationCondition extends AbstractCondition {
 
 
