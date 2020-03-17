@@ -10,6 +10,7 @@ public class SetRequestUriParameterSupportedToTrueInServerConfiguration extends 
 	@Override
 	protected void addSupported(JsonObject server) {
 		server.addProperty("request_uri_parameter_supported", true);
+		server.addProperty("require_request_uri_registration", false);
 	}
 
 	@Override
