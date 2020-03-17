@@ -1566,9 +1566,9 @@ public class AbstractCondition_UnitTest {
 		 * @see AbstractCondition#createHttpClient(Environment)
 		 */
 		@Override
-		protected HttpClient createHttpClient(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
+		protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
 			// TODO Auto-generated method stub
-			return super.createHttpClient(env);
+			return super.createHttpClient(env, restrictAllowedTLSVersions);
 
 		}
 

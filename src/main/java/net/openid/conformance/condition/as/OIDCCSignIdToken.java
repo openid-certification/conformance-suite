@@ -42,9 +42,13 @@ public class OIDCCSignIdToken extends AbstractSignJWT {
 			signingAlg = env.getString("signing_algorithm");
 		}
 		JsonObject client = env.getObject("client");
-
-		JWK selectedKey = selectOrCreateKey(jwks, signingAlg, client);
-		signJWTUsingKey(env, claims, selectedKey, signingAlg);
+		if("none".equals(signingAlg)) {
+			String signed = signWithAlgNone(claims.toString());
+			logSuccessByJWTType(env, null, null, null, signed, null);
+		} else{
+			JWK selectedKey = selectOrCreateKey(jwks, signingAlg, client);
+			signJWTUsingKey(env, claims, selectedKey, signingAlg);
+		}
 		return env;
 	}
 
@@ -52,8 +56,9 @@ public class OIDCCSignIdToken extends AbstractSignJWT {
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 		env.putString("id_token", jws);
 		logSuccess("Signed the ID token",
-			args("id_token", verifiableObj, "algorithm", header.getAlgorithm().getName(),
-					"key", jwk.toJSONString()));
+			args("id_token", (verifiableObj!=null?verifiableObj:jws),
+					"algorithm", (header!=null?header.getAlgorithm().getName():"none"),
+					"key", (jwk!=null?jwk.toJSONString():"none")));
 	}
 
 }

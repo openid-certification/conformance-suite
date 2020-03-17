@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
+public class OIDCCValidateClientRedirectUris_UnitTest
 {
 
 	@Spy
@@ -25,14 +25,14 @@ public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private OIDCCValidateDynamicRegistrationRedirectUris cond;
+	private OIDCCValidateClientRedirectUris cond;
 
 
 
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new OIDCCValidateDynamicRegistrationRedirectUris();
+		cond = new OIDCCValidateClientRedirectUris();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -44,6 +44,7 @@ public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 		JsonObject dynRegRequest = new JsonObject();
 		dynRegRequest.add("redirect_uris", jsonArray);
 		env.putObject("dynamic_registration_request", dynRegRequest);
+		env.mapKey("client", "dynamic_registration_request");
 		cond.execute(env);
 	}
 
@@ -54,7 +55,7 @@ public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 		JsonObject dynRegRequest = new JsonObject();
 		dynRegRequest.add("redirect_uris", jsonArray);
 		env.putObject("dynamic_registration_request", dynRegRequest);
-
+		env.mapKey("client", "dynamic_registration_request");
 		cond.execute(env);
 
 	}
@@ -65,7 +66,7 @@ public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 		JsonObject dynRegRequest = new JsonObject();
 		dynRegRequest.addProperty("redirect_uris", "https://client.example.org/callback");
 		env.putObject("dynamic_registration_request", dynRegRequest);
-
+		env.mapKey("client", "dynamic_registration_request");
 		cond.execute(env);
 
 	}
@@ -79,6 +80,7 @@ public class OIDCCValidateDynamicRegistrationRedirectUris_UnitTest
 		JsonObject dynRegRequest = new JsonObject();
 		dynRegRequest.add("redirect_uris", jsonArray);
 		env.putObject("dynamic_registration_request", dynRegRequest);
+		env.mapKey("client", "dynamic_registration_request");
 		cond.execute(env);
 
 	}

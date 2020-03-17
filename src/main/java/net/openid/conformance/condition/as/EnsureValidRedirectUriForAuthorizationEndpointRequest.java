@@ -7,22 +7,18 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.validation.RedirectURIValidationUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
  * Checks if the requested redirect_uri is ONE of the redirect_uris
- * Typically used for dynamically registered clients which may have multiple redirect_uris
- * TODO implement the following checks
- * 3.1.2.1: When using this flow, the Redirection URI SHOULD use the
- * 			https scheme; however, it MAY use the http scheme, provided that the Client Type is confidential,
- * 			as defined in Section 2.1 of OAuth 2.0, and provided the OP allows the use of http Redirection URIs
- * 			in this case. The Redirection URI MAY use an alternate scheme, such as one that is intended to identify
- * 			a callback into a native application.
- * 3.2.2.1: When using this flow, the Redirection URI MUST NOT use the http scheme unless the Client is a native
- * 			application, in which case it MAY use the http: scheme with localhost as the hostname.
- * also note 7.3.  Self-Issued OpenID Provider Request ...Since the Client's redirect_uri URI value is communicated as the Client ID, a redirect_uri parameter is NOT REQUIRED to also be included in the request...
+ * and has the correct scheme
+ *
+ * also note 7.3.  Self-Issued OpenID Provider Request
+ * ...Since the Client's redirect_uri URI value is communicated as the Client ID, a redirect_uri parameter is
+ * NOT REQUIRED to also be included in the request...
  */
 public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends AbstractCondition {
 
@@ -49,6 +45,23 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 			for(JsonElement e : redirectUris) {
 				String uri = OIDFJSON.getString(e);
 				if(actual.equals(uri)) {
+					//require https if application_type is web and response_type is not equal to code
+					String applicationType = env.getString("client", "application_type");
+					String responseType = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE);
+					if(!RedirectURIValidationUtil.requireHttpsIfWebAndResponseTypeNotCode(applicationType, responseType, actual)) {
+						throw error("redirect_uri is one of the registered uris but uses http scheme which " +
+								"is not allowed when application_type is web and response type is not code",
+							args("actual", actual, "expected", redirectUris));
+					}
+					try {
+						if(!RedirectURIValidationUtil.dontAllowHttpIfNativeAndNotLocalhost(applicationType, actual)) {
+							throw error("redirect_uri is one of the registered uris but http scheme  " +
+									" is only allowed for localhost for native applications",
+								args("actual", actual, "expected", redirectUris));
+						}
+					} catch (URISyntaxException uriSyntaxException) {
+						throw error("Invalid redirect_uri syntax", uriSyntaxException, args("actual", actual));
+					}
 					logSuccess("redirect_uri is one of the allowed redirect uris",
 								args("actual", actual, "expected", redirectUris));
 					env.putString("authorization_endpoint_request_redirect_uri", actual);
