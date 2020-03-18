@@ -29,7 +29,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
+public class BuildRequestObjectByValueRedirectToAuthorizationEndpoint_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -47,7 +47,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 
 	private String requestObject;
 
-	private BuildRequestObjectRedirectToAuthorizationEndpoint cond;
+	private BuildRequestObjectByValueRedirectToAuthorizationEndpoint cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -55,7 +55,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new BuildRequestObjectRedirectToAuthorizationEndpoint();
+		cond = new BuildRequestObjectByValueRedirectToAuthorizationEndpoint();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
@@ -125,7 +125,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 *
 	 * @throws UnsupportedEncodingException
 	 */
@@ -159,7 +159,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 *
 	 * @throws UnsupportedEncodingException
 	 */
@@ -182,7 +182,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingAuthorizationEndpointRequest() {
@@ -196,7 +196,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingRequestObject() {
@@ -210,7 +210,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingRequestObjectClaims() {
@@ -224,7 +224,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link BuildRequestObjectRedirectToAuthorizationEndpoint#evaluate(Environment)}.
+	 * Test method for {@link BuildRequestObjectByValueRedirectToAuthorizationEndpoint#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingServer() {

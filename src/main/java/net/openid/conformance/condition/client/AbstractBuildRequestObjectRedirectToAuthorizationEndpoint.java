@@ -5,8 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,8 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Arrays;
 import java.util.List;
 
-public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractCondition {
-
+public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractCondition {
 	/**
 	 * A list of parameters that must also be included in the url query, even when they are already in the request
 	 * object.
@@ -45,13 +42,8 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 		"redirect_uri"
 	});
 
-	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request", "request_object_claims", "server" }, strings = "request_object")
-	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
-	public Environment evaluate(Environment env) {
-
+	protected Environment buildRedirect(Environment env, String paramName, String paramValue) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
-		String requestObject = env.getString("request_object");
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
 		String authorizationEndpoint = env.getString("authorization_endpoint") != null ? env.getString("authorization_endpoint") : env.getString("server", "authorization_endpoint");
@@ -62,7 +54,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 		// send a front channel request to start things off
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
 
-		builder.queryParam("request", requestObject);
+		builder.queryParam(paramName, paramValue);
 
 		for (String key : authorizationEndpointRequest.keySet()) {
 
@@ -102,5 +94,4 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 
 		return env;
 	}
-
 }

@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
@@ -65,7 +65,7 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 
 		callAndStopOnFailure(SignRequestObject.class);
 
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
