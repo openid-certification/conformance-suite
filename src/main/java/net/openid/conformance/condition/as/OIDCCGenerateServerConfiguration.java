@@ -3,10 +3,14 @@ package net.openid.conformance.condition.as;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.Iterator;
 
 public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguration {
 
@@ -31,9 +35,25 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 		addResponseModes(server);
 		addTokenEndpointAuthMethodsSupported(server);
 		addTokenEndpointAuthSigningAlgValuesSupported(server);
-		addIdTokenSigningAlgValuesSupported(server);
 
 		addGrantTypes(server);
+		addClaimsParameterSupported(server);
+		addAcrValuesSupported(server);
+		addSubjectTypesSupported(server);
+		addClaimTypesSupported(server);
+		addClaimsSupported(server);
+
+		addIdTokenSigningAlgValuesSupported(server);
+		addIdTokenEncryptionAlgValuesSupported(server);
+		addIdTokenEncryptionEncValuesSupported(server);
+
+		addRequestObjectSigningAlgValuesSupported(server);
+		addRequestObjectEncryptionAlgValuesSupported(server);
+		addRequestObjectEncryptionEncValuesSupported(server);
+
+		addUserinfoSigningAlgValuesSupported(server);
+		addUserinfoEncryptionAlgValuesSupported(server);
+		addUserinfoEncryptionEncValuesSupported(server);
 
 		// add this as the server configuration
 		env.putObject("server", server);
@@ -44,8 +64,14 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	protected void addScopesSupported(JsonObject server) {
 		JsonArray scopes = new JsonArray();
 		scopes.add("openid");
+		scopes.add("phone");
+		scopes.add("profile");
+		scopes.add("email");
+		scopes.add("address");
+		scopes.add("offline_access");
 		server.add("scopes_supported", scopes);
 	}
+
 
 	protected void addResponseTypes(JsonObject server) {
 		JsonArray responseTypes = new JsonArray();
@@ -78,13 +104,16 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	}
 
 	protected void addTokenEndpointAuthSigningAlgValuesSupported(JsonObject server) {
-		JsonArray tokenEndpointAuthSigningAlgValuesSupported = new JsonArray();
-		tokenEndpointAuthSigningAlgValuesSupported.add("RS256");
-		tokenEndpointAuthSigningAlgValuesSupported.add("PS256");
-		tokenEndpointAuthSigningAlgValuesSupported.add("ES256");
-		server.add("token_endpoint_auth_signing_alg_values_supported", tokenEndpointAuthSigningAlgValuesSupported);
+		JsonArray algValues = new JsonArray();
+		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
+		while(jwsAlgorithmIterator.hasNext()) {
+			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("token_endpoint_auth_signing_alg_values_supported", algValues);
 	}
 
+	//Python suite also always returns urn:ietf:params:oauth:grant-type:jwt-bearer and refresh_token
 	protected void addGrantTypes(JsonObject server) {
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("authorization_code");
@@ -94,10 +123,176 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	}
 
 	protected void addIdTokenSigningAlgValuesSupported(JsonObject server) {
-		JsonArray values = new JsonArray();
-		values.add("none");
-		values.add("RS256");
-		values.add("ES256");
-		server.add("id_token_signing_alg_values_supported", values);
+		JsonArray algValues = new JsonArray();
+		algValues.add("none");
+		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
+		while(jwsAlgorithmIterator.hasNext()) {
+			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("id_token_signing_alg_values_supported", algValues);
 	}
+
+	protected void addIdTokenEncryptionAlgValuesSupported(JsonObject server) {
+		JsonArray algValues = new JsonArray();
+		Iterator<JWEAlgorithm> algorithmIterator = JWEAlgorithm.Family.ASYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		algorithmIterator = JWEAlgorithm.Family.SYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("id_token_encryption_alg_values_supported", algValues);
+	}
+
+	protected void addIdTokenEncryptionEncValuesSupported(JsonObject server) {
+		JsonArray encValues = new JsonArray();
+		Iterator<EncryptionMethod> encryptionMethodIterator = EncryptionMethod.Family.AES_CBC_HMAC_SHA.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		encryptionMethodIterator = EncryptionMethod.Family.AES_GCM.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		server.add("id_token_encryption_enc_values_supported", encValues);
+	}
+
+	protected void addRequestObjectSigningAlgValuesSupported(JsonObject server) {
+		JsonArray algValues = new JsonArray();
+		algValues.add("none");
+		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
+		while(jwsAlgorithmIterator.hasNext()) {
+			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("request_object_signing_alg_values_supported", algValues);
+	}
+
+	protected void addRequestObjectEncryptionAlgValuesSupported(JsonObject server) {
+		JsonArray algValues = new JsonArray();
+		Iterator<JWEAlgorithm> algorithmIterator = JWEAlgorithm.Family.ASYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		algorithmIterator = JWEAlgorithm.Family.SYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("request_object_encryption_alg_values_supported", algValues);
+	}
+
+	protected void addRequestObjectEncryptionEncValuesSupported(JsonObject server) {
+		JsonArray encValues = new JsonArray();
+		Iterator<EncryptionMethod> encryptionMethodIterator = EncryptionMethod.Family.AES_CBC_HMAC_SHA.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		encryptionMethodIterator = EncryptionMethod.Family.AES_GCM.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		server.add("request_object_encryption_enc_values_supported", encValues);
+	}
+
+	protected void addClaimsParameterSupported(JsonObject server) {
+		server.addProperty("claims_parameter_supported", true);
+	}
+
+
+	protected void addAcrValuesSupported(JsonObject server) {
+		JsonArray subjectTypes = new JsonArray();
+		subjectTypes.add("PASSWORD");
+		server.add("acr_values_supported", subjectTypes);
+	}
+
+	protected void addSubjectTypesSupported(JsonObject server) {
+		JsonArray subjectTypes = new JsonArray();
+		subjectTypes.add("public");
+		subjectTypes.add("pairwise");
+		server.add("subject_types_supported", subjectTypes);
+	}
+
+	protected void addClaimTypesSupported(JsonObject server) {
+		JsonArray claimTypes = new JsonArray();
+		claimTypes.add("normal");
+		claimTypes.add("aggregated");
+		claimTypes.add("distributed");
+		server.add("claim_types_supported", claimTypes);
+	}
+
+	protected void addClaimsSupported(JsonObject server) {
+		JsonArray claims = new JsonArray();
+		claims.add("sub");
+		claims.add("name");
+		claims.add("given_name");
+		claims.add("family_name");
+		claims.add("middle_name");
+		claims.add("nickname");
+		claims.add("gender");
+		claims.add("birthdate");
+		claims.add("preferred_username");
+		claims.add("profile");
+		claims.add("website");
+		claims.add("locale");
+		claims.add("updated_at");
+		claims.add("address");
+		claims.add("zoneinfo");
+		//claims.add("picture");
+		claims.add("phone_number");
+		claims.add("phone_number_verified");
+		claims.add("email");
+		claims.add("email_verified");
+		server.add("claims_supported", claims);
+	}
+
+	protected void addUserinfoSigningAlgValuesSupported(JsonObject server) {
+		JsonArray algValues = new JsonArray();
+		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
+		while(jwsAlgorithmIterator.hasNext()) {
+			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("userinfo_signing_alg_values_supported", algValues);
+	}
+
+	protected void addUserinfoEncryptionAlgValuesSupported(JsonObject server) {
+		JsonArray algValues = new JsonArray();
+		Iterator<JWEAlgorithm> algorithmIterator = JWEAlgorithm.Family.ASYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		algorithmIterator = JWEAlgorithm.Family.SYMMETRIC.iterator();
+		while(algorithmIterator.hasNext()) {
+			JWEAlgorithm alg = algorithmIterator.next();
+			algValues.add(alg.getName());
+		}
+		server.add("userinfo_encryption_alg_values_supported", algValues);
+	}
+
+	protected void addUserinfoEncryptionEncValuesSupported(JsonObject server) {
+		JsonArray encValues = new JsonArray();
+		Iterator<EncryptionMethod> encryptionMethodIterator = EncryptionMethod.Family.AES_CBC_HMAC_SHA.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		encryptionMethodIterator = EncryptionMethod.Family.AES_GCM.iterator();
+		while(encryptionMethodIterator.hasNext()) {
+			EncryptionMethod alg = encryptionMethodIterator.next();
+			encValues.add(alg.getName());
+		}
+		server.add("userinfo_encryption_enc_values_supported", encValues);
+	}
+
 }

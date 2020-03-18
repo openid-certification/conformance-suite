@@ -95,6 +95,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJW
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromRequest;
+import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -315,7 +316,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void configureUserInfo() {
-		callAndStopOnFailure(LoadUserInfo.class);
+		callAndStopOnFailure(OIDCCLoadUserInfo.class);
 	}
 
 	protected void configureClientConfiguration() {
