@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CreateClientAuthenticationAsserti
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-public class AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest extends AbstractConditionSequence {
+public class CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {

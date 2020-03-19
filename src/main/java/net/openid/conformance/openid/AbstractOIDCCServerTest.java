@@ -77,7 +77,7 @@ import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.variant.ClientAuthType;
@@ -213,14 +213,14 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public void setupClientSecretJwt() {
 		profileStaticClientConfiguration = null;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
 		profileCompleteClientConfiguration = null;
-		addTokenEndpointClientAuthentication = AddPrivateKeyJWTClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")

@@ -75,10 +75,10 @@
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
     {
-        "test-name": "oidcc-codereuse",
+        "test-name": "oidcc-codereuse-30seconds",
         "variant": "*",
         "configuration-filename": "authlete-*.json",
-        "current-block": "Attempting reuse of client2's authorisation code & testing if access token is revoked",
+        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known case where authlete doesn't implement a 'should'"
