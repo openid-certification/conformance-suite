@@ -14,7 +14,7 @@ import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -373,7 +373,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			callAndStopOnFailure(SignRequestObject.class);
 
-			callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 		}
 
 	}

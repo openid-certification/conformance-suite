@@ -8,7 +8,7 @@ import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.BuildRequestObjectRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
@@ -81,7 +81,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 
 		callAndStopOnFailure(SignRequestObject.class);
 
-		callAndStopOnFailure(BuildRequestObjectRedirectToAuthorizationEndpoint.class);
+		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 

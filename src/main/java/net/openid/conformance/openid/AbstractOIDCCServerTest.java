@@ -234,6 +234,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
 
 		Boolean skip = env.getBoolean("config", "skip_test");

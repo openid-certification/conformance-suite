@@ -1,50 +1,50 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.gson.JsonElement;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-
-public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractCondition {
-
+public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractCondition {
+	/**
+	 * A list of parameters that must also be included in the url query, even when they are already in the request
+	 * object.
+	 *
+	 * response_type, client_id, scope are required by these clauses from
+	 * https://openid.net/specs/openid-connect-core-1_0.html#RequestObject :
+	 *
+	 *    So that the request is a valid OAuth 2.0 Authorization Request, values for the response_type and client_id
+	 *    parameters MUST be included using the OAuth 2.0 request syntax, since they are REQUIRED by OAuth 2.0. The
+	 *    values for these parameters MUST match those in the Request Object, if present.
+	 *
+	 *    Even if a scope parameter is present in the Request Object value, a scope parameter MUST always be passed
+	 *    using the OAuth 2.0 request syntax containing the openid scope value to indicate to the underlying OAuth
+	 *    2.0 logic that this is an OpenID Connect request.
+	 *
+	 * redirect_uri is required because of this clause from https://tools.ietf.org/html/rfc6749#section-3.1.2.3 :
+	 *
+	 *    If multiple redirection URIs have been registered, if only part of
+	 *    the redirection URI has been registered, or if no redirection URI has
+	 *    been registered, the client MUST include a redirection URI with the
+	 *    authorization request using the "redirect_uri" request parameter.
+	 */
 	private static final List<String> REQUIRED_PARAMETERS = Arrays.asList(new String[] {
 		"response_type",
 		"client_id",
 		"scope",
-		"redirect_uri",
-		"prompt"
+		"redirect_uri"
 	});
 
-	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request", "request_object_claims", "server" }, strings = "request_object")
-	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
-	public Environment evaluate(Environment env) {
-
+	protected Environment buildRedirect(Environment env, String paramName, String paramValue) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
-		if (authorizationEndpointRequest == null) {
-			throw error("Couldn't find authorization endpoint request");
-		}
-
-		String requestObject = env.getString("request_object");
-		if (requestObject == null) {
-			throw error("Couldn't find request object");
-		}
-
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
-		if (requestObjectClaims == null) {
-			throw error("Couldn't find request object claims");
-		}
 
 		String authorizationEndpoint = env.getString("authorization_endpoint") != null ? env.getString("authorization_endpoint") : env.getString("server", "authorization_endpoint");
 		if (Strings.isNullOrEmpty(authorizationEndpoint)) {
@@ -54,7 +54,7 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 		// send a front channel request to start things off
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
 
-		builder.queryParam("request", requestObject);
+		builder.queryParam(paramName, paramValue);
 
 		for (String key : authorizationEndpointRequest.keySet()) {
 
@@ -94,5 +94,4 @@ public class BuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractC
 
 		return env;
 	}
-
 }
