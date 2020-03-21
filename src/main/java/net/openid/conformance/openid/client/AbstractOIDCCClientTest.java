@@ -609,9 +609,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
-	private Object handleTokenEndpointRequest(String requestId) {
+	protected Object handleTokenEndpointRequest(String requestId) {
+		call(exec().mapKey("token_endpoint_request", requestId));
 
-		call(exec().startBlock("Token endpoint").mapKey("token_endpoint_request", requestId));
+		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+		if ("refresh_token".equals(grantType)) {
+			call(exec().startBlock("Token endpoint - Refresh Request"));
+		} else {
+			call(exec().startBlock("Token endpoint"));
+		}
 
 		validateTokenEndpointRequest();
 
@@ -619,21 +625,18 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			call(sequence(validateClientAuthenticationSteps));
 		}
 
-		return handleTokenEndpointGrantType(requestId);
-
-	}
-
-	protected Object handleTokenEndpointGrantType(String requestId){
-
-		// dispatch based on grant type
-		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
-
-		if (grantType.equals("authorization_code")) {
+		if ("authorization_code".equals(grantType)) {
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestId);
+		} else if ("refresh_token".equals(grantType)) {
+			return refreshTokenGrantType(requestId);
 		} else {
 			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
 		}
+	}
+
+	protected Object refreshTokenGrantType(String requestId) {
+		throw new TestFailureException(getId(), "refresh_token grant type is not implemented for this test");
 	}
 
 	/**
@@ -797,7 +800,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
 
-		generateAccessToken();
 	}
 
 	protected void createIdToken(boolean isAuthorizationCodeGrantType) {
@@ -857,13 +859,24 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateAuthorizationCodeGrantType();
 
+		generateAccessToken();
+
 		createIdToken(true);
+
+		createRefreshToken(false);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+	}
+
+	/**
+	 * does nothing by default. to be overridden in refresh token tests
+	 * @param isRefreshTokenGrant
+	 */
+	protected void createRefreshToken(boolean isRefreshTokenGrant) {
 	}
 
 	protected void generateIdTokenClaims() {

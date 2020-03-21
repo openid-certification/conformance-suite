@@ -29,7 +29,14 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestInvalidCHashInIdToken.class,
 		OIDCCClientTestInvalidAtHashInIdToken.class,
 		OIDCCClientTestMissingAtHashInIdToken.class,
-		OIDCCClientTestFormPostError.class
+		OIDCCClientTestFormPostError.class,
+		//TODO refresh token tests should/will be moved to a "profile" when testing profiles are implemented.
+		// or they may be optional when "optional tests" are implemented
+		OIDCCClientTestRefreshToken.class,
+		OIDCCClientTestRefreshTokenInvalidIssuer.class,
+		OIDCCClientTestRefreshTokenInvalidSub.class,
+		OIDCCClientTestRefreshTokenInvalidAud.class,
+		OIDCCClientTestRefreshTokenInvalidAzp.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
