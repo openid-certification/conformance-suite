@@ -4,13 +4,20 @@ import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureScopeInRefreshRequestMatchesOriginallyGranted;
 import net.openid.conformance.condition.as.ExtractScopeFromTokenEndpointRequest;
+import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
+import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithRefreshTokenGrantType;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCClientTest
-{
+public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCClientTest {
+
+	@Override
+	protected void configureServerConfiguration() {
+		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithRefreshTokenGrantType.class);
+	}
+
 	@Override
 	protected Object handleTokenEndpointRequest(String requestId) {
 		//if we don't remove ExtractClientCredentialsFromBasicAuthorizationHeader throws "Found existing client authentication"

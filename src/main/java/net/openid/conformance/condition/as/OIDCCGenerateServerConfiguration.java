@@ -114,6 +114,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	}
 
 	//Python suite also always returns urn:ietf:params:oauth:grant-type:jwt-bearer and refresh_token
+	//We add refresh_token in OIDCCGenerateServerConfigurationWithRefreshTokenGrantType only for refresh token tests
 	protected void addGrantTypes(JsonObject server) {
 		JsonArray grantTypes = new JsonArray();
 		grantTypes.add("authorization_code");
