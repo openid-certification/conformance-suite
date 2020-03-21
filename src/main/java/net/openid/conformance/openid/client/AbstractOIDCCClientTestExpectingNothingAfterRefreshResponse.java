@@ -9,18 +9,27 @@ public abstract class AbstractOIDCCClientTestExpectingNothingAfterRefreshRespons
 {
 	protected abstract String getHandleUserinfoEndpointRequestErrorMessage();
 
+	@Override
+	protected abstract void addCustomValuesToIdTokenForRefreshResponse();
+
 	/**
-	 * Calling the userinfo endpoint is always unexpected
+	 * Calling the userinfo endpoint after receiving an invalid refresh response leads to a failure
+	 * but clients are allowed to call the userinfo endpoint before the refresh request
 	 * @param requestId
 	 * @return
 	 */
 	@Override
 	protected Object handleUserinfoEndpointRequest(String requestId) {
-		throw new TestFailureException(getId(), getHandleUserinfoEndpointRequestErrorMessage());
+		if(receivedRefreshRequest) {
+			//refresh response was invalid but the client sent a userinfo request anyway, this is wrong
+			throw new TestFailureException(getId(), getHandleUserinfoEndpointRequestErrorMessage());
+		} else {
+			//we didn't receive a refresh request yet so the client is probably just sending a userinfo
+			//request before doing the refresh part
+			return super.handleUserinfoEndpointRequest(requestId);
+		}
 	}
 
-	@Override
-	protected abstract void addCustomValuesToIdTokenForRefreshResponse();
 
 	@Override
 	protected Object refreshTokenGrantType(String requestId) {

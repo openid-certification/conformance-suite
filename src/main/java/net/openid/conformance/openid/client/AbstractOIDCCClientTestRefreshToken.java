@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 
 public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCClientTest {
 
+	protected boolean receivedRefreshRequest;
+
 	@Override
 	protected void configureServerConfiguration() {
 		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithRefreshTokenGrantType.class);
@@ -23,6 +25,23 @@ public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCC
 		//if we don't remove ExtractClientCredentialsFromBasicAuthorizationHeader throws "Found existing client authentication"
 		env.removeObject("client_authentication");
 		return super.handleTokenEndpointRequest(requestId);
+	}
+
+	/**
+	 * Clients may call the userinfo endpoint both before and after the refresh request.
+	 * We will mark the test as completed only when the userinfo endpoint is called after the refresh request.
+	 * @param requestId
+	 * @return
+	 */
+	@Override
+	protected Object handleUserinfoEndpointRequest(String requestId) {
+		if(!receivedRefreshRequest) {
+			//we don't want the test to be marked as completed if the client sends a userinfo
+			//request before sending a refresh request
+			//this is not the userinfo request we are looking for
+			receivedUserinfoRequest = false;
+		}
+		return super.handleUserinfoEndpointRequest(requestId);
 	}
 
 	/**
@@ -56,7 +75,7 @@ public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCC
 	 */
 	@Override
 	protected Object refreshTokenGrantType(String requestId) {
-
+		receivedRefreshRequest = true;
 		validateRefreshRequest();
 
 		//this must be after EnsureScopeInRefreshRequestMatchesOriginallyGranted is called
