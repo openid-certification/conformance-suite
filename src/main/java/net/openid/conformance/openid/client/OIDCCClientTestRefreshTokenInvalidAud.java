@@ -25,8 +25,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class OIDCCClientTestRefreshTokenInvalidAud extends AbstractOIDCCClientTestExpectingNothingAfterRefreshResponse {
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
-		return "The client is not expected to send a userinfo request for this test. " +
-			"The client is expected to send a token request to " +
+		return "The client should not send a userinfo request after receiving an invalid refresh response. " +
+			"Clients are expected to send a token request to " +
 			"obtain a refresh token and then use that refresh token to send a refresh request and " +
 			"detect that the id_token in the refresh response contains an invalid aud value.";
 	}
