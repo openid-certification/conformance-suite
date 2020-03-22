@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	configurationFields = {
 	}
 )
-@VariantNotApplicable(parameter = ResponseType.class, values={"id_token"})
+@VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCClientTestRefreshTokenInvalidIssuer extends AbstractOIDCCClientTestExpectingNothingAfterRefreshResponse {
 	@Override
 	protected String getHandleUserinfoEndpointRequestErrorMessage() {
