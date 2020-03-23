@@ -51,6 +51,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCUnsignedRequestObject.class,
 		OIDCCRequestUriUnsigned.class,
 		OIDCCRequestUriSignedRS256.class,
+		OIDCCRefreshTokenRPKeyRotation.class,
 
 		// negative tests
 		OIDCCAuthCodeReuse.class,
