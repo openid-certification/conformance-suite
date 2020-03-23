@@ -34,9 +34,11 @@ import net.openid.conformance.plan.TestPlan;
 		// or they may be optional when "optional tests" are implemented
 		OIDCCClientTestRefreshToken.class,
 		OIDCCClientTestRefreshTokenInvalidIssuer.class,
-		OIDCCClientTestRefreshTokenInvalidSub.class,
-		OIDCCClientTestRefreshTokenInvalidAud.class,
-		OIDCCClientTestRefreshTokenInvalidAzp.class
+		OIDCCClientTestRefreshTokenInvalidSub.class
+		//These tests are probably too strict for RPs so commenting them out for now.
+		//See https://gitlab.com/openid/conformance-suite/-/merge_requests/880#note_309383505 for more details
+		//OIDCCClientTestRefreshTokenInvalidAud.class,
+		//OIDCCClientTestRefreshTokenInvalidAzp.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {
