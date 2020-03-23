@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.as.AddAzpToIdToken;
 import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
 import net.openid.conformance.condition.as.AddInvalidAzpValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -32,11 +33,12 @@ public class OIDCCClientTestRefreshTokenInvalidAzp extends AbstractOIDCCClientTe
 		return "The client should not send a userinfo request after receiving an invalid refresh response. " +
 			"Clients are expected to send a token request to " +
 			"obtain a refresh token and then use that refresh token to send a refresh request and " +
-			"detect that the id_token in the refresh response contains an invalid azp value.";
+			"detect that the id_token in the refresh response contains an azp value although the original id_token " +
+			"did not contain an azp claim.";
 	}
 
 	@Override
 	protected void addCustomValuesToIdTokenForRefreshResponse() {
-		callAndStopOnFailure(AddInvalidAzpValueToIdToken.class, "OIDCC-12.2");
+		callAndStopOnFailure(AddAzpToIdToken.class, "OIDCC-12.2");
 	}
 }
