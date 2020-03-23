@@ -14,8 +14,6 @@ public class SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsO
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 		JsonElement scopesSupported = env.getElementFromObject("server", "scopes_supported");
-		String expectedScopeStr = env.getString("client", "scope");
-		String errorMessage = null;
 
 		if (scopesSupported == null) {
 			throw error("'scopes_supported' is null");
