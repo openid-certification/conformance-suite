@@ -3,6 +3,10 @@ package net.openid.conformance.sequence.client;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckTokenEndpointCacheHeaders;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckTokenTypeIsBearer;
 import net.openid.conformance.condition.client.CompareIdTokenClaims;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
@@ -55,6 +59,10 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		callAndStopOnFailure(WaitForOneSecond.class);
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, ConditionResult.FAILURE, "RFC6749-5.1");
+		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "RFC6749-5.1");
+		callAndContinueOnFailure(CheckTokenEndpointCacheHeaders.class, ConditionResult.FAILURE,  "RFC6749-5.1");
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
