@@ -32,6 +32,9 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -144,6 +147,27 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
+	public static class ConfigureClientForClientSecretBasic extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(EnsureServerConfigurationSupportsClientSecretBasic.class);
+		}
+	}
+
+	public static class ConfigureClientForClientSecretPost extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(EnsureServerConfigurationSupportsClientSecretPost.class);
+		}
+	}
+
+	public static class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class);
+		}
+	}
+
 	public static class ConfigureClientForMtls extends AbstractConditionSequence {
 		private boolean secondClient;
 
@@ -198,14 +222,14 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
 		profileStaticClientConfiguration = null;
-		profileCompleteClientConfiguration = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretBasic();
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		profileStaticClientConfiguration = null;
-		profileCompleteClientConfiguration = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretPost();
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
 
@@ -219,7 +243,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
-		profileCompleteClientConfiguration = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForPrivateKeyJwt();
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 

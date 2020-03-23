@@ -50,6 +50,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCDisplayPopup.class,
 		OIDCCUnsignedRequestObject.class,
 		OIDCCRequestUriUnsigned.class,
+		OIDCCRequestUriSignedRS256.class,
 
 		// negative tests
 		OIDCCAuthCodeReuse.class,
