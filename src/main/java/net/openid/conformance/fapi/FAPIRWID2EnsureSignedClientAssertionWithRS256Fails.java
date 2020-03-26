@@ -1,5 +1,7 @@
 package net.openid.conformance.fapi;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
@@ -13,6 +15,7 @@ import net.openid.conformance.condition.client.SignClientAuthenticationAssertion
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -42,6 +45,18 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends AbstractFAPIRWID2PerformTokenEndpoint {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		JsonObject jwks = env.getObject("client_jwks");
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonObject key = keys.get(0).getAsJsonObject();
+		String alg = OIDFJSON.getString(key.get("alg"));
+		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
+			// This throws an exception: the test will stop here
+			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
+		}
+	}
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
