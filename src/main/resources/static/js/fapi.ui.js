@@ -304,7 +304,7 @@ var FAPI_UI = {
 				case "waiting":
 					return "The test is waiting for something to happen. For example, for the authorisation server to redirect back to it, for the user to visit a link or for the user to upload an image (see the test description for details). In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
 				case "configured":
-					return "The test has successfully setup the initial environment. Press the 'START' button to begin the test.";
+					return "The test has successfully setup the initial environment. Please read the test description and when ready press the 'START' button to begin the test.";
 				case "interrupted":
 					return "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.";
 				case "finished":
