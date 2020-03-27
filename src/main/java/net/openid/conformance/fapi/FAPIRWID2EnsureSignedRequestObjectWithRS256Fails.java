@@ -22,7 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-signed-request-object-with-RS256-fails",
 	displayName = "FAPI-RW-ID2: ensure signed request object with RS256 fails",
-	summary = "This test should end with the authorisation server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the authorisation server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -53,9 +53,9 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 		JsonArray keys = jwks.get("keys").getAsJsonArray();
 		JsonObject key = keys.get(0).getAsJsonObject();
 		String alg = OIDFJSON.getString(key.get("alg"));
-		if (!alg.equals("PS256")) {
+		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
 			// This throws an exception: the test will stop here
-			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped.", alg));
+			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
 		}
 	}
 
