@@ -2,8 +2,8 @@
                 <legend>Browser Interaction:</legend>
                 <dl class="dl-horizontal">
                     <% _.each(browser.urls, function(val) { %>
-                        <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>">Visit <span class="glyphicon glyphicon-share-alt"></span></button></dt>
-                        <dd><i><%- val %></i></dd>
+                        <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="glyphicon glyphicon-share-alt"></span></button></dt>
+                        <dd class="wrapLongStrings"><i><%- val %></i></dd>
                     <% }); %>
                     <% _.each(browser.visited, function(val) { %>
                         <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>

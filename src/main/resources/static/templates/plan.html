@@ -60,7 +60,7 @@
                 <div class="col-md-2">
                     <% if (!public) { %>
                         <button class="btn btn-default btn-block" id="showConfigBtn"><span class="glyphicon glyphicon-wrench"></span> View Config</button>
-                        <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
+                        <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block" title="Create a new test plan based on the configuration used in this one"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
                     <% } %>
                     <% if (!public || plan.publish == "everything") { %>
                         <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download All Logs</button>
@@ -88,7 +88,7 @@
                 </div>
                 <div class="col-md-2">
                     <% if (!public) { %>
-                    <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run New Test</button>
+                    <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run Test</button>
                     <% } %>
 					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
                     <% if (!public || plan.publish == "everything") { %>

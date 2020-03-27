@@ -302,7 +302,7 @@ var FAPI_UI = {
 		getStatusHelp : function(value) {
 			switch (value ? value.toLowerCase() : undefined) {
 				case "waiting":
-					return "The test is waiting for an external callback, for example, for the authorisation server to redirect back to it. In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
+					return "The test is waiting for something to happen. For example, for the authorisation server to redirect back to it, for the user to visit a link or for the user to upload an image (see the test description for details). In some cases this means the authorisation server did not redirect back to the conformance suite, indicating that the test failed.";
 				case "configured":
 					return "The test has successfully setup the initial environment. Press the 'START' button to begin the test.";
 				case "interrupted":
