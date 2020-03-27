@@ -45,6 +45,8 @@ makeClientTest() {
 
 	# client OpenID Connect Core Client Tests
     TESTS="${TESTS} oidcc-client-test-plan(../conformance-suite/.gitlab-ci/oidcc-rp-tests-config.json) automated-oidcc-client-test.json"
+    # OIDC Core RP refresh token tests
+    TESTS="${TESTS} oidcc-client-refreshtoken-test-plan(../conformance-suite/.gitlab-ci/oidcc-rp-refreshtoken-test-plan-config.json) automated-oidcc-client-test.json"
 }
 
 makeServerTest() {
