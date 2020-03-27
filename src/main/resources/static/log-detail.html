@@ -534,6 +534,35 @@
 			});
 		}
 
+		function isPendingInteraction() {
+			if ($('#runningTestBrowser .visitBtn').length) {
+				return true;
+			}
+
+			if (!$('#startBtn').is(":hidden")) {
+				return true;
+			}
+
+			return false;
+		}
+
+		function updateTestInfoStickiness(testId) {
+			// make the running test information section float/pin to the top of the window
+			// when there's a button in there the user needs to press
+			var $headerInfoDiv = $(`#logDetail .header [data-instance-id='${testId}']`);
+			if ($headerInfoDiv.offset() === undefined) {
+			    return;
+            }
+			var sticky = $headerInfoDiv.offset().top + $headerInfoDiv.height() + 20;
+			$('#runningTestInformation').css('width', $('#logDetail').width());
+
+			if ($(window).scrollTop() > sticky && isPendingInteraction()) {
+				$('#runningTestInformation').addClass('sticky');
+			} else {
+				$('#runningTestInformation').removeClass('sticky');
+			}
+		}
+
 		function getActive(testId) {
 
 			// try to load up the active test information if it's available, otherwise cut out some controls
@@ -573,6 +602,8 @@
 								// otherwise, the test can't be started
 								$('#startBtn').hide();
 							}
+
+							updateTestInfoStickiness(testId);
 						}
 
 					}
@@ -587,18 +618,7 @@
 						$('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({
 							browser: data.browser
 						}));
-
-						// make the running test information section float/pin to the top of the window
-						// when the 'Visit' button was display
-						var $headerInfoDiv = $(`#logDetail .header [data-instance-id='${testId}']`);
-						var sticky = $headerInfoDiv.offset().top + $headerInfoDiv.height() + 20;
-						$('#runningTestInformation').css('width', $('#logDetail').width());
-
-						if ($(window).scrollTop() > sticky && $('#runningTestBrowser .visitBtn').length) {
-							$('#runningTestInformation').addClass('sticky');
-						} else {
-							$('#runningTestInformation').removeClass('sticky');
-						}
+						updateTestInfoStickiness(testId);
 
 						$('#runningTestBrowser .visitBtn').click(function(evt) {
 							evt.preventDefault();
@@ -659,6 +679,7 @@
 					$('#runningTestArchived').show();
 					// don't update anymore
 					stopReloaderNow();
+					updateTestInfoStickiness();
 				}
 			});
 		}
@@ -737,7 +758,7 @@
 			$('#runningTestInformation').css('width', $('#logDetail').width());
 
 			$(window).scroll(function() {
-				if ($(window).scrollTop() > sticky && $('#runningTestInformation .visitBtn').length) {
+				if ($(window).scrollTop() > sticky && isPendingInteraction()) {
 					$('#runningTestInformation').addClass('sticky');
 				} else {
 					$('#runningTestInformation').removeClass('sticky');
