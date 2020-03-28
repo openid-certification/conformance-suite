@@ -42,7 +42,6 @@ public abstract class AbstractJWEEncryptStringToClient extends AbstractCondition
 		}
 
 		if(enc != null && alg == null) {
-			//TODO add this check for registration as well
 			throw error(encMetadataName + " is set but " + algMetadataName + " is not set for the client." +
 						" When " + encMetadataName + " is set, " + algMetadataName + " MUST also be provided.");
 		}
