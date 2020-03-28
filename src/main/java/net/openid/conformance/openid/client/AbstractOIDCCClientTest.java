@@ -952,7 +952,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
-	//TODO implement checks and allow unsigned request objects when appropriate
+	/**
+	 * Override to disallow unsigned request objects.
+	 * By default they are allowed
+	 * @return
+	 */
 	protected boolean allowUnsignedRequestObjects() {
 		return true;
 	}
