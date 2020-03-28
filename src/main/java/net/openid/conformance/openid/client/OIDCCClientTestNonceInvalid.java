@@ -19,7 +19,7 @@ public class OIDCCClientTestNonceInvalid extends AbstractOIDCCClientTestExpectin
 	@Override
 	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
-		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class);
+		callAndStopOnFailure(AddInvalidNonceValueToIdToken.class, "OIDCC-2");
 	}
 
 	@Override

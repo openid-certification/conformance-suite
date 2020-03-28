@@ -20,7 +20,7 @@ public class OIDCCClientTestInvalidAudInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
-		callAndStopOnFailure(AddInvalidAudValueToIdToken.class);
+		callAndStopOnFailure(AddInvalidAudValueToIdToken.class, "OIDCC-3.1.3.7", "OIDCC-2");
 	}
 
 	@Override

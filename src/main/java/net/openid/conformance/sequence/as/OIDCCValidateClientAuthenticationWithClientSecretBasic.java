@@ -14,6 +14,6 @@ public class OIDCCValidateClientAuthenticationWithClientSecretBasic extends Abst
 
 		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class);
+		callAndStopOnFailure(ValidateClientIdAndSecret.class, "RFC6749-2.3.1");
 	}
 }

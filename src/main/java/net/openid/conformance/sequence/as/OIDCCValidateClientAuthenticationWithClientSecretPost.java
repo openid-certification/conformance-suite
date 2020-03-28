@@ -11,6 +11,6 @@ public class OIDCCValidateClientAuthenticationWithClientSecretPost extends Abstr
 	public void evaluate() {
 		callAndStopOnFailure(ExtractClientCredentialsFromFormPost.class);
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class);
+		callAndStopOnFailure(ValidateClientIdAndSecret.class, "RFC6749-2.3.1");
 	}
 }

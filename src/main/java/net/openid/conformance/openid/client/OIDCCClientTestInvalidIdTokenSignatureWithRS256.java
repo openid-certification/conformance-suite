@@ -21,7 +21,7 @@ public class OIDCCClientTestInvalidIdTokenSignatureWithRS256 extends AbstractOID
 
 	@Override
 	public void customizeIdTokenSignature() {
-		callAndStopOnFailure(SignIdTokenInvalid.class);
+		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7", "OIDCC-3.2.2.11");
 	}
 
 	@Override

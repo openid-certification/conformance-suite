@@ -20,7 +20,7 @@ public class OIDCCClientTestInvalidIssuerInIdToken extends AbstractOIDCCClientTe
 	@Override
 	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
-		callAndStopOnFailure(AddInvalidIssValueToIdToken.class);
+		callAndStopOnFailure(AddInvalidIssValueToIdToken.class, "OIDCC-3.1.3.7");
 	}
 
 	@Override

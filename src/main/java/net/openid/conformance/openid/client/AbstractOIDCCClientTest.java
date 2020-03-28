@@ -571,16 +571,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected JsonObject prepareUserinfoResponse() {
-		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		callAndStopOnFailure(FilterUserInfoForScopes.class, "OIDCC-5.4");
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		return user;
 	}
 
 	protected void validateUserinfoRequest() {
 		extractBearerTokenFromUserinfoRequest();
-		callAndStopOnFailure(RequireBearerAccessToken.class);
-		//TODO is this necessary? (left over from the FAPI test)
-		callAndStopOnFailure(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireBearerAccessToken.class, "OIDCC-5.3.1");
 	}
 
 	/**
@@ -772,8 +770,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateClientJwks() {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		//TODO add requirements
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7517-9.2");
 	}
 
 
@@ -781,13 +778,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * from this point on the client will contain both jwks and jwks_uri
 	 */
 	protected void fetchClientJwksFromJwksUri() {
-		//TODO add requirements
 		skipIfElementMissing("client", "jwks_uri", Condition.ConditionResult.INFO, FetchClientKeys.class,
-			Condition.ConditionResult.FAILURE);
+			Condition.ConditionResult.FAILURE, "OIDCC-10.1.1", "OIDCC-10.2.1");
 	}
 
 	protected void validateAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateAuthorizationCode.class);
+		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
 
 		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
 
@@ -856,7 +852,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		createRefreshToken(false);
 
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+		callAndStopOnFailure(CreateTokenEndpointResponse.class, "OIDCC-3.1.3.3");
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
@@ -875,7 +871,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(OIDCCSignIdToken.class);
+		callAndStopOnFailure(OIDCCSignIdToken.class, "OIDCC-2");
 	}
 
 	protected void fetchAndProcessRequestUri() {
@@ -937,7 +933,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * by allowing max_age=0 and prompt=none
 	 */
 	protected void disallowMaxAge0AndPromptNone() {
-		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class);
+		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class, "OIDCC-3.1.2.3");
 	}
 
 	protected void validateRequestObject() {

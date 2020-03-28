@@ -19,7 +19,7 @@ public class OIDCCClientTestIdTokenSignedUsingRS256 extends AbstractOIDCCClientT
 
 	@Override
 	protected void setServerSigningAlgorithm() {
-		callAndStopOnFailure(SetServerSigningAlgToRS256.class);
+		callAndStopOnFailure(SetServerSigningAlgToRS256.class, "OIDCR-2");
 	}
 
 	@Override

@@ -21,7 +21,7 @@ public class OIDCCClientTestInvalidCHashInIdToken extends AbstractOIDCCClientTes
 
 	@Override
 	protected void addCHashToIdToken() {
-		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class);
+		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2.10");
 	}
 
 	@Override

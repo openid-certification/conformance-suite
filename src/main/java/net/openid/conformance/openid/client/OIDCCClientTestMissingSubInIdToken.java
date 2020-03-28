@@ -20,7 +20,7 @@ public class OIDCCClientTestMissingSubInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
-		callAndStopOnFailure(RemoveSubFromIdToken.class);
+		callAndStopOnFailure(RemoveSubFromIdToken.class, "OIDCC-2");
 	}
 
 	@Override
