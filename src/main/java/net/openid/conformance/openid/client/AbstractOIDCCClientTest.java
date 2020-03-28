@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -111,6 +112,8 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.util.JWEUtil;
+import net.openid.conformance.util.JWSUtil;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ClientRequestType;
@@ -332,7 +335,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	}
 
-	//TODO may be incomplete or excessive
 	protected boolean isClientJwksNeeded() {
 		//or clientAuthType == ClientAuthType.self_signed_tls_client_auth
 		if( clientAuthType == ClientAuthType.PRIVATE_KEY_JWT ) {
@@ -344,7 +346,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			if(client.has("request_object_signing_alg")) {
 				String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
-				if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
+				if(requestObjectSigningAlg!=null
+					&& !"none".equals(requestObjectSigningAlg)
+					&& JWSUtil.isAsymmetricJWSAlgorithm(requestObjectSigningAlg))
+				{
 					return true;
 				}
 			} else {
@@ -354,34 +359,20 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 					...The default, if omitted, is that any algorithm supported by the OP and the RP MAY be used...
 				 */
 				//as per the above, jwks may or may not be needed, we can't know this until we process a request_object
-				//this may lead to a failure due to missing client_public_jwks
+				//this may lead to a failure later in the test due to missing client_public_jwks
 			}
 		}
 
 		if(client.has("id_token_encrypted_response_alg")) {
 			String idTokenEncRespAlg = OIDFJSON.getString(client.get("id_token_encrypted_response_alg"));
-			if (idTokenEncRespAlg != null && idTokenEncRespAlg.matches("^(RSA|ECDH)")) {
+			if (idTokenEncRespAlg != null && JWEUtil.isAsymmetricJWEAlgorithm(idTokenEncRespAlg)) {
 				return true;
 			}
 		}
 
 		if(client.has("userinfo_encrypted_response_alg")) {
 			String userinfoEncRespAlg = OIDFJSON.getString(client.get("userinfo_encrypted_response_alg"));
-			if (userinfoEncRespAlg != null && userinfoEncRespAlg.matches("^(RSA|ECDH)")) {
-				return true;
-			}
-		}
-
-		if(client.has("introspection_encrypted_response_alg")) {
-			String introspectionEncRespAlg = OIDFJSON.getString(client.get("introspection_encrypted_response_alg"));
-			if (introspectionEncRespAlg != null && introspectionEncRespAlg.matches("^(RSA|ECDH)")) {
-				return true;
-			}
-		}
-
-		if(client.has("authorization_encrypted_response_alg")) {
-			String authzEncRespAlg = OIDFJSON.getString(client.get("authorization_encrypted_response_alg"));
-			if (authzEncRespAlg != null && authzEncRespAlg.matches("^(RSA|ECDH)")) {
+			if (userinfoEncRespAlg != null && JWEUtil.isAsymmetricJWEAlgorithm(userinfoEncRespAlg)) {
 				return true;
 			}
 		}

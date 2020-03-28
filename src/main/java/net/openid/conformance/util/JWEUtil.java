@@ -230,4 +230,9 @@ public class JWEUtil {
 			throw new RuntimeException("Unexpected algorithm for key: " + key.toJSONString());
 		}
 	}
+
+	public static boolean isAsymmetricJWEAlgorithm(String algorithmName) {
+		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
+		return JWEAlgorithm.Family.ASYMMETRIC.contains(algorithm);
+	}
 }
