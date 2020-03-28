@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -84,4 +85,8 @@ public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 		return false;
 	}
 
+	protected boolean verifyHMACSignature(SignedJWT jwt, String sharedSecret) throws JOSEException {
+		JWSVerifier verifier = new MACVerifier(sharedSecret);
+		return jwt.verify(verifier);
+	}
 }
