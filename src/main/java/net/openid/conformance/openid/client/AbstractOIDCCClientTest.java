@@ -756,7 +756,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class, "OIDCR-2");
 
-		//TODO should jwks_uri download be skipped if jwks won't be needed?
 		//fetch client jwks from jwks_uri, if a jwks_uri is found
 		fetchClientJwksFromJwksUri();
 

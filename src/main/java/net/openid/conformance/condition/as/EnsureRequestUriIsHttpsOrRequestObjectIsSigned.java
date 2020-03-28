@@ -29,8 +29,6 @@ public class EnsureRequestUriIsHttpsOrRequestObjectIsSigned extends AbstractCond
 			logSuccess("request_uri is a https url", args("request_uri", requestUri));
 			return env;
 		} else {
-			//TODO should we check if alg is not none or should  we check if alg is one of the signing alg values
-			//e.g if (alg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) { instead of !"none".equals(alg)
 			//OIDCC-6.1:
 			//   The Request Object MAY be signed or unsigned (plaintext). When it is plaintext,
 			//   this is indicated by use of the none algorithm [JWA] in the JOSE Header.
