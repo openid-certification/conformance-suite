@@ -19,7 +19,7 @@ public class EnsureClientHasJwksOrJwksUri extends AbstractCondition {
 			throw error("Client must have either jwks or jwks_uri set. This is typically required " +
 				"when client authentication type is private_key_jwt " +
 				//" or client auth is self_signed_tls_client_auth " +
-				"or an asymmetric algorithms is used for request_object_signing_alg, " +
+				"or when an asymmetric algorithm is used for request_object_signing_alg, " +
 				"id_token_encrypted_response_alg or userinfo_encrypted_response_alg." , args("client", client));
 
 		}
