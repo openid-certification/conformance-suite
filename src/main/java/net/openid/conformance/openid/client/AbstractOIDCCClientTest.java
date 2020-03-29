@@ -72,6 +72,7 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientRegistrationRequestSectorIdentifierUri;
@@ -648,6 +649,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * jwks and jwks_uri will be validated in validateClientJwks
 	 */
 	protected void validateClientMetadata() {
+		callAndContinueOnFailure(ValidateClientGrantTypes.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(OIDCCValidateClientRedirectUris.class, Condition.ConditionResult.FAILURE,
 			"OIDCR-2");
 
