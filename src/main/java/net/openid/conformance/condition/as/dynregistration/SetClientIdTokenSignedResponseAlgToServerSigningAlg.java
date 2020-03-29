@@ -15,7 +15,7 @@ public class SetClientIdTokenSignedResponseAlgToServerSigningAlg extends Abstrac
 		String signingAlg = env.getString("signing_algorithm");
 		client.addProperty("id_token_signed_response_alg", signingAlg);
 		env.putObject("client", client);
-		logSuccess("Set id_token_signed_response_alg for the registered client",
+		log("Set id_token_signed_response_alg for the registered client",
 			args("id_token_signed_response_alg", signingAlg));
 		return env;
 	}

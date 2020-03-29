@@ -26,7 +26,7 @@ public class AddIssAndAudToUserInfoResponse extends AbstractCondition {
 		userinfoResponse.addProperty("iss", issuer);
 		userinfoResponse.addProperty("aud", clientId);
 		env.putObject("user_info_endpoint_response", userinfoResponse);
-		logSuccess("Added iss and aud claims to userinfo response", args("iss", issuer, "aud", clientId));
+		log("Added iss and aud claims to userinfo response", args("iss", issuer, "aud", clientId));
 		return env;
 	}
 }

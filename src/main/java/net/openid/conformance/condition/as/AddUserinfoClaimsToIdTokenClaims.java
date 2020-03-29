@@ -28,7 +28,7 @@ public class AddUserinfoClaimsToIdTokenClaims extends AbstractCondition {
 
 		env.putObject("id_token_claims", idTokenClaims);
 
-		logSuccess("Added userinfo claims to ID Token Claims", idTokenClaims);
+		log("Added userinfo claims to ID Token Claims", idTokenClaims);
 
 		return env;
 

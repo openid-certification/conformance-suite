@@ -20,7 +20,7 @@ public class SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly extends
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
 
-		logSuccess("Added client_secret_basic to token_endpoint_auth_methods_supported");
+		log("Added client_secret_basic to token_endpoint_auth_methods_supported");
 
 		return env;
 	}

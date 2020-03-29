@@ -28,7 +28,7 @@ public class EncryptIdToken extends AbstractJWEEncryptStringToClient
 		String encryptedIdToken = encrypt(idToken, clientSecret, clientJwks, alg, enc,
 			"id_token_encrypted_response_alg", "id_token_encrypted_response_enc");
 
-		logSuccess("Encrypted the id token", args("id_token", encryptedIdToken,
+		log("Encrypted the id token", args("id_token", encryptedIdToken,
 			"id_token_encrypted_response_alg", alg,
 			"id_token_encrypted_response_enc", enc));
 		env.putString("id_token", encryptedIdToken);

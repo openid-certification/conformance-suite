@@ -24,7 +24,7 @@ public class AddTokenToAuthorizationEndpointResponseParams extends AbstractCondi
 
 		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, params);
 
-		logSuccess("Added token and token_type to authorization endpoint response params", args(CreateAuthorizationEndpointResponseParams.ENV_KEY, params));
+		log("Added token and token_type to authorization endpoint response params", args(CreateAuthorizationEndpointResponseParams.ENV_KEY, params));
 
 		return env;
 

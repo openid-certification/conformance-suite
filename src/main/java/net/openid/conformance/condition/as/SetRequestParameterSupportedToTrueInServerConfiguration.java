@@ -17,7 +17,7 @@ public class SetRequestParameterSupportedToTrueInServerConfiguration extends Abs
 		addSupported(server);
 		addSignatureAlgValuesSupported(server);
 		env.putObject("server", server);
-		logSuccess(getLogMessage(), args("server", server));
+		log(getLogMessage(), args("server", server));
 		return env;
 	}
 

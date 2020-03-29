@@ -19,7 +19,7 @@ public class RemoveSubFromIdToken extends AbstractCondition {
 
 		env.putObject("id_token_claims", claims);
 
-		logSuccess("Removed sub value from ID token claims", args("id_token_claims", claims));
+		log("Removed sub value from ID token claims", args("id_token_claims", claims));
 
 		return env;
 

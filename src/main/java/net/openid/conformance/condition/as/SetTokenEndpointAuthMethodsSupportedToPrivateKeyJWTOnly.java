@@ -20,7 +20,7 @@ public class SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly extends Abs
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
 
-		logSuccess("Added private_key_jwt to token_endpoint_auth_methods_supported");
+		log("Added private_key_jwt to token_endpoint_auth_methods_supported");
 
 		return env;
 	}

@@ -26,7 +26,7 @@ public class SendAuthorizationResponseWithResponseModeQuery extends AbstractCond
 
 		String redirectTo = builder.toUriString();
 
-		logSuccess("Redirecting back to client", args("uri", redirectTo));
+		log("Redirecting back to client", args("uri", redirectTo));
 
 		env.putString("authorization_endpoint_response_redirect", redirectTo);
 
