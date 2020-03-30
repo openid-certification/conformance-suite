@@ -124,6 +124,9 @@ public class TestExecutionManager {
 	}
 
 	public void runInBackground(Callable<?> callable) {
+		if (finalisationStarted.get()) {
+			throw new RuntimeException("runInBackground called after runFinalisationTaskInBackground()");
+		}
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
 	}
 
