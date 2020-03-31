@@ -24,7 +24,6 @@ public class EnsureClientAssertionSignatureAlgorithmMatchesRegistered extends Ab
 	public Environment evaluate(Environment env) {
 
 		String clientAssertionString = env.getString("client_assertion", "value");
-		JsonObject client = env.getObject("client");
 		try {
 			SignedJWT jwt = SignedJWT.parse(clientAssertionString);
 			String expectedAlgName = env.getString("client", "token_endpoint_auth_signing_alg");
