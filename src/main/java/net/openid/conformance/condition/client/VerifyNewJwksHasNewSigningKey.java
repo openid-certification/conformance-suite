@@ -20,8 +20,8 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 		}
 
 		// for each new key, verify it is actually new
-		keysOnlyInNew.forEach(k -> {
-			String kid = OIDFJSON.getString(k.getAsJsonPrimitive("kid"));
+		keysOnlyInNew.forEach(newKeyToCheck -> {
+			String kid = OIDFJSON.getString(newKeyToCheck.getAsJsonPrimitive("kid"));
 
 			Set<JsonObject> keysWithMatchingKids = originalSigningKeys.stream()
 				.filter(mk -> OIDFJSON.getString(mk.getAsJsonPrimitive("kid")).equals(kid))
@@ -34,16 +34,16 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 						"bad_kid", kid));
 			}
 
-			String kty = OIDFJSON.getString(k.getAsJsonPrimitive("kty"));
+			String kty = OIDFJSON.getString(newKeyToCheck.getAsJsonPrimitive("kty"));
 			String field;
 			switch (kty) {
 				case "RSA": field = "n"; break;
 				case "EC": field = "x"; break; // it seems sufficient for 'x' to be the same, no need to check 'y'
 				default:
-					throw error("unknown key type '"+kty+"' found", args("jwk", k));
+					throw error("unknown key type '"+kty+"' found", args("jwk", newKeyToCheck));
 			}
 
-			String exponent = OIDFJSON.getString(k.getAsJsonPrimitive(field));
+			String exponent = OIDFJSON.getString(newKeyToCheck.getAsJsonPrimitive(field));
 			Set<JsonObject> keysWithSameExponent = originalSigningKeys.stream()
 				.filter(mk -> mk.getAsJsonPrimitive(field) != null && OIDFJSON.getString(mk.getAsJsonPrimitive(field)).equals(exponent))
 				.collect(Collectors.toSet());
