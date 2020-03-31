@@ -2,12 +2,10 @@ package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.EnsureScopeInRefreshRequestMatchesOriginallyGranted;
+import net.openid.conformance.condition.as.EnsureScopeInRefreshRequestContainsNoMoreThanOriginallyGranted;
 import net.openid.conformance.condition.as.ExtractScopeFromTokenEndpointRequest;
-import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithRefreshTokenGrantType;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
-import net.openid.conformance.testmodule.TestFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -78,7 +76,7 @@ public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCC
 		receivedRefreshRequest = true;
 		validateRefreshRequest();
 
-		//this must be after EnsureScopeInRefreshRequestMatchesOriginallyGranted is called
+		//this must be after EnsureScopeInRefreshRequestContainsNoMoreThanOriginallyGranted is called
 		callAndStopOnFailure(ExtractScopeFromTokenEndpointRequest.class);
 
 		generateAccessToken();
@@ -129,8 +127,8 @@ public abstract class AbstractOIDCCClientTestRefreshToken extends AbstractOIDCCC
 	}
 
 	protected void validateRefreshRequest() {
-		//EnsureScopeInRefreshRequestMatchesOriginallyGranted must be used before ExtractScopeFromTokenEndpointRequest
-		callAndStopOnFailure(EnsureScopeInRefreshRequestMatchesOriginallyGranted.class, "RFC6749-6");
+		//EnsureScopeInRefreshRequestContainsNoMoreThanOriginallyGranted must be used before ExtractScopeFromTokenEndpointRequest
+		callAndStopOnFailure(EnsureScopeInRefreshRequestContainsNoMoreThanOriginallyGranted.class, "RFC6749-6");
 		callAndStopOnFailure(ValidateRefreshToken.class, "RFC6749-6");
 	}
 }

@@ -18,7 +18,7 @@ import java.util.Set;
  *  treated as equal to the scope originally granted by the
  *  resource owner.
  */
-public class EnsureScopeInRefreshRequestMatchesOriginallyGranted extends AbstractCondition {
+public class EnsureScopeInRefreshRequestContainsNoMoreThanOriginallyGranted extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "scope", required = "token_endpoint_request")
@@ -34,8 +34,8 @@ public class EnsureScopeInRefreshRequestMatchesOriginallyGranted extends Abstrac
 		Set<String> scopesRequested = Set.of(requestedScope.split(" "));
 		for(String scopeValue : scopesRequested) {
 			if(!scopesGranted.contains(scopeValue)) {
-				throw error("Scope value in refresh request does not match the originally granted scope.",
-					args("originally_granted", grantedScope, "requested", requestedScope));
+				throw error("Scope value in refresh request contains a scope that was not originally granted.",
+					args("originally_granted", grantedScope, "requested_scopes", requestedScope, "scope", scopeValue));
 			}
 		}
 
