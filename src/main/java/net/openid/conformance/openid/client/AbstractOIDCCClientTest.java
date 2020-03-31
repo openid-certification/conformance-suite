@@ -390,7 +390,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
 
 		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
 			//TODO temporary fix, until a finish-test endpoint is added
@@ -410,7 +410,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("client_request"));
 
-		Object responseObject = handleClientRequestForPath(requestId, path);
+		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
 		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
 			//TODO temporary fix, until a finish-test endpoint is added
@@ -427,7 +427,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateTlsForIncomingHttpRequest() {
 	}
 
-	protected Object handleClientRequestForPath(String requestId, String path){
+	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
 
@@ -1057,6 +1057,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 
 
+		customizeAuthorizationEndpointResponseParams();
+
 		Object viewToReturn = null;
 		if(responseMode.isFormPost()) {
 
@@ -1075,6 +1077,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 		return viewToReturn;
+	}
+
+	/**
+	 * Called right before the response is generated
+	 * Override to customize response parameters
+	 */
+	protected void customizeAuthorizationEndpointResponseParams() {
+
 	}
 
 	protected Object generateFormPostResponse() {
