@@ -1,5 +1,6 @@
 package net.openid.conformance.sequence.as;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureClientAssertionTypeIsJwt;
 import net.openid.conformance.condition.as.ExtractClientAssertion;
 import net.openid.conformance.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
@@ -12,8 +13,8 @@ public class OIDCCValidateClientAuthenticationWithClientSecretBasic extends Abst
 	@Override
 	public void evaluate() {
 
-		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class);
+		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class, "RFC6749-2.3.1");
+		callAndContinueOnFailure(ValidateClientIdAndSecret.class, Condition.ConditionResult.FAILURE, "RFC6749-2.3.1");
 	}
 }
