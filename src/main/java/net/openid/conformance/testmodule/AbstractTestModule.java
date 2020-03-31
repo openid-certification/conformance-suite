@@ -502,8 +502,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		// first we set our test to WAITING to release the lock (note that this happens in the calling thread) and prepare for finalization
 		setStatus(Status.WAITING);
+		fireTestFinishedInternal();
+	}
 
-		// then this happens in the background so that we can check the state of the browser controller
+	// internal version of above used to skip the 'setStatus(WAITING)' when called from non-test jobs
+	private void fireTestFinishedInternal() {
+
+		// this happens in the background so that we can check the state of the browser controller
 
 		getTestExecutionManager().runFinalisationTaskInBackground(() -> {
 
@@ -554,6 +559,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// this must be pretty much the last thing we do, we must NEVER mark the test as finished until
 				// everything has happen, as 'FINISHED' is the cue for run-test-plan.py to fetch the results, start
 				// the next test, etc.
+				// This will run any 'cleanup' tasks for the test module
 				setStatus(Status.FINISHED);
 			}
 
@@ -959,8 +965,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				if (remainingPlaceholders.isEmpty() && getStatus().equals(Status.WAITING)) {
 					// if the test is still waiting, but all the placeholders are gone, then we can call it finished, stop looking
 					clearLock();
-					setStatus(Status.RUNNING);
-					fireTestFinished();
+					fireTestFinishedInternal();
 					break;
 				}
 				// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
