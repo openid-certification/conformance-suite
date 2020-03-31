@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class OIDCCCheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
+public class OIDCCCheckDiscEndpointGrantTypesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "grant_types_supported";
 

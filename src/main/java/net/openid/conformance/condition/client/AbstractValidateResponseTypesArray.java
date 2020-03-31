@@ -2,7 +2,7 @@ package net.openid.conformance.condition.client;
 
 import java.util.Set;
 
-public abstract class ValidateResponseTypesArray extends ValidateJsonArray {
+public abstract class AbstractValidateResponseTypesArray extends AbstractValidateJsonArray {
 
 	@Override
 	protected boolean elementsEqual(String e1, String e2) {

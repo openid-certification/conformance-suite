@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointGrantTypesSupported extends ValidateJsonArray {
+public class FAPIRWCheckDiscEndpointGrantTypesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "grant_types_supported";
 

@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class CheckBackchannelTokenDeliveryPingModeSupported extends ValidateJsonArray {
+public class CheckBackchannelTokenDeliveryPingModeSupported extends AbstractValidateJsonArray {
 
 	private final String environmentVariable = "backchannel_token_delivery_modes_supported";
 

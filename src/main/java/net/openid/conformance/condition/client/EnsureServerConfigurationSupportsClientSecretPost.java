@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class EnsureServerConfigurationSupportsClientSecretPost extends ValidateJsonArray {
+public class EnsureServerConfigurationSupportsClientSecretPost extends AbstractValidateJsonArray {
 
 	private static final String ENVIRONMENT_VARIABLE = "token_endpoint_auth_methods_supported";
 

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class OIDCCCheckDiscEndpointClaimsSupported extends ValidateJsonArray {
+public class OIDCCCheckDiscEndpointClaimsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";
 

@@ -1,15 +1,14 @@
 package net.openid.conformance.condition.client;
 
-import java.util.List;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateJsonArray extends AbstractCondition {
+import java.util.List;
+
+public abstract class AbstractValidateJsonArray extends AbstractCondition {
 
 	public long countMatchingElements(List<String> searchValues, JsonArray searchSpace ) {
 		long foundCount = 0;
@@ -65,9 +64,4 @@ public class ValidateJsonArray extends AbstractCondition {
 		return env;
 	}
 
-	@Override
-	public Environment evaluate(Environment env) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

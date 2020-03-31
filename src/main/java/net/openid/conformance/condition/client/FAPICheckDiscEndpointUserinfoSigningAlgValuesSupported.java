@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported extends ValidateJsonArray {
+public class FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 
