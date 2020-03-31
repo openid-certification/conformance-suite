@@ -63,6 +63,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	@Override
+	public boolean autoStart() {
+		/* automatically start all tests by default */
+		return true;
+	}
+
+	@Override
 	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
 		this.id = id;
 		this.owner = owner;

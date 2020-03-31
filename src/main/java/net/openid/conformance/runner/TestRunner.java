@@ -305,8 +305,7 @@ public class TestRunner implements DataUtils {
 		test.getTestExecutionManager().runInBackground(() -> {
 			test.configure(config, url, externalOverrideUrlWithPath);
 
-			/* automatically start all tests */
-			if (test.getStatus() == TestModule.Status.CONFIGURED) {
+			if (test.getStatus() == TestModule.Status.CONFIGURED && test.autoStart()) {
 				test.start();
 			}
 			return "done";

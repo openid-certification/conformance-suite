@@ -1,19 +1,17 @@
 package net.openid.conformance.testmodule;
 
-import java.time.Instant;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.frontChannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.time.Instant;
+import java.util.Map;
 
 public interface TestModule {
 
@@ -154,6 +152,11 @@ public interface TestModule {
 	 * @return get the Instant marking when the test was created
 	 */
 	Instant getCreated();
+
+	/**
+	 * @return true if test should be automatically started; false if the user should manually press the 'start' button
+	 */
+	boolean autoStart();
 
 	/**
 	 * @return get the Instant marking when the test's status was last updated

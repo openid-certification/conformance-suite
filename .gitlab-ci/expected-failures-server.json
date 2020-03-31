@@ -84,6 +84,15 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
+        "test-name": "oidcc-server-rotate-keys",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "current-block": "",
+        "condition": "VerifyNewJwksHasNewSigningKey",
+        "expected-result": "failure",
+        "comment": "CI can't trigger key rotation"
+    },
+    {
         "test-name": "oidcc-userinfo-post-body",
         "variant": "*",
         "configuration-filename": "authlete-*.json",

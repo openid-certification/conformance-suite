@@ -168,7 +168,11 @@ def run_test_plan(test_plan, config_file):
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-            state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+            state = conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
+            if state == "CONFIGURED":
+                print('Starting test')
+                conformance.start_test(module_id)
+                state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
                 # If it's a client test, we need to run the client
