@@ -28,6 +28,9 @@ import java.util.Set;
  * 		code token: authorization_code, implicit
  * 		code token id_token: authorization_code, implicit
  * If omitted, the default is that the Client will use only the authorization_code Grant Type.
+ *
+ * NOTE: When grant_types is set but EMPTY we do NOT default to authorization_code.
+ * It will default to authorization_code when grant_types is not included at all.
  */
 public class ValidateClientGrantTypes extends AbstractClientValidationCondition
 {
