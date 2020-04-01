@@ -103,7 +103,7 @@ public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizati
 	}
 
 	@Override
-	protected void cleanUpPingTestResources() {
+	public void cleanup() {
 		unregisterClient1();
 
 		unregisterClient2();

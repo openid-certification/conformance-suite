@@ -75,7 +75,7 @@ public class FAPICIBAID1EnsureWrongClientIdInTokenEndpointRequest extends Abstra
 	}
 
 	@Override
-	protected void cleanUpPingTestResources() {
+	public void cleanup() {
 		unregisterClient1();
 
 		unregisterClient2();

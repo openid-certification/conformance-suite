@@ -1051,11 +1051,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	@Override
 	public void cleanup() {
-		cleanUpPingTestResources();
-	}
-
-	/** This should be performed before finishing test for each client to unregister dynamic client at AS*/
-	protected void cleanUpPingTestResources() {
 		unregisterClient1();
 	}
 
