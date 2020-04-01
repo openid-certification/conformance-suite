@@ -169,7 +169,9 @@ def run_test_plan(test_plan, config_file):
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
             state = conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
-            if state == "CONFIGURED":
+            if state == "CONFIGURED" and module == 'oidcc-server-rotate-keys':
+                # This test needs manually started once the OP keys have been rotated; we can't actually do that
+                # but at least we can run the test and check it finishes even if it always fails.
                 print('Starting test')
                 conformance.start_test(module_id)
                 state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
