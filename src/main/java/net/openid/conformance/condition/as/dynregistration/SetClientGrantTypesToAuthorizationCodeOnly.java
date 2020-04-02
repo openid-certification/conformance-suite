@@ -17,7 +17,7 @@ public class SetClientGrantTypesToAuthorizationCodeOnly extends AbstractConditio
 		grantTypes.add("authorization_code");
 		client.add("grant_types", grantTypes);
 		env.putObject("client", client);
-		logSuccess("Set grant_types to ['authorization_code'] for the registered client", args("client", client));
+		log("Set grant_types to ['authorization_code'] for the registered client", args("client", client));
 		return env;
 	}
 }

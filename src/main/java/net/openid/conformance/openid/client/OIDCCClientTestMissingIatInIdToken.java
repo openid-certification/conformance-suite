@@ -21,7 +21,7 @@ public class OIDCCClientTestMissingIatInIdToken extends AbstractOIDCCClientTestE
 	@Override
 	protected void generateIdTokenClaims() {
 		super.generateIdTokenClaims();
-		callAndStopOnFailure(RemoveIatFromIdToken.class);
+		callAndStopOnFailure(RemoveIatFromIdToken.class, "OIDCC-2");
 	}
 
 	@Override

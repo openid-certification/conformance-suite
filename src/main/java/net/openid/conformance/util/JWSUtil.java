@@ -20,4 +20,20 @@ public class JWSUtil {
 		}
 		return false;
 	}
+
+	/**
+	 * Checks if alg is an asymmetric algorithm
+	 * @param alg
+	 * @return
+	 */
+	public static boolean isAsymmetricJWSAlgorithm(String alg) {
+		JWSAlgorithm jwsAlgorithm = JWSAlgorithm.parse(alg);
+		if(JWSAlgorithm.Family.EC.contains(jwsAlgorithm)
+			||JWSAlgorithm.Family.ED.contains(jwsAlgorithm)
+			||JWSAlgorithm.Family.RSA.contains(jwsAlgorithm)
+		) {
+			return true;
+		}
+		return false;
+	}
 }

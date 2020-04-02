@@ -21,7 +21,7 @@ public class OIDCCCreateClientSecretForDynamicClient extends AbstractCondition
 		String secret = "secret_" + randomStr;
 		client.addProperty("client_secret", secret);
 		env.putObject("client", client);
-		logSuccess("Set the secret for registered client", args("client_secret", secret));
+		log("Set the secret for registered client", args("client_secret", secret));
 		return env;
 	}
 }

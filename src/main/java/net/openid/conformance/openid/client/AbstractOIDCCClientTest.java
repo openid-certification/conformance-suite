@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -71,6 +72,7 @@ import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRe
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientRegistrationRequestSectorIdentifierUri;
@@ -111,6 +113,8 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.util.JWEUtil;
+import net.openid.conformance.util.JWSUtil;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ClientRequestType;
@@ -332,7 +336,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	}
 
-	//TODO may be incomplete or excessive
 	protected boolean isClientJwksNeeded() {
 		//or clientAuthType == ClientAuthType.self_signed_tls_client_auth
 		if( clientAuthType == ClientAuthType.PRIVATE_KEY_JWT ) {
@@ -344,7 +347,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			if(client.has("request_object_signing_alg")) {
 				String requestObjectSigningAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
-				if (requestObjectSigningAlg != null && requestObjectSigningAlg.matches("^((P|E|R)S\\d{3}|EdDSA)$")) {
+				if(requestObjectSigningAlg!=null
+					&& !"none".equals(requestObjectSigningAlg)
+					&& JWSUtil.isAsymmetricJWSAlgorithm(requestObjectSigningAlg))
+				{
 					return true;
 				}
 			} else {
@@ -354,34 +360,20 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 					...The default, if omitted, is that any algorithm supported by the OP and the RP MAY be used...
 				 */
 				//as per the above, jwks may or may not be needed, we can't know this until we process a request_object
-				//this may lead to a failure due to missing client_public_jwks
+				//this may lead to a failure later in the test due to missing client_public_jwks
 			}
 		}
 
 		if(client.has("id_token_encrypted_response_alg")) {
 			String idTokenEncRespAlg = OIDFJSON.getString(client.get("id_token_encrypted_response_alg"));
-			if (idTokenEncRespAlg != null && idTokenEncRespAlg.matches("^(RSA|ECDH)")) {
+			if (idTokenEncRespAlg != null && JWEUtil.isAsymmetricJWEAlgorithm(idTokenEncRespAlg)) {
 				return true;
 			}
 		}
 
 		if(client.has("userinfo_encrypted_response_alg")) {
 			String userinfoEncRespAlg = OIDFJSON.getString(client.get("userinfo_encrypted_response_alg"));
-			if (userinfoEncRespAlg != null && userinfoEncRespAlg.matches("^(RSA|ECDH)")) {
-				return true;
-			}
-		}
-
-		if(client.has("introspection_encrypted_response_alg")) {
-			String introspectionEncRespAlg = OIDFJSON.getString(client.get("introspection_encrypted_response_alg"));
-			if (introspectionEncRespAlg != null && introspectionEncRespAlg.matches("^(RSA|ECDH)")) {
-				return true;
-			}
-		}
-
-		if(client.has("authorization_encrypted_response_alg")) {
-			String authzEncRespAlg = OIDFJSON.getString(client.get("authorization_encrypted_response_alg"));
-			if (authzEncRespAlg != null && authzEncRespAlg.matches("^(RSA|ECDH)")) {
+			if (userinfoEncRespAlg != null && JWEUtil.isAsymmetricJWEAlgorithm(userinfoEncRespAlg)) {
 				return true;
 			}
 		}
@@ -580,16 +572,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected JsonObject prepareUserinfoResponse() {
-		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		callAndStopOnFailure(FilterUserInfoForScopes.class, "OIDCC-5.4");
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		return user;
 	}
 
 	protected void validateUserinfoRequest() {
 		extractBearerTokenFromUserinfoRequest();
-		callAndStopOnFailure(RequireBearerAccessToken.class);
-		//TODO is this necessary? (left over from the FAPI test)
-		callAndStopOnFailure(RequireOpenIDScope.class);
+		callAndStopOnFailure(RequireBearerAccessToken.class, "OIDCC-5.3.1");
 	}
 
 	/**
@@ -659,6 +649,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * jwks and jwks_uri will be validated in validateClientJwks
 	 */
 	protected void validateClientMetadata() {
+		callAndContinueOnFailure(ValidateClientGrantTypes.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(OIDCCValidateClientRedirectUris.class, Condition.ConditionResult.FAILURE,
 			"OIDCR-2");
 
@@ -767,7 +758,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 		callAndStopOnFailure(EnsureClientDoesNotHaveBothJwksAndJwksUri.class, "OIDCR-2");
 
-		//TODO should jwks_uri download be skipped if jwks won't be needed?
 		//fetch client jwks from jwks_uri, if a jwks_uri is found
 		fetchClientJwksFromJwksUri();
 
@@ -781,8 +771,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void validateClientJwks() {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		//TODO add requirements
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7517-9.2");
 	}
 
 
@@ -790,13 +779,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * from this point on the client will contain both jwks and jwks_uri
 	 */
 	protected void fetchClientJwksFromJwksUri() {
-		//TODO add requirements
 		skipIfElementMissing("client", "jwks_uri", Condition.ConditionResult.INFO, FetchClientKeys.class,
-			Condition.ConditionResult.FAILURE);
+			Condition.ConditionResult.FAILURE, "OIDCC-10.1.1", "OIDCC-10.2.1");
 	}
 
 	protected void validateAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateAuthorizationCode.class);
+		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
 
 		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
 
@@ -865,7 +853,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		createRefreshToken(false);
 
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+		callAndStopOnFailure(CreateTokenEndpointResponse.class, "OIDCC-3.1.3.3");
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
@@ -884,7 +872,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(OIDCCSignIdToken.class);
+		callAndStopOnFailure(OIDCCSignIdToken.class, "OIDCC-2");
 	}
 
 	protected void fetchAndProcessRequestUri() {
@@ -946,7 +934,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 * by allowing max_age=0 and prompt=none
 	 */
 	protected void disallowMaxAge0AndPromptNone() {
-		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class);
+		callAndStopOnFailure(DisallowMaxAgeEqualsZeroAndPromptNone.class, "OIDCC-3.1.2.3");
 	}
 
 	protected void validateRequestObject() {
@@ -965,7 +953,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
-	//TODO implement checks and allow unsigned request objects when appropriate
+	/**
+	 * Override to disallow unsigned request objects.
+	 * By default they are allowed
+	 * @return
+	 */
 	protected boolean allowUnsignedRequestObjects() {
 		return true;
 	}

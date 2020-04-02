@@ -1,5 +1,6 @@
 package net.openid.conformance.sequence.as;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import net.openid.conformance.condition.as.ExtractClientCredentialsFromFormPost;
 import net.openid.conformance.condition.as.ValidateClientIdAndSecret;
@@ -9,8 +10,8 @@ public class OIDCCValidateClientAuthenticationWithClientSecretPost extends Abstr
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(ExtractClientCredentialsFromFormPost.class);
+		callAndContinueOnFailure(ExtractClientCredentialsFromFormPost.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 
-		callAndStopOnFailure(ValidateClientIdAndSecret.class);
+		callAndContinueOnFailure(ValidateClientIdAndSecret.class, Condition.ConditionResult.FAILURE, "RFC6749-2.3.1");
 	}
 }

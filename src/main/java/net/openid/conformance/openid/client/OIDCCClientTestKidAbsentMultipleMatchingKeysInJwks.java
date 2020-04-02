@@ -24,7 +24,7 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 
 	@Override
 	protected void configureServerJWKS() {
-		callAndStopOnFailure(OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds.class);
+		callAndStopOnFailure(OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds.class, "OIDCC-10.1");
 	}
 
 	@Override

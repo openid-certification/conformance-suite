@@ -90,7 +90,7 @@
             "response_mode": "default",
             "request_type": "plain_http_request",
             "client_registration": "dynamic_client",
-            "client_metadata_defaults": {}
+            "client_metadata_defaults": {"token_endpoint_auth_signing_alg": "ES256"}
         },
         {
             "client_auth_type": "private_key_jwt",

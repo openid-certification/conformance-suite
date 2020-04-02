@@ -17,7 +17,7 @@ public class SetServerSigningAlgToNone extends AbstractCondition {
 	@PostEnvironment(strings = "signing_algorithm")
 	public Environment evaluate(Environment env) {
 		env.putString("signing_algorithm", "none");
-		logSuccess("Successfully set signing algorithm to none", args("signing_algorithm", "none"));
+		log("Successfully set signing algorithm to none", args("signing_algorithm", "none"));
 		return env;
 	}
 

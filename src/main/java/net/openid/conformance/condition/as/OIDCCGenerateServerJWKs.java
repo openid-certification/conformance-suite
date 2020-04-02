@@ -103,7 +103,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			env.putObject("server_encryption_keys", encJwks);
 
 
-			logSuccess("Generated server public private JWK sets", args("server_public_jwks", publicJwks,
+			log("Generated server public private JWK sets", args("server_public_jwks", publicJwks,
 																				"server_jwks", jwks,
 																				"server_encryption_keys", encJwks));
 

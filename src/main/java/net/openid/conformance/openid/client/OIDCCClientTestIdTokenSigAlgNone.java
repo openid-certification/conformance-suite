@@ -35,7 +35,7 @@ public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
 
 	@Override
 	protected void validateResponseTypeAuthorizationRequestParameter() {
-		callAndStopOnFailure(EnsureResponseTypeIsCode.class);
+		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "OIDCR-2");
 	}
 
 	@Override

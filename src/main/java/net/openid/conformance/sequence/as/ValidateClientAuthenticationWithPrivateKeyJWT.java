@@ -1,5 +1,7 @@
 package net.openid.conformance.sequence.as;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.EnsureClientAssertionSignatureAlgorithmMatchesRegistered;
 import net.openid.conformance.condition.as.EnsureClientAssertionTypeIsJwt;
 import net.openid.conformance.condition.as.ExtractClientAssertion;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -11,10 +13,11 @@ public class ValidateClientAuthenticationWithPrivateKeyJWT extends AbstractCondi
 	@Override
 	public void evaluate() {
 
-		callAndStopOnFailure(ExtractClientAssertion.class, "RFC7523-2.2");
-		callAndStopOnFailure(ValidateClientAssertionSignature.class);
-		callAndStopOnFailure(EnsureClientAssertionTypeIsJwt.class, "RFC7523-2.2");
-		callAndStopOnFailure(ValidateClientAssertionClaims.class, "RFC7523-3");
+		callAndContinueOnFailure(ExtractClientAssertion.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
+		callAndContinueOnFailure(EnsureClientAssertionSignatureAlgorithmMatchesRegistered.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+		callAndContinueOnFailure(ValidateClientAssertionSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
+		callAndContinueOnFailure(EnsureClientAssertionTypeIsJwt.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
+		callAndContinueOnFailure(ValidateClientAssertionClaims.class, Condition.ConditionResult.FAILURE, "RFC7523-3");
 
 	}
 }

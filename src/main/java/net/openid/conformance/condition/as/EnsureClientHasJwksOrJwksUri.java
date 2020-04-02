@@ -17,13 +17,10 @@ public class EnsureClientHasJwksOrJwksUri extends AbstractCondition {
 		if (!client.has("jwks") && !client.has("jwks_uri")) {
 
 			throw error("Client must have either jwks or jwks_uri set. This is typically required " +
-				"when client auth is private_key_jwt " +
+				"when client authentication type is private_key_jwt " +
 				//" or client auth is self_signed_tls_client_auth " +
-				"or request_object_signing_alg is set to PS*, RS*, ES*, EdDSA" +
-				"or id_token_encrypted_response_alg, userinfo_encrypted_response_alg " +
-				//TODO include the following line?
-				", introspection_encrypted_response_alg, or authorization_encrypted_response_alg " +
-				" match RSA*, ECDH*.", args("client", client));
+				"or when an asymmetric algorithm is used for request_object_signing_alg, " +
+				"id_token_encrypted_response_alg or userinfo_encrypted_response_alg." , args("client", client));
 
 		}
 		logSuccess("Client has jwks or jwks_uri", args("client", client));

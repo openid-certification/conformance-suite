@@ -24,7 +24,7 @@ public class OIDCCClientTestInvalidSubInUserinfoResponse extends AbstractOIDCCCl
 	@Override
 	protected JsonObject prepareUserinfoResponse() {
 		super.prepareUserinfoResponse();
-		callAndStopOnFailure(ChangeSubInUserInfoResponseToBeInvalid.class);
+		callAndStopOnFailure(ChangeSubInUserInfoResponseToBeInvalid.class, "OIDCC-5.3.2");
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		return user;
 	}

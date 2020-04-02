@@ -20,7 +20,7 @@ public class OIDCCClientTestKidAbsentSingleJwks extends AbstractOIDCCClientTest 
 
 	@Override
 	protected void configureServerJWKS() {
-		callAndStopOnFailure(OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId.class);
+		callAndStopOnFailure(OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId.class, "OIDCC-10.1");
 	}
 
 	@Override

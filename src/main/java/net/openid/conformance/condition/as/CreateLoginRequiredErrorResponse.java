@@ -28,7 +28,7 @@ public class CreateLoginRequiredErrorResponse extends AbstractCondition {
 		String responseUrl = OIDFJSON.getString(originalResponseParams.remove("redirect_uri"));
 		env.putString(ERROR_RESPONSE_URL, responseUrl);
 
-		logSuccess("Created login_required error",
+		log("Created login_required error",
 					args(ERROR_RESPONSE_PARAMS, errorResponseParams, ERROR_RESPONSE_URL, responseUrl));
 
 		return env;

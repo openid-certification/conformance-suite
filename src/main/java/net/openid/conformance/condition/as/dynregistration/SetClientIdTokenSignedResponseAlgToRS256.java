@@ -15,7 +15,7 @@ public class SetClientIdTokenSignedResponseAlgToRS256 extends AbstractCondition
 		JsonObject client = env.getObject("client");
 		client.addProperty("id_token_signed_response_alg", "RS256");
 		env.putObject("client", client);
-		logSuccess("Set id_token_signed_response_alg to RS256 for the registered client", args("client", client));
+		log("Set id_token_signed_response_alg to RS256 for the registered client", args("client", client));
 		return env;
 	}
 }

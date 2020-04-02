@@ -23,7 +23,7 @@ public class ChangeSubInUserInfoResponseToBeInvalid extends AbstractCondition {
 		userInfoResponse.addProperty("sub", userInfoResponse.get("sub").getAsString() + "invalid");
 		env.putObject("user_info_endpoint_response", userInfoResponse);
 
-		logSuccess("Added invalid sub to userinfo endpoint output", userInfoResponse);
+		log("Added invalid sub to userinfo endpoint output", userInfoResponse);
 
 		return env;
 	}
