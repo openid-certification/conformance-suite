@@ -38,7 +38,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.NOT_YET_CREATED; // current status of the test
+	private volatile Status status = Status.NOT_YET_CREATED; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
@@ -491,10 +491,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Status getStatus() {
-		// Note that this doesn't take the lock, so the status is potentially inaccurate if it was last set on
-		// a different set.
+		// Note that this (deliberately) doesn't take a lock on the Environment (as 'setStatus()' does), so the status
+		// is potentially inaccurate/immediately out of date if another thread is within a call to setStatus().
+		//
 		// Taking the lock would be undesireable as it would mean the 'get status' HTTP API would block whenever the
-		// test status is RUNNING (which is a lot of the time) as the test has the lock whilst in RUNNING
+		// test status is RUNNING (which is a lot of the time) as the test has the lock whilst in RUNNING.
 		return status;
 	}
 
