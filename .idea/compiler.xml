@@ -6,8 +6,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="conformance-suite" />
         <module name="fapi-conformance-suite" />
+        <module name="conformance-suite" />
       </profile>
     </annotationProcessing>
   </component>

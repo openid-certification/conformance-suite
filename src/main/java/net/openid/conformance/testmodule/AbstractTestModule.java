@@ -38,7 +38,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private String id = null; // unique identifier for the test, set from the outside
-	private Status status = Status.NOT_YET_CREATED; // current status of the test
+	private volatile Status status = Status.NOT_YET_CREATED; // current status of the test
 	private Result result = Result.UNKNOWN; // results of running the test
 
 	private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
@@ -491,6 +491,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Status getStatus() {
+		// Note that this (deliberately) doesn't take a lock on the Environment (as 'setStatus()' does), so the status
+		// is potentially inaccurate/immediately out of date if another thread is within a call to setStatus().
+		//
+		// Taking the lock would be undesireable as it would mean the 'get status' HTTP API would block whenever the
+		// test status is RUNNING (which is a lot of the time) as the test has the lock whilst in RUNNING.
 		return status;
 	}
 
@@ -653,24 +658,32 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected void setStatus(Status newStatus) {
 		try {
-			boolean releaseLockBeforeReturning = false;
+			final boolean hadLockOnEntry = env.getLock().isHeldByCurrentThread();
 
-			logger.info(getId() + ": setStatus(" + newStatus.toString() + "): current status = " + getStatus().toString());
+			logger.info(getId() + ": setStatus(" + newStatus.toString() + "): hadLockOnEntry="+hadLockOnEntry+", current status = " + getStatus().toString());
+
+			if (!hadLockOnEntry) {
+				// acquire lock immediately - as well as protecting the Environment, the lock also protects the status variable
+				acquireLock();
+				logger.info(getId() + ": setStatus(" + newStatus.toString() + "): lock acquired, current status = " + getStatus().toString());
+			}
+			Status oldStatus = getStatus(); // must be after lock is taken
 
 			if (newStatus == Status.RUNNING) {
-				if (env.getLock().isHeldByCurrentThread()) {
+				if (hadLockOnEntry) {
 					// RUNNING->RUNNING isn't good, and moved /to/ RUNNING when we already hold the lock probably isn't right either?
-					throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + getStatus() + " -> " + newStatus);
+					throw new TestFailureException(getId(), "Illegal test state change by thread that holds lock: " + oldStatus + " -> " + newStatus);
 				}
-				// in all other cases [where it is a valid state transition] we want to take the lock before moving to running; do so
-				acquireLock();
-			} else if (newStatus == getStatus()) {
+			} else if (newStatus == oldStatus) {
 				// nothing to change
-				throw new TestFailureException(getId(), "setStatus() called but status is the same: " + getStatus() + " -> " + newStatus);
+				throw new TestFailureException(getId(), "setStatus() called but status is the same: " + oldStatus + " -> " + newStatus);
+			}
+
+			if (hadLockOnEntry && oldStatus != Status.RUNNING) {
+				throw new TestFailureException(getId(), "Illegal current test status for thread that holds lock: " + oldStatus + " -> " + newStatus);
 			}
 
 			// must be after lock acquired, or the status might've changed by the time we wake up
-			Status oldStatus = getStatus();
 
 			switch (oldStatus) {
 				case NOT_YET_CREATED:
@@ -706,11 +719,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				case RUNNING:  // We should have the lock when we're running
 					switch (newStatus) {
 						case INTERRUPTED:
-							clearLockIfHeld();
 							break;
 						case FINISHED:
 						case WAITING:
-							releaseLockBeforeReturning = true;
 							break;
 						default:
 							throw new TestFailureException(getId(), "Illegal test state change: " + oldStatus + " -> " + newStatus);
@@ -736,10 +747,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
 				// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
-				if (!releaseLockBeforeReturning) {
-					acquireLock();
-					releaseLockBeforeReturning = true;
-				}
 				performFinalCleanup();
 			}
 
@@ -752,8 +759,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			this.statusUpdated = Instant.now();
 
-			if (releaseLockBeforeReturning) {
-				// don't release the lock till the very final step; this ensure other threads won't start reading the
+			if (Status.RUNNING.equals(newStatus)) {
+				// exit with the lock still held, as we should always have the lock when TestConditions are being run
+			} else {
+				// release the lock as the very final step; this ensure other threads won't start reading the
 				// test status until after it's been updated, etc.
 				clearLock();
 			}

@@ -53,7 +53,7 @@ public abstract class AbstractFAPICIBAID1MultipleClient extends AbstractFAPICIBA
 	}
 
 	@Override
-	protected void cleanUpPingTestResources() {
+	public void cleanup() {
 		unregisterClient1();
 
 		unregisterClient2();

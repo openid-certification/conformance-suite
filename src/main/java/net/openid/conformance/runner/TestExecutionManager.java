@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestExecutionManager {
 
@@ -77,7 +76,7 @@ public class TestExecutionManager {
 
 	private Future<?> finalisationFuture;
 
-	private AtomicBoolean finalisationStarted = new AtomicBoolean(false);
+	private boolean finalisationStarted;
 
 	private ExecutorCompletionService<Object> executorCompletionService;
 
@@ -104,7 +103,7 @@ public class TestExecutionManager {
 	/**
 	 * Clean up queued tasks for this test id
 	 */
-	public void cancelAllBackgroundTasks() {
+	public synchronized void cancelAllBackgroundTasks() {
 		for (Future<?> f : futures) {
 			if (!f.isDone()) {
 				f.cancel(true); // True allows the task to be interrupted.
@@ -112,7 +111,7 @@ public class TestExecutionManager {
 		}
 	}
 
-	public void cancelAllBackgroundTasksExceptFinalisation() {
+	public synchronized void cancelAllBackgroundTasksExceptFinalisation() {
 		for (Future<?> f : futures) {
 			if (f.equals(finalisationFuture)) {
 				continue;
@@ -123,8 +122,8 @@ public class TestExecutionManager {
 		}
 	}
 
-	public void runInBackground(Callable<?> callable) {
-		if (finalisationStarted.get()) {
+	public synchronized void runInBackground(Callable<?> callable) {
+		if (finalisationStarted) {
 			throw new RuntimeException("runInBackground called after runFinalisationTaskInBackground()");
 		}
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
@@ -135,11 +134,9 @@ public class TestExecutionManager {
 	 *
 	 * This is just like a normal task, except there can only ever be one of them.
 	 */
-	public void runFinalisationTaskInBackground(Callable<?> callable) {
-		// use an AtomicBoolean.getAndSet to avoid any race conditions as it is possible for the main test thread
-		// and the placeholder watcher to try and run the finalisation block at the same time
-		boolean oldValue = finalisationStarted.getAndSet(true);
-		if (!oldValue) {
+	public synchronized void runFinalisationTaskInBackground(Callable<?> callable) {
+		if (!finalisationStarted) {
+			finalisationStarted = true;
 			Future<?> f = executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport));
 			futures.add(f);
 			finalisationFuture = f;

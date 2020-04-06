@@ -19,6 +19,11 @@
 			  synchronization." is triggered by TestRunner /
 			  TestInstanceEventLog -->
 		<exclude name="AvoidSynchronizedAtMethodLevel"/>
+		<!-- AbstractTestModule getStatus uses volatile, see
+		     https://gitlab.com/openid/conformance-suite/-/merge_requests/888#note_317415222
+		     Do be careful about using volatile elsewhere as per
+		     https://docs.oracle.com/javase/specs/jls/se8/html/jls-8.html#jls-8.3.1.4 -->
+		<exclude name="AvoidUsingVolatile"/>
 	</rule>
 	<rule ref="category/java/documentation.xml/CommentContent"
 		  message="Please don't use the @author annotation, reliable authorship information can already be found in git">
