@@ -24,7 +24,7 @@ public class SendAuthorizationResponseWithResponseModeQuery extends AbstractCond
 			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));
 		}
 
-		String redirectTo = builder.toUriString();
+		String redirectTo = builder.encode().toUriString();
 
 		log("Redirecting back to client", args("uri", redirectTo));
 

@@ -24,7 +24,7 @@ public class SendAuthorizationResponseWithResponseModeFragment extends AbstractC
 			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));
 		}
 
-		String paramsAsString = builder.toUriString();
+		String paramsAsString = builder.encode().toUriString();
 		if(paramsAsString.startsWith("?")) {
 			paramsAsString = paramsAsString.substring(1);
 		}
