@@ -1,23 +1,29 @@
 package net.openid.conformance.variant;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.flatMapping;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import com.google.common.collect.Sets;
+import net.openid.conformance.info.Plan;
+import net.openid.conformance.plan.PublishTestPlan;
+import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,20 +35,12 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import net.openid.conformance.testmodule.PublishTestModule;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Sets;
-
-import net.openid.conformance.plan.PublishTestPlan;
-import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.testmodule.TestModule;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.*;
 
 @Component
 public class VariantService {
+	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
 	private static final String SEARCH_PACKAGE = "net.openid";
 
@@ -90,7 +88,7 @@ public class VariantService {
 		return p;
 	}
 
-	private Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant(VariantSelection variant,
+	private static Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant(VariantSelection variant,
 			Map<String, ParameterHolder<? extends Enum<?>>> variantParametersByName) {
 		// Ignore any unknown parameters
 		return variant.getVariant().entrySet().stream()
@@ -214,6 +212,71 @@ public class VariantService {
 	}
 
 	/**
+	 * Wraps a test module with the variants specific to it in a particular test plan
+	 */
+	public class TestPlanModuleWithVariant {
+		final Class<? extends TestPlan> planClass;
+		final TestModuleHolder module;
+		// the variants that are defined statically by the plan; i.e. those the user can't select
+		// null if no variants are pre-defined
+		final private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
+		/** configuration fields for any test modules with fixed variants */
+		final List<String> fixedVariantConfigurationFields;
+
+		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module, Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant) {
+			this.planClass = planClass;
+			this.module = module;
+			this.variant = variant;
+
+			List<String> configurationFields = new ArrayList<>();
+			// check the test module supports all the variants specified for it in the test plan
+			if (variant != null) {
+				this.variant.forEach((variantName, variantValue) -> {
+					if (!this.module.declaredParametersByClass.containsKey(variantName)) {
+						throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests a value for variant '" + variantName.getSimpleName() + "' which the test module does not support");
+					}
+				});
+
+				this.module.parameters.forEach((param) -> {
+					// is the variant's value supported (not marked as NotApplicable) by test module
+					final Class<? extends Enum<?>> variantClass = param.parameter.parameterClass;
+					if (this.variant.containsKey(variantClass)) {
+						final Enum<?> value = this.variant.get(variantClass);
+						if (!param.allowedValues.contains(value)) {
+							throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests variant '" + variantClass.getSimpleName() + "' for a value ('" + value + "') test module has an @VariantNotApplicable for");
+
+						}
+						final List<String> hiddenFields = param.hidesConfigurationFields.get(value);
+						if (hiddenFields != null && hiddenFields.size() > 0) {
+							throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests variant '" + variantClass.getSimpleName() + "' for a value ('" + value + "') that contains a 'hidesConfigurationField', which is not currently supported");
+						}
+						final List<String> fields = param.configurationFields.get(value);
+						if (fields != null) {
+							configurationFields.addAll(fields);
+						}
+					}
+				});
+			}
+			this.fixedVariantConfigurationFields = configurationFields;
+		}
+
+		/**
+		 * @return map of variants set by the plan definition and the value they are set to
+		 */
+		Map<String,String> variantAsStrings() {
+			Map<String,String> stringMap = new HashMap<>();
+			if (variant == null)
+				return null;
+			variant.forEach((key, value) -> {
+				ParameterHolder<?> p = parameter(key);
+				stringMap.put(p.variantParameter.name(), value.toString());
+			});
+
+			return stringMap;
+		}
+	}
+
+	/**
 	 * Holder for all the statically known information about a test module class
 	 *
 	 * Caches all information when instantiated.
@@ -222,52 +285,148 @@ public class VariantService {
 
 		public final PublishTestPlan info;
 
-		final List<TestModuleHolder> modules;
+		final List<TestPlanModuleWithVariant> modulesWithVariant;
+
 		final Class<? extends TestPlan> planClass;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 
+		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
+			return list.stream().flatMap(moduleListEntry -> {
+				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()
+					.map(variant -> {
+						ParameterHolder<?> p = parameter(variant.variant); // used to convert specific enum val into a wildcard one
+						return Map.entry(variant.variant, p.valueOf(variant.value));
+					})
+					.collect(toOrderedMap(Map.Entry::getKey, Map.Entry::getValue));
+
+				// moduleListEntry may have multiple modules for each variant set, we're collapsing it into a flat list of one module & applicable variants
+				return moduleListEntry.testModules.stream().map(testModuleClass -> {
+					TestModuleHolder testModuleHolder = testModulesByClass.get(testModuleClass);
+					if (testModuleHolder == null) {
+						throw new RuntimeException(String.format("Processing testModulesWithVariants for %s: not a published test module: %s",
+							testPlanName,
+							testModuleClass.getName()));
+					}
+
+					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants);
+				});
+
+			}).collect(toList());
+		}
+
+		@SuppressWarnings({ "unchecked" })
 		TestPlanHolder(Class<? extends TestPlan> planClass) {
 			this.planClass = planClass;
 			this.info = planClass.getDeclaredAnnotation(PublishTestPlan.class);
-			this.modules = Arrays.stream(info.testModules())
+
+			List<TestPlan.ModuleListEntry> list = null;
+			try {
+				Method m = planClass.getDeclaredMethod("testModulesWithVariants");
+				Object untypedList = m.invoke(null);
+				list = (List<TestPlan.ModuleListEntry>) untypedList;
+			} catch (NoSuchMethodException e) {
+				//e.printStackTrace();
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				throw new RuntimeException("Reflection issue calling testModulesWithVariants() for "+planClass.getSimpleName(), e);
+			}
+
+			if (list != null) {
+				// module list is defined by the result of the testModulesWithVariants() method
+				this.modulesWithVariant = convertModuleListEntry(planClass.getSimpleName(), list);
+
+				logger.info(list.toString());
+
+			} else {
+				// module list comes from annotation
+				this.modulesWithVariant = Arrays.stream(info.testModules())
 					.map(c -> {
 						TestModuleHolder m = testModulesByClass.get(c);
 						if (m == null) {
 							throw new RuntimeException(String.format("In annotation for %s: not a published test module: %s",
-									planClass.getSimpleName(),
-									c.getName()));
+								planClass.getSimpleName(),
+								c.getName()));
 						}
-						return m;
+						return new TestPlanModuleWithVariant(planClass, m, null);
 					})
 					.collect(toList());
-			this.parametersByName = modules.stream()
+			}
+			this.parametersByName = modulesWithVariant.stream()
+					.map(p->p.module)
 					.flatMap(m -> m.parameters.stream())
 					.map(p -> p.parameter)
 					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
 		}
 
-		public List<String> getTestModules() {
-			return modules.stream().map(m -> m.info.testName()).collect(toList());
+		public List<Plan.Module> getTestModules() {
+			List<Plan.Module> testModules = new ArrayList<>();
+			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
+				testModules.add(new Plan.Module(testPlanModuleWithVariant.module.info.testName(), testPlanModuleWithVariant.variantAsStrings()));
+			});
+			return testModules;
 		}
 
-		public List<String> getTestModulesForVariant(VariantSelection variant) {
-			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> v = typedVariant(variant, parametersByName);
-			return modules.stream()
-					.filter(m -> m.isApplicableForVariant(v))
-					.map(m -> m.info.testName())
-					.collect(toList());
+		public List<String> configurationFields() {
+			Set<String> fields = modulesWithVariant.stream()
+				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantConfigurationFields.stream())
+				.collect(toSet());
+			fields.addAll(Arrays.asList(info.configurationFields()));
+			return new ArrayList<>(fields);
+		}
+
+		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
+			List<Plan.Module> testModules = new ArrayList<>();
+			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
+				// merge user's variant selection with pre-selected variants
+				Map<String, String> preselectedVariants = testPlanModuleWithVariant.variantAsStrings();
+				Map<String, String> selectedStringVariants = new HashMap<>(userSelectedVariant.getVariant());
+				if (preselectedVariants != null) {
+					preselectedVariants.forEach((variantName, value) -> {
+						if (selectedStringVariants.containsKey(variantName)) {
+							// there may be future cases where this is valid, if we want to allow the user to generally select a variant but ensure a specific one is used for a particular test
+							throw new RuntimeException(String.format("Variant '%s' has been set by user, but test plan already sets this variant for module '%s'",
+								variantName, testPlanModuleWithVariant.module.info.testName()));
+						}
+					});
+					selectedStringVariants.putAll(preselectedVariants);
+				}
+
+				Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> selectedVariant = typedVariant(new VariantSelection(selectedStringVariants), parametersByName);
+				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant))
+					return;
+
+				testModules.add(new Plan.Module(testPlanModuleWithVariant.module.info.testName(), testPlanModuleWithVariant.variantAsStrings()));
+			});
+			return testModules;
 		}
 
 		public Object getVariantSummary() {
-			Map<ParameterHolder<?>, Set<String>> values = modules.stream()
-					.flatMap(m -> m.parameters.stream())
+
+			// for each available variant, the set of permitted choices for that variant
+			// e.g. ResponseType : ["code", "code id_token"]
+			Map<ParameterHolder<?>, Set<String>> values = modulesWithVariant.stream()
+					.flatMap(m -> {
+						Set<TestModuleVariantInfo<? extends Enum<?>>> parameters = m.module.parameters;
+						if (m.variant == null) {
+							return parameters.stream();
+						}
+						// remove any variants preset by the plan definition
+						Set<TestModuleVariantInfo<? extends Enum<?>>> selectableParameters = new HashSet<>();
+						parameters.forEach((parameter) -> {
+							if (!m.variant.containsKey(parameter.parameter.parameterClass)) {
+								selectableParameters.add(parameter);
+							}
+						});
+						return selectableParameters.stream();
+					})
 					.collect(groupingBy(p -> p.parameter,
 							flatMapping(p -> p.allowedValues.stream(),
 									mapping(v -> v.toString(),
 											toSet()))));
 
-			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modules.stream()
-					.flatMap(m -> m.parameters.stream())
+			// for each available variant, the names of configuration fields needed for each value
+			// e.g. ClientRegistration : { "static_client": [ "client_id" ] }
+			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modulesWithVariant.stream()
+					.flatMap(m -> m.module.parameters.stream())
 					.collect(groupingBy(p -> p.parameter,
 							flatMapping(p -> p.configurationFields.entrySet().stream(),
 									groupingBy(e -> e.getKey().toString(),
@@ -275,8 +434,10 @@ public class VariantService {
 													mapping(v -> v.toString(),
 															toSet()))))));
 
-			Map<ParameterHolder<?>, Map<String, Set<String>>> hideFields = modules.stream()
-					.flatMap(m -> m.parameters.stream())
+			// for each available variant, the names of configuration fields that can be hidden for each value
+			// e.g. ClientRegistration : { "dynamic_client": [ "client.client_secret" ] }
+			Map<ParameterHolder<?>, Map<String, Set<String>>> hideFields = modulesWithVariant.stream()
+					.flatMap(m -> m.module.parameters.stream())
 					.collect(groupingBy(p -> p.parameter,
 							flatMapping(p -> p.hidesConfigurationFields.entrySet().stream(),
 									groupingBy(e -> e.getKey().toString(),
@@ -318,6 +479,7 @@ public class VariantService {
 		final Class<? extends TestModule> moduleClass;
 		final Set<TestModuleVariantInfo<? extends Enum<?>>> parameters;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
+		final Map<Class<?>, ParameterHolder<?>> declaredParametersByClass;
 
 		TestModuleHolder(Class<? extends TestModule> moduleClass) {
 			this.moduleClass = moduleClass;
@@ -328,7 +490,7 @@ public class VariantService {
 					.map(c -> parameter(c))
 					.collect(toSet());
 
-			Map<Class<?>, ParameterHolder<?>> declaredParametersByClass = declaredParameters.stream()
+			declaredParametersByClass = declaredParameters.stream()
 					.collect(toMap(c -> c.parameterClass, identity()));
 
 			Function<Class<?>, ParameterHolder<?>> moduleParameter = c -> {

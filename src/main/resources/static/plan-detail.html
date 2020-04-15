@@ -189,11 +189,13 @@
 				   $('[data-module]').click(function(evt) {
                        evt.preventDefault();
 					   var testName = $(this).data('module');
+					   var variant = $(this).data('variant')
 					   if(FAPI_UI.currentUser.sub !== data.owner.sub){
-						   $('#reRunTestModalBtn').attr('test-name', testName);
+						   $('#reRunTestModalBtn').data('test-name', testName);
+						   $('#reRunTestModalBtn').data('variant', variant);
 						   $('#reRunTestModal').modal('show');
 					   } else {
-						   runTest(testName, planId);
+						   runTest(testName, variant, planId);
 					   }
 				   });
 
@@ -270,8 +272,9 @@
 
 				   $('#reRunTestModalBtn').click(function(evt) {
 					   evt.preventDefault();
-					   var testName = $('#reRunTestModalBtn').attr('test-name');
-					   runTest(testName, planId);
+					   var testName = $('#reRunTestModalBtn').data('test-name');
+					   var variant = $('#reRunTestModalBtn').data('variant');
+					   runTest(testName, variant, planId);
 				   });
 
 			   },
@@ -285,11 +288,17 @@
 
 	   }
 
-	   function runTest(testName, planId) {
+	   function runTest(testName, testVariant, planId) {
+		   var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+
+		   if (testVariant !== null && testVariant !== undefined) {
+			   runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
+		   }
+
 		   FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
 
 		   $.ajax({
-			   url: '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId),
+			   url: runTestUrl,
 			   type: 'POST',
 			   contentType: 'application/json',
 			   success: function(testData, status) {

@@ -88,23 +88,23 @@ public class TestPlanApi implements DataUtils {
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
-		List<String> testModuleNames;
+		List<Plan.Module> testModules;
 		if (variant != null) {
-			testModuleNames = holder.getTestModulesForVariant(variant);
+			testModules = holder.getTestModulesForVariant(variant);
 		} else {
-			testModuleNames = holder.getTestModulesForVariant(VariantSelection.EMPTY);
+			testModules = holder.getTestModulesForVariant(VariantSelection.EMPTY);
 		}
 
-		if (testModuleNames.isEmpty()) {
+		if (testModules.isEmpty()) {
 			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
 		}
 
-		planService.createTestPlan(id, planName, variant, config, description, testModuleNames.toArray(new String[testModuleNames.size()]), holder.info.summary(), publish);
+		planService.createTestPlan(id, planName, variant, config, description, testModules, holder.info.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
 		map.put("id", id);
-		map.put("modules", testModuleNames);
+		map.put("modules", testModules);
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 	}
@@ -201,8 +201,8 @@ public class TestPlanApi implements DataUtils {
 					"planName", holder.info.testPlanName(),
 					"displayName", holder.info.displayName(),
 					"profile", holder.info.profile(),
-					"moduleNames", holder.getTestModules(),
-					"configurationFields", holder.info.configurationFields(),
+					"modules", holder.getTestModules(),
+					"configurationFields", holder.configurationFields(),
 					"summary", holder.info.summary());
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
@@ -222,8 +222,8 @@ public class TestPlanApi implements DataUtils {
 				"planName", e.info.testPlanName(),
 				"displayName", e.info.displayName(),
 				"profile", e.info.profile(),
-				"moduleNames", e.getTestModules(),
-				"configurationFields", e.info.configurationFields(),
+				"modules", e.getTestModules(),
+				"configurationFields", e.configurationFields(),
 				"summary", e.info.summary(),
 				"variants", e.getVariantSummary()
 			))

@@ -72,7 +72,7 @@ public class DBTestInfoService implements TestInfoService {
 			});
 
 	@Override
-	public void createTest(String id, String testName, VariantSelection variant, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
+	public void createTest(String id, String testName, VariantSelection variant, VariantSelection variantFromPlanDefinition, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
 		testInfos.save(new TestInfo(
@@ -90,7 +90,7 @@ public class DBTestInfoService implements TestInfoService {
 				publish));
 
 		if (planId != null) {
-			testPlanService.updateTestPlanWithModule(planId, testName, id);
+			testPlanService.updateTestPlanWithModule(planId, testName, variantFromPlanDefinition, id);
 		}
 	}
 
