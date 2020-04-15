@@ -255,16 +255,15 @@ public class TestRunner implements DataUtils {
 
 		// see if an alias was passed in as part of the configuration and use it if available
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
-			{
-				alias = OIDFJSON.getString(config.get("alias"));
 
-				// create an alias for the test
-				if (!createTestAlias(alias, id)) {
-					// there was a failure in creating the test alias, return an error
-					return new ResponseEntity<>(HttpStatus.CONFLICT);
-				}
-				path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			alias = OIDFJSON.getString(config.get("alias"));
+
+			// create an alias for the test
+			if (!createTestAlias(alias, id)) {
+				// there was a failure in creating the test alias, return an error
+				return new ResponseEntity<>(HttpStatus.CONFLICT);
 			}
+			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 
 		} else {
 			path = TestDispatcher.TEST_PATH + id;
