@@ -213,6 +213,11 @@ public class VariantService {
 
 	}
 
+	/**
+	 * Holder for all the statically known information about a test module class
+	 *
+	 * Caches all information when instantiated.
+	 */
 	public class TestPlanHolder {
 
 		public final PublishTestPlan info;
@@ -301,6 +306,11 @@ public class VariantService {
 
 	}
 
+	/**
+	 * Holder for all the statically known information about a test module class
+	 *
+	 * Caches all information when instantiated and provides the way to create an instance of a test module
+	 */
 	public class TestModuleHolder {
 
 		public final PublishTestModule info;
@@ -451,6 +461,11 @@ public class VariantService {
 
 	}
 
+	/**
+	 * Holds the variant specific information for a particular test module
+	 *
+	 * @param <T> the variant
+	 */
 	class TestModuleVariantInfo<T extends Enum<T>> {
 
 		final ParameterHolder<T> parameter;
