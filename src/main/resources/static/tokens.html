@@ -50,22 +50,8 @@
 	<!-- resident DOM -->
 	<div class="container-fluid">
 		<div class="row">
-			<div class="col-md-12">
-
-				<p>
-				<button type="button" class="btn btn-primary btn-lg" id="newTemporaryToken">New temporary token</button>
-				<button type="button" class="btn btn-primary btn-lg" id="newPermanentToken">New permanent token</button>
-				<a class="btn btn-primary btn-lg" href="/api-document.html">API Documentation</a>
-				</p>
-
-				<table id="tokensListing" class="table table-striped table-bordered table-hover">
-					<thead>
-					</thead>
-
-					<tbody>
-					</tbody>
-				</table>
-
+			<div class="col-md-12" id="tokenTable">
+				<p>Loading...</p>
 			</div>
 		</div>
 	</div>
@@ -156,9 +142,10 @@
 
 			FAPI_UI.loadTokenListTemplates()
 			.then(function() {
-				FAPI_UI.getUserInfo();
+				return FAPI_UI.getUserInfo();
 			})
 			.then(function() {
+				$('#tokenTable').html(FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser}));
 				return loadTokens();
 			});
 

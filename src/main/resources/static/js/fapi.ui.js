@@ -243,6 +243,10 @@ var FAPI_UI = {
 						FAPI_UI.logTemplates.DATE = _.template(data);
 					}),
 
+					$.get('templates/tokenTable.html', function(data) {
+						FAPI_UI.logTemplates.TOKEN_TABLE = _.template(data);
+					}),
+
 					$.get('templates/userinfo.html', function(data) {
 						FAPI_UI.logTemplates.USER_INFO = _.template(data);
 					})
