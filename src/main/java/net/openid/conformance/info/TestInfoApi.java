@@ -43,7 +43,7 @@ public class TestInfoApi {
 	private TestInfoService testInfoService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get information of all tests", notes = "Will return all tests if user is admin role, otherwise owner's tests will be returned")
+	@ApiOperation(value = "Get information of all test module instances", notes = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned")
 	@ApiResponses({
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})

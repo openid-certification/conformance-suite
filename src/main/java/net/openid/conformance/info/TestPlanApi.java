@@ -110,7 +110,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get a list of test plan with paging")
+	@ApiOperation(value = "Get a list of test plan instances with paging")
 	@ApiResponses({
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
