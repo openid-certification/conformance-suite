@@ -1,13 +1,12 @@
 package net.openid.conformance.condition.client;
 
-import java.util.Arrays;
-
 import com.google.gson.JsonElement;
-
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends ValidateJsonArray {
+import java.util.Arrays;
+
+public class CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "token_endpoint_auth_signing_alg_values_supported";
 

@@ -194,7 +194,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Create test - After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
+	@ApiOperation(value = "Create test module instance", notes = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
 	@ApiResponses(value = {
 		@ApiResponse(code = 201, message = "Created test successfully"),
 		@ApiResponse(code = 400, message = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
@@ -255,16 +255,15 @@ public class TestRunner implements DataUtils {
 
 		// see if an alias was passed in as part of the configuration and use it if available
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
-			{
-				alias = OIDFJSON.getString(config.get("alias"));
 
-				// create an alias for the test
-				if (!createTestAlias(alias, id)) {
-					// there was a failure in creating the test alias, return an error
-					return new ResponseEntity<>(HttpStatus.CONFLICT);
-				}
-				path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			alias = OIDFJSON.getString(config.get("alias"));
+
+			// create an alias for the test
+			if (!createTestAlias(alias, id)) {
+				// there was a failure in creating the test alias, return an error
+				return new ResponseEntity<>(HttpStatus.CONFLICT);
 			}
+			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 
 		} else {
 			path = TestDispatcher.TEST_PATH + id;
@@ -511,12 +510,6 @@ public class TestRunner implements DataUtils {
 			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
 			TestModule module;
-
-			// see if we're running a variant
-			// in case, run test in the pipeline
-			if (variant == null && config.has("variant")) {
-				variant = VariantSelection.fromJson(config.get("variant"));
-			}
 
 			if (variant == null) {
 				module = holder.newInstance(VariantSelection.EMPTY);

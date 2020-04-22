@@ -30,8 +30,8 @@ public class SwaggerConfig {
 
 	private ApiInfo apiInfo() {
 		return new ApiInfoBuilder()
-			.title("OpenID Conformance suite Rest APIs")
-			.description("This page list all the rest APIs for OpenID Conformance suite.")
+			.title("OpenID Conformance Suite REST APIs")
+			.description("This page lists the REST APIs for the OpenID Conformance suite. You must obtain a token from the <a href='tokens.html'>token management page</a> to call APIs.")
 			.version(version)
 			.build();
 	}

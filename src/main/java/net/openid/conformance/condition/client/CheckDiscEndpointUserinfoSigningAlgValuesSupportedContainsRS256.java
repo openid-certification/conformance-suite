@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256 extends ValidateJsonArray {
+public class CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256 extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 

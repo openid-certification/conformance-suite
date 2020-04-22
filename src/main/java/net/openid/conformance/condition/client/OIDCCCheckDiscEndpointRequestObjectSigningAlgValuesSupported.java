@@ -5,7 +5,7 @@ import java.util.Arrays;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported extends ValidateJsonArray {
+public class OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
 

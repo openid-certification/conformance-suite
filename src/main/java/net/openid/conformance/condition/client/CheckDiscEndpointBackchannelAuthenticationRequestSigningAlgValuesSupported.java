@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class CheckDiscEndpointBackchannelAuthenticationRequestSigningAlgValuesSupported extends ValidateJsonArray {
+public class CheckDiscEndpointBackchannelAuthenticationRequestSigningAlgValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "backchannel_authentication_request_signing_alg_values_supported";
 

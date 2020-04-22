@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointScopesSupported extends ValidateJsonArray {
+public class FAPIRWCheckDiscEndpointScopesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "scopes_supported";
 

@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported extends ValidateJsonArray {
+public class FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "token_endpoint_auth_methods_supported";
 

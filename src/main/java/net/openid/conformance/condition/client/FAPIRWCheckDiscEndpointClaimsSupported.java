@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointClaimsSupported extends ValidateJsonArray {
+public class FAPIRWCheckDiscEndpointClaimsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";
 

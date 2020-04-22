@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class OIDCCCheckDiscEndpointResponseTypesSupported extends ValidateResponseTypesArray {
+public class OIDCCCheckDiscEndpointResponseTypesSupported extends AbstractValidateResponseTypesArray {
 
 	private static final String environmentVariable = "response_types_supported";
 
