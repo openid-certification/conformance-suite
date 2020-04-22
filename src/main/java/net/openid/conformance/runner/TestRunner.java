@@ -511,12 +511,6 @@ public class TestRunner implements DataUtils {
 
 			TestModule module;
 
-			// see if we're running a variant
-			// in case, run test in the pipeline
-			if (variant == null && config.has("variant")) {
-				variant = VariantSelection.fromJson(config.get("variant"));
-			}
-
 			if (variant == null) {
 				module = holder.newInstance(VariantSelection.EMPTY);
 			} else {
