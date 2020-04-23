@@ -237,11 +237,18 @@ public class TestRunner implements DataUtils {
 
 		}
 
-		TestModule test = createTestModule(testName, id, config, testVariant);
+		TestModule test;
+		try {
+			test = createTestModule(testName, id, config, testVariant);
+		} catch (IllegalArgumentException | SecurityException e) {
+
+			logger.warn(id + ": Couldn't create test module", e);
+			return new ResponseEntity<>(stringMap("error", "createTestModule failed: "+e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
 		if (test == null) {
 			// return an error
-			return new ResponseEntity<>(stringMap("error", "createTestModule failed"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(stringMap("error", "test module not found"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		logger.info(id + ": Created: " + testName);
@@ -500,34 +507,25 @@ public class TestRunner implements DataUtils {
 			return null;
 		}
 
-		try {
+		Map<String, String> owner = authenticationFacade.getPrincipal();
 
-			Map<String, String> owner = authenticationFacade.getPrincipal();
+		TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
-			TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
+		TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
+		BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
-			TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
-			BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
+		TestModule module;
 
-			TestModule module;
-
-			if (variant == null) {
-				module = holder.newInstance(VariantSelection.EMPTY);
-			} else {
-				module = holder.newInstance(variant);
-			}
-
-			// pass in all the components for this test module to execute
-			module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
-
-			return module;
-
-		} catch (IllegalArgumentException | SecurityException e) {
-
-			logger.warn(id + ": Couldn't create test module", e);
-
-			return null;
+		if (variant == null) {
+			module = holder.newInstance(VariantSelection.EMPTY);
+		} else {
+			module = holder.newInstance(variant);
 		}
+
+		// pass in all the components for this test module to execute
+		module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
+
+		return module;
 
 	}
 
