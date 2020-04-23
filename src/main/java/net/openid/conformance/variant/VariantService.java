@@ -390,7 +390,12 @@ public class VariantService {
 			return parameters.stream()
 					.allMatch(p -> {
 						Object v = variant.get(p.parameter);
-						return v != null && p.allowedValues.contains(v);
+						if (v == null) {
+							throw new RuntimeException(String.format("TestModule '%s' requires a value for variant '%s'",
+								this.info.testName(),
+								p.parameter.variantParameter.name()));
+						}
+						return p.allowedValues.contains(v);
 					});
 		}
 
