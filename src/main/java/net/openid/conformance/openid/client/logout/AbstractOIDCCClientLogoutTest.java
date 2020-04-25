@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client.logout;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithSessionManagement;
 import net.openid.conformance.condition.as.logout.AddSessionStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.logout.AddSidToIdTokenClaims;
@@ -11,6 +12,7 @@ import net.openid.conformance.condition.as.logout.GenerateSessionState;
 import net.openid.conformance.condition.as.logout.LogCheckSessionIframeRequest;
 import net.openid.conformance.condition.as.logout.LogGetSessionStateRequest;
 import net.openid.conformance.condition.as.logout.RemoveSessionStateAndLogout;
+import net.openid.conformance.condition.as.logout.ValidateIdTokenHintInRPInitiatedLogoutRequest;
 import net.openid.conformance.condition.as.logout.ValidatePostLogoutRedirectUri;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -166,8 +168,8 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 * If you override, you will probably want to call super.validateEndSessionEndpointParameters()
 	 */
 	protected void validateEndSessionEndpointParameters() {
-		//TODO validate id_token_hint
-		callAndStopOnFailure(ValidatePostLogoutRedirectUri.class, "OIDCSM-5.1");
+		callAndContinueOnFailure(ValidateIdTokenHintInRPInitiatedLogoutRequest.class, Condition.ConditionResult.FAILURE, "OIDCSM-5");
+		callAndContinueOnFailure(ValidatePostLogoutRedirectUri.class, Condition.ConditionResult.FAILURE, "OIDCSM-5.1");
 	}
 	/**
 	 * Called from the check_session_iframe receiveMessage method via ajax
