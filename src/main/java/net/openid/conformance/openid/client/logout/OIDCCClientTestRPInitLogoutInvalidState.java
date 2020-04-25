@@ -38,6 +38,6 @@ public class OIDCCClientTestRPInitLogoutInvalidState extends AbstractOIDCCClient
 
 	@Override
 	protected void customizeEndSessionEndpointResponseParameters() {
-		callAndStopOnFailure(AddInvalidStateToEndSessionEndpointResponseParams.class);
+		callAndStopOnFailure(AddInvalidStateToEndSessionEndpointResponseParams.class, "OIDCSM-5");
 	}
 }

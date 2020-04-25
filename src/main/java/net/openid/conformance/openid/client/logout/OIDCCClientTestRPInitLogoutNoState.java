@@ -37,6 +37,6 @@ public class OIDCCClientTestRPInitLogoutNoState extends AbstractOIDCCClientLogou
 
 	@Override
 	protected void customizeEndSessionEndpointResponseParameters() {
-		callAndStopOnFailure(RemoveStateFromEndSessionEndpointResponseParams.class);
+		callAndStopOnFailure(RemoveStateFromEndSessionEndpointResponseParams.class, "OIDCSM-5");
 	}
 }

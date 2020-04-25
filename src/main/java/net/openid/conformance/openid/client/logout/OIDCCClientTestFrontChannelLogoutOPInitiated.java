@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client.logout;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.logout.CreateRPFrontChannelLogoutRequestUrl;
 import net.openid.conformance.condition.as.logout.EnsureClientHasFrontChannelLogoutUri;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -64,7 +65,7 @@ public class OIDCCClientTestFrontChannelLogoutOPInitiated extends AbstractOIDCCC
 	}
 
 	protected Object handleOPInitiatedFrontChannelLogoutHandler(String requestId, String path, HttpServletResponse servletResponse) {
-		call(exec().startBlock("OP initiated logout handler (page with the iframe) requested"));
+		call(exec().startBlock("OP initiated logout handler visited"));
 		call(exec().endBlock());
 		return new ModelAndView("opInitiatedFrontChannelLogout",
 			ImmutableMap.of(
@@ -97,9 +98,8 @@ public class OIDCCClientTestFrontChannelLogoutOPInitiated extends AbstractOIDCCC
 
 	protected void sendFrontChannelLogoutRequest() {
 		call(exec().startBlock("Create RP frontchannel_logout_uri request"));
-		//TODO add references
-		callAndContinueOnFailure(EnsureClientHasFrontChannelLogoutUri.class);
-		callAndContinueOnFailure(CreateRPFrontChannelLogoutRequestUrl.class);
+		callAndContinueOnFailure(EnsureClientHasFrontChannelLogoutUri.class, Condition.ConditionResult.FAILURE, "OIDCFCL-2");
+		callAndStopOnFailure(CreateRPFrontChannelLogoutRequestUrl.class, "OIDCFCL-2");
 		performRedirect();
 		call(exec().endBlock());
 	}

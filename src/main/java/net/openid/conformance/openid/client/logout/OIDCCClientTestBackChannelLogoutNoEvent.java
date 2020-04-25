@@ -23,13 +23,13 @@ public class OIDCCClientTestBackChannelLogoutNoEvent extends AbstractOIDCCClient
 
 	@Override
 	protected void customizeLogoutTokenClaims(){
-		callAndStopOnFailure(RemoveEventsClaimFromLogoutToken.class);
+		callAndStopOnFailure(RemoveEventsClaimFromLogoutToken.class, "OIDCBCL-2.4");
 	}
 
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class);
+		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, "OIDCBCL-2.8");
 	}
 
 }

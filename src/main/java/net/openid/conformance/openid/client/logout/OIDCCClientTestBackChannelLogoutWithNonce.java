@@ -23,13 +23,13 @@ public class OIDCCClientTestBackChannelLogoutWithNonce extends AbstractOIDCCClie
 
 	@Override
 	protected void customizeLogoutTokenClaims(){
-		callAndStopOnFailure(AddNonceToLogoutToken.class);
+		callAndStopOnFailure(AddNonceToLogoutToken.class, "OIDCBCL-2.4");
 	}
 
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class);
+		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, "OIDCBCL-2.8");
 	}
 
 }

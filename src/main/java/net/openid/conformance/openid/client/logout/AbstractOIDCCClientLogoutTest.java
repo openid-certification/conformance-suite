@@ -31,19 +31,14 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 
 	@Override
 	protected void configureServerConfiguration() {
-		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithSessionManagement.class);
+		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithSessionManagement.class,
+			"OIDCBCL-2.1", "OIDCSM-2.1", "OIDCFCL-3");
 	}
 
 	@Override
-	protected void addCustomValuesToIdToken()
-	{
+	protected void addCustomValuesToIdToken() {
 		super.addCustomValuesToIdToken();
-		//frontchannel_logout_session_supported
-		//OPTIONAL. Boolean value specifying whether the OP can pass iss (issuer) and sid (session ID)
-		//query parameters to identify the RP session with the OP when the frontchannel_logout_uri is
-		//used. If supported, the sid Claim is also included in ID Tokens issued by the OP.
-		//If omitted, the default value is false.
-		callAndStopOnFailure(AddSidToIdTokenClaims.class);
+		callAndStopOnFailure(AddSidToIdTokenClaims.class, "OIDCFCL-3");
 	}
 
 	@Override
@@ -75,9 +70,8 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 * This is REQUIRED if session management is supported.
 	 */
 	protected void customizeAuthorizationEndpointResponseParams(){
-		//TODO add references
-		callAndStopOnFailure(GenerateSessionState.class);
-		callAndStopOnFailure(AddSessionStateToAuthorizationEndpointResponseParams.class);
+		callAndStopOnFailure(GenerateSessionState.class, "OIDCSM-3");
+		callAndStopOnFailure(AddSessionStateToAuthorizationEndpointResponseParams.class, "OIDCSM-3");
 	}
 
 	/**
@@ -149,11 +143,11 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 
 		callAndStopOnFailure(RemoveSessionStateAndLogout.class);
 
-		callAndStopOnFailure(CreateEndSessionEndpointResponseParams.class);
+		callAndStopOnFailure(CreateEndSessionEndpointResponseParams.class, "OIDCSM-5.1");
 
 		customizeEndSessionEndpointResponseParameters();
 
-		callAndStopOnFailure(CreateEndSessionResponseRedirect.class);
+		callAndStopOnFailure(CreateEndSessionResponseRedirect.class, "OIDCSM-5.1");
 
 		String redirectTo = env.getString("end_session_endpoint_response_redirect");
 
@@ -173,7 +167,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 */
 	protected void validateEndSessionEndpointParameters() {
 		//TODO validate id_token_hint
-		callAndStopOnFailure(ValidatePostLogoutRedirectUri.class);
+		callAndStopOnFailure(ValidatePostLogoutRedirectUri.class, "OIDCSM-5.1");
 	}
 	/**
 	 * Called from the check_session_iframe receiveMessage method via ajax

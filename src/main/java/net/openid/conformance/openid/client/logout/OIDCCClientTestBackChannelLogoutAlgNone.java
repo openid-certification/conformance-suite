@@ -32,7 +32,7 @@ public class OIDCCClientTestBackChannelLogoutAlgNone extends AbstractOIDCCClient
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class);
+		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, "OIDCBCL-2.8");
 	}
 
 }

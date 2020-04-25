@@ -23,13 +23,13 @@ public class OIDCCClientTestBackChannelLogoutWrongAlg extends AbstractOIDCCClien
 
 	@Override
 	protected void signLogoutToken() {
-		callAndStopOnFailure(OIDCCSignLogoutTokenWithWrongAlgorithm.class);
+		callAndStopOnFailure(OIDCCSignLogoutTokenWithWrongAlgorithm.class, "OIDCBCL-2.4");
 	}
 
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class);
+		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, "OIDCBCL-2.8");
 	}
 
 }
