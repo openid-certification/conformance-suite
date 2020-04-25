@@ -11,13 +11,13 @@ public class AddSessionStateToAuthorizationEndpointResponseParams extends Abstra
 
 
 	@Override
-	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY, strings = { "session_state"})
+	@PreEnvironment(required = {CreateAuthorizationEndpointResponseParams.ENV_KEY, "session_state_data"})
 	@PostEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
 	public Environment evaluate(Environment env) {
 
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 
-		String sessionState = env.getString("session_state");
+		String sessionState = env.getString("session_state_data", "session_state");
 
 		params.addProperty("session_state", sessionState);
 

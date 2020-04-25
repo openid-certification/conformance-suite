@@ -6,25 +6,80 @@
     <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <style>
+        #logsdiv div{
+            border-bottom:1px solid #ddd;
+            margin-top:0.2em;
+            margin-bottom:0.4em;
+        }
+
+    </style>
 </head>
 <body>
+    <h1>OP check_session_iframe</h1>
     <div>
+        Initial session_state: [[${session_state}]]
+    </div>
+
+
+    <h3>Logs</h3>
+    <div id="logsdiv">
 
     </div>
 
-    <footer>
-        <div>OpenID Foundation conformance suite</div>
-    </footer>
 <script>
+    var checkSessionUrl = '[[${check_session_ajax_url}]]';
+    var logCounter = 0;
     window.addEventListener("message", receiveMessage, false);
     function receiveMessage(event){
-        var event.data.split(' ');
-        var client_id = [0];
-        var session_state = e.data.split(' ')[1];
-        var salt = session_state.split('.')[1];
+        console.log("check_session_iframe received message via postMessage");
+        console.log(event);
+        var splitData = event.data.split(' ');
+        var clientIdInMessage = splitData[0];
+        var splitStateAndSalt = splitData[1].split('.');
+        var sessionStateInMessage = splitStateAndSalt[0];
+        var saltInMessage = splitStateAndSalt[1];
+        $.ajax(checkSessionUrl, {
+            data:{'receivedMessage':event.data, 'origin':event.origin},
+            dataType:'json',
+            success: function(responseData){
+                addLog('Ajax call succeeded. Response:' + JSON.stringify(responseData));
+                var opBrowserState = responseData.op_browser_state;
+                var saltOnServer = responseData.salt;
+                var originOnServer = responseData.origin;
+                var sessionStateOnServer = responseData.session_state;
+                /*
+                var stringToHash = clientIdInMessage + ' ' + event.origin + ' ' + opBrowserState + ' ' + saltInMessage;
+                const encoder = new TextEncoder();
+                const bytesToHash = encoder.encode(stringToHash);
+                const hash = await crypto.subtle.digest('SHA-256', bytesToHash);
+                var calculated = btoa(hash);
+                */
+
+                //TODO check origin
+                if((sessionStateInMessage+'.'+saltInMessage) == sessionStateOnServer){
+                    addLog('Posting message: unchanged');
+                    event.source.postMessage('unchanged', event.origin);
+                }
+                else{
+                    addLog('Posting message: changed. Expected session state:"' + sessionStateOnServer + '" Actual:"' + sessionStateInMessage + '"');
+                    event.source.postMessage('changed', event.origin);
+                }
+            },
+            error: function(jqxhr, status, errorDetails){
+                addLog('Error from ajax call to ' + checkSessionUrl + ' Error:' + status + ' ' +  errorDetails);
+                event.source.postMessage('error', event.origin);
+            }
+        });
     }
-    function submitform(){
-        document.forms[0].submit();
+
+
+    function addLog(msg){
+        logCounter++;
+        var logdiv = document.createElement("div");
+        logdiv.innerText = logCounter + ': ' +  msg;
+        document.getElementById('logsdiv').appendChild(logdiv);
+
     }
 </script>
 

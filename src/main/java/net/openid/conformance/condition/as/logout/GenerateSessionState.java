@@ -1,10 +1,12 @@
 package net.openid.conformance.condition.as.logout;
 
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWAUtil;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -15,6 +17,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Locale;
 
 /**
@@ -33,12 +36,13 @@ public class GenerateSessionState extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"client", CreateEffectiveAuthorizationRequestParameters.ENV_KEY})
-	@PostEnvironment(strings = { "session_state", "session_state_salt", "op_browser_state"})
+	@PostEnvironment(required = { "session_state_data"})
 	public Environment evaluate(Environment env) {
-
+		JsonObject sessionStateData = new JsonObject();
 		String salt = RandomStringUtils.randomAlphanumeric(50);
 		//this is actually a session id but the spec calls it "OP browser state"
 		String opBrowserState = RandomStringUtils.randomAlphanumeric(50);
+
 		String sessionState;
 		String clientId = env.getString("client", "client_id");
 		String origin = getOrigin(env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI));
@@ -48,16 +52,19 @@ public class GenerateSessionState extends AbstractCondition {
 			String stringToHash = clientId + " " + origin + " " + opBrowserState + " " + salt;
 			byte[] digestBytes = digester.digest(stringToHash.getBytes(StandardCharsets.UTF_8));
 			sessionState = Base64URL.encode(digestBytes) + "." + salt;
+			sessionStateData.addProperty("session_state", sessionState);
 		} catch (NoSuchAlgorithmException e) {
 			throw error("Unsupported digest algorithm", e);
 		}
+		sessionStateData.addProperty("op_browser_state", opBrowserState);
+		sessionStateData.addProperty("salt", salt);
+		sessionStateData.addProperty("client_id", clientId);
+		sessionStateData.addProperty("origin", origin);
+		sessionStateData.addProperty("sid", RFC6749AppendixASyntaxUtils.generateVSChar(20,10, 5));
 
-		log("Generated session_state", args("session_state_salt", salt, "session_state", sessionState,
-												"origin", origin, "op_browser_state", opBrowserState));
+		log("Generated session_state", args("session_state_data", sessionStateData));
 
-		env.putString("op_browser_state", opBrowserState);
-		env.putString("session_state", sessionState);
-		env.putString("session_state_salt", salt);
+		env.putObject("session_state_data", sessionStateData);
 		return env;
 
 	}

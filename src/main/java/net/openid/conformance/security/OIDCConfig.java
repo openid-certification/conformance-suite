@@ -35,6 +35,9 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -223,7 +226,13 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 					.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
 				.and()
 					.logout()
-					.logoutSuccessUrl("/login.html");
+					.logoutSuccessUrl("/login.html")
+				.and()
+					//added to allow check_session_endpoint and such.
+					//TODO disable it only for required paths?
+					.headers().frameOptions().disable()
+				.and()
+					.cors().configurationSource(getCorsConfigurationSource());
 
 		// @formatter:off
 
@@ -232,6 +241,15 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
 		}
+	}
+
+	protected CorsConfigurationSource getCorsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
 	}
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {
