@@ -1,2 +1,72 @@
 [
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-alg-none",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-no-event",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-with-nonce",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-wrong-alg",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-wrong-aud",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-wrong-event",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-backchannel-rpinitlogout-wrong-iss",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-frontchannel-opinitlogout",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-frontchannel-rpinitlogout",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-init-logout",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-init-logout-no-state",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-rp-init-logout-other-state",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "oidcc-client-test-session-management",
+        "variant": "*",
+        "configuration-filename": "*"
+    }
 ]
