@@ -9,14 +9,14 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class CreateEndSessionResponseRedirect extends AbstractCondition {
+public class CreatePostLogoutRedirectUri extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"end_session_endpoint_response_params", "end_session_endpoint_http_request_params"})
-	@PostEnvironment(strings = "end_session_endpoint_response_redirect")
+	@PreEnvironment(required = {"post_logout_redirect_uri_params", "end_session_endpoint_http_request_params"})
+	@PostEnvironment(strings = "post_logout_redirect_uri_redirect")
 	public Environment evaluate(Environment env) {
 
-		JsonObject params = env.getObject("end_session_endpoint_response_params");
+		JsonObject params = env.getObject("post_logout_redirect_uri_params");
 		String redirectUri = env.getString("end_session_endpoint_http_request_params", "post_logout_redirect_uri");
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri);
@@ -27,9 +27,9 @@ public class CreateEndSessionResponseRedirect extends AbstractCondition {
 
 		String redirectTo = builder.toUriString();
 
-		logSuccess("Redirecting back to client", args("uri", redirectTo));
+		logSuccess("Created post_logout_redirect_uri redirect", args("uri", redirectTo));
 
-		env.putString("end_session_endpoint_response_redirect", redirectTo);
+		env.putString("post_logout_redirect_uri_redirect", redirectTo);
 
 		return env;
 

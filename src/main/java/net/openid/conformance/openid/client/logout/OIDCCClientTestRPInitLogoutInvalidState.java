@@ -1,6 +1,6 @@
 package net.openid.conformance.openid.client.logout;
 
-import net.openid.conformance.condition.as.logout.AddInvalidStateToEndSessionEndpointResponseParams;
+import net.openid.conformance.condition.as.logout.AddInvalidStateToPostLogoutRedirectUriParams;
 import net.openid.conformance.condition.as.logout.EnsureEndSessionEndpointRequestContainsStateParameter;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -38,6 +38,6 @@ public class OIDCCClientTestRPInitLogoutInvalidState extends AbstractOIDCCClient
 
 	@Override
 	protected void customizeEndSessionEndpointResponseParameters() {
-		callAndStopOnFailure(AddInvalidStateToEndSessionEndpointResponseParams.class, "OIDCSM-5");
+		callAndStopOnFailure(AddInvalidStateToPostLogoutRedirectUriParams.class, "OIDCSM-5");
 	}
 }

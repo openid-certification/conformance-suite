@@ -14,12 +14,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class OIDCCClientTestFrontChannelLogoutRPInitiated extends AbstractOIDCCClientLogoutTest
+public class OIDCCClientTestFrontChannelLogoutRPInitiated extends AbstractOIDCCClientFrontChannelLogoutTest
 {
 
 	@Override
 	protected boolean finishTestIfAllRequestsAreReceived() {
-		if( receivedAuthorizationRequest && receivedEndSessionRequest) {
+		if( receivedAuthorizationRequest && receivedEndSessionRequest && receivedFrontChannelLogoutCompletedCallback) {
 			fireTestFinished();
 			return true;
 		}

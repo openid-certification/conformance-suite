@@ -14,6 +14,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * The difference between this one and OIDCCClientTestFrontChannelLogoutRPInitiated is:
+ * - This one does not wait for the RP to call the end_session_endpoint
+ * - OIDCCClientTestFrontChannelLogoutRPInitiated renders the front channel logout page when end_session_endpoint is requested
+ */
 @PublishTestModule(
 	testName = "oidcc-client-test-rp-frontchannel-opinitlogout",
 	displayName = "OIDCC: Relying party test, OP initiated front channel logout.",
@@ -26,53 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 	configurationFields = {
 	}
 )
-public class OIDCCClientTestFrontChannelLogoutOPInitiated extends AbstractOIDCCClientLogoutTest
+public class OIDCCClientTestFrontChannelLogoutOPInitiated extends AbstractOIDCCClientFrontChannelLogoutTest
 {
-
-	protected boolean receivedOPLogoutCompletedCallback;
-
-	@Override
-	protected boolean finishTestIfAllRequestsAreReceived() {
-		if( receivedAuthorizationRequest && receivedOPLogoutCompletedCallback) {
-			fireTestFinished();
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse) {
-		if("op_initiated_frontchannel_logout_handler".equals(path)) {
-			return handleOPInitiatedFrontChannelLogoutHandler(requestId, path, servletResponse);
-		} else if ("op_init_fc_logout_callback".equals(path)) {
-			return handleOPInitiatedFrontChannelLogoutCallbackHandler(requestId, path, servletResponse);
-		}
-		return super.handleClientRequestForPath(requestId, path, servletResponse);
-	}
-
-	//TODO since it's a cross domain request we can't know if the page actually loaded or not. onload event gets triggered
-	// when loading the url actually fails due to for example a x-frame-options restriction. We can end the test
-	// after handleOPInitiatedFrontChannelLogoutHandler is called.
-	// That's why fireTestReviewNeeded is called
-	protected Object handleOPInitiatedFrontChannelLogoutCallbackHandler(String requestId, String path, HttpServletResponse servletResponse) {
-		call(exec().startBlock("OP initiated logout ajax callback handler requested"));
-		call(exec().endBlock());
-		receivedOPLogoutCompletedCallback = true;
-		fireTestReviewNeeded();
-		JsonObject response = new JsonObject();
-		response.addProperty("ok", true);
-		return new ResponseEntity<Object>(response, HttpStatus.OK);
-	}
-
-	protected Object handleOPInitiatedFrontChannelLogoutHandler(String requestId, String path, HttpServletResponse servletResponse) {
-		call(exec().startBlock("OP initiated logout handler visited"));
-		call(exec().endBlock());
-		return new ModelAndView("opInitiatedFrontChannelLogout",
-			ImmutableMap.of(
-				"rp_frontchannel_logout_uri", StringEscapeUtils.escapeEcmaScript(env.getString("rp_frontchannel_logout_uri_request_url")),
-				"iframe_loaded_callback_url", env.getString("base_url") + "/op_init_fc_logout_callback"
-			));
-	}
 
 	protected boolean isAuthorizationCodeRequestUnexpected() {
 		return responseType.includesIdToken();
@@ -97,17 +57,14 @@ public class OIDCCClientTestFrontChannelLogoutOPInitiated extends AbstractOIDCCC
 	}
 
 	protected void sendFrontChannelLogoutRequest() {
-		call(exec().startBlock("Create RP frontchannel_logout_uri request"));
-		callAndContinueOnFailure(EnsureClientHasFrontChannelLogoutUri.class, Condition.ConditionResult.FAILURE, "OIDCFCL-2");
-		callAndStopOnFailure(CreateRPFrontChannelLogoutRequestUrl.class, "OIDCFCL-2");
+		createFrontChannelLogoutRequestUrl();
 		performRedirect();
-		call(exec().endBlock());
 	}
 
 	protected void performRedirect() {
-		String redirectTo = env.getString("base_url") + "/op_initiated_frontchannel_logout_handler";
+		String redirectTo = env.getString("base_url") + "/frontchannel_logout_handler";
 
-		eventLog.log(getName(), args("msg", "Redirecting to RP front channel logout handler",
+		eventLog.log(getName(), args("msg", "Redirecting to front channel logout handler",
 			"redirect_to", redirectTo,
 			"http", "redirect"));
 

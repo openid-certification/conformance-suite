@@ -10,13 +10,11 @@ import net.openid.conformance.condition.as.logout.GenerateLogoutTokenClaims;
 import net.openid.conformance.condition.as.logout.OIDCCSignLogoutToken;
 
 
-public abstract class AbstractOIDCCClientBackChannelLogoutTest extends AbstractOIDCCClientLogoutTest
-{
+public abstract class AbstractOIDCCClientBackChannelLogoutTest extends AbstractOIDCCClientLogoutTest {
 	protected boolean sentBackChannelLogoutRequest = false;
 
 
 
-	//TODO this is probably not necessary
 	@Override
 	protected boolean finishTestIfAllRequestsAreReceived() {
 		if( receivedAuthorizationRequest && receivedEndSessionRequest && sentBackChannelLogoutRequest) {
@@ -27,6 +25,7 @@ public abstract class AbstractOIDCCClientBackChannelLogoutTest extends AbstractO
 	}
 
 	protected void createLogoutToken() {
+		call(exec().startBlock("Creating Logout Token"));
 		generateLogoutTokenClaims();
 		customizeLogoutTokenClaims();
 
@@ -35,30 +34,20 @@ public abstract class AbstractOIDCCClientBackChannelLogoutTest extends AbstractO
 		customizeLogoutTokenSignature();
 
 		encryptLogoutTokenIfNecessary();
+		call(exec().endBlock());
 	}
 
 	protected void generateLogoutTokenClaims() {
-		callAndStopOnFailure(GenerateLogoutTokenClaims.class, "OIDCBCL-2.4");
+		callAndContinueOnFailure(GenerateLogoutTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");
 	}
 
 	@Override
-	protected Object handleEndSessionEndpointRequest(String requestId)
-	{
+	protected Object handleEndSessionEndpointRequest(String requestId) {
 		//this must be created before the session is actually removed from env
 		createLogoutToken();
-		waitAndSendLogoutRequest();
-		return super.handleEndSessionEndpointRequest(requestId);
-	}
-
-	protected void waitAndSendLogoutRequest() {
-		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(2 * 1000);
-			if (getStatus().equals(Status.WAITING)) {
-				setStatus(Status.RUNNING);
-				sendBackChannelLogoutRequest();
-			}
-			return "done";
-		});
+		Object viewToReturn = super.handleEndSessionEndpointRequest(requestId);
+		sendBackChannelLogoutRequest();
+		return viewToReturn;
 	}
 
 	/**
@@ -66,11 +55,11 @@ public abstract class AbstractOIDCCClientBackChannelLogoutTest extends AbstractO
 	 */
 	protected void sendBackChannelLogoutRequest() {
 		call(exec().startBlock("Sending Back Channel Logout Request"));
-		callAndStopOnFailure(EnsureClientHasBackChannelLogoutUri.class, "OIDCBCL-2.2");
-		callAndStopOnFailure(CallRPBackChannelLogoutEndpoint.class, "OIDCBCL-2.5");
+		callAndContinueOnFailure(EnsureClientHasBackChannelLogoutUri.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.2");
+		callAndContinueOnFailure(CallRPBackChannelLogoutEndpoint.class, Condition.ConditionResult.FAILURE,"OIDCBCL-2.5");
 		validateBackChannelLogoutResponse();
 		call(exec().endBlock());
-		fireTestFinished();
+		sentBackChannelLogoutRequest=true;
 	}
 
 	protected void validateBackChannelLogoutResponse() {

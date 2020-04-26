@@ -6,8 +6,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithSessionManagement;
 import net.openid.conformance.condition.as.logout.AddSessionStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.logout.AddSidToIdTokenClaims;
-import net.openid.conformance.condition.as.logout.CreateEndSessionEndpointResponseParams;
-import net.openid.conformance.condition.as.logout.CreateEndSessionResponseRedirect;
+import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUriParams;
+import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUri;
 import net.openid.conformance.condition.as.logout.GenerateSessionState;
 import net.openid.conformance.condition.as.logout.LogCheckSessionIframeRequest;
 import net.openid.conformance.condition.as.logout.LogGetSessionStateRequest;
@@ -99,28 +99,12 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	}
 
 	/**
-	 * An RP can notify the OP that the End-User has logged out of the site and might want to log out of the OP as well.
-	 * In this case, the RP, after having logged the End-User out of the RP, redirects the End-User's User Agent to the
-	 * OP's logout endpoint URL. This URL is normally obtained via the end_session_endpoint element of the OP's Discovery
-	 * response or may be learned via other mechanisms.
-	 *
-	 * This specification also defines the following parameters that are passed as query parameters in the logout request:
-	 *
-	 * id_token_hint
-	 * RECOMMENDED. Previously issued ID Token passed to the logout endpoint as a hint about the End-User's current
-	 * authenticated session with the Client. This is used as an indication of the identity of the End-User that the
-	 * RP is requesting be logged out by the OP. The OP need not be listed as an audience of the ID Token when it is
-	 * used as an id_token_hint value.
-	 * post_logout_redirect_uri
-	 * OPTIONAL. URL to which the RP is requesting that the End-User's User Agent be redirected after a logout has been
-	 * performed. The value MUST have been previously registered with the OP, either using the post_logout_redirect_uris
-	 * Registration parameter or via another mechanism. If supplied, the OP SHOULD honor this request following the logout.
-	 * state
-	 * OPTIONAL. Opaque value used by the RP to maintain state between the logout request and the callback to the
-	 * endpoint specified by the post_logout_redirect_uri query parameter. If included in the logout request, the OP
-	 * passes this value back to the RP using the state query parameter when redirecting the User Agent back to the RP.
-	 * At the logout endpoint, the OP SHOULD ask the End-User whether he wants to log out of the OP as well. If the
-	 * End-User says "yes", then the OP MUST log out the End-User.
+	 * Based on my analysis of logout tests in the python suite
+	 * there are three options, based on tests and client configurations:
+	 * - End the session and redirect to post_logout_redirect_uri
+	 * - End the session, also send a back channel logout request and then redirect to post_logout_redirect_uri
+	 *   (AbstractOIDCCClientBackChannelLogoutTest does this)
+	 * - Return a redirect to a page that renders the front channel logout
 	 * @param requestId
 	 * @return
 	 */
@@ -143,19 +127,37 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 
 		validateEndSessionEndpointParameters();
 
-		callAndStopOnFailure(RemoveSessionStateAndLogout.class);
+		createPostLogoutUriRedirect();
 
-		callAndStopOnFailure(CreateEndSessionEndpointResponseParams.class, "OIDCSM-5.1");
+		Object viewToReturn = createEndSessionEndpointResponse();
+
+		removeSessionState();
+
+		return viewToReturn;
+	}
+
+	protected void removeSessionState() {
+		callAndStopOnFailure(RemoveSessionStateAndLogout.class);
+	}
+
+	protected void createPostLogoutUriRedirect() {
+		callAndStopOnFailure(CreatePostLogoutRedirectUriParams.class, "OIDCSM-5.1");
 
 		customizeEndSessionEndpointResponseParameters();
 
-		callAndStopOnFailure(CreateEndSessionResponseRedirect.class, "OIDCSM-5.1");
+		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5.1");
+	}
 
-		String redirectTo = env.getString("end_session_endpoint_response_redirect");
+	/**
+	 * Returns a redirect to post_logout_redirect_uri
+	 * @return
+	 */
+	protected Object createEndSessionEndpointResponse() {
+
+		String redirectTo = env.getString("post_logout_redirect_uri_redirect");
 
 		return new RedirectView(redirectTo, false, false, false);
 	}
-
 	/**
 	 * Called before the end session endpoint response redirect url is created.
 	 * No-op by default, override in child classes to change behavior.

@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.client.logout;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.logout.AddInvalidEventsClaimToLogoutToken;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs400;
 import net.openid.conformance.condition.as.logout.RemoveEventsClaimFromLogoutToken;
@@ -29,7 +30,8 @@ public class OIDCCClientTestBackChannelLogoutWrongEvent extends AbstractOIDCCCli
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, "OIDCBCL-2.8");
+		callAndContinueOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs400.class, Condition.ConditionResult.FAILURE,
+			"OIDCBCL-2.8");
 	}
 
 }

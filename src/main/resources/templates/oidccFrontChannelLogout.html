@@ -26,14 +26,36 @@
         }
     </style>
 
-    <script>
+    <script th:if="${post_logout_redirect_uri_redirect!='OPINIT'}">
+    //RP init
     var iframe = document.createElement('iframe');
     iframe.onload = function(){
         $.ajax('[[${iframe_loaded_callback_url}]]', {
             data:{'loaded':true},
             dataType:'json',
             success: function(responseData){
-                $('#msgdiv').html('Logout uri loaded and test marked as finished. You can now close this window and go back to the test suite.');
+                $('#msgdiv').html('Logout uri loaded and test marked as finished. You will be redirected to post_logout_uri in 5 seconds.');
+                setTimeout(function(){window.location.href='[[${post_logout_redirect_uri_redirect}]]';}, 5000);
+            },
+            error: function(jqxhr, status, errorDetails){
+                $('#msgdiv').html('Failed to mark test as finished! Please try again.');
+            }
+        });
+    }
+    iframe.src = '[[${rp_frontchannel_logout_uri}]]';
+    document.body.appendChild(iframe);
+
+
+    </script>
+    <script th:if="${post_logout_redirect_uri_redirect=='OPINIT'}">
+    //OP init
+    var iframe = document.createElement('iframe');
+    iframe.onload = function(){
+        $.ajax('[[${iframe_loaded_callback_url}]]', {
+            data:{'loaded':true},
+            dataType:'json',
+            success: function(responseData){
+                $('#msgdiv').html('Logout uri loaded and test marked as finished. You can close this window and go back to the test window.');
             },
             error: function(jqxhr, status, errorDetails){
                 $('#msgdiv').html('Failed to mark test as finished! Please try again.');

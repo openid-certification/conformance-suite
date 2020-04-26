@@ -7,12 +7,12 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateEndSessionEndpointResponseParams extends AbstractCondition {
+public class CreatePostLogoutRedirectUriParams extends AbstractCondition {
 
 
 	@Override
 	@PreEnvironment(required = "end_session_endpoint_http_request_params")
-	@PostEnvironment(required = "end_session_endpoint_response_params")
+	@PostEnvironment(required = "post_logout_redirect_uri_params")
 	public Environment evaluate(Environment env) {
 
 		String state = env.getString("end_session_endpoint_http_request_params", "state");
@@ -22,9 +22,9 @@ public class CreateEndSessionEndpointResponseParams extends AbstractCondition {
 			responseParams.addProperty("state", state);
 		}
 
-		log("Added end_session_endpoint_response_params to environment", args("params", responseParams));
+		log("Added post_logout_redirect_uri parameters to environment", args("params", responseParams));
 
-		env.putObject("end_session_endpoint_response_params", responseParams);
+		env.putObject("post_logout_redirect_uri_params", responseParams);
 
 		return env;
 

@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client.logout;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs200;
+import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -24,7 +25,8 @@ public class OIDCCClientTestBackChannelLogout extends AbstractOIDCCClientBackCha
 	@Override
 	protected void validateBackChannelLogoutResponse() {
 		super.validateBackChannelLogoutResponse();
-		callAndStopOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs200.class, "OIDCBCL-2.8");
+		callAndContinueOnFailure(EnsureBackChannelLogoutUriResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE,
+			"OIDCBCL-2.8");
 	}
 
 }

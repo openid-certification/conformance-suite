@@ -1,7 +1,7 @@
 package net.openid.conformance.openid.client.logout;
 
 import net.openid.conformance.condition.as.logout.EnsureEndSessionEndpointRequestContainsStateParameter;
-import net.openid.conformance.condition.as.logout.RemoveStateFromEndSessionEndpointResponseParams;
+import net.openid.conformance.condition.as.logout.RemoveStateFromPostLogoutRedirectUriParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -37,6 +37,6 @@ public class OIDCCClientTestRPInitLogoutNoState extends AbstractOIDCCClientLogou
 
 	@Override
 	protected void customizeEndSessionEndpointResponseParameters() {
-		callAndStopOnFailure(RemoveStateFromEndSessionEndpointResponseParams.class, "OIDCSM-5");
+		callAndStopOnFailure(RemoveStateFromPostLogoutRedirectUriParams.class, "OIDCSM-5");
 	}
 }
