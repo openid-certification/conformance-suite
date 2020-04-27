@@ -205,7 +205,7 @@ public class TestRunner implements DataUtils {
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@ApiParam(value = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
 														  @ApiParam(value = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
-														  @ApiParam(value = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variant,
+														  @ApiParam(value = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
 														  @ApiParam(value = "Configuration for running test") @RequestBody(required = false) JsonObject testConfig,
 														  Model m) {
 		final JsonObject config;
@@ -218,8 +218,13 @@ public class TestRunner implements DataUtils {
 				// user should not supply a configuration when creating a test from a test plan
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-			// if the test is part of a plan, the configuration comes from the plan
-			testVariant = planService.getTestPlanVariant(planId);
+			// if the test is part of a plan, the configuration may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
+			Map<String, String> variantsMap = new HashMap<>();
+			if (variantFromApi != null) {
+				variantsMap.putAll(variantFromApi.getVariant());
+			}
+			variantsMap.putAll(planService.getTestPlanVariant(planId).getVariant());
+			testVariant = new VariantSelection(variantsMap);
 			config = planService.getModuleConfig(planId, testName);
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -227,7 +232,7 @@ public class TestRunner implements DataUtils {
 		} else {
 			// we're starting an individual test module
 			config = testConfig;
-			testVariant = variant;
+			testVariant = variantFromApi;
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
@@ -293,7 +298,7 @@ public class TestRunner implements DataUtils {
 		}
 
 		// record that this test was started
-		testInfo.createTest(id, testName, testVariant, url, config, alias, Instant.now(), planId, description, summary, publish);
+		testInfo.createTest(id, testName, testVariant, variantFromApi, url, config, alias, Instant.now(), planId, description, summary, publish);
 
 
 		// log the test creation event in the event log

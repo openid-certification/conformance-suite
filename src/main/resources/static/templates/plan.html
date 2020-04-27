@@ -88,7 +88,7 @@
                 </div>
                 <div class="col-md-2">
                     <% if (!public) { %>
-                    <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>"><span class="glyphicon glyphicon-play"></span> Run Test</button>
+                    <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>"><span class="glyphicon glyphicon-play"></span> Run Test</button>
                     <% } %>
 					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>
                     <% if (!public || plan.publish == "everything") { %>
@@ -99,6 +99,10 @@
                     <div class="row">
                         <div class="col-md-2">Test Name:</div>
                         <div class="col-md-10"><%- module.testModule %><sup><span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="<%- module.testSummary ? module.testSummary : '' %>" data-placement="right"></span></sup></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">Variant:</div>
+                        <div class="col-md-10"><%- FAPI_UI.formatVariant(module.variant) %></div>
                     </div>
                     <div class="row">
                         <div class="col-md-2">Test ID:</div>

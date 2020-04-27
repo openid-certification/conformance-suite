@@ -6,16 +6,16 @@ import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.List;
+
 public interface TestPlanService {
 
 	/**
-	 * @param planId
-	 * @param testName
-	 * @param id
+	 * @param variant Variant overrides for this test module, i.e. excluding those stored in the plan object
 	 */
-	void updateTestPlanWithModule(String planId, String testName, String id);
+	void updateTestPlanWithModule(String planId, String testName, VariantSelection variant, String id);
 
-	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String[] testModules, String summary, String publish);
+	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<Plan.Module> testModules, String summary, String publish);
 
 	/**
 	 * @param id

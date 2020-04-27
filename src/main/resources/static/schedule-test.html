@@ -909,9 +909,9 @@
 				var fieldsToShow = selectedPlan.configurationFields;
 
 				// add in any fields from the associated modules
-				_.each(selectedPlan.moduleNames, function(module) {
-					if (FAPI_UI.availableTests[module]) {
-						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module].configurationFields));
+				_.each(selectedPlan.modules, function(module) {
+					if (FAPI_UI.availableTests[module.testModule]) {
+						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module.testModule].configurationFields));
 					}
 				});
 

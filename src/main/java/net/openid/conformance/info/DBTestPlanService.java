@@ -1,9 +1,13 @@
 package net.openid.conformance.info;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.UpdateResult;
+import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -17,15 +21,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.UpdateResult;
-
-import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DBTestPlanService implements TestPlanService {
@@ -49,30 +47,38 @@ public class DBTestPlanService implements TestPlanService {
 	/**
 	 * @param planId
 	 * @param testName
+	 * @param variant
 	 * @param id
 	 */
 	@Override
-	public void updateTestPlanWithModule(String planId, String testName, String id) {
+	public void updateTestPlanWithModule(String planId, String testName, VariantSelection variant, String id) {
 
 		Criteria criteria = new Criteria();
 		criteria.and("_id").is(planId);
-		criteria.and("modules.testModule").is(testName);
 
 		Query query = new Query(criteria);
 
 		Update update = new Update();
-		update.push("modules.$.instances", id);
+		update.push("modules.$[module].instances", id);
+		Criteria updateCriteria = new Criteria();
+		if (variant != null) {
+			variant.getVariant().forEach((name, value) -> {
+				updateCriteria.and("module.variant."+name).is(value);
+			});
+		}
+		updateCriteria.and("module.testModule").is(testName);
+		update.filterArray(updateCriteria);
 
-		mongoTemplate.updateFirst(query, update, COLLECTION);
-
-
+		var result = mongoTemplate.updateFirst(query, update, COLLECTION);
+		if (result.getMatchedCount() == 0)
+			throw new RuntimeException(String.format("failed to add module '%s' to test plan id '%s'", testName, planId));
 	}
 
 	/* (non-Javadoc)
 	 * @see TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String[] testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<Plan.Module> testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 

@@ -1,21 +1,17 @@
 package net.openid.conformance.info;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
+import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
-import net.openid.conformance.variant.VariantSelection;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Document(collection = DBTestPlanService.COLLECTION)
 public class Plan {
@@ -41,14 +37,16 @@ public class Plan {
 	public static class Module {
 
 		private String testModule;
+		private Map<String,String> variant;
 		private List<String> instances;
 
 		Module() {
 			// Load constructor
 		}
 
-		public Module(String module) {
+		public Module(String module, Map<String,String> variant) {
 			this.testModule = module;
+			this.variant = variant;
 			this.instances = Collections.emptyList();
 		}
 
@@ -72,7 +70,7 @@ public class Plan {
 			Instant started,
 			Map<String, String> owner,
 			String description,
-			String[] testModules,
+			List<Module> testModules,
 			String version,
 			String summary,
 			String publish) {
@@ -84,9 +82,7 @@ public class Plan {
 		this.started = started.toString();
 		this.owner = owner;
 		this.description = description;
-		this.modules = Arrays.stream(testModules)
-				.map(Module::new)
-				.collect(Collectors.toList());
+		this.modules = testModules;
 		this.version = version;
 		this.summary = summary;
 		this.publish = publish;

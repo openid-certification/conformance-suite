@@ -81,8 +81,9 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
         start_time_for_plan = time.time()
         print('Created test plan, new id: {}'.format(plan_id))
         print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
-        print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
-        for module in plan_modules:
+        print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
+        for moduledict in plan_modules:
+            module=moduledict['testModule']
             test_start_time = time.time()
             module_id = ''
             module_info = {}
@@ -153,8 +154,9 @@ def run_test_plan(test_plan, config_file):
     overall_start_time = time.time()
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
-    print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(plan_modules)))
-    for module in plan_modules:
+    print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
+    for moduledict in plan_modules:
+        module=moduledict['testModule']
         test_start_time = time.time()
         module_id = ''
         module_info = {}
@@ -297,7 +299,8 @@ def show_plan_results(plan_result, analyzed_result):
 
     print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
 
-    for module in plan_modules:
+    for moduledict in plan_modules:
+        module=moduledict['testModule']
         if module not in test_info:
             print(failure('Test {} did not run'.format(module)))
             continue
@@ -401,7 +404,8 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         'EXPECTED_SKIPS_NOT_HAPPEN': 0
     }
 
-    for module in plan_modules:
+    for moduledict in plan_modules:
+        module=moduledict['testModule']
         if module not in test_info:
             continue
         module_info = test_info[module]

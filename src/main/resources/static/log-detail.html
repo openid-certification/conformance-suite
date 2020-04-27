@@ -440,22 +440,37 @@
 	                            url: '/api/plan/' + encodeURIComponent(data.planId),
 	                            type: 'GET',
 	                            success: function(planData) {
+                                    var variant = _.clone(data.variant);
+                                    if (_.isEmpty(variant)) {
+                                        variant = undefined;
+                                    } else {
+                                        function removeUserConfiguredVariant(value, key, map) {
+                                            delete variant[key];
+                                        }
+                                        _.each(planData.variant, removeUserConfiguredVariant);
+                                    }
+                                    var thisModuleIndex = _.findIndex(planData.modules, function (module) {
+                                        return module.testModule == data.testName && _.isEqual(module.variant, variant);
+                                    });
 
-	                                var modules = _.map(planData.modules, 'testModule');
-	                                var thisModuleIndex = _.findIndex(planData.modules, {testModule: data.testName});
-
-	                                if (thisModuleIndex >= 0 && thisModuleIndex < (modules.length - 1)) {
+	                                if (thisModuleIndex >= 0 && thisModuleIndex < (planData.modules.length - 1)) {
 	                                    // there's a "next" module we can run in this test plan
 
-	                                    var nextModule = modules[thisModuleIndex + 1];
+	                                    var nextModule = planData.modules[thisModuleIndex + 1];
 
 	                                    $('#nextPlanBtn').click(function(evt) {
 	                                        evt.preventDefault();
 
-	                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule + '...');
+	                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
 
-	                                        $.ajax({
-	                                            url: '/api/runner/?test=' + encodeURIComponent(nextModule) + '&plan=' + encodeURIComponent(data.planId),
+                                            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
+                                            var testVariant = nextModule.variant;
+                                            if (testVariant !== null && testVariant !== undefined) {
+                                                runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
+                                            }
+
+                                            $.ajax({
+	                                            url: runTestUrl,
 	                                            type: 'POST',
 	                                            contentType: 'application/json',
 	                                            success: function(data, status) {
