@@ -265,8 +265,9 @@ public class VariantService {
 		 */
 		Map<String,String> variantAsStrings() {
 			Map<String,String> stringMap = new HashMap<>();
-			if (variant == null)
+			if (variant == null) {
 				return null;
+			}
 			variant.forEach((key, value) -> {
 				ParameterHolder<?> p = parameter(key);
 				stringMap.put(p.variantParameter.name(), value.toString());
@@ -321,11 +322,14 @@ public class VariantService {
 
 			List<TestPlan.ModuleListEntry> list = null;
 			try {
+				// Test plans can implement a static method to list modules with variants to run them with; as
+				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
+				// we have to call this via reflection:
 				Method m = planClass.getDeclaredMethod("testModulesWithVariants");
 				Object untypedList = m.invoke(null);
 				list = (List<TestPlan.ModuleListEntry>) untypedList;
 			} catch (NoSuchMethodException e) {
-				//e.printStackTrace();
+				// class doesn't implement this; below we'll read the modules from the annotation instead
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				throw new RuntimeException("Reflection issue calling testModulesWithVariants() for "+planClass.getSimpleName(), e);
 			}

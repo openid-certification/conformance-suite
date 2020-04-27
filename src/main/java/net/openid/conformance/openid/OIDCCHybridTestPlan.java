@@ -23,17 +23,17 @@ public class OIDCCHybridTestPlan implements TestPlan {
 		// the table is somewhat misleading, as the python suite actually requires users to run the tests 3 times
 		// (apart from the OP-Response-* tests which explicitly call out the different response types), meaning the
 		// table is repeated below for each response type
-		final List<Variant> variant_code_idtoken_basic = List.of(
+		final List<Variant> variantCodeIdTokenBasic = List.of(
 			new Variant(ResponseType.class, "code id_token"),
 			new Variant(ClientAuthType.class, "client_secret_basic"),
 			new Variant(ResponseMode.class, "default")
 		);
-		final List<Variant> variant_code_token_basic = List.of(
+		final List<Variant> variantCodeTokenBasic = List.of(
 			new Variant(ResponseType.class, "code token"),
 			new Variant(ClientAuthType.class, "client_secret_basic"),
 			new Variant(ResponseMode.class, "default")
 		);
-		final List<Variant> variant_code_idtoken_token_basic = List.of(
+		final List<Variant> variantCodeIdTokenTokenBasic = List.of(
 			new Variant(ResponseType.class, "code id_token token"),
 			new Variant(ClientAuthType.class, "client_secret_basic"),
 			new Variant(ResponseMode.class, "default")
@@ -81,7 +81,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
 					// OP-ClientAuth-Basic-Static covered by OIDCServerTest
 				),
-				variant_code_idtoken_basic
+				variantCodeIdTokenBasic
 			),
 			new ModuleListEntry(
 				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
@@ -99,7 +99,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 					),
-				variant_code_idtoken_basic
+				variantCodeIdTokenBasic
 			),
 			// 2nd run of table; response_type=code token
 			new ModuleListEntry(
@@ -143,7 +143,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
 					// OP-ClientAuth-Basic-Static covered by OIDCServerTest
 				),
-				variant_code_token_basic
+				variantCodeTokenBasic
 			),
 			new ModuleListEntry(
 				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
@@ -161,7 +161,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 				),
-				variant_code_token_basic
+				variantCodeTokenBasic
 			),
 			// 3rd run of table: response_type=code id_token token
 			new ModuleListEntry(
@@ -205,7 +205,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
 					// OP-ClientAuth-Basic-Static covered by OIDCServerTest
 				),
-				variant_code_idtoken_token_basic
+				variantCodeIdTokenTokenBasic
 			),
 			new ModuleListEntry(
 				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
@@ -223,7 +223,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 				),
-				variant_code_idtoken_token_basic
+				variantCodeIdTokenTokenBasic
 			)
 		);
 	}

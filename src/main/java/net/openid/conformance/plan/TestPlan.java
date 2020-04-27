@@ -14,6 +14,11 @@ public interface TestPlan {
 		String optest = "Test an OpenID Provider / Authorization Server";
 	}
 
+	/**
+	 * A set of variants and values to use to run a particular test module.
+	 *
+	 * @see ModuleListEntry
+	 */
 	class Variant {
 		public final Class<? extends Enum<?>> variant;
 		public final String value;
@@ -26,7 +31,8 @@ public interface TestPlan {
 	/**
 	 * A holder for one or more test modules and the variants they should be run with
 	 *
-	 * 	A list of these is returned by testModulesWithVariants() {
+	 * A list of these is returned by testModulesWithVariants(), as an alternative to listing the test modules in the
+	 * PublishTestPlan Annotation.
 	 */
 	class ModuleListEntry {
 		public final List<Class<? extends TestModule>> testModules;

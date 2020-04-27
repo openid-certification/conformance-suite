@@ -22,8 +22,7 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as the table and the comments list the 3rd column in the table.
 
-		// OP-Response-id_token+token
-
+		// general list of tests - these are run for both response types
 		List<Class<? extends TestModule>> moduleList = List.of(
 			OIDCCServerTest.class, // OP-Response-id_token
 			OIDCCResponseTypeMissing.class, // OP-Response-Missing

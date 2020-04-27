@@ -21,8 +21,11 @@ public class OIDCCBasicTestPlan implements TestPlan {
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as the table and the comments list the 3rd column in the table.
 
-		final List<Variant> variant_code_basic = List.of(
+		final List<Variant> variantCodeBasic = List.of(
 			new Variant(ResponseType.class, "code"),
+			// the choice of client_secret_basic here is relatively arbitary, and client_secret_post could have been
+			// used instead - the certification profile requires that both basic and post are tested, but doesn't
+			// dictate which variant the other tests are run with
 			new Variant(ClientAuthType.class, "client_secret_basic"),
 			new Variant(ResponseMode.class, "default")
 		);
@@ -53,9 +56,6 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCPromptNoneLoggedIn.class, // OP-prompt-none-LoggedIn
 					OIDCCMaxAge1.class, // 3 x OP-Req-max_age=1
 					OIDCCMaxAge10000.class, // OP-Req-max_age=10000
-
-
-
 					OIDCCEnsureRequestWithUnknownParameterSucceeds.class, // OP-Req-NotUnderstood
 					OIDCCIdTokenHint.class, // OP-Req-id_token_hint
 					OIDCCLoginHint.class, // OP-Req-login_hint
@@ -71,8 +71,9 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
 					// OP-ClientAuth-Basic-Static covered by OIDCServerTest
 				),
-				variant_code_basic
+				variantCodeBasic
 			),
+			// now switch variants to check that client_secret_post works
 			new ModuleListEntry(
 				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
@@ -81,6 +82,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					new Variant(ResponseMode.class, "default")
 				)
 			),
+			// remaining variants run with original variants
 			// OP-ClientAuth-SecretPost-Static same as OP-ClientAuth-SecretPost-Dynamic
 			new ModuleListEntry(
 				List.of(
@@ -89,7 +91,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 					),
-				variant_code_basic
+				variantCodeBasic
 			)
 		);
 	}
