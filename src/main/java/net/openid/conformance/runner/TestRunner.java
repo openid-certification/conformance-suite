@@ -223,7 +223,10 @@ public class TestRunner implements DataUtils {
 			if (variantFromApi != null) {
 				variantsMap.putAll(variantFromApi.getVariant());
 			}
-			variantsMap.putAll(planService.getTestPlanVariant(planId).getVariant());
+			final VariantSelection testPlanVariant = planService.getTestPlanVariant(planId);
+			if (testPlanVariant != null) {
+				variantsMap.putAll(testPlanVariant.getVariant());
+			}
 			testVariant = new VariantSelection(variantsMap);
 			config = planService.getModuleConfig(planId, testName);
 			if (config == null) {
