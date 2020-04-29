@@ -9,8 +9,8 @@ import net.openid.conformance.variant.ResponseType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-hybrid-certifcation-test-plan",
-	displayName = "OpenID Connect Core: Hybrid Certification Profile Authorization server test ",
+	testPlanName = "oidcc-hybrid-certification-test-plan",
+	displayName = "OpenID Connect Core: Hybrid Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest
 )
 public class OIDCCHybridTestPlan implements TestPlan {

@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public abstract class ValidateJsonUri extends AbstractCondition {
 
 	private static final String requiredProtocol = "https";
-	private static final String errorMessageNotJsonPrimitive = "Specified value is not a Json primative";
+	private static final String errorMessageNotJsonPrimitive = "Specified value is not a Json primitive";
 	private static final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
 
 	private JsonElement ServerValue = null;

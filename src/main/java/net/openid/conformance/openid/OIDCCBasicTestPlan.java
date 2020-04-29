@@ -9,15 +9,15 @@ import net.openid.conformance.variant.ResponseType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-basic-certifcation-test-plan",
-	displayName = "OpenID Connect Core: Basic Certification Profile Authorization server test ",
+	testPlanName = "oidcc-basic-certification-test-plan",
+	displayName = "OpenID Connect Core: Basic Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest
 )
 public class OIDCCBasicTestPlan implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		// ClientRegistration.class is not specified so will be offered in the menu
-		// This plan attempts to match 'basic'' as defined here:
+		// This plan attempts to match 'basic' as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as the table and the comments list the 3rd column in the table.
 

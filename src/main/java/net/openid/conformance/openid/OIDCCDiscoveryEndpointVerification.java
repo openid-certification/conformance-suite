@@ -95,7 +95,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
 
-		// Includes profiderinfo-has-jwks_uri
+		// Includes providerinfo-has-jwks_uri
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.INFO);
