@@ -12,8 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "The client is expected to make an authorization request " +
 		"(also a token request and a optionally a userinfo request when applicable)," +
 		" then the RP terminates the session by calling the end_session_endpoint (RP-Initiated Logout)," +
-		" then Handle Post Logout URI Redirect" +
-		" then the OP(the test suite) will send a back channel logout request with an invalid events claim." +
+		" at this point the conformance suite will send a back channel logout request with an invalid events claim " +
+		" in the logout_token which should be rejected, " +
+		" then the RP is expected to handle post logout URI redirect." +
 		" Corresponds to rp-backchannel-rpinitlogout-lt-wrong-event in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {

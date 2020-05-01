@@ -22,7 +22,8 @@ public class OIDCCClientTestSessionManagement extends AbstractOIDCCClientLogoutT
 {
 
 	/**
-	 * This test expects at least one postMessage call to check_session_iframe both before and after logout
+	 * This test expects at least one postMessage call to check_session_iframe before logout
+	 * and one after logout
 	 * Number of allowed postMessage calls before logout is unlimited
 	 * @return
 	 */

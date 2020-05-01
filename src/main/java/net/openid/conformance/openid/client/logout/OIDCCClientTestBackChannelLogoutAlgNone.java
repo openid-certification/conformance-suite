@@ -13,9 +13,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "OIDCC: Relying party test, back channel logout request with an invalid iss.",
 	summary = "The client is expected to make an authorization request " +
 		"(also a token request and a optionally a userinfo request when applicable)," +
-		" then the RP terminates the session by calling the end_session_endpoint (RP-Initiated Logout)," +
-		" then Handle Post Logout URI Redirect" +
-		" then the OP(the test suite) will send a back channel logout request containing a logout_token signed using alg 'none' ." +
+		" then terminate the session by calling the end_session_endpoint (RP-Initiated Logout)," +
+		" at this point the conformance suite will send a back channel logout request containing " +
+		" a logout_token signed using alg 'none' which should be rejected, " +
+		" then the RP is expected to handle post logout URI redirect." +
 		" Corresponds to rp-backchannel-rpinitlogout-lt-alg-none in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {

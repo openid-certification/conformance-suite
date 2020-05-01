@@ -16,17 +16,17 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The difference between this one and OIDCCClientTestFrontChannelLogoutRPInitiated is:
- * - This one does not wait for the RP to call the end_session_endpoint
- * - OIDCCClientTestFrontChannelLogoutRPInitiated renders the front channel logout page when end_session_endpoint is requested
+ * - This test does not wait for the RP to call the end_session_endpoint
+ * - Prompts the tester to click the proceed button to view the front channel logout page
  */
 @PublishTestModule(
 	testName = "oidcc-client-test-rp-frontchannel-opinitlogout",
 	displayName = "OIDCC: Relying party test, OP initiated front channel logout.",
 	summary = "The client is expected to make an authorization request " +
 		"(also a token request and a optionally a userinfo request when applicable)," +
-		" then the OP terminates the session by calling the frontchannel_logout_uri (OP-Initiated Logout)," +
-		" then Handle Post Logout URI Redirect." +
-		" Corresponds to rp-frontchannel-rpinitlogout in the old test suite.",
+		" then the tester will be prompted to visit the OP initiated logout page" +
+		" then the RP is expected to handle post logout URI redirect." +
+		" This is a new test with no equivalent in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {
 	}

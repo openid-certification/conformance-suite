@@ -6,16 +6,25 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithSessionManagement;
 import net.openid.conformance.condition.as.logout.AddSessionStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.logout.AddSidToIdTokenClaims;
+import net.openid.conformance.condition.as.logout.CallRPBackChannelLogoutEndpoint;
 import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUriParams;
 import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUri;
+import net.openid.conformance.condition.as.logout.CreateRPFrontChannelLogoutRequestUrl;
+import net.openid.conformance.condition.as.logout.EncryptLogoutToken;
+import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders;
+import net.openid.conformance.condition.as.logout.EnsureClientHasBackChannelLogoutUri;
+import net.openid.conformance.condition.as.logout.EnsureClientHasFrontChannelLogoutUri;
+import net.openid.conformance.condition.as.logout.GenerateLogoutTokenClaims;
 import net.openid.conformance.condition.as.logout.GenerateSessionState;
 import net.openid.conformance.condition.as.logout.LogCheckSessionIframeRequest;
 import net.openid.conformance.condition.as.logout.LogGetSessionStateRequest;
+import net.openid.conformance.condition.as.logout.OIDCCSignLogoutToken;
 import net.openid.conformance.condition.as.logout.RemoveSessionStateAndLogout;
 import net.openid.conformance.condition.as.logout.ValidateIdTokenHintInRPInitiatedLogoutRequest;
 import net.openid.conformance.condition.as.logout.ValidatePostLogoutRedirectUri;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.TestFailureException;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +39,8 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	protected boolean receivedCheckSessionRequestBeforeLogout = false;
 	protected boolean receivedEndSessionRequest = false;
 	protected boolean receivedCheckSessionRequestAfterLogout = false;
+	protected boolean sentBackChannelLogoutRequest = false;
+	protected boolean receivedFrontChannelLogoutCompletedCallback;
 
 	@Override
 	protected void configureServerConfiguration() {
@@ -60,6 +71,10 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 			return handleEndSessionEndpointRequest(requestId);
 		} else if ("get_session_state".equals(path)) {
 			return handleGetSessionStateViaAjaxRequest(requestId);
+		} else if("frontchannel_logout_handler".equals(path)) {
+			return createFrontChannelLogoutModelAndView(true);
+		} else if ("frontchannel_logout_callback".equals(path)) {
+			return handleFrontChannelLogoutCallbackHandler(requestId, path, servletResponse);
 		} else {
 			return super.handleClientRequestForPath(requestId, path, servletResponse);
 		}
@@ -77,17 +92,15 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	}
 
 	/**
-	 * Sets a cookie named op_browser_state which must be reset at logout
+	 * The check session iframe does not calculate session_state itself, it just sends an ajax request
+	 * to check_session_ajax_url which is used to track test progress state
+	 *
 	 * @param requestId
 	 * @param servletResponse
 	 * @return
 	 */
 	protected Object handleCheckSessionIFrameRequest(String requestId, HttpServletResponse servletResponse){
 		call(exec().startBlock("check_session_iframe requested"));
-		//TODO we set a cookie here but don't actually use it
-		Cookie cookie = new Cookie("op_browser_state", env.getString("op_browser_state"));
-		cookie.setHttpOnly(false);
-		servletResponse.addCookie(cookie);
 
 		callAndStopOnFailure(LogCheckSessionIframeRequest.class);
 
@@ -98,20 +111,24 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 			));
 	}
 
-	/**
-	 * Based on my analysis of logout tests in the python suite
-	 * there are three options, based on tests and client configurations:
-	 * - End the session and redirect to post_logout_redirect_uri
-	 * - End the session, also send a back channel logout request and then redirect to post_logout_redirect_uri
-	 *   (AbstractOIDCCClientBackChannelLogoutTest does this)
-	 * - Return a redirect to a page that renders the front channel logout
-	 * @param requestId
-	 * @return
-	 */
 	protected Object handleEndSessionEndpointRequest(String requestId){
 		receivedEndSessionRequest = true;
 		call(exec().startBlock("End session endpoint").mapKey("end_session_endpoint_http_request", requestId));
 
+		setEndSessionEndpointRequestParamsSource();
+
+		validateEndSessionEndpointParameters();
+
+		createPostLogoutUriRedirect();
+
+		Object viewToReturn = createEndSessionEndpointResponse();
+
+		removeSessionState();
+
+		return viewToReturn;
+	}
+
+	protected void setEndSessionEndpointRequestParamsSource() {
 		String httpMethod = env.getString("end_session_endpoint_http_request", "method");
 		JsonObject httpRequestObj = env.getObject("end_session_endpoint_http_request");
 
@@ -124,16 +141,6 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 			//this should not happen?
 			throw new TestFailureException(getId(), "Got unexpected HTTP method to end session endpoint");
 		}
-
-		validateEndSessionEndpointParameters();
-
-		createPostLogoutUriRedirect();
-
-		Object viewToReturn = createEndSessionEndpointResponse();
-
-		removeSessionState();
-
-		return viewToReturn;
 	}
 
 	protected void removeSessionState() {
@@ -201,4 +208,96 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 			return new ResponseEntity<Object>(new JsonObject(), headers, HttpStatus.OK);
 		}
 	}
+
+	protected void createLogoutToken() {
+		call(exec().startBlock("Create Logout Token"));
+		generateLogoutTokenClaims();
+		customizeLogoutTokenClaims();
+
+		signLogoutToken();
+
+		customizeLogoutTokenSignature();
+
+		encryptLogoutTokenIfNecessary();
+		call(exec().endBlock());
+	}
+
+	protected void generateLogoutTokenClaims() {
+		callAndContinueOnFailure(GenerateLogoutTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");
+	}
+
+	protected void sendBackChannelLogoutRequest() {
+		call(exec().startBlock("Send Back Channel Logout Request"));
+		callAndContinueOnFailure(EnsureClientHasBackChannelLogoutUri.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.2");
+		callAndContinueOnFailure(CallRPBackChannelLogoutEndpoint.class, Condition.ConditionResult.FAILURE,"OIDCBCL-2.5");
+		validateBackChannelLogoutResponse();
+		call(exec().endBlock());
+		sentBackChannelLogoutRequest=true;
+	}
+
+	protected void validateBackChannelLogoutResponse() {
+		callAndContinueOnFailure(EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders.class,
+			Condition.ConditionResult.WARNING, "OIDCBCL-2.8");
+	}
+
+
+	/**
+	 * Override to modify logout token claims
+	 * Called right after generateLogoutTokenClaims
+	 */
+	protected void customizeLogoutTokenClaims(){
+
+	}
+
+	protected void customizeLogoutTokenSignature(){
+
+	}
+
+
+	protected void signLogoutToken() {
+		callAndContinueOnFailure(OIDCCSignLogoutToken.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");
+	}
+
+	protected void encryptLogoutTokenIfNecessary() {
+		skipIfElementMissing("client", "id_token_encrypted_response_alg", Condition.ConditionResult.INFO,
+			EncryptLogoutToken.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4", "OIDCC-10.2");
+	}
+
+	//TODO since it's a cross domain request we can't know if the page actually loaded or not.
+	// iframe onload event gets triggered even when loading the url actually fails,
+	// due to for example an x-frame-options restriction.
+	// That's why fireTestReviewNeeded is called
+	protected Object handleFrontChannelLogoutCallbackHandler(String requestId, String path, HttpServletResponse servletResponse) {
+		call(exec().startBlock("Front Channel Logout Ajax Callback Handler Request"));
+		call(exec().endBlock());
+		receivedFrontChannelLogoutCompletedCallback = true;
+		fireTestReviewNeeded();
+		JsonObject response = new JsonObject();
+		response.addProperty("ok", true);
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+
+	protected Object createFrontChannelLogoutModelAndView(boolean isOPinit) {
+		call(exec().startBlock("Render Page With Front Channel Logout Iframe"));
+		call(exec().endBlock());
+		//'OPINIT' value is used in the template(templates/oidccFrontChannelLogout.html) to check if it's OP init or not
+		String postLogoutRedir = "OPINIT";
+		if(!isOPinit) {
+			postLogoutRedir = env.getString("post_logout_redirect_uri_redirect");
+		}
+		return new ModelAndView("oidccFrontChannelLogout",
+			ImmutableMap.of(
+				"rp_frontchannel_logout_uri", StringEscapeUtils.escapeEcmaScript(env.getString("rp_frontchannel_logout_uri_request_url")),
+				"iframe_loaded_callback_url", env.getString("base_url") + "/frontchannel_logout_callback",
+				"post_logout_redirect_uri_redirect", postLogoutRedir
+			));
+	}
+
+	protected void createFrontChannelLogoutRequestUrl() {
+		call(exec().startBlock("Create Front Channel Logout Request"));
+		callAndContinueOnFailure(EnsureClientHasFrontChannelLogoutUri.class, Condition.ConditionResult.FAILURE, "OIDCFCL-2");
+		callAndStopOnFailure(CreateRPFrontChannelLogoutRequestUrl.class, "OIDCFCL-2");
+		call(exec().endBlock());
+	}
+
 }

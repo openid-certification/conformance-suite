@@ -6,9 +6,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-client-test-rp-frontchannel-rpinitlogout",
 	displayName = "OIDCC: Relying party test, RP initiated front channel logout.",
 	summary = "The client is expected to make an authorization request " +
-		"(also a token request and a optionally a userinfo request when applicable)," +
-		" then the RP terminates the session by calling the end_session_endpoint (RP-Initiated Logout)," +
-		" then Handle Post Logout URI Redirect." +
+		"(also a token request and a optionally a userinfo request when applicable)." +
+		" Then the RP should terminate the session by calling the end_session_endpoint (RP-Initiated Logout)," +
+		" at this point the conformance suite will render the front channel logout page and " +
+		" then the RP is expected to handle post logout URI redirect." +
 		" Corresponds to rp-frontchannel-rpinitlogout in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {

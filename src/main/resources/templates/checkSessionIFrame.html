@@ -12,22 +12,35 @@
             margin-top:0.2em;
             margin-bottom:0.4em;
         }
-
+        body{
+            font-family:sans-serif;
+        }
     </style>
 </head>
 <body>
-    <h1>OP check_session_iframe</h1>
+    <h1>Conformance Suite - OP check_session_iframe</h1>
     <div>
         Initial session_state: [[${session_state}]]
     </div>
 
 
-    <h3>Logs</h3>
+    <h3>Script Logs</h3>
     <div id="logsdiv">
 
     </div>
 
 <script>
+    /*
+    PLEASE NOTE:
+    This script is only intended for conformance testing purposes,
+    and should not be used as a reference for real-life OP session management implementations.
+
+    For the purposes for conformance testing, this script passes the received message to the
+    suite via an ajax call and posts a changed/unchanged message based on the response it receives
+    from the conformance suite.
+
+    This is not how it should be implemented normally.
+    */
     var checkSessionUrl = '[[${check_session_ajax_url}]]';
     var logCounter = 0;
     window.addEventListener("message", receiveMessage, false);
@@ -39,6 +52,7 @@
         var splitStateAndSalt = splitData[1].split('.');
         var sessionStateInMessage = splitStateAndSalt[0];
         var saltInMessage = splitStateAndSalt[1];
+        //calls the test suite endpoint that is used to keep track of client side postMessage calls
         $.ajax(checkSessionUrl, {
             data:{'receivedMessage':event.data, 'origin':event.origin},
             dataType:'json',
@@ -48,15 +62,7 @@
                 var saltOnServer = responseData.salt;
                 var originOnServer = responseData.origin;
                 var sessionStateOnServer = responseData.session_state;
-                /*
-                var stringToHash = clientIdInMessage + ' ' + event.origin + ' ' + opBrowserState + ' ' + saltInMessage;
-                const encoder = new TextEncoder();
-                const bytesToHash = encoder.encode(stringToHash);
-                const hash = await crypto.subtle.digest('SHA-256', bytesToHash);
-                var calculated = btoa(hash);
-                */
 
-                //TODO check origin
                 if((sessionStateInMessage+'.'+saltInMessage) == sessionStateOnServer){
                     addLog('Posting message: unchanged');
                     event.source.postMessage('unchanged', event.origin);
@@ -73,7 +79,7 @@
         });
     }
 
-
+    //shows logs on the page
     function addLog(msg){
         logCounter++;
         var logdiv = document.createElement("div");
