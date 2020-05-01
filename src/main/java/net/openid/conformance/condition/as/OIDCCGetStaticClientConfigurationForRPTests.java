@@ -11,7 +11,9 @@ import net.openid.conformance.testmodule.Environment;
 public class OIDCCGetStaticClientConfigurationForRPTests extends AbstractCondition {
 
 	/**
-	 * Converts a single redirect_uri string value to a redirect_uris array
+	 * Converts single value form fields to arrays
+	 * - redirect_uri to redirect_uris
+	 * - post_logout_redirect_uri to post_logout_redirect_uris
 	 * @param env
 	 * @return
 	 */
@@ -32,6 +34,14 @@ public class OIDCCGetStaticClientConfigurationForRPTests extends AbstractConditi
 				redirectUrisArray.add(redirectUri);
 				clientObject.remove("redirect_uri");
 				clientObject.add("redirect_uris", redirectUrisArray);
+			}
+			//post_logout_redirect_uri to post_logout_redirect_uris
+			if(clientObject.has("post_logout_redirect_uri")) {
+				String redirectUri = clientObject.get("post_logout_redirect_uri").getAsString();
+				JsonArray redirectUrisArray = new JsonArray();
+				redirectUrisArray.add(redirectUri);
+				clientObject.remove("post_logout_redirect_uri");
+				clientObject.add("post_logout_redirect_uris", redirectUrisArray);
 			}
 			env.putObject("client", clientObject);
 

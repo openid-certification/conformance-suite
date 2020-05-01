@@ -3,6 +3,8 @@ package net.openid.conformance.openid.client.logout;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.as.logout.EnsureClientHasAtLeastOneOfBackOrFrontChannelLogoutUri;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientRegistration;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "oidcc-client-test-rp-init-logout",
@@ -21,6 +23,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"client.backchannel_logout_uri",
+	"client.frontchannel_logout_uri"
+})
+
 /**
  * OIDCCClientTestRPInitLogoutInvalidState and OIDCCClientTestRPInitLogoutNoState extend this class
  * don't forget to update them if you modify this class

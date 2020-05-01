@@ -24,6 +24,8 @@ import net.openid.conformance.condition.as.logout.ValidateIdTokenHintInRPInitiat
 import net.openid.conformance.condition.as.logout.ValidatePostLogoutRedirectUri;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ClientRegistration;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,10 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+
+@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"client.post_logout_redirect_uri"
+})
 
 public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 

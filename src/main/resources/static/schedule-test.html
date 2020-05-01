@@ -352,7 +352,40 @@
 										</div>
 									</div>
 								</div>
-							</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">post_logout_redirect_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI the conformance suite should redirect back to after the end_session_endpoint call."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.post_logout_redirect_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">frontchannel_logout_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Front channel logout URI."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.frontchannel_logout_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">backchannel_logout_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Back channel logout URI."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.backchannel_logout_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
 							<div class="config-form-container">
 								<h3 class="config-form-container-header">TLS certificates for client (used to make MTLS connections)</h3>
