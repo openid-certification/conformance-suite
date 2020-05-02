@@ -52,6 +52,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	protected void configureServerConfiguration() {
 		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithSessionManagement.class,
 			"OIDCBCL-2.1", "OIDCSM-2.1", "OIDCFCL-3");
+		expose("end_session_endpoint", env.getString("base_url") + "/end_session_endpoint");
 	}
 
 	@Override

@@ -18,8 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class OIDCCClientTestSessionManagement extends AbstractOIDCCClientLogoutTest
-{
+public class OIDCCClientTestSessionManagement extends AbstractOIDCCClientLogoutTest {
 
 	/**
 	 * This test expects at least one postMessage call to check_session_iframe before logout
@@ -36,5 +35,9 @@ public class OIDCCClientTestSessionManagement extends AbstractOIDCCClientLogoutT
 		return false;
 	}
 
-
+	@Override
+	protected void configureServerConfiguration() {
+		super.configureServerConfiguration();
+		expose("check_session_iframe", env.getString("base_url") + "/check_session_iframe");
+	}
 }
