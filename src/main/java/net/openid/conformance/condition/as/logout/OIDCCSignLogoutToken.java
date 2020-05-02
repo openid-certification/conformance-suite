@@ -34,7 +34,7 @@ public class OIDCCSignLogoutToken extends AbstractSignJWT {
 		}
 
 		if("none".equals(signingAlg)) {
-			throw error("Algorithm none cannot be used for logout tokens");
+			throw error("Algorithm 'none' cannot be used for logout tokens");
 		}
 		return signingAlg;
 	}

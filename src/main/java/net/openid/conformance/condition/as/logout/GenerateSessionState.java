@@ -28,9 +28,6 @@ import java.util.Locale;
  * 		hash of Client ID, origin URL, and OP browser state. For the origin URL, the server can
  * 		use the origin URL of the Authentication Response, following the algorithm specified in
  * 		Section 4 of RFC 6454 [RFC6454].
- *
- * This class generates it as follows:
- * base64url_encode(sha256_hash(client_id + ' ' + origin + ' ' + random_state_value + ' ' + random_salt))
  */
 public class GenerateSessionState extends AbstractCondition {
 

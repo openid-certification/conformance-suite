@@ -25,7 +25,7 @@ public class OIDCCSignLogoutTokenWithAlgNone extends AbstractSignJWT {
 	@Override
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 		env.putString("logout_token", jws);
-		logSuccess("Signed the ID token using alg 'none'",
+		logSuccess("Signed the ID token using algorithm 'none'",
 			args("logout_token", (verifiableObj!=null?verifiableObj:jws), "algorithm", "none"));
 	}
 
