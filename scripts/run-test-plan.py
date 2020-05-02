@@ -928,7 +928,7 @@ if __name__ == '__main__':
             continue
 
         #we don't have automated tests for OIDCC RP logout tests
-        if re.match(r'(oidcc-client-test-.*logout.*)',m):
+        if re.match(r'(oidcc-client-test-.*logout.*)',m) or m == 'oidcc-client-test-session-management':
             untested_test_modules.remove(m)
             continue
 
