@@ -927,6 +927,11 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        #we don't have automated tests for OIDCC RP logout tests
+        if re.match(r'(oidcc-client-test-.*logout.*)',m):
+            untested_test_modules.remove(m)
+            continue
+
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
             if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m)  or re.match(r'(oidcc-client-.*)', m) ):
