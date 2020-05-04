@@ -233,7 +233,7 @@ public class VariantService {
 			if (variant != null) {
 				this.variant.forEach((variantName, variantValue) -> {
 					if (!this.module.declaredParametersByClass.containsKey(variantName)) {
-						throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests a value for variant '" + variantName.getSimpleName() + "' which the test module does not support");
+						throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' does not have the variant '" + variantName.getSimpleName() + "' but the test plan set a value for this variant");
 					}
 				});
 
