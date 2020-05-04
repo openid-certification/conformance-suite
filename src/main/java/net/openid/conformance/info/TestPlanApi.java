@@ -203,7 +203,10 @@ public class TestPlanApi implements DataUtils {
 					"profile", holder.info.profile(),
 					"modules", holder.getTestModules(),
 					"configurationFields", holder.configurationFields(),
-					"summary", holder.info.summary());
+					"hidesConfigurationFields", holder.hidesConfigurationFields(),
+					"summary", holder.info.summary(),
+					"variants", holder.getVariantSummary()
+			);
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
@@ -224,6 +227,7 @@ public class TestPlanApi implements DataUtils {
 				"profile", e.info.profile(),
 				"modules", e.getTestModules(),
 				"configurationFields", e.configurationFields(),
+				"hidesConfigurationFields", e.hidesConfigurationFields(),
 				"summary", e.info.summary(),
 				"variants", e.getVariantSummary()
 			))

@@ -222,6 +222,8 @@ public class VariantService {
 		final private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
 		/** configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantConfigurationFields;
+		/** "hide" configuration fields for any test modules with fixed variants */
+		final List<String> fixedVariantHidesConfigurationFields;
 
 		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module, Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant) {
 			this.planClass = planClass;
@@ -229,6 +231,7 @@ public class VariantService {
 			this.variant = variant;
 
 			List<String> configurationFields = new ArrayList<>();
+			List<String> hidesConfigurationFields = new ArrayList<>();
 			// check the test module supports all the variants specified for it in the test plan
 			if (variant != null) {
 				this.variant.forEach((variantName, variantValue) -> {
@@ -247,8 +250,8 @@ public class VariantService {
 
 						}
 						final List<String> hiddenFields = param.hidesConfigurationFields.get(value);
-						if (hiddenFields != null && hiddenFields.size() > 0) {
-							throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests variant '" + variantClass.getSimpleName() + "' for a value ('" + value + "') that contains a 'hidesConfigurationField', which is not currently supported");
+						if (hiddenFields != null) {
+							hidesConfigurationFields.addAll(hiddenFields);
 						}
 						final List<String> fields = param.configurationFields.get(value);
 						if (fields != null) {
@@ -258,6 +261,7 @@ public class VariantService {
 				});
 			}
 			this.fixedVariantConfigurationFields = configurationFields;
+			this.fixedVariantHidesConfigurationFields = hidesConfigurationFields;
 		}
 
 		/**
@@ -374,6 +378,13 @@ public class VariantService {
 				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantConfigurationFields.stream())
 				.collect(toSet());
 			fields.addAll(Arrays.asList(info.configurationFields()));
+			return new ArrayList<>(fields);
+		}
+
+		public List<String> hidesConfigurationFields() {
+			Set<String> fields = modulesWithVariant.stream()
+				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantHidesConfigurationFields.stream())
+				.collect(toSet());
 			return new ArrayList<>(fields);
 		}
 
