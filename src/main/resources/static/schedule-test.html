@@ -907,6 +907,7 @@
 			} else {
 				var selectedPlan = FAPI_UI.availablePlans[planName];
 				var fieldsToShow = selectedPlan.configurationFields;
+				fieldsNotToShow = selectedPlan.hidesConfigurationFields;
 
 				// add in any fields from the associated modules
 				_.each(selectedPlan.modules, function(module) {

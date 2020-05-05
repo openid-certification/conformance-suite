@@ -187,7 +187,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/info/{planName}")
-	@ApiOperation(value = "Get test plan information by plan name")
+	@ApiOperation(value = "Get information for one test plan by name")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Retrieved successfully"),
 		@ApiResponse(code = 404, message = "Couldn't find test plan for provided plan name")
@@ -203,7 +203,10 @@ public class TestPlanApi implements DataUtils {
 					"profile", holder.info.profile(),
 					"modules", holder.getTestModules(),
 					"configurationFields", holder.configurationFields(),
-					"summary", holder.info.summary());
+					"hidesConfigurationFields", holder.hidesConfigurationFields(),
+					"summary", holder.info.summary(),
+					"variants", holder.getVariantSummary()
+			);
 
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} else {
@@ -212,7 +215,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/available")
-	@ApiOperation(value = "Get a list of available test plan")
+	@ApiOperation(value = "Get a list of available test plans and their attributes")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
@@ -224,6 +227,7 @@ public class TestPlanApi implements DataUtils {
 				"profile", e.info.profile(),
 				"modules", e.getTestModules(),
 				"configurationFields", e.configurationFields(),
+				"hidesConfigurationFields", e.hidesConfigurationFields(),
 				"summary", e.info.summary(),
 				"variants", e.getVariantSummary()
 			))

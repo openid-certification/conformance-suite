@@ -15,9 +15,6 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
 	testName = "oidcc-server-rotate-keys",
@@ -28,11 +25,6 @@ import net.openid.conformance.variant.VariantParameters;
 		"server.discoveryUrl"
 	}
 )
-@VariantParameters({
-	ClientRegistration.class
-})
-// this test doesn't actually register clients, but key rotation is only required for the "Dynamic" certification profile
-@VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 public class OIDCCServerRotateKeys extends AbstractTestModule {
 
 	@Override

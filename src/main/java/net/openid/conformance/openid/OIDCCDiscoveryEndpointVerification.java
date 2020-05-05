@@ -1,8 +1,9 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
@@ -13,6 +14,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParame
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
@@ -20,7 +22,9 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSign
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -66,6 +70,8 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
+		callAndContinueOnFailure(OIDCCCheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
 		// Includes verify-id_token_signing-algorithm-is-supported assertion (OIDC test)
 		callAndContinueOnFailure(OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
@@ -83,7 +89,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		call(condition(CheckDiscEndpointUserinfoEndpoint.class)
 			.skipIfElementMissing("server", "userinfo_endpoint")
 			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.INFO)
+			.onSkip(Condition.ConditionResult.WARNING) // userinfo endpoint is recommended in the spec
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
 
@@ -95,8 +101,11 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
 
-		// Includes profiderinfo-has-jwks_uri
+		// Includes providerinfo-has-jwks_uri
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		callAndStopOnFailure(FetchServerKeys.class);
+		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.INFO);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.INFO);
@@ -124,6 +133,12 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 				.onSkip(Condition.ConditionResult.WARNING)
 				.requirement("OIDCD-3")
 				.dontStopOnFailure());
+
+		// Equivalent of VerifyOPEndpointsUseHTTPS
+		// https://github.com/rohe/oidctest/blob/a306ff8ccd02da456192b595cf48ab5dcfd3d15a/src/oidctest/op/check.py#L1714
+		// I'm not convinced the standards actually says every endpoint (including ones not defined by OIDC) must be https,
+		// but equally it seems reasonable.
+		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
 	}
 
 }
