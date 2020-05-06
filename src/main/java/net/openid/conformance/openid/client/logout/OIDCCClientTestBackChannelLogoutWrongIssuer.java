@@ -14,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		" at this point the conformance suite will send a back channel logout request with an invalid iss claim " +
 		" in the logout_token which should be rejected, " +
 		" then the RP is expected to handle post logout URI redirect." +
-		" Corresponds to rp-backchannel-rpinitlogout in the old test suite.",
+		" Corresponds to rp-backchannel-rpinitlogout-lt-wrong-issuer in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {
 	}

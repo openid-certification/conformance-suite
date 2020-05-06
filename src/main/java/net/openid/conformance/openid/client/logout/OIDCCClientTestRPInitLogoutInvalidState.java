@@ -16,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		" or will send a front channel logout request to the RP if only frontchannel_logout_uri is set" +
 		" or will send both front and back channel logout requests" +
 		" if both backchannel_logout_uri and frontchannel_logout_uri are set," +
-		" then the RP is expected to handle post logout URI redirect which will be called with a different state parameter." +
+		" then the RP is expected to handle post logout URI redirect despite it being called with a different state parameter." +
 		" Corresponds to rp-init-logout-other-state in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {

@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "oidcc-client-test-rp-backchannel-rpinitlogout-wrong-alg",
-	displayName = "OIDCC: Relying party test, back channel logout request with an invalid iss.",
+	displayName = "OIDCC: Relying party test, back channel logout request signed using an invalid algorithm.",
 	summary = "The client is expected to make an authorization request " +
 		"(also a token request and a optionally a userinfo request when applicable)," +
 		" then the RP terminates the session by calling the end_session_endpoint (RP-Initiated Logout)," +

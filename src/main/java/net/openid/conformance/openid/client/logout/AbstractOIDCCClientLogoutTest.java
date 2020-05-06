@@ -19,7 +19,7 @@ import net.openid.conformance.condition.as.logout.GenerateSessionState;
 import net.openid.conformance.condition.as.logout.LogCheckSessionIframeRequest;
 import net.openid.conformance.condition.as.logout.LogGetSessionStateRequest;
 import net.openid.conformance.condition.as.logout.OIDCCSignLogoutToken;
-import net.openid.conformance.condition.as.logout.RemoveSessionStateAndLogout;
+import net.openid.conformance.condition.as.logout.LogoutByRemovingSessionState;
 import net.openid.conformance.condition.as.logout.ValidateIdTokenHintInRPInitiatedLogoutRequest;
 import net.openid.conformance.condition.as.logout.ValidatePostLogoutRedirectUri;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
@@ -33,7 +33,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
@@ -151,7 +150,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	}
 
 	protected void removeSessionState() {
-		callAndStopOnFailure(RemoveSessionStateAndLogout.class);
+		callAndStopOnFailure(LogoutByRemovingSessionState.class);
 	}
 
 	protected void createPostLogoutUriRedirect() {
