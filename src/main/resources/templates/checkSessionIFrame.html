@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Check session iframe</title>
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <style>
+        #logsdiv div{
+            border-bottom:1px solid #ddd;
+            margin-top:0.2em;
+            margin-bottom:0.4em;
+        }
+        body{
+            font-family:sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Conformance Suite - OP check_session_iframe</h1>
+    <div>
+        Initial session_state: [[${session_state}]]
+    </div>
+
+
+    <h3>Script Logs</h3>
+    <div id="logsdiv">
+
+    </div>
+
+<script>
+    /*
+    PLEASE NOTE:
+    This script is only intended for conformance testing purposes,
+    and should not be used as a reference for real-life OP session management implementations.
+
+    For the purposes for conformance testing, this script passes the received message to the
+    suite via an ajax call and posts a changed/unchanged message based on the response it receives
+    from the conformance suite.
+
+    This is not how it should be implemented normally.
+    */
+    var checkSessionUrl = '[[${check_session_ajax_url}]]';
+    var logCounter = 0;
+    window.addEventListener("message", receiveMessage, false);
+    function receiveMessage(event){
+        console.log("check_session_iframe received message via postMessage");
+        console.log(event);
+        var splitData = event.data.split(' ');
+        var clientIdInMessage = splitData[0];
+        var splitStateAndSalt = splitData[1].split('.');
+        var sessionStateInMessage = splitStateAndSalt[0];
+        var saltInMessage = splitStateAndSalt[1];
+        //calls the test suite endpoint that is used to keep track of client side postMessage calls
+        $.ajax(checkSessionUrl, {
+            data:{'receivedMessage':event.data, 'origin':event.origin},
+            dataType:'json',
+            success: function(responseData){
+                addLog('Ajax call succeeded. Response:' + JSON.stringify(responseData));
+                var opBrowserState = responseData.op_browser_state;
+                var saltOnServer = responseData.salt;
+                var originOnServer = responseData.origin;
+                var sessionStateOnServer = responseData.session_state;
+
+                if((sessionStateInMessage+'.'+saltInMessage) == sessionStateOnServer){
+                    addLog('Posting message: unchanged');
+                    event.source.postMessage('unchanged', event.origin);
+                }
+                else{
+                    addLog('Posting message: changed. Expected session state:"' + sessionStateOnServer + '" Actual:"' + sessionStateInMessage + '"');
+                    event.source.postMessage('changed', event.origin);
+                }
+            },
+            error: function(jqxhr, status, errorDetails){
+                addLog('Error from ajax call to ' + checkSessionUrl + ' Error:' + status + ' ' +  errorDetails);
+                event.source.postMessage('error', event.origin);
+            }
+        });
+    }
+
+    //shows logs on the page
+    function addLog(msg){
+        logCounter++;
+        var logdiv = document.createElement("div");
+        logdiv.innerText = logCounter + ': ' +  msg;
+        document.getElementById('logsdiv').appendChild(logdiv);
+
+    }
+</script>
+
+</body>
+</html>

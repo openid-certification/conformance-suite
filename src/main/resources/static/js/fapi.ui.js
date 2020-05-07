@@ -444,7 +444,10 @@ var FAPI_UI = {
 			"HEART-OAuth2-" : "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html#rfc.section.",
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
-			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section."
+			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
+			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
+			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html",
+			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html"
 		},
 
 		testJSON : {},

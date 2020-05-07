@@ -28,13 +28,20 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.header.HeaderWriter;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -223,7 +230,14 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 					.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
 				.and()
 					.logout()
-					.logoutSuccessUrl("/login.html");
+					.logoutSuccessUrl("/login.html")
+				.and()
+					//added to disable x-frame-options only for certain paths
+					.headers().frameOptions().disable()
+				.and()
+					.headers().addHeaderWriter(getXFrameOptionsHeaderWriter())
+				.and()
+					.cors().configurationSource(getCorsConfigurationSource());
 
 		// @formatter:off
 
@@ -232,6 +246,30 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
 		}
+	}
+
+	protected HeaderWriter getXFrameOptionsHeaderWriter() {
+
+		AntPathRequestMatcher checkSessionIframeMatcher = new AntPathRequestMatcher("/**/check_session_iframe");
+		AntPathRequestMatcher getSessionStateMatcher = new AntPathRequestMatcher("/**/get_session_state");
+		RequestMatcher orRequestMatcher = new OrRequestMatcher(checkSessionIframeMatcher, getSessionStateMatcher);
+
+		NegatedRequestMatcher negatedRequestMatcher = new NegatedRequestMatcher(orRequestMatcher);
+		//default to SAMEORIGIN except the above endpoints
+		XFrameOptionsHeaderWriter xFrameOptionsHeaderWriter = new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN);
+		DelegatingRequestMatcherHeaderWriter writer = new DelegatingRequestMatcherHeaderWriter(negatedRequestMatcher, xFrameOptionsHeaderWriter);
+
+		return writer;
+	}
+
+	protected CorsConfigurationSource getCorsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
+		source.registerCorsConfiguration("/**/get_session_state", configuration);
+		return source;
 	}
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {

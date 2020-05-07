@@ -55,6 +55,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 		addUserinfoEncryptionAlgValuesSupported(server);
 		addUserinfoEncryptionEncValuesSupported(server);
 
+		addAdditionalConfiguration(server, baseUrl);
 		// add this as the server configuration
 		env.putObject("server", server);
 		logSuccess("Generated server configuration", args("server_configuration", server));
@@ -296,4 +297,12 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 		server.add("userinfo_encryption_enc_values_supported", encValues);
 	}
 
+	/**
+	 * Override in child classes to modify the generated server configuration
+	 * This will be called at the end, after the configuration is prepared
+	 * @param server
+	 */
+	protected void addAdditionalConfiguration(JsonObject server, String baseUrl) {
+
+	}
 }

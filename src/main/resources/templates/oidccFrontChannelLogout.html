@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Check session iframe</title>
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+</head>
+<body>
+    <h1>OP initiated front channel logout</h1>
+    <div>
+        RP frontchannel_logout_uri will be loaded below in an iframe
+    </div>
+
+    <div id="msgdiv"></div>
+    <style>
+
+        iframe{
+            width:90%;
+            height:400px;
+        }
+        #msgdiv{
+            color:red;
+            font-size:1.2em;
+        }
+    </style>
+
+    <script th:if="${post_logout_redirect_uri_redirect!='OPINIT'}">
+    //RP init
+    var iframe = document.createElement('iframe');
+    iframe.onload = function(){
+        $.ajax('[[${iframe_loaded_callback_url}]]', {
+            data:{'loaded':true},
+            dataType:'json',
+            success: function(responseData){
+                $('#msgdiv').html('Logout uri loaded and test marked as finished. You will be redirected to post_logout_uri in 5 seconds.');
+                setTimeout(function(){window.location.href='[[${post_logout_redirect_uri_redirect}]]';}, 5000);
+            },
+            error: function(jqxhr, status, errorDetails){
+                $('#msgdiv').html('Failed to mark test as finished! Please try again.');
+            }
+        });
+    }
+    iframe.src = '[[${rp_frontchannel_logout_uri}]]';
+    document.body.appendChild(iframe);
+
+
+    </script>
+    <script th:if="${post_logout_redirect_uri_redirect=='OPINIT'}">
+    //OP init
+    var iframe = document.createElement('iframe');
+    iframe.onload = function(){
+        $.ajax('[[${iframe_loaded_callback_url}]]', {
+            data:{'loaded':true},
+            dataType:'json',
+            success: function(responseData){
+                $('#msgdiv').html('Logout uri loaded and test marked as finished. You can close this window and go back to the test window.');
+            },
+            error: function(jqxhr, status, errorDetails){
+                $('#msgdiv').html('Failed to mark test as finished! Please try again.');
+            }
+        });
+    }
+    iframe.src = '[[${rp_frontchannel_logout_uri}]]';
+    document.body.appendChild(iframe);
+
+
+    </script>
+
+</body>
+</html>
