@@ -13,10 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-claims-essential",
 	displayName = "OIDCC: claims essential",
 	summary = "This test makes an authorization request requesting the 'name' claim as essential (in the userinfo, except for response_type=id_token where it is requested in the id_token), and the OP must return a successful result. A warning is raised if the OP fails to return a value for the name claim.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCClaimsEssential extends AbstractOIDCCReturnedClaimsServerTest {
 

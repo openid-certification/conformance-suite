@@ -15,10 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-max-age-1",
 	displayName = "OIDCC: max-age=1",
 	summary = "This test calls the authorization endpoint test twice. The second time it waits 1 second and includes max_age=1, so that the authorization server is required to ask the user to login a second time and must return an auth_time claim in the second id_token. A screenshot of the second authorization should be uploaded.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCMaxAge1 extends AbstractOIDCCServerTest {
 	private boolean firstTime = true;

@@ -34,6 +34,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuth
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -50,6 +51,7 @@ import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
@@ -87,6 +89,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -95,10 +98,21 @@ import net.openid.conformance.variant.VariantSetup;
 import java.util.function.Supplier;
 
 @VariantParameters({
+	ServerMetadata.class,
 	ClientAuthType.class,
 	ResponseType.class,
 	ResponseMode.class,
 	ClientRegistration.class
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
+	"server.issuer",
+	"server.jwks_uri",
+	"server.authorization_endpoint",
+	"server.token_endpoint",
+	"server.userinfo_endpoint"
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
+	"server.discoveryUrl"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_secret"
@@ -130,10 +144,19 @@ import java.util.function.Supplier;
 	"client2.client_secret",
 	"client2.jwks"
 })
+@VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token", configurationFields = {
+	"server.token_endpoint"
+	/* we don't exclude "server.userinfo_endpoint" as this would prevent it appearing in the 'implicit' configuration
+	* form - see comment in TestPlanModuleWithVariant's constructor */
+})
+@VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token token", configurationFields = {
+	"server.token_endpoint"
+})
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
 	protected boolean formPost;
+	private boolean serverSupportsDiscovery;
 
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
@@ -147,37 +170,48 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
-	public static class ConfigureClientForClientSecretBasic extends AbstractConditionSequence {
+	public class ConfigureClientForClientSecretBasic extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(EnsureServerConfigurationSupportsClientSecretBasic.class);
+			if (serverSupportsDiscovery) {
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientSecretBasic.class, ConditionResult.FAILURE);
+			}
 		}
 	}
 
-	public static class ConfigureClientForClientSecretPost extends AbstractConditionSequence {
+	public class ConfigureClientForClientSecretPost extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(EnsureServerConfigurationSupportsClientSecretPost.class);
+			if (serverSupportsDiscovery) {
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientSecretPost.class, ConditionResult.FAILURE);
+			}
 		}
 	}
 
-	public static class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
+	public class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class);
+			if (serverSupportsDiscovery) {
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, ConditionResult.FAILURE);
+			}
 		}
 	}
 
 	public static class ConfigureClientForMtls extends AbstractConditionSequence {
+		private boolean serverSupportsDiscovery;
 		private boolean secondClient;
 
-		public ConfigureClientForMtls(boolean secondClient) {
+		public ConfigureClientForMtls(boolean serverSupportsDiscovery, boolean secondClient) {
 			this.secondClient = secondClient;
+			this.serverSupportsDiscovery = serverSupportsDiscovery;
 		}
 
 		@Override
 		public void evaluate() {
 			if (!secondClient) {
+				if (serverSupportsDiscovery) {
+					callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, ConditionResult.FAILURE);
+				}
 				callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 				callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 			} else {
@@ -250,7 +284,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
 		profileStaticClientConfiguration = null;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(isSecondClient());
+		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
@@ -271,6 +305,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			return;
 		}
 		formPost = getVariant(ResponseMode.class) == ResponseMode.FORM_POST;
+		serverSupportsDiscovery = getVariant(ServerMetadata.class) == ServerMetadata.DISCOVERY;
 
 		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
 		env.putString("client_auth_type", clientAuthType.toString());
@@ -285,6 +320,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -596,6 +632,10 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected boolean isSecondClient() {
 		return false;
+	}
+
+	protected boolean serverSupportsDiscovery() {
+		return serverSupportsDiscovery;
 	}
 
 	protected boolean isCodeFlow() {

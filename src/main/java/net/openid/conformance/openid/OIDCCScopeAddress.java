@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-scope-address",
 	displayName = "OIDCC: check address scope",
 	summary = "This test requests authorization with address scope.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCScopeAddress extends AbstractOIDCCReturnedClaimsServerTest {
 

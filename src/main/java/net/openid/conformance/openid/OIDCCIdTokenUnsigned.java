@@ -14,10 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-idtoken-unsigned",
 	displayName = "OIDCC: check ID token with no signature",
 	summary = "This test requests an ID token signed with \"none\".",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = { "static_client" })
 @VariantNotApplicable(parameter = ResponseType.class, values = { "code id_token", "code id_token token", "id_token", "id_token token" })
@@ -37,11 +34,13 @@ public class OIDCCIdTokenUnsigned extends AbstractOIDCCServerTest {
 	@Override
 	protected void skipTestIfSigningAlgorithmNotSupported() {
 
-		callAndContinueOnFailure(OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone.class);
+		if (serverSupportsDiscovery()) {
+			callAndContinueOnFailure(OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone.class);
 
-		Boolean idTokenSigningAlgSupportedFlag = env.getBoolean("id_token_signing_alg_not_supported_flag");
-		if (idTokenSigningAlgSupportedFlag != null && idTokenSigningAlgSupportedFlag) {
-			fireTestSkipped("The discovery endpoint 'id_token_signing_alg_values_supported' doesn't support 'none' algorithm; this cannot be tested");
+			Boolean idTokenSigningAlgSupportedFlag = env.getBoolean("id_token_signing_alg_not_supported_flag");
+			if (idTokenSigningAlgSupportedFlag != null && idTokenSigningAlgSupportedFlag) {
+				fireTestSkipped("The discovery endpoint 'id_token_signing_alg_values_supported' doesn't support 'none' algorithm; this cannot be tested (which is acceptable for certification, servers are not required to support 'none'");
+			}
 		}
 	}
 }

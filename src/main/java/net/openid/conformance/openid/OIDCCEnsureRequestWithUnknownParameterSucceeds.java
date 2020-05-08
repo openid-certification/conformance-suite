@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-ensure-request-with-unknown-parameter-succeeds",
 	displayName = "OIDCC: ensure request with unknown parameter succeeds.",
 	summary = "The test includes the parameter extra=foobar (which is not defined by any specification) in the request to the authorization endpoint, and the authentication must complete successfully with the extra parameter ignored as per RFC6749-3.1 'The authorization server MUST ignore unrecognized request parameters'",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCEnsureRequestWithUnknownParameterSucceeds extends AbstractOIDCCServerTest {
 

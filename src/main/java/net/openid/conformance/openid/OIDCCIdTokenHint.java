@@ -11,10 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-id-token-hint",
 	displayName = "OIDCC: id_token hint",
 	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=none with the id_token_hint set to the id token from the first authorization, and the authorization server must return successfully immediately without interacting with the user. The test verifies that auth_time (if present) and sub are consistent between the id_tokens from the first and second authorizations.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCIdTokenHint extends AbstractOIDCCSameAuthTwiceServerTest {
 

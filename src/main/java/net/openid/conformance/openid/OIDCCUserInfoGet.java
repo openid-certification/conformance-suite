@@ -7,10 +7,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-userinfo-get",
 	displayName = "OIDCC: make GET request to UserInfo endpoint",
 	summary = "This tests makes an authenticated GET request to the UserInfo endpoint and validates the response",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCUserInfoGet extends AbstractOIDCCUserInfoTest {
 

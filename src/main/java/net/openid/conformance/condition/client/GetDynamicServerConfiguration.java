@@ -1,5 +1,15 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -8,24 +18,10 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-
 public class GetDynamicServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("config")) {
@@ -35,7 +31,8 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		String staticIssuer = env.getString("config", "server.issuer");
 
 		if (!Strings.isNullOrEmpty(staticIssuer)) {
-			throw error("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
+			log("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
+			return env;
 		}
 
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");

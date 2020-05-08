@@ -11,7 +11,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test calls the authorization endpoint with a login_hint (provided in configuration, or buffy@<your issuer hostname> if not), which must at a minimum not result in errors. Please remove any cookies you may have received from the OpenID Provider before proceeding. This test requests that you log in as a specific user, so a fresh login page is needed.",
 	profile = "OIDCC",
 	configurationFields = {
-		"server.discoveryUrl",
 		"server.login_hint"
 	}
 )

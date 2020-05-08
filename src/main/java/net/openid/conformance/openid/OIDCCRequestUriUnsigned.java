@@ -12,10 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-request-uri-unsigned",
 	displayName = "OIDCC: Unsigned request_uri",
 	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an unsigned jwt. The authorization server must successfully complete the authorization, as request_uri is a mandatory to support feature for dynamic OPs as per OpenID Connect Core section 15.2.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 // https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_request_uri_Unsigned
 @VariantNotApplicable(parameter = ClientRegistration.class, values={"static_client"})

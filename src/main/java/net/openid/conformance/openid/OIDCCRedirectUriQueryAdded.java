@@ -10,10 +10,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	testName = "oidcc-redirect-uri-query-added",
 	displayName = "OIDCC: request with redirect_uri with query component when registered redirect_uri has no query component",
 	summary = "This test uses a redirect uri with a query component when the registered redirect uri has no query component. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCRedirectUriQueryAdded extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {
 

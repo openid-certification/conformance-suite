@@ -36,7 +36,9 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 			fireTestSkipped("The 'request_not_supported' error from the authorization endpoint indicates that it does not support request objects, so request objects cannot be tested.");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.WARNING);
+		if (serverSupportsDiscovery()) {
+			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.WARNING);
+		}
 
 		super.onAuthorizationCallbackResponse();
 	}

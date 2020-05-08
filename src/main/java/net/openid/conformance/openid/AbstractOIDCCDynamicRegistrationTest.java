@@ -27,6 +27,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -35,6 +36,7 @@ import net.openid.conformance.variant.VariantSetup;
 import java.util.function.Supplier;
 
 @VariantParameters({
+	ServerMetadata.class,
 	ClientAuthType.class,
 	ResponseType.class,
 	ResponseMode.class,
@@ -49,6 +51,7 @@ import java.util.function.Supplier;
 	"client.client_name"
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
+@VariantNotApplicable(parameter = ServerMetadata.class, values = { "static" }) // dcr requires discovery
 public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
@@ -69,7 +72,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
-		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(false);
+		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(true, false);
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 

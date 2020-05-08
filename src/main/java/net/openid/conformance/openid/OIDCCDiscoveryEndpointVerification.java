@@ -27,17 +27,24 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSig
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
 
 // Corresponds to OP-Discovery-* tests
 @PublishTestModule(
 	testName = "oidcc-discovery-endpoint-verification",
 	displayName = "OIDCC: Discovery Endpoint Verification",
-	summary = "This test ensures that the server's configurations (including scopes, response_types, grant_types etc) is containing the required value in the specification",
+	summary = "This test ensures that the server's configurations (including scopes, response_types, grant_types etc) contains values required by the specifications",
 	profile = "OIDCC",
 	configurationFields = {
 		"server.discoveryUrl",
 	}
 )
+@VariantParameters({
+	ServerMetadata.class,
+})
+@VariantNotApplicable(parameter = ServerMetadata.class, values = { "static"} )
 public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 
 	@Override

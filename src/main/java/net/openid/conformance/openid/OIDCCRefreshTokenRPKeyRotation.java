@@ -32,10 +32,7 @@ import javax.servlet.http.HttpSession;
 	testName = "oidcc-refresh-token-rp-key-rotation",
 	displayName = "OIDCC: Use a refresh token with private_key_jwt client authentication to ensure the server can handle RP key rotation",
 	summary = "This tests obtains a refresh token (by registering the client for the refresh_token grant and including scope=offline_access in the authorization endpoint request). Once it has obtained the refresh token it rotates the keys (by placing a new RP key with a new kid into the RP's jwks_uri), waits 60 seconds then tries to use the refresh token with a client assertion containing the new kid. Support for private_key_jwt client authentication, scope=offline_access and refresh tokens are not a requirement of the specification but are required to certify for the 'dynamic' profile.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 @VariantNotApplicable(parameter = ClientRegistration.class, values={"static_client"})
