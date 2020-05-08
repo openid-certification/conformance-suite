@@ -1,29 +1,26 @@
 package net.openid.conformance.runner;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import net.openid.conformance.testmodule.OIDFJSON;
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.frontChannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.Plan;
+import net.openid.conformance.info.SavedConfigurationService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.testmodule.DataUtils;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestInterruptedException;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -46,16 +43,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.frontChannel.BrowserControl;
-import net.openid.conformance.info.ImageService;
-import net.openid.conformance.info.SavedConfigurationService;
-import net.openid.conformance.info.TestInfoService;
-import net.openid.conformance.info.TestPlanService;
-import net.openid.conformance.testmodule.DataUtils;
-import net.openid.conformance.testmodule.TestModule;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -220,7 +220,12 @@ public class TestRunner implements DataUtils {
 			}
 			// if the test is part of a plan, the configuration may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
-			if (variantFromApi != null) {
+			if (variantFromApi == null) {
+				Map<String, String> variant = getFixedVariantIfOnlyOneMatchingModuleInPlan(planId, testName);
+				if (variant != null) {
+					variantsMap.putAll(variant);
+				}
+			} else {
 				variantsMap.putAll(variantFromApi.getVariant());
 			}
 			final VariantSelection testPlanVariant = planService.getTestPlanVariant(planId);
@@ -333,6 +338,20 @@ public class TestRunner implements DataUtils {
 
 		return new ResponseEntity<>(map, HttpStatus.CREATED);
 
+	}
+
+	private Map<String, String> getFixedVariantIfOnlyOneMatchingModuleInPlan(String planId, String testName) {
+		var plan = planService.getTestPlan(planId);
+		List<Plan.Module> matchingModules = new ArrayList<>();
+		for (var mod: plan.getModules()) {
+			if (mod.getTestModule().equals(testName)) {
+				matchingModules.add(mod);
+			}
+		}
+		if (matchingModules.size() == 1) {
+			return matchingModules.get(0).getVariant();
+		}
+		return null;
 	}
 
 	/**
