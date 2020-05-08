@@ -84,7 +84,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeIdTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code id_token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -146,7 +146,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -208,7 +208,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeIdTokenTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code id_token token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),

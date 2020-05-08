@@ -75,7 +75,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 			),
 			// now switch variants to check that client_secret_post works
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
