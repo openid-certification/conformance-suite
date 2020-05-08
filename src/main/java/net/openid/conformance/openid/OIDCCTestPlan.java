@@ -8,7 +8,9 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-test-plan",
-	displayName = "OpenID Connect Core: Authorization server test (not currently part of certification program)",
+	displayName = "OpenID Connect Core: Comprehensive Authorization server test (not part of certification program)",
+	// This plan lists all OIDCC test modules and allows the user to run them with (almost) any variant settings they
+	// want to enable them to comprehensively test their authorization server.
 	profile = TestPlan.ProfileNames.optest
 )
 public class OIDCCTestPlan implements TestPlan {
