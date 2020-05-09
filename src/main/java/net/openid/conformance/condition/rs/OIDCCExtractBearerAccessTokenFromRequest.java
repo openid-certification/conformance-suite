@@ -26,11 +26,10 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 
 		String authHeader = env.getString("incoming_request", "headers.authorization");
 		if (!Strings.isNullOrEmpty(authHeader)) {
-			if (authHeader.toLowerCase().startsWith("bearer")) {
-				tokenFromHeader = authHeader.substring("bearer ".length(), authHeader.length());
+			if (authHeader.toLowerCase().startsWith("bearer ")) {
+				tokenFromHeader = authHeader.substring("bearer ".length());
 			}
 		}
-		//TODO this needs to be reviewed & fixed if necessary after #681 is closed.
 		JsonElement accessTokenElementFromForm = env.getElementFromObject("incoming_request", "body_form_params.access_token");
 		JsonElement accessTokenElementFromQuery = env.getElementFromObject("incoming_request", "query_string_params.access_token");
 

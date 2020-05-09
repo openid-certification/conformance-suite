@@ -22,7 +22,7 @@ public class OIDCCExtractBearerAccessTokenFromBodyParams extends AbstractConditi
 
 		String authHeader = env.getString("incoming_request", "headers.authorization");
 		if (!Strings.isNullOrEmpty(authHeader)) {
-			if (authHeader.toLowerCase().startsWith("bearer")) {
+			if (authHeader.toLowerCase().startsWith("bearer ")) {
 				String tokenFromHeader = authHeader.substring("bearer ".length());
 				if(!Strings.isNullOrEmpty(tokenFromHeader)) {
 					throw error("Authorization header contains a bearer token but access_token was expected " +
