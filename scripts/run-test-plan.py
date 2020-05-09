@@ -969,6 +969,9 @@ if __name__ == '__main__':
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
 
+    # wait a bit before exiting so that end of output isn't lost - https://gitlab.com/gitlab-org/gitlab/-/issues/217199
+    time.sleep(20)
+
     if failed:
         sys.exit(1)
 
