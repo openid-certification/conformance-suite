@@ -1,22 +1,9 @@
 package net.openid.conformance.openid;
 
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddSectorIdentifierUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddSubjectTypePairwiseToDynamicRegistrationRequest;
@@ -25,16 +12,23 @@ import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistration
 import net.openid.conformance.condition.client.CreateInvalidSectorRedirectUris;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Registration_Sector_Bad
 @PublishTestModule(
 	testName = "oidcc-registration-sector-bad",
 	displayName = "OIDCC: dynamic registration with bad sector redirect URIs",
 	summary = "This test calls the dynamic registration endpoint with a sector_identifier_uri pointing to a document not containing the test's redirect URI. This should result in an error from the dynamic registration endpoint.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistrationTest {
 

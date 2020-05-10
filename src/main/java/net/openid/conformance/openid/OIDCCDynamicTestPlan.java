@@ -5,6 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
+import net.openid.conformance.variant.ServerMetadata;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 		// the tests are in the same order as the table and the comments list the 3rd column in the table.
 
 		final List<Variant> variantPrivateKeyJwtDynReg = List.of(
+			new Variant(ServerMetadata.class, "discovery"),
 			// most tests it doesn't matter what client auth is used, but private_key_jwt is required for [at least]
 			// OIDCCRegistrationJwksUri, OIDCCRefreshTokenRPKeyRotation
 			new Variant(ClientAuthType.class, "private_key_jwt"),
@@ -65,7 +67,7 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 					// VerifyOPEndpointsUseHTTPS() - included in OIDCCDiscoveryEndpointVerification, CheckDiscEndpointAllEndpointsAreHttps
 					// end of duplicate of OIDCCConfigTestPlan
 				),
-				List.of()
+				List.of(new Variant(ServerMetadata.class, "discovery"))
 			),
 			new ModuleListEntry(
 				List.of(
@@ -87,7 +89,7 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 				List.of(
 					OIDCCServerRotateKeys.class // OP-Rotation-OP-Sig
 				),
-				List.of()
+				List.of(new Variant(ServerMetadata.class, "discovery"))
 			),
 			new ModuleListEntry(
 				List.of(

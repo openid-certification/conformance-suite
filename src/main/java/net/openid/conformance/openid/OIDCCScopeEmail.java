@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-scope-email",
 	displayName = "OIDCC: check email scope",
 	summary = "This test requests authorization with email scope.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCScopeEmail extends AbstractOIDCCReturnedClaimsServerTest {
 

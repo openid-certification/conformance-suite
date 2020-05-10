@@ -10,10 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-prompt-none-not-logged-in",
 	displayName = "OIDCC: prompt=none when not logged in",
 	summary = "This test calls the authorization endpoint with prompt=none, expecting that no recent enough authentication is present to enable a silent login and hence the OP will redirect back with an error as per section 3.1.2.6 of OpenID Connect. Please remove any cookies you may have received from the OpenID Provider before proceeding.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {
 

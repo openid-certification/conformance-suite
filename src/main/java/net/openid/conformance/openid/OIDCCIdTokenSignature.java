@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureIdTokenSignatureIsRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 // Corresponds to OPIdToken-kid and OP-IDToken-ignature
@@ -14,10 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-idtoken-signature",
 	displayName = "OIDCC: check ID token with default signature",
 	summary = "This test requests an ID token without specifying an algorithm (which should default to RS256).",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = { "static_client" })
 public class OIDCCIdTokenSignature extends AbstractOIDCCServerTest {

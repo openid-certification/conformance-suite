@@ -1,36 +1,30 @@
 package net.openid.conformance.openid;
 
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import net.openid.conformance.condition.client.AddSectorIdentifierUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddSubjectTypePairwiseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateSectorRedirectUris;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @PublishTestModule(
 	testName = "oidcc-registration-sector-uri",
 	displayName = "OIDCC: dynamic registration",
 	summary = "This test calls the dynamic registration endpoint with a sector_identifier_uri pointing to a document containing the test's redirect URI. This should result in a successful registration.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCRegistrationSectorUri extends AbstractOIDCCDynamicRegistrationTest {
 

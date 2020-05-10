@@ -251,6 +251,10 @@ public class VariantService {
 						}
 						final List<String> hiddenFields = param.hidesConfigurationFields.get(value);
 						if (hiddenFields != null) {
+							// this is oversimplified but works for our current test plans; I believe the correct logic
+							// would be that a value should only be hidden if all the test modules that list this
+							// configuration field hide it for their fixed variants - see comment in
+							// AbstractOIDCCServerTest's VariantHidesConfigurationFields for ResponseType="id_token"
 							hidesConfigurationFields.addAll(hiddenFields);
 						}
 						final List<String> fields = param.configurationFields.get(value);
@@ -604,7 +608,8 @@ public class VariantService {
 						missingParameters.stream().map(p -> p.variantParameter.name()).collect(joining(", ")));
 			}
 
-			// Note: supplying extra variant parameters is not an error
+			// Note: supplying extra variant parameters is not an error - some modules in a test plan may require the
+			// user to pick more variants than other modules do.
 
 			parameters.forEach(p -> {
 				Object v = typedVariant.get(p.parameter);

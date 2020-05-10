@@ -13,10 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-redirect-uri-query-mismatch",
 	displayName = "OIDCC: rejects redirect_uri when query parameter does not match what is registered",
 	summary = "This test uses a redirect uri with a query component that does not match the query in the registered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 public class OIDCCRedirectUriQueryMismatch extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {

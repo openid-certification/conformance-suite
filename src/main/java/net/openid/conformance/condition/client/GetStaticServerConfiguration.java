@@ -15,15 +15,12 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("config")) {
-			throw error("Couldn't find a configuration");
-		}
-
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");
 		String iss = env.getString("config", "server.discoveryIssuer");
 
 		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			throw error("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
+			log("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
+			return env;
 		}
 
 		// make sure we've got a server object

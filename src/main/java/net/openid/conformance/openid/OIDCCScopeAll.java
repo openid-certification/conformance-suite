@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-scope-all",
 	displayName = "OIDCC: check all scopes",
 	summary = "This test requests authorization with address, email, phone and profile scopes.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCScopeAll extends AbstractOIDCCReturnedClaimsServerTest {
 

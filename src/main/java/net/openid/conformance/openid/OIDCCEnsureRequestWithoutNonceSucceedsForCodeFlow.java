@@ -10,10 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-ensure-request-without-nonce-succeeds-for-code-flow",
 	displayName = "OIDCC: ensure request without nonce succeeds (non-implicit flows)",
 	summary = "This test should end with the authorisation server issuing an authorization code, even though a nonce was not supplied.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {
 	"id_token",

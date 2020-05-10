@@ -16,7 +16,7 @@ public class SetProtectedResourceUrlToUserInfoEndpoint extends AbstractCondition
 		String resourceUrl = env.getString("server", "userinfo_endpoint");
 
 		if(Strings.isNullOrEmpty(resourceUrl)){
-			throw error("userinfo missing from server discovery document");
+			throw error("userinfo_endpoint missing from server configuration");
 		}
 
 		env.putString("protected_resource_url", resourceUrl);

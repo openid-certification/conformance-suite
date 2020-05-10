@@ -1,10 +1,12 @@
 package net.openid.conformance.condition.client;
 
-import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
-import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
-import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.specto.hoverfly.junit.rule.HoverflyRule;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -13,17 +15,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
+import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
+import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GetDynamicServerConfiguration_UnitTest {
@@ -101,7 +98,6 @@ public class GetDynamicServerConfiguration_UnitTest {
 	/**
 	 * Test method for {@link GetDynamicServerConfiguration#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
 	public void testEvaluate_discoveryUrlTakesPriority() {
 
 		JsonObject config = new JsonParser().parse("{"
@@ -112,6 +108,9 @@ public class GetDynamicServerConfiguration_UnitTest {
 		env.putObject("config", config);
 
 		cond.execute(env);
+
+		hoverfly.verifyZeroRequestTo(service("good.example.com"));
+
 	}
 
 	/**

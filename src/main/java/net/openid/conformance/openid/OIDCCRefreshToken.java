@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotS
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdOfflineAccess;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsOfflineAccess;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
@@ -20,18 +21,21 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-refresh-token",
 	displayName = "OIDCC: test refresh token behaviours",
 	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token works and is correctly bound to the client. Support for refresh tokens is optional and the test will be skipped if the token endpoint response does not return refresh tokens. scope=offline_access will be included in the authorization endpoint request if the server's discovery document indicates support for this scope.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
 public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 
 	@Override
 	protected void completeClientConfiguration() {
-		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
-		callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsOfflineAccess.class);
+		if (serverSupportsDiscovery()) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsOfflineAccess.class);
+		} else {
+			// no discovery, so no idea if server supports offline_access scope or not - request it anyway, servers
+			// 'should' ignore unknown scope values
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenIdOfflineAccess.class);
+		}
 
 		if (profileCompleteClientConfiguration != null) {
 			call(sequence(profileCompleteClientConfiguration));
@@ -79,7 +83,9 @@ public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 			// This throws an exception: the test will stop here
 			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
 		}
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+		if (serverSupportsDiscovery()) {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
+		}
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 	}

@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-claims-locales",
 	displayName = "OIDCC: claims_locales test",
 	summary = "This test calls the authorization endpoint with claims_locale=se, which (as per section 15.1 of the OpenID Connect core spec) must at a minimum not result in errors.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCClaimsLocales extends AbstractOIDCCServerTest {
 

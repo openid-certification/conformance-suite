@@ -10,10 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oidcc-redirect-uri-query-OK",
 	displayName = "OIDCC: request with a redirect_uri with a query component when a redirect_uri with the same query component is registered",
 	summary = "This test uses a redirect uri with a query component. Authorization should complete successfully.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 public class OIDCCRedirectUriQueryOK extends AbstractOIDCCServerTest {

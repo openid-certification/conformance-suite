@@ -8,11 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-ui-locales",
 	displayName = "OIDCC: ui_locales test",
 	summary = "This test includes the ui_locales parameter in the request to the authorization endpoint, with the value set to that provided in the configuration (or 'se' if no value probably). Use of this parameter in the request must not cause an error at the OP. Please remove any cookies you may have received from the OpenID Provider before proceeding. You need to do this so you can check that the login page is displayed using one of the requested locales.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl",
-		"server.ui_locales"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCUiLocales extends AbstractOIDCCServerTest {
 

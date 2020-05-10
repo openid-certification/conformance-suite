@@ -175,7 +175,80 @@
 
 							<div class="config-form-container">
 								<h3 class="config-form-container-header">Server</h3>
-								<div class="row config-form-element-container">
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">issuer</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL that server will use as the 'iss' value in id_token"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.issuer"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">jwks_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's JWKS endpoint"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.jwks_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">authorization_endpoint</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's authorization endpoint"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.authorization_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">token_endpoint</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's token endpoint"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.token_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">userinfo_endpoint</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's userinfo endpoint"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.userinfo_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">acr_values</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Space separated list of server's supported acr values that will be sent in the acr_values field; if left blank '1 2' is the default."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.acr_values"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
 									<div class="col-md-2 key">discoveryUrl</div>
 									<div class="col-md-10">
 										<div class="input-group">

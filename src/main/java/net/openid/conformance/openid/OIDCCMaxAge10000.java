@@ -12,10 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-max-age-10000",
 	displayName = "OIDCC: Use max_age=10000 in authorization request when already logged in",
 	summary = "This test calls the authorization endpoint test twice. The first time it includes max_age=15000 (so that the OP is required to return auth_time in the id_token). The second time it includes max_age=10000, and the authorization server must not request that the user logs in. The test verifies that auth_time and sub are consistent between the id_tokens from the first and second authorizations.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCMaxAge10000 extends AbstractOIDCCSameAuthTwiceServerTest {
 

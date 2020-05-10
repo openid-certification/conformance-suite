@@ -6,6 +6,7 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.TellUserToRotateOpKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.VerifyNewJwksHasNewSigningKey;
@@ -15,16 +16,26 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
 	testName = "oidcc-server-rotate-keys",
 	displayName = "OIDCC",
 	summary = "Test that the authorization server is able to rotate signing keys held in it's jwks_uri, by comparing the contents of the jwks_uri before and after rotation; it must have a new key and should still contain the old key as well. Before pressing the 'Start' button, please trigger a key rotation in your OP. If you are not able to cause the server to rotate the keys while running the test, then you will have to self-assert that your deployment can do OP signing key rotation as part of your certification application, see the section about 'Attestation Statement' on https://openid.net/certification/submission/",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
+@VariantParameters({
+	ServerMetadata.class
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
+	"server.issuer",
+	"server.token_endpoint"
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
+	"server.discoveryUrl"
+})
 public class OIDCCServerRotateKeys extends AbstractTestModule {
 
 	@Override
@@ -40,6 +51,7 @@ public class OIDCCServerRotateKeys extends AbstractTestModule {
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);

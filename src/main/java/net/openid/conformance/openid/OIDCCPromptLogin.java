@@ -12,10 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-prompt-login",
 	displayName = "OIDCC: prompt=login",
 	summary = "This test calls the authorization endpoint test twice. The second time it will include prompt=login, so that the authorization server is required to ask the user to login a second time. If auth_time is present in the id_tokens, the value from the second login must be later than the time in the original token. A screenshot of the second authorization should be uploaded.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 	private boolean firstTime = true;

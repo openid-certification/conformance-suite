@@ -1,5 +1,16 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -8,20 +19,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-import com.google.gson.JsonSyntaxException;
-import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-
 public class FetchServerKeys extends AbstractCondition {
 
 	@Override
@@ -29,51 +26,36 @@ public class FetchServerKeys extends AbstractCondition {
 	@PostEnvironment(required = "server_jwks")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("server")) {
-			throw error("No server configuration found");
-		}
+		String jwksUri = env.getString("server", "jwks_uri");
 
-		JsonElement jwks = env.getElementFromObject("server", "jwks");
+		if (!Strings.isNullOrEmpty(jwksUri)) {
+			// do the fetch
 
-		if (jwks != null && jwks.isJsonObject()) {
-			env.putObject("server_jwks", jwks.getAsJsonObject());
-			logSuccess("Found static server JWKS", args("server_jwks", jwks));
-			return env;
-		} else {
-			// we don't have a key yet, see if we can fetch it
+			log("Fetching server key", args("jwks_uri", jwksUri));
 
-			String jwksUri = env.getString("server", "jwks_uri");
+			try {
+				RestTemplate restTemplate = createRestTemplate(env);
 
-			if (!Strings.isNullOrEmpty(jwksUri)) {
-				// do the fetch
+				String jwkString = restTemplate.getForObject(jwksUri, String.class);
 
-				log("Fetching server key", args("jwks_uri", jwksUri));
+				log("Found JWK set string", args("jwk_string", jwkString));
 
-				try {
-					RestTemplate restTemplate = createRestTemplate(env);
+				JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
+				env.putObject("server_jwks", jwkSet);
 
-					String jwkString = restTemplate.getForObject(jwksUri, String.class);
+				logSuccess("Found server JWK set", args("server_jwks", jwkSet));
+				return env;
 
-					log("Found JWK set string", args("jwk_string", jwkString));
-
-					JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
-					env.putObject("server_jwks", jwkSet);
-
-					logSuccess("Found server JWK set", args("server_jwks", jwkSet));
-					return env;
-
-				} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-					throw error("Error creating HTTP client", e);
-				} catch (RestClientException e) {
-					throw error("Exception while fetching server key", e);
-				} catch (JsonSyntaxException e) {
-					throw error("Server JWKs set string is not JSON", e);
-				}
-
-			} else {
-				throw error("Didn't find a JWKS or a JWKS URI in the server configuration");
+			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+				throw error("Error creating HTTP client", e);
+			} catch (RestClientException e) {
+				throw error("Exception while fetching server key", e);
+			} catch (JsonSyntaxException e) {
+				throw error("Server JWKs set string is not JSON", e);
 			}
 
+		} else {
+			throw error("Didn't find jwks_uri in the server configuration");
 		}
 
 	}

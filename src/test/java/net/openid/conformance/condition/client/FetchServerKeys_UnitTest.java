@@ -1,10 +1,12 @@
 package net.openid.conformance.condition.client;
 
-import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
-import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
-import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.specto.hoverfly.junit.rule.HoverflyRule;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -13,14 +15,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
+import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
+import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FetchServerKeys_UnitTest {
@@ -82,26 +80,6 @@ public class FetchServerKeys_UnitTest {
 		cond = new FetchServerKeys();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
-	}
-
-	/**
-	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
-	 */
-	@Test
-	public void testEvaluate_static() {
-
-		JsonObject jwks = new JsonParser().parse(jwksStr).getAsJsonObject();
-
-		JsonObject server = new JsonObject();
-		server.add("jwks", jwks);
-		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
-		env.putObject("server", server);
-
-		cond.execute(env);
-
-		hoverfly.verifyZeroRequestTo(service("good.example.com"));
-
-		assertThat(env.getObject("server_jwks")).isEqualTo(jwks);
 	}
 
 	/**

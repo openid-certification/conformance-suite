@@ -13,10 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-redirect-uri-regfrag",
 	displayName = "OIDCC: Reject registration where a redirect_uri has a fragment",
 	summary = "This test calls the dynamic registration endpoint with a redirect URI containing a fragment specifier. This should result in an error from the dynamic registration endpoint.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCRedirectUriRegFrag extends AbstractOIDCCDynamicRegistrationTest {
 

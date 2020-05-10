@@ -15,10 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-response-type-missing",
 	displayName = "OIDCC: response type missing",
 	summary = "This test sends an authorization request that is missing the response_type parameter. The authorization server must either redirect back with an 'unsupported_response_type' or 'invalid_request' error, or must display an error saying the response type is missing, a screenshot of which should be uploaded.",
-	profile = "OIDCC",
-	configurationFields = {
-			"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {
 

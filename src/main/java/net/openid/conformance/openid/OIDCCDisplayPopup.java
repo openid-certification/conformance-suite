@@ -8,10 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-display-popup",
 	displayName = "OIDCC: display=popup test",
 	summary = "This test includes the display=popup parameter in the request to the authorization endpoint. Use of this parameter in the request must not cause an error at the OP as per 'Mandatory to Implement Features for All OpenID Providers' in the OpenID Connect Core specification. To make sure you get a login page, please remove any cookies you may have received from the OpenID Provider before proceeding. You should get a popup user agent login window.",
-	profile = "OIDCC",
-	configurationFields = {
-		"server.discoveryUrl"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCDisplayPopup extends AbstractOIDCCServerTest {
 

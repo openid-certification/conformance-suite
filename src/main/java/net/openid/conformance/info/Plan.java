@@ -57,6 +57,8 @@ public class Plan {
 		public List<String> getInstances() {
 			return instances;
 		}
+
+		public Map<String,String> getVariant() { return variant; }
 	}
 
 	Plan() {
