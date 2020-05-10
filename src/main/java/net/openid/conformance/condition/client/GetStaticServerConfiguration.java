@@ -19,8 +19,7 @@ public class GetStaticServerConfiguration extends AbstractCondition {
 		String iss = env.getString("config", "server.discoveryIssuer");
 
 		if (!Strings.isNullOrEmpty(discoveryUrl) || !Strings.isNullOrEmpty(iss)) {
-			log("Dynamic configuration elements found, skipping static configuration", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
-			return env;
+			throw error("Test set to use static server configuration but test configuration contains discovery information", args("discoveryUrl", discoveryUrl, "discoveryIssuer", iss));
 		}
 
 		// make sure we've got a server object

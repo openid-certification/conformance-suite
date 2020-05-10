@@ -98,6 +98,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	/**
 	 * Test method for {@link GetDynamicServerConfiguration#evaluate(Environment)}.
 	 */
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_discoveryUrlTakesPriority() {
 
 		JsonObject config = new JsonParser().parse("{"
@@ -108,9 +109,6 @@ public class GetDynamicServerConfiguration_UnitTest {
 		env.putObject("config", config);
 
 		cond.execute(env);
-
-		hoverfly.verifyZeroRequestTo(service("good.example.com"));
-
 	}
 
 	/**

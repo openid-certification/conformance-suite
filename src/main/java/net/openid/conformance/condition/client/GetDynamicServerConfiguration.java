@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.client.RestClientResponseException;
@@ -22,6 +23,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
+	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("config")) {
@@ -31,8 +33,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		String staticIssuer = env.getString("config", "server.issuer");
 
 		if (!Strings.isNullOrEmpty(staticIssuer)) {
-			log("Static configuration element found, skipping dynamic server discovery", args("issuer", staticIssuer));
-			return env;
+			throw error("Test set to use dynamic server configuration but test configuration contains static server configuration", args("issuer", staticIssuer));
 		}
 
 		String discoveryUrl = env.getString("config", "server.discoveryUrl");

@@ -49,9 +49,14 @@ public class OIDCCServerRotateKeys extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
-		// Make sure we're calling the right server configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		callAndStopOnFailure(GetStaticServerConfiguration.class);
+		switch (getVariant(ServerMetadata.class)) {
+			case DISCOVERY:
+				callAndStopOnFailure(GetDynamicServerConfiguration.class);
+				break;
+			case STATIC:
+				callAndStopOnFailure(GetStaticServerConfiguration.class);
+				break;
+		}
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
