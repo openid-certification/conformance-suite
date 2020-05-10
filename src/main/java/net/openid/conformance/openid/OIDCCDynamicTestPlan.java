@@ -97,6 +97,7 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 					// OP-request_uri-Support - pdf lists this, but python classifies it as an 'extra' test not in the certification profile
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned-Dynamic
 					OIDCCRequestUriSignedRS256.class, // OP-request_uri-Sig
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCRequestUriUnsigned
 					OIDCCRefreshToken.class // extra test not in python (skipped if refresh tokens not supported)
 				),
 				variantPrivateKeyJwtDynReg
