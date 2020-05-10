@@ -712,6 +712,12 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
                 print(warning('\tExpected warning did not happen: '))
                 output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
+            if counts_unexpected['UNEXPECTED_SKIPS'] > 0:
+                print(warning('\tUnexpected skip: '))
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'unexpected_skip', 'warning')
+            if counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] > 0:
+                print(warning('\tExpected skip did not happen: '))
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_skip_did_not_happen', 'warning')
 
 
 def output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, key, unexpected_type):
@@ -719,10 +725,14 @@ def output_summary_test_plan_by_unexpected_type(variant, config_filename, overal
         result = test_result['test_result']
         if result[key]:
             test_name = test_result['test_name']
+            header = '\t\t{} ({})'.format(test_name, test_result['log_detail_link'])
+            if 'skip' in key:
+                print(failure(header))
+                continue
             if unexpected_type == 'failure':
-                print(failure('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
+                print(failure(header))
             else:
-                print(warning('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
+                print(warning(header))
             print_template = 'unexpected' in key
             print_failure_warning(result[key], unexpected_type, '\t\t\t', variant=variant, config=config_filename, test=test_name, print_template=print_template)
 
