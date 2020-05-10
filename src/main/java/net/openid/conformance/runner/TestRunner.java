@@ -341,7 +341,7 @@ public class TestRunner implements DataUtils {
 	}
 
 	private Map<String, String> getFixedVariantIfOnlyOneMatchingModuleInPlan(String planId, String testName) {
-		var plan = planService.getTestPlan(planId);
+		Plan plan = planService.getTestPlan(planId);
 		List<Plan.Module> matchingModules = new ArrayList<>();
 		for (var mod: plan.getModules()) {
 			if (mod.getTestModule().equals(testName)) {
