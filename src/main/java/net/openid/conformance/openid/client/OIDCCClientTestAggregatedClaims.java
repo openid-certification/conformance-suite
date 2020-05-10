@@ -30,6 +30,7 @@ public class OIDCCClientTestAggregatedClaims extends AbstractOIDCCClientTest {
 
 	protected JsonObject prepareUserinfoResponse() {
 		JsonObject user = env.getObject("user_info");
+		env.putObject("user_info_endpoint_response", user);
 		return user;
 	}
 

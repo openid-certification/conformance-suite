@@ -8,6 +8,7 @@ import net.openid.conformance.condition.rs.OIDCCValidateBearerAccessTokenInClaim
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -62,8 +63,7 @@ public class OIDCCClientTestDistributedClaims extends AbstractOIDCCClientTest {
 			call(exec().unmapKey("incoming_request").endBlock());
 
 			ResponseEntity<Object> response = createApplicationJwtResponse(responseBody);
-
-			return new ResponseEntity<Object>(response, HttpStatus.OK);
+			return response;
 		} else {
 			return super.handleClientRequestForPath(requestId, path, servletResponse);
 		}
@@ -72,6 +72,7 @@ public class OIDCCClientTestDistributedClaims extends AbstractOIDCCClientTest {
 	@Override
 	protected JsonObject prepareUserinfoResponse() {
 		JsonObject user = env.getObject("user_info");
+		env.putObject("user_info_endpoint_response", user);
 		return user;
 	}
 

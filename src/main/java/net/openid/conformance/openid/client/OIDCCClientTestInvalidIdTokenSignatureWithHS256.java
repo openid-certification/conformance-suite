@@ -9,6 +9,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgHS256;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oidcc-client-test-invalid-sig-hs256",
@@ -20,6 +22,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "private_key_jwt"
+})
 public class OIDCCClientTestInvalidIdTokenSignatureWithHS256 extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
 
 	@Override
