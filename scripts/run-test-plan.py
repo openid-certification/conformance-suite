@@ -138,6 +138,19 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
     print('--- Finished OIDCC RP tests. Total time: {} '.format(overall_time))
     return all_plan_results
 
+# If testmodule has variants, return a string form like used on our command line
+# e.g.
+# oidcc-server[client_auth_type=client_secret_basic][response_mode=default][response_type=code]
+# This is useful for using as a dictionary key for storing results
+def get_string_name_for_module_with_variant(moduledict):
+    name = moduledict['testModule']
+    variants = moduledict.get('variant')
+    if variants != None:
+        for v in sorted(variants.keys()):
+            name += "[{}={}]".format(v, variants[v])
+    return name
+
+
 def run_test_plan(test_plan, config_file):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
@@ -157,16 +170,17 @@ def run_test_plan(test_plan, config_file):
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     for moduledict in plan_modules:
         module=moduledict['testModule']
+        module_with_variants = get_string_name_for_module_with_variant(moduledict)
         test_start_time = time.time()
         module_id = ''
         module_info = {}
 
         try:
-            print('Running test module: {}'.format(module))
-            test_module_info = conformance.create_test_from_plan(plan_id, module)
+            print('Running test module: {}'.format(module_with_variants))
+            test_module_info = conformance.create_test_from_plan_with_variant(plan_id, module, moduledict.get('variant'))
             module_id = test_module_info['id']
             module_info['id'] = module_id
-            test_info[module] = module_info
+            test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
             print('Created test module, new id: {}'.format(module_id))
             print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
@@ -190,7 +204,7 @@ def run_test_plan(test_plan, config_file):
                 conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
-            print('Exception: Test {} failed to run to completion: {}'.format(module, e))
+            print('Exception: Test {} failed to run to completion: {}'.format(module_with_variants, e))
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
             module_info['info'] = conformance.get_module_info(module_id)
@@ -300,11 +314,11 @@ def show_plan_results(plan_result, analyzed_result):
     print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
 
     for moduledict in plan_modules:
-        module=moduledict['testModule']
-        if module not in test_info:
-            print(failure('Test {} did not run'.format(module)))
+        module_name = get_string_name_for_module_with_variant(moduledict)
+        if module_name not in test_info:
+            print(failure('Test {} did not run'.format(module_name)))
             continue
-        module_info = test_info[module]
+        module_info = test_info[module_name]
         module_id = module_info['id']
         info = module_info['info']
         logs = module_info['logs']
@@ -333,7 +347,7 @@ def show_plan_results(plan_result, analyzed_result):
 
         counts = result['counts']
         print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
-              format(module, module_id, status_coloured, result_coloured, len(logs),
+              format(module_name, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
         summary_unexpected_failures_test_module(result, test_name, module_id)
@@ -406,9 +420,10 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 
     for moduledict in plan_modules:
         module=moduledict['testModule']
-        if module not in test_info:
+        module_name_with_variant = get_string_name_for_module_with_variant(moduledict)
+        if module_name_with_variant not in test_info:
             continue
-        module_info = test_info[module]
+        module_info = test_info[module_name_with_variant]
         module_id = module_info['id']
         info = module_info['info']
         logs = module_info['logs']
@@ -586,7 +601,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
     for expected_skip_obj in test_expected_skips:
         if test_result == 'SKIPPED' or test_result == 'FAILED':
             expected_skip = True
-            expected_skips_list.remove(expected_skip_obj)
+            expected_skip_obj['__used'] = True
         else:
             expected_skip_did_not_happen = True
             counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
@@ -697,6 +712,12 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             if counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] > 0:
                 print(warning('\tExpected warning did not happen: '))
                 output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_warnings_did_not_happen', 'warning')
+            if counts_unexpected['UNEXPECTED_SKIPS'] > 0:
+                print(warning('\tUnexpected skip: '))
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'unexpected_skip', 'warning')
+            if counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] > 0:
+                print(warning('\tExpected skip did not happen: '))
+                output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, 'expected_skip_did_not_happen', 'warning')
 
 
 def output_summary_test_plan_by_unexpected_type(variant, config_filename, overall_test_results, key, unexpected_type):
@@ -704,10 +725,14 @@ def output_summary_test_plan_by_unexpected_type(variant, config_filename, overal
         result = test_result['test_result']
         if result[key]:
             test_name = test_result['test_name']
+            header = '\t\t{} ({})'.format(test_name, test_result['log_detail_link'])
+            if 'skip' in key:
+                print(failure(header))
+                continue
             if unexpected_type == 'failure':
-                print(failure('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
+                print(failure(header))
             else:
-                print(warning('\t\t{} ({}): '.format(test_name, test_result['log_detail_link'])))
+                print(warning(header))
             print_template = 'unexpected' in key
             print_failure_warning(result[key], unexpected_type, '\t\t\t', variant=variant, config=config_filename, test=test_name, print_template=print_template)
 
@@ -905,9 +930,10 @@ if __name__ == '__main__':
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
         failed = True
 
-    if expected_skips_list:
+    unused_expected_skips = list(filter(is_unused, expected_skips_list))
+    if unused_expected_skips:
         print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
-        for entry in expected_skips_list:
+        for entry in unused_expected_skips:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
                 'variant': entry.get('variant', None),
@@ -953,6 +979,9 @@ if __name__ == '__main__':
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
+
+    # wait a bit before exiting so that end of output isn't lost - https://gitlab.com/gitlab-org/gitlab/-/issues/217199
+    time.sleep(20)
 
     if failed:
         sys.exit(1)

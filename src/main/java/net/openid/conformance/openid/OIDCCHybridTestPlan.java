@@ -84,7 +84,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeIdTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code id_token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -97,6 +97,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 					),
 				variantCodeIdTokenBasic
@@ -146,7 +147,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -159,6 +160,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 				),
 				variantCodeTokenBasic
@@ -208,7 +210,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 				variantCodeIdTokenTokenBasic
 			),
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code id_token token"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -221,6 +223,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 				),
 				variantCodeIdTokenTokenBasic

@@ -75,7 +75,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 			),
 			// now switch variants to check that client_secret_post works
 			new ModuleListEntry(
-				List.of(OIDCCServerTest.class), // OP-ClientAuth-SecretPost-Dynamic
+				List.of(OIDCCServerTestClientSecretPost.class), // OP-ClientAuth-SecretPost-Dynamic
 				List.of(
 					new Variant(ResponseType.class, "code"),
 					new Variant(ClientAuthType.class, "client_secret_post"),
@@ -89,6 +89,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
 					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
 					),
 				variantCodeBasic

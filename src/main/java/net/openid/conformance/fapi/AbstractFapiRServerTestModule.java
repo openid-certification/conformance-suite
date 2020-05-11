@@ -58,6 +58,8 @@ public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServ
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
+		// It would be better to do this using variants as it's done in
+		// the OIDCC test modules.
 		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
 		callAndContinueOnFailure(GetStaticServerConfiguration.class);
 

@@ -318,9 +318,14 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
 
-		// Make sure we're calling the right server configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		callAndStopOnFailure(GetStaticServerConfiguration.class);
+		switch (getVariant(ServerMetadata.class)) {
+			case DISCOVERY:
+				callAndStopOnFailure(GetDynamicServerConfiguration.class);
+				break;
+			case STATIC:
+				callAndStopOnFailure(GetStaticServerConfiguration.class);
+				break;
+		}
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
