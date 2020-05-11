@@ -601,7 +601,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
     for expected_skip_obj in test_expected_skips:
         if test_result == 'SKIPPED' or test_result == 'FAILED':
             expected_skip = True
-            expected_skips_list.remove(expected_skip_obj)
+            expected_skip_obj['__used'] = True
         else:
             expected_skip_did_not_happen = True
             counts_unexpected['EXPECTED_SKIPS_NOT_HAPPEN'] += 1
@@ -930,9 +930,10 @@ if __name__ == '__main__':
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
         failed = True
 
-    if expected_skips_list:
+    unused_expected_skips = list(filter(is_unused, expected_skips_list))
+    if unused_expected_skips:
         print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
-        for entry in expected_skips_list:
+        for entry in unused_expected_skips:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
                 'variant': entry.get('variant', None),
