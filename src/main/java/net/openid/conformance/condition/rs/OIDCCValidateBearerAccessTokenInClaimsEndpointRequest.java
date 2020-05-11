@@ -9,16 +9,19 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * extract either from headers or parameters
- * but don't allow more than one (https://tools.ietf.org/html/rfc6750#section-2
- *    Clients MUST NOT use more
- *    than one method to transmit the token in each request.)
+ * https://openid.net/specs/openid-connect-core-1_0.html#AggregatedDistributedClaims
+ * access_token
+ * 	OPTIONAL. Access Token enabling retrieval of the Claims from the endpoint URL by using the OAuth
+ * 	2.0 Bearer Token Usage [RFC6750] protocol.
+ * 	Claims SHOULD be requested using the Authorization Request header field and Claims Providers
+ * 	MUST support this method. If the Access Token is not available, RPs MAY need to retrieve the
+ * 	Access Token out of band or use an Access Token that was pre-negotiated between the Claims Provider
+ * 	and RP, or the Claims Provider MAY reauthenticate the End-User and/or reauthorize the RP.
  */
-public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition {
+public class OIDCCValidateBearerAccessTokenInClaimsEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "incoming_request")
-	@PostEnvironment(strings = "incoming_access_token")
 	public Environment evaluate(Environment env) {
 
 		String tokenFromHeader = null;
@@ -33,6 +36,7 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 		JsonElement accessTokenElementFromForm = env.getElementFromObject("incoming_request", "body_form_params.access_token");
 		JsonElement accessTokenElementFromQuery = env.getElementFromObject("incoming_request", "query_string_params.access_token");
 
+		//this is in theory allowed by RFC6750 but not recommended, we don't allow it
 		if(accessTokenElementFromQuery!=null) {
 			throw error("Request contains access_token parameter in query string",
 				args("access_token_query_parameter", accessTokenElementFromQuery));
@@ -62,8 +66,14 @@ public class OIDCCExtractBearerAccessTokenFromRequest extends AbstractCondition 
 			incomingAccessToken = tokenFromParams;
 		}
 
-		env.putString("incoming_access_token", incomingAccessToken);
-		logSuccess("Found access token on incoming request", args("access_token", incomingAccessToken));
+		String accessTokenInEnv = env.getString("distributed_claims_access_token");
+		if(incomingAccessToken.equals(accessTokenInEnv)) {
+			logSuccess("Request contains a valid access token", args("access_token", incomingAccessToken));
+		} else {
+			throw error("Invalid access token in request",
+				args("expected_access_token", accessTokenInEnv,
+					"actual_access_token", incomingAccessToken));
+		}
 
 		return env;
 
