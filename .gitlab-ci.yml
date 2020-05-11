@@ -355,15 +355,19 @@ deployment_local_test_review:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
+    - sleep 5
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
   after_script:
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server.log
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
   artifacts:
     when: always
     paths:
-      - server.log
+      - oidcc-provider-log.txt
+      - server-log.txt
       - mongo/data/mongodb-dump.gz
 
 # ---------------------------------------------------------------------------
