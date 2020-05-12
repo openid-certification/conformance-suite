@@ -582,9 +582,9 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
                     unexpected_warnings.append({'current_block': block_msg, 'src': log_entry['src']})
                     counts_unexpected['UNEXPECTED_WARNINGS'] += 1
 
-    # list all the expected failures/warnings did not happen of a test module
+    # list all the expected failures/warnings did not happen for a test module
     for expected_failure_obj in test_expected_failures:
-        if expected_failure_obj['__used']:
+        if '__used' in expected_failure_obj:
             continue
         expected_result = expected_failure_obj['expected-result']
         expected_block = expected_failure_obj['current-block']
