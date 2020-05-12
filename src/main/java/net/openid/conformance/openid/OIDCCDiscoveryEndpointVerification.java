@@ -21,12 +21,14 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesS
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
+import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -43,6 +45,7 @@ import net.openid.conformance.variant.VariantParameters;
 )
 @VariantParameters({
 	ServerMetadata.class,
+	ClientRegistration.class
 })
 @VariantNotApplicable(parameter = ServerMetadata.class, values = { "static"} )
 public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
@@ -72,7 +75,12 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
+			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-15.2");
+		} else {
+			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-3");
+		}
 
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");

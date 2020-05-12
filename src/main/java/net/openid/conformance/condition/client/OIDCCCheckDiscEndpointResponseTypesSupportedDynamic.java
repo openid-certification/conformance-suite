@@ -5,14 +5,14 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class OIDCCCheckDiscEndpointResponseTypesSupported extends AbstractValidateResponseTypesArray {
+public class OIDCCCheckDiscEndpointResponseTypesSupportedDynamic extends AbstractValidateResponseTypesArray {
 
 	private static final String environmentVariable = "response_types_supported";
 
-	private static final String[] SET_VALUES = new String[]{"code", "code id_token", "id_token", "token id_token", "code id_token token", "code token"};
-	private static final int minimumMatchesRequired = 1;
+	private static final String[] SET_VALUES = new String[]{"code", "id_token", "token id_token"}; // from OIDCD-3
+	private static final int minimumMatchesRequired = SET_VALUES.length;
 
-	private static final String errorMessageNotEnough = "The server must support at least one of the response types defined in OpenID Connect.";
+	private static final String errorMessageNotEnough = "The server does not support all of the mandatory to implement response_types for dynamic OpenID Providers.";
 
 	@Override
 	@PreEnvironment(required = "server")
