@@ -74,6 +74,7 @@ build:
 
 upload:
   stage: upload
+  needs: ["build"]
   image: docker:git
   services:
     - docker:dind
@@ -84,8 +85,6 @@ upload:
     - install_build_dependencies
     - docker build -t conformance-suite .
     - if [ -n "$GCP_PROJECT_ID" ]; then upload; fi
-  dependencies:
-    - build
 
 test:
   <<: *maven
@@ -96,8 +95,6 @@ test:
     - mvn -B -Dmaven.main.skip test
     - |
       perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
-  dependencies:
-    - build
   only:
     - branches
 
@@ -131,8 +128,6 @@ sonarqube_scanner:
         -Dsonar.gitlab.max_blocker_issues_gate=0 \
         -Dsonar.gitlab.json_mode=SAST \
         -Dsonar.gitlab.failure_notification_mode=exit-code
-  dependencies:
-    - build
   only:
     - branches
 
@@ -355,23 +350,24 @@ deployment_local_test_review:
   services:
     - docker:dind
   needs: ["build"]
-  dependencies: []
   script:
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
+    - sleep 5
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
   after_script:
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server.log
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
-  dependencies:
-    - build
   artifacts:
     when: always
     paths:
-      - server.log
+      - oidcc-provider-log.txt
+      - server-log.txt
       - mongo/data/mongodb-dump.gz
 
 # ---------------------------------------------------------------------------
