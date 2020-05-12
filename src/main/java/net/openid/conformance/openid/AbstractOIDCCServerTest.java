@@ -567,7 +567,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.INFO, "RFC6749-5.1"); // this is 'recommended' by the RFC, but we don't want to raise a warning on every test
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
@@ -578,14 +578,14 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// save the id_token returned from the token endpoint
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
 
-		performTokenEndpointIdTokenValidation();
+		additionalTokenEndpointResponseValidation();
 
 		if (responseType.includesIdToken()) {
 			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, ConditionResult.FAILURE, "OIDCC-2");
 		}
 	}
 
-	protected void performTokenEndpointIdTokenValidation() {
+	protected void additionalTokenEndpointResponseValidation() {
 		performIdTokenValidation();
 	}
 
