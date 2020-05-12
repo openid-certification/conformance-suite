@@ -41,7 +41,7 @@ public abstract class AbstractOIDCCAuthCodeReuse extends AbstractOIDCCServerTest
 	}
 
 	protected void testReuseOfAuthorizationCode() {
-		eventLog.startBlock("Attempting reuse of authorisation code & testing if access token is revoked");
+		eventLog.startBlock("Attempting reuse of authorisation code");
 
 		if (generateNewClientAssertionSteps != null) {
 			call(sequence(generateNewClientAssertionSteps));
