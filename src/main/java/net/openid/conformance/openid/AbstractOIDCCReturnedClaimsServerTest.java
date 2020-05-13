@@ -64,10 +64,9 @@ public class AbstractOIDCCReturnedClaimsServerTest extends AbstractOIDCCServerTe
 
 		if (responseType.includesIdToken()) {
 			callAndContinueOnFailure(VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
-
-			if (responseType.includesCode()) {
-				callAndContinueOnFailure(VerifyUserInfoAndIdTokenInTokenEndpointSameSub.class, Condition.ConditionResult.FAILURE,  "OIDCC-5.3.2");
-			}
+		}
+		if (responseType.includesCode()) {
+			callAndContinueOnFailure(VerifyUserInfoAndIdTokenInTokenEndpointSameSub.class, Condition.ConditionResult.FAILURE,  "OIDCC-5.3.2");
 		}
 		callAndContinueOnFailure(VerifyScopesReturnedInUserInfoClaims.class, Condition.ConditionResult.WARNING, "OIDCC-5.4");
 	}
