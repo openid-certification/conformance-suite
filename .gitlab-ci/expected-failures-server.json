@@ -78,7 +78,7 @@
         "test-name": "oidcc-codereuse-30seconds",
         "variant": "*",
         "configuration-filename": "authlete-*.json",
-        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
+        "current-block": "Testing if access token was revoked after the authorization code was reused",
         "condition": "CallProtectedResourceWithBearerTokenExpectingError",
         "expected-result": "warning",
         "comment": "known case where authlete doesn't implement a 'should'"

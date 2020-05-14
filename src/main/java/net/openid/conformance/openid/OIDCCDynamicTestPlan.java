@@ -67,7 +67,10 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 					// VerifyOPEndpointsUseHTTPS() - included in OIDCCDiscoveryEndpointVerification, CheckDiscEndpointAllEndpointsAreHttps
 					// end of duplicate of OIDCCConfigTestPlan
 				),
-				List.of(new Variant(ServerMetadata.class, "discovery"))
+				List.of(
+					new Variant(ServerMetadata.class, "discovery"),
+					new Variant(ClientRegistration.class, "dynamic_client")
+				)
 			),
 			new ModuleListEntry(
 				List.of(

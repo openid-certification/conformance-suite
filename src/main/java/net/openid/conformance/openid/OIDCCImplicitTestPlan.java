@@ -25,7 +25,7 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 		// general list of tests - these are run for both response types
 		List<Class<? extends TestModule>> moduleList = List.of(
 			OIDCCServerTest.class, // OP-Response-id_token
-			OIDCCResponseTypeMissing.class, // OP-Response-Missing
+			// OIDCCResponseTypeMissing.class, // OP-Response-Missing - run just once below instead
 			// 4 x IdToken.verify() are covered by OIDCCServerTest
 			OIDCCIdTokenSignature.class, // OP-IDToken-Signature & OP-IDToken-kid
 			// OP-IDToken-at_hash covered by OIDCCServerTest
@@ -82,7 +82,8 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 				List.of(
 					OIDCCUserInfoGet.class, // OP-UserInfo-Endpoint
 					OIDCCUserInfoPostHeader.class, // OP-UserInfo-Header
-					OIDCCUserInfoPostBody.class // OP-UserInfo-Body
+					OIDCCUserInfoPostBody.class, // OP-UserInfo-Body
+					OIDCCResponseTypeMissing.class // OP-Response-Missing - only necessary to run this once, not for each response_type
 				),
 				variantIdTokenTokenBasic
 			)

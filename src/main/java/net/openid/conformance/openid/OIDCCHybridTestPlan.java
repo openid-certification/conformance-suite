@@ -106,7 +106,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					OIDCCServerTest.class, // OP-Response-code+id_token / OP-Response-code+token / OP-Response-code+id_token+token
-					OIDCCResponseTypeMissing.class, // OP-Response-Missing
+					// OIDCCResponseTypeMissing.class, // OP-Response-Missing - does not need to be repeated, it's the same for all response_type
 					// 4 x IdToken.verify() are covered by OIDCCServerTest
 					OIDCCIdTokenSignature.class, // OP-IDToken-Signature & OP-IDToken-kid
 					// OP-IDToken-at_hash & OP-IDToken-c_hash are covered by OIDCCServerTest
@@ -169,7 +169,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					OIDCCServerTest.class, // OP-Response-code+id_token / OP-Response-code+token / OP-Response-code+id_token+token
-					OIDCCResponseTypeMissing.class, // OP-Response-Missing
+					// OIDCCResponseTypeMissing.class, // OP-Response-Missing - does not need to be repeated, it's the same for all response_type
 					// 4 x IdToken.verify() are covered by OIDCCServerTest
 					OIDCCIdTokenSignature.class, // OP-IDToken-Signature & OP-IDToken-kid
 					// OP-IDToken-at_hash & OP-IDToken-c_hash are covered by OIDCCServerTest

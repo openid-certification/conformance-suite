@@ -23,6 +23,8 @@ public class OIDCCAuthCodeReuseAfter30Seconds extends AbstractOIDCCAuthCodeReuse
 	@Override
 	protected void checkResponse() {
 		super.checkResponse();
+		eventLog.endBlock();
+		eventLog.startBlock("Testing if access token was revoked after the authorization code was reused");
 		// The AS 'SHOULD' have revoked the access token; try it again
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
 	}

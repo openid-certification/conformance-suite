@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEnt
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractCHash;
+import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -38,8 +39,11 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 	}
 
 	@Override
-	protected void performTokenEndpointIdTokenValidation() {
-		super.performTokenEndpointIdTokenValidation();
+	protected void additionalTokenEndpointResponseValidation() {
+		super.additionalTokenEndpointResponseValidation();
+
+		// issue warning if expires_in is missing (RFC6749 recommends it)
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "RFC6749-5.1");
 
 		// at_hash and c_hash are optional in the token endpoint id_token, but if present must be correct
 		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11", "OIDCC-3.3.3.6");

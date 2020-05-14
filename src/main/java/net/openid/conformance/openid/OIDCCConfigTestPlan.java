@@ -2,6 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 
 import java.util.List;
@@ -41,7 +42,8 @@ public class OIDCCConfigTestPlan implements TestPlan {
 					// VerifyOPEndpointsUseHTTPS() - included in OIDCCDiscoveryEndpointVerification, CheckDiscEndpointAllEndpointsAreHttps
 				),
 				List.of(
-					new Variant(ServerMetadata.class, "discovery")
+					new Variant(ServerMetadata.class, "discovery"),
+					new Variant(ClientRegistration.class, "static_client")
 				)
 			)
 		);

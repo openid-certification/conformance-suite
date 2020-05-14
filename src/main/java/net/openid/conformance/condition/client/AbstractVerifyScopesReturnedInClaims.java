@@ -3,12 +3,12 @@ package net.openid.conformance.condition.client;
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +48,7 @@ public abstract class AbstractVerifyScopesReturnedInClaims extends AbstractCondi
 		String scopeStr = env.getString("authorization_endpoint_request", "scope");
 
 		if (Strings.isNullOrEmpty(scopeStr)) {
-			throw error("Not found 'scope' in authorization endpoint request");
+			throw error("'scope' not found in authorization endpoint request");
 		}
 
 		Set<String> claimsSet = claims.getAsJsonObject().keySet();
@@ -61,8 +61,11 @@ public abstract class AbstractVerifyScopesReturnedInClaims extends AbstractCondi
 			expectedScopeItems.addAll(scopeItems);
 		}
 
+		Set<String> missingItems = new HashSet<String>(expectedScopeItems);
+		missingItems.removeAll(claimsSet);
+
 		if (!claimsSet.containsAll(expectedScopeItems)) {
-			throw error("'claims' in " + claimsKey + " doesn't contain all scope items of scope in authorization request(corresponds to scope standard claims)", args("actual_scope_items", claimsSet, "expected_scope_items", expectedScopeItems));
+			throw error("'claims' in " + claimsKey + " doesn't contain all scope items of scope in authorization request(corresponds to scope standard claims)", args("actual_scope_items", claimsSet, "expected_scope_items", expectedScopeItems, "missing_items", missingItems));
 		}
 
 		logSuccess("'claims' in " + claimsKey + " contains all scope items of scope in authorization request (corresponds to scope standard claims)", args("actual_scope_items", claimsSet, "expected_scope_items", expectedScopeItems));
