@@ -464,6 +464,65 @@
                                 </div>
                             </div>
 
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Configuration fields for tls_client_auth client authentication</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">tls_client_auth_subject_dn</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Certificate subject DN"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_subject_dn"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">tls_client_auth_san_dns</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="DNSname subject alternative name."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_dns"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">tls_client_auth_san_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI subject alternative name."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">tls_client_auth_san_ip</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="IP address subject alternative name."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_ip"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">tls_client_auth_san_email</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Email address subject alternative name."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_email"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
 							<div class="config-form-container">
 								<h3 class="config-form-container-header">TLS certificates for client (used to make MTLS connections)</h3>
 								<div class="row config-form-element-container">

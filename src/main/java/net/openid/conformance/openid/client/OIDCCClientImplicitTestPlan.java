@@ -3,8 +3,7 @@ package net.openid.conformance.openid.client;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.ClientRequestType;
+import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 
@@ -108,13 +107,13 @@ public class OIDCCClientImplicitTestPlan implements TestPlan {
 		final List<Variant> variantResponseTypeIdToken = List.of(
 			new Variant(ResponseType.class, "id_token"),
 			new Variant(ResponseMode.class, "default"),
-			new Variant(ClientAuthType.class, "client_secret_basic")
+			new Variant(OIDCCClientAuthType.class, "client_secret_basic")
 		);
 
 		final List<Variant> variantResponseTypeIdTokenToken = List.of(
 			new Variant(ResponseType.class, "id_token token"),
 			new Variant(ResponseMode.class, "default"),
-			new Variant(ClientAuthType.class, "client_secret_basic")
+			new Variant(OIDCCClientAuthType.class, "client_secret_basic")
 		);
 
 		return List.of(

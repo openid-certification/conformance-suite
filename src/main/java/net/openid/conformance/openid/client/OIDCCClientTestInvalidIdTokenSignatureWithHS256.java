@@ -1,15 +1,12 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgHS256Only;
-import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgRS256Only;
 import net.openid.conformance.condition.as.SetServerSigningAlgToHS256;
-import net.openid.conformance.condition.as.SetServerSigningAlgToRS256;
 import net.openid.conformance.condition.as.SignIdTokenInvalid;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgHS256;
-import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -22,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+@VariantNotApplicable(parameter = OIDCCClientAuthType.class, values = {
 	"none", "private_key_jwt"
 })
 public class OIDCCClientTestInvalidIdTokenSignatureWithHS256 extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {

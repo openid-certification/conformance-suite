@@ -2,7 +2,6 @@ package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -58,6 +57,8 @@ import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedT
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToSelfSignedTlsClientAuthOnly;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToTlsClientAuthOnly;
 import net.openid.conformance.condition.as.SignUserInfoResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
@@ -70,8 +71,8 @@ import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEn
 import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCRegisterClient;
-import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
+import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToServerSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
@@ -95,19 +96,21 @@ import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
-import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
-import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithNone;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithSelfSignedTlsClientAuth;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithTlsClientAuth;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretJWT;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithNone;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithSelfSignedTlsClientAuth;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithTlsClientAuth;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -115,9 +118,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWSUtil;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ClientRequestType;
+import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -137,23 +140,34 @@ import javax.servlet.http.HttpSession;
 
 
 @VariantParameters({
-	ClientAuthType.class,
+	OIDCCClientAuthType.class,
 	ResponseType.class,
 	ResponseMode.class,
 	ClientRegistration.class,
 	ClientRequestType.class
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_secret"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "client_secret_post", configurationFields = {
 	"client.client_secret"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "client_secret_jwt", configurationFields = {
 	"client.client_secret",
 	"client.client_secret_jwt_alg"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client.jwks",
+	"client.jwks_uri"
+})
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "tls_client_auth", configurationFields = {
+	"client.tls_client_auth_subject_dn",
+	"client.tls_client_auth_san_dns",
+	"client.tls_client_auth_san_uri",
+	"client.tls_client_auth_san_ip",
+	"client.tls_client_auth_san_email"
+})
+@VariantConfigurationFields(parameter = OIDCCClientAuthType.class, value = "self_signed_tls_client_auth", configurationFields = {
 	"client.jwks",
 	"client.jwks_uri"
 })
@@ -165,9 +179,15 @@ import javax.servlet.http.HttpSession;
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name",
 	"client.client_secret",
-	"client.jwks"
+	"client.jwks",
+	"client.jwks_uri",
+	"client.tls_client_auth_subject_dn",
+	"client.tls_client_auth_san_dns",
+	"client.tls_client_auth_san_uri",
+	"client.tls_client_auth_san_ip",
+	"client.tls_client_auth_san_email"
 })
-@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "none", configurationFields = {
+@VariantHidesConfigurationFields(parameter = OIDCCClientAuthType.class, value = "none", configurationFields = {
 	"client.client_secret"
 })
 public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
@@ -175,7 +195,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ResponseMode responseMode;
 	protected ClientRequestType clientRequestType;
 	protected ClientRegistration clientRegistrationType;
-	protected ClientAuthType clientAuthType;
+	protected OIDCCClientAuthType clientAuthType;
 
 	protected boolean receivedDiscoveryRequest;
 	protected boolean receivedJwksRequest;
@@ -207,8 +227,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected ClientRegistration getEffectiveClientRegistrationVariant() {
 		return getVariant(ClientRegistration.class);
 	}
-	protected ClientAuthType getEffectiveClientAuthTypeVariant() {
-		return getVariant(ClientAuthType.class);
+	protected OIDCCClientAuthType getEffectiveClientAuthTypeVariant() {
+		return getVariant(OIDCCClientAuthType.class);
 	}
 
 	@Override
@@ -231,6 +251,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		clientAuthType = getEffectiveClientAuthTypeVariant();
 
 		configureServerConfiguration();
+
+		if(addTokenEndpointAuthMethodSupported!=null) {
+			callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		}
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
@@ -338,7 +362,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 	protected boolean isClientJwksNeeded() {
 		//or clientAuthType == ClientAuthType.self_signed_tls_client_auth
-		if( clientAuthType == ClientAuthType.PRIVATE_KEY_JWT ) {
+		if( clientAuthType == OIDCCClientAuthType.PRIVATE_KEY_JWT || clientAuthType == OIDCCClientAuthType.SELF_SIGNED_TLS_CLIENT_AUTH) {
 			return true;
 		}
 
@@ -387,6 +411,33 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 		// nothing to do here
 		setStatus(Status.WAITING);
+	}
+
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		validateTlsForIncomingHttpRequest();
+
+		call(exec().unmapKey("client_request"));
+
+		Object responseObject = null;
+		if (path.equals("token")) {
+			responseObject = handleTokenEndpointRequest(requestId);
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected MTLS HTTP call to " + path);
+		}
+		if (!finishTestIfAllRequestsAreReceived()) {
+			setStatus(Status.WAITING);
+		}
+		return responseObject;
 	}
 
 	@Override
@@ -1108,39 +1159,53 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "none")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "none")
 	public void setupClientAuthNone() {
 		addTokenEndpointAuthMethodSupported = null;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithNone.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithNone.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretPost.class;
 		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+	}
+
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "tls_client_auth")
+	public void setupTlsClientAuth() {
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToTlsClientAuthOnly.class;
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithTlsClientAuth.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithTlsClientAuth.class;
+	}
+
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "self_signed_tls_client_auth")
+	public void setupSelfSignedTlsClientAuth() {
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToSelfSignedTlsClientAuthOnly.class;
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithSelfSignedTlsClientAuth.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithSelfSignedTlsClientAuth.class;
 	}
 
 	/**

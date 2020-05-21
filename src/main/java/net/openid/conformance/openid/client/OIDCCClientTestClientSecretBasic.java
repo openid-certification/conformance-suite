@@ -1,7 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
@@ -23,31 +23,31 @@ import net.openid.conformance.variant.VariantSetup;
 public class OIDCCClientTestClientSecretBasic extends AbstractOIDCCClientTest {
 
 	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "none")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "none")
 	public void setupClientAuthNone() {
 		setupClientSecretBasic();
 	}
 
 	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		setupClientSecretBasic();
 	}
 
 	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
 		setupClientSecretBasic();
 	}
 
 	@Override
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		setupClientSecretBasic();
 	}
 
 	@Override
-	protected ClientAuthType getEffectiveClientAuthTypeVariant() {
-		return ClientAuthType.CLIENT_SECRET_BASIC;
+	protected OIDCCClientAuthType getEffectiveClientAuthTypeVariant() {
+		return OIDCCClientAuthType.CLIENT_SECRET_BASIC;
 	}
 }
