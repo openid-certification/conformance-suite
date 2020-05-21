@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = OIDCCClientAuthType.class, values = {
-	"none", "private_key_jwt"
+	"none", "private_key_jwt", "tls_client_auth", "self_signed_tls_client_auth"
 })
 public class OIDCCClientTestInvalidIdTokenSignatureWithHS256 extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
 

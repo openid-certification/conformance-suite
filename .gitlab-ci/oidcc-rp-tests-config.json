@@ -157,6 +157,33 @@
             "client_metadata_defaults": {
                 "request_object_encryption_alg":"ECDH-ES"
             }
+        },
+        {
+            "client_auth_type": "tls_client_auth",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {
+                "tls_client_auth_subject_dn":"cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us"
+            },
+            "other_environment_variables": {
+                "CLIENT_CERT": "../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.crt",
+                "CLIENT_CERT_KEY": "../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.key"
+            }
+        },
+        {
+            "client_auth_type": "self_signed_tls_client_auth",
+            "response_type": "code",
+            "response_mode": "default",
+            "request_type": "plain_http_request",
+            "client_registration": "dynamic_client",
+            "client_metadata_defaults": {
+            },
+            "other_environment_variables": {
+                "CLIENT_CERT": "../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.crt",
+                "CLIENT_CERT_KEY": "../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.key"
+            }
         }
 
     ]

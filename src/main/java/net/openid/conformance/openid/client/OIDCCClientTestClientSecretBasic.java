@@ -47,6 +47,18 @@ public class OIDCCClientTestClientSecretBasic extends AbstractOIDCCClientTest {
 	}
 
 	@Override
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "tls_client_auth")
+	public void setupTlsClientAuth() {
+		setupClientSecretBasic();
+	}
+
+	@Override
+	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "self_signed_tls_client_auth")
+	public void setupSelfSignedTlsClientAuth() {
+		setupClientSecretBasic();
+	}
+
+	@Override
 	protected OIDCCClientAuthType getEffectiveClientAuthTypeVariant() {
 		return OIDCCClientAuthType.CLIENT_SECRET_BASIC;
 	}
