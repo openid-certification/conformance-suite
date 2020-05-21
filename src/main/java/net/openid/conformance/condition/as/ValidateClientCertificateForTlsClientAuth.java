@@ -38,15 +38,15 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 		int fieldCount = 0;
 		/*
 		A client using the
-   		"tls_client_auth" authentication method MUST use exactly one of the
-   		below metadata parameters to indicate the certificate subject value
-   		that the authorization server is to expect when authenticating the
-   		respective client.
+		"tls_client_auth" authentication method MUST use exactly one of the
+		below metadata parameters to indicate the certificate subject value
+		that the authorization server is to expect when authenticating the
+		respective client.
 
-   		Also https://tools.ietf.org/html/rfc8705#section-2.1
-   			Only one subject name value of any type is used for each
-   			client.
-   		*/
+		Also https://tools.ietf.org/html/rfc8705#section-2.1
+			Only one subject name value of any type is used for each
+			client.
+		*/
 		if(client.has("tls_client_auth_subject_dn")) {
 			fieldCount++;
 		}
