@@ -1,4 +1,4 @@
-package net.openid.conformance.openid.client;
+package net.openid.conformance.openid.client.logout.plan;
 
 import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLogout;
 import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLogoutAlgNone;
