@@ -1,11 +1,11 @@
 package net.openid.conformance.variant;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import net.openid.conformance.testmodule.OIDFJSON;
+
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.google.gson.JsonElement;
-
-import net.openid.conformance.testmodule.OIDFJSON;
 
 public class VariantSelection {
 
@@ -19,7 +19,7 @@ public class VariantSelection {
 	public static final VariantSelection EMPTY = new VariantSelection(Map.of());
 
 	public static VariantSelection fromJson(JsonElement json) {
-		if (json == null || json.isJsonNull()) {
+		if (json == null || json.isJsonNull() || json.equals(new JsonPrimitive(""))) {
 			return new VariantSelection(Map.of());
 		} else if (json.isJsonPrimitive()) {
 			return new VariantSelection(OIDFJSON.getString(json));
