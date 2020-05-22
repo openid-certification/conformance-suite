@@ -154,7 +154,7 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 
 	}
 
-	private boolean checkSanUri(JsonArray jsonElements, String expected) {
+	public boolean checkSanUri(JsonArray jsonElements, String expected) {
 		URI expectedURI = null;
 		try {
 			expectedURI = new URI(expected);
@@ -177,7 +177,7 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 		return false;
 	}
 
-	private boolean checkSanIP(JsonArray jsonElements, String expected) {
+	public boolean checkSanIP(JsonArray jsonElements, String expected) {
 		InetAddress expectedAddress = InetAddresses.forString(expected);
 		for(JsonElement element : jsonElements) {
 			InetAddress address = InetAddresses.forString(element.getAsString());
