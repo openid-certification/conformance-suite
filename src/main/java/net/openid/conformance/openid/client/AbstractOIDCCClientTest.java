@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.AddIssAndAudToUserInfoResponse;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
+import net.openid.conformance.condition.as.ChangeTokenEndpointInServerConfigurationToMtls;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -255,6 +256,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(addTokenEndpointAuthMethodSupported!=null) {
 			callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 		}
+		adjustTokenEndpointInServerConfigurationIfUsingMtls();
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
@@ -333,6 +335,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			case REQUEST_URI:
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
 				break;
+		}
+	}
+
+	/**
+	 * no-op unless client auth type is SELF_SIGNED_TLS_CLIENT_AUTH or TLS_CLIENT_AUTH
+	 */
+	protected void adjustTokenEndpointInServerConfigurationIfUsingMtls() {
+		if(clientAuthType==OIDCCClientAuthType.SELF_SIGNED_TLS_CLIENT_AUTH || clientAuthType==OIDCCClientAuthType.TLS_CLIENT_AUTH) {
+			callAndStopOnFailure(ChangeTokenEndpointInServerConfigurationToMtls.class);
 		}
 	}
 

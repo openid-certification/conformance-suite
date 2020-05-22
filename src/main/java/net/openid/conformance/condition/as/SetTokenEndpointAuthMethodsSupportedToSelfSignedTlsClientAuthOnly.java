@@ -22,12 +22,7 @@ public class SetTokenEndpointAuthMethodsSupportedToSelfSignedTlsClientAuthOnly e
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
 
-		String tokenEndpoint = OIDFJSON.getString(server.get("token_endpoint"));
-		tokenEndpoint = tokenEndpoint.replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
-		server.addProperty("token_endpoint", tokenEndpoint);
-
-		log("Set token_endpoint_auth_methods_supported to self_signed_tls_client_auth only" +
-			" and replaced token_endpoint with the MTLS one");
+		log("Set token_endpoint_auth_methods_supported to self_signed_tls_client_auth");
 
 
 		return env;
