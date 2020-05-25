@@ -1,7 +1,10 @@
 package net.openid.conformance.logging;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.ArrayList;
@@ -9,11 +12,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.PublicPlan;
 import net.openid.conformance.info.TestPlanService;
@@ -54,6 +59,14 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -396,6 +409,197 @@ public class LogApi {
 					.collect(Collectors.joining("-"))
 					+ "-";
 		}
+	}
+
+	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
+	@ApiOperation(value = "Export all test results as html of plan by plan id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Exported successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find given plan Id")
+	})
+	public ResponseEntity<StreamingResponseBody> exportPlanAsHTML(
+		HttpServletRequest httpRequest,
+		@ApiParam(value = "Id of plan") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+
+		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
+
+		String planName = null;
+		VariantSelection variant = null;
+
+		List<Plan.Module> modules = new ArrayList<>();
+
+		if (testPlan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} else if (testPlan instanceof PublicPlan) {
+			planName = ((PublicPlan) testPlan).getPlanName();
+			variant = ((PublicPlan) testPlan).getVariant();
+			modules = ((PublicPlan) testPlan).getModules();
+		} else if (testPlan instanceof Plan) {
+			planName = ((Plan) testPlan).getPlanName();
+			variant = ((Plan) testPlan).getVariant();
+			modules = ((Plan) testPlan).getModules();
+		}
+
+		List<Map<String, Object>> allLatestLogsExport = new ArrayList<>();
+
+		for (Plan.Module module : modules) {
+
+			String testModuleName = module.getTestModule();
+			List<String> instances = module.getInstances();
+
+			if (instances != null && !instances.isEmpty()) {
+
+				String testId = instances.get(instances.size() - 1);
+
+				List<Document> results = getTestResults(testId, null, publicOnly);
+
+				Optional<?> testInfo = getTestInfo(publicOnly, testId);
+
+				final Map<String, Object> export = putTestResultToExport(results, testInfo);
+
+				final Map<String, Object> testLogInfoExport = new HashMap<>();
+
+				testLogInfoExport.put("testId", testId);
+				testLogInfoExport.put("testModuleName", testModuleName);
+				testLogInfoExport.put("export", export);
+
+				allLatestLogsExport.add(testLogInfoExport);
+
+			}
+		}
+
+		if (allLatestLogsExport.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + ".zip\"");
+
+		StreamingResponseBody responseBody = new StreamingResponseBody() {
+
+			@Override
+			public void writeTo(OutputStream out) throws IOException {
+
+				try {
+					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
+					HtmlExportRenderer htmlExportRenderer = new HtmlExportRenderer();
+					// add all test logs file of a test plan to zip
+					for (Map<String, Object> testLogInfoExport : allLatestLogsExport) {
+
+						String htmlFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".html";
+
+						String sigFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".sig";
+
+						@SuppressWarnings("unchecked")
+						Map<String, Object> infoExport = (Map<String, Object>) testLogInfoExport.get("export");
+
+						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, infoExport, htmlExportRenderer);
+
+					}
+
+					archiveOutputStream.close();
+				} catch (Exception ex) {
+					throw new IOException(ex);
+				}
+			}
+		};
+
+		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+
+	protected void addHTMLFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
+									Map<String, Object> export, HtmlExportRenderer htmlExportRenderer) throws Exception {
+
+		ZipArchiveEntry testLog = new ZipArchiveEntry(htmlFileName);
+
+		Signature signature = Signature.getInstance("SHA1withRSA");
+		signature.initSign(keyManager.getSigningPrivateKey());
+
+		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
+
+		String html = htmlExportRenderer.createHtmlForTestLogs(export);
+		byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+
+		testLog.setSize(htmlBytes.length);
+		archiveOutputStream.putArchiveEntry(testLog);
+
+		signatureOutputStream.write(htmlBytes);
+
+		signatureOutputStream.flush();
+		signatureOutputStream.close();
+
+		archiveOutputStream.closeArchiveEntry();
+
+		ZipArchiveEntry signatureFile = new ZipArchiveEntry(sigFileName);
+
+		String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
+		signatureFile.setSize(encodedSignature.getBytes().length);
+
+		archiveOutputStream.putArchiveEntry(signatureFile);
+
+		archiveOutputStream.write(encodedSignature.getBytes());
+
+		archiveOutputStream.closeArchiveEntry();
+	}
+
+	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
+	@ApiOperation(value = "Export test logs as html by test id")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Exported successfully"),
+		@ApiResponse(code = 404, message = "Couldn't find given test Id")
+	})
+	public ResponseEntity<StreamingResponseBody> exportTestHtml(
+		@ApiParam(value = "Id of test") @PathVariable("id") String id,
+		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		List<Document> results = getTestResults(id, null, publicOnly);
+
+		Optional<?> testInfo = getTestInfo(publicOnly, id);
+
+		String testModuleName = null;
+		VariantSelection variant = null;
+
+		if (!testInfo.isPresent()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} else if (testInfo.get() instanceof TestInfo) {
+			testModuleName = ((TestInfo) testInfo.get()).getTestName();
+			variant = ((TestInfo) testInfo.get()).getVariant();
+		} else if (testInfo.get() instanceof PublicTestInfo) {
+			testModuleName = ((PublicTestInfo) testInfo.get()).getTestName();
+			variant = ((PublicTestInfo) testInfo.get()).getVariant();
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
+
+		final Map<String, Object> export = putTestResultToExport(results, testInfo);
+
+		StreamingResponseBody responseBody = new StreamingResponseBody() {
+
+			@Override
+			public void writeTo(OutputStream out) throws IOException {
+
+				try {
+					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
+					HtmlExportRenderer htmlExportRenderer = new HtmlExportRenderer();
+
+					String htmlFileName = "test-log-" + id + ".html";
+
+					String sigFileName = "test-log-" + id + ".sig";
+
+					addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, export, htmlExportRenderer);
+
+					archiveOutputStream.close();
+				} catch (Exception ex) {
+					throw new IOException(ex);
+				}
+			}
+		};
+
+		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
 	private static class SignatureOutputStream extends OutputStream {

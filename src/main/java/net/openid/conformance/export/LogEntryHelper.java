@@ -1,0 +1,202 @@
+package net.openid.conformance.export;
+
+import com.google.gson.Gson;
+import org.bson.Document;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.regex.Pattern;
+
+/**
+ * Template rendering helper for a single log entry
+ * Methods that seem "unused" are used in templates.
+ */
+public class LogEntryHelper {
+	public static final List<String> blockColors = List.of("#ef476f", "#118ab2", "#073b4c", "#6d597a", "#03045e",
+		"#0077b6", "#7209b7", "#3a0ca3", "#8a817c", "#9a031e", "#5f0f40", "#8900f2");
+	public static final Set<String> visibleFields = Set.of("_id", "msg", "src", "time", "result", "requirements", "upload",
+		"testOwner", "testId", "http", "blockId", "startBlock");
+
+	public static final Map<String, String> specLinks;
+	static{
+		specLinks = new HashMap<>();
+		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
+		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
+		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
+		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
+		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");
+		specLinks.put("OB-", "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#");
+		specLinks.put("OBRW-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#");
+		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");
+		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
+		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
+		specLinks.put("MTLS-", "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-");
+		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
+		specLinks.put("RFC6819-", "https://tools.ietf.org/html/rfc6819#section-");
+		specLinks.put("RFC7231-", "https://tools.ietf.org/html/rfc7231#section-");
+		specLinks.put("RFC7517-", "https://tools.ietf.org/html/rfc7517#section-");
+		specLinks.put("RFC7519-", "https://tools.ietf.org/html/rfc7519#section-");
+		specLinks.put("RFC7523-", "https://tools.ietf.org/html/rfc7523#section-");
+		specLinks.put("RFC7591-", "https://tools.ietf.org/html/rfc7591#section-");
+		specLinks.put("HEART-OAuth2-", "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html#rfc.section.");
+		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
+		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
+		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
+		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");
+		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html");
+		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html");
+	}
+	private Document testResult;
+	private Map<String, Object> more = new LinkedHashMap<>();
+	private Object stackTrace = null;
+	private Object causeStackTrace = null;
+	private boolean doubleStackTrace;
+
+	private Pattern jwtPattern = Pattern.compile("^(e[yw][a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)(\\.([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+))?$");
+	private Gson gson;
+
+	public LogEntryHelper(Document testResult, Gson collapsingGsonHttpMessageConverter) {
+		this.testResult = testResult;
+		this.gson = collapsingGsonHttpMessageConverter;
+		for(String field : testResult.keySet()) {
+			if(!visibleFields.contains(field)) {
+				//TODO I assumed that there can be only 1 stack trace and 1 cause_stacktrace. let me know if that's not the case
+				if("stacktrace".equals(field)) {
+					this.stackTrace = testResult.get(field);
+				} else if("cause_stacktrace".equals(field)) {
+					this.causeStackTrace = testResult.get(field);
+				}
+				this.more.put(field, testResult.get(field));
+			}
+		}
+		if(this.stackTrace!=null && this.causeStackTrace!=null) {
+			this.doubleStackTrace = true;
+			//otherwise they would be printed twice
+			this.more.remove("stacktrace");
+			this.more.remove("cause_stacktrace");
+		}
+	}
+
+	public Object get(String key) {
+		return testResult.get(key);
+	}
+
+	public String getMoreFieldType(String key, Object fieldValue) {
+		if("img".equals(key)) {
+			return "img";
+		}
+		if(fieldValue==null) {
+			return "";
+		}
+
+		if(!isDoubleStackTrace() && ("stacktrace".equals(key) || "cause_stacktrace".equals(key))) {
+			return "exception";
+		}
+		if(fieldValue instanceof Document) {
+			Document doc = (Document) fieldValue;
+			if(doc.containsKey("verifiable_jws")) {
+				return "verifiable_jws";
+			}
+			return "json";
+		}
+		if(isJwt(fieldValue)) {
+			return "jwt";
+		}
+		return "text";
+	}
+
+	public boolean isJwt(Object value) {
+		String str = String.valueOf(value);
+		return jwtPattern.matcher(str).matches();
+	}
+
+	public String[] splitJwt(String jwtString) {
+		return jwtString.split("\\.");
+	}
+
+	public void setMore(Map<String, Object> more)
+	{
+		this.more = more;
+	}
+
+	public Object getStackTrace()
+	{
+		return stackTrace;
+	}
+
+	public void setStackTrace(Object stackTrace)
+	{
+		this.stackTrace = stackTrace;
+	}
+
+	public Object getCauseStackTrace()
+	{
+		return causeStackTrace;
+	}
+
+	public void setCauseStackTrace(Object causeStackTrace)
+	{
+		this.causeStackTrace = causeStackTrace;
+	}
+
+	public boolean isDoubleStackTrace()
+	{
+		return doubleStackTrace;
+	}
+
+	public void setDoubleStackTrace(boolean doubleStackTrace)
+	{
+		this.doubleStackTrace = doubleStackTrace;
+	}
+
+	public Map<String, Object> getMore()
+	{
+		return more;
+	}
+
+	public String getTime() {
+		Object timeObject = testResult.get("time");
+		Date timeAsDate = new Date(Long.valueOf(String.valueOf(timeObject)));
+		TimeZone timeZone = TimeZone.getTimeZone("UTC");
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+		dateFormat.setTimeZone(timeZone);
+		String asISO = dateFormat.format(timeAsDate);	// + " (UTC)";
+		return asISO;
+	}
+
+	public String formatJson(Document bsonDocument) {
+		return gson.toJson(bsonDocument);
+		/*
+		JsonWriterSettings jsonWriterSettings = JsonWriterSettings.builder().indent(true).build();
+		return bsonDocument.toJson(jsonWriterSettings);
+		 */
+	}
+
+	public String getRequirementLink(String requirement) {
+		for(String key : specLinks.keySet()) {
+			if(requirement.startsWith(key)) {
+				return specLinks.get(key) + requirement.substring(key.length());
+			}
+		}
+		return "";
+	}
+
+	public boolean isBeginNewBlock() {
+		return testResult.containsKey("blockId") && testResult.containsKey("startBlock") && testResult.getBoolean("startBlock");
+	}
+
+	public String getBlockColor() {
+		Random random = new Random();
+		int index = random.nextInt(blockColors.size());
+		return blockColors.get(index);
+	}
+}

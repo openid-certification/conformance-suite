@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>Test detail</title>
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <style>
+        html{
+            box-sizing: border-box;
+        }
+        body{
+            font-family:sans-serif;
+            line-height:1.5em;
+            padding-left:30px;
+            padding-right:30px;
+            padding-top:2em;
+        }
+        #header{
+        }
+        #header th{
+            text-align:left;
+        }
+        #results{
+        }
+        table{
+            width:100%;
+        }
+        .log-item{
+            width:100%;
+            margin-bottom:5px;
+            padding-top:5px;
+            border-top:1px solid #ccc;
+        }
+        .row{
+            padding-top:0.2em;
+            padding-left:0.2em;
+            padding-bottom:0.2em;
+            padding-right:0.2em;
+        }
+         .col-1{
+            width:10%;
+            min-width:100px;
+            display:inline-block;
+            vertical-align: top;
+            font-size:0.90em;
+         }
+         .col-2{
+            width:10%;
+            min-width:100px;
+            display:inline-block;
+             vertical-align: top;
+         }
+         .col-3{
+            width:75%;
+            display:inline-block;
+             vertical-align: top;
+         }
+         .labelCollection{
+
+         }
+         .labelCollection span{
+            border:1px;
+         }
+
+        .wrapLongStrings{
+            white-space:pre-wrap;
+        }
+        .collapse{
+            display:none;
+        }
+        .label{
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            box-sizing: border-box;
+            color: rgb(255, 255, 255);
+            display: inline;
+            font-size: 0.8em;
+            font-weight: 700;
+            line-height: 1.2em;
+            padding-bottom: 3.6px;
+            padding-left: 7.2px;
+            padding-right: 7.2px;
+            padding-top: 2.4px;
+            text-align: center;
+            vertical-align: baseline;
+            white-space: no-wrap;
+        }
+        .info{
+            background-color: rgb(226, 191, 206);
+        }
+        .success{
+            background-color: rgb(0, 204, 0);
+        }
+        .failure{
+            background-color: rgb(204, 0, 0);
+            color:#fff;
+        }
+        .interrupted{
+            background-color: rgb(221, 187, 136);
+            color:#fff;
+        }
+        .warning{
+            background-color: rgb(216, 134, 2);
+            color:#fff;
+        }
+        .failed{
+            background-color: rgb(0, 0, 0);
+            color:#fff;
+        }
+        .review{
+            background-color: rgb(0, 204, 255);
+            color:#fff;
+        }
+        .incoming{
+            background-color:rgb(91, 192, 222);
+        }
+        .outgoing{
+            background-color:rgb(91, 192, 222);
+        }
+        .finished{
+            background-color: rgb(56, 54, 71);
+            color:#fff;
+        }
+        .passed{
+        	background-color: #40e809;
+	        color: #000;
+        }
+        .requirement{
+            border:1px solid #ccc;
+            padding-left:0.2em;
+            padding-right:0.2em;
+            padding-top:0.2em;
+            padding-bottom:0.2em;
+            display:inline-block;
+            background-color: rgb(119, 119, 119);
+            color:#fff;
+            font-size:0.75em;
+            font-weight:normal;
+        }
+        .log-http{
+        }
+        .more{
+        }
+        .more-btn{
+        }
+        a.more-btn{
+            font-size:0.8em;
+        }
+        .more-row{
+            border:1px solid #eee;
+            width:100%;
+        }
+        .more-key{
+            text-align:right;
+            vertical-align: top;
+            background-color: #edf2f4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+            padding-right:3px;
+        }
+        td.more-key{
+            width:15%;
+        }
+        .more-value{
+            vertical-align: top;
+            background-color: #f1f1f1;
+            padding-left:3px;
+            font-size:0.9em;
+        }
+        .more-text{
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .more-jwt{
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .more-json{
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .log-msg{
+        }
+        .log-src{
+            font-family: monospace;
+        }
+        .prettyprint{
+         }
+         .lang-javascript{
+         }
+         .block-title{
+            font-size:1.15em;
+            color:#fff;
+            padding-left:0.25em;
+            padding-right:0.25em;
+            padding-bottom:0.25em;
+            padding-top:0.25em;
+         }
+        .log-entry-title{
+        }
+        ul.stacktrace{
+            margin-top:3px;
+            margin-left:3px;
+        }
+        .stacktrace li{
+            list-style-type:none;
+            margin-top:2px;
+            margin-bottom:2px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .p-1{
+            padding:0.1em 0.1em 0.1em 0.1em;
+        }
+    </style>
+    <script>
+        function moreClicked(itemid){
+            var moreelem = document.getElementById('more_' + itemid);
+            if(moreelem.className.includes('collapse')){
+                moreelem.className='more';
+            }
+            else{
+                moreelem.className='more collapse';
+            }
+        }
+
+        function expandMores() {
+            var mores = document.querySelectorAll('.more');
+            for(var i in mores){
+                var moreelem = mores[i];
+                if(moreelem.className){
+                    moreelem.className='more';
+                }
+            }
+        }
+
+        function collapseMores(){
+            var mores = document.querySelectorAll('.more');
+            for(var i in mores){
+                var moreelem = mores[i];
+                if(moreelem.className){
+                    moreelem.className='more collapse';
+                }
+            }
+        }
+
+    </script>
+</head>
+<body>
+<h1>
+Test Summary
+</h1>
+<div  id="header">
+    <table style="width:auto;">
+        <tr>
+            <th>Exported From</th>
+            <td th:text="${helper.exportedFrom}"></td>
+        </tr>
+        <tr>
+            <th>Exported By</th>
+            <td th:text="${helper.exportedBySub + ' ' + helper.exportedByIss}"></td>
+        </tr>
+        <tr>
+            <th>Suite Version</th>
+            <td th:text="${helper.suiteVersion}"></td>
+        </tr>
+        <tr>
+            <th>Exported At</th>
+            <td th:text="${helper.getExportedTime()}"></td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th>Test Name:</th>
+                        <td th:text="${helper.getTestName()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Variant:</th>
+                        <td th:text="${helper.getTestVariant()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Test ID:</th>
+                        <td th:text="${helper.getTestId()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Created:</th>
+                        <td th:text="${helper.getTestCreated()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Description:</th>
+                        <td th:text="${helper.getTestDescription()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Test Version:</th>
+                        <td th:text="${helper.getTestVersion()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Test Owner:</th>
+                        <td th:text="${helper.getTestOwner()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Plan ID:</th>
+                        <td th:text="${helper.getTestPlanId()}"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="test-summary" th:text="${helper.getTestSummary()}"></td>
+        </tr>
+        <tr>
+            <td>
+                Status:
+                <span th:attr="class=|${helper.getTestStatusClass()}|" th:text="${helper.getTestStatus()}"></span>
+
+                Result:
+                <span th:attr="class=|${helper.getTestResultClass()}|" th:text="${helper.getTestResult()}"></span>
+            </td>
+        </tr>
+        <tr>
+            <td align="center">
+                <span class="label success">SUCCESS <span class="badge" th:text="${helper.getSuccessCount()}"></span></span>
+
+                <span class="label failure">FAILURE <span class="badge" th:text="${helper.getFailureCount()}"></span></span>
+
+                <span class="label warning">WARNING <span class="badge" th:text="${helper.getWarningCount()}"></span></span>
+
+                <span class="label review">REVIEW <span class="badge" th:text="${helper.getReviewCount()}"></span></span>
+
+                <span class="label info">INFO <span class="badge" th:text="${helper.getInfoCount()}"></span></span>
+            </td>
+        </tr>
+        <tr th:if="${helper.hasAnyFailures()}">
+            <td>
+                <b>Failure summary:</b>
+                <ul>
+                    <li th:each="failure : ${helper.getFailures()}" th:text="${failure}"></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<h1>Test Results</h1>
+<a href="javascript:expandMores()">Expand All</a>
+<a href="javascript:collapseMores()">Collapse All</a>
+<div>All times are UTC</div>
+<div id="results" th:each="htmlForEntry : ${helper.resultHtmls}">
+    <div class="log-item"  th:utext="${htmlForEntry}">
+    </div>
+</div>
+
+</body>
+</html>

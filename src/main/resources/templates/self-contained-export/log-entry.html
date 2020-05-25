@@ -1,0 +1,94 @@
+
+<table th:attr="id=${item.get('_id')}" cellpadding="0" cellspacing="0">
+    <tbody th:if="${item.isBeginNewBlock()}">
+        <tr>
+            <td colspan="3" th:text="${item.get('msg')}" th:attr="style=|background-color:${item.getBlockColor()}|" class="block-title"></td>
+        </tr>
+    </tbody>
+    <tbody th:if="${!item.isBeginNewBlock()}">
+        <tr class="log-entry-title"><!--/* time / result & http / source / owner */-->
+
+            <td class="col-1">
+                <span th:text="${item.getTime()}"></span>
+            </td>
+
+            <td class="col-2 labelCollection">
+                <span th:attr="class=|label ${item.get('result').toLowerCase()}|" th:if="${item.get('result')}" th:text="${item.get('result')}"></span>
+
+                <span class="log-http" th:if="${item.get('http')}" th:switch="${item.get('http')}">
+                        <span class="label info" th:case="'result'">HTTP REQUEST</span>
+                        <span class="label info" th:case="'response'">HTTP RESPONSE</span>
+                        <span class="label incoming" th:case="'incoming'">INCOMING</span>
+                        <span class="label outgoing" th:case="'outgoing'">OUTGOING</span>
+                        <span class="label info" th:case="'redirect'">HTTP REDIRECT</span>
+                        <span class="label info" th:case="'redirect-in'">HTTP REDIRECT-IN</span>
+                </span>
+
+                <span th:if="${item.get('img')}" class="label review">IMAGE</span>
+            </td>
+
+            <td class="col-3 log-src" th:text="${item.get('src')}">
+            </td>
+        </tr>
+
+        <tr>
+            <td class="col-1">
+                <a class="more-btn" th:attr="href=|javascript:moreClicked('${item.get('_id')}')|" th:if="${item.more.size()>0}" th:text="'More('+${item.more.size()}+')'"></a>
+            </td>
+
+            <td class="col-2">
+                <a class="label requirement" th:each="requirement : ${item.get('requirements')}" th:text="${requirement}" th:attr="href=${item.getRequirementLink(requirement)}" target="_blank"></a>
+            </td>
+
+            <td class="col-3 log-msg" th:if="${item.get('msg')}" th:text="${item.get('msg')}">
+            </td>
+        </tr>
+
+        <!--/* more info panel */-->
+        <tr>
+            <td colspan="3">
+                <div class="more" th:attr="id='more_'+${item.get('_id')}">
+                    <table th:if="${item.doubleStackTrace}">
+                        <tr class="more-row">
+                            <td class="more-key">Stacktrace</td>
+                            <td class="more-value">
+                                <ul class="stacktrace">
+                                    <li th:each="stackTraceElement : ${item.stackTrace}" th:text="${stackTraceElement}"></li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr class="more-row">
+                            <td class="more-key">Caused by:</td>
+                            <td class="more-value">
+                                <ul class="stacktrace">
+                                    <li th:each="causeElement : ${item.causeStackTrace}" th:text="${causeElement}"></li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table th:if="${item.more.size()>0}">
+                        <tr th:each="otherField : ${item.more}" class="more-row">
+                            <td class="more-key" th:text="${otherField.key}"></td>
+                            <td class="more-value">
+                                <div th:switch="${item.getMoreFieldType(otherField.key, otherField.value)}">
+                                    <img th:case="'img'" th:attr="src=${otherField.value}" class="img-responsive center-block imagePreview">
+                                    <ul class="stacktrace" th:case="'exception'">
+                                        <li th:each="stackTraceElement : ${otherField.value}" th:text="${stackTraceElement}"></li>
+                                    </ul>
+                                    <!--/* TODO split jwt and add colors */-->
+                                    <div th:case="'jwt'" class="more-jwt" th:text="${otherField.value}"></div>
+                                    <div th:case="'json'" class="more-json prettyprint lang-javascript" th:text="${item.formatJson(otherField.value)}"></div>
+                                    <!--/* add jwt.io it link? */-->
+                                    <div th:case="'verifiable_jws'" class="more-json" th:text="${otherField.value.verifiable_jws}"></div>
+                                    <!--/* this is the default */-->
+                                    <div th:case="'text'" class="more-text" th:text="${otherField.value}"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>

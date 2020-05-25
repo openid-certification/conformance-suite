@@ -80,6 +80,9 @@
                     <% if (!public || test.publish == "everything") { %>
                     <button class="btn btn-default btn-block" id="downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
                     <% } %>
+                    <% if (!public || test.publish == "everything") { %>
+                    <button class="btn btn-default btn-block" id="downloadHtmlBtn"><span class="glyphicon glyphicon-save-file"></span> Download Html</button>
+                    <% } %>
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
                     <% if (!public) { %>
                     <button class="btn btn-default btn-block collapse" id="nextPlanBtn" title="Run the next test in this test plan"><span class="glyphicon glyphicon-fast-forward"></span> Continue Plan</button>
