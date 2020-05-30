@@ -26,14 +26,15 @@ import net.openid.conformance.variant.ResponseType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-initiated-logout-rp",
-	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests",
-	profile = TestPlan.ProfileNames.rptest
+	testPlanName = "oidcc-client-rp-initiated-logout-rp-basic",
+	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Basic)",
+	profile = TestPlan.ProfileNames.rplogouttest
 )
-public class OIDCCClientRPInitiatedLogoutRPTestPlan implements TestPlan {
+public class OIDCCClientRPInitiatedLogoutRPBasicTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
-		final List<Variant> variantSettings = List.of(
+		final List<Variant> variantResponseTypeCode = List.of(
+			new Variant(ResponseType.class, "code")
 		);
 		return List.of(
 			new ModuleListEntry(
@@ -42,7 +43,7 @@ public class OIDCCClientRPInitiatedLogoutRPTestPlan implements TestPlan {
 					OIDCCClientTestRPInitLogoutInvalidState.class,
 					OIDCCClientTestRPInitLogoutNoState.class
 				),
-				variantSettings
+				variantResponseTypeCode
 			)
 		);
 	}
