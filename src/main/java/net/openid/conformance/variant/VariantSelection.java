@@ -35,6 +35,13 @@ public class VariantSelection {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "VariantSelection{" +
+			"variant=" + variant +
+			'}';
+	}
+
 	public VariantSelection(Map<String, String> variant) {
 		this.variant = variant;
 	}
