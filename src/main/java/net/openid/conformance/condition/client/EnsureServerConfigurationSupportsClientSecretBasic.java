@@ -22,6 +22,7 @@ public class EnsureServerConfigurationSupportsClientSecretBasic extends Abstract
 
 		if (supportedAuthMethods == null) {
 			logSuccess("server discovery document does not contain token_endpoint_auth_methods_supported, so by default client_secret_basic support is supported");
+			return env;
 		}
 
 		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
