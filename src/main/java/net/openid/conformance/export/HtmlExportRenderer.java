@@ -3,6 +3,10 @@ package net.openid.conformance.export;
 import com.google.gson.Gson;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -10,35 +14,47 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.StringWriter;
 import java.util.Locale;
-import java.util.Map;
 
+@Service
 public class HtmlExportRenderer {
 
-	private SpringTemplateEngine templateEngine;
-	private ClassLoaderTemplateResolver templateResolver;
+	@Autowired
+	private SpringTemplateEngine exportRenderingTemplateEngine;
+
 	private Gson gson;
+	private String planTemplateName = "self-contained-export/plan.html";
+	private String testTemplateName = "self-contained-export/test.html";
+	private String logEntryTemplateName = "self-contained-export/log-entry.html";
 
 	public HtmlExportRenderer() {
-		//TODO template engine should be a spring bean
-		templateEngine = new SpringTemplateEngine();
-
-		templateResolver = new ClassLoaderTemplateResolver();
-		templateEngine.setTemplateResolver(templateResolver);
-		templateResolver.setTemplateMode(TemplateMode.HTML);
 		gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson(true);
 	}
 
-	//this is incomplete
-	public String createHtmlForPlan(Map<String, Object> export) {
+	/**
+	 * Used in unit test
+	 * @param noAutoWiring
+	 */
+	public HtmlExportRenderer(boolean noAutoWiring) {
+		this();
+		ExportRenderingTemplateEngineBean bean = new ExportRenderingTemplateEngineBean();
+		this.exportRenderingTemplateEngine = bean.exportRenderingTemplateEngine();
+		this.planTemplateName = "/templates/" + this.planTemplateName;
+		this.testTemplateName = "/templates/" + this.testTemplateName;
+		this.logEntryTemplateName = "/templates/" + this.logEntryTemplateName;
+	}
+
+
+	public String createHtmlForPlan(PlanExportInfo exportInfo) {
 		Context thymleafContext = new Context();
 		thymleafContext.setLocale(Locale.ENGLISH);
-		thymleafContext.setVariable("export", export);
+		PlanHelper helper = new PlanHelper(exportInfo);
+		thymleafContext.setVariable("planHelper", helper);
 		StringWriter writer = new StringWriter();
-		templateEngine.process("/templates/self-contained-export/plan.html", thymleafContext, writer);
+		exportRenderingTemplateEngine.process(planTemplateName, thymleafContext, writer);
 		return writer.toString();
 	}
 
-	public String createHtmlForTestLogs(Map<String, Object> export) {
+	public String createHtmlForTestLogs(TestExportInfo export) {
 		Context thymleafContext = new Context();
 		thymleafContext.setLocale(Locale.ENGLISH);
 		TestHelper helper = new TestHelper(export);
@@ -50,7 +66,7 @@ public class HtmlExportRenderer {
 			helper.addRenderedResult(html);
 		}
 		StringWriter writer = new StringWriter();
-		templateEngine.process("/templates/self-contained-export/test.html", thymleafContext, writer);
+		exportRenderingTemplateEngine.process(testTemplateName, thymleafContext, writer);
 		return writer.toString();
 	}
 
@@ -60,7 +76,7 @@ public class HtmlExportRenderer {
 		LogEntryHelper item = new LogEntryHelper(logEntry, gson);
 		thymleafContext.setVariable("item", item);
 		StringWriter writer = new StringWriter();
-		templateEngine.process("/templates/self-contained-export/log-entry.html", thymleafContext, writer);
+		exportRenderingTemplateEngine.process(logEntryTemplateName, thymleafContext, writer);
 		return writer.toString();
 	}
 

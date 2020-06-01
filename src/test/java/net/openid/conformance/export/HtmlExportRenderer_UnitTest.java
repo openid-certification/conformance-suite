@@ -3,9 +3,14 @@ package net.openid.conformance.export;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -17,7 +22,7 @@ public class HtmlExportRenderer_UnitTest
 
     @Before
     public void setUp() throws Exception {
-		renderer = new HtmlExportRenderer();
+		renderer = new HtmlExportRenderer(true);
 
 		String jsonExport = "{\"testInfo\":{\"_id\":\"BeDwk5rd8H\",\"testId\":\"BeDwk5rd8H\",\"testName\":\"oidcc-client-t"+
 			"est\",\"variant\":{\"client_auth_type\":\"tls_client_auth\",\"request_type\":\"plain_http_"+
@@ -824,16 +829,23 @@ public class HtmlExportRenderer_UnitTest
     @Test
     public void createHtmlForTestLogs()
     {
-    	Map<String, Object> export= new HashMap<>();
-		export.put("exportedAt", new Date());
-		export.put("exportedFrom", "https://localhost:8443");
-		export.put("exportedBy", Map.of("sub", "unit-test-sub", "iss", "unit-test-iss"));
-		export.put("exportedVersion", "unit-test 1.2.3");
-		export.put("testInfo", bsonDocFromExport);
-		export.put("results", bsonDocFromExport.get("results"));
-		String html = renderer.createHtmlForTestLogs(export);
-		System.out.println(html);
+		TestExportInfo exportInfo = new TestExportInfo("https://localhost:8443",
+			Map.of("sub", "unit-test-sub", "iss", "unit-test-iss"), "unit-test 1.2.3", bsonDocFromExport,
+			(List)bsonDocFromExport.get("results"));
+		String html = renderer.createHtmlForTestLogs(exportInfo);
 		assertNotNull(html);
+		assertTrue(html.contains("<td class=\"col-3 log-msg\">Skipped evaluation due to missing required element: client userinfo_encrypted_response_alg</td>"));
+		assertTrue(html.contains("I20dmjAIhDd5IqFQfld0GFPtDeGhB97rV3JvANyxzYKlH5JFn1"));
+		assertTrue(html.contains("&quot;x&quot;: &quot;Cl_uW3h3sqo72rfUiBwRKnZxdHQrr77yM8XGm7SAVN0&quot;,"));
+		assertTrue(html.contains("2020-05-22 07:01:12"));
+		assertTrue(html.contains("<div class=\"more-jwt\">eyJraWQiOiJhOWIwMmZkYS1iODY0LTQ5ODgtOTc2Ni1kYjA3YmIyZDE1N2QiLC" +
+			"JhbGciOiJSUzI1NiJ9.eyJhdF9oYXNoIjoiaDBfbG5iaTR3NnlQXzROWjN3X2hWdyIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiY" +
+			"XVkIjoiY2xpZW50X051SEFZQXpsWFBUdXFMeTM2NjAxJ3teKF0iLCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0LmVtb2JpeC5jby51azo4ND" +
+			"QzXC90ZXN0XC9hXC9vcGVuaWQtY2xpZW50XC8iLCJleHAiOjE1OTAxMzExNzIsImlhdCI6MTU5MDEzMDg3Mn0.KpK4RsS1nl_QWwJp9ESATmrx" +
+			"N4HCaQgy2Tye1gu0ZAHBlmxI6cPUnu-6CUSzvB-jbPVsHMbHoY2c5l4a9qVpdrU855QzhfFBPjzSH_RNmzODCF6q3BMRT6eNr7lDyXUzGdkf" +
+			"HkA8MkgKaMXz-Y4XC-Fu77bLz_H8fw4gthdOU3tYmW0k_sKJhqTNUh77AVNqFJpeK8hgXYNXkSrrNtT0RVrRIW40fxgPhsQuX1oqsuYUdtas" +
+			"AOrXnOsxZC3TpdA1OS1qQ20gCEsVaiZefuXjaw86hGfQcCoJz98iNqA1BaKf5I90bcYIF6Q-O_ZoBMCgAv0BA6No3uXF9-2vCjRjyw</div>"));
+		assertTrue(html.contains("grant_type=authorization_code&amp;code=lt1UTp51m3&amp;redirect_uri=https%3A%2F%2Fopenid-client.local%2Fcb&amp;client_id=client_NuHAYAzlXPTuqLy36601%27%7B%5E%28%5D"));
     }
 
     @Test
@@ -1051,8 +1063,15 @@ public class HtmlExportRenderer_UnitTest
 			"    },\n" +
 			"    \"time\": 1590130872119\n" +
 			"}";
-    	Document bsonDoc = Document.parse(logJson);
-    	String html = renderer.createHtmlForLogEntry(bsonDoc);
-    	assertNotNull(html);
+		Document bsonDoc = Document.parse(logJson);
+		String html = renderer.createHtmlForLogEntry(bsonDoc);
+		assertNotNull(html);
+
+		assertTrue(html.contains("2020-05-22 07:01:12"));
+		assertTrue(html.contains("OIDCCGenerateServerConfiguration"));
+		assertTrue(html.contains("Generated server configuration"));
+		assertTrue(html.contains("&quot;issuer&quot;: &quot;https://localhost.emobix.co.uk:8443/test/a/openid-client/&quot;,"));
+		assertTrue(html.contains("&quot;response_modes_supported&quot;:"));
+		assertTrue(html.contains("&quot;userinfo_encryption_enc_values_supported&quot;: ["));
     }
 }

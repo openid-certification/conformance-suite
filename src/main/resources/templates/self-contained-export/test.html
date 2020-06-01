@@ -6,11 +6,7 @@
     <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <style>
         html{
@@ -22,6 +18,12 @@
             padding-left:30px;
             padding-right:30px;
             padding-top:2em;
+            min-width:700px;
+        }
+        pre{
+            margin-top:0px;
+            margin-left:0px;
+            font-family: sans-serif;
         }
         #header{
         }
@@ -29,15 +31,21 @@
             text-align:left;
         }
         #results{
+            overflow-x:auto;
         }
         table{
             width:100%;
         }
         .log-item{
             width:100%;
-            margin-bottom:5px;
-            padding-top:5px;
+            margin-bottom:0;
+            padding-bottom:1em;
+            padding-top:1em;
             border-top:1px solid #ccc;
+            line-height:1.7em;
+        }
+        .log-item:hover{
+            background-color: #ebf6fa;
         }
         .row{
             padding-top:0.2em;
@@ -48,19 +56,16 @@
          .col-1{
             width:10%;
             min-width:100px;
-            display:inline-block;
             vertical-align: top;
             font-size:0.90em;
          }
          .col-2{
             width:10%;
             min-width:100px;
-            display:inline-block;
-             vertical-align: top;
+            vertical-align: top;
+            padding-left:20px;
          }
          .col-3{
-            width:75%;
-            display:inline-block;
              vertical-align: top;
          }
          .labelCollection{
@@ -95,6 +100,121 @@
             vertical-align: baseline;
             white-space: no-wrap;
         }
+        .label-info{
+            background-color: #5bc0de;
+        }
+        .testStatus-created {
+            background-color: #fcd9f6;
+            color: black;
+        }
+
+        .testStatus-configured {
+            background-color: #d3fffe;
+            color: black;
+        }
+
+        .testStatus-running {
+            background-color: #6d09e8;
+            color: white;
+        }
+
+        .testStatus-waiting {
+            background-color: #6ac4c2;
+            color: black;
+        }
+
+        .testStatus-interrupted {
+            background-color: #b70018;
+            color: white;
+        }
+
+        .testStatus-finished {
+            background-color: #383647;
+            color: white;
+        }
+
+        .testStatus-unknown {
+            background-color: #dedada;
+            color: #6d6a6a;
+        }
+
+        .testResult-passed {
+            background-color: #40e809;
+            color: black;
+        }
+
+        .testResult-warning {
+            background-color: #d88602;
+            color: white;
+        }
+
+        .testResult-failed {
+            background-color: black;
+            color: white;
+        }
+
+        .testResult-review {
+            background-color: #6ac4c2;
+            color: black;
+        }
+
+        .testResult-skipped {
+            background-color: #d88602;
+            color: white;
+        }
+
+        .testResult-unknown {
+            background-color: #dedada;
+            color: #6d6a6a;
+        }
+        .result-success {
+            background-color: #00cc00;
+        }
+
+        .result-failure {
+            background-color: #cc0000;
+        }
+
+        .result-warning {
+            background-color: #d88602;
+        }
+
+        .result-review {
+            background-color: #00ccff;
+        }
+
+        .result-interrupted {
+            background-color: #ddbb88;
+        }
+
+        .result-finished {
+            background-color: #383647;
+        }
+
+        .result-info {
+            background-color: #e2bfce;
+        }
+
+        .result-skipped {
+            background-color: #d88602;
+        }
+
+        .result-default {
+            background-color: #00cc00;
+        }
+        .badge{
+            background-color: rgba(0.5, 0.5, 0.5, 0.5);
+	        border-top-left-radius: 0.25em;
+            border-top-right-radius: 0.25em;
+            border-bottom-right-radius: 0.25em;
+            border-bottom-left-radius: 0.25em;
+            padding-left:0.4em;
+            padding-right:0.4em;
+            padding-top:0.1em;
+            padding-bottom:0.1em;
+            font-size:0.85em;
+        }
+        /*
         .info{
             background-color: rgb(226, 191, 206);
         }
@@ -132,29 +252,47 @@
             color:#fff;
         }
         .passed{
-        	background-color: #40e809;
-	        color: #000;
+            background-color: #40e809;
+            color: #000;
         }
+        .skipped {
+            background-color: #d88602;
+            color: #fff;
+        }
+        .configured {
+            background-color: #d5aee5;
+        }
+        */
         .requirement{
             border:1px solid #ccc;
-            padding-left:0.2em;
-            padding-right:0.2em;
+            padding-left:0.3em;
+            padding-right:0.3em;
             padding-top:0.2em;
             padding-bottom:0.2em;
             display:inline-block;
             background-color: rgb(119, 119, 119);
             color:#fff;
-            font-size:0.75em;
+            font-size:0.7em;
             font-weight:normal;
+            text-decoration:none;
         }
         .log-http{
         }
         .more{
+            background-color:#fff;
         }
         .more-btn{
         }
         a.more-btn{
-            font-size:0.8em;
+            font-size:0.85em;
+            background-image: linear-gradient(rgb(255, 255, 255) 0px, rgb(224, 224, 224) 100%);
+            border:1px solid rgb(204, 204, 204);
+            padding-left: 0.4em;
+            padding-right: 0.4em;
+            padding-top:0.3em;
+            padding-bottom:0.3em;
+            color:rgb(51, 51, 51);
+            text-decoration: none;
         }
         .more-row{
             border:1px solid #eee;
@@ -227,6 +365,29 @@
         .p-1{
             padding:0.1em 0.1em 0.1em 0.1em;
         }
+        .test-summary{
+            background-color: rgb(217, 237, 247);
+            border: 1px solid rgb(221, 221, 221);
+            padding-top:0.3em;
+            padding-left:0.3em;
+            padding-right:0.3em;
+            padding-bottom:0.3em;
+        }
+        #fixedtoplink{
+            position:fixed;
+            bottom:30px;
+            right:30px;
+            background-color:#999;
+            color:#fff;
+            opacity: 0.8;
+            padding-top:0.3em;
+            padding-left:0.3em;
+            padding-right:0.3em;
+            padding-bottom:0.3em;
+            font-size:0.85em;
+            text-decoration:none;
+        }
+
     </style>
     <script>
         function moreClicked(itemid){
@@ -268,66 +429,60 @@ Test Summary
 <div  id="header">
     <table style="width:auto;">
         <tr>
+            <th>Test Name</th>
+            <td th:text="${helper.getTestName()}"></td>
+        </tr>
+        <tr>
+            <th>Variant</th>
+            <td th:text="${helper.getTestVariant()}"></td>
+        </tr>
+        <tr>
+            <th>Test ID</th>
+            <td th:text="${helper.getTestId()}"></td>
+        </tr>
+        <tr>
+            <th>Created</th>
+            <td th:text="${helper.getTestCreated()}"></td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td th:text="${helper.getTestDescription()}"></td>
+        </tr>
+        <tr>
+            <th>Test Version</th>
+            <td th:text="${helper.getTestVersion()}"></td>
+        </tr>
+        <tr>
+            <th>Test Owner</th>
+            <td th:text="${helper.getTestOwner()}"></td>
+        </tr>
+        <tr>
+            <th>Plan ID</th>
+            <td th:text="${helper.getTestPlanId()}"></td>
+        </tr>
+        <tr>
             <th>Exported From</th>
-            <td th:text="${helper.exportedFrom}"></td>
+            <td th:text="${helper.getExportedFrom()}"></td>
         </tr>
         <tr>
             <th>Exported By</th>
-            <td th:text="${helper.exportedBySub + ' ' + helper.exportedByIss}"></td>
+            <td th:text="${helper.getExportedBy()}"></td>
         </tr>
         <tr>
             <th>Suite Version</th>
-            <td th:text="${helper.suiteVersion}"></td>
+            <td th:text="${helper.getSuiteVersion()}"></td>
         </tr>
         <tr>
-            <th>Exported At</th>
+            <th>Exported</th>
             <td th:text="${helper.getExportedTime()}"></td>
         </tr>
     </table>
+    <div class="test-summary" th:text="${helper.getTestSummary()}">
+    </div>
+    <hr>
     <table>
         <tr>
-            <td>
-                <table>
-                    <tr>
-                        <th>Test Name:</th>
-                        <td th:text="${helper.getTestName()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Variant:</th>
-                        <td th:text="${helper.getTestVariant()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Test ID:</th>
-                        <td th:text="${helper.getTestId()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Created:</th>
-                        <td th:text="${helper.getTestCreated()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Description:</th>
-                        <td th:text="${helper.getTestDescription()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Test Version:</th>
-                        <td th:text="${helper.getTestVersion()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Test Owner:</th>
-                        <td th:text="${helper.getTestOwner()}"></td>
-                    </tr>
-                    <tr>
-                        <th>Plan ID:</th>
-                        <td th:text="${helper.getTestPlanId()}"></td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td class="test-summary" th:text="${helper.getTestSummary()}"></td>
-        </tr>
-        <tr>
-            <td>
+            <td align="center">
                 Status:
                 <span th:attr="class=|${helper.getTestStatusClass()}|" th:text="${helper.getTestStatus()}"></span>
 
@@ -337,15 +492,15 @@ Test Summary
         </tr>
         <tr>
             <td align="center">
-                <span class="label success">SUCCESS <span class="badge" th:text="${helper.getSuccessCount()}"></span></span>
+                <span class="label result-success">SUCCESS <span class="badge" th:text="${helper.getSuccessCount()}"></span></span>
 
-                <span class="label failure">FAILURE <span class="badge" th:text="${helper.getFailureCount()}"></span></span>
+                <span class="label result-failure">FAILURE <span class="badge" th:text="${helper.getFailureCount()}"></span></span>
 
-                <span class="label warning">WARNING <span class="badge" th:text="${helper.getWarningCount()}"></span></span>
+                <span class="label result-warning">WARNING <span class="badge" th:text="${helper.getWarningCount()}"></span></span>
 
-                <span class="label review">REVIEW <span class="badge" th:text="${helper.getReviewCount()}"></span></span>
+                <span class="label result-review">REVIEW <span class="badge" th:text="${helper.getReviewCount()}"></span></span>
 
-                <span class="label info">INFO <span class="badge" th:text="${helper.getInfoCount()}"></span></span>
+                <span class="label result-info">INFO <span class="badge" th:text="${helper.getInfoCount()}"></span></span>
             </td>
         </tr>
         <tr th:if="${helper.hasAnyFailures()}">
@@ -357,16 +512,17 @@ Test Summary
             </td>
         </tr>
     </table>
+    <hr>
 </div>
 
-<h1>Test Results</h1>
+<h1 id="testresultsheader">Test Results</h1>
 <a href="javascript:expandMores()">Expand All</a>
 <a href="javascript:collapseMores()">Collapse All</a>
 <div>All times are UTC</div>
-<div id="results" th:each="htmlForEntry : ${helper.resultHtmls}">
-    <div class="log-item"  th:utext="${htmlForEntry}">
+<div id="results">
+    <div class="log-item" th:each="htmlForEntry : ${helper.resultHtmls}"  th:utext="${htmlForEntry}">
     </div>
 </div>
-
+<a href="#testresultsheader" id="fixedtoplink">Test Results</a>
 </body>
 </html>

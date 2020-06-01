@@ -23,7 +23,10 @@ import java.util.regex.Pattern;
 public class LogEntryHelper {
 	public static final List<String> blockColors = List.of("#ef476f", "#118ab2", "#073b4c", "#6d597a", "#03045e",
 		"#0077b6", "#7209b7", "#3a0ca3", "#8a817c", "#9a031e", "#5f0f40", "#8900f2");
-	public static final Set<String> visibleFields = Set.of("_id", "msg", "src", "time", "result", "requirements", "upload",
+	public static final Set<String> visibleFields = Set.of(
+		"_id",
+		"_class",	//old test results contain _class elements with 'com.mongodb.BasicDBObject' values
+		"msg", "src", "time", "result", "requirements", "upload",
 		"testOwner", "testId", "http", "blockId", "startBlock");
 
 	public static final Map<String, String> specLinks;
@@ -55,7 +58,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html");
 		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html");
 	}
-	private Document testResult;
+	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();
 	private Object stackTrace = null;
 	private Object causeStackTrace = null;
@@ -64,18 +67,18 @@ public class LogEntryHelper {
 	private Pattern jwtPattern = Pattern.compile("^(e[yw][a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)(\\.([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+))?$");
 	private Gson gson;
 
-	public LogEntryHelper(Document testResult, Gson collapsingGsonHttpMessageConverter) {
-		this.testResult = testResult;
+	public LogEntryHelper(Document logEntry, Gson collapsingGsonHttpMessageConverter) {
+		this.logEntry = logEntry;
 		this.gson = collapsingGsonHttpMessageConverter;
-		for(String field : testResult.keySet()) {
+		for(String field : logEntry.keySet()) {
 			if(!visibleFields.contains(field)) {
 				//TODO I assumed that there can be only 1 stack trace and 1 cause_stacktrace. let me know if that's not the case
 				if("stacktrace".equals(field)) {
-					this.stackTrace = testResult.get(field);
+					this.stackTrace = logEntry.get(field);
 				} else if("cause_stacktrace".equals(field)) {
-					this.causeStackTrace = testResult.get(field);
+					this.causeStackTrace = logEntry.get(field);
 				}
-				this.more.put(field, testResult.get(field));
+				this.more.put(field, logEntry.get(field));
 			}
 		}
 		if(this.stackTrace!=null && this.causeStackTrace!=null) {
@@ -87,7 +90,7 @@ public class LogEntryHelper {
 	}
 
 	public Object get(String key) {
-		return testResult.get(key);
+		return logEntry.get(key);
 	}
 
 	public String getMoreFieldType(String key, Object fieldValue) {
@@ -108,10 +111,18 @@ public class LogEntryHelper {
 			}
 			return "json";
 		}
-		if(isJwt(fieldValue)) {
-			return "jwt";
+		if(fieldValue instanceof String) {
+			if (isJwt(fieldValue))
+			{
+				return "jwt";
+			}
+			return "text";
 		}
-		return "text";
+		if(fieldValue instanceof Number) {
+			return "text";
+		}
+		//will be json encoded by default
+		return "json";
 	}
 
 	public boolean isJwt(Object value) {
@@ -164,7 +175,7 @@ public class LogEntryHelper {
 	}
 
 	public String getTime() {
-		Object timeObject = testResult.get("time");
+		Object timeObject = logEntry.get("time");
 		Date timeAsDate = new Date(Long.valueOf(String.valueOf(timeObject)));
 		TimeZone timeZone = TimeZone.getTimeZone("UTC");
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
@@ -173,12 +184,8 @@ public class LogEntryHelper {
 		return asISO;
 	}
 
-	public String formatJson(Document bsonDocument) {
-		return gson.toJson(bsonDocument);
-		/*
-		JsonWriterSettings jsonWriterSettings = JsonWriterSettings.builder().indent(true).build();
-		return bsonDocument.toJson(jsonWriterSettings);
-		 */
+	public String formatJson(Object object) {
+		return gson.toJson(object).trim();
 	}
 
 	public String getRequirementLink(String requirement) {
@@ -191,12 +198,28 @@ public class LogEntryHelper {
 	}
 
 	public boolean isBeginNewBlock() {
-		return testResult.containsKey("blockId") && testResult.containsKey("startBlock") && testResult.getBoolean("startBlock");
+		return logEntry.containsKey("blockId") && logEntry.containsKey("startBlock") && logEntry.getBoolean("startBlock");
 	}
 
 	public String getBlockColor() {
 		Random random = new Random();
 		int index = random.nextInt(blockColors.size());
 		return blockColors.get(index);
+	}
+
+	public String getLogEntryResultClass() {
+		String result = logEntry.getString("result");
+		if(result==null || result.isEmpty()) {
+			return "label result-unknown";
+		}
+		return "label result-" + result.toLowerCase(Locale.ENGLISH);
+	}
+
+	public String getLogEntryResult() {
+		String result = logEntry.getString("result");
+		if(result==null || result.isEmpty()) {
+			return null;
+		}
+		return result;
 	}
 }

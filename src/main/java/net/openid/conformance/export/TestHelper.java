@@ -1,7 +1,7 @@
 package net.openid.conformance.export;
 
+import net.openid.conformance.info.PublicTestInfo;
 import net.openid.conformance.info.TestInfo;
-import net.openid.conformance.security.AuthenticationFacade;
 import org.bson.Document;
 
 import java.text.DateFormat;
@@ -21,12 +21,11 @@ public class TestHelper {
 
 	private Date exportedAt;
 	private String exportedFrom;
-	private String exportedBySub;
-	private String exportedByIss;
+	private Map<String, String> exportedBy;
 	private String suiteVersion;
-	//TODO it is sometimes TestInfo sometimes Document
 	private Document testInfoDocument;
 	private TestInfo testInfoObject;
+	private PublicTestInfo publicTestInfo;
 	private List<Document> testResults;
 	private List<String> resultHtmls = new LinkedList<>();
 
@@ -42,19 +41,21 @@ public class TestHelper {
 	 * @param export see LogApi.putTestResultToExport
 	 */
 	@SuppressWarnings("unchecked")
-	public TestHelper(Map<String, Object> export) {
-		this.exportedAt = (Date) export.get("exportedAt");
-		this.exportedFrom = (String) export.get("exportedFrom");
-		Map<String, String> principal = (Map<String, String>)export.get("exportedBy");
-		this.exportedByIss = principal.get("iss");
-		this.exportedBySub = principal.get("sub");
-		this.suiteVersion = (String)export.get("exportedVersion");
-		if(export.get("testInfo") instanceof net.openid.conformance.info.TestInfo) {
-			this.testInfoObject = (net.openid.conformance.info.TestInfo)export.get("testInfo");
-		} else if(export.get("testInfo") instanceof Document) {
-			this.testInfoDocument = (Document) ((Document) export.get("testInfo")).get("testInfo");
+	public TestHelper(TestExportInfo export) {
+		this.exportedAt = export.getExportedAt();
+		this.exportedFrom = export.getExportedFrom();
+		this.exportedBy = export.getExportedBy();
+		this.suiteVersion = export.getExportedVersion();
+		if(export.getTestInfo() instanceof net.openid.conformance.info.TestInfo) {
+			this.testInfoObject = (net.openid.conformance.info.TestInfo) export.getTestInfo();
+		} else if(export.getTestInfo() instanceof net.openid.conformance.info.PublicTestInfo) {
+			this.publicTestInfo = (net.openid.conformance.info.PublicTestInfo)export.getTestInfo();
+		} else if(export.getTestInfo() instanceof Document) {
+			this.testInfoDocument = (Document) ((Document) export.getTestInfo()).get("testInfo");
+		} else {
+			throw new RuntimeException("Unexpected testInfo object type: " + export.getTestInfo().getClass());
 		}
-		this.testResults = (List<Document>)export.get("results");
+		this.testResults = (List<Document>)export.getResults();
 		for(Document resultDoc : this.testResults) {
 			String resultStr = resultDoc.getString("result");
 			if("INFO".equals(resultStr)) {
@@ -95,24 +96,19 @@ public class TestHelper {
 		this.exportedFrom = exportedFrom;
 	}
 
-	public String getExportedBySub()
-	{
-		return exportedBySub;
+	public String getExportedBy() {
+		return this.exportedBy.get("sub") + " " + this.exportedBy.get("iss");
 	}
 
-	public void setExportedBySub(String exportedBySub)
+	public String getExportedBySub()
 	{
-		this.exportedBySub = exportedBySub;
+		return exportedBy.get("sub");
 	}
+
 
 	public String getExportedByIss()
 	{
-		return exportedByIss;
-	}
-
-	public void setExportedByIss(String exportedByIss)
-	{
-		this.exportedByIss = exportedByIss;
+		return exportedBy.get("iss");
 	}
 
 	public String getSuiteVersion()
@@ -128,11 +124,14 @@ public class TestHelper {
 
 
 	public String getExportedTime(){
+		if(exportedAt==null) {
+			return "";
+		}
 		TimeZone timeZone = TimeZone.getTimeZone("UTC");
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
 		dateFormat.setTimeZone(timeZone);
-		String asISO = dateFormat.format(exportedAt) + " (UTC)";
-		return asISO;
+		String formatted = dateFormat.format(exportedAt) + " (UTC)";
+		return formatted;
 	}
 
 	public List<Document> getTestResults()
@@ -154,106 +153,183 @@ public class TestHelper {
 		return resultHtmls;
 	}
 
+	/**
+	 * use only for css class names. returns unknown by default
+	 * @param theObject
+	 * @return
+	 */
+	private String toLowerCaseIfNotNull(Object theObject) {
+		if(theObject==null) {
+			return "unknown";
+		}
+		String str = theObject.toString().toLowerCase(Locale.ENGLISH);
+		return str;
+	}
+
 	public String getTestStatusClass() {
 		if(this.testInfoDocument!=null) {
 			try {
-				return "p-1 " + this.testInfoDocument.getString("status").toLowerCase();
+				return "label testStatus-" + toLowerCaseIfNotNull(this.testInfoDocument.getString("status"));
 			} catch (Exception ex) {
 				return "";
 			}
-		} else{
-			return "p-1 " + this.testInfoObject.getStatus().toString().toLowerCase(Locale.ENGLISH);
+		} else if(this.publicTestInfo!=null) {
+			return "label testStatus-" + toLowerCaseIfNotNull(this.publicTestInfo.getStatus());
+		} else if(this.testInfoObject!=null) {
+			return "label testStatus-" + toLowerCaseIfNotNull(this.testInfoObject.getStatus());
+		} else {
+			return "";
 		}
 	}
 	public String getTestStatus() {
+		String status = null;
 		if(this.testInfoDocument!=null) {
-			return this.testInfoDocument.getString("status");
-		} else{
-			return this.testInfoObject.getStatus().toString();
+			status = this.testInfoDocument.getString("status");
+		} else if(this.publicTestInfo!=null) {
+			status = this.publicTestInfo.getStatus().toString();
+		} else if(this.testInfoObject!=null) {
+			status = this.testInfoObject.getStatus().toString();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
+		if(status==null || status.isEmpty()) {
+			return "UNKNOWN";
+		}
+		return status.toUpperCase(Locale.ENGLISH);
 	}
 	public String getTestResultClass() {
 		if(this.testInfoDocument!=null) {
-			try {
-				return "p-1 " + this.testInfoDocument.getString("result").toLowerCase();
-			}
-			catch (Exception ex) {
-				return "";
-			}
-		} else{
-			return "p-1 " + this.testInfoObject.getResult().toLowerCase(Locale.ENGLISH);
+			return "label testResult-" + toLowerCaseIfNotNull(this.testInfoDocument.getString("result"));
+		} else if(this.publicTestInfo!=null) {
+			return "label testResult-" + toLowerCaseIfNotNull(this.publicTestInfo.getResult());
+		} else if(this.testInfoObject!=null) {
+			return "label testResult-" + toLowerCaseIfNotNull(this.testInfoObject.getResult());
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestResult() {
+		String result = null;
 		if(this.testInfoDocument!=null) {
-			return this.testInfoDocument.getString("result");
-		} else{
-			return this.testInfoObject.getResult();
+			result = this.testInfoDocument.getString("result");
+		} else if(this.publicTestInfo!=null) {
+			result = this.publicTestInfo.getResult();
+		} else if(this.testInfoObject!=null) {
+			result = this.testInfoObject.getResult();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
+		if(result==null || result.isEmpty()) {
+			return "UNKNOWN";
+		}
+		return result.toUpperCase(Locale.ENGLISH);
 	}
 	public String getTestName() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("testName");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getTestName();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getTestName();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestVariant() {
-		//TODO fix
-		if(this.testInfoDocument!=null) {
-			return this.testInfoDocument.get("variant").toString();
-		} else{
-			return this.testInfoObject.getVariant().getVariant().toString();
+		if (this.testInfoDocument != null) {
+			Document variantDoc = (Document) this.testInfoDocument.get("variant");
+			return variantDoc.toJson();
+		} else if(this.publicTestInfo!=null) {
+			if(this.publicTestInfo.getVariant()!=null && this.publicTestInfo.getVariant().getVariant()!=null) {
+				return String.join(", ", this.publicTestInfo.getVariant().getVariant().values());
+			} else {
+				return "";
+			}
+		} else if(this.testInfoObject!=null) {
+			if(this.testInfoObject.getVariant()!=null && this.testInfoObject.getVariant().getVariant()!=null) {
+				return String.join(", ", this.testInfoObject.getVariant().getVariant().values());
+			} else {
+				return "";
+			}
 		}
+		return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 	}
 	public String getTestId() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("testId");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getTestId();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getTestId();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestCreated() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("started");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getStarted();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getStarted();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestDescription() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("description");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getDescription();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getDescription();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestVersion() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("version");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getVersion();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getVersion();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestOwner() {
-		//TODO fix
-		if(this.testInfoDocument!=null) {
-			return this.testInfoDocument.get("owner").toString();
-		} else{
-			return this.testInfoObject.getOwner().toString();
+		if (this.testInfoDocument != null) {
+			Document ownerDoc = (Document) this.testInfoDocument.get("owner");
+			return ownerDoc.getString("sub") + " " + ownerDoc.getString("iss");
+		} else if (this.publicTestInfo != null) {
+			return this.publicTestInfo.getOwner().get("sub") + " " + this.publicTestInfo.getOwner().get("iss");
+		} else if (this.testInfoObject != null) {
+			return this.testInfoObject.getOwner().get("sub") + " " + this.testInfoObject.getOwner().get("iss");
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestPlanId() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("planId");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getPlanId();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getPlanId();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public String getTestSummary() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("summary");
-		} else{
+		} else if(this.publicTestInfo!=null) {
+			return this.publicTestInfo.getSummary();
+		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getSummary();
+		} else {
+			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
 		}
 	}
 	public int getSuccessCount() {
@@ -276,5 +352,16 @@ public class TestHelper {
 	}
 	public List<String> getFailures() {
 		return failures;
+	}
+
+	public String getLocalTestLink() {
+		return generateHtmlFileName(getTestName(), getTestId());
+	}
+
+	public static String generateHtmlFileName(Object testModuleName, Object testId) {
+		return "test-log-" + testModuleName + "-" + testId + ".html";
+	}
+	public static String generateSigFileName(Object testModuleName, Object testId) {
+		return "test-log-" + testModuleName + "-" + testId + ".sig";
 	}
 }

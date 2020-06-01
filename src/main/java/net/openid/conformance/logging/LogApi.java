@@ -1,9 +1,7 @@
 package net.openid.conformance.logging;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -12,13 +10,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.export.HtmlExportRenderer;
+import net.openid.conformance.export.PlanExportInfo;
+import net.openid.conformance.export.TestExportInfo;
+import net.openid.conformance.export.TestHelper;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.PublicPlan;
 import net.openid.conformance.info.TestPlanService;
@@ -59,12 +59,6 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.spring5.SpringTemplateEngine;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -89,6 +83,9 @@ public class LogApi {
 
 	@Autowired
 	private KeyManager keyManager;
+
+	@Autowired
+	private HtmlExportRenderer htmlExportRenderer;
 
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
@@ -169,7 +166,7 @@ public class LogApi {
 
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
-		final Map<String, Object> export = putTestResultToExport(results, testInfo);
+		final TestExportInfo export = putTestResultToExport(results, testInfo);
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
@@ -239,7 +236,7 @@ public class LogApi {
 
 				Optional<?> testInfo = getTestInfo(publicOnly, testId);
 
-				final Map<String, Object> export = putTestResultToExport(results, testInfo);
+				final TestExportInfo export = putTestResultToExport(results, testInfo);
 
 				final Map<String, Object> testLogInfoExport = new HashMap<>();
 
@@ -276,7 +273,7 @@ public class LogApi {
 						String sigFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".sig";
 
 						@SuppressWarnings("unchecked")
-						Map<String, Object> infoExport = (Map<String, Object>) testLogInfoExport.get("export");
+						TestExportInfo infoExport = (TestExportInfo) testLogInfoExport.get("export");
 
 						addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, infoExport);
 
@@ -292,7 +289,7 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
-	protected void addFilesToZip(ZipArchiveOutputStream archiveOutputStream, String jsonFileName, String sigFileName, Map<String, Object> export) throws Exception {
+	protected void addFilesToZip(ZipArchiveOutputStream archiveOutputStream, String jsonFileName, String sigFileName, TestExportInfo export) throws Exception {
 
 		ZipArchiveEntry testLog = new ZipArchiveEntry(jsonFileName);
 
@@ -341,15 +338,8 @@ public class LogApi {
 		return testInfo;
 	}
 
-	protected Map<String, Object> putTestResultToExport(List<Document> results, Optional<?> testInfo) {
-		Map<String, Object> export = new HashMap<>();
-
-		export.put("exportedAt", new Date());
-		export.put("exportedFrom", baseUrl);
-		export.put("exportedBy", authenticationFacade.getPrincipal());
-		export.put("exportedVersion", version);
-		export.put("testInfo", testInfo.get());
-		export.put("results", results);
+	protected TestExportInfo putTestResultToExport(List<Document> results, Optional<?> testInfo) {
+		TestExportInfo export = new TestExportInfo(baseUrl, authenticationFacade.getPrincipal(), version, testInfo.get(), results);
 
 		return export;
 	}
@@ -441,7 +431,8 @@ public class LogApi {
 			modules = ((Plan) testPlan).getModules();
 		}
 
-		List<Map<String, Object>> allLatestLogsExport = new ArrayList<>();
+		//plan summary page
+		PlanExportInfo planExportInfo = new PlanExportInfo(baseUrl, authenticationFacade.getPrincipal(), version, testPlan);
 
 		for (Plan.Module module : modules) {
 
@@ -456,20 +447,14 @@ public class LogApi {
 
 				Optional<?> testInfo = getTestInfo(publicOnly, testId);
 
-				final Map<String, Object> export = putTestResultToExport(results, testInfo);
-
-				final Map<String, Object> testLogInfoExport = new HashMap<>();
-
-				testLogInfoExport.put("testId", testId);
-				testLogInfoExport.put("testModuleName", testModuleName);
-				testLogInfoExport.put("export", export);
-
-				allLatestLogsExport.add(testLogInfoExport);
+				final TestExportInfo export = putTestResultToExport(results, testInfo);
+				PlanExportInfo.TestExportInfoHolder testExportInfoHolder = new PlanExportInfo.TestExportInfoHolder(testId, testModuleName, export);
+				planExportInfo.addTestExportInfoHolder(testExportInfoHolder);
 
 			}
 		}
 
-		if (allLatestLogsExport.isEmpty()) {
+		if (planExportInfo.getTestExportCount()<1) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
@@ -484,18 +469,21 @@ public class LogApi {
 
 				try {
 					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
-					HtmlExportRenderer htmlExportRenderer = new HtmlExportRenderer();
+					addPlanHTMLToZip(archiveOutputStream, testPlan, planExportInfo, htmlExportRenderer);
+
 					// add all test logs file of a test plan to zip
-					for (Map<String, Object> testLogInfoExport : allLatestLogsExport) {
+					for (PlanExportInfo.TestExportInfoHolder testLogInfoExport : planExportInfo.getTestLogExports()) {
 
-						String htmlFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".html";
+						String htmlFileName = TestHelper.generateHtmlFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
 
-						String sigFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".sig";
+						String sigFileName = TestHelper.generateSigFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
 
-						@SuppressWarnings("unchecked")
-						Map<String, Object> infoExport = (Map<String, Object>) testLogInfoExport.get("export");
+						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, testLogInfoExport.getExport(), htmlExportRenderer);
 
-						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, infoExport, htmlExportRenderer);
+						addFilesToZip(archiveOutputStream,
+							"test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json",
+							"test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json.sig",
+							testLogInfoExport.getExport());
 
 					}
 
@@ -509,9 +497,45 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
+	protected void addPlanHTMLToZip(ZipArchiveOutputStream archiveOutputStream,
+									Object plan,
+									PlanExportInfo planExportInfo,
+									HtmlExportRenderer htmlExportRenderer) throws Exception {
+
+		ZipArchiveEntry testLog = new ZipArchiveEntry("index.html");
+
+		Signature signature = Signature.getInstance("SHA1withRSA");
+		signature.initSign(keyManager.getSigningPrivateKey());
+
+		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
+
+		String html = htmlExportRenderer.createHtmlForPlan(planExportInfo);
+		byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+
+		testLog.setSize(htmlBytes.length);
+		archiveOutputStream.putArchiveEntry(testLog);
+
+		signatureOutputStream.write(htmlBytes);
+
+		signatureOutputStream.flush();
+		signatureOutputStream.close();
+
+		archiveOutputStream.closeArchiveEntry();
+
+		ZipArchiveEntry signatureFile = new ZipArchiveEntry("index.html.sig");
+
+		String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
+		signatureFile.setSize(encodedSignature.getBytes().length);
+
+		archiveOutputStream.putArchiveEntry(signatureFile);
+
+		archiveOutputStream.write(encodedSignature.getBytes());
+
+		archiveOutputStream.closeArchiveEntry();
+	}
 
 	protected void addHTMLFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
-									Map<String, Object> export, HtmlExportRenderer htmlExportRenderer) throws Exception {
+									TestExportInfo export, HtmlExportRenderer htmlExportRenderer) throws Exception {
 
 		ZipArchiveEntry testLog = new ZipArchiveEntry(htmlFileName);
 
@@ -575,8 +599,8 @@ public class LogApi {
 
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
-		final Map<String, Object> export = putTestResultToExport(results, testInfo);
-
+		final TestExportInfo export = putTestResultToExport(results, testInfo);
+		final String testModuleNameFinal = testModuleName;
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
 			@Override
@@ -584,13 +608,15 @@ public class LogApi {
 
 				try {
 					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
-					HtmlExportRenderer htmlExportRenderer = new HtmlExportRenderer();
 
-					String htmlFileName = "test-log-" + id + ".html";
+					String htmlFileName = TestHelper.generateHtmlFileName(testModuleNameFinal, id);
 
-					String sigFileName = "test-log-" + id + ".sig";
+					String sigFileName = TestHelper.generateSigFileName(testModuleNameFinal, id);
 
 					addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, export, htmlExportRenderer);
+
+					addFilesToZip(archiveOutputStream, "test-log-"+testModuleNameFinal+"-" + id + ".json",
+						"test-log-"+testModuleNameFinal+"-" + id + ".json.sig", export);
 
 					archiveOutputStream.close();
 				} catch (Exception ex) {
