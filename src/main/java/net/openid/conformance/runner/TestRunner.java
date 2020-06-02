@@ -238,9 +238,16 @@ public class TestRunner implements DataUtils {
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
-			variantFromPlanDefinition = new HashMap<>(variantsMap);
-			for (String k : testPlanVariant.getVariant().keySet()) {
-				variantFromPlanDefinition.remove(k);
+			if (testPlanVariant != null) {
+				// figure out which variants came from the plan definition (and hence are necessary to find the
+				// right test module to update, if the module appears more than once in a plan with different
+				// variants). We're tolerant of the API receiving variants we already know about, e.g. the UI
+				// passes every variant when rerunning a test.
+				// Worked out from the full set of variants, minus those the user selected for the plan
+				variantFromPlanDefinition = new HashMap<>(variantsMap);
+				for (String k : testPlanVariant.getVariant().keySet()) {
+					variantFromPlanDefinition.remove(k);
+				}
 			}
 		} else {
 			// we're starting a test module that's not part of a plan
@@ -311,7 +318,11 @@ public class TestRunner implements DataUtils {
 		}
 
 		// record that this test was started
-		testInfo.createTest(id, testName, testVariant, new VariantSelection(variantFromPlanDefinition), url, config, alias, Instant.now(), planId, description, summary, publish);
+		VariantSelection variantFromPlanDefinitionObj = null;
+		if (variantFromPlanDefinition != null) {
+			variantFromPlanDefinitionObj = new VariantSelection(variantFromPlanDefinition);
+		}
+		testInfo.createTest(id, testName, testVariant, variantFromPlanDefinitionObj, url, config, alias, Instant.now(), planId, description, summary, publish);
 
 
 		// log the test creation event in the event log
