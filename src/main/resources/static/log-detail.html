@@ -441,13 +441,12 @@
 	                            type: 'GET',
 	                            success: function(planData) {
                                     var variant = _.clone(data.variant);
+                                    function removeUserConfiguredVariant(value, key, map) {
+                                        delete variant[key];
+                                    }
+                                    _.each(planData.variant, removeUserConfiguredVariant);
                                     if (_.isEmpty(variant)) {
                                         variant = undefined;
-                                    } else {
-                                        function removeUserConfiguredVariant(value, key, map) {
-                                            delete variant[key];
-                                        }
-                                        _.each(planData.variant, removeUserConfiguredVariant);
                                     }
                                     var thisModuleIndex = _.findIndex(planData.modules, function (module) {
                                         return module.testModule == data.testName && _.isEqual(module.variant, variant);

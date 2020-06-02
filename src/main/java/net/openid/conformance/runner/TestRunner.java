@@ -210,6 +210,7 @@ public class TestRunner implements DataUtils {
 														  Model m) {
 		final JsonObject config;
 		final VariantSelection testVariant;
+		Map<String, String> variantFromPlanDefinition = null;
 
 		String id = RandomStringUtils.randomAlphanumeric(10);
 
@@ -218,7 +219,7 @@ public class TestRunner implements DataUtils {
 				// user should not supply a configuration when creating a test from a test plan
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-			// if the test is part of a plan, the configuration may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
+			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
 			if (variantFromApi == null) {
 				Map<String, String> variant = getFixedVariantIfOnlyOneMatchingModuleInPlan(planId, testName);
@@ -237,8 +238,19 @@ public class TestRunner implements DataUtils {
 			if (config == null) {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
+			if (testPlanVariant != null) {
+				// figure out which variants came from the plan definition (and hence are necessary to find the
+				// right test module to update, if the module appears more than once in a plan with different
+				// variants). We're tolerant of the API receiving variants we already know about, e.g. the UI
+				// passes every variant when rerunning a test.
+				// Worked out from the full set of variants, minus those the user selected for the plan
+				variantFromPlanDefinition = new HashMap<>(variantsMap);
+				for (String k : testPlanVariant.getVariant().keySet()) {
+					variantFromPlanDefinition.remove(k);
+				}
+			}
 		} else {
-			// we're starting an individual test module
+			// we're starting a test module that's not part of a plan
 			config = testConfig;
 			testVariant = variantFromApi;
 			if (config == null) {
@@ -306,7 +318,11 @@ public class TestRunner implements DataUtils {
 		}
 
 		// record that this test was started
-		testInfo.createTest(id, testName, testVariant, variantFromApi, url, config, alias, Instant.now(), planId, description, summary, publish);
+		VariantSelection variantFromPlanDefinitionObj = null;
+		if (variantFromPlanDefinition != null) {
+			variantFromPlanDefinitionObj = new VariantSelection(variantFromPlanDefinition);
+		}
+		testInfo.createTest(id, testName, testVariant, variantFromPlanDefinitionObj, url, config, alias, Instant.now(), planId, description, summary, publish);
 
 
 		// log the test creation event in the event log
