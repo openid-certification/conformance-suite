@@ -521,7 +521,7 @@ deployment_local_test_review:
   }
 
   function install_build_dependencies() {
-    apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python py-pip
+    apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip
     update-ca-certificates
     pip -q install docker-compose==1.23.2
     docker-compose --version
