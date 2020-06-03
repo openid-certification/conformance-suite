@@ -10,8 +10,6 @@ import net.openid.conformance.util.JWAUtil;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CalculateCHash extends AbstractCondition {
 
@@ -34,10 +32,10 @@ public class CalculateCHash extends AbstractCondition {
 			throw error("Unsupported algorithm", e, args("alg", algorithm));
 		}
 
-		byte[] stateDigest = digester.digest(code.getBytes(StandardCharsets.US_ASCII));
+		byte[] digest = digester.digest(code.getBytes(StandardCharsets.US_ASCII));
 
-		byte[] halfDigest = new byte[stateDigest.length / 2];
-		System.arraycopy(stateDigest, 0, halfDigest, 0, halfDigest.length);
+		byte[] halfDigest = new byte[digest.length / 2];
+		System.arraycopy(digest, 0, halfDigest, 0, halfDigest.length);
 
 		String hashValue = Base64URL.encode(halfDigest).toString();
 
