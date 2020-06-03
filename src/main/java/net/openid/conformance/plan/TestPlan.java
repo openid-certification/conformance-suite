@@ -11,6 +11,7 @@ import java.util.List;
 public interface TestPlan {
 	interface ProfileNames {
 		String rptest = "Test a Relying Party / OAuth2 Client";
+		String rplogouttest = "Test a Relying Party / OAuth2 Client Logout Support";
 		String optest = "Test an OpenID Provider / Authorization Server";
 	}
 
