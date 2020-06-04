@@ -128,17 +128,6 @@
 		 *
 		 */
 		$(document).ready(function() {
-			// wire up create buttons
-			$('#newTemporaryToken').click(function(evt) {
-				evt.preventDefault();
-				newToken(false);
-			});
-
-			$('#newPermanentToken').click(function(evt) {
-				evt.preventDefault();
-				newToken(true);
-			});
-
 
 			FAPI_UI.loadTokenListTemplates()
 			.then(function() {
@@ -146,6 +135,16 @@
 			})
 			.then(function() {
 				$('#tokenTable').html(FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser}));
+				// wire up create buttons
+				$('#newTemporaryToken').click(function(evt) {
+					evt.preventDefault();
+					newToken(false);
+				});
+
+				$('#newPermanentToken').click(function(evt) {
+					evt.preventDefault();
+					newToken(true);
+				});
 				return loadTokens();
 			});
 
