@@ -346,7 +346,7 @@ deployment_ciba_test_review:
 
 deployment_local_test_review:
   stage: test
-  image: docker:latest
+  image: docker:19.03.10
   services:
     - docker:dind
   needs: ["build"]
