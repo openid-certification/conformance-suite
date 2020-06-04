@@ -31,7 +31,7 @@ public class SwaggerConfig {
 	private ApiInfo apiInfo() {
 		return new ApiInfoBuilder()
 			.title("OpenID Conformance Suite REST APIs")
-			.description("This page lists the REST APIs for the OpenID Conformance suite. You must obtain a token from the <a href='tokens.html'>token management page</a> to call APIs.")
+			.description("This page lists the REST APIs for the OpenID Conformance suite. You must obtain a token from the <a href='tokens.html'>token management page</a> to call APIs. There is a <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>python script that drives the API</a> available, which is used in our own CI and provides functionality like allowing known failures to be suppressed.")
 			.version(version)
 			.build();
 	}
