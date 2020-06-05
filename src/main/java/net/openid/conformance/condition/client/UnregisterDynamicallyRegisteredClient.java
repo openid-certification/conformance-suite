@@ -4,8 +4,6 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,20 +25,18 @@ import java.util.Collections;
 
 public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(UnregisterDynamicallyRegisteredClient.class);
-
 	@Override
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("client", "registration_access_token");
 		if (Strings.isNullOrEmpty(accessToken)){
-			throw error("Couldn't find registration access token.");
+			throw error("Couldn't find registration_access_token.");
 		}
 
 		String registrationClientUri = env.getString("client", "registration_client_uri");
 		if (Strings.isNullOrEmpty(registrationClientUri)){
-			throw error("Couldn't find registration client uri");
+			throw error("Couldn't find registration_client_uri.");
 		}
 
 		try {
@@ -54,18 +50,19 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 			HttpEntity<?> request = new HttpEntity<>(headers);
 			try {
 				ResponseEntity<?> response = restTemplate.exchange(registrationClientUri, HttpMethod.DELETE, request, String.class);
-				if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-					logSuccess("Client successfully unregistered");
+				if (response.getStatusCode() != HttpStatus.NO_CONTENT) {
+					throw error("registration_client_uri returned a http status code other than 204 No Content",
+						args("code", response.getStatusCode()));
 				}
 			} catch (RestClientResponseException e) {
-				throw error("Error from the registration client endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error when calling registration_client_uri", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 
+		logSuccess("Client successfully unregistered");
 		return env;
 	}
 }
