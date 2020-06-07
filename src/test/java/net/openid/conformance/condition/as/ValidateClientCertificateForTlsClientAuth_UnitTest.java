@@ -70,7 +70,7 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 		tokenEndpointRequest.add("headers", sampleHeaders);
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
-		OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders extractCond = new OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders();
+		ExtractClientCertificateFromTokenEndpointRequestHeaders extractCond = new ExtractClientCertificateFromTokenEndpointRequestHeaders();
 		extractCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		extractCond.execute(env);
 

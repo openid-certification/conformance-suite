@@ -13,11 +13,14 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
+public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
@@ -25,12 +28,12 @@ public class OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTe
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject tokenEndpointRequest;
-	private OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders cond;
+	private ExtractClientCertificateFromTokenEndpointRequestHeaders cond;
 
 
     @Before
     public void setUp() throws Exception {
-		cond = new OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders();
+		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		JsonObject sampleHeaders = new JsonObject();
 
@@ -77,14 +80,18 @@ public class OIDCCExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTe
     }
 
     @Test
-    public void evaluate() {
+    public void evaluate() throws InvalidNameException
+	{
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
 		cond.execute(env);
 
 		assertTrue(env.containsObject("client_certificate"));
-		assertEquals(env.getString("client_certificate", "subject.dn"),
-			"cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
+
+		LdapName ldapNameActual = new LdapName(env.getString("client_certificate", "subject.dn"));
+		LdapName ldapNameExpected = new LdapName("cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
+		assertTrue(ldapNameActual.getRdns().size() == ldapNameExpected.getRdns().size());
+		assertTrue(ldapNameActual.getRdns().containsAll(ldapNameExpected.getRdns()));
 
 		JsonObject cert = env.getObject("client_certificate");
 

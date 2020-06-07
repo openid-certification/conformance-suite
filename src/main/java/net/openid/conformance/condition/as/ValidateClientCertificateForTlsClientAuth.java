@@ -90,7 +90,6 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 				);
 			}
 		}
-		//TODO is it okay to compare dns and email fields as case insensitive strings?
 		if(client.has("tls_client_auth_san_dns")) {
 			String expected = OIDFJSON.getString(client.get("tls_client_auth_san_dns"));
 			JsonArray actualValues = certIfo.get("sanDnsNames").getAsJsonArray();
