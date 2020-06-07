@@ -834,7 +834,7 @@ public class HtmlExportRenderer_UnitTest
 			(List)bsonDocFromExport.get("results"));
 		String html = renderer.createHtmlForTestLogs(exportInfo);
 		assertNotNull(html);
-		assertTrue(html.contains("<td class=\"col-3 log-msg\">Skipped evaluation due to missing required element: client userinfo_encrypted_response_alg</td>"));
+		assertTrue(html.contains("Skipped evaluation due to missing required element: client userinfo_encrypted_response_alg"));
 		assertTrue(html.contains("I20dmjAIhDd5IqFQfld0GFPtDeGhB97rV3JvANyxzYKlH5JFn1"));
 		assertTrue(html.contains("&quot;x&quot;: &quot;Cl_uW3h3sqo72rfUiBwRKnZxdHQrr77yM8XGm7SAVN0&quot;,"));
 		assertTrue(html.contains("2020-05-22 07:01:12"));

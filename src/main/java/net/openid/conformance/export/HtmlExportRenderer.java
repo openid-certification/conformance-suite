@@ -59,11 +59,10 @@ public class HtmlExportRenderer {
 		thymleafContext.setLocale(Locale.ENGLISH);
 		TestHelper helper = new TestHelper(export);
 		thymleafContext.setVariable("helper", helper);
-		//Note: this is obviously less efficient, we could have done it using a single template
-		//it is implemented this way to see if log api can be changed to use the same log entry rendering
+
 		for(Document testResult : helper.getTestResults()){
-			String html = createHtmlForLogEntry(testResult);
-			helper.addRenderedResult(html);
+			LogEntryHelper logEntryHelper = new LogEntryHelper(testResult, gson);
+			helper.addLogEntryHelper(logEntryHelper);
 		}
 		StringWriter writer = new StringWriter();
 		exportRenderingTemplateEngine.process(testTemplateName, thymleafContext, writer);

@@ -19,6 +19,8 @@ public class ExportRenderingTemplateEngineBean
 
 	public ClassLoaderTemplateResolver exportRenderingTemplateResolver() {
 		ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+		//th:include in test.html will fail without this when running unit tests
+		templateResolver.addTemplateAlias("self-contained-export/log-entry.html", "/templates/self-contained-export/log-entry.html");
 		templateResolver.setTemplateMode(TemplateMode.HTML);
 		return templateResolver;
 	}

@@ -22,6 +22,7 @@
         }
         pre{
             margin-top:0px;
+            margin-bottom:0px;
             margin-left:0px;
             font-family: sans-serif;
         }
@@ -388,6 +389,13 @@
             text-decoration:none;
         }
 
+        .review-img{
+            max-height: 50vh;
+            display: block;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
     </style>
     <script>
         function moreClicked(itemid){
@@ -520,7 +528,7 @@ Test Summary
 <a href="javascript:collapseMores()">Collapse All</a>
 <div>All times are UTC</div>
 <div id="results">
-    <div class="log-item" th:each="htmlForEntry : ${helper.resultHtmls}"  th:utext="${htmlForEntry}">
+    <div class="log-item" th:each="item : ${helper.logEntryHelpers}"  th:include="self-contained-export/log-entry.html">
     </div>
 </div>
 <a href="#testresultsheader" id="fixedtoplink">Test Results</a>

@@ -27,7 +27,7 @@ public class TestHelper {
 	private TestInfo testInfoObject;
 	private PublicTestInfo publicTestInfo;
 	private List<Document> testResults;
-	private List<String> resultHtmls = new LinkedList<>();
+	private List<LogEntryHelper> logEntryHelpers = new LinkedList<>();
 
 	private List<String> failures = new LinkedList<>();
 	private int successCount;
@@ -64,10 +64,7 @@ public class TestHelper {
 				successCount++;
 			} else if("FAILURE".equals(resultStr)) {
 				failureCount++;
-				this.failures.add(resultDoc.getString("msg") +
-					//TODO fix this
-					(resultDoc.get("requirements")!=null? (" " + resultDoc.get("requirements")):"")
-				);
+				this.failures.add(resultDoc.getString("msg"));
 			} else if("WARNING".equals(resultStr)) {
 				warningCount++;
 			} else if("REVIEW".equals(resultStr)) {
@@ -144,13 +141,13 @@ public class TestHelper {
 		this.testResults = testResults;
 	}
 
-	public void addRenderedResult(String renderedHtml) {
-		this.resultHtmls.add(renderedHtml);
+	public void addLogEntryHelper(LogEntryHelper logEntryHelper) {
+		this.logEntryHelpers.add(logEntryHelper);
 	}
 
-	public List<String> getResultHtmls()
+	public List<LogEntryHelper> getLogEntryHelpers()
 	{
-		return resultHtmls;
+		return logEntryHelpers;
 	}
 
 	/**

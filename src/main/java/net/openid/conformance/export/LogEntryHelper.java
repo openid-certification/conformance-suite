@@ -72,7 +72,7 @@ public class LogEntryHelper {
 		this.gson = collapsingGsonHttpMessageConverter;
 		for(String field : logEntry.keySet()) {
 			if(!visibleFields.contains(field)) {
-				//TODO I assumed that there can be only 1 stack trace and 1 cause_stacktrace. let me know if that's not the case
+				//assume that there can be only 1 stack trace and 1 cause_stacktrace
 				if("stacktrace".equals(field)) {
 					this.stackTrace = logEntry.get(field);
 				} else if("cause_stacktrace".equals(field)) {
@@ -121,7 +121,7 @@ public class LogEntryHelper {
 		if(fieldValue instanceof Number) {
 			return "text";
 		}
-		//will be json encoded by default
+		//json encode by default
 		return "json";
 	}
 
@@ -180,8 +180,8 @@ public class LogEntryHelper {
 		TimeZone timeZone = TimeZone.getTimeZone("UTC");
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
 		dateFormat.setTimeZone(timeZone);
-		String asISO = dateFormat.format(timeAsDate);	// + " (UTC)";
-		return asISO;
+		String formatted = dateFormat.format(timeAsDate);
+		return formatted;
 	}
 
 	public String formatJson(Object object) {
