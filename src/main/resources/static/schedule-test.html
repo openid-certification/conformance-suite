@@ -462,12 +462,15 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">tls_client_auth configuration (Enter <u>only one</u> of the following)</h3>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">tls_client_auth_subject_dn</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Certificate subject DN"></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Certificate subject DN, e.g cn=certification.example.com,o=oidf,st=ca,c=us."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_subject_dn"></input>
                                         </div>
@@ -478,7 +481,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="DNSname subject alternative name."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="DNSname subject alternative name, e.g client.example.com."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_dns"></input>
                                         </div>
@@ -489,7 +492,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI subject alternative name."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI subject alternative name, e.g https://example.com."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_uri"></input>
                                         </div>
@@ -500,7 +503,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="IP address subject alternative name."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="IP address subject alternative name, e.g 10.0.0.1 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_ip"></input>
                                         </div>
@@ -511,7 +514,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Email address subject alternative name."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Email address subject alternative name, e.g john@example.com."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.tls_client_auth_san_email"></input>
                                         </div>
