@@ -12,11 +12,6 @@ public class AddInitiateLoginUriAsNonHttpsToDynamicRegistrationRequest extends A
 	@PreEnvironment(required = "dynamic_registration_request", strings = "initiate_login_uri")
 	@PostEnvironment(required = "dynamic_registration_request")
 	public Environment evaluate(Environment env) {
-		String baseUrl = env.getString("base_url");
-
-		if (baseUrl.isEmpty()) {
-			throw error("Base URL is empty");
-		}
 		String initiateLoginUri = env.getString("initiate_login_uri");
 
 		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
