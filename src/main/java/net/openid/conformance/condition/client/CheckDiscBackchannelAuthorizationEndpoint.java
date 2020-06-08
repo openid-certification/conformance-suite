@@ -3,7 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscBackchannelAuthorizationEndpoint extends ValidateJsonUri {
+public class CheckDiscBackchannelAuthorizationEndpoint extends AbstractJsonUriIsValidAndHttps {
 
 	private static final String environmentVariable = "backchannel_authentication_endpoint";
 

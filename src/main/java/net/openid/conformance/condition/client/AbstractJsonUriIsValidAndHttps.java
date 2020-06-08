@@ -1,15 +1,14 @@
 package net.openid.conformance.condition.client;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import com.google.gson.JsonElement;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public abstract class ValidateJsonUri extends AbstractCondition {
+import java.net.MalformedURLException;
+import java.net.URL;
+
+public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
 
 	private static final String requiredProtocol = "https";
 	private static final String errorMessageNotJsonPrimitive = "Specified value is not a Json primitive";

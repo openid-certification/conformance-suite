@@ -3,7 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointAllEndpointsAreHttps extends ValidateJsonUri {
+public class CheckDiscEndpointAllEndpointsAreHttps extends AbstractJsonUriIsValidAndHttps {
 
 	@Override
 	@PreEnvironment(required = "server")

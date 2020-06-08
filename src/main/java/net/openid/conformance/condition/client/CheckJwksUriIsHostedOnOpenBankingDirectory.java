@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.net.URL;
 
-public class CheckJwksUriIsHostedOnOpenBankingDirectory extends ValidateJsonUri {
+public class CheckJwksUriIsHostedOnOpenBankingDirectory extends AbstractJsonUriIsValidAndHttps {
 
 	private static final String requiredHostname = "keystore.openbanking.org.uk";
 
