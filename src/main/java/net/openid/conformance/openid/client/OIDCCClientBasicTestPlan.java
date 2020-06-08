@@ -2,8 +2,7 @@ package net.openid.conformance.openid.client;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.ClientRequestType;
+import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 
@@ -28,7 +27,7 @@ public class OIDCCClientBasicTestPlan implements TestPlan {
 			//because python tests don't care which client authentication method you use
 			//and OIDCCClientTestClientSecretBasic always uses client_secret_basic regardless of the selected
 			//client authentication variant
-			new Variant(ClientAuthType.class, "client_secret_basic")
+			new Variant(OIDCCClientAuthType.class, "client_secret_basic")
 		);
 		return List.of(
 			new ModuleListEntry(

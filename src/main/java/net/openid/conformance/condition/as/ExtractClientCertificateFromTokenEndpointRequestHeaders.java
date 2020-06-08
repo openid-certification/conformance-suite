@@ -4,15 +4,19 @@ import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
 
 import javax.security.auth.x500.X500Principal;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.x509.GeneralName;
 
 public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends AbstractCondition {
 
@@ -45,6 +49,39 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 			X500Principal subject = cert.getSubjectX500Principal();
 			subjectInfo.addProperty("dn", subject.getName());
 			certInfo.add("subject", subjectInfo);
+
+			JsonArray sanDnsNames = new JsonArray();
+			JsonArray sanUris = new JsonArray();
+			JsonArray sanIPs = new JsonArray();
+			JsonArray sanEmails = new JsonArray();
+
+			Collection<List<?>> altNames = cert.getSubjectAlternativeNames();
+			if (altNames != null) {
+				for(List<?> altName : altNames) {
+					if(altName.size()< 2) {
+						continue;
+					}
+					String sanValue = String.valueOf(altName.get(1));
+					switch((Integer)altName.get(0)) {
+						case GeneralName.dNSName:
+							sanDnsNames.add(sanValue);
+							break;
+						case GeneralName.iPAddress:
+							sanIPs.add(sanValue);
+							break;
+						case GeneralName.uniformResourceIdentifier:
+							sanUris.add(sanValue);
+							break;
+						case GeneralName.rfc822Name:
+							sanEmails.add(sanValue);
+							break;
+					}
+				}
+			}
+			certInfo.add("sanDnsNames", sanDnsNames);
+			certInfo.add("sanUris", sanUris);
+			certInfo.add("sanIPs", sanIPs);
+			certInfo.add("sanEmails", sanEmails);
 
 			env.putObject("client_certificate", certInfo);
 

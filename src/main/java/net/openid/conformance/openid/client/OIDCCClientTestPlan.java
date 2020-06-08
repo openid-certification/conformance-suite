@@ -34,7 +34,8 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestInvalidIdTokenSignatureWithHS256.class,
 		OIDCCClientTestInvalidIdTokenSignatureWithES256.class,
 		OIDCCClientTestAggregatedClaims.class,
-		OIDCCClientTestDistributedClaims.class
+		OIDCCClientTestDistributedClaims.class,
+		OIDCCClientTestMtlsEndpointAliases.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {

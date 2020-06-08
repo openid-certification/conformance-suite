@@ -66,7 +66,13 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
     for test_plan_config in oidcc_test_config_json['tests']:
         client_metadata_defaults = test_plan_config['client_metadata_defaults']
         client_metadata_defaults_str = json.dumps(client_metadata_defaults)
-
+        other_environment_vars_for_script = {}
+        try:
+            if test_plan_config['other_environment_variables']:
+                other_environment_vars_for_script = test_plan_config['other_environment_variables']
+                del test_plan_config['other_environment_variables']
+        except:
+            pass
         #remove client_metadata_defaults otherwise plan api call will fail
         del test_plan_config['client_metadata_defaults']
         test_plan_info = conformance.create_test_plan(test_plan_name, json_config, test_plan_config)
@@ -105,6 +111,10 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                     print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
 
                     os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
+
+                    if other_environment_vars_for_script:
+                        for envvarname in other_environment_vars_for_script:
+                            os.putenv(envvarname, other_environment_vars_for_script[envvarname])
                     os.putenv('VARIANT', variantstr)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('ISSUER', oidcc_issuer_str)
