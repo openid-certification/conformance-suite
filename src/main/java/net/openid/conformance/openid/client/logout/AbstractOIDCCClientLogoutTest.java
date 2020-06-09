@@ -8,7 +8,7 @@ import net.openid.conformance.condition.as.logout.AddSessionStateToAuthorization
 import net.openid.conformance.condition.as.logout.AddSidToIdTokenClaims;
 import net.openid.conformance.condition.as.logout.CallRPBackChannelLogoutEndpoint;
 import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUriParams;
-import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUri;
+import net.openid.conformance.condition.as.logout.CreatePostLogoutRedirectUriRedirect;
 import net.openid.conformance.condition.as.logout.CreateRPFrontChannelLogoutRequestUrl;
 import net.openid.conformance.condition.as.logout.EncryptLogoutToken;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders;
@@ -158,7 +158,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 
 		customizeEndSessionEndpointResponseParameters();
 
-		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5.1");
+		callAndStopOnFailure(CreatePostLogoutRedirectUriRedirect.class, "OIDCSM-5.1");
 	}
 
 	/**
