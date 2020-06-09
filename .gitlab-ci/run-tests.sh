@@ -195,6 +195,7 @@ makeCIBATest() {
 
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
+    TESTS="${TESTS} oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code\ id_token][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -265,7 +266,8 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    TESTS="${TESTS} --show-untested-test-modules server"
+    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
+    TESTS="${TESTS} --show-untested-test-modules server-exc-logout"
     echo "Run server tests"
     makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then

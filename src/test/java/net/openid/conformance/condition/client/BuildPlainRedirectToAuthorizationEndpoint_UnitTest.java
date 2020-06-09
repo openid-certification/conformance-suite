@@ -1,12 +1,9 @@
 package net.openid.conformance.condition.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,14 +14,14 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import com.google.gson.JsonObject;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
@@ -64,16 +61,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", authorizationEndpoint);
-
-		authorizationEndpointRequest = new JsonObject();
-		authorizationEndpointRequest.addProperty("client_id", clientId);
-		authorizationEndpointRequest.addProperty("redirect_uri", redirectUri);
-		authorizationEndpointRequest.addProperty("scope", scope);
-		authorizationEndpointRequest.addProperty("state", state);
-		authorizationEndpointRequest.addProperty("response_type", responseType);
-
 		env.putObject("server", server);
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 	}
 
 	/**
@@ -83,10 +71,14 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 	 */
 	@Test
 	public void testEvaluate() throws UnsupportedEncodingException {
+		authorizationEndpointRequest = new JsonObject();
+		authorizationEndpointRequest.addProperty("client_id", clientId);
+		authorizationEndpointRequest.addProperty("redirect_uri", redirectUri);
+		authorizationEndpointRequest.addProperty("scope", scope);
+		authorizationEndpointRequest.addProperty("state", state);
+		authorizationEndpointRequest.addProperty("response_type", responseType);
 
-		env.putString("client_id", "s6BhdRkqt3");
-		env.putString("state", "xyz");
-		env.putString("redirect_uri", "https://client.example.com/cb");
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
 		cond.execute(env);
 
@@ -104,4 +96,20 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encodeQueryParam(scope, Charset.defaultCharset().name()));
 		assertThat(redirectUriParams.get("state")).containsExactly(UriUtils.encodeQueryParam(state, Charset.defaultCharset().name()));
 	}
+
+	@Test
+	public void testEscape() throws UnsupportedEncodingException {
+		authorizationEndpointRequest = new JsonObject();
+		authorizationEndpointRequest.addProperty("state", "x=y&z;foo bar+foo%20bar");
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+
+		cond.execute(env);
+
+		// This expected result is incorrect - the '+' should have been encoded to '%2B', as a + in the url
+		// query means "space". The existing code doesn't handle that correctly, and I can't quickly find a way
+		// to make Spring do the correct thing.
+		// see https://github.com/spring-projects/spring-framework/issues/21577
+		assertThat(env.getString("redirect_to_authorization_endpoint")).isEqualTo("https://example.com/oauth/authorize?state=x%3Dy%26z;foo%20bar+foo%2520bar");
+	}
+
 }
