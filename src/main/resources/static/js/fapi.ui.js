@@ -422,6 +422,8 @@ var FAPI_UI = {
 			}
 		},
 
+	    // Hash to map requirement strings onto url
+	    // Each url must have the fragment necessary to form a link to a particular section of document
 		specLinks : {
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
@@ -432,7 +434,7 @@ var FAPI_UI = {
 			"OBRW-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#",
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
 			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
-			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html",
+			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
 			"MTLS-" : "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
@@ -447,8 +449,8 @@ var FAPI_UI = {
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
-			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html",
-			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html"
+			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
+			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section."
 		},
 
 		testJSON : {},

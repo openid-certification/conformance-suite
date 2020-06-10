@@ -93,5 +93,32 @@ public class ValidateExpiresIn_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test (expected = ConditionError.class)
+	public void ValidateExpiresIn_Zero() {
+		env.putObject("expires_in", new JsonParser().parse("{\"expires_in\":0}").getAsJsonObject());
+		cond.execute(env);
+	}
+
+	@Test (expected = ConditionError.class)
+	public void ValidateExpiresIn_Negative() {
+		env.putObject("expires_in", new JsonParser().parse("{\"expires_in\":-1}").getAsJsonObject());
+		cond.execute(env);
+	}
+
+	@Test
+	public void ValidateExpiresIn_NonInteger() {
+		// https://tools.ietf.org/html/rfc6749#appendix-A.14 does not actually allow non-integer values,
+		// so this unit test is a record that our code is currently not as strict as the spec
+		env.putObject("expires_in", new JsonParser().parse("{\"expires_in\":3600.5}").getAsJsonObject());
+		cond.execute(env);
+	}
+
+	@Test
+	public void ValidateExpiresIn_WithDecimalPoint() {
+		// https://tools.ietf.org/html/rfc6749#appendix-A.14 does not actually allow non-integer values,
+		// so this unit test is a record that our code is currently not as strict as the spec
+		env.putObject("expires_in", new JsonParser().parse("{\"expires_in\":3600.0}").getAsJsonObject());
+		cond.execute(env);
+	}
 
 }

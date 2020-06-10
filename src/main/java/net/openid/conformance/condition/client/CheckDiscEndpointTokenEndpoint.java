@@ -3,7 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointTokenEndpoint extends ValidateJsonUri {
+public class CheckDiscEndpointTokenEndpoint extends AbstractJsonUriIsValidAndHttps {
 
 	private static final String environmentVariable = "token_endpoint";
 
