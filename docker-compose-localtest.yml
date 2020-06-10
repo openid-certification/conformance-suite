@@ -12,7 +12,7 @@ services:
     entrypoint:
       - "/bin/sh"
       - "-c"
-      - "( [ -f /conformance-suite/.gitlab-ci/local-provider-oidcc.plan ] || docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc.plan ) && exec docker-entrypoint.sh server"
+      - "( [ -f /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ] || docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ) && exec docker-entrypoint.sh server"
   mongodb:
     image: mongo
     volumes:
