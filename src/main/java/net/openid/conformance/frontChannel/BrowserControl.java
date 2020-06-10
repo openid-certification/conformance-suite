@@ -1,20 +1,21 @@
 package net.openid.conformance.frontChannel;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.regex.Pattern;
-
 import com.gargoylesoftware.htmlunit.CookieManager;
-import net.openid.conformance.testmodule.OIDFJSON;
+import com.gargoylesoftware.htmlunit.DefaultPageCreator;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.WebWindow;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.info.ImageService;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
+import net.openid.conformance.testmodule.DataUtils;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.bson.Document;
 import org.openqa.selenium.By;
@@ -29,17 +30,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.PatternMatchUtils;
 
-import com.gargoylesoftware.htmlunit.DefaultPageCreator;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.WebWindow;
-import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.info.ImageService;
-import net.openid.conformance.testmodule.DataUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Pattern;
 
 public class BrowserControl implements DataUtils {
 
@@ -322,7 +321,8 @@ public class BrowserControl implements DataUtils {
 				eventLog.log("WebRunner",
 					ex(e,
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
-							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE)));
+							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE,
+							"current_dom", driver.getCurrentDomAsXml())));
 				// note that this leaves us in the current list of runners for the executing test
 				this.lastException = e.getMessage();
 				if (e instanceof TestFailureException) {
@@ -467,7 +467,7 @@ public class BrowserControl implements DataUtils {
 
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();
-						throw new TestFailureException(testId, "Timed out waiting: " + commandString);
+						throw new TestFailureException(testId, "Timed out waiting: " + command.toString());
 					}
 				} else {
 					this.lastException = "Invalid Command " + commandString;
@@ -540,6 +540,11 @@ public class BrowserControl implements DataUtils {
 
 		public String getResponseContentType() {
 			return this.lastPage().getWebResponse().getContentType();
+		}
+
+		public String getCurrentDomAsXml() {
+			HtmlPage page = (HtmlPage) this.lastPage();
+			return page.getDocumentElement().asXml();
 		}
 
 		public String getStatus() {
