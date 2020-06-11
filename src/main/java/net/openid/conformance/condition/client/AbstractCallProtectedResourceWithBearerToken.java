@@ -10,7 +10,7 @@ public abstract class AbstractCallProtectedResourceWithBearerToken extends Abstr
 
 		HttpHeaders headers = super.getHeaders(env);
 
-		headers.set("Authorization", String.join(" ", "Bearer", getAccessToken(env)));
+		headers.set("Authorization", "Bearer " + getAccessToken(env));
 
 		return headers;
 	}
