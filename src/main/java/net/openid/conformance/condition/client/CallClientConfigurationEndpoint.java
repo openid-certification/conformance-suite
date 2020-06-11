@@ -1,13 +1,16 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
@@ -23,10 +26,11 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
-public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
+public class CallClientConfigurationEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "registration_client_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("client", "registration_access_token");
@@ -49,20 +53,35 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 
 			HttpEntity<?> request = new HttpEntity<>(headers);
 			try {
-				ResponseEntity<?> response = restTemplate.exchange(registrationClientUri, HttpMethod.DELETE, request, String.class);
-				if (response.getStatusCode() != HttpStatus.NO_CONTENT) {
-					throw error("registration_client_uri returned a http status code other than 204 No Content",
-						args("code", response.getStatusCode()));
+				ResponseEntity<String> response = restTemplate.exchange(registrationClientUri, HttpMethod.GET, request, String.class);
+				JsonObject responseInfo = new JsonObject();
+				responseInfo.addProperty("status", response.getStatusCode().value());
+
+				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
+
+				responseInfo.add("headers", responseHeaders);
+
+				responseInfo.addProperty("body", response.getBody());
+
+				JsonElement jsonRoot = new JsonParser().parse(response.getBody());
+				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+					throw error("registration_client_uri did not return a JSON object");
 				}
+
+				responseInfo.add("body_json", jsonRoot.getAsJsonObject());
+
+				env.putObject("registration_client_endpoint_response", responseInfo);
+
+				logSuccess("Called registration_client_uri", responseInfo);
+
 			} catch (RestClientResponseException e) {
-				throw error("Error when calling registration_client_uri", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from registration_client_uri", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
 
-		logSuccess("Client successfully unregistered");
 		return env;
 	}
 }
