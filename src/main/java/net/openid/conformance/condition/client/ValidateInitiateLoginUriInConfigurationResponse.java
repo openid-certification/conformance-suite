@@ -22,11 +22,11 @@ public class ValidateInitiateLoginUriInConfigurationResponse extends AbstractCon
 		if (!returnedUri.equals(initiateLoginUri)) {
 			throw error(INITIATE_LOGIN_URI + " in client configuration response does not match the value the client registered.",
 				args("requested", initiateLoginUri,
-					"response", returnedUri));
+					"actual", returnedUri));
 		}
 
 		logSuccess(INITIATE_LOGIN_URI + " in configuration response is correct.",
-			args("response", returnedUri));
+			args("actual", returnedUri));
 
 		return env;
 
