@@ -40,20 +40,20 @@ import net.openid.conformance.variant.VariantSetup;
 )
 public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID1 {
 
-	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
+	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			call(sequence(validateAuthorizationEndpointResponseSteps));
+			call(sequence(validateTokenEndpointResponseSteps));
 			validateErrorFromTokenEndpointResponse();
 		}
 
