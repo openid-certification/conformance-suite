@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -108,7 +107,6 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		addClientAuthenticationToTokenEndpointRequest();
 
 		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {
