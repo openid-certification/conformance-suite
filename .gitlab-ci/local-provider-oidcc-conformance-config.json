@@ -70,13 +70,26 @@
             "match": "https://oidcc-provider:3000/session/end*",
             "tasks": [
                 {
-                    "task": "Login",
+                    "task": "Choose logout option",
                     "match": "https://oidcc-provider:3000/session/end*",
                     "commands": [
                         [
                             "click",
                             "css",
                             "button[autofocus] "
+                        ]
+                    ]
+                },
+                {
+                    "task": "process user choice, wait for redirect back",
+                    "optional": true,
+                    "match": "https://oidcc-provider:3000/session/end/confirm",
+                    "commands" : [
+                        [
+                            "wait",
+                            "contains",
+                            "/test/a/local-oidcc/post",
+                            10
                         ]
                     ]
                 },
