@@ -177,7 +177,9 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCServerTest {
 	protected Object handlePostLogoutRedirect(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 		postLogoutRedirectRequestParts = requestParts;
-		if (backchannelLogoutRequestParts != null) {
+		if (backchannelLogoutRequestParts == null) {
+			eventLog.log(getName(), args("msg", "Received front channel redirect; waiting for back channel request"));
+		} else {
 			validateLogoutResultsInBackground();
 		}
 		setStatus(Status.WAITING);
@@ -190,7 +192,9 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCServerTest {
 	protected Object handleBackchannelLogout(JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 		backchannelLogoutRequestParts = requestParts;
-		if (postLogoutRedirectRequestParts != null) {
+		if (postLogoutRedirectRequestParts == null) {
+			eventLog.log(getName(), args("msg", "Received backchannel request; waiting for front channel redirect"));
+		} else {
 			validateLogoutResultsInBackground();
 		}
 		setStatus(Status.WAITING);
