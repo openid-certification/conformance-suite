@@ -22,7 +22,7 @@ public class CheckIdTokenSidMatchesLogoutToken extends AbstractCondition {
 				args("id_token", idToken, "logout_token", logoutToken));
 		}
 
-		logSuccess("sid is the same in the second id_token", args("id_token", idToken, "logout_token", logoutToken));
+		logSuccess("sid in the id_token matches that in the logout_token", args("id_token", idToken, "logout_token", logoutToken));
 
 		return env;
 	}
