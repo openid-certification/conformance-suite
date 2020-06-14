@@ -99,7 +99,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
-			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
+			headers.set("Authorization", "Bearer " + accessToken);
 
 
 			// Stop RestTemplate from overwriting the Accept-Charset header

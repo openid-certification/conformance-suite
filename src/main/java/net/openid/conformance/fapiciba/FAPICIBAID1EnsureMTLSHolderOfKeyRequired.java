@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -41,20 +40,20 @@ import net.openid.conformance.variant.VariantSetup;
 )
 public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID1 {
 
-	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
+	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -108,14 +107,13 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		addClientAuthenticationToTokenEndpointRequest();
 
 		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			call(sequence(validateAuthorizationEndpointResponseSteps));
+			call(sequence(validateTokenEndpointResponseSteps));
 			validateErrorFromTokenEndpointResponse();
 		}
 

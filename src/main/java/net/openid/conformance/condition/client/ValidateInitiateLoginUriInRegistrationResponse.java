@@ -22,11 +22,11 @@ public class ValidateInitiateLoginUriInRegistrationResponse extends AbstractCond
 		if (!returnedUri.equals(initiateLoginUri)) {
 			throw error(INITIATE_LOGIN_URI + " in client registration response does not match the value in the request.",
 				args("requested", initiateLoginUri,
-					"response", returnedUri));
+					"actual", returnedUri));
 		}
 
 		logSuccess(INITIATE_LOGIN_URI + " in registration response is correct.",
-			args("response", returnedUri));
+			args("actual", returnedUri));
 
 		return env;
 

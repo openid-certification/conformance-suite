@@ -55,6 +55,7 @@ import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckIncomingContentTypeIsApplicationJson;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckTokenEndpointCacheHeaders;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
@@ -918,6 +919,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 
 		env.unmapKey("client_request");
 

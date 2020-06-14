@@ -1,18 +1,16 @@
 package net.openid.conformance.runner;
 
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
+import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.testmodule.UserFacing;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -33,14 +31,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.testmodule.DataUtils;
-import net.openid.conformance.testmodule.TestModule;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.List;
 
 @Controller
 public class TestDispatcher implements DataUtils {
@@ -120,12 +117,12 @@ public class TestDispatcher implements DataUtils {
 
 				// check the content type and try to parse it if it's JSON
 				if (contentType != null) {
-					if (contentType.equals(MediaType.APPLICATION_JSON)) {
+					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_JSON)) {
 						// parse the body as json
 						requestParts.add("body_json", new JsonParser().parse(body));
 					}
 
-					if (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED)) {
+					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)) {
 						requestParts.add("body_form_params", mapToJsonObject(convertQueryStringParamsToMap(body), false));
 					}
 				}

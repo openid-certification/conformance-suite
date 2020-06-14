@@ -46,18 +46,18 @@ import net.openid.conformance.variant.VariantSetup;
 )
 public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
 
-	private Class<? extends ConditionSequence> validateAuthorizationEndpointResponseSteps;
+	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateAuthorizationEndpointResponseSteps = ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			call(sequence(validateAuthorizationEndpointResponseSteps));
+			call(sequence(validateTokenEndpointResponseSteps));
 			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 			callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
@@ -127,7 +127,7 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 		fireTestFinished();
 	}
 
-	public static class ValidateAuthorizationEndpointResponseWithMTLS extends AbstractConditionSequence {
+	public static class ValidateTokenEndpointResponseWithMTLS extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
@@ -137,7 +137,7 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 		}
 	}
 
-	public static class ValidateAuthorizationEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
+	public static class ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			// if the ssl connection was not dropped, we expect one of invalid_request, invalid_grant or invalid_client
