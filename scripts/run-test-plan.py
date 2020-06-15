@@ -973,14 +973,14 @@ if __name__ == '__main__':
             if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m)  or re.match(r'(oidcc-client-.*)', m) ):
                 untested_test_modules.remove(m)
                 continue
-        elif show_untested == 'server':
-            # Only run server test, therefore ignore all client test
-            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m):
+        elif show_untested == 'server-oidc-provider':
+            # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
+            if re.match(r'(fapi-.*)', m) or re.match(r'(oidcc-client-.*)', m):
                 untested_test_modules.remove(m)
                 continue
-        elif show_untested == 'server-exc-logout':
-            # ignore all client test + any logout tests
-            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m) or re.match(r'oidcc-backchannel-.*', m) or re.match(r'oidcc-frontchannel-.*', m) :
+        elif show_untested == 'server-authlete':
+            # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
+            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m) or re.match(r'(oidcc-.*-logout.*)', m):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ciba':

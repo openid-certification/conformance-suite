@@ -268,7 +268,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
-    TESTS="${TESTS} --show-untested-test-modules server-exc-logout"
+    TESTS="${TESTS} --show-untested-test-modules server-authlete"
     echo "Run server tests"
     makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
@@ -284,6 +284,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     echo "Run local provider tests"
     makeLocalProviderTests
 else
