@@ -21,7 +21,7 @@ public class SetClientAuthenticationAudTokenEndpointToBackchannelAuthenticationE
 
 		env.putObject("client_assertion_claims", claims);
 
-		logSuccess("Add token_endpoint as aud value to client_assertion_claims", claims);
+		logSuccess("Add token_endpoint as aud value to client_assertion_claims - as per section 7.1 of CIBA, 'the OP MUST accept its Issuer Identifier, Token Endpoint URL, or Backchannel Authentication Endpoint URL as values that identify it as an intended audience'", claims);
 
 		return env;
 	}
