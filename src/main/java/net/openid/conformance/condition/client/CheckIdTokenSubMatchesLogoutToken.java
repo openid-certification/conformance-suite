@@ -22,7 +22,7 @@ public class CheckIdTokenSubMatchesLogoutToken extends AbstractCondition {
 				args("id_token", idToken, "logout_token", logoutToken));
 		}
 
-		logSuccess("sub is the same in the second id_token", args("id_token", idToken, "logout_token", logoutToken));
+		logSuccess("sub from the id_token matches that in the logout_token", args("id_token", idToken, "logout_token", logoutToken));
 
 		return env;
 	}

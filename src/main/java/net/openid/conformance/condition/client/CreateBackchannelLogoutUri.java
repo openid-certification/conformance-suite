@@ -27,11 +27,11 @@ public class CreateBackchannelLogoutUri extends AbstractCondition {
 		// the python suite included entity_id in the query string here originally, but this was removed in
 		// https://github.com/rohe/oidctest/commit/2c5b8192105d1176eeaf29108fae152b66bcf41c I believe due to
 		// https://github.com/openid-certification/oidctest/issues/224
-		String initiateLoginUri = baseUrl + "/backchannel_logout";
-		env.putString("backchannel_logout_uri", initiateLoginUri);
+		String backchannelLogoutUri = baseUrl + "/backchannel_logout";
+		env.putString("backchannel_logout_uri", backchannelLogoutUri);
 
-		logSuccess("Created initiate_login URI",
-			args("backchannel_logout_uri", initiateLoginUri));
+		logSuccess("Created backchannel_logout_uri URI",
+			args("backchannel_logout_uri", backchannelLogoutUri));
 
 		return env;
 	}

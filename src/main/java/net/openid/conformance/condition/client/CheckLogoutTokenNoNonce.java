@@ -13,10 +13,10 @@ public class CheckLogoutTokenNoNonce extends AbstractCondition {
 
 		JsonElement nonce = env.getElementFromObject("logout_token", "claims.nonce");
 		if (nonce != null) {
-			throw error("logout token has a nonce, which is must not.");
+			throw error("Logout token has a nonce, which it must not.");
 		}
 
-		logSuccess("no nonce in logout token");
+		logSuccess("No nonce in logout token.");
 
 		return env;
 

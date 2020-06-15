@@ -34,7 +34,7 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		//REQUIRED. Issuer Identifier, as specified in Section 2 of [OpenID.Core].
 		String logoutTokenIss = env.getString("logout_token", "claims.iss");
 		if (logoutTokenIss == null) {
-			throw error("Missing 'iss'");
+			throw error("'iss' claim missing");
 		}
 		if (!issuer.equals(logoutTokenIss)) {
 			throw error("Issuer mismatch", args("expected", issuer, "actual", logoutTokenIss));
@@ -48,15 +48,15 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		//REQUIRED. Audience(s), as specified in Section 2 of [OpenID.Core].
 		JsonElement aud = env.getElementFromObject("logout_token", "claims.aud");
 		if (aud == null) {
-			throw error("Missing audience");
+			throw error("'aud' claim missing");
 		}
 		if (aud.isJsonArray()) {
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
-				throw error("Audience not found", args("expected", clientId, "actual", aud));
+				throw error("'aud' array does not contain our client id", args("expected", clientId, "actual", aud));
 			}
 		} else {
 			if (!clientId.equals(OIDFJSON.getString(aud))) {
-				throw error("Audience mismatch", args("expected", clientId, "actual", aud));
+				throw error("'aud' is not our client id", args("expected", clientId, "actual", aud));
 			}
 		}
 
@@ -64,10 +64,10 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		//REQUIRED. Issued at time, as specified in Section 2 of [OpenID.Core].
 		Long iat = env.getLong("logout_token", "claims.iat");
 		if (iat == null) {
-			throw error("Missing issuance time");
+			throw error("'iat' claim missing");
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				throw error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+				throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 
@@ -81,6 +81,9 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		//events
 		//REQUIRED. Claim whose value is a JSON object containing the member name http://schemas.openid.net/event/backchannel-logout. This declares that the JWT is a Logout Token. The corresponding member value MUST be a JSON object and SHOULD be the empty JSON object {}.
 		JsonElement events = env.getElementFromObject("logout_token", "claims.events");
+		if (events == null) {
+			throw error("'events' claim missing");
+		}
 		if (!events.isJsonObject()) {
 			throw error("'events' claim is not a json object");
 		}
@@ -88,10 +91,14 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		if (eventsObj.size() != 1) {
 			throw error("'events' object does not contain exactly 1 entry", eventsObj);
 		}
-		JsonObject eventsValue = eventsObj.getAsJsonObject("http://schemas.openid.net/event/backchannel-logout");
-		if (eventsValue == null) {
-			throw error("http://schemas.openid.net/event/backchannel-logout is not an object", eventsObj);
+		JsonElement eventsValueElement = eventsObj.get("http://schemas.openid.net/event/backchannel-logout");
+		if (eventsValueElement == null) {
+			throw error("http://schemas.openid.net/event/backchannel-logout entry is missing from 'events' claim", eventsObj);
 		}
+		if (!eventsValueElement.isJsonObject()) {
+			throw error("http://schemas.openid.net/event/backchannel-logout is not a json object");
+		}
+		JsonObject eventsValue = (JsonObject) eventsValueElement;
 		if (eventsValue.size() != 0) {
 			throw error("http://schemas.openid.net/event/backchannel-logout is not an empty object", eventsObj);
 		}
