@@ -2,7 +2,7 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
@@ -60,7 +60,7 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends Abstract
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(AddAlgorithmAsRS256.class, "FAPI-RW-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI-RW-8.6");
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 

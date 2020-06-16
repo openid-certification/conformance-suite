@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointErrorHttpStatus;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointError;
@@ -49,7 +49,7 @@ public class FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInBackchannelAuth
 
 	@Override
 	protected void addClientAuthenticationToBackchannelRequest() {
-		callAndStopOnFailure(AddAlgorithmAsRS256.class, "FAPI-RW-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI-CIBA-7.10");
 
 		super.addClientAuthenticationToBackchannelRequest();
 	}

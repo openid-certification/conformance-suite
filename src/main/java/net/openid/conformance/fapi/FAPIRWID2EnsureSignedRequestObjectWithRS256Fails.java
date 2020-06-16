@@ -2,7 +2,7 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
@@ -68,7 +68,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
-		callAndStopOnFailure(AddAlgorithmAsRS256.class, "FAPI-RW-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI-RW-8.6");
 
 		callAndStopOnFailure(AddAudToRequestObject.class);
 

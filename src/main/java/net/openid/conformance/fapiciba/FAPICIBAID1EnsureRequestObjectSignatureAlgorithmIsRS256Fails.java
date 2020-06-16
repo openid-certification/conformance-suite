@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
 
@@ -40,7 +40,7 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extend
 
 	@Override
 	protected void performAuthorizationRequest() {
-		callAndContinueOnFailure(AddAlgorithmAsRS256.class, Condition.ConditionResult.FAILURE, "CIBA-7.2");
+		callAndContinueOnFailure(ChangeClientJwksAlgToRS256.class, Condition.ConditionResult.FAILURE, "FAPI-CIBA-7.10");
 
 		super.performAuthorizationRequest();
 	}
