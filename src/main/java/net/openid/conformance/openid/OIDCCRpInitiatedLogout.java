@@ -3,10 +3,8 @@ package net.openid.conformance.openid;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddPostLogoutRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInPostLogoutRedirect;
 import net.openid.conformance.condition.client.CheckPostLogoutState;
-import net.openid.conformance.condition.client.CreatePostLogoutRedirectUri;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -23,18 +21,6 @@ import javax.servlet.http.HttpSession;
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogout extends AbstractOIDCCRpInitiatedLogout {
-
-	@Override
-	protected void configureClient() {
-		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5", "OIDCSM-5.1.1");
-		super.configureClient();
-	}
-
-	@Override
-	protected void createDynamicClientRegistrationRequest() {
-		super.createDynamicClientRegistrationRequest();
-		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCSM-5.1.1");
-	}
 
 	protected void validateLogoutResults(JsonObject requestParts){
 

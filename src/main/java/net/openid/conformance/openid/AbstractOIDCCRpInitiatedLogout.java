@@ -2,10 +2,12 @@ package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddPostLogoutRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPromptNoneToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRedirectToEndSessionEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface;
 import net.openid.conformance.condition.client.CreateEndSessionEndpointRequest;
+import net.openid.conformance.condition.client.CreatePostLogoutRedirectUri;
 import net.openid.conformance.condition.client.CreateRandomEndSessionState;
 import net.openid.conformance.condition.client.ExtractSessionStateFromAuthorizationResponse;
 
@@ -15,6 +17,18 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 	@Override
 	protected String currentClientString() {
 		return firstTime ? "" : "Second authorization: ";
+	}
+
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5", "OIDCSM-5.1.1");
+		super.configureClient();
+	}
+
+	@Override
+	protected void createDynamicClientRegistrationRequest() {
+		super.createDynamicClientRegistrationRequest();
+		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCSM-5.1.1");
 	}
 
 	@Override
@@ -65,7 +79,12 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 	}
 
 	protected void performRedirectToEndSessionEndpoint() {
+		String placeholderId = createLogoutPlaceholder();
 		String redirectTo = env.getString("redirect_to_end_session_endpoint");
+
+		if (placeholderId != null) {
+			waitForPlaceholders();
+		}
 
 		eventLog.log(getName(), args("msg", "Redirecting to end session endpoint",
 			"redirect_to", redirectTo,
@@ -73,7 +92,12 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		browser.goToUrl(redirectTo, placeholderId);
+	}
+
+	protected String createLogoutPlaceholder() {
+		// override to return a placeholder id if a screenshot is required
+		return null;
 	}
 
 }

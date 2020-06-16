@@ -5,13 +5,11 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddFrontchannelLogoutSessionRequiredTrueToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddFrontchannelLogoutUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddPostLogoutRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInFrontchannelLogoutRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInPostLogoutRedirect;
 import net.openid.conformance.condition.client.CheckIdTokenSidMatchesFrontChannelLogoutRequest;
 import net.openid.conformance.condition.client.CheckPostLogoutState;
 import net.openid.conformance.condition.client.CreateFrontchannelLogoutUri;
-import net.openid.conformance.condition.client.CreatePostLogoutRedirectUri;
 import net.openid.conformance.condition.client.ValidateFrontchannelLogoutIss;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.HttpHeaders;
@@ -38,7 +36,6 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(CreateFrontchannelLogoutUri.class, "OIDCFCL-2");
-		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5", "OIDCSM-5.1.1");
 		super.configureClient();
 	}
 
@@ -47,7 +44,6 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 		super.createDynamicClientRegistrationRequest();
 		callAndStopOnFailure(AddFrontchannelLogoutSessionRequiredTrueToDynamicRegistrationRequest.class, "OIDCFCL-2");
 		callAndStopOnFailure(AddFrontchannelLogoutUriToDynamicRegistrationRequest.class, "OIDCFCL-2");
-		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCSM-5.1.1", "OIDCFCL-4");
 	}
 
 	protected void validateLogoutResults(){

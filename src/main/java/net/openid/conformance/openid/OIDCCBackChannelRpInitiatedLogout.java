@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBackchannelLogoutSessionRequiredTrueToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddBackchannelLogoutUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddPostLogoutRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInBackchannelLogoutRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInPostLogoutRedirect;
 import net.openid.conformance.condition.client.CheckIdTokenSidMatchesLogoutToken;
@@ -14,7 +13,6 @@ import net.openid.conformance.condition.client.CheckLogoutTokenHasSubOrSid;
 import net.openid.conformance.condition.client.CheckLogoutTokenNoNonce;
 import net.openid.conformance.condition.client.CheckPostLogoutState;
 import net.openid.conformance.condition.client.CreateBackchannelLogoutUri;
-import net.openid.conformance.condition.client.CreatePostLogoutRedirectUri;
 import net.openid.conformance.condition.client.ExtractLogoutTokenFromBackchannelLogoutRequest;
 import net.openid.conformance.condition.client.ValidateLogoutTokenClaims;
 import net.openid.conformance.condition.client.ValidateLogoutTokenSignature;
@@ -44,7 +42,6 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(CreateBackchannelLogoutUri.class, "OIDCBCL-2.2");
-		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5", "OIDCSM-5.1.1");
 		super.configureClient();
 	}
 
@@ -53,7 +50,6 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		super.createDynamicClientRegistrationRequest();
 		callAndStopOnFailure(AddBackchannelLogoutSessionRequiredTrueToDynamicRegistrationRequest.class, "OIDCBCL-2.2");
 		callAndStopOnFailure(AddBackchannelLogoutUriToDynamicRegistrationRequest.class, "OIDCBCL-2.2");
-		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCSM-5.1.1");
 	}
 
 	protected void validateLogoutResults(){
