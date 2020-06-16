@@ -40,8 +40,17 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extend
 
 	@Override
 	protected void performAuthorizationRequest() {
+		// create a copy of the jwks so we can restore the original one when creating any client assertion
+		env.putObject("client_jwks_rs256", env.getObject("client_jwks").deepCopy());
+		env.mapKey("client_jwks", "client_jwks_rs256");
 		callAndContinueOnFailure(ChangeClientJwksAlgToRS256.class, Condition.ConditionResult.FAILURE, "FAPI-CIBA-7.10");
 
 		super.performAuthorizationRequest();
+	}
+
+	@Override
+	protected void addClientAuthenticationToBackchannelRequest() {
+		env.unmapKey("client_jwks");
+		super.addClientAuthenticationToBackchannelRequest();
 	}
 }
