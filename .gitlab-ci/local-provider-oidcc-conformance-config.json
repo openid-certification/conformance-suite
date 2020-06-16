@@ -731,6 +731,96 @@
                     ]
                 }
             ]
+        },
+        "oidcc-rp-initiated-logout-no-post-logout-redirect-uri" : {
+            "browser": [
+                {
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Login",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "text",
+                                    "name",
+                                    "login",
+                                    "foo",
+                                    "optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "password",
+                                    "bar",
+                                    "optional"
+                                ],
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Consent",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Verify Complete",
+                            "match": "*/test/a/local-oidcc/callback*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "id",
+                                    "submission_complete",
+                                    10
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comment": "wait for the logout success",
+                    "match": "https://oidcc-provider:3000/session/end*",
+                    "tasks": [
+                        {
+                            "task": "Choose logout option",
+                            "match": "https://oidcc-provider:3000/session/end*",
+                            "commands": [
+                                [
+                                    "click",
+                                    "css",
+                                    "button[autofocus] "
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Expect success page",
+                            "match": "https://oidcc-provider:3000/session/end/success?*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "Sign-out Success",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     }
 }

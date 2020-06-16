@@ -34,7 +34,8 @@ public class OIDCCRpInitiatedLogoutTestPlan implements TestPlan {
 					OIDCCRpInitiatedLogoutBadLogoutRedirectUri.class,
 					OIDCCRpInitiatedLogoutModifiedIdTokenHint.class,
 					OIDCCRpInitiatedLogoutNoIdTokenHint.class,
-					OIDCCRpInitiatedLogoutNoParams.class
+					OIDCCRpInitiatedLogoutNoParams.class,
+					OIDCCRpInitiatedLogoutNoPostLogoutRedirectUri.class
 				),
 				List.of(
 					new Variant(ServerMetadata.class, "discovery"),
