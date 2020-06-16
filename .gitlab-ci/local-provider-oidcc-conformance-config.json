@@ -483,6 +483,85 @@
                     ]
                 }
             ]
+        },
+        "oidcc-rp-initiated-logout-modified-id-token-hint" : {
+            "browser": [
+                {
+                    "match": "https://oidcc-provider:3000/auth*",
+                    "tasks": [
+                        {
+                            "task": "Login",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "text",
+                                    "name",
+                                    "login",
+                                    "foo",
+                                    "optional"
+                                ],
+                                [
+                                    "text",
+                                    "name",
+                                    "password",
+                                    "bar",
+                                    "optional"
+                                ],
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Consent",
+                            "optional": true,
+                            "match": "https://oidcc-provider:3000/interaction*",
+                            "commands": [
+                                [
+                                    "click",
+                                    "class",
+                                    "login-submit"
+                                ]
+                            ]
+                        },
+                        {
+                            "task": "Verify Complete",
+                            "match": "*/test/a/local-oidcc/callback*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "id",
+                                    "submission_complete",
+                                    10
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comment": "expect an immediate error page",
+                    "match": "https://oidcc-provider:3000/session/end*",
+                    "tasks": [
+                        {
+                            "task": "Expect error page",
+                            "match": "https://oidcc-provider:3000/session/end*",
+                            "commands": [
+                                [
+                                    "wait",
+                                    "xpath",
+                                    "//*",
+                                    10,
+                                    "could not validate id_token_hint",
+                                    "update-image-placeholder"
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     }
 }
