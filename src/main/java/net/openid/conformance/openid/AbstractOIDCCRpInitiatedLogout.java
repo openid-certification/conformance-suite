@@ -74,8 +74,12 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 		eventLog.startBlock("Redirect to end session endpoint & wait for response");
 		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCSM-5", "RFC6749A-A.5");
 		callAndStopOnFailure(CreateEndSessionEndpointRequest.class, "OIDCSM-5");
+		customiseEndSessionEndpointRequest();
 		callAndStopOnFailure(BuildRedirectToEndSessionEndpoint.class, "OIDCSM-5");
 		performRedirectToEndSessionEndpoint();
+	}
+
+	protected void customiseEndSessionEndpointRequest() {
 	}
 
 	protected void performRedirectToEndSessionEndpoint() {

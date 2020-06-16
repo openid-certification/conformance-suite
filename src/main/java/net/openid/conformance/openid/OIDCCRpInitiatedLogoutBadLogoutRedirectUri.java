@@ -2,9 +2,6 @@ package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AddBadPostLogoutRedirectUriToEndSessionEndpointRequest;
-import net.openid.conformance.condition.client.BuildRedirectToEndSessionEndpoint;
-import net.openid.conformance.condition.client.CreateEndSessionEndpointRequest;
-import net.openid.conformance.condition.client.CreateRandomEndSessionState;
 import net.openid.conformance.condition.client.ExpectPostLogoutRedirectUriNotRegisteredErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -32,13 +29,9 @@ public class OIDCCRpInitiatedLogoutBadLogoutRedirectUri extends AbstractOIDCCRpI
 		}
 	}
 
-	protected void onPostAuthorizationFlowComplete() {
-		eventLog.startBlock("Redirect to end session endpoint & wait for response");
-		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCSM-5", "RFC6749A-A.5");
-		callAndStopOnFailure(CreateEndSessionEndpointRequest.class, "OIDCSM-5");
-		callAndStopOnFailure(AddBadPostLogoutRedirectUriToEndSessionEndpointRequest.class); // this is the unique step
-		callAndStopOnFailure(BuildRedirectToEndSessionEndpoint.class, "OIDCSM-5");
-		performRedirectToEndSessionEndpoint();
+	@Override
+	protected void customiseEndSessionEndpointRequest() {
+		callAndStopOnFailure(AddBadPostLogoutRedirectUriToEndSessionEndpointRequest.class);
 	}
 
 	@Override
