@@ -1,23 +1,21 @@
 package net.openid.conformance.fapi;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAlgorithmAsRS256;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.util.JWKUtil;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-signed-request-object-with-RS256-fails",
@@ -49,10 +47,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 		// If ES256 keys are supplied, the test module should probably just immediately exit successfully
 		// We don't need to check null for jwks and keys because it was checked the steps before
 		// We get first key to compare with PS256 because we use it to sign request_object or client_assertion
-		JsonObject jwks = env.getObject("client_jwks");
-		JsonArray keys = jwks.get("keys").getAsJsonArray();
-		JsonObject key = keys.get(0).getAsJsonObject();
-		String alg = OIDFJSON.getString(key.get("alg"));
+		String alg = JWKUtil.getAlgFromClientJwks(env);
 		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
 			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
