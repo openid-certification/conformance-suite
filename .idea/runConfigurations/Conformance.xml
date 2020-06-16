@@ -20,6 +20,11 @@
         <option name="name" value="fintechlabs.external_url_override" />
         <option name="value" value="https://www.heenan.me.uk" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="fintechlabs.base_url" />
+        <option name="value" value="https://localhost.emobix.co.uk:8443" />
+      </param>
     </additionalParameters>
     <method v="2">
       <option name="Make" enabled="true" />

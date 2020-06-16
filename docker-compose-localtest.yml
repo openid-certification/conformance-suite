@@ -1,6 +1,11 @@
 version: '3'
 services:
   oidcc-provider:
+    # To start just the provider to run tests against for dev use:
+    # docker-compose -f docker-compose-localtest.yml up oidcc-provider
+    # and add an entry to /etc/hosts '127.0.0.1 oidcc-provider'
+    # To run the tests, start java suite in IDE & run:
+    # ./.gitlab-ci/run-tests.sh --local-provider-tests
     image: panvafs/oidc-provider-oidc-core-sample
     ports:
       - "3000:3000"
