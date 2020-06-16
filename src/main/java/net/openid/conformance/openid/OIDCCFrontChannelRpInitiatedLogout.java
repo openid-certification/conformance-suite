@@ -125,10 +125,4 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 		});
 	}
 
-	@Override
-	public void cleanup() {
-		firstTime = true; // to avoid any blocks created in cleanup being prefixed in currentClientString()
-		super.cleanup();
-	}
-
 }
