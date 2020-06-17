@@ -963,6 +963,11 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        if re.match(r'(oidcc-session-management-.*)', m):
+            # The browser automation currently doesn't seem to work for the iframes/js these tests use
+            untested_test_modules.remove(m)
+            continue
+
         #we don't have automated tests for OIDCC RP logout tests
         if re.match(r'(oidcc-client-test-.*logout.*)',m) or m == 'oidcc-client-test-session-management':
             untested_test_modules.remove(m)
