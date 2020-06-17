@@ -94,7 +94,7 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 			validateLogoutResultsInBackground();
 		}
 		setStatus(Status.WAITING);
-		return new ModelAndView("postLogout",
+		return new ModelAndView("resultCaptured",
 			ImmutableMap.of(
 				"returnUrl", "/log-detail.html?log=" + getId()
 			));

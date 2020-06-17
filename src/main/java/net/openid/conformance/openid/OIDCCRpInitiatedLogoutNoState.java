@@ -55,7 +55,7 @@ public class OIDCCRpInitiatedLogoutNoState extends AbstractOIDCCRpInitiatedLogou
 			validateLogoutResults(requestParts);
 			return "done";
 		});
-		return new ModelAndView("postLogout",
+		return new ModelAndView("resultCaptured",
 			ImmutableMap.of(
 				"returnUrl", "/log-detail.html?log=" + getId()
 			));
