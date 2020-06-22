@@ -7,14 +7,5 @@
         "condition": "VerifyNewJwksHasNewSigningKey",
         "expected-result": "failure",
         "comment": "CI can't trigger key rotation"
-    },
-    {
-        "test-name": "oidcc-backchannel-rp-initiated-logout",
-        "variant": "*",
-        "configuration-filename": "*",
-        "current-block": "Verify frontchannel post logout redirect",
-        "condition": "CheckForUnexpectedParametersInPostLogoutRedirect",
-        "expected-result": "warning",
-        "comment": "currently included; next version after 6.27.1 won't include it - https://github.com/panva/node-oidc-provider/commit/49e8cde826c94d1a5936cabaf4b927d4891222c8"
     }
 ]
