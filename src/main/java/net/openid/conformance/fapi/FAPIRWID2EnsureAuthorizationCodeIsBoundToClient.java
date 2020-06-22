@@ -46,9 +46,9 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAP
 	@Override
 	protected void performIdTokenValidation() {
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(ValidateIdTokenNonce.class, "OIDCC-2");
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 

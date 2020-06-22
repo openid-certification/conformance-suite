@@ -7,7 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddAlgorithmAsRS256 extends AbstractCondition {
+public class ChangeClientJwksAlgToRS256 extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "client_jwks" })

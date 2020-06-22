@@ -1,15 +1,17 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKMatcher;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 import java.util.List;
@@ -28,6 +30,13 @@ public class JWKUtil {
 	public static JsonObject getPrivateJwksAsJsonObject(JWKSet jwks) {
 		JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
 		return privateJwks;
+	}
+
+	public static String getAlgFromClientJwks(Environment env) {
+		JsonObject jwks = env.getObject("client_jwks");
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonObject key = keys.get(0).getAsJsonObject();
+		return OIDFJSON.getString(key.get("alg"));
 	}
 
 	/**

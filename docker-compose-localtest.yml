@@ -14,7 +14,7 @@ services:
       - "-c"
       - "( [ -f /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ] || docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ) && exec docker-entrypoint.sh server"
   mongodb:
-    image: mongo
+    image: mongo:4.2
     volumes:
      - ./mongo/data:/data/db
   httpd:

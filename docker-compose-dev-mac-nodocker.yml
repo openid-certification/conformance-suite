@@ -13,7 +13,7 @@
 version: '3'
 services:
   mongodb:
-    image: mongo
+    image: mongo:4.2
     volumes:
      - ./mongo/data:/data/db:delegated
     ports:

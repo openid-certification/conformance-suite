@@ -331,9 +331,14 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
+		onConfigure();
+
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void onConfigure() {
 	}
 
 	protected void configClient() {

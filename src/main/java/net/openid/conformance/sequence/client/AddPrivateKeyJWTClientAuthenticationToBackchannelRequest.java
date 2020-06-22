@@ -30,10 +30,10 @@ public class AddPrivateKeyJWTClientAuthenticationToBackchannelRequest extends Ab
 		} else {
 			if (this.isSecondClient) {
 				// value of the audience is token endpoint URL
-				callAndStopOnFailure(SetClientAuthenticationAudTokenEndpointToBackchannelAuthenticationEndpoint.class);
+				callAndStopOnFailure(SetClientAuthenticationAudTokenEndpointToBackchannelAuthenticationEndpoint.class, "CIBA-7.1");
 			} else {
 				// value of the audience is Issuer Identifier URL
-				callAndStopOnFailure(SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticationEndpoint.class);
+				callAndStopOnFailure(SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticationEndpoint.class, "CIBA-7.1");
 			}
 		}
 
