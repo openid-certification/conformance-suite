@@ -4,12 +4,11 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class CreatePostLogoutRedirectUri extends AbstractCondition {
+public class CreatePostLogoutRedirectUriRedirect extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"post_logout_redirect_uri_params", "end_session_endpoint_http_request_params"})

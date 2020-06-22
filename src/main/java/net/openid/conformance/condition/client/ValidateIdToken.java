@@ -36,7 +36,7 @@ public class ValidateIdToken extends AbstractCondition {
 
 		JsonElement iss = env.getElementFromObject("id_token", "claims.iss");
 		if (iss == null) {
-			throw error("Missing issuer");
+			throw error("'iss' claim missing");
 		}
 
 		if (!issuer.equals(env.getString("id_token", "claims.iss"))) {
@@ -47,22 +47,22 @@ public class ValidateIdToken extends AbstractCondition {
 
 		JsonElement aud = env.getElementFromObject("id_token", "claims.aud");
 		if (aud == null) {
-			throw error("Missing audience");
+			throw error("'aud' claim missing");
 		}
 
 		if (aud.isJsonArray()) {
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
-				throw error("Audience not found", args("expected", clientId, "actual", aud));
+				throw error("'aud' array does not contain our client id", args("expected", clientId, "actual", aud));
 			}
 		} else {
 			if (!clientId.equals(OIDFJSON.getString(aud))) {
-				throw error("Audience mismatch", args("expected", clientId, "actual", aud));
+				throw error("'aud' is not our client id", args("expected", clientId, "actual", aud));
 			}
 		}
 
 		Long exp = env.getLong("id_token", "claims.exp");
 		if (exp == null) {
-			throw error("Missing expiration");
+			throw error("'exp' claim missing");
 		} else {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				throw error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
@@ -71,10 +71,10 @@ public class ValidateIdToken extends AbstractCondition {
 
 		Long iat = env.getLong("id_token", "claims.iat");
 		if (iat == null) {
-			throw error("Missing issuance time");
+			throw error("'iat' claim missing");
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				throw error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+				throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 

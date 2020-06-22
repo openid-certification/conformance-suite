@@ -978,6 +978,11 @@ if __name__ == '__main__':
             if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m):
                 untested_test_modules.remove(m)
                 continue
+        elif show_untested == 'server-exc-logout':
+            # ignore all client test + any logout tests
+            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m) or re.match(r'oidcc-backchannel-.*', m):
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
             if not re.match(r'(fapi-ciba-id1.*)', m):

@@ -65,6 +65,26 @@
                     ]
                 }
             ]
+        },
+        {
+            "match": "https://oidcc-provider:3000/session/end*",
+            "tasks": [
+                {
+                    "task": "Login",
+                    "match": "https://oidcc-provider:3000/session/end*",
+                    "commands": [
+                        [
+                            "click",
+                            "css",
+                            "button[autofocus] "
+                        ]
+                    ]
+                },
+                {
+                    "task": "Verify Complete",
+                    "match": "*/test/a/local-oidcc/post*"
+                }
+            ]
         }
     ],
     "override": {

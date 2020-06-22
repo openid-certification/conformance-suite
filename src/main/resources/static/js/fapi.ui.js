@@ -437,6 +437,7 @@ var FAPI_UI = {
 			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
 			"MTLS-" : "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
+			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
 			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
 			"RFC7231-" : "https://tools.ietf.org/html/rfc7231#section-",
 			"RFC7517-" : "https://tools.ietf.org/html/rfc7517#section-",
@@ -450,7 +451,8 @@ var FAPI_UI = {
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
 			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
-			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section."
+			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.",
+			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-"
 		},
 
 		testJSON : {},
