@@ -5,11 +5,11 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
-import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -39,7 +39,11 @@ public class JWTUtil {
 	public static JsonObject jwtClaimsSetAsJsonObject(JWT jwt) throws ParseException {
 		//added this variable to make it obvious
 		boolean includeNullValues = true;
-		JsonObject claims = new JsonParser().parse(jwt.getJWTClaimsSet().toJSONObject(includeNullValues).toJSONString()).getAsJsonObject();
+		JWTClaimsSet jwtClaimsSet = jwt.getJWTClaimsSet();
+		if (jwtClaimsSet == null) {
+			throw new ParseException("Failed to extract JWT claims", 0);
+		}
+		JsonObject claims = new JsonParser().parse(jwtClaimsSet.toJSONObject(includeNullValues).toJSONString()).getAsJsonObject();
 		return claims;
 	}
 
@@ -63,6 +67,9 @@ public class JWTUtil {
 	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString) throws ParseException {
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 
+		if(token instanceof EncryptedJWT) {
+			throw new ParseException("EncryptedJWT found, which this test currently doesn't support", 0);
+		}
 		JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
 		JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);
 
@@ -79,13 +86,12 @@ public class JWTUtil {
 
 	/**
 	 * use if the JWT may be encrypted, e.g an encrypted request object
-	 * @param jwtAsString
-	 * @param client
-	 * @param publicJwksWithEncKeys
+	 *
+	 * @param client Client object containing client_secret, required if symmetric encryption used
+	 * @param privateJwksWithEncKeys Key for decryption, if encryption used
 	 * @return may return null if decryption fails
-	 * @throws ParseException
 	 */
-	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject publicJwksWithEncKeys)
+	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject privateJwksWithEncKeys)
 		throws ParseException, JOSEException {
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 		if(token instanceof EncryptedJWT) {
@@ -93,10 +99,17 @@ public class JWTUtil {
 			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
 			JWK decryptionKey = null;
 			if(JWEAlgorithm.Family.SYMMETRIC.contains(alg)) {
-				decryptionKey = JWEUtil.createSymmetricJWKForAlgAndSecret(OIDFJSON.getString(client.get("client_secret")),
+				String client_secret = OIDFJSON.getString(client.get("client_secret"));
+				if (client_secret == null) {
+					throw new ParseException("A client secret is required to decrypt this JWT", 0);
+				}
+				decryptionKey = JWEUtil.createSymmetricJWKForAlgAndSecret(client_secret,
 										alg, encryptedJWT.getHeader().getEncryptionMethod(), UUID.randomUUID().toString());
 			} else {
-				JWKSet jwkSet = JWKUtil.parseJWKSet(publicJwksWithEncKeys.toString());
+				if (privateJwksWithEncKeys == null) {
+					throw new ParseException("A JWKS is required to decrypt this JWT", 0);
+				}
+				JWKSet jwkSet = JWKUtil.parseJWKSet(privateJwksWithEncKeys.toString());
 				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
 			}
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(decryptionKey);
