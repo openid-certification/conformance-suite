@@ -51,46 +51,58 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
+			int count = 0;
+			JWK signingJwk = null;
 
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
 
-			if (jwkSet.getKeys().size() == 1) {
-				// figure out which algorithm to use
-				JWK jwk = jwkSet.getKeys().iterator().next();
-
-				JWSSigner signer = null;
-				if (jwk.getKeyType().equals(KeyType.RSA)) {
-					signer = new RSASSASigner((RSAKey) jwk);
-				} else if (jwk.getKeyType().equals(KeyType.EC)) {
-					signer = new ECDSASigner((ECKey) jwk);
-				} else if (jwk.getKeyType().equals(KeyType.OCT)) {
-					signer = new MACSigner((OctetSequenceKey) jwk);
+			for (JWK jwk : jwkSet.getKeys()) {
+				var use = jwk.getKeyUse();
+				if (use != null && !use.equals(KeyUse.SIGNATURE)) {
+					// skip any encryption keys
+					continue;
 				}
-
-				if (signer == null) {
-					throw error("Couldn't create signer from key; kty must be one of 'oct', 'rsa', 'ec'", args("jwk", jwk.toJSONString()));
-				}
-
-				Algorithm alg = jwk.getAlgorithm();
-				if (alg == null) {
-					throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", jwk.toJSONString()));
-				}
-
-				JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
-
-				String jws = performSigning(header, claims, signer);
-
-				String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
-				JsonObject verifiableObj = new JsonObject();
-				verifiableObj.addProperty("verifiable_jws", jws);
-				verifiableObj.addProperty("public_jwk", publicKeySetString);
-
-				logSuccessByJWTType(env, claimSet, jwk, header, jws, verifiableObj);
-
-				return env;
-			} else {
-				throw error("Expected only one JWK in the set. Please ensure the JWKS contains only the signing key to be used.", args("found", jwkSet.getKeys().size()));
+				count++;
+				signingJwk = jwk;
 			}
+
+			if (count == 0) {
+				throw error("Did not find a key with 'use': 'sig' or no 'use' claim, no key available to sign jwt", args("jwks", jwks));
+			}
+			if (count > 1) {
+				throw error("Expected only one signing JWK in the set. Please ensure the signing key is the only one in the jwks, or that other keys have a 'use' other than 'sig'.", args("jwks", jwks));
+			}
+
+			JWSSigner signer = null;
+			if (signingJwk.getKeyType().equals(KeyType.RSA)) {
+				signer = new RSASSASigner((RSAKey) signingJwk);
+			} else if (signingJwk.getKeyType().equals(KeyType.EC)) {
+				signer = new ECDSASigner((ECKey) signingJwk);
+			} else if (signingJwk.getKeyType().equals(KeyType.OCT)) {
+				signer = new MACSigner((OctetSequenceKey) signingJwk);
+			}
+
+			if (signer == null) {
+				throw error("Couldn't create signer from key; kty must be one of 'oct', 'rsa', 'ec'", args("jwk", signingJwk.toJSONString()));
+			}
+
+			Algorithm alg = signingJwk.getAlgorithm();
+			if (alg == null) {
+				throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", signingJwk.toJSONString()));
+			}
+
+			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, signingJwk.getKeyID(), null, null);
+
+			String jws = performSigning(header, claims, signer);
+
+			String publicKeySetString = (signingJwk.toPublicJWK() != null ? signingJwk.toPublicJWK().toString() : null);
+			JsonObject verifiableObj = new JsonObject();
+			verifiableObj.addProperty("verifiable_jws", jws);
+			verifiableObj.addProperty("public_jwk", publicKeySetString);
+
+			logSuccessByJWTType(env, claimSet, signingJwk, header, jws, verifiableObj);
+
+			return env;
 
 		} catch (ParseException e) {
 			throw error(e);
