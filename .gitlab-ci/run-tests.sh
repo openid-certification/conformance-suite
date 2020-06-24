@@ -195,13 +195,15 @@ makeCIBATest() {
 
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
-    TESTS="${TESTS} oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code\ id_token][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-config-certification-test-plan ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-dynamic-certification-test-plan[response_type=code\ id_token] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-3rdparty-init-login-certification-test-plan[response_type=code\ id_token] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
+    TESTS="${TESTS} oidcc-rp-initiated-logout-certification-test-plan[response_type=code\ id_token][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
+    TESTS="${TESTS} oidcc-frontchannel-rp-initiated-logout-certification-test-plan[response_type=code\ id_token][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
+    TESTS="${TESTS} oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code\ id_token][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
     TESTS="${TESTS} oidcc-formpost-hybrid-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -267,7 +269,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
-    TESTS="${TESTS} --show-untested-test-modules server-exc-logout"
+    TESTS="${TESTS} --show-untested-test-modules server-authlete"
     echo "Run server tests"
     makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
@@ -283,6 +285,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     echo "Run local provider tests"
     makeLocalProviderTests
 else

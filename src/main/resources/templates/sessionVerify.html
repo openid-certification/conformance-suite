@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>OIDF Conformance Suite: Session verification</title>
+</head>
+<body>
+
+<h1>Session verification</h1>
+<h2>Checking that the session hasn't changed!</h2>
+<p>If you see this frame for more than a few seconds something has gone wrong.</p>
+<iframe id="op_iframe" th:src="${check_session_iframe}" hidden></iframe>
+<iframe id="rp_iframe" th:src="${session_iframe_unchanged}" hidden></iframe>
+
+</body>
+</html>
