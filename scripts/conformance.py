@@ -6,8 +6,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import base64
 import json
+import re
+import os
+import shutil
 import time
 
 
@@ -28,6 +30,18 @@ class Conformance(object):
         if response.status_code != 200:
             raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
+
+    def exporthtml(self, plan_id, path):
+        api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        with self.requests_session.get(api_url, stream=True) as response:
+            if response.status_code != 200:
+                raise Exception("exporthtml failed - HTTP {:d} {}".format(response.status_code, response.content))
+            d = response.headers['content-disposition']
+            local_filename = re.findall("filename=\"(.+)\"", d)[0]
+            full_path = os.path.join(path, local_filename)
+            with open(full_path, 'wb') as f:
+                shutil.copyfileobj(response.raw, f)
+        return full_path
 
     def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}api/plan'.format(self.api_url_base)

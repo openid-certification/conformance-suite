@@ -253,6 +253,7 @@ if [ "$#" -eq 0 ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
     echo "Run all tests"
     makeServerTest
     makeCIBATest
@@ -263,6 +264,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
     echo "Run client tests"
     makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
@@ -272,6 +274,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules server-authlete"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
     echo "Run server tests"
     makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
@@ -280,6 +283,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
     echo "Run ciba tests"
     makeCIBATest
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
@@ -288,6 +292,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
+    TESTS="${TESTS} --export-dir ."
     echo "Run local provider tests"
     makeLocalProviderTests
 else
