@@ -251,7 +251,8 @@ makeLocalProviderTests() {
 if [ "$#" -eq 0 ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    TESTS="${TESTS} --show-untested-test-modules all"
+    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
+    TESTS="${TESTS} --show-untested-test-modules all-except-logout"
     echo "Run all tests"
     makeServerTest
     makeCIBATest
