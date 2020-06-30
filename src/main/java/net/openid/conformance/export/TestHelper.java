@@ -187,7 +187,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			status = this.testInfoObject.getStatus().toString();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 		if(status==null || status.isEmpty()) {
 			return "UNKNOWN";
@@ -202,7 +202,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return "label testResult-" + toLowerCaseIfNotNull(this.testInfoObject.getResult());
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestResult() {
@@ -214,7 +214,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			result = this.testInfoObject.getResult();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 		if(result==null || result.isEmpty()) {
 			return "UNKNOWN";
@@ -229,7 +229,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getTestName();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestVariant() {
@@ -249,7 +249,7 @@ public class TestHelper {
 				return "";
 			}
 		}
-		return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+		throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 	}
 	public String getTestId() {
 		if(this.testInfoDocument!=null) {
@@ -259,7 +259,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getTestId();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestCreated() {
@@ -270,7 +270,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getStarted();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestDescription() {
@@ -281,7 +281,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getDescription();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestVersion() {
@@ -292,7 +292,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getVersion();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestOwner() {
@@ -304,7 +304,7 @@ public class TestHelper {
 		} else if (this.testInfoObject != null) {
 			return this.testInfoObject.getOwner().get("sub") + " " + this.testInfoObject.getOwner().get("iss");
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestPlanId() {
@@ -315,7 +315,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getPlanId();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public String getTestSummary() {
@@ -326,7 +326,7 @@ public class TestHelper {
 		} else if(this.testInfoObject!=null) {
 			return this.testInfoObject.getSummary();
 		} else {
-			return "ERROR IN EXPORT RENDERER. This is a bug in the suite.";
+			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
 	public int getSuccessCount() {
@@ -359,6 +359,6 @@ public class TestHelper {
 		return "test-log-" + testModuleName + "-" + testId + ".html";
 	}
 	public static String generateSigFileName(Object testModuleName, Object testId) {
-		return "test-log-" + testModuleName + "-" + testId + ".sig";
+		return "test-log-" + testModuleName + "-" + testId + ".html.sig";
 	}
 }

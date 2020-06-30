@@ -64,7 +64,7 @@ public class PlanHelper {
 		} catch (Exception ex) {
 			logger.error("Error getting plan name from " + planExportInfo.getPlanInfo().getClass() + " id=" + getPlanId(), ex);
 		}
-		return "--ERROR--";
+		throw new RuntimeException("Error getting plan name. This is a bug in the suite.");
 	}
 	public String getPlanVariant() {
 		try {
@@ -90,6 +90,7 @@ public class PlanHelper {
 		} catch (Exception ex) {
 			logger.error("Error getting variant from " + planExportInfo.getPlanInfo().getClass() + " id=" + getPlanId(), ex);
 		}
+		//old plans don't have variants, this can happen
 		return "";
 	}
 	public String getPlanId() {
@@ -107,7 +108,8 @@ public class PlanHelper {
 		} catch (Exception ex) {
 			logger.error("Error getting id from " + planExportInfo.getPlanInfo().getClass(), ex);
 		}
-		return "--ERROR--";
+
+		throw new RuntimeException("Error getting plan id. This is a bug in the suite.");
 	}
 	public String getPlanDescription() {
 		try {
@@ -125,7 +127,7 @@ public class PlanHelper {
 			logger.error("Error getting plan description from " + planExportInfo.getPlanInfo().getClass() + " id=" + getPlanId(), ex);
 		}
 
-		return "";
+		throw new RuntimeException("Error getting plan descripton. This is a bug in the suite.");
 	}
 	public String getPlanVersion() {
 		try {
@@ -143,7 +145,7 @@ public class PlanHelper {
 			logger.error("Error getting plan version from " + planExportInfo.getPlanInfo().getClass() + " id=" + getPlanId(), ex);
 		}
 
-		return "";
+		throw new RuntimeException("Error getting plan version. This is a bug in the suite.");
 	}
 	public String getPlanStarted() {
 		if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
@@ -156,7 +158,7 @@ public class PlanHelper {
 			Document doc = (Document)planExportInfo.getPlanInfo();
 			return doc.getString("started");
 		}
-		return "";
+		throw new RuntimeException("Error getting plan started timestamp. This is a bug in the suite.");
 	}
 	public String getPlanOwner() {
 		if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
@@ -168,7 +170,7 @@ public class PlanHelper {
 			Document doc = (Document)planExportInfo.getPlanInfo();
 			return String.valueOf(doc.get("owner"));
 		}
-		return "";
+		throw new RuntimeException("Error getting plan owner. This is a bug in the suite.");
 	}
 
 	public List<TestHelper> getTestHelpers() {

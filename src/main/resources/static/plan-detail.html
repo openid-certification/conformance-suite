@@ -169,11 +169,6 @@
 
                    $('#downloadAllBtn').click(function(evt) {
                        evt.preventDefault();
-                       window.open('/api/plan/export/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
-                   });
-
-                   $('#downloadAllHtmlBtn').click(function(evt) {
-                       evt.preventDefault();
                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
                    });
 

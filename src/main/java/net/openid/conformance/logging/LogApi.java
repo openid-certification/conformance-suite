@@ -402,7 +402,7 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
-	@ApiOperation(value = "Export all test results as html of plan by plan id")
+	@ApiOperation(value = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Exported successfully"),
 		@ApiResponse(code = 404, message = "Couldn't find given plan Id")

@@ -65,9 +65,6 @@
                     <% if (!public || plan.publish == "everything") { %>
                         <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download All Logs</button>
                     <% } %>
-                    <% if (!public || plan.publish == "everything") { %>
-                    <button class="btn btn-default btn-block" id="downloadAllHtmlBtn"><span class="glyphicon glyphicon-save-file"></span> Download Html Export</button>
-                    <% } %>
                     <% if (!public) { %>
                         <% if (!plan.publish) { %>
                         <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
