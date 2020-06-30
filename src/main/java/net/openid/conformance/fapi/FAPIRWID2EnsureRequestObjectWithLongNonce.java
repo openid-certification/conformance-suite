@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-request-object-with-long-nonce",
 	displayName = "FAPI-RW-ID2: ensure request object with long nonce",
-	summary = "This test passes a long nonce in request object. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the server rejects long nonce - upload a screenshot of the error page) or must successfully authenticate and return the nonce correctly.",
+	summary = "This test passes a 384 character nonce in the request object. The authorization server must either successfully authenticate and return the nonce correctly, or if it does not support nonces that long it may return an invalid_request error back to the client or show an error page (saying the server rejects long nonce - upload a screenshot of the error page). The server MUST NOT return the nonce corrupted or truncated.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -46,6 +46,7 @@ public class FAPIRWID2EnsureRequestObjectWithLongNonce extends AbstractFAPIRWID2
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		// Add long nonce with 384 bytes
+		// see https://gitlab.com/openid/conformance-suite/-/issues/359 for background
 		Command cmd = new Command();
 		cmd.putInteger("requested_nonce_length", 384);
 		return super.makeCreateAuthorizationRequestSteps()

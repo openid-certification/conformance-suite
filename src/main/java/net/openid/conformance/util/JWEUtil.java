@@ -1,5 +1,6 @@
 package net.openid.conformance.util;
 
+import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -211,23 +212,28 @@ public class JWEUtil {
 	 */
 	public static JWEDecrypter createDecrypter(JWK key) throws JOSEException
 	{
-		if(AESDecrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+		Algorithm algorithm = key.getAlgorithm();
+		if (algorithm == null) {
+			throw new RuntimeException("No 'alg' in key: " + key.toJSONString());
+		}
+
+		if(AESDecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			AESDecrypter decrypter = new AESDecrypter((OctetSequenceKey)key);
 			return decrypter;
-		} else if(DirectDecrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+		} else if(DirectDecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			DirectDecrypter directDecrypter = new DirectDecrypter((OctetSequenceKey)key);
 			return directDecrypter;
-		} else if(RSADecrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+		} else if(RSADecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			RSADecrypter rsaDecrypter = new RSADecrypter((RSAKey)key);
 			return rsaDecrypter;
-		} else if(ECDHDecrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+		} else if(ECDHDecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			ECDHDecrypter ecdhDecrypter = new ECDHDecrypter((ECKey) key);
 			return ecdhDecrypter;
-		} else if(X25519Decrypter.SUPPORTED_ALGORITHMS.contains(key.getAlgorithm())) {
+		} else if(X25519Decrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			X25519Decrypter decrypter = new X25519Decrypter((OctetKeyPair) key);
 			return decrypter;
 		} else {
-			throw new RuntimeException("Unexpected algorithm for key: " + key.toJSONString());
+			throw new RuntimeException("Unknown algorithm '"+algorithm.toString()+"' for key: " + key.toJSONString());
 		}
 	}
 

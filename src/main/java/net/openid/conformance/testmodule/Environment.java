@@ -1,18 +1,19 @@
 package net.openid.conformance.testmodule;
 
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An element for storing the current running state of a test module in a way that it can be passed around.
@@ -118,6 +119,10 @@ public class Environment {
 	 */
 	public JsonObject putObject(String key, JsonObject value) {
 		return store.put(getEffectiveKey(key), value);
+	}
+
+	public JsonObject putObjectFromJsonString(String key, String json) {
+		return putObject(key, new JsonParser().parse(json).getAsJsonObject());
 	}
 
 	/**

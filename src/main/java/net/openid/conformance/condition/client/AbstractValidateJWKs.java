@@ -17,6 +17,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -103,15 +104,25 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claimObject.toString());
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			if (jwkSet.getKeys().size() == 1) {
-				// sign jwt using private key
-				SignedJWT jwt = signJWT(jwkSet, claimSet);
-
-				// Verify JWT after signed to check valid JWKs
-				verifyJWTAfterSigned(jwkSet, jwt);
-			} else {
-				throw error("Expected only one JWK in the set", args("found", jwkSet.getKeys().size()));
+			JWK signingJwk = null;
+			int count = 0;
+			for (JWK jwk : jwkSet.getKeys()) {
+				var use = jwk.getKeyUse();
+				if (use != null && !use.equals(KeyUse.SIGNATURE)) {
+					// skip any encryption keys
+					continue;
+				}
+				count++;
+				signingJwk = jwk;
 			}
+			if (count != 1) {
+				throw error("Expected only one signing JWK in the keyset", args("jwks", jwks));
+			}
+			// sign jwt using private key
+			SignedJWT jwt = signJWT(jwkSet, claimSet);
+
+			// Verify JWT after signed to check valid JWKs
+			verifyJWTAfterSigned(jwkSet, jwt);
 		} catch (JOSEException | ParseException e) {
 			throw error("Error validating JWKS", ex(e, args("jwks", jwks)));
 		}
