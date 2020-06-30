@@ -169,7 +169,7 @@
 
                    $('#downloadAllBtn').click(function(evt) {
                        evt.preventDefault();
-                       window.open('/api/plan/export/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
+                       window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
                    });
 
 				   // wire up configuration button

@@ -44,14 +44,21 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 			return false;
 		}
 	}
-
 	/**
 	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
 	 *
 	 * @return
 	 */
 	public static Gson getDbObjectCollapsingGson() {
-		return new GsonBuilder()
+		return getDbObjectCollapsingGson(false);
+	}
+	/**
+	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
+	 *
+	 * @return
+	 */
+	public static Gson getDbObjectCollapsingGson(boolean prettyPrint) {
+		GsonBuilder gsonBuilder = new GsonBuilder()
 			.registerTypeHierarchyAdapter(Document.class, new JsonSerializer<Document>() {
 
 				private Gson internalGson = new Gson();
@@ -99,8 +106,11 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 			// needed for making calls to /swagger-ui.html
 			.registerTypeAdapter(ApiListing.class, new SpringfoxApiListingJsonSerializer())
 			// needed for variants
-			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer())
-			.create();
+			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer());
+		if(prettyPrint) {
+			gsonBuilder.setPrettyPrinting();
+		}
+		return gsonBuilder.create();
 	}
 
 }

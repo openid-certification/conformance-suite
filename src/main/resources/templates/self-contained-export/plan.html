@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>Plan details</title>
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <style>
+        html{
+            box-sizing: border-box;
+        }
+        body{
+            font-family:sans-serif;
+            line-height:1.5em;
+            padding-left:30px;
+            padding-right:30px;
+            padding-top:2em;
+        }
+
+        #header{
+        }
+
+        #header th{
+            text-align:left;
+        }
+
+        #results{
+        }
+
+        table{
+        }
+
+        .testStatus-created {
+            background-color: #fcd9f6;
+            color: black;
+        }
+
+        .testStatus-configured {
+            background-color: #d3fffe;
+            color: black;
+        }
+
+        .testStatus-running {
+            background-color: #6d09e8;
+            color: white;
+        }
+
+        .testStatus-waiting {
+            background-color: #6ac4c2;
+            color: black;
+        }
+
+        .testStatus-interrupted {
+            background-color: #b70018;
+            color: white;
+        }
+
+        .testStatus-finished {
+            background-color: #383647;
+            color: white;
+        }
+
+        .testStatus-unknown {
+            background-color: #dedada;
+            color: #6d6a6a;
+        }
+
+        .testResult-passed {
+            background-color: #40e809;
+            color: black;
+        }
+
+        .testResult-warning {
+            background-color: #d88602;
+            color: white;
+        }
+
+        .testResult-failed {
+            background-color: black;
+            color: white;
+        }
+
+        .testResult-review {
+            background-color: #6ac4c2;
+            color: black;
+        }
+
+        .testResult-skipped {
+            background-color: #d88602;
+            color: white;
+        }
+
+        .testResult-unknown {
+            background-color: #dedada;
+            color: #6d6a6a;
+        }
+        .result-success {
+            background-color: #00cc00;
+        }
+
+        .result-failure {
+            background-color: #cc0000;
+        }
+
+        .result-warning {
+            background-color: #d88602;
+        }
+
+        .result-review {
+            background-color: #00ccff;
+        }
+
+        .result-interrupted {
+            background-color: #ddbb88;
+        }
+
+        .result-finished {
+            background-color: #383647;
+        }
+
+        .result-info {
+            background-color: #e2bfce;
+        }
+
+        .result-skipped {
+            background-color: #d88602;
+        }
+
+        .result-default {
+            background-color: #00cc00;
+        }
+        .badge{
+            background-color: rgba(0.5, 0.5, 0.5, 0.5);
+	        border-top-left-radius: 0.25em;
+            border-top-right-radius: 0.25em;
+            border-bottom-right-radius: 0.25em;
+            border-bottom-left-radius: 0.25em;
+            padding-left:0.4em;
+            padding-right:0.4em;
+            padding-top:0.1em;
+            padding-bottom:0.1em;
+            font-size:0.8em;
+        }
+        .label{
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            box-sizing: border-box;
+            color: rgb(255, 255, 255);
+            display: inline;
+            font-size: 0.8em;
+            font-weight: 700;
+            line-height: 1.2em;
+            padding-bottom: 3.6px;
+            padding-left: 7.2px;
+            padding-right: 7.2px;
+            padding-top: 2.4px;
+            text-align: center;
+            vertical-align: baseline;
+            white-space: no-wrap;
+        }
+        .info{
+            background-color: rgb(226, 191, 206);
+        }
+        .success{
+            background-color: rgb(0, 204, 0);
+        }
+        .failure{
+            background-color: rgb(204, 0, 0);
+            color:#fff;
+        }
+        .interrupted{
+            background-color: rgb(221, 187, 136);
+            color:#fff;
+        }
+        .warning{
+            background-color: rgb(216, 134, 2);
+            color:#fff;
+        }
+        .failed{
+            background-color: rgb(0, 0, 0);
+            color:#fff;
+        }
+        .review{
+            background-color: rgb(0, 204, 255);
+            color:#fff;
+        }
+        .incoming{
+            background-color:rgb(91, 192, 222);
+        }
+        .outgoing{
+            background-color:rgb(91, 192, 222);
+        }
+        .finished{
+            background-color: rgb(56, 54, 71);
+            color:#fff;
+        }
+        .passed{
+        	background-color: #40e809;
+	        color: #000;
+        }
+        #tests-list{
+
+        }
+        #tests-list tr:hover{
+            background-color:#eee;
+        }
+        #tests-list th{
+            text-align:left;
+            background-color:#f2f2f2;
+            border:1px solid #eee;
+            border-collapse:collapse;
+            padding-left:0.2em;
+            padding-right:0.2em;
+            padding-top:0.2em;
+            padding-bottom:0.2em;
+        }
+        #tests-list td{
+            border:1px solid #eee;
+            border-collapse:collapse;
+            padding-left:0.3em;
+            padding-right:0.3em;
+            padding-top:0.3em;
+            padding-bottom:0.3em;
+        }
+        #moreinfomsg{
+            border:1px solid #eee;
+            padding-left:0.5em;
+            padding-right:0.5em;
+            padding-top:0.5em;
+            padding-bottom:0.5em;
+            margin-left:0.5em;
+            margin-right:0.5em;
+            margin-top:0.5em;
+            margin-bottom:0.5em;
+            background-color:#f3f3f3;
+        }
+    </style>
+</head>
+<body>
+<h1>
+Test Plan Details
+</h1>
+<div id="header">
+    <table>
+        <tr>
+            <th>Plan Name</th>
+            <td th:text="${planHelper.getPlanName()}"></td>
+        </tr>
+        <tr>
+            <th>Variant</th>
+            <td th:text="${planHelper.getPlanVariant()}"></td>
+        </tr>
+        <tr>
+            <th>Plan ID</th>
+            <td th:text="${planHelper.getPlanId()}"></td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td th:text="${planHelper.getPlanDescription()}"></td>
+        </tr>
+        <tr>
+            <th>Version</th>
+            <td th:text="${planHelper.getPlanVersion()}"></td>
+        </tr>
+        <tr>
+            <th>Started</th>
+            <td th:text="${planHelper.getPlanStarted()}"></td>
+        </tr>
+        <tr>
+            <th>Owner</th>
+            <td th:text="${planHelper.getPlanOwner()}"></td>
+        </tr>
+        <tr>
+            <th>Exported From</th>
+            <td th:text="${planHelper.getExportedFrom()}"></td>
+        </tr>
+        <tr>
+            <th>Exported By</th>
+            <td th:text="${planHelper.getExportedBy()}"></td>
+        </tr>
+        <tr>
+            <th>Suite Version</th>
+            <td th:text="${planHelper.getSuiteVersion()}"></td>
+        </tr>
+        <tr>
+            <th>Exported</th>
+            <td th:text="${planHelper.getExportedTime()}"></td>
+        </tr>
+    </table>
+</div>
+<div id="moreinfomsg">
+    These test results were generated by the OpenID Foundation conformance suite.
+    By themselves, they are not proof that a deployment is conformant nor that it
+    meets the requirements for certification. For a list of certified deployments,
+    see <a href="https://openid.net/certification/" target="_blank">https://openid.net/certification/</a>
+    - to be added to this list follow
+    the <a href="https://openid.net/certification/instructions/" target="_blank">certification instructions</a>.
+</div>
+
+<h1>Test Results</h1>
+<table cellspacing="0" cellpadding="1" id="tests-list">
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Result</th>
+            <th>Test Name</th>
+            <th>Test Id</th>
+            <th>Test Version</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="testHelper : ${planHelper.getTestHelpers()}">
+            <td>
+                <span th:attr="class=|${testHelper.getTestStatusClass()}|" th:text="${testHelper.getTestStatus()}"></span>
+            </td>
+            <td>
+                <span th:attr="class=|${testHelper.getTestResultClass()}|" th:text="${testHelper.getTestResult()}"></span>
+            </td>
+            <td>
+                <a th:attr="href=|${testHelper.getLocalTestLink()}|" th:text="${testHelper.getTestName()}"></a>
+            </td>
+            <td th:text="${testHelper.getTestId()}">
+            </td>
+            <td th:text="${testHelper.getTestVersion()}">
+            </td>
+        </tr>
+    </tbody>
+</table>
+<p> </p>
+</body>
+</html>

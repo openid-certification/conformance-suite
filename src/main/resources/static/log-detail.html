@@ -339,7 +339,7 @@
 
 	                    $('#downloadBtn').click(function(evt) {
 	                        evt.preventDefault();
-	                        window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
+	                        window.open('/api/log/exporthtml/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
 	                    });
 
 	                    $('#uploadBtn').click(function(evt) {

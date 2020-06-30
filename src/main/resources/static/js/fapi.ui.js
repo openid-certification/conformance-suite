@@ -252,7 +252,7 @@ var FAPI_UI = {
 					})
 			);
 		},
-
+		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
 		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
 
 		availableTests : {},
@@ -424,6 +424,7 @@ var FAPI_UI = {
 
 	    // Hash to map requirement strings onto url
 	    // Each url must have the fragment necessary to form a link to a particular section of document
+		// When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 		specLinks : {
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
