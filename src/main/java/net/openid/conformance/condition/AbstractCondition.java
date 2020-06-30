@@ -89,27 +89,27 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 					if (!env.containsObject(req)) {
 						logger.info(testId + ": [pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
-							"msg", "Condition failure, couldn't find required object in environment before evaluation: " + req,
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find required object in environment before evaluation: " + req,
 							"expected", req,
 							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw alreadyLoggedPrePostError("[pre] Couldn't find object in environment: " + req);
+						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find object in environment: " + req);
 					}
 				}
 				for (String s : pre.strings()) {
 					if (env.getString(s) == null) {
 						logger.info(testId + ": [pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						log.log(this.getMessage(), args(
-							"msg", "Condition failure, couldn't find required string in environment before evaluation: " + s,
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find required string in environment before evaluation: " + s,
 							"expected", s,
 							"result", ConditionResult.FAILURE,
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw alreadyLoggedPrePostError("[pre] Couldn't find string in environment: " + s);
+						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find string in environment: " + s);
 					}
 				}
 			}
@@ -128,37 +128,37 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 					if (!env.containsObject(req)) {
 						logger.info(testId + ": [post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find object in environment: " + req);
 						log.log(this.getMessage(), args(
-							"msg", "Condition failure, couldn't find required object in environment after evaluation: " + req,
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find required object in environment after evaluation: " + req,
 							"expected", req,
 							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw alreadyLoggedPrePostError("[post] Couldn't find object in environment: " + req);
+						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find object in environment: " + req);
 					}
 				}
 				for (String s : post.strings()) {
 					if (env.getString(s) == null) {
 						logger.info(testId + ": [post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find string in environment: " + s);
 						log.log(this.getMessage(), args(
-							"msg", "Condition failure, couldn't find required string in environment after evaluation: " + s,
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find required string in environment after evaluation: " + s,
 							"expected", s,
 							"result", ConditionResult.FAILURE,
 							"requirements", this.getRequirements()
 							// TODO: log the environment here?
 						));
-						throw alreadyLoggedPrePostError("[post] Couldn't find string in environment: " + s);
+						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't find string in environment: " + s);
 					}
 				}
 			}
 		} catch (NoSuchMethodException e) {
 			logger.error(testId + ": Couldn't create condition object", e);
 			log.log(this.getMessage(), args(
-				"msg", "Condition failure, couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'",
+				"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'",
 				"result", ConditionResult.FAILURE
 			));
-			throw alreadyLoggedPrePostError("Couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'", e);
+			throw alreadyLoggedPrePostError("Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'", e);
 		}
 	}
 
