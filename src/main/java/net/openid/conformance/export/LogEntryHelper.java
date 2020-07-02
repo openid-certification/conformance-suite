@@ -57,6 +57,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");
 		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html");
 		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html");
+		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();
