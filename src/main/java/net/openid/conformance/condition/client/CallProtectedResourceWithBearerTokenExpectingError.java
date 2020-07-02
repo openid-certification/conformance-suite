@@ -4,6 +4,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 
 import com.google.common.base.Strings;
@@ -20,6 +21,17 @@ public class CallProtectedResourceWithBearerTokenExpectingError extends Abstract
 	public Environment evaluate(Environment env) {
 
 		return callProtectedResource(env);
+	}
+
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+		HttpHeaders headers = headersFromJson(requestHeaders);
+
+		headers.set("Authorization", "Bearer " + getAccessToken(env));
+
+		return headers;
 	}
 
 	@Override

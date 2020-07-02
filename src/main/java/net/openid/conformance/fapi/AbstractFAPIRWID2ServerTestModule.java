@@ -7,6 +7,7 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
@@ -131,6 +132,9 @@ import java.util.function.Supplier;
 	"resource.resourceUrlAccountRequests",
 	"resource.resourceUrlAccountsResource",
 	"resource.institution_id"
+})
+@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au", configurationFields = {
+	"resource.cdrVersion"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -621,6 +625,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
 			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
 			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		}
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
