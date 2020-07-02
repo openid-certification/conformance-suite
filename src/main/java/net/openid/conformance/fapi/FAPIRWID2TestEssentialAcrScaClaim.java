@@ -3,15 +3,16 @@ package net.openid.conformance.fapi;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAccountRequestIdToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureAccessDeniedErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorPage;
 import net.openid.conformance.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -37,10 +38,11 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
+// only applicable to UK OpenBanking as the SCA acr value we use is specific to that ecosystem
+@VariantNotApplicable(parameter = FAPIRWOPProfile.class, values = { "plain_fapi", "consumerdataright_au" })
 public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;

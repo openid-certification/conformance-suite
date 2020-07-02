@@ -112,7 +112,7 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -123,10 +123,10 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPIProfile.class,
+	FAPIRWOPProfile.class,
 	FAPIResponseMode.class
 })
-@VariantConfigurationFields(parameter = FAPIProfile.class, value = "openbanking_uk", configurationFields = {
+@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
 	"resource.resourceUrlAccountsResource",
 	"resource.institution_id"
@@ -672,7 +672,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
@@ -680,11 +680,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		profileIdTokenValidationSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
+	}
+
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
+	public void setupConsumerDataRightAu() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = null;
+		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
 	}
 }

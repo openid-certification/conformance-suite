@@ -3,16 +3,17 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPromptLoginToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-user-rejects-authentication",
@@ -47,7 +48,7 @@ public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2Multipl
 		ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
 			.insertBefore(CreateRandomStateValue.class, cmd);
 
-		if (getVariant(FAPIProfile.class) != FAPIProfile.OPENBANKING_UK) {
+		if (getVariant(FAPIRWOPProfile.class) != FAPIRWOPProfile.OPENBANKING_UK) {
 			conditionSequence.insertAfter(AddNonceToAuthorizationEndpointRequest.class, condition(AddPromptLoginToAuthorizationEndpointRequest.class));
 		}
 
