@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckDiscCheckSessionIframe;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInPostLogoutRedirect;
 import net.openid.conformance.condition.client.CheckPostLogoutState;
 import net.openid.conformance.condition.client.CheckSecondSessionResultIsChanged;
@@ -35,6 +36,12 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 		eventLog.endBlock();
 
 		checkSessionState(false);
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		callAndStopOnFailure(CheckDiscCheckSessionIframe.class, "OIDCSM-2.1");
 	}
 
 	@Override

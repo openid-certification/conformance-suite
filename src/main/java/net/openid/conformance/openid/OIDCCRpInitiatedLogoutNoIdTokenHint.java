@@ -15,7 +15,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-rp-initiated-logout-no-id-token-hint",
 	displayName = "OIDCC: rp initiated logout - no id_token_hint",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with an post_logout_redirect_uri but no id_token_hint - the OP must show an error screen, a screenshot of which should be uploaded.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with a post_logout_redirect_uri but no id_token_hint - the OP must show an error screen, a screenshot of which should be uploaded.",
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogoutNoIdTokenHint extends AbstractOIDCCRpInitiatedLogout {

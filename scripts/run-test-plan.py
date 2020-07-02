@@ -988,6 +988,11 @@ if __name__ == '__main__':
             if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m) or re.match(r'(oidcc-.*-logout.*)', m):
                 untested_test_modules.remove(m)
                 continue
+        elif show_untested == 'all-except-logout':
+            # we don't run the rp initiated logout tests against Authlete
+            if re.match(r'(oidcc-.*-logout.*)', m):
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
             if not re.match(r'(fapi-ciba-id1.*)', m):

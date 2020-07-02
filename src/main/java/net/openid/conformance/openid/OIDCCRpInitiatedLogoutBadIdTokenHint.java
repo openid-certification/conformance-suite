@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.ExpectInvalidIdTokenHintErrorPage;
 import net.openid.conformance.condition.client.GenerateFakeIdTokenClaims;
+import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.SignFakeIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -20,6 +21,15 @@ import javax.servlet.http.HttpSession;
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogoutBadIdTokenHint extends AbstractOIDCCRpInitiatedLogout {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		if (env.getObject("client_jwks") == null) {
+			// we need a client jwks for SignFakeIdToken
+			callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
+		}
+	}
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {

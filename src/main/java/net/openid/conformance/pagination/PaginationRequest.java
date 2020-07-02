@@ -1,16 +1,15 @@
 package net.openid.conformance.pagination;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class PaginationRequest {
 
@@ -78,20 +77,26 @@ public class PaginationRequest {
 	}
 
 	private Pageable getPageable() {
+		int l = length;
+		if (l == 0) {
+			l = 10;
+		}
 
-		return PageRequest.of(start / length, length, getSort());
+		return PageRequest.of(start / l, l, getSort());
 	}
 
 	private Sort getSort() {
 
 		Sort sort = Sort.unsorted();
 
-		String[] orderParts = order.split(",");
-		for (int i = 0; i < orderParts.length; i += 2) {
-			String column = orderParts[i];
-			String dir = (i + 1 < orderParts.length) ? orderParts[i + 1] : "asc";
-			Order order = dir.equals("desc") ? Sort.Order.desc(column) : Sort.Order.asc(column);
-			sort = sort.and(Sort.by(order));
+		if (order != null) {
+			String[] orderParts = order.split(",");
+			for (int i = 0; i < orderParts.length; i += 2) {
+				String column = orderParts[i];
+				String dir = (i + 1 < orderParts.length) ? orderParts[i + 1] : "asc";
+				Order order = dir.equals("desc") ? Sort.Order.desc(column) : Sort.Order.asc(column);
+				sort = sort.and(Sort.by(order));
+			}
 		}
 
 		return sort;
