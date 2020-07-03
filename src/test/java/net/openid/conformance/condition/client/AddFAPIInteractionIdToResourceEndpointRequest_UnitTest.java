@@ -1,7 +1,10 @@
 package net.openid.conformance.condition.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,19 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
+import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
@@ -48,18 +39,6 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-
-		env.putString("fapi_interaction_id", interactionId);
-
-		cond.execute(env);
-
-		verify(env, atLeastOnce()).getString("fapi_interaction_id");
-
-		assertThat(env.getString("resource_endpoint_request_headers", "x-fapi-interaction-id")).isEqualTo(interactionId);
-	}
-
-	@Test
-	public void testEvaluate_existingHeaders() {
 
 		env.putString("fapi_interaction_id", interactionId);
 		env.putObject("resource_endpoint_request_headers",	new JsonObject());

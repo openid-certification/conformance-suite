@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
@@ -27,6 +28,7 @@ import net.openid.conformance.condition.client.CheckMatchingStateParameter;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -48,7 +50,6 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
@@ -294,7 +295,9 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
 
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-6");
 

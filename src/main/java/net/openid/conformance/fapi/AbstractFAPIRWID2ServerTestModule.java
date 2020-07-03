@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -30,6 +31,7 @@ import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
@@ -59,7 +61,6 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -211,12 +212,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
-
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-		// (even pure FAPI-RW, as it's hard to arrange otherwise).
-		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -604,13 +599,17 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
 		if (!isSecondClient()) {
-			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-			// (even pure FAPI-RW, as it's hard to arrange otherwise).
-			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+			// this is optional; only add them for the first client
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		}
+
+		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+		// (even pure FAPI-RW, as it's hard to arrange otherwise).
+		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 

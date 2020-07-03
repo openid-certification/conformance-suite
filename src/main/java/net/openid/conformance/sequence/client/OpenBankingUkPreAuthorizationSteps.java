@@ -1,6 +1,8 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallAccountRequestsEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -9,6 +11,7 @@ import net.openid.conformance.condition.client.CheckIfAccountRequestsEndpointRes
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CreateCreateAccountRequestRequest;
 import net.openid.conformance.condition.client.CreateCreateAccountRequestRequestWithExpiration;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccountRequestIdFromAccountRequestsEndpointResponse;
@@ -62,6 +65,13 @@ public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequenc
 				.dontStopOnFailure());
 
 		/* create account request */
+
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 
 		if (secondClient) {
 			callAndStopOnFailure(CreateCreateAccountRequestRequestWithExpiration.class);

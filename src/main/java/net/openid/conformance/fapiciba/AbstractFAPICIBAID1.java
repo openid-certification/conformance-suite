@@ -23,6 +23,7 @@ import net.openid.conformance.condition.client.AddClientNotificationTokenToAutho
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -71,6 +72,7 @@ import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEn
 import net.openid.conformance.condition.client.CreateCIBANotificationEndpointUri;
 import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
@@ -99,7 +101,6 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceC
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
@@ -328,8 +329,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
-
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 		onConfigure();
 
@@ -896,7 +895,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		if (!isSecondClient()) {
+			// this is optional; only add for the first client
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		}
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 

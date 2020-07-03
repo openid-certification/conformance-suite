@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -20,6 +21,7 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -35,7 +37,6 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenRespon
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
@@ -203,7 +204,9 @@ public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		exposeEnvString("fapi_interaction_id");
 
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
