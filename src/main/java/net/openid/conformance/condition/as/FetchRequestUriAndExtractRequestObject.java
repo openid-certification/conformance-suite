@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.condition.AbstractCondition;
@@ -26,13 +27,15 @@ import java.text.ParseException;
 public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_http_request_params")
+	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "client", "server_encryption_keys"})
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
 		if (!Strings.isNullOrEmpty(requestUri)) {
 			log("Fetching request object from request_uri", args("request_uri", requestUri));
 			String requestObjectString = "";
+			JsonObject client = env.getObject("client");
+			JsonObject serverEncKeys = env.getObject("server_encryption_keys");
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
 
@@ -40,7 +43,8 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 				log("Downloaded request object", args("request_object", requestObjectString));
 
-				JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObjectString);
+				//request object will be decrypted if it's encrypted
+				JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObjectString, client, serverEncKeys);
 
 				env.putObject("authorization_request_object", jsonObjectForJwt);
 
@@ -56,6 +60,9 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 				throw error("Response is not JSON", e);
 			} catch (ParseException e) {
 				throw error("Couldn't parse request object", e, args("request", requestObjectString));
+			} catch (JOSEException e) {
+				throw error("Couldn't decrypt request object", e,
+						args("request", requestObjectString, "keys", serverEncKeys));
 			}
 
 		} else {
