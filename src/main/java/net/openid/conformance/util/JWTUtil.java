@@ -96,6 +96,7 @@ public class JWTUtil {
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 		if(token instanceof EncryptedJWT) {
 			EncryptedJWT encryptedJWT = (EncryptedJWT) token;
+			JsonObject jweHeader = JWTUtil.jwtHeaderAsJsonObject(token);
 			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
 			JWK decryptionKey = null;
 			if(JWEAlgorithm.Family.SYMMETRIC.contains(alg)) {
@@ -114,7 +115,9 @@ public class JWTUtil {
 			}
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(decryptionKey);
 			encryptedJWT.decrypt(decrypter);
-			return JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
+			JsonObject out = JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
+			out.add("jwe_header", jweHeader);
+			return out;
 		} else {
 			JsonObject header = JWTUtil.jwtHeaderAsJsonObject(token);
 			JsonObject claims = JWTUtil.jwtClaimsSetAsJsonObject(token);
