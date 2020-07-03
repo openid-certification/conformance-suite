@@ -33,8 +33,7 @@ import net.openid.conformance.variant.FAPIProfile;
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2MultipleClient {

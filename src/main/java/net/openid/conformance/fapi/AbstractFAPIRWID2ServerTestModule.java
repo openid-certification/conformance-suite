@@ -127,7 +127,8 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPIProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
-	"resource.resourceUrlAccountsResource"
+	"resource.resourceUrlAccountsResource",
+	"resource.institution_id"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -606,10 +607,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		}
 
-		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-		// (even pure FAPI-RW, as it's hard to arrange otherwise).
-		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.OPENBANKING_UK) {
+			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		}
 
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 

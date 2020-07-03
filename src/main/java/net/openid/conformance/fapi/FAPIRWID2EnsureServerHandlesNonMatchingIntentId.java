@@ -30,8 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"mtls.ca",
 		"client2.client_id",
 		"client2.jwks",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 @VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })

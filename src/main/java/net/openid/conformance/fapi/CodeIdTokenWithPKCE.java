@@ -63,8 +63,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.scope",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {

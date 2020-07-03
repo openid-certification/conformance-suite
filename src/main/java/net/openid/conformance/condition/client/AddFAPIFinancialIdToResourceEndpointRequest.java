@@ -17,12 +17,15 @@ public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractConditi
 
 		String institutionId = env.getString("resource", "institution_id");
 		if (Strings.isNullOrEmpty(institutionId)) {
-			throw error("institution_id not found under resource in test configuration");
+			log("Not adding x-fapi-financial-id to resource_endpoint_request_headers - institution_id not found under resource in test configuration");
+			return env;
 		}
 
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 
 		headers.addProperty("x-fapi-financial-id", institutionId);
+
+		log("Added x-fapi-financial-id to resource_endpoint_request_headers");
 
 		return env;
 
