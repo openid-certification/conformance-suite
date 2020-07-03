@@ -37,7 +37,9 @@ public class OIDCCLoadUserInfoWithAggregatedClaims extends AbstractSignJWT {
 		claimNames.addProperty("phone_number", "src1");
 		user.add("_claim_names", claimNames);
 		JsonObject claimSources = new JsonObject();
-		claimSources.addProperty("src1", signedJwt);
+		JsonObject src1JWT = new JsonObject();
+		src1JWT.addProperty("JWT", signedJwt);
+		claimSources.add("src1", src1JWT);
 		user.add("_claim_sources", claimSources);
 
 		env.putObject("user_info", user);
