@@ -85,6 +85,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstRequest;
+import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
@@ -434,6 +435,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		}
 	}
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
@@ -529,6 +533,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		}
 
 		performTokenEndpointIdTokenExtraction();
 		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
