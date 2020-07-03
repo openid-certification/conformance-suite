@@ -603,8 +603,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		if (!isSecondClient()) {
-			// this is optional; only add them for the first client
+			// these are optional; only add them for the first client
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.OPENBANKING_UK) {
@@ -613,17 +617,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 		}
 
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		}
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 
