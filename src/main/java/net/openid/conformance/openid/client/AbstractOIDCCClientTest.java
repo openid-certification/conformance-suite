@@ -102,6 +102,9 @@ import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretBasic;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretJwt;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithNone;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithSelfSignedTlsClientAuth;
@@ -1188,21 +1191,21 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	public void setupClientSecretBasic() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretBasic.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretJwt.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretPost.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretPost.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "tls_client_auth")

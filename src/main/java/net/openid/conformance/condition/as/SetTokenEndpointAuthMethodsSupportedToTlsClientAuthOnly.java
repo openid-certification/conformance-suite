@@ -21,9 +21,10 @@ public class SetTokenEndpointAuthMethodsSupportedToTlsClientAuthOnly extends Abs
 
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
+		env.putObject("server", server);
 
-		log("Set token_endpoint_auth_methods_supported to tls_client_auth only");
-
+		log("Changed token_endpoint_auth_methods_supported to tls_client_auth only in server configuration",
+			args("server_configuration", server));
 
 		return env;
 	}
