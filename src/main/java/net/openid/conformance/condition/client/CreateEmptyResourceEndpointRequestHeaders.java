@@ -15,7 +15,7 @@ public class CreateEmptyResourceEndpointRequestHeaders extends AbstractCondition
 
 		env.putObject("resource_endpoint_request_headers", headers);
 
-		logSuccess("Created empty headers", args("resource_endpoint_request_headers", headers));
+		log("Created empty headers", args("resource_endpoint_request_headers", headers));
 
 		return env;
 	}
