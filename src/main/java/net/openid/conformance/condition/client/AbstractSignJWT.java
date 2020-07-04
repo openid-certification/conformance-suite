@@ -218,7 +218,11 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 		} catch (ParseException e) {
 			throw error(e);
 		} catch (JOSEException e) {
-			throw error("Unable to sign; check provided key has correct 'kty' for it's 'alg': " + e.getCause(), e);
+			String message = e.getMessage();
+			if(e.getCause()!=null) {
+				message = message + " (" + e.getCause().getMessage() + ")";
+			}
+			throw error("Unable to sign; check provided key has correct 'kty' for it's 'alg': " + message, e);
 		}
 	}
 }
