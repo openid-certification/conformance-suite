@@ -1,7 +1,9 @@
 package net.openid.conformance.condition.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,11 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
@@ -39,6 +37,8 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 
 	@Test
 	public void testEvaluate_noHeaders() {
+
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 

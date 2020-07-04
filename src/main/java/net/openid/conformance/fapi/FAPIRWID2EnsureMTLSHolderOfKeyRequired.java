@@ -40,8 +40,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {

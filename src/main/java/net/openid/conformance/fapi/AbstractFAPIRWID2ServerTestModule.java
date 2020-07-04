@@ -7,7 +7,9 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -30,6 +32,7 @@ import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
@@ -59,7 +62,7 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
+import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -82,6 +85,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstRequest;
+import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
@@ -103,6 +107,7 @@ import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
@@ -110,7 +115,7 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -121,12 +126,16 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPIProfile.class,
+	FAPIRWOPProfile.class,
 	FAPIResponseMode.class
 })
-@VariantConfigurationFields(parameter = FAPIProfile.class, value = "openbanking_uk", configurationFields = {
+@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
-	"resource.resourceUrlAccountsResource"
+	"resource.resourceUrlAccountsResource",
+	"resource.institution_id"
+})
+@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au", configurationFields = {
+	"resource.cdrVersion"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -211,12 +220,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
-
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-		// (even pure FAPI-RW, as it's hard to arrange otherwise).
-		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -430,6 +433,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
+		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
+			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		}
 	}
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
@@ -523,6 +531,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE,  "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
+		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
+			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		}
 
 		performTokenEndpointIdTokenExtraction();
 		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
@@ -604,17 +617,25 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
 		if (!isSecondClient()) {
-			callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
-			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-			// (even pure FAPI-RW, as it's hard to arrange otherwise).
-			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+			// these are optional; only add them for the first client
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.OPENBANKING_UK) {
+			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
+			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		}
+		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
+		}
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
@@ -622,7 +643,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		}
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 
@@ -664,7 +687,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
@@ -672,11 +695,19 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		profileIdTokenValidationSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
+	}
+
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
+	public void setupConsumerDataRightAu() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = null;
+		profileAuthorizationEndpointSetupSteps = CDRAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
 	}
 }

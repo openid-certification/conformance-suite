@@ -41,7 +41,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request" })
+	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "account_requests_endpoint_response" })
 	public Environment evaluate(Environment env) {
 

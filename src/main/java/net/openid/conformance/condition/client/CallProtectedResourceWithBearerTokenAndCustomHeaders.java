@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 public class CallProtectedResourceWithBearerTokenAndCustomHeaders extends CallProtectedResourceWithBearerToken {
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")
+	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "protected_resource_url")
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 

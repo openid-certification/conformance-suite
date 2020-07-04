@@ -1,5 +1,11 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
@@ -9,17 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
+import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
@@ -61,6 +57,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	public void testEvaluate() {
 
 		env.putObject("resource", resourceConfig);
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 

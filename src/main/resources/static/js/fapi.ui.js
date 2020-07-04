@@ -453,7 +453,8 @@ var FAPI_UI = {
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
 			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
 			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.",
-			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-"
+			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
+			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#"
 		},
 
 		testJSON : {},

@@ -1,14 +1,13 @@
 package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
@@ -21,7 +20,7 @@ import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupp
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIProfile;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -36,7 +35,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPIProfile.class,
+	FAPIRWOPProfile.class,
 	FAPIResponseMode.class
 })
 public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
@@ -45,14 +44,19 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 
 	protected boolean jarm = false;
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
-	public void setupOpenBankingUkMTLS() {
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
+	}
+
+	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
+	public void setupConsumerDataRightAu() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
 	@Override

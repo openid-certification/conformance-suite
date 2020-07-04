@@ -772,6 +772,17 @@
 									</div>
 								</div>
 
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">cdrVersion</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The version number to send in the x-v HTTP header to the resource endpoint."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.cdrVersion"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
 
 								<div class="row config-form-element-container">
@@ -779,7 +790,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Financial institution ID to send to FAPI resources, e.g. Institution ID assigned by UK OpenBanking."></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Financial institution ID to send to FAPI resources, i.e. Institution ID assigned by UK OpenBanking. This can be left empty if the resource server does not require this header."></span>
 											</div>
 											<input type="text" class="form-control config-form-element" data-json-target="resource.institution_id"></input>
 										</div>

@@ -34,8 +34,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {

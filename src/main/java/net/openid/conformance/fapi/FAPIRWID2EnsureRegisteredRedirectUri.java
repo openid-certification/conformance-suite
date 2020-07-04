@@ -26,8 +26,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl",
-		"resource.institution_id"
+		"resource.resourceUrl"
 	}
 )
 public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {

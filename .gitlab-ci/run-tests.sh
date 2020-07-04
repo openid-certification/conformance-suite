@@ -156,7 +156,7 @@ makeServerTest() {
     # authlete FAPI
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi-rw-id2-mtls.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi-rw-id2-privatekey.json"
-    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi-rw-id2-privatekey-encryptedidtoken.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=consumerdataright_au][fapi_response_mode=plain_response] authlete-fapi-rw-id2-privatekey-encryptedidtoken.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=jarm] authlete-fapi-rw-id2-mtls-jarm.json"
     TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=jarm] authlete-fapi-rw-id2-privatekey-jarm.json"
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"

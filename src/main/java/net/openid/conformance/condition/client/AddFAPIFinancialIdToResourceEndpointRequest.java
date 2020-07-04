@@ -11,24 +11,21 @@ import net.openid.conformance.testmodule.Environment;
 public class AddFAPIFinancialIdToResourceEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "resource" })
+	@PreEnvironment(required = { "resource", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = "resource_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
 		String institutionId = env.getString("resource", "institution_id");
 		if (Strings.isNullOrEmpty(institutionId)) {
-			throw error("institution_id not found under resource in test configuration");
+			log("Not adding x-fapi-financial-id to resource_endpoint_request_headers - institution_id not found under resource in test configuration");
+			return env;
 		}
 
-		// get the previous headers if they exist
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
-		if (headers == null) {
-			headers = new JsonObject();
-		}
 
 		headers.addProperty("x-fapi-financial-id", institutionId);
 
-		env.putObject("resource_endpoint_request_headers", headers);
+		log("Added x-fapi-financial-id to resource_endpoint_request_headers");
 
 		return env;
 

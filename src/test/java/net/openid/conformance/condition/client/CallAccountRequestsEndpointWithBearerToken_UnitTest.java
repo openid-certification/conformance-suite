@@ -1,10 +1,12 @@
 package net.openid.conformance.condition.client;
 
-import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
-import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
-import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.specto.hoverfly.junit.rule.HoverflyRule;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -13,17 +15,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
+import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
+import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
-
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
@@ -130,6 +127,8 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
 
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
+
 		cond.execute(env);
 
 		hoverfly.verify(service("example.com")
@@ -153,6 +152,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.putObject("access_token", exampleToken);
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 
@@ -167,6 +167,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		env.putObject("access_token", bearerToken);
 		env.getObject("resource").addProperty("resourceUrl", "http://invalid.org/");
 		env.putObject("account_requests_endpoint_request", requestObject);
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 
@@ -180,6 +181,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
 		env.putObject("account_requests_endpoint_request", requestObject);
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 
@@ -193,6 +195,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 		env.putObject("access_token", bearerToken);
 		env.putObject("account_requests_endpoint_request", requestObject);
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 
@@ -206,6 +209,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 		env.putObject("access_token", bearerToken);
 		env.getObject("resource").addProperty("resourceUrl", "http://example.com/");
+		env.putObject("resource_endpoint_request_headers", new JsonObject());
 
 		cond.execute(env);
 

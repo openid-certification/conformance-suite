@@ -23,6 +23,7 @@ import net.openid.conformance.condition.client.AddClientNotificationTokenToAutho
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -71,6 +72,7 @@ import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEn
 import net.openid.conformance.condition.client.CreateCIBANotificationEndpointUri;
 import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
@@ -99,7 +101,7 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceC
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
-import net.openid.conformance.condition.client.FAPIGenerateResourceEndpointRequestHeaders;
+import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
@@ -328,8 +330,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
-
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
 
 		onConfigure();
 
@@ -818,6 +818,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
 
 		// This is only required in push mode; but if the server for some reason includes it for ping/poll it shoud
 		// still be correct
@@ -896,11 +898,16 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
-		callAndStopOnFailure(FAPIGenerateResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		if (!isSecondClient()) {
+			// these are optional; only add them for the first client
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+		}
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
@@ -908,7 +915,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 
-		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		}
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-9", "FAPI-R-6.2.1-10");
 	}
