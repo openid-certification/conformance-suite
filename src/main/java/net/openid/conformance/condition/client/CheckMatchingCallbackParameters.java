@@ -1,15 +1,13 @@
 package net.openid.conformance.condition.client;
 
-import java.util.Map;
-
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
+import java.util.Map;
 
 public class CheckMatchingCallbackParameters extends AbstractCondition {
 
@@ -29,7 +27,7 @@ public class CheckMatchingCallbackParameters extends AbstractCondition {
 			String actual = env.getString("callback_query_params", key);
 
 			if (!expected.equals(actual)) {
-				throw error("Callback parameter invalid or missing", args("parameter", key, "expected", expected, "actual", actual));
+				throw error("The client should have been registered with a redirect uri that contains ?dummy1=lorem&dummy2=ipsum (as per instructions), and this url was passed as the redirect uri to the authorization endpoint. These parameters must be present in the redirect back, but they are not.", args("parameter", key, "expected", expected, "actual", actual));
 			}
 
 			o.addProperty(key, expected);

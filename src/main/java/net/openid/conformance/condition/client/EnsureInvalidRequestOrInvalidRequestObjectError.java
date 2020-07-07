@@ -18,7 +18,7 @@ public class EnsureInvalidRequestOrInvalidRequestObjectError extends AbstractCon
 
 		String error = env.getString("authorization_endpoint_response", "error");
 		if (Strings.isNullOrEmpty(error)) {
-			throw error("Permitted 'error' field not found");
+			throw error("The server was expected to return an error, but no error was returned");
 		} else if (!PERMITTED_ERRORS.contains(error)) {
 			throw error("'error' field has unexpected value", args("permitted", PERMITTED_ERRORS, "actual", error));
 		}

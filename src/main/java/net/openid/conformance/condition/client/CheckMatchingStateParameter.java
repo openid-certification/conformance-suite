@@ -32,6 +32,9 @@ public class CheckMatchingStateParameter extends AbstractCondition {
 			}
 		} else {
 			// we did save a state parameter, make sure it's the same as before
+			if (Strings.isNullOrEmpty(actual)) {
+				throw error("A state value was sent, but no state parameter was returned by the authorization server", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
+			}
 			if (expected.equals(actual)) {
 				// we're good
 				logSuccess("State parameter correctly returned",
