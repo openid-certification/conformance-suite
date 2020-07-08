@@ -3,7 +3,6 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -36,19 +35,15 @@ public class GetDynamicClientConfiguration_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	/**
-	 * Test method for {@link GetDynamicClientConfiguration#evaluate(Environment)}
-	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noClientConfig() {
 		env.putObject("config", new JsonObject());
 
 		cond.execute(env);
+
+		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
 	}
 
-	/**
-	 * Test method for {@link GetDynamicClientConfiguration#evaluate(Environment)}
-	 */
 	@Test
 	public void testEvaluate_noClientNameInConfig() {
 		JsonObject config = new JsonParser().parse("{" +
