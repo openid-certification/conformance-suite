@@ -37,7 +37,7 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 	public void testEvaluate_noClientName(){
 		cond.execute(env);
 		assertThat(env.getObject("dynamic_registration_request")).isNotNull();
-		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("UNIT-TEST");
+		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("OIDF Conformance Test UNIT-TEST");
 	}
 
 	/**

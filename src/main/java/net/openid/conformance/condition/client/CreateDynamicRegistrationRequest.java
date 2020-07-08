@@ -19,7 +19,7 @@ public class CreateDynamicRegistrationRequest extends AbstractCondition {
 		String clientName = env.getString("client_name");
 
 		if(Strings.isNullOrEmpty(clientName)){
-			clientName = this.getTestId();
+			clientName = "OIDF Conformance Test " + this.getTestId();
 		} else {
 			clientName = clientName + " " + this.getTestId();
 		}
