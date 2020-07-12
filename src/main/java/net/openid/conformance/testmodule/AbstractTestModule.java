@@ -130,7 +130,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			.onFail(onFail));
 	}
 
-	private void logException(Exception e) {
+	private void logException(Throwable e) {
 		Map<String, Object> event = ex(e);
 		event.put("msg", "Caught exception from test framework");
 
@@ -352,7 +352,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (TestFailureException e) {
 			logger.error(getId() + ": Caught TestFailureException", e);
 			throw e;
-		} catch (Exception e) {
+		} catch (Exception | Error e) {
+			// it is unusual to catch Error, but if we're running in a background thread and don't catch it, nothing
+			// will appear in the test results - and we want to log errors (e.g. stack overflows) into the test results
+			// so they're easily visible rather than needing to dig through server console logging
 			logException(e);
 			logger.error(getId() + ": Generic error from underlying test framework", e);
 			throw new TestFailureException(getId(), e);
