@@ -7,10 +7,10 @@ import net.openid.conformance.testmodule.Environment;
 import java.time.Instant;
 import java.util.Date;
 
-public class ValidateRequestObjectExp extends AbstractCondition {
+public class FAPIValidateRequestObjectExp extends AbstractCondition {
 
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
-	private long oneDayMillis = 60 * 60 * 24 * 1000L; // Duration for one day
+	private long sixtyMinutesMillis = 60 * 60 * 1000L;
 
 	@Override
 	@PreEnvironment(required = "authorization_request_object" )
@@ -27,9 +27,8 @@ public class ValidateRequestObjectExp extends AbstractCondition {
 				throw error("Token expired", args("exp", new Date(exp * 1000L), "now", now));
 			}
 
-			if (now.plusMillis(oneDayMillis).isBefore(Instant.ofEpochSecond(exp))) {
-				throw error("Assertion expires unreasonably far in the future", args("exp", new Date(exp * 1000L), "now", now));
-				//Arbitrary, allow for 1 day in the future, adhering to rest of code.
+			if (now.plusMillis(sixtyMinutesMillis).isBefore(Instant.ofEpochSecond(exp))) {
+				throw error("Request object expires unreasonably far in the future", args("exp", new Date(exp * 1000L), "now", now));
 			}
 		}
 

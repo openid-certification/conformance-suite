@@ -64,8 +64,7 @@ import net.openid.conformance.condition.as.SignUserInfoResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
-import net.openid.conformance.condition.as.ValidateRequestObjectExp;
-import net.openid.conformance.condition.as.ValidateRequestObjectExpForRequestUriClientRequestType;
+import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIss;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
@@ -1006,11 +1005,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
-		if(clientRequestType==ClientRequestType.REQUEST_URI) {
-			callAndContinueOnFailure(ValidateRequestObjectExpForRequestUriClientRequestType.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
-		} else {
-			callAndContinueOnFailure(ValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
-		}
+		skipIfElementMissing("authorization_request_object", "claims.exp", Condition.ConditionResult.INFO,
+			OIDCCValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");

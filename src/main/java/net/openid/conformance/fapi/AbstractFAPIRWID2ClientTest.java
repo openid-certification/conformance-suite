@@ -49,7 +49,7 @@ import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.ValidateRequestObjectExp;
+import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
@@ -417,7 +417,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5", "OIDCC-5.5.1.1");
 
-		callAndStopOnFailure(ValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
+		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
 
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");

@@ -222,7 +222,7 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 			if(e.getCause()!=null) {
 				message = message + " (" + e.getCause().getMessage() + ")";
 			}
-			throw error("Unable to sign; check provided key has correct 'kty' for it's 'alg': " + message, e);
+			throw error("Unable to sign: " + message, e);
 		}
 	}
 }

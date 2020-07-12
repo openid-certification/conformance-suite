@@ -19,7 +19,8 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateRequestObjectExp_UnitTest {
+public class FAPIValidateRequestObjectExp_UnitTest
+{
 
 	@Spy
 	private Environment env = new Environment();
@@ -27,7 +28,7 @@ public class ValidateRequestObjectExp_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateRequestObjectExp cond;
+	private FAPIValidateRequestObjectExp cond;
 
 	private JsonObject claims;
 
@@ -37,7 +38,7 @@ public class ValidateRequestObjectExp_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ValidateRequestObjectExp();
+		cond = new FAPIValidateRequestObjectExp();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		Date now = new Date();
@@ -108,7 +109,7 @@ public class ValidateRequestObjectExp_UnitTest {
 	public void testEvaluate_validExpFuture() {
 
 		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds + (60 * 60 * 23)); // exp claim time range has not expired (23 hours)
+		claims.addProperty("exp", nowSeconds + (60 * 59)); // exp claim time range has not expired (59 minutes)
 
 		addRequestObjectClaims(env, claims);
 
