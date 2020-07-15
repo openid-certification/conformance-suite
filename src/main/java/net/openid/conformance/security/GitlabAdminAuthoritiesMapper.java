@@ -1,11 +1,10 @@
 package net.openid.conformance.security;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import net.openid.conformance.testmodule.OIDFJSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.mitre.openid.connect.client.OIDCAuthoritiesMapper;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.UserInfo;
@@ -13,19 +12,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- *
- * Simple mapper that adds ROLE_USER to the auhorities map for all queries,
- * plus adds ROLE_ADMIN if the userInfo contains specific 'hd' (Hosted Domains) from Google.
- *
+ * Simple mapper that adds ROLE_USER to the authorities map for all queries,
+ * plus adds ROLE_ADMIN if the userInfo 'groups' member (provided by gitlab) contains a specific group name.
  */
-public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-	private static final Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
+public class GitlabAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
+	private static final Logger logger = LoggerFactory.getLogger(GitlabAdminAuthoritiesMapper.class);
 
-	private String ADMIN_DOMAINS;
+	private String ADMIN_GROUP;
 
 	private String ADMIN_ISSUER;
 
@@ -39,15 +38,14 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
 			out.add(authority);
 			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-				&& userInfo.getSource().has("hd"))
+				&& userInfo.getSource().has("groups"))
 			{
-				String[] adminDomainArray = ADMIN_DOMAINS.split(",");
-
-				for (int i = 0; i < adminDomainArray.length; i++) {
-					String domain = adminDomainArray[i];
-					if (OIDFJSON.getString(userInfo.getSource().get("hd")).equals(domain)) {
+				JsonElement groupsEl = userInfo.getSource().get("groups");
+				if (groupsEl.isJsonArray()) {
+					JsonArray groups = (JsonArray) groupsEl;
+					JsonElement adminGroup = new JsonPrimitive(ADMIN_GROUP);
+					if (groups.contains(adminGroup)) {
 						out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
-						break;
 					}
 				}
 			}
@@ -58,9 +56,9 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 		return out;
 	}
 
-	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domains, String admin_iss) {
+	public GitlabAdminAuthoritiesMapper(String admin_group, String admin_iss) {
 
-		this.ADMIN_DOMAINS = admin_domains;
+		this.ADMIN_GROUP = admin_group;
 		this.ADMIN_ISSUER = admin_iss;
 	}
 }
