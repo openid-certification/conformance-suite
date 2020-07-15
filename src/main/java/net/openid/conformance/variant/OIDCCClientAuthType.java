@@ -1,5 +1,7 @@
 package net.openid.conformance.variant;
 
+import java.util.Locale;
+
 @VariantParameter(
 	name = "client_auth_type",
 	displayName = "Client Authentication Type",
@@ -19,7 +21,7 @@ public enum OIDCCClientAuthType
 
 	@Override
 	public String toString() {
-		return name().toLowerCase();
+		return name().toLowerCase(Locale.ENGLISH);
 	}
 
 }

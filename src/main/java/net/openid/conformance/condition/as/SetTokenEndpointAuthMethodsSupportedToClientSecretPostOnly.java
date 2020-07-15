@@ -19,8 +19,10 @@ public class SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly extends 
 
 		JsonObject server = env.getObject("server");
 		server.add("token_endpoint_auth_methods_supported", data);
+		env.putObject("server", server);
 
-		log("Added client_secret_post to token_endpoint_auth_methods_supported");
+		log("Changed token_endpoint_auth_methods_supported to client_secret_post only in server configuration",
+			args("server_configuration", server));
 
 		return env;
 	}

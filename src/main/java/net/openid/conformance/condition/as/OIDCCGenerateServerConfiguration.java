@@ -58,7 +58,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 		addAdditionalConfiguration(server, baseUrl);
 		// add this as the server configuration
 		env.putObject("server", server);
-		logSuccess("Generated server configuration", args("server_configuration", server));
+		logSuccess("Generated default server configuration", args("server_configuration", server));
 		return env;
 	}
 

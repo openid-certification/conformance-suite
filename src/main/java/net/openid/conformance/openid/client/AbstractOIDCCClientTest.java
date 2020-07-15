@@ -63,8 +63,11 @@ import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedT
 import net.openid.conformance.condition.as.SignUserInfoResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
-import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.ValidateRequestObjectExp;
+import net.openid.conformance.condition.as.ValidateRequestObjectAud;
+import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
+import net.openid.conformance.condition.as.ValidateRequestObjectIat;
+import net.openid.conformance.condition.as.ValidateRequestObjectIss;
+import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRegistrationRequestContainsAtLeastOneContact;
@@ -101,7 +104,9 @@ import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromRequ
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecret;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretBasic;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretJwt;
+import net.openid.conformance.sequence.as.OIDCCRegisterClientWithClientSecretPost;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithNone;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithPrivateKeyJwt;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithSelfSignedTlsClientAuth;
@@ -1000,13 +1005,26 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
-		callAndContinueOnFailure(ValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
+		skipIfElementMissing("authorization_request_object", "claims.exp", Condition.ConditionResult.INFO,
+			OIDCCValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
+		callAndContinueOnFailure(ValidateRequestObjectIat.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
-		callAndContinueOnFailure(ValidateRequestObjectClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-6");
+		callAndContinueOnFailure(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
+
 		String alg = env.getString("authorization_request_object", "header.alg");
+
 		if(allowUnsignedRequestObjects() && "none".equals(alg)) {
 			//Nimbusds will throw an exception if a request object with alg:none contains a signature
 		} else {
+			//https://openid.net/specs/openid-connect-core-1_0.html#RequestObject
+			// The Request Object MAY be signed or unsigned (plaintext).
+			// When it is plaintext, this is indicated by use of the none algorithm [JWA] in the JOSE Header.
+			// If signed, the Request Object SHOULD contain the Claims iss (issuer) and aud (audience) as members.
+			// The iss value SHOULD be the Client ID of the RP, unless it was signed by a different party than the RP.
+			// The aud value SHOULD be or include the OP's Issuer Identifier URL.
+			callAndContinueOnFailure(ValidateRequestObjectIss.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
+			callAndContinueOnFailure(ValidateRequestObjectAud.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
+
 			//This may happen when the client does not contain both request_object_signing_alg and jwks/jwks_uri
 			//and a signed request object is received. We can't validate the signature.
 			//Using skipIfMissing to avoid an ugly missing required environment entry error thrown by the framework
@@ -1188,21 +1206,21 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	public void setupClientSecretBasic() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretBasicOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretBasic.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJWT() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretJWTOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretJwt.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToClientSecretPostOnly.class;
 		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretPost.class;
-		clientRegistrationSteps = OIDCCRegisterClientWithClientSecret.class;
+		clientRegistrationSteps = OIDCCRegisterClientWithClientSecretPost.class;
 	}
 
 	@VariantSetup(parameter = OIDCCClientAuthType.class, value = "tls_client_auth")
