@@ -9,9 +9,9 @@ public class CheckSecondSessionResultIsChanged extends AbstractCondition {
 	public static final String EXPECTED = "changed";
 
 	@Override
-	@PreEnvironment(required = "session_result")
+	@PreEnvironment(required = "second_session_result")
 	public Environment evaluate(Environment env) {
-		String state = env.getString("session_result", "query_string_params.state");
+		String state = env.getString("second_session_result", "query_string_params.state");
 		if (state == null) {
 			throw error("state not present in the result from our iframe; this might be a bug in the test.");
 		}
