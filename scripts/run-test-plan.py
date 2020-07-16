@@ -55,7 +55,7 @@ def split_name_and_variant(test_plan):
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
 #this function runs plans in a loop and returns an array of results
-def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile):
+def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile, output_dir):
     oidcc_test_config_json = []
     with open(oidcc_rptest_configfile) as f:
         oidcc_test_config = f.read()
@@ -132,6 +132,10 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
 
         time_for_plan = time.time() - start_time_for_plan
         print('Finished test plan - id: {} total time: {}'.format(plan_id, time_for_plan))
+        if output_dir != None:
+            start_time_for_save = time.time()
+            filename = conformance.exporthtml(plan_id, output_dir)
+            print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
         print('\n\n')
         result_for_plan = {
             'test_plan': test_plan_name,
@@ -161,14 +165,14 @@ def get_string_name_for_module_with_variant(moduledict):
     return name
 
 
-def run_test_plan(test_plan, config_file):
+def run_test_plan(test_plan, config_file, output_dir):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
         json_config = f.read()
     (test_plan_name, variant) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
-        return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant)
+        return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
@@ -220,6 +224,10 @@ def run_test_plan(test_plan, config_file):
             module_info['info'] = conformance.get_module_info(module_id)
             module_info['logs'] = conformance.get_test_log(module_id)
     overall_time = time.time() - overall_start_time
+    if output_dir != None:
+        start_time_for_save = time.time()
+        filename = conformance.exporthtml(plan_id, output_dir)
+        print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
     print('\n\n')
     return {
         'test_plan': test_plan,
@@ -822,6 +830,7 @@ def parser_args_cli():
     # Parser arguments list which is supplied by the user
     parser = argparse.ArgumentParser(description='Parser arguments list which is supplied by the user')
 
+    parser.add_argument('--export-dir', help='Directory to save exported results into', default=None)
     parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', default='')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
@@ -895,7 +904,7 @@ if __name__ == '__main__':
 
     results = []
     for (plan_name, config_json) in to_run:
-        result = run_test_plan(plan_name, config_json)
+        result = run_test_plan(plan_name, config_json, args.export_dir)
         if isinstance(result, list):
             results.extend(result)
         else:

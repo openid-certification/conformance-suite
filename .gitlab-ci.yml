@@ -273,6 +273,10 @@ production:
     - set_up_for_running_test_plan
     - run_all_test_plan
   dependencies: []
+  artifacts:
+    when: always
+    paths:
+      - "*.zip"
 
 deployment_test_production:
   <<: *deployment_test
@@ -316,6 +320,10 @@ deployment_test_demo:
     refs:
       - /^dev-branch-[1-9]$/
     kubernetes: active
+  artifacts:
+    when: always
+    paths:
+      - "*.zip"
 
 deployment_client_test_review:
   <<: *deployment_test_review
@@ -369,6 +377,7 @@ deployment_local_test_review:
       - oidcc-provider-log.txt
       - server-log.txt
       - mongo/data/mongodb-dump.gz
+      - "*.zip"
 
 # ---------------------------------------------------------------------------
 
