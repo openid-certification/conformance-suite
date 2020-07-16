@@ -88,11 +88,11 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	// Config for the admin role
 	@Value("${oidc.admin.domains:}")
-	private String admin_domains;
+	private String adminDomains;
 	@Value("${oidc.admin.group:}")
-	private String admin_group;
+	private String adminGroup;
 	@Value("${oidc.admin.issuer}")
-	private String admin_iss;
+	private String adminIss;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -191,14 +191,14 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
-		if (!Strings.isNullOrEmpty(admin_group)) {
+		if (!Strings.isNullOrEmpty(adminGroup)) {
 			// use gitlab group for admin access
-			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(admin_group, admin_iss));
+			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(adminGroup, adminIss));
 		} else {
 			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 			//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
 			//       Any users of a specific domain (fintechlabs.io)
-			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(admin_domains, admin_iss));
+			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
 		}
 
 		return authenticationProvider;

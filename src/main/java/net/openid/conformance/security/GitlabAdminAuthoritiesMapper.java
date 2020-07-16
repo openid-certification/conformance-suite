@@ -56,9 +56,9 @@ public class GitlabAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 		return out;
 	}
 
-	public GitlabAdminAuthoritiesMapper(String admin_group, String admin_iss) {
+	public GitlabAdminAuthoritiesMapper(String adminGroup, String adminIss) {
 
-		this.ADMIN_GROUP = admin_group;
-		this.ADMIN_ISSUER = admin_iss;
+		this.ADMIN_GROUP = adminGroup;
+		this.ADMIN_ISSUER = adminIss;
 	}
 }

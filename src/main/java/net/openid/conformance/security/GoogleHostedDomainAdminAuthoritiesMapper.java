@@ -1,10 +1,7 @@
 package net.openid.conformance.security;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.mitre.openid.connect.client.OIDCAuthoritiesMapper;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
@@ -13,8 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -58,9 +57,9 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 		return out;
 	}
 
-	public GoogleHostedDomainAdminAuthoritiesMapper(String admin_domains, String admin_iss) {
+	public GoogleHostedDomainAdminAuthoritiesMapper(String adminDomains, String adminIss) {
 
-		this.ADMIN_DOMAINS = admin_domains;
-		this.ADMIN_ISSUER = admin_iss;
+		this.ADMIN_DOMAINS = adminDomains;
+		this.ADMIN_ISSUER = adminIss;
 	}
 }
