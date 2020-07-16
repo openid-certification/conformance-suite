@@ -1,9 +1,8 @@
 package net.openid.conformance.security;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
@@ -36,12 +35,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -87,10 +87,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private String gitlabIss;
 
 	// Config for the admin role
-	@Value("${oidc.admin.domains}")
-	private String admin_domains;
+	@Value("${oidc.admin.domains:}")
+	private String adminDomains;
+	@Value("${oidc.admin.group:}")
+	private String adminGroup;
 	@Value("${oidc.admin.issuer}")
-	private String admin_iss;
+	private String adminIss;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -108,7 +110,8 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(gitlabClientId);
 		rc.setClientSecret(gitlabClientSecret);
-		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
+		// email is only asked for to make it clear to the user which account they're logged into, if they have multiple gitlab ones
+		rc.setScope(ImmutableSet.of("openid", "email"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
 		return rc;
 	}
@@ -188,16 +191,15 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
-		// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-		//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
-		//       Any users of a specific domain (fintechlabs.com)
-		authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(admin_domains, admin_iss));
-
-		// This default provider will set everyone to have the role "USER". To change this
-		// behavior, wire in a custom OIDCAuthoritiesMapper here
-		//
-		//   authenticationProvider.setAuthoritiesMapper(OIDCAuthoritiesMapper);
-		//
+		if (!Strings.isNullOrEmpty(adminGroup)) {
+			// use gitlab group for admin access
+			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(adminGroup, adminIss));
+		} else {
+			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
+			//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
+			//       Any users of a specific domain (fintechlabs.io)
+			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
+		}
 
 		return authenticationProvider;
 	}

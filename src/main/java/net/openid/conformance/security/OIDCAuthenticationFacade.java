@@ -1,21 +1,24 @@
 package net.openid.conformance.security;
 
-import java.util.Map;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {
+
+	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
+	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
 	// used for the OAuth layer's issuer
 	@Value("${oauth.introspection_url}")
@@ -76,21 +79,16 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	}
 
 	/**
-	 * Check to see if the current logged in user has the ROLE_ADMIN authority defined in
-	 * GoogleHostedDomainAdminAuthoritiesMapper
-	 *
-	 * TODO: Probably should move the ROLES to a different static class.
-	 *
-	 * @return
+	 * Check to see if the current logged in user has the ROLE_ADMIN authority
 	 */
 	@Override
 	public boolean isAdmin() {
-		return hasAuthority(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_ADMIN);
+		return hasAuthority(ROLE_ADMIN);
 	}
 
 	@Override
 	public boolean isUser() {
-		return hasAuthority(GoogleHostedDomainAdminAuthoritiesMapper.ROLE_USER);
+		return hasAuthority(ROLE_USER);
 	}
 
 	@Override
