@@ -2,6 +2,7 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddContactsToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddImplicitGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
@@ -42,6 +43,8 @@ public class OIDCCCreateDynamicClientRegistrationRequest extends AbstractConditi
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
 		callAndStopOnFailure(AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment.class);
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
+
+		callAndContinueOnFailure(AddContactsToDynamicRegistrationRequest.class);
 	}
 
 }
