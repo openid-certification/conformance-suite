@@ -1,6 +1,8 @@
 package net.openid.conformance.condition.as;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
@@ -14,16 +16,16 @@ import java.util.List;
 public abstract class AbstractEnsureJwksDoesNotContainPrivateOrSymmetricKeys extends AbstractCondition {
 
 	protected Environment verifyJwksDoesNotContainPrivateOrSymmetricKeys(Environment env, JsonObject jwks) {
-		List<JWK> privateKeys = new LinkedList<>();
-		List<JWK> symmetricKeys = new LinkedList<>();
+		List<JsonElement> privateKeys = new LinkedList<>();
+		List<JsonElement> symmetricKeys = new LinkedList<>();
 		try {
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
 			for(JWK jwk : jwkSet.getKeys()) {
 				if(jwk instanceof OctetSequenceKey) {
 					//OctetSequenceKey.isPrivate() always returns true
-					symmetricKeys.add(jwk);
+					symmetricKeys.add(new JsonParser().parse(jwk.toString()));
 				} else if(jwk.isPrivate()) {
-					privateKeys.add(jwk);
+					privateKeys.add(new JsonParser().parse(jwk.toString()));
 				}
 			}
 		} catch (ParseException e) {

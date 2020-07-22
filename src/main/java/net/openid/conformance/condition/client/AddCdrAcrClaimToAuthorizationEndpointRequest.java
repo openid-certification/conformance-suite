@@ -10,7 +10,7 @@ public class AddCdrAcrClaimToAuthorizationEndpointRequest extends AbstractAddCla
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		return addClaim(env, LocationToRequestClaim.ID_TOKEN, "acr", "urn:cds.au:cdr:3", true);
+		return addClaim(env, LocationToRequestClaim.ID_TOKEN, "acr", "urn:cds.au:cdr:2", true);
 	}
 
 }
