@@ -63,7 +63,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.redirecturi}")
 	private String redirectURI;
 
-	private Set<String> scopes = ImmutableSet.of("openid", "email", "address", "profile", "phone");
+
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 	// Specifics for setting up a Static Client for Google
@@ -120,7 +120,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	private RegisteredClient getClientTemplate() {
 		RegisteredClient clientTemplate = new RegisteredClient();
 		clientTemplate.setClientName(clientName);
-		clientTemplate.setScope(scopes);
+		clientTemplate.setScope(AuthRequestUrlBuilderWithFixedScopes.SCOPES);
 		clientTemplate.setTokenEndpointAuthMethod(authMethod);
 		clientTemplate.setRedirectUris(ImmutableSet.of(redirectURI));
 		return clientTemplate;
@@ -171,8 +171,8 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public PlainAuthRequestUrlBuilder authRequestUrlBuilder() {
-		return new PlainAuthRequestUrlBuilder();
+	public AuthRequestUrlBuilderWithFixedScopes authRequestUrlBuilder() {
+		return new AuthRequestUrlBuilderWithFixedScopes();
 	}
 
 	@Bean
