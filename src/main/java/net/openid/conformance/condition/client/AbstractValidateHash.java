@@ -1,22 +1,20 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.util.Base64URL;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.nimbusds.jose.util.Base64URL;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.testmodule.Environment;
-
-import com.google.common.base.Strings;
-import net.openid.conformance.testmodule.OIDFJSON;
-
-public abstract class ValidateHash extends AbstractCondition {
+public abstract class AbstractValidateHash extends AbstractCondition {
 
 	public Environment validateHash(Environment env, String hashName, String envName ) {
 
@@ -81,7 +79,7 @@ public abstract class ValidateHash extends AbstractCondition {
 			throw error("Invalid " + hashName + " in token", args("expected_hash", expectedHash, "id_token_hash", hash, "unhashed_value", baseString));
 		}
 
-		logSuccess("State hash validated successfully", args(hashName, hash));
+		logSuccess(hashName + " validated successfully", args("expected_hash", expectedHash, "id_token_hash", hash, "unhashed_value", baseString));
 
 		return env;
 	}

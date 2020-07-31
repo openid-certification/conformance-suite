@@ -13,7 +13,7 @@ public class ValidateClientJWKsPublicPart extends AbstractValidateJWKs {
 
 		checkJWKs(jwks, false);
 
-		logSuccess("Valid client JWKs");
+		logSuccess("Valid client JWKs: keys are valid JSON, contain the required fields and are correctly encoded using unpadded base64url");
 
 		return env;
 	}

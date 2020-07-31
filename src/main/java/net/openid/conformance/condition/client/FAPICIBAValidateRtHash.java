@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPICIBAValidateRtHash extends ValidateHash {
+public class FAPICIBAValidateRtHash extends AbstractValidateHash {
 
 	@Override
 	@PreEnvironment(required = { "token_endpoint_response", "rt_hash" } )
