@@ -18,7 +18,7 @@ import java.util.Set;
  * See comments starting with "Workaround:" below
  */
 public class AuthRequestUrlBuilderWithFixedScopes implements AuthRequestUrlBuilder {
-	public static final Set<String> SCOPES = ImmutableSet.of("openid", "email", "address", "profile", "phone");
+	public static final Set<String> SCOPES = ImmutableSet.of("openid", "email", "profile");
 
 	@Override
 	public String buildAuthRequestUrl(ServerConfiguration serverConfig, RegisteredClient clientConfig, String redirectUri, String nonce, String state, Map<String, String> options, String loginHint)
@@ -31,6 +31,8 @@ public class AuthRequestUrlBuilderWithFixedScopes implements AuthRequestUrlBuild
 
 			//Workaround: clientConfig.getScope() returns empty set for dynamic clients
 			//and PlainAuthRequestUrlBuilder sends an empty scope
+			//See https://gitlab.com/openid/conformance-suite/-/issues/788 and
+			// https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server/issues/1542
 			if(!clientConfig.getScope().isEmpty()) {
 				uriBuilder.addParameter("scope", Joiner.on(" ").join(clientConfig.getScope()));
 			} else {
@@ -51,6 +53,7 @@ public class AuthRequestUrlBuilderWithFixedScopes implements AuthRequestUrlBuild
 			// if there's a login hint, send it
 			if (!Strings.isNullOrEmpty(loginHint)) {
 				//Workaround: remove acct: prefix from login_hint
+				//related to https://gitlab.com/openid/conformance-suite/-/issues/788
 				if(loginHint.startsWith("acct:")) {
 					uriBuilder.addParameter("login_hint", loginHint.substring(5));
 				} else {
