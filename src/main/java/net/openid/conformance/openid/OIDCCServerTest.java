@@ -60,7 +60,7 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 		super.performIdTokenValidation();
 
 		// the python test did not check this as far as I know
-		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDCC-5.5.1");
 	}
 
 	@Override

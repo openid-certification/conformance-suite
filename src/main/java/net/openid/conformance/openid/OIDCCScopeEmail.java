@@ -27,7 +27,7 @@ public class OIDCCScopeEmail extends AbstractOIDCCReturnedClaimsServerTest {
 		super.performIdTokenValidation();
 
 		// the python test did not check this as far as I know
-		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDCC-5.5.1");
 
 		if (responseType.includesCode() || responseType.includesToken()) {
 			// we have an access token so response should not be in id_token
@@ -38,6 +38,6 @@ public class OIDCCScopeEmail extends AbstractOIDCCReturnedClaimsServerTest {
 	@Override
 	protected void validateUserInfoResponse() {
 		super.validateUserInfoResponse();
-		callAndContinueOnFailure(EnsureUserInfoDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureUserInfoDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDCC-5.5.1");
 	}
 }

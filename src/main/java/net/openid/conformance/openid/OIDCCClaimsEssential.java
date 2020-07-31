@@ -36,15 +36,15 @@ public class OIDCCClaimsEssential extends AbstractOIDCCReturnedClaimsServerTest 
 	@Override
 	protected void validateUserInfoResponse() {
 		super.validateUserInfoResponse();
-		callAndContinueOnFailure(EnsureUserInfoContainsName.class, Condition.ConditionResult.WARNING, "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureUserInfoContainsName.class, Condition.ConditionResult.WARNING, "OIDCC-5.5", "OIDCC-5.5.1");
 
 		// the python test did not check this as far as I know
-		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDCC-5.5.1");
 	}
 
 	@Override
 	protected void validateIdTokenForResponseTypeIdToken() {
 		super.validateIdTokenForResponseTypeIdToken();
-		callAndContinueOnFailure(EnsureIdTokenContainsName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDC-5.5.1");
+		callAndContinueOnFailure(EnsureIdTokenContainsName.class, Condition.ConditionResult.WARNING,  "OIDCC-5.5", "OIDCC-5.5.1");
 	}
 }

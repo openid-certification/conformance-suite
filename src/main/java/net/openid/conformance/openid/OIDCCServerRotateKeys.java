@@ -93,10 +93,10 @@ public class OIDCCServerRotateKeys extends AbstractTestModule {
 		eventLog.endBlock();
 
 		// note that we don't actually check if the server now uses the new key to sign id_tokens (same as python)
-		callAndContinueOnFailure(VerifyNewJwksHasNewSigningKey.class, Condition.ConditionResult.FAILURE, "OIDC-10.1.1");
+		callAndContinueOnFailure(VerifyNewJwksHasNewSigningKey.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1.1");
 
 		// the python suite did not check this
-		callAndContinueOnFailure(VerifyNewJwksStillHasOldSigningKey.class, Condition.ConditionResult.WARNING, "OIDC-10.1.1");
+		callAndContinueOnFailure(VerifyNewJwksStillHasOldSigningKey.class, Condition.ConditionResult.WARNING, "OIDCC-10.1.1");
 
 		fireTestFinished();
 	}
