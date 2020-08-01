@@ -55,8 +55,10 @@ public class LogEntryHelper {
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
 		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");
-		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html");
-		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html");
+		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.");
+		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.");
+		specLinks.put("OIDCRIL-", "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.");
+		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
 		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
 	}
 	private Document logEntry;

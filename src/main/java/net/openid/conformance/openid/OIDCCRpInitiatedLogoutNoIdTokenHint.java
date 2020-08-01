@@ -36,7 +36,7 @@ public class OIDCCRpInitiatedLogoutNoIdTokenHint extends AbstractOIDCCRpInitiate
 
 	@Override
 	protected String createLogoutPlaceholder() {
-		callAndStopOnFailure(ExpectIdTokenHintRequiredErrorPage.class, "OIDCSM-5");
+		callAndStopOnFailure(ExpectIdTokenHintRequiredErrorPage.class, "OIDCRIL-2");
 
 		return env.getString("id_token_hint_required_error");
 	}

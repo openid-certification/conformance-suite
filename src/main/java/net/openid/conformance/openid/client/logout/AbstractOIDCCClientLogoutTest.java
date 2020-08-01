@@ -50,7 +50,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	@Override
 	protected void configureServerConfiguration() {
 		callAndStopOnFailure(OIDCCGenerateServerConfigurationWithSessionManagement.class,
-			"OIDCBCL-2.1", "OIDCSM-2.1", "OIDCFCL-3");
+			"OIDCBCL-2.1", "OIDCSM-3.3", "OIDCFCL-3", "OIDCRIL-2.1");
 		expose("end_session_endpoint", env.getString("base_url") + "/end_session_endpoint");
 	}
 
@@ -154,11 +154,11 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	}
 
 	protected void createPostLogoutUriRedirect() {
-		callAndStopOnFailure(CreatePostLogoutRedirectUriParams.class, "OIDCSM-5.1");
+		callAndStopOnFailure(CreatePostLogoutRedirectUriParams.class, "OIDCRIL-3");
 
 		customizeEndSessionEndpointResponseParameters();
 
-		callAndStopOnFailure(CreatePostLogoutRedirectUriRedirect.class, "OIDCSM-5.1");
+		callAndStopOnFailure(CreatePostLogoutRedirectUriRedirect.class, "OIDCRIL-3");
 	}
 
 	/**
@@ -183,8 +183,8 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 * If you override, you will probably want to call super.validateEndSessionEndpointParameters()
 	 */
 	protected void validateEndSessionEndpointParameters() {
-		callAndContinueOnFailure(ValidateIdTokenHintInRPInitiatedLogoutRequest.class, Condition.ConditionResult.FAILURE, "OIDCSM-5");
-		callAndContinueOnFailure(ValidatePostLogoutRedirectUri.class, Condition.ConditionResult.FAILURE, "OIDCSM-5.1");
+		callAndContinueOnFailure(ValidateIdTokenHintInRPInitiatedLogoutRequest.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
+		callAndContinueOnFailure(ValidatePostLogoutRedirectUri.class, Condition.ConditionResult.FAILURE, "OIDCRIL-3.1");
 	}
 	/**
 	 * Called from the check_session_iframe receiveMessage method via ajax

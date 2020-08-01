@@ -454,9 +454,10 @@ var FAPI_UI = {
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
 			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
 			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.",
+			"OIDCRIL-" : "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.",
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#"
-		},
+		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},
 

@@ -62,7 +62,7 @@ public class OIDCCRpInitiatedLogoutDiscoveryEndpointVerification extends Abstrac
 		// the relevant urls are https.
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCBCL-3", "OIDCSM-2.1");
+		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCBCL-3", "OIDCRIL-2.1");
 	}
 
 }

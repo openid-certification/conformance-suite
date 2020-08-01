@@ -35,7 +35,7 @@ public class OIDCCRpInitiatedLogoutNoParams extends AbstractOIDCCRpInitiatedLogo
 
 	@Override
 	protected String createLogoutPlaceholder() {
-		callAndStopOnFailure(ExpectSuccessfulLogoutPage.class, "OIDCSM-5");
+		callAndStopOnFailure(ExpectSuccessfulLogoutPage.class, "OIDCRIL-2");
 
 		return env.getString("successful_logout_page");
 	}

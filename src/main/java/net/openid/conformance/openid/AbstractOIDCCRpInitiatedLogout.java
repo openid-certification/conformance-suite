@@ -21,14 +21,14 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 
 	@Override
 	protected void configureClient() {
-		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCSM-5", "OIDCSM-5.1.1");
+		callAndStopOnFailure(CreatePostLogoutRedirectUri.class, "OIDCRIL-2", "OIDCRIL-3");
 		super.configureClient();
 	}
 
 	@Override
 	protected void createDynamicClientRegistrationRequest() {
 		super.createDynamicClientRegistrationRequest();
-		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCSM-5.1.1");
+		callAndStopOnFailure(AddPostLogoutRedirectUriToDynamicRegistrationRequest.class, "OIDCRIL-3.1");
 	}
 
 	@Override
@@ -72,10 +72,10 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 		callAndStopOnFailure(ExtractSessionStateFromAuthorizationResponse.class, "OIDCSM-3");
 
 		eventLog.startBlock("Redirect to end session endpoint & wait for response");
-		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCSM-5", "RFC6749A-A.5");
-		callAndStopOnFailure(CreateEndSessionEndpointRequest.class, "OIDCSM-5");
+		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCRIL-2", "RFC6749A-A.5");
+		callAndStopOnFailure(CreateEndSessionEndpointRequest.class, "OIDCRIL-2");
 		customiseEndSessionEndpointRequest();
-		callAndStopOnFailure(BuildRedirectToEndSessionEndpoint.class, "OIDCSM-5");
+		callAndStopOnFailure(BuildRedirectToEndSessionEndpoint.class, "OIDCRIL-2");
 		performRedirectToEndSessionEndpoint();
 	}
 

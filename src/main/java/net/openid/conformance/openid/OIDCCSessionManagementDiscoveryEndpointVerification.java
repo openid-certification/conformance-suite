@@ -55,8 +55,8 @@ public class OIDCCSessionManagementDiscoveryEndpointVerification extends Abstrac
 
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(CheckDiscCheckSessionIframe.class, Condition.ConditionResult.FAILURE, "OIDCSM-2.1");
-		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCSM-2.1");
+		callAndContinueOnFailure(CheckDiscCheckSessionIframe.class, Condition.ConditionResult.FAILURE, "OIDCSM-3.3");
+		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2.1");
 	}
 
 }

@@ -70,7 +70,7 @@ public class OIDCCBackchannelLogoutDiscoveryEndpointVerification extends Abstrac
 		callAndContinueOnFailure(CheckDiscEndpointBackchannelLogoutSessionSupported.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.1");
 
 		// python didn't check this; I have no idea why not, it's definitely needed to complete the test...
-		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCBCL-3", "OIDCSM-2.1");
+		callAndContinueOnFailure(CheckDiscEndSessionEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCBCL-3", "OIDCRIL-2.1");
 	}
 
 }

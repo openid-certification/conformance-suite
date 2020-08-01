@@ -80,8 +80,8 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		eventLog.endBlock();
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
-		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCSM-5");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCSM-5");
+		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-3");
 
 		eventLog.endBlock();
 

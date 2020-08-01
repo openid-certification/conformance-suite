@@ -37,7 +37,7 @@ public class OIDCCRpInitiatedLogoutOnlyState extends AbstractOIDCCRpInitiatedLog
 
 	@Override
 	protected String createLogoutPlaceholder() {
-		callAndStopOnFailure(ExpectSuccessfulLogoutPage.class, "OIDCSM-5");
+		callAndStopOnFailure(ExpectSuccessfulLogoutPage.class, "OIDCRIL-2");
 
 		return env.getString("successful_logout_page");
 	}
