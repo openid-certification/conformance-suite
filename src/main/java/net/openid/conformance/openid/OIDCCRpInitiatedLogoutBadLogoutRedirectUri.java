@@ -36,7 +36,7 @@ public class OIDCCRpInitiatedLogoutBadLogoutRedirectUri extends AbstractOIDCCRpI
 
 	@Override
 	protected String createLogoutPlaceholder() {
-		callAndStopOnFailure(ExpectPostLogoutRedirectUriNotRegisteredErrorPage.class, "OIDCSM-5");
+		callAndStopOnFailure(ExpectPostLogoutRedirectUriNotRegisteredErrorPage.class, "OIDCRIL-2");
 
 		return env.getString("post_logout_redirect_uri_not_registered_error");
 	}

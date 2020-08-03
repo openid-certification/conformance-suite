@@ -31,8 +31,8 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 		env.putObject("post_logout_redirect", requestParts);
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
-		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCSM-5");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCSM-5");
+		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-2");
 		eventLog.endBlock();
 
 		checkSessionState(false);
@@ -41,7 +41,7 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		callAndStopOnFailure(CheckDiscCheckSessionIframe.class, "OIDCSM-2.1");
+		callAndStopOnFailure(CheckDiscCheckSessionIframe.class, "OIDCSM-3.3");
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 
 	private void checkSessionState(boolean firstTime) {
 		// check session state with iframe
-		callAndStopOnFailure(ExtractSessionStateFromAuthorizationResponse.class, "OIDCSM-3");
+		callAndStopOnFailure(ExtractSessionStateFromAuthorizationResponse.class, "OIDCSM-2");
 
 		String redirectTo = env.getString("base_url") +
 			(firstTime ? "/session_verify" : "/second_session_verify");
@@ -88,7 +88,7 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 
 	protected void validateFirstSessionCheckResult(JsonObject requestParts) {
 		env.putObject("session_result", requestParts);
-		callAndContinueOnFailure(CheckSessionResultIsUnchanged.class, Condition.ConditionResult.FAILURE, "OIDCSM-4.1");
+		callAndContinueOnFailure(CheckSessionResultIsUnchanged.class, Condition.ConditionResult.FAILURE, "OIDCSM-3.1");
 
 		// now carry on and log the user out
 		super.onPostAuthorizationFlowComplete();
@@ -97,7 +97,7 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 	protected void validateSecondSessionCheckResult(JsonObject requestParts) {
 		env.putObject("second_session_result", requestParts);
 
-		callAndContinueOnFailure(CheckSecondSessionResultIsChanged.class, Condition.ConditionResult.FAILURE, "OIDCSM-4.1");
+		callAndContinueOnFailure(CheckSecondSessionResultIsChanged.class, Condition.ConditionResult.FAILURE, "OIDCSM-3.1");
 
 		// we could call performAuthorizationFlow() to do a prompt=none authorization request to check logout
 		// happened, but the python didn't so don't

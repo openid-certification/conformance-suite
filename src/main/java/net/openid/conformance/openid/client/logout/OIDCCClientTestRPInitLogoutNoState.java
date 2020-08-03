@@ -33,6 +33,6 @@ public class OIDCCClientTestRPInitLogoutNoState extends OIDCCClientTestRPInitLog
 
 	@Override
 	protected void customizeEndSessionEndpointResponseParameters() {
-		callAndStopOnFailure(RemoveStateFromPostLogoutRedirectUriParams.class, "OIDCSM-5");
+		callAndStopOnFailure(RemoveStateFromPostLogoutRedirectUriParams.class, "OIDCRIL-2");
 	}
 }

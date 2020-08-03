@@ -27,8 +27,8 @@ public class OIDCCRpInitiatedLogout extends AbstractOIDCCRpInitiatedLogout {
 		env.putObject("post_logout_redirect", requestParts);
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
-		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCSM-5");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCSM-5");
+		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-2");
 		eventLog.endBlock();
 
 		// do the prompt=none authorization request to check logout happened
