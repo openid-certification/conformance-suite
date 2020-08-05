@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-ensure-request-without-nonce-fails",
 	displayName = "OIDCC: ensure request without nonce fails",
-	summary = "This test should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test sends a request without a nonce included, and should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response. nonce is required for all flows that return an id_token from the authorization endpoint.",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {"code", "code token"})
@@ -20,7 +20,7 @@ public class OIDCCEnsureRequestWithoutNonceFails extends AbstractOIDCCServerTest
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestMissingNonceErrorPage.class, "OIDCC-3.2.2.1");
+		callAndStopOnFailure(ExpectRequestMissingNonceErrorPage.class, "OIDCC-3.2.2.1", "OIDCC-3.3.2.11");
 		env.putString("error_callback_placeholder", env.getString("invalid_request_error"));
 	}
 
@@ -36,7 +36,7 @@ public class OIDCCEnsureRequestWithoutNonceFails extends AbstractOIDCCServerTest
 		performGenericAuthorizationEndpointErrorResponseValidation();
 		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequest.class,
 			Condition.ConditionResult.FAILURE,
-			"OIDCC-3.2.2.1");
+			"OIDCC-3.2.2.1", "OIDCC-3.3.2.11");
 		fireTestFinished();
 	}
 
