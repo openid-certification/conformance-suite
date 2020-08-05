@@ -44,12 +44,14 @@ public class LogEntryHelper {
 		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
 		specLinks.put("MTLS-", "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
+		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
 		specLinks.put("RFC6819-", "https://tools.ietf.org/html/rfc6819#section-");
 		specLinks.put("RFC7231-", "https://tools.ietf.org/html/rfc7231#section-");
 		specLinks.put("RFC7517-", "https://tools.ietf.org/html/rfc7517#section-");
 		specLinks.put("RFC7519-", "https://tools.ietf.org/html/rfc7519#section-");
 		specLinks.put("RFC7523-", "https://tools.ietf.org/html/rfc7523#section-");
 		specLinks.put("RFC7591-", "https://tools.ietf.org/html/rfc7591#section-");
+		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
 		specLinks.put("HEART-OAuth2-", "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html#rfc.section.");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
