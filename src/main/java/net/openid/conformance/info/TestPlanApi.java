@@ -18,8 +18,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,8 +40,6 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping(value = "/api")
 public class TestPlanApi implements DataUtils {
-
-	private static final Logger logger = LoggerFactory.getLogger(TestPlanApi.class);
 
 	@Autowired
 	private TestPlanService planService;

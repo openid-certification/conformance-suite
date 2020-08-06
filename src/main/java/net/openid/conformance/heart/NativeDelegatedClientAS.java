@@ -1,11 +1,6 @@
 package net.openid.conformance.heart;
 
-import net.openid.conformance.condition.client.CheckServerKeysIsValid;
-import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
-import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
-import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
@@ -14,6 +9,7 @@ import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
 import net.openid.conformance.condition.client.CheckHeartServerJwksFields;
@@ -21,6 +17,7 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
 import net.openid.conformance.condition.client.CheckRedirectUri;
+import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -34,22 +31,21 @@ import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseAccessTokenAsJwt;
+import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
+import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.ValidateAccessTokenHeartClaims;
 import net.openid.conformance.condition.client.ValidateAccessTokenSignature;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
+import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckHeartServerConfiguration;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
+import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.client.CheckForAccessTokenValue;
-import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 
 @PublishTestModule(
 	testName = "heart-native-delegated-client",
@@ -64,8 +60,6 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 	}
 )
 public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
-
-	public static final Logger logger = LoggerFactory.getLogger(NativeDelegatedClientAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
