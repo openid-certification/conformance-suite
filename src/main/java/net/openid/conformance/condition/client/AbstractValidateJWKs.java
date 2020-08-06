@@ -104,7 +104,6 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claimObject.toString());
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			JWK signingJwk = null;
 			int count = 0;
 			for (JWK jwk : jwkSet.getKeys()) {
 				var use = jwk.getKeyUse();
@@ -113,7 +112,6 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 					continue;
 				}
 				count++;
-				signingJwk = jwk;
 			}
 			if (count != 1) {
 				throw error("Expected only one signing JWK in the keyset", args("jwks", jwks));

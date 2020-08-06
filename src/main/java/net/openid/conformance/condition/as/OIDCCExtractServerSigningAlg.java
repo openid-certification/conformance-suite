@@ -48,7 +48,6 @@ public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondit
 					args("signing_algorithm", configuredAlg));
 				return env;
 			}
-			JWK selectedKey = null;
 			JWSAlgorithm configuredJwsAlgorithm = JWSAlgorithm.parse(configuredAlg);
 			if (configuredAlg.startsWith("HS")) {
 				if(!JWSAlgorithm.Family.HMAC_SHA.contains(configuredJwsAlgorithm)) {
