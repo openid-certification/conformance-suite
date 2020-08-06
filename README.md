@@ -1,6 +1,5 @@
 This is the main repository for the OpenID Foundation conformance
-suite, which covers FAPI, CIBA & HEART Profiles and OpenBanking UK's
-security profile.
+suite, which covers OpenID Connect, FAPI and FAPI-CIBA.
 
 The project is located at https://gitlab.com/openid/conformance-suite
 and all issues / merge requests should be submitted there.
@@ -18,3 +17,20 @@ https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run
 For guidelines for submitting contributions, see:
 
 https://gitlab.com/openid/conformance-suite/wikis/Developers/Contributing
+
+OpenID Foundation would like to thank the follow people/organisations:
+
+* OpenBanking Ltd, for donating the FAPI conformance suite that formed
+the basis of this code
+
+* Office of the National Coordinator for Health Information
+Technology, for donating the prototype code that formed the basis of
+the FAPI conformance suite and some further enhancements.
+
+* Authlete, for providing ongoing access to test environments compliant with
+OpenID Connect, FAPI-R, FAPI-RW, FAPI-CIBA and PAR specifications.
+
+* Authlete, for various contributions of code including additional
+PAR and FAPI tests
+
+* Kumar Jayanti, for contributing the initial PAR versions of the FAPI-RW tests

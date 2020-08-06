@@ -2,7 +2,8 @@ This software is provided 'as is' with no support.
 
 This software is licensed under the MIT License:
 
-Copyright (c) 2018 Open Banking Limited
+Copyright (c) 2019-2020 OpenID Foundation
+Portions Copyright (c) 2017-2019 Open Banking Limited
 Portions Copyright (c) 2016 Office of the National Coordinator for Health Information Technology
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
