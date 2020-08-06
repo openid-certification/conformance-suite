@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.EncryptionMethod;
@@ -106,9 +105,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 
 	protected void addTokenEndpointAuthSigningAlgValuesSupported(JsonObject server) {
 		JsonArray algValues = new JsonArray();
-		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
-		while(jwsAlgorithmIterator.hasNext()) {
-			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
 			algValues.add(alg.getName());
 		}
 		server.add("token_endpoint_auth_signing_alg_values_supported", algValues);
@@ -127,9 +124,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	protected void addIdTokenSigningAlgValuesSupported(JsonObject server) {
 		JsonArray algValues = new JsonArray();
 		algValues.add("none");
-		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
-		while(jwsAlgorithmIterator.hasNext()) {
-			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
 			algValues.add(alg.getName());
 		}
 		server.add("id_token_signing_alg_values_supported", algValues);
@@ -168,9 +163,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	protected void addRequestObjectSigningAlgValuesSupported(JsonObject server) {
 		JsonArray algValues = new JsonArray();
 		algValues.add("none");
-		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
-		while(jwsAlgorithmIterator.hasNext()) {
-			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
 			algValues.add(alg.getName());
 		}
 		server.add("request_object_signing_alg_values_supported", algValues);
@@ -259,9 +252,7 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 
 	protected void addUserinfoSigningAlgValuesSupported(JsonObject server) {
 		JsonArray algValues = new JsonArray();
-		Iterator<JWSAlgorithm> jwsAlgorithmIterator = JWSAlgorithm.Family.SIGNATURE.iterator();
-		while(jwsAlgorithmIterator.hasNext()) {
-			JWSAlgorithm alg = jwsAlgorithmIterator.next();
+		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
 			algValues.add(alg.getName());
 		}
 		server.add("userinfo_signing_alg_values_supported", algValues);

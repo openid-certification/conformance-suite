@@ -42,8 +42,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 			{
 				String[] adminDomainArray = ADMIN_DOMAINS.split(",");
 
-				for (int i = 0; i < adminDomainArray.length; i++) {
-					String domain = adminDomainArray[i];
+				for (String domain : adminDomainArray) {
 					if (OIDFJSON.getString(userInfo.getSource().get("hd")).equals(domain)) {
 						out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
 						break;
