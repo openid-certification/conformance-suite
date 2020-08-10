@@ -1,5 +1,13 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerAcct;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerURL;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDynamicRegistration;
+import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotation;
+import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryIssuerMismatch;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryJwksUriKeys;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryOpenIDConfiguration;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -35,7 +43,18 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestInvalidIdTokenSignatureWithES256.class,
 		OIDCCClientTestAggregatedClaims.class,
 		OIDCCClientTestDistributedClaims.class,
-		OIDCCClientTestMtlsEndpointAliases.class
+		OIDCCClientTestMtlsEndpointAliases.class,
+		OIDCCClientTestDiscoveryOpenIDConfiguration.class,
+		OIDCCClientTestDiscoveryJwksUriKeys.class,
+		OIDCCClientTestDiscoveryIssuerMismatch.class,
+		OIDCCClientTestSigningKeyRotationNative.class,
+		OIDCCClientTestSigningKeyRotation.class,
+		OIDCCClientTestDiscoveryWebfingerAcct.class,
+		OIDCCClientTestDiscoveryWebfingerURL.class,
+		OIDCCClientTestDynamicRegistration.class,
+		OIDCCClientTestRequestUriSignedWithRS256.class,
+		OIDCCClientTestRequestUriSignedWithNone.class,
+		OIDCCClientTestSignedUserinfo.class
 	}
 )
 public class OIDCCClientTestPlan implements TestPlan {

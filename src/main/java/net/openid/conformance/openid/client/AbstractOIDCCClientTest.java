@@ -457,6 +457,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		return responseObject;
 	}
 
+	/**
+	 * Override to randomize jwks path
+	 * @return
+	 */
+	protected String getJwksPath() {
+		return "jwks";
+	}
+
+
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
 
@@ -480,7 +489,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
-		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
+		if(getStatus()==Status.FINISHED && path.equals(getJwksPath())) {
 			//TODO temporary fix, until a finish-test endpoint is added
 			//we want to allow jwks calls after the test is finished
 		} else {
@@ -507,7 +516,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			receivedTokenRequest = true;
 			return handleTokenEndpointRequest(requestId);
 
-		} else if (path.equals("jwks")) {
+		} else if (path.equals(getJwksPath())) {
 
 			receivedJwksRequest = true;
 			return handleJwksEndpointRequest();
@@ -533,8 +542,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleDiscoveryEndpointRequest() {
+		call(exec().startBlock("Discovery endpoint"));
 		JsonObject serverConfiguration = env.getObject("server");
-
+		call(exec().endBlock());
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
@@ -661,9 +671,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleJwksEndpointRequest() {
-
+		call(exec().startBlock("Jwks endpoint"));
 		JsonObject jwks = env.getObject("server_public_jwks");
-
+		call(exec().endBlock());
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
@@ -1104,10 +1114,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
+	protected String getAuthorizationEndpointBlockText() {
+		return "Authorization endpoint";
+	}
+
 	@UserFacing
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 
-		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
+		call(exec().startBlock(getAuthorizationEndpointBlockText()).mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 
 		extractAuthorizationEndpointRequestParameters();
