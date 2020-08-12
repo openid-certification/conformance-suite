@@ -16,7 +16,7 @@ public class CheckIfAuthorizationEndpointError extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!Strings.isNullOrEmpty(env.getString("authorization_endpoint_response", "error"))) {
-			throw error("Error from the authorization endpoint", env.getObject("authorization_endpoint_response"));
+			throw error("The authorization was expected to succeed, but the server returned an error from the authorization endpoint", env.getObject("authorization_endpoint_response"));
 		}
 
 		logSuccess("No error from authorization endpoint");
