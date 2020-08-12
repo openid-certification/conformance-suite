@@ -8,32 +8,27 @@ import net.openid.conformance.testmodule.Environment;
 
 /**
  * PAR-2.0 : This class tries to set the PAR endpoint URL as the Audience for PAR request.
- * and if PAR is null then tries to set token_endpoint URL as the Audience.
  */
 public class AddPAREndpointAsAudToRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_request"})
-	@PostEnvironment(required = {"authorization_endpoint_request"})
+	@PreEnvironment(required = {"request_object_claims"})
+	@PostEnvironment(required = {"request_object_claims"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject authzEndpointRequest = env.getObject("authorization_endpoint_request");
+		JsonObject authzEndpointRequest = env.getObject("request_object_claims");
 
-		String serverIssuerUrl = env.getString("server", "pushed_authorization_request_endpoint");
+		String parEndpoint = env.getString("server", "pushed_authorization_request_endpoint");
 
-		if (serverIssuerUrl == null) {
-			serverIssuerUrl = env.getString("server", "token_endpoint");
+		if (parEndpoint == null) {
+			throw error("Could not find pushed_authorization_request_endpoint in the server metadata.");
 		}
 
-		if (serverIssuerUrl == null) {
-			throw error("Could not set audience in request object as issuer URL is not found in environment");
-		}
+		authzEndpointRequest.addProperty("aud", parEndpoint);
 
-		authzEndpointRequest.addProperty("aud", serverIssuerUrl);
+		env.putObject("request_object_claims", authzEndpointRequest);
 
-		env.putObject("authorization_endpoint_request", authzEndpointRequest);
-
-		logSuccess("Added aud to authorization endpoint request", args("aud", serverIssuerUrl));
+		logSuccess("Added aud to request object claims", args("aud", parEndpoint));
 
 		return env;
 	}
