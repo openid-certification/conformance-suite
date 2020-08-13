@@ -13,6 +13,7 @@ public abstract class AbstractWaitForSpecifiedSeconds extends AbstractCondition 
 	public Environment evaluate(Environment env) {
 		try {
 			long expectedWaitSeconds = getExpectedWaitSeconds(env);
+
 			logSuccess("Pausing for " + expectedWaitSeconds + " seconds");
 
 			TimeUnit.SECONDS.sleep(expectedWaitSeconds);

@@ -15,20 +15,28 @@ import net.openid.conformance.condition.PreEnvironment;
 public class CreateClientAuthenticationAssertionClaims extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "client", "server" })
+	@PreEnvironment(required = {"client", "server"})
 	@PostEnvironment(required = "client_assertion_claims")
 	public Environment evaluate(Environment env) {
 
 		String issuer = env.getString("client", "client_id");
-		String audience = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
-		if (Strings.isNullOrEmpty(issuer) || Strings.isNullOrEmpty(audience)) {
-			throw error("Couldn't find required configuration element", args("issuer", issuer, "audience", audience));
+		if (Strings.isNullOrEmpty(issuer)) {
+			throw error("Couldn't find required configuration element", args("issuer", issuer));
 		}
 
 		JsonObject claims = new JsonObject();
+
 		claims.addProperty("iss", issuer);
 		claims.addProperty("sub", issuer);
+
+		String audience = env.getString("token_endpoint") != null ?
+			env.getString("token_endpoint") : env.getString("server", "token_endpoint");
+
+		if (Strings.isNullOrEmpty(audience)) {
+			throw error("Couldn't find required configuration element", args("audience", audience));
+		}
+
 		claims.addProperty("aud", audience);
 		claims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
 
@@ -45,5 +53,4 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 		return env;
 
 	}
-
 }
