@@ -7,7 +7,9 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddBadRequestUriToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
@@ -17,14 +19,19 @@ import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestToAuthorizationEndpointWithRequestUri;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
+import net.openid.conformance.condition.client.CheckForRequestUriValue;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.CheckIfPAREndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckMatchingStateParameter;
@@ -45,6 +52,7 @@ import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEnt
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
+import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
@@ -58,6 +66,7 @@ import net.openid.conformance.condition.client.ExtractJARMFromURLQuery;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
@@ -106,6 +115,8 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.AddClientAuthenticationToPAREndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -115,6 +126,7 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -127,7 +139,8 @@ import java.util.function.Supplier;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPIRWOPProfile.class,
-	FAPIResponseMode.class
+	FAPIResponseMode.class,
+	FAPIAuthRequestMethod.class
 })
 @VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -144,14 +157,18 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected int whichClient;
 	protected boolean jarm = false;
+	protected boolean isPar = false;
 
 	// for variants to fill in by calling the setup... family of methods
-	private Class<? extends ConditionSequence> resourceConfiguration;
-	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
-	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
-	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
-	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	private Class <? extends ConditionSequence> resourceConfiguration;
+	protected Class <? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Supplier <? extends ConditionSequence> preAuthorizationSteps;
+	protected Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
+	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
+
+
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -160,8 +177,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 	}
 
-	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence
-	{
+	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
@@ -184,6 +200,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -294,22 +311,25 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirect();
+		if (isPar) {
+			createParAuthorizationRequest();
+			performParAuthorizationRequestFlow();
+		} else {
+			createAuthorizationRequest();
+			createAuthorizationRedirect();
+			performRedirect();
+		}
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
 		private boolean isJarm;
-		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
-				boolean isJarm,
-				Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
+											   boolean isJarm,
+											   Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isJarm = isJarm;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
@@ -328,16 +348,15 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			}
 
 			callAndStopOnFailure(CreateRandomStateValue.class);
-			exec().exposeEnvironmentString("state");
 			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
-			exec().exposeEnvironmentString("nonce");
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 			if (isJarm) {
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+
 			} else {
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 			}
@@ -353,32 +372,56 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, profileAuthorizationEndpointSetupSteps);
 	}
 
-	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
+	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
-		private boolean isSecondClient;
+		protected boolean isSecondClient;
+		protected boolean addRandomRequestUri = false;
 
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
+		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
 			this.isSecondClient = isSecondClient;
+		}
+
+		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient, boolean addRandomRequestUri) {
+			this.isSecondClient = isSecondClient;
+			this.addRandomRequestUri = addRandomRequestUri;
 		}
 
 		@Override
 		public void evaluate() {
+			if (addRandomRequestUri) {
+				callAndStopOnFailure(AddBadRequestUriToRequestObject.class);
+			}
+
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 			if (isSecondClient) {
 				callAndStopOnFailure(AddIatToRequestObject.class);
 			}
-			callAndStopOnFailure(AddExpToRequestObject.class);
+			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-12");
 
-			callAndStopOnFailure(AddAudToRequestObject.class);
+			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI-RW-5.2.2-14");
 
-			callAndStopOnFailure(AddIssToRequestObject.class);
+			// iss is a 'should' in OIDC & jwsreq,
+			callAndStopOnFailure(AddIssToRequestObject.class, "OIDCC-6.1");
+
+			// jwsreq-26 is very explicit that client_id should be both inside and outside the request object
+			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI-RW-5.2.3-8");
 
 			callAndStopOnFailure(SignRequestObject.class);
+		}
+	}
 
-			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
+	public static class CreateAuthorizationRedirectSteps extends CreateAuthorizationRequestObjectSteps {
+
+		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
+			super(isSecondClient);
 		}
 
+		@Override
+		public void evaluate() {
+			super.evaluate();
+			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
+		}
 	}
 
 	protected void createAuthorizationRedirect() {
@@ -420,7 +463,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE,"OIDCC-2");
+		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
 
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 
@@ -485,6 +528,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
+	protected void addClientAuthenticationToPAREndpointRequest() {
+		call(sequence(addParEndpointClientAuthentication));
+	}
+
 	protected void requestAuthorizationCode() {
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
@@ -529,7 +576,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		// This condition is a warning because we're not yet 100% sure of the code
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
 
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE,  "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
@@ -543,11 +590,11 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
 		 * determined by the Extract*Hash condition
 		 */
-		skipIfMissing(new String[] { "c_hash" }, null, Condition.ConditionResult.INFO ,
+		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		skipIfMissing(new String[] { "s_hash" }, null, Condition.ConditionResult.INFO,
+		skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-		skipIfMissing(new String[] { "at_hash" }, null, Condition.ConditionResult.INFO,
+		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		if (!jarm) {
@@ -572,7 +619,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		if (jarm) {
 			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
-			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI-RW-5.2.5","JARM-4.3.4","JARM-4.3.1");
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI-RW-5.2.5", "JARM-4.3.4", "JARM-4.3.1");
 
 			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
 
@@ -656,7 +703,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		return whichClient == 2;
 	}
 
-	/** Return which client is in use, for use in block identifiers */
+	/**
+	 * Return which client is in use, for use in block identifiers
+	 */
 	protected String currentClientString() {
 		if (isSecondClient()) {
 			return "Second client: ";
@@ -680,11 +729,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	public void setupMTLS() {
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToPAREndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+		addParEndpointClientAuthentication = AddClientAuthenticationToPAREndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
@@ -709,5 +760,71 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = CDRAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
+	}
+
+	protected void createParAuthorizationRequest() {
+		call(makeCreateParAuthorizationRequestSteps());
+	}
+
+	protected  ConditionSequence makeCreateParAuthorizationRequestSteps() {
+		return new CreateParAuthorizationRequestSteps(isSecondClient());
+	}
+
+	public  class CreateParAuthorizationRequestSteps extends AbstractConditionSequence {
+
+		private boolean isSecondClient;
+
+		public CreateParAuthorizationRequestSteps(boolean secondClient) {
+			this.isSecondClient = secondClient;
+		}
+
+		@Override
+		public void evaluate() {
+
+			if (isSecondClient) {
+				switchToSecondClient();
+			}
+
+			createAuthorizationRequest();
+
+			createParAuthorizationRequestObject();
+
+			addClientAuthenticationToPAREndpointRequest();
+
+		}
+	}
+
+	protected void createParAuthorizationRequestObject() {
+		call(makeCreatePARAuthorizationRequestObjectSteps());
+	}
+
+	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
+	}
+
+	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps(boolean addRandomRequestUri) {
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), addRandomRequestUri);
+	}
+
+	protected void performPARRedirectWithRequestUri() {
+		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class, "PAR-4");
+		performRedirect();
+	}
+
+	protected void performParAuthorizationRequestFlow() {
+
+		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
+
+		callAndStopOnFailure(CheckIfPAREndpointResponseError.class, "PAR-2.2", "PAR-2.3");
+
+		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
+
+		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
+
+		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
+
+		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class, ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
+
+		performPARRedirectWithRequestUri();
 	}
 }

@@ -1,5 +1,14 @@
 package net.openid.conformance.fapi;
 
+import net.openid.conformance.par.FAPIRWID2PARAttemptReuseRequestUri;
+import net.openid.conformance.par.FAPIRWID2PARAttemptToUseExpiredRequestUri;
+import net.openid.conformance.par.FAPIRWID2PARCheckAudienceForJWTClientAssertion;
+import net.openid.conformance.par.FAPIRWID2PAREnsureRequestUriIsBoundToClient;
+import net.openid.conformance.par.FAPIRWID2PARRejectInvalidAudienceInRequestObject;
+import net.openid.conformance.par.FAPIRWID2PARRejectInvalidHttpVerb;
+import net.openid.conformance.par.FAPIRWID2PARRejectInvalidRedirectUri;
+import net.openid.conformance.par.FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams;
+import net.openid.conformance.par.FAPIRWID2PARRejectRequestUriInParAuthorizationRequest;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -60,6 +69,17 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2TestEssentialAcrScaClaim.class,
 		FAPIRWID2AttemptReuseAuthorisationCodeAfter30s.class,
 		FAPIRWID2AttemptReuseAuthorisationCodeAfterOneSecond.class,
+
+		//PAR tests
+		FAPIRWID2PARAttemptReuseRequestUri.class,
+		FAPIRWID2PARAttemptToUseExpiredRequestUri.class,
+		FAPIRWID2PARCheckAudienceForJWTClientAssertion.class,
+		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class,
+		FAPIRWID2PAREnsureRequestUriIsBoundToClient.class,
+		FAPIRWID2PARRejectInvalidAudienceInRequestObject.class,
+		FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams.class,
+		FAPIRWID2PARRejectInvalidRedirectUri.class,
+		FAPIRWID2PARRejectInvalidHttpVerb.class
 	}
 )
 public class FAPI_RW_ID2_TestPlan implements TestPlan {

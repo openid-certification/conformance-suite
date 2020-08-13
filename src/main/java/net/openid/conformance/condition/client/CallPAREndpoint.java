@@ -12,10 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -34,45 +31,46 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
-public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
+/**
+ * This class makes a http post to PAR endpoint and the response is stored in the ENV
+ */
+public class CallPAREndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpointAndReturnFullResponse.class);
+	public static final String HTTP_METHOD_KEY = "par_endpoint_http_method";
+
+	private static final Logger logger = LoggerFactory.getLogger(CallPAREndpoint.class);
 
 	@Override
-	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
-	@PostEnvironment(required = "token_endpoint_response")
+	@PreEnvironment(required = {"server", "pushed_authorization_request_form_parameters"})
+	@PostEnvironment(required = {"pushed_authorization_endpoint_response", "pushed_authorization_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
 
 		// build up the form
-		JsonObject formJson = env.getObject("token_endpoint_request_form_parameters");
-		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+		JsonObject formJson = env.getObject("pushed_authorization_request_form_parameters");
+		MultiValueMap <String, String> form = new LinkedMultiValueMap <>();
 		for (String key : formJson.keySet()) {
 			form.add(key, OIDFJSON.getString(formJson.get(key)));
 		}
 
+		//Subclasses may add additional form parameters if any
+		addAdditionalParams(form);
+
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-				@Override
-				public boolean hasError(ClientHttpResponse response) throws IOException {
-					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-					// status code meaning the rest of our code can handle http status codes how it likes
-					return false;
-				}
-			});
-
-			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
-
+			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
+			HttpEntity <MultiValueMap <String, String>> request = new HttpEntity <>(form, headers);
 
 			String jsonString = null;
+			HttpMethod httpMethod = env.getString(HTTP_METHOD_KEY) == null ?
+				HttpMethod.POST : HttpMethod.valueOf(env.getString(HTTP_METHOD_KEY));
 
 			try {
-				final String tokenEndpointUri = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
+				final String parEndpointUri = env.getString("server", "pushed_authorization_request_endpoint");
 
 				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 					@Override
@@ -83,51 +81,60 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 					}
 				});
 
-				ResponseEntity<String> response = restTemplate
-					.exchange(tokenEndpointUri, HttpMethod.POST, request, String.class);
+				ResponseEntity <String> response = restTemplate
+					.exchange(parEndpointUri, httpMethod, request, String.class);
 
-				env.putInteger("token_endpoint_response_http_status", response.getStatusCode().value());
+				logSuccess("Storing pushed_authorization_endpoint_response_http_status " + response.getStatusCode().value());
+
+				env.putInteger("pushed_authorization_endpoint_response_http_status", response.getStatusCodeValue());
 
 				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
 
-				env.putObject("token_endpoint_response_headers", responseHeaders);
+				env.putObject("pushed_authorization_endpoint_response_headers", responseHeaders);
 
 				jsonString = response.getBody();
 
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling token endpoint",
+				throw error("RestClientResponseException occurred whilst calling pushed authorization endpoint",
 					e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleResponseException(env, e);
 			}
 
+			if (!httpMethod.equals(HttpMethod.POST)) {
+				env.putObject("pushed_authorization_endpoint_response", new JsonObject());
+				return env;
+			}
+
 			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Missing or empty response from the token endpoint");
-			} else {
-				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Token Endpoint did not return a JSON object");
-					}
+				throw error("Missing or empty response from the pushed authorization endpoint");
+			}
 
-					logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
-
-					env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
-
-					return env;
-				} catch (JsonParseException e) {
-					throw error(e);
+			try {
+				JsonElement jsonRoot = new JsonParser().parse(jsonString);
+				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+					throw error("Pushed Authorization did not return a JSON object");
 				}
+
+				logSuccess("Parsed pushed authorization endpoint response", jsonRoot.getAsJsonObject());
+
+				env.putObject("pushed_authorization_endpoint_response", jsonRoot.getAsJsonObject());
+
+				return env;
+			} catch (JsonParseException e) {
+				throw error(e);
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
+	}
 
+	protected void addAdditionalParams(MultiValueMap <String, String> form) {
+		//do nothing by default
 	}
 
 	protected Environment handleResponseException(Environment env, RestClientException e) {
-		throw error("RestClientException happened whilst calling token endpoint", ex(e));
+		throw error("RestClientException happened whilst calling pushed authorization endpoint", ex(e));
 	}
-
 }

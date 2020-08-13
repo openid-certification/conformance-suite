@@ -16,18 +16,14 @@ public class AddAudToRequestObject extends AbstractCondition {
 		String serverIssuerUrl = env.getString("server", "issuer");
 
 		if (serverIssuerUrl != null) {
-
 			requestObjectClaims.addProperty("aud", serverIssuerUrl);
 
 			env.putObject("request_object_claims", requestObjectClaims);
 
 			logSuccess("Added aud to request object claims", args("aud", serverIssuerUrl));
-
 		} else {
-
 			// Only a "should" requirement
 			log("Request object contains no audience and server issuer URL not found");
-
 		}
 
 		return env;

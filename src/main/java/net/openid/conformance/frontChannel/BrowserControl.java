@@ -9,6 +9,7 @@ import com.gargoylesoftware.htmlunit.WebWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.info.ImageService;
@@ -86,7 +87,7 @@ public class BrowserControl implements DataUtils {
 	private String testId;
 
 	private TestExecutionManager executionManager;
-	private Map<String, JsonArray> tasksForUrls = new HashMap<>();
+	private JsonArray browserCommands = null;
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
@@ -104,20 +105,10 @@ public class BrowserControl implements DataUtils {
 		this.executionManager = executionManager;
 		this.imageService = imageService;
 
-		// loop through the commands to find the various URL matchers to use
-		JsonArray browserCommands = config.getAsJsonArray("browser");
-
+		browserCommands = config.getAsJsonArray("browser");
 		if (browserCommands == null) {
-			return;
+			browserCommands = new JsonArray();
 		}
-
-		for (int bc = 0; bc < browserCommands.size(); bc++) {
-			JsonObject current = browserCommands.get(bc).getAsJsonObject();
-			String urlMatcher = OIDFJSON.getString(current.get("match"));
-			logger.debug(testId + ": Found URL MATCHER: " + urlMatcher);
-			tasksForUrls.put(urlMatcher, current.getAsJsonArray("tasks"));
-		}
-
 	}
 
 	/**
@@ -141,12 +132,23 @@ public class BrowserControl implements DataUtils {
 	 * 	the transaction, usually as a screenshot, can be null
 	 */
 	public void goToUrl(String url, String placeholder) {
-		// use the URL to find the command set.
-		for (String urlPattern : tasksForUrls.keySet()) {
-			// logger.info("Checking pattern: " +urlPattern + " against: " + url);
-			// logger.info("\t" + PatternMatchUtils.simpleMatch(urlPattern,url));
-			if (PatternMatchUtils.simpleMatch(urlPattern, url)) {
-				WebRunner wr = new WebRunner(url, tasksForUrls.get(urlPattern), placeholder);
+		// find the first matching command set based on the url pattern in 'match'
+		logger.debug(testId + ": goToUrl called for " + url);
+		for (JsonElement commandsEl : browserCommands) {
+			JsonObject commands = commandsEl.getAsJsonObject();
+			String urlMatcher = OIDFJSON.getString(commands.get("match"));
+			logger.debug(testId + ": Checking against URL MATCHER: " + urlMatcher);
+			if (PatternMatchUtils.simpleMatch(urlMatcher, url)) {
+				if (commands.has("match-limit")) {
+					int limit = OIDFJSON.getInt(commands.get("match-limit"));
+					logger.debug(testId + ": Current limit: " + limit);
+					if (limit <= 0) {
+						continue;
+					}
+					limit--;
+					commands.addProperty("match-limit", limit);
+				}
+				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder);
 				executionManager.runInBackground(wr);
 				logger.debug(testId + ": WebRunner submitted to task executor for: " + url);
 
