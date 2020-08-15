@@ -90,7 +90,8 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
-					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
+					OIDCCRefreshToken.class, // new test; skipped if refresh tokens not supported
+					OIDCCEnsureRequestWithValidPkceSucceeds.class // new test
 					),
 				variantCodeBasic
 			)

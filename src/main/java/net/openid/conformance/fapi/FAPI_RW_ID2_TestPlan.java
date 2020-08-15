@@ -23,6 +23,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2UserRejectsAuthentication.class,
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPIRWID2EnsureValidPKCESucceeds.class,
 
 		// Possible failure case
 		FAPIRWID2EnsureResponseModeQuery.class,
