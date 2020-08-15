@@ -55,4 +55,11 @@ public class OIDCCClientTestDiscoveryWebfingerAcct extends AbstractOIDCCClientTe
 		}
 		return super.handleClientRequestForPath(requestId, path, servletResponse);
 	}
+
+	@Override
+	protected void validateWebfingerRequestResource(String resourcePrefix) {
+		if(!"acct".equals(resourcePrefix)) {
+			throw new TestFailureException(getId(), "This test expects a webfinger request using acct syntax");
+		}
+	}
 }

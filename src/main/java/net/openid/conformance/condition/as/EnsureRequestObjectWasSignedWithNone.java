@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -13,7 +12,7 @@ public class EnsureRequestObjectWasSignedWithNone extends AbstractCondition {
 
 		String alg = env.getString("authorization_request_object", "header.alg");
 
-		if (Strings.isNullOrEmpty(alg) || "none".equals(alg)) {
+		if ("none".equals(alg)) {
 			logSuccess("Request object was signed using algorithm 'none'");
 			return env;
 		}

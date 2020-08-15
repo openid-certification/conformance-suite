@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
+import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -203,22 +204,19 @@ public class TestDispatcher implements DataUtils {
 		}
 		String testName = null;
 		String alias = null;
-		boolean requestUsingAcctPrefix = false;
-		boolean requestUsingHttpsPrefix = false;
+		String resourcePrefix = null;
 		try {
-			//using Pattern.CASE_INSENSITIVE as these are URIs and technically case insensitive
-			//TODO Joseph: aliases are case sensitive and may theoretically contain . chars which would break this
 			Pattern acctPattern = Pattern.compile("^acct:([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)@.*$", Pattern.CASE_INSENSITIVE);
 			Matcher acctMatcher = acctPattern.matcher(resource);
 			if(acctMatcher.matches()) {
-				requestUsingAcctPrefix = true;
+				resourcePrefix = "acct";
 				alias = acctMatcher.group(1);
 				testName = acctMatcher.group(2);
 			} else {
 				Pattern httpsPattern = Pattern.compile("^https?://.*/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$", Pattern.CASE_INSENSITIVE);
 				Matcher httpsMatcher = httpsPattern.matcher(resource);
 				if (httpsMatcher.matches()) {
-					requestUsingHttpsPrefix = true;
+					resourcePrefix = "https";
 					alias = httpsMatcher.group(1);
 					testName = httpsMatcher.group(2);
 				} else {
@@ -243,40 +241,28 @@ public class TestDispatcher implements DataUtils {
 		if (test == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		if (!test.getName().equals(testName)) {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-		if("oidcc-client-test-discovery-webfinger-acct".equals(testName) && !requestUsingAcctPrefix) {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-		if("oidcc-client-test-discovery-webfinger-url".equals(testName) && !requestUsingHttpsPrefix) {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
 
 		try {
-			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
-			JsonObject requestParts = new JsonObject();
-			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
-			requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
-			requestParts.addProperty("method", servletRequest.getMethod().toUpperCase()); // method is always uppercase
-
-			logIncomingHttpRequest(test, "/.well-known/webfinger", requestParts);
-
-			if (TestModule.Status.CREATED.equals(test.getStatus())) {
-				throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+			if(test instanceof AbstractOIDCCClientTest) {
+				AbstractOIDCCClientTest clientTest = (AbstractOIDCCClientTest) test;
+				JsonObject requestParts = new JsonObject();
+				requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+				requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
+				requestParts.addProperty("method", servletRequest.getMethod().toUpperCase()); // method is always uppercase
+				logIncomingHttpRequest(test, "/.well-known/webfinger", requestParts);
+				if (TestModule.Status.CREATED.equals(test.getStatus())) {
+					throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				}
+				Object response = clientTest.handleWebfingerRequest(testName, resourcePrefix, resource, requestParts);
+				logOutgoingHttpResponse(test, "/.well-known/webfinger", response);
+				if(response instanceof ResponseEntity) {
+					return response;
+				} else {
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+			} else {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-
-			JsonObject response = new JsonObject();
-			response.addProperty("subject", resource);
-			JsonArray linksArray = new JsonArray();
-			JsonObject linkEntry = new JsonObject();
-			linkEntry.addProperty("rel", "http://openid.net/specs/connect/1.0/issuer");
-			linkEntry.addProperty("href", test.getExposedValues().get("issuer"));
-			linksArray.add(linkEntry);
-			response.add("links", linksArray);
-			logOutgoingHttpResponse(test, "/.well-known/webfinger", response);
-
-			return new ResponseEntity<>(response, HttpStatus.OK);
 
 		} catch (Exception e) {
 			throw new TestFailureException(test.getId(), e);

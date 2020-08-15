@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -73,6 +75,14 @@ public class TestPlanApi implements DataUtils {
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
 			description = OIDFJSON.getString(config.get("description"));
+		}
+
+		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
+			String alias = Strings.emptyToNull(OIDFJSON.getString(config.get("alias")));
+			if(!alias.matches("^([a-zA-Z0-9_-]+)$")) {
+				throw new RuntimeException("Invalid alias value '" +alias+ "'. " +
+					"alias can only contain alphanumeric characters, _ and -.");
+			}
 		}
 
 		// extract the `publish` field if available

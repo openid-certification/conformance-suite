@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -16,6 +17,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.CreateWebfingerResponse;
 import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptUserInfoResponse;
@@ -1269,4 +1271,32 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		});
 	}
 
+	/**
+	 * override to validate the webfinger resource
+	 * @param resourcePrefix
+	 */
+	protected void validateWebfingerRequestResource(String resourcePrefix) {
+	}
+	/**
+	 *
+	 * @param resourcePrefix can be acct or https
+	 * @return
+	 */
+	public Object handleWebfingerRequest(String requestedTestName, String resourcePrefix, String resource, JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Webfinger Request"));
+		//this should not happen but just in case
+		if(!this.getName().equals(requestedTestName)) {
+			throw new TestFailureException(getId(),
+				"Test name in webfinger request does not match current test name. " +
+					"Requested=" + requestedTestName+ " actual=" + this.getName());
+		}
+		validateWebfingerRequestResource(resourcePrefix);
+		env.putObject("incoming_webfinger_request", requestParts);
+		env.putString("incoming_webfinger_resource", resource);
+		callAndStopOnFailure(CreateWebfingerResponse.class, "OIDCD-2");
+		call(exec().endBlock());
+		setStatus(Status.WAITING);
+		return env.getObject("webfinger_response");
+	}
 }

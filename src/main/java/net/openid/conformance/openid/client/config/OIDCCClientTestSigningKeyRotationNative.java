@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 
 
 @PublishTestModule(
-	testName = "oidcc-client-test-signing-key-rotation-native",
+	testName = "oidcc-client-test-signing-key-rotation-just-before-signing",
 	displayName = "OIDCC: Relying party signing key rotation test",
 	summary = "The client is expected to request an ID token and verify its signature by" +
 		" fetching keys from the jwks endpoint. Keys will be rotated right before signing the id_token" +

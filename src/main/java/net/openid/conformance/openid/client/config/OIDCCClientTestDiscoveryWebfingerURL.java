@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client.config;
 import net.openid.conformance.condition.as.AddRandomSuffixToIssuerInServerConfiguration;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,5 +49,13 @@ public class OIDCCClientTestDiscoveryWebfingerURL extends AbstractOIDCCClientTes
 			return handleDiscoveryEndpointRequest();
 		}
 		return super.handleClientRequestForPath(requestId, path, servletResponse);
+	}
+
+	@Override
+	protected void validateWebfingerRequestResource(String resourcePrefix) {
+		if(!"https".equals(resourcePrefix)) {
+			throw new TestFailureException(getId(), "This test expects a webfinger request using URL syntax " +
+				"(e.g https://example.com/test-alias/"+this.getName()+")");
+		}
 	}
 }
