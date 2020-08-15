@@ -1,6 +1,10 @@
 package net.openid.conformance.par;
 
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.BuildRequestToAuthorizationEndpointWithRequestUri;
+import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.ExpectInvalidRequestUriErrorPage;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -12,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-rw-id2-par-attempt-reuse-request_uri",
 	displayName = "PAR : try to reuse a request_uri ",
-	summary = "This test tries to reuse a request_uri and expects authorization server to return an error",
+	summary = "This test tries to use a request_uri twice and expects the authorization server either show an error or redirect back with an invalid_request_uri error, PAR section 7.3 states 'the AS SHOULD make the request URIs one-time use'. If the authentication succeeds a warning will be issued.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -36,11 +40,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"by_value"
 })
 public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerTestModule {
+	boolean secondAttempt = false;
 
 	@Override
 	protected void createPlaceholder() {
-		// This may be too strict, as one-time use is only a 'should' in
-		// https://tools.ietf.org/html/draft-ietf-oauth-par-03#section-7.3
 		callAndStopOnFailure(ExpectInvalidRequestUriErrorPage.class, "PAR-7.3", "PAR-4", "PAR-2.2");
 
 		env.putString("error_callback_placeholder", env.getString("request_uri_invalid_error"));
@@ -51,12 +54,33 @@ public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerT
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		eventLog.startBlock("Attempting reuse of request_uri and testing if Authorization server returns error in callback");
-		// We're testing that reuse of the request_uri is refused.
 		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class);
-
-		env.putBoolean("second_call", true);
+		secondAttempt = true;
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		if (!secondAttempt) {
+			// first authentication is a normal successful one
+			super.onAuthorizationCallbackResponse();
+			return;
+		}
+
+		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
+
+		if (callbackParams.has("error")) {
+			callAndStopOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "JAR-7");
+
+			eventLog.endBlock();
+
+			fireTestFinished();
+		} else {
+			// second authentication "should" return an error, but only a should so warn but otherwise expect a successful response
+			callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.WARNING, "PAR-7.3");
+
+			super.onAuthorizationCallbackResponse();
+		}
+	}
 }
