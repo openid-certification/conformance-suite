@@ -24,6 +24,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPIRWID2EnsureValidPKCESucceeds.class,
+		FAPIRWID2EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
 		FAPIRWID2EnsureResponseModeQuery.class,

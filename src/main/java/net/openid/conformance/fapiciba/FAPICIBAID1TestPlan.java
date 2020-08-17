@@ -15,6 +15,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPICIBAID1MultipleCallToTokenEndpoint.class,
 		FAPICIBAID1AuthReqIdExpired.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
+		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
