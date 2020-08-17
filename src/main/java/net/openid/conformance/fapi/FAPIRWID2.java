@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
@@ -61,6 +62,7 @@ public class FAPIRWID2 extends AbstractFAPIRWID2MultipleClient {
 
 	protected void verifyAccessTokenWithResourceEndpoint() {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
+		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);

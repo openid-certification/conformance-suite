@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
@@ -107,15 +108,11 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 
 	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
+		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
