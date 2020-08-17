@@ -7,6 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -69,14 +70,12 @@ public class BuildRequestToAuthorizationEndpointWithRequestUri extends AbstractC
 		if (responseTypeElement == null) {
 			throw error("Could not find response_type element in request_object_claims");
 		}
-		String responseType = responseTypeElement.getAsString();
+		String responseType = OIDFJSON.getString(responseTypeElement);
 
 		builder.queryParam("response_type", responseType);
 
-		String scope = env.getString("client", "scope");
-		if (!Strings.isNullOrEmpty(scope)) {
-			builder.queryParam("scope", scope);
-		}
+		String scope = OIDFJSON.getString(requestObjectClaims.get("scope"));
+		builder.queryParam("scope", scope);
 
 		addClientId(builder, env);
 
