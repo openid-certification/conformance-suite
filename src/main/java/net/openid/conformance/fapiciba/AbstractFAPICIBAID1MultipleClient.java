@@ -31,20 +31,6 @@ public abstract class AbstractFAPICIBAID1MultipleClient extends AbstractFAPICIBA
 		return "";
 	}
 
-	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
-		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
-
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
-
-		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
-	}
-
 	@Override
 	protected void configClient() {
 		setupClient1();
