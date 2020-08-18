@@ -2,22 +2,17 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.util.Base64URL;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.dynregistration.AbstractClientValidationCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.List;
 
 public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondition {
@@ -48,7 +43,6 @@ public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondit
 					args("signing_algorithm", configuredAlg));
 				return env;
 			}
-			JWK selectedKey = null;
 			JWSAlgorithm configuredJwsAlgorithm = JWSAlgorithm.parse(configuredAlg);
 			if (configuredAlg.startsWith("HS")) {
 				if(!JWSAlgorithm.Family.HMAC_SHA.contains(configuredJwsAlgorithm)) {
@@ -137,10 +131,8 @@ public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondit
 		JsonObject jwks = env.getObject("server_jwks");
 		try {
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			Iterator<JWK> jwkIterator = jwkSet.getKeys().iterator();
-			while(jwkIterator.hasNext()) {
-				JWK jwk = jwkIterator.next();
-				if(jwk.getKeyUse()!=null && !KeyUse.SIGNATURE.equals(jwk.getKeyUse())) {
+			for (JWK jwk : jwkSet.getKeys()) {
+				if (jwk.getKeyUse() != null && !KeyUse.SIGNATURE.equals(jwk.getKeyUse())) {
 					continue;
 				}
 				Algorithm alg = jwk.getAlgorithm();
@@ -148,12 +140,12 @@ public class OIDCCExtractServerSigningAlg extends AbstractClientValidationCondit
 					alg = getDefaultAlgForKeyType(jwk.getKeyType());
 					env.putString("signing_algorithm", alg.toString());
 					logSuccess("Using the default algorithm for the first key in server jwks",
-								args("signing_algorithm", alg.toString()));
+						args("signing_algorithm", alg.toString()));
 					return env;
 				} else {
 					env.putString("signing_algorithm", alg.toString());
 					logSuccess("Using the algorithm for the first key in server jwks",
-								args("signing_algorithm", alg.toString()));
+						args("signing_algorithm", alg.toString()));
 					return env;
 				}
 			}

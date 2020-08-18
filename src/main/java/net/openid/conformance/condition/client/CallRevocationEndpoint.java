@@ -64,7 +64,7 @@ public class CallRevocationEndpoint extends AbstractCondition {
 				throw error("Error from the revocation endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			}
 
-			logSuccess("Called Revocation Endpoint");
+			logSuccess("Called Revocation Endpoint", args("response", jsonString));
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 				logger.warn("Error creating HTTP Client", e);

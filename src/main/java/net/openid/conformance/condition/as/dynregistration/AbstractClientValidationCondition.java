@@ -1,18 +1,14 @@
 package net.openid.conformance.condition.as.dynregistration;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * As per https://gitlab.com/openid/conformance-suite/-/merge_requests/865#note_294594618
@@ -96,7 +92,7 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 	 */
 	protected String getApplicationType() {
 		if(client.has("application_type")){
-			String appType = OIDFJSON.getString(client.get("application_type"));
+			return OIDFJSON.getString(client.get("application_type"));
 		}
 		return "web";
 	}

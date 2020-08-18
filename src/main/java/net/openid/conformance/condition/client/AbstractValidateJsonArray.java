@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -13,12 +14,9 @@ public abstract class AbstractValidateJsonArray extends AbstractCondition {
 	public long countMatchingElements(List<String> searchValues, JsonArray searchSpace ) {
 		long foundCount = 0;
 
-		int viableSize = searchValues.size();
-		int serverSize = searchSpace.size();
-
-		for (int viableIndex = 0; viableIndex < viableSize; viableIndex++) {
-			for (int serverIndex = 0; serverIndex < serverSize; serverIndex++) {
-				if (elementsEqual(searchValues.get(viableIndex), OIDFJSON.getString(searchSpace.get(serverIndex)))) {
+		for (String searchValue : searchValues) {
+			for (JsonElement json: searchSpace) {
+				if (elementsEqual(searchValue, OIDFJSON.getString(json))) {
 					foundCount++;
 					break;
 				}

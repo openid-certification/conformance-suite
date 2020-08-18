@@ -37,8 +37,6 @@ import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -62,8 +60,6 @@ import javax.servlet.http.HttpSession;
 	}
 )
 public class TokenRevocationAS extends AbstractTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(TokenRevocationAS.class);
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

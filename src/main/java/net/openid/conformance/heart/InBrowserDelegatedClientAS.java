@@ -1,6 +1,7 @@
 package net.openid.conformance.heart;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
@@ -37,9 +38,6 @@ import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
 import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.condition.Condition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @PublishTestModule(
 	testName = "heart-in-browser-delegated-client",
@@ -55,8 +53,6 @@ import org.slf4j.LoggerFactory;
 	}
 )
 public class InBrowserDelegatedClientAS extends AbstractRedirectServerTestModule {
-
-	private static final Logger logger = LoggerFactory.getLogger(InBrowserDelegatedClientAS.class);
 
 	/* (non-Javadoc)
 	 * @see io.bspk.selenium.TestModule#configure(com.google.gson.JsonObject)
