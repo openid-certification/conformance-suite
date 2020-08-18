@@ -61,6 +61,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2EnsureClientAssertionInTokenEndpoint.class,
 		FAPIRWID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPIRWID2EnsureClientAssertionWithWrongAudFails.class,
+		FAPIRWID2EnsureClientAssertionWithNoSubFails.class,
 
 		//Refresh token tests
 		FAPIRWID2RefreshToken.class,
