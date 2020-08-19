@@ -59,6 +59,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCScopeAddress.class, // OP-scope-address
 					OIDCCScopePhone.class, // OP-scope-phone
 					OIDCCScopeAll.class, // OP-scope-All
+					OIDCEnsureOtherScopeOrderSucceeds.class, // new test in java suite
 					OIDCCDisplayPage.class, // OP-display-page
 					OIDCCDisplayPopup.class, // OP-display-popup
 					OIDCCPromptLogin.class, // OP-prompt-login
@@ -98,7 +99,8 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
-					OIDCCRefreshToken.class // new test; skipped if refresh tokens not supported
+					OIDCCRefreshToken.class, // new test; skipped if refresh tokens not supported
+					OIDCCEnsureRequestWithValidPkceSucceeds.class // new test
 					),
 				variantCodeIdTokenBasic
 			),

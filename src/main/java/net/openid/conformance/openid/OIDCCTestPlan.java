@@ -40,6 +40,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCScopeEmail.class,
 					OIDCCScopePhone.class,
 					OIDCCScopeProfile.class,
+					OIDCEnsureOtherScopeOrderSucceeds.class,
 					OIDCCPromptLogin.class,
 					OIDCCPromptNoneLoggedIn.class,
 					OIDCCPromptNoneNotLoggedIn.class,
@@ -63,6 +64,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCRequestUriSignedRS256.class,
 					OIDCCRefreshTokenRPKeyRotation.class,
 					OIDCCServerRotateKeys.class,
+					OIDCCEnsureRequestWithValidPkceSucceeds.class,
 
 					// negative tests
 					OIDCCAuthCodeReuse.class,

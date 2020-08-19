@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpoint
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
+import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -668,11 +669,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		if (!isSecondClient()) {
 			// these are optional; only add them for the first client
-			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3");
+
+			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
 
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-5");
 		}
 
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.OPENBANKING_UK) {
