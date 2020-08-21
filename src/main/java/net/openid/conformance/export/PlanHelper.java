@@ -18,9 +18,11 @@ import java.util.TimeZone;
 public class PlanHelper {
 	private Logger logger = LoggerFactory.getLogger(PlanHelper.class);
 	private PlanExportInfo planExportInfo;
+	private String suiteBaseUrl;
 
-	public PlanHelper(PlanExportInfo planExportInfo) {
+	public PlanHelper(PlanExportInfo planExportInfo, String suiteBaseUrl) {
 		this.planExportInfo = planExportInfo;
+		this.suiteBaseUrl = suiteBaseUrl;
 	}
 
 	public String getExportedFrom() {
@@ -111,6 +113,10 @@ public class PlanHelper {
 
 		throw new RuntimeException("Error getting plan id. This is a bug in the suite.");
 	}
+	public String getPlanLink() {
+		return this.suiteBaseUrl + "/plan-detail.html?plan=" + getPlanId();
+	}
+
 	public String getPlanDescription() {
 		try {
 			if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
@@ -176,7 +182,7 @@ public class PlanHelper {
 	public List<TestHelper> getTestHelpers() {
 		List<TestHelper> helpers = new LinkedList<>();
 		for(PlanExportInfo.TestExportInfoHolder holder : planExportInfo.getTestLogExports()) {
-			TestHelper testHelper = new TestHelper(holder.getExport());
+			TestHelper testHelper = new TestHelper(holder.getExport(), suiteBaseUrl);
 			helpers.add(testHelper);
 		}
 		return helpers;

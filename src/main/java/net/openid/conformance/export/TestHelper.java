@@ -19,6 +19,7 @@ import java.util.TimeZone;
  */
 public class TestHelper {
 
+	private String suiteBaseUrl;
 	private Date exportedAt;
 	private String exportedFrom;
 	private Map<String, String> exportedBy;
@@ -41,7 +42,8 @@ public class TestHelper {
 	 * @param export see LogApi.putTestResultToExport
 	 */
 	@SuppressWarnings("unchecked")
-	public TestHelper(TestExportInfo export) {
+	public TestHelper(TestExportInfo export, String suiteBaseUrl) {
+		this.suiteBaseUrl = suiteBaseUrl;
 		this.exportedAt = export.getExportedAt();
 		this.exportedFrom = export.getExportedFrom();
 		this.exportedBy = export.getExportedBy();
@@ -262,6 +264,11 @@ public class TestHelper {
 			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
+
+	public String getTestLink() {
+		return this.suiteBaseUrl + "/log-detail.html?log=" + getTestId();
+	}
+
 	public String getTestCreated() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("started");
@@ -318,6 +325,10 @@ public class TestHelper {
 			throw new RuntimeException("ERROR IN EXPORT RENDERER. This is a bug in the suite.");
 		}
 	}
+	public String getPlanLink() {
+		return this.suiteBaseUrl + "/plan-detail.html?plan=" + getTestPlanId();
+	}
+
 	public String getTestSummary() {
 		if(this.testInfoDocument!=null) {
 			return this.testInfoDocument.getString("summary");
