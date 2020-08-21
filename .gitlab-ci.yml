@@ -430,7 +430,8 @@ deployment_local_test_review:
         fi
         x=$(( $x + 1 ))
         if [ $x -gt 9 ]; then
-          echo "All review app environments seem to already be in use. Please stop one that is not needed."
+          echo "All review app environments seem to already be in use. Instructions on how to proceed can be found on the wiki:"
+          echo "https://gitlab.com/openid/conformance-suite/-/wikis/Developers/Contributing#review-app-failures"
           exit 1
         fi
       done
