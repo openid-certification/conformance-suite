@@ -150,19 +150,24 @@ review:
   extends: .auto-deploy
   stage: review
   script:
+    - find_review_app_url
+    - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     - auto-deploy ensure_namespace
     - auto-deploy initialize_tiller
     - deploy
+  artifacts:
+    reports:
+      dotenv: deploy.env
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    url: $DYNAMIC_ENVIRONMENT_URL
     on_stop: stop_review
   dependencies: []
   only:
     refs:
-      - /^dev-branch-[1-9]$/
+      - branches
     kubernetes: active
   except:
     - master
@@ -185,7 +190,7 @@ stop_review:
   allow_failure: true
   only:
     refs:
-      - /^dev-branch-[1-9]$/
+      - branches
     kubernetes: active
   except:
     - master
@@ -239,10 +244,7 @@ staging:
       - master
     kubernetes: active
 
-# This job continuously deploys to production on every push to `master`.
-# To make this a manual process, either because you're enabling `staging`
-# or `canary` deploys, or you simply want more control over when you deploy
-# to production, uncomment the `when: manual` line in the `production` job.
+# This job continuously deploys to production on every push to `production`.
 
 production:
   extends: .auto-deploy
@@ -313,12 +315,11 @@ deployment_test_demo:
   image: python:alpine
   environment:
     name: review/$CI_COMMIT_REF_NAME
-    url: https://$BASE_HOST_NAME-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
     on_stop: stop_review
   dependencies: []
   only:
     refs:
-      - /^dev-branch-[1-9]$/
+      - branches
     kubernetes: active
   artifacts:
     when: always
@@ -397,6 +398,47 @@ deployment_local_test_review:
              --volume /tmp/cc:/tmp/cc"
 
     docker run ${cc_opts} codeclimate/codeclimate analyze -f json src > codeclimate.json
+  }
+
+  function find_review_app_url() {
+    apk add jq
+    url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
+    curl --silent --show-error --header "PRIVATE-TOKEN: ${SONARQUBE_BOT_API_KEY}" "$url" > env-list.js
+    res=$?
+    if [ $res -ne 0 ]; then
+      echo "curl of $url failed: $res"
+      exit 1
+    fi
+    echo "Active review apps:"
+    jq ".[] | del(.project,.state)" < env-list.js # the project element is big/always the same/unimportant
+    echo "Checking for environment for CI_ENVIRONMENT_SLUG ${CI_ENVIRONMENT_SLUG}"
+    # first check if there's already an environment for this branch
+    CI_ENVIRONMENT_URL=`jq -r ".[] | select(.slug==\"${CI_ENVIRONMENT_SLUG}\") | .external_url" < env-list.js`
+    if [ -z "$CI_ENVIRONMENT_URL" ] || [ "$CI_ENVIRONMENT_URL" == "null" ]; then
+      echo "None found; trying to find a free environment"
+      x=1
+      while :; do
+        FAKE_BRANCH_NAME=dev-branch-$x
+        CI_ENVIRONMENT_URL=https://$BASE_HOST_NAME-$FAKE_BRANCH_NAME.$KUBE_INGRESS_BASE_DOMAIN
+        echo "Checking: $CI_ENVIRONMENT_URL"
+        res=0
+        jq --exit-status  ".[] | select(.external_url==\"$CI_ENVIRONMENT_URL\") | halt_error(9)" < env-list.js || res=$?
+        echo "jq exit status: $res"
+        if [ $res -eq 4 ]; then
+          # no match - we found a free one
+          break
+        fi
+        x=$(( $x + 1 ))
+        if [ $x -gt 9 ]; then
+          echo "All review app environments seem to already be in use. Instructions on how to proceed can be found on the wiki:"
+          echo "https://gitlab.com/openid/conformance-suite/-/wikis/Developers/Contributing#review-app-failures"
+          exit 1
+        fi
+      done
+      echo "Found a free environment: $CI_ENVIRONMENT_URL"
+    else
+      echo "This branch is already using environment: $CI_ENVIRONMENT_URL"
+    fi
   }
 
   function deploy() {
