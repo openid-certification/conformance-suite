@@ -321,6 +321,10 @@ deployment_test_demo:
     refs:
       - branches
     kubernetes: active
+  except:
+    - master
+    - production
+    - demo
   artifacts:
     when: always
     paths:
