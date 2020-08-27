@@ -55,6 +55,14 @@ public interface TestPlanService {
 	boolean publishTestPlan(String id, String publish);
 
 	/**
+	 * Changes plan immutable status
+	 * @param id Plan ID
+	 * @param immutable
+	 * @return true for success; false if not allowed
+	 */
+	boolean changeTestPlanImmutableStatus(String id, Boolean immutable);
+
+	/**
 	 * Gets the test variant to apply for all tests in the the plan
 	 * @param planId Plan ID
 	 */

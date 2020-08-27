@@ -34,6 +34,8 @@ public class Plan {
 	@Indexed
 	private String publish;
 
+	private Boolean immutable;
+
 	public static class Module {
 
 		private String testModule;
@@ -132,5 +134,9 @@ public class Plan {
 
 	public String getPublish() {
 		return publish;
+	}
+
+	public Boolean getImmutable() {
+		return immutable;
 	}
 }

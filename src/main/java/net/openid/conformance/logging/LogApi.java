@@ -50,8 +50,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.google.common.collect.ImmutableMap;
@@ -401,6 +403,33 @@ public class LogApi {
 		}
 	}
 
+
+	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
+	@ApiOperation(value = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Prepared successfully"),
+		@ApiResponse(code = 403, message = "Could not publish plan"),
+		@ApiResponse(code = 404, message = "Could not find a plan with the given id"),
+		@ApiResponse(code = 422, message = "Could not mark the plan as immutable")
+	})
+	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
+		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
+		@ApiParam(value = "Terms and conditions pdf") @RequestParam("termsAndConditionsPdf") MultipartFile termsAndConditionsPdf,
+		@ApiParam(value = "Signed certification of conformance pdf") @RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
+		@ApiParam(value = "Client data in zip format. Only required for RP tests") @RequestParam("clientSideData") MultipartFile clientSideData
+
+	) {
+		if (!planService.publishTestPlan(id, "everything")) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+		return exportPlanAsZip(id, false, true, termsAndConditionsPdf, certificationOfConformancePdf, clientSideData);
+	}
+
+
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
 	@ApiOperation(value = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
@@ -411,8 +440,16 @@ public class LogApi {
 		HttpServletRequest httpRequest,
 		@ApiParam(value = "Id of plan") @PathVariable("id") String id,
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		return exportPlanAsZip(id, publicOnly, false, null, null, null);
+	}
 
-		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
+
+	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean publicOnly, boolean addFolderForHtmlFiles,
+																	MultipartFile termsAndConditionsPdf,
+																	MultipartFile certificationOfConformancePdf,
+																	MultipartFile clientSideData) {
+
+		Object testPlan = publicOnly ? planService.getPublicPlan(planId) : planService.getTestPlan(planId);
 
 		String planName = null;
 		VariantSelection variant = null;
@@ -460,7 +497,7 @@ public class LogApi {
 
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + planId + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
@@ -469,7 +506,7 @@ public class LogApi {
 
 				try {
 					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
-					addPlanHTMLToZip(archiveOutputStream, testPlan, planExportInfo, htmlExportRenderer);
+					addPlanHTMLToZip(archiveOutputStream, testPlan, planExportInfo, htmlExportRenderer, addFolderForHtmlFiles);
 
 					// add all test logs file of a test plan to zip
 					for (PlanExportInfo.TestExportInfoHolder testLogInfoExport : planExportInfo.getTestLogExports()) {
@@ -477,16 +514,44 @@ public class LogApi {
 						String htmlFileName = TestHelper.generateHtmlFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
 
 						String sigFileName = TestHelper.generateSigFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
+						if(addFolderForHtmlFiles){
+							htmlFileName = "test-logs/" + htmlFileName;
+							sigFileName = "test-logs/" + sigFileName;
+						}
 
 						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, testLogInfoExport.getExport(), htmlExportRenderer);
 
-						addFilesToZip(archiveOutputStream,
-							"test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json",
-							"test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json.sig",
-							testLogInfoExport.getExport());
+						String jsonLogFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json";
+						String jsonLogSigFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json.sig";
+						if(addFolderForHtmlFiles){
+							jsonLogFilename = "test-logs/" + jsonLogFilename;
+							jsonLogSigFilename = "test-logs/" + jsonLogSigFilename;
+						}
+						addFilesToZip(archiveOutputStream, jsonLogFilename, jsonLogSigFilename, testLogInfoExport.getExport());
 
 					}
 
+					if(termsAndConditionsPdf!=null && termsAndConditionsPdf.getSize()>0) {
+						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-Terms-and-Conditions.pdf");
+						zipEntry.setSize(termsAndConditionsPdf.getSize());
+						archiveOutputStream.putArchiveEntry(zipEntry);
+						archiveOutputStream.write(termsAndConditionsPdf.getBytes());
+						archiveOutputStream.closeArchiveEntry();
+					}
+					if(certificationOfConformancePdf!=null && certificationOfConformancePdf.getSize()>0) {
+						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-of-Conformance.pdf");
+						zipEntry.setSize(certificationOfConformancePdf.getSize());
+						archiveOutputStream.putArchiveEntry(zipEntry);
+						archiveOutputStream.write(certificationOfConformancePdf.getBytes());
+						archiveOutputStream.closeArchiveEntry();
+					}
+					if(clientSideData!=null && clientSideData.getSize()>0) {
+						ZipArchiveEntry zipEntry = new ZipArchiveEntry("client-data/" + clientSideData.getOriginalFilename());
+						zipEntry.setSize(clientSideData.getSize());
+						archiveOutputStream.putArchiveEntry(zipEntry);
+						archiveOutputStream.write(clientSideData.getBytes());
+						archiveOutputStream.closeArchiveEntry();
+					}
 					archiveOutputStream.close();
 				} catch (Exception ex) {
 					throw new IOException(ex);
@@ -500,9 +565,16 @@ public class LogApi {
 	protected void addPlanHTMLToZip(ZipArchiveOutputStream archiveOutputStream,
 									Object plan,
 									PlanExportInfo planExportInfo,
-									HtmlExportRenderer htmlExportRenderer) throws Exception {
+									HtmlExportRenderer htmlExportRenderer,
+									boolean addLogsFolder) throws Exception {
 
-		ZipArchiveEntry testLog = new ZipArchiveEntry("index.html");
+		String indexFilename = "index.html";
+		String indexSigFilename = "index.html.sig";
+		if(addLogsFolder) {
+			indexFilename = "test-logs/" + indexFilename;
+			indexSigFilename = "test-logs/" + indexSigFilename;
+		}
+		ZipArchiveEntry testLog = new ZipArchiveEntry(indexFilename);
 
 		Signature signature = Signature.getInstance("SHA1withRSA");
 		signature.initSign(keyManager.getSigningPrivateKey());
@@ -522,7 +594,7 @@ public class LogApi {
 
 		archiveOutputStream.closeArchiveEntry();
 
-		ZipArchiveEntry signatureFile = new ZipArchiveEntry("index.html.sig");
+		ZipArchiveEntry signatureFile = new ZipArchiveEntry(indexSigFilename);
 
 		String encodedSignature = Base64Utils.encodeToUrlSafeString(signature.sign());
 		signatureFile.setSize(encodedSignature.getBytes().length);

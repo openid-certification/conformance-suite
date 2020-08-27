@@ -75,6 +75,10 @@
                             <% } %>
                         <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                         <% } %>
+                        <button class="btn btn-default btn-block" id="certificationPackageBtn" title="Prepare certification submission package"><span class="glyphicon glyphicon-save-file"></span> Certification Package</button>
+                    <% } %>
+                    <% if (plan.immutable && FAPI_UI.currentUser.isAdmin) { %>
+                    <button class="btn btn-default btn-block" id="removeImmutableFlagBtn" data-immutable="false"><span class="glyphicon glyphicon-edit"></span> Make Plan Mutable</button>
                     <% } %>
                 </div>
             </div>
@@ -87,7 +91,7 @@
 
                 </div>
                 <div class="col-md-2">
-                    <% if (!public) { %>
+                    <% if (!public && !plan.immutable) { %>
                     <button class="btn btn-default btn-block startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>"><span class="glyphicon glyphicon-play"></span> Run Test</button>
                     <% } %>
 					<a class="btn btn-default btn-block collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="glyphicon glyphicon-file"></span> View Logs</a>

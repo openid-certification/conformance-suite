@@ -266,6 +266,35 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
+	public boolean changeTestPlanImmutableStatus(String id, Boolean immutable) {
+
+		Criteria criteria = new Criteria();
+		criteria.and("_id").is(id);
+
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
+
+		if (immutable == null || !immutable) {
+			if (!authenticationFacade.isAdmin()) {
+				// Only admins may make it mutable again
+				criteria.and("immutable").ne(Boolean.TRUE);
+			}
+		}
+
+		Query query = new Query(criteria);
+		Update update = new Update();
+		update.set("immutable", immutable);
+
+		UpdateResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
+
+		if (result.getMatchedCount() == 0) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public VariantSelection getTestPlanVariant(String planId) {
 		Plan testPlan = getTestPlan(planId);
 
