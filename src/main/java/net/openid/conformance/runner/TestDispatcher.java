@@ -2,10 +2,12 @@ package net.openid.conformance.runner;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
+import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -25,9 +27,11 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -38,6 +42,8 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 public class TestDispatcher implements DataUtils {
@@ -164,6 +170,100 @@ public class TestDispatcher implements DataUtils {
 			// suite believe log messages had already been added for this failure.
 			// see https://gitlab.com/openid/conformance-suite/issues/443
 			throw new TestFailureException(testId, "A ConditionError has been incorrectly thrown by a TestModule, this is a bug in the test module: " + e.getMessage());
+		} catch (Exception e) {
+			throw new TestFailureException(test.getId(), e);
+		}
+	}
+
+	/**
+	 * Handle /.well-known/webfinger requests
+	 * We follow the same pattern as the python suite as described at https://openid.net/certification/rp_testing/:
+	 *     If your RP supports WebFinger, you can look up the issuer for a test using either of these issuer identifier syntaxes:
+	 *       acct:RP_ID.TEST_ID@rp.certification.openid.net:8080
+	 *       https://rp.certification.openid.net:8080/RP_ID/TEST_ID
+	 *     ...
+	 * We expect the following format:
+	 *   acct:alias.testname@wedonotcheckthehostname:port
+	 *   https://wedontcheckthehostname:port/alias/testname
+	 */
+	@GetMapping(value = {"/.well-known/webfinger"})
+	public Object handleWellKnownWebFingerRequest(
+		HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+		HttpSession httpSession,
+		@RequestHeader MultiValueMap<String, String> headers,
+		@RequestParam(required = false) String resource,
+		@RequestParam(required = false) String rel) {
+
+		//resource
+		if(resource==null) {
+			//https://tools.ietf.org/html/rfc7033#section-4
+			//If the "resource" parameter is absent or malformed, the WebFinger
+			//   resource MUST indicate that the request is bad as per Section 10.4.1
+			//   of RFC 2616 [2].
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		String testName = null;
+		String alias = null;
+		String resourcePrefix = null;
+		try {
+			Pattern acctPattern = Pattern.compile("^acct:([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_-]+)@.*$", Pattern.CASE_INSENSITIVE);
+			Matcher acctMatcher = acctPattern.matcher(resource);
+			if(acctMatcher.matches()) {
+				resourcePrefix = "acct";
+				alias = acctMatcher.group(1);
+				testName = acctMatcher.group(2);
+			} else {
+				Pattern httpsPattern = Pattern.compile("^https?://.*/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)$", Pattern.CASE_INSENSITIVE);
+				Matcher httpsMatcher = httpsPattern.matcher(resource);
+				if (httpsMatcher.matches()) {
+					resourcePrefix = "https";
+					alias = httpsMatcher.group(1);
+					testName = httpsMatcher.group(2);
+				} else {
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
+			}
+		} catch(IllegalStateException | IndexOutOfBoundsException ex) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+
+		if (!support.hasAlias(alias)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		String testId = support.getTestIdForAlias(alias);
+
+		if (!support.hasTestId(testId)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		TestModule test = support.getRunningTestById(testId);
+
+		if (test == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		try {
+			if(test instanceof AbstractOIDCCClientTest) {
+				AbstractOIDCCClientTest clientTest = (AbstractOIDCCClientTest) test;
+				JsonObject requestParts = new JsonObject();
+				requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
+				requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
+				requestParts.addProperty("method", servletRequest.getMethod().toUpperCase()); // method is always uppercase
+				logIncomingHttpRequest(test, "/.well-known/webfinger", requestParts);
+				if (TestModule.Status.CREATED.equals(test.getStatus())) {
+					throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				}
+				Object response = clientTest.handleWebfingerRequest(testName, resourcePrefix, resource, requestParts);
+				logOutgoingHttpResponse(test, "/.well-known/webfinger", response);
+				if(response instanceof ResponseEntity) {
+					return response;
+				} else {
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+			} else {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
 		} catch (Exception e) {
 			throw new TestFailureException(test.getId(), e);
 		}

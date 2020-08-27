@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -16,6 +17,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.CreateWebfingerResponse;
 import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptUserInfoResponse;
@@ -457,6 +459,15 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		return responseObject;
 	}
 
+	/**
+	 * Override to randomize jwks path
+	 * @return
+	 */
+	protected String getJwksPath() {
+		return "jwks";
+	}
+
+
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
 
@@ -480,7 +491,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
-		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
+		if(getStatus()==Status.FINISHED && path.equals(getJwksPath())) {
 			//TODO temporary fix, until a finish-test endpoint is added
 			//we want to allow jwks calls after the test is finished
 		} else {
@@ -507,7 +518,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			receivedTokenRequest = true;
 			return handleTokenEndpointRequest(requestId);
 
-		} else if (path.equals("jwks")) {
+		} else if (path.equals(getJwksPath())) {
 
 			receivedJwksRequest = true;
 			return handleJwksEndpointRequest();
@@ -533,8 +544,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleDiscoveryEndpointRequest() {
+		call(exec().startBlock("Discovery endpoint"));
 		JsonObject serverConfiguration = env.getObject("server");
-
+		call(exec().endBlock());
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
@@ -661,9 +673,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleJwksEndpointRequest() {
-
+		call(exec().startBlock("Jwks endpoint"));
 		JsonObject jwks = env.getObject("server_public_jwks");
-
+		call(exec().endBlock());
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
@@ -1104,10 +1116,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 	}
 
+	protected String getAuthorizationEndpointBlockText() {
+		return "Authorization endpoint";
+	}
+
 	@UserFacing
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 
-		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
+		call(exec().startBlock(getAuthorizationEndpointBlockText()).mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 
 		extractAuthorizationEndpointRequestParameters();
@@ -1255,4 +1271,32 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		});
 	}
 
+	/**
+	 * override to validate the webfinger resource
+	 * @param resourcePrefix
+	 */
+	protected void validateWebfingerRequestResource(String resourcePrefix) {
+	}
+	/**
+	 *
+	 * @param resourcePrefix can be acct or https
+	 * @return
+	 */
+	public Object handleWebfingerRequest(String requestedTestName, String resourcePrefix, String resource, JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Webfinger Request"));
+		//this should not happen but just in case
+		if(!this.getName().equals(requestedTestName)) {
+			throw new TestFailureException(getId(),
+				"Test name in webfinger request does not match current test name. " +
+					"Requested=" + requestedTestName+ " actual=" + this.getName());
+		}
+		validateWebfingerRequestResource(resourcePrefix);
+		env.putObject("incoming_webfinger_request", requestParts);
+		env.putString("incoming_webfinger_resource", resource);
+		callAndStopOnFailure(CreateWebfingerResponse.class, "OIDCD-2");
+		call(exec().endBlock());
+		setStatus(Status.WAITING);
+		return env.getObject("webfinger_response");
+	}
 }
