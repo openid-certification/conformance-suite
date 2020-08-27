@@ -266,7 +266,7 @@ public class TestHelper {
 	}
 
 	public String getTestLink() {
-		return this.suiteBaseUrl + "/log-detail.html?log=" + getTestId();
+		return this.suiteBaseUrl + "/log-detail.html?public=true&log=" + getTestId();
 	}
 
 	public String getTestCreated() {
@@ -326,7 +326,7 @@ public class TestHelper {
 		}
 	}
 	public String getPlanLink() {
-		return this.suiteBaseUrl + "/plan-detail.html?plan=" + getTestPlanId();
+		return this.suiteBaseUrl + "/plan-detail.html?public=true&plan=" + getTestPlanId();
 	}
 
 	public String getTestSummary() {

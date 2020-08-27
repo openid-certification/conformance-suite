@@ -114,7 +114,7 @@ public class PlanHelper {
 		throw new RuntimeException("Error getting plan id. This is a bug in the suite.");
 	}
 	public String getPlanLink() {
-		return this.suiteBaseUrl + "/plan-detail.html?plan=" + getPlanId();
+		return this.suiteBaseUrl + "/plan-detail.html?public=true&plan=" + getPlanId();
 	}
 
 	public String getPlanDescription() {
