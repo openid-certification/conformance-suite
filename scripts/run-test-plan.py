@@ -18,6 +18,13 @@ import traceback
 
 from conformance import Conformance
 
+# Modules list here are deliberately not run, as they have known problems
+ignored_modules = [
+    # see https://gitlab.com/openid/conformance-suite/-/issues/837
+    "oidcc-client-test-signing-key-rotation-just-before-signing",
+    "oidcc-client-test-signing-key-rotation"
+]
+
 # Wrapper that adds timestamps to the start of our output
 #
 # This is mainly useful when the test is running inside gitlab, so we can see what exact time each step happened at
@@ -90,6 +97,8 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
         print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
         for moduledict in plan_modules:
             module=moduledict['testModule']
+            if module in ignored_modules:
+                continue
             test_start_time = time.time()
             module_id = ''
             module_info = {}
@@ -333,6 +342,8 @@ def show_plan_results(plan_result, analyzed_result):
 
     for moduledict in plan_modules:
         module_name = get_string_name_for_module_with_variant(moduledict)
+        if module_name in ignored_modules:
+            continue
         if module_name not in test_info:
             print(failure('Test {} did not run'.format(module_name)))
             continue
@@ -423,6 +434,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 
     incomplete = 0
     overall_test_results = []
+    have_ignored_modules = False
 
     counts_unexpected = {
         'EXPECTED_FAILURES': 0,
@@ -438,6 +450,9 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 
     for moduledict in plan_modules:
         module=moduledict['testModule']
+        if module in ignored_modules:
+            have_ignored_modules = True
+            continue
         module_name_with_variant = get_string_name_for_module_with_variant(moduledict)
         if module_name_with_variant not in test_info:
             continue
@@ -468,7 +483,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         'counts_unexpected': counts_unexpected
     }
 
-    if (len(test_info) != len(plan_modules) or incomplete != 0):
+    if (not have_ignored_modules and len(test_info) != len(plan_modules) or incomplete != 0):
         return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': detail_plan_result}
     elif (counts_unexpected['UNEXPECTED_FAILURES']
           or counts_unexpected['UNEXPECTED_WARNINGS']
@@ -968,6 +983,10 @@ if __name__ == '__main__':
 
     # filter untested list, as we don't currently have test environments for these
     for m in untested_test_modules[:]:
+        if m in ignored_modules:
+            untested_test_modules.remove(m)
+            continue
+
         if all_test_modules[m]['profile'] in ['HEART']:
             untested_test_modules.remove(m)
             continue
