@@ -194,13 +194,14 @@ public class TestDispatcher implements DataUtils {
 		@RequestParam(required = false) String resource,
 		@RequestParam(required = false) String rel) {
 
+		logger.error("webfinger: resource='"+resource+"' rel='"+rel+"'");
 		//resource
 		if(resource==null) {
 			//https://tools.ietf.org/html/rfc7033#section-4
 			//If the "resource" parameter is absent or malformed, the WebFinger
 			//   resource MUST indicate that the request is bad as per Section 10.4.1
 			//   of RFC 2616 [2].
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("resource parameter missing",HttpStatus.BAD_REQUEST);
 		}
 		String testName = null;
 		String alias = null;
@@ -227,19 +228,22 @@ public class TestDispatcher implements DataUtils {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
-		if (!support.hasAlias(alias)) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		String testId;
+		if (support.hasAlias(alias)) {
+			testId = support.getTestIdForAlias(alias);
+		} else {
+			// otherwise, assume there's no fixed alias and this is the testId
+			testId = alias;
 		}
-		String testId = support.getTestIdForAlias(alias);
 
 		if (!support.hasTestId(testId)) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>("test id not found for alias '"+alias+"'", HttpStatus.NOT_FOUND);
 		}
 
 		TestModule test = support.getRunningTestById(testId);
 
 		if (test == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>("no running test for test id '"+testId+"' from alias '"+alias+"'", HttpStatus.NOT_FOUND);
 		}
 
 		try {
