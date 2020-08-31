@@ -996,6 +996,12 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        if m in ["oidcc-client-test-request-uri-signed-none", "oidcc-client-test-request-uri-signed-rs256"]:
+            # It seems these are not currently tested by the CI; see:
+            # https://gitlab.com/openid/conformance-suite/-/issues/840
+            untested_test_modules.remove(m)
+            continue
+
         #we don't have automated tests for OIDCC RP login/logout tests
         if re.match(r'(oidcc-client-test-.*logout.*)',m) or m == 'oidcc-client-test-session-management'\
             or m == 'oidcc-client-test-3rd-party-init-login':
