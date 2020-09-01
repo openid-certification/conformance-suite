@@ -860,6 +860,13 @@ if __name__ == '__main__':
 
     if 'CONFORMANCE_SERVER' in os.environ:
         api_url_base = os.environ['CONFORMANCE_SERVER']
+        if api_url_base == "":
+            print("Error: run-test-plan.py: CONFORMANCE_SERVER in environment seems to be empty")
+            sys.exit(1)
+        if not api_url_base.endswith('/'):
+            # make sure it ends in a / as the client tests assume that
+            api_url_base += '/'
+            os.environ['CONFORMANCE_SERVER'] = api_url_base
     else:
         # local development settings
         api_url_base = 'https://localhost.emobix.co.uk:8443/'
