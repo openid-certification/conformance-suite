@@ -113,6 +113,9 @@ sonarqube_scanner:
 .deploy: &deploy
   extends: .auto-deploy
   stage: deploy
+  # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
+  # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
+  resource_group: deploy
   script:
     - find_deploy_url
     - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
