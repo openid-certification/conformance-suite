@@ -166,7 +166,7 @@ stop_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
-  dependencies: []
+  needs: []
   when: manual
   allow_failure: true
   only:
@@ -189,7 +189,7 @@ stop_normal:
   environment:
     name: $CI_COMMIT_BRANCH
     action: stop
-  dependencies: []
+  needs: []
   when: manual
   allow_failure: true
   only:
