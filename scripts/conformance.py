@@ -15,6 +15,8 @@ import time
 
 class Conformance(object):
     def __init__(self, api_url_base, api_token, requests_session):
+        if not api_url_base.endswith('/'):
+            api_url_base += "/"
         self.api_url_base = api_url_base
         self.requests_session = requests_session
         headers = {'Content-Type': 'application/json'}

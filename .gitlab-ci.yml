@@ -1,49 +1,13 @@
-# This file is a template, and might need editing before it works on your project.
-# Auto DevOps
-# This CI/CD configuration provides a standard pipeline for
-# * building a Docker image (using a buildpack if necessary),
-# * storing the image in the container registry,
-# * running tests from a buildpack,
-# * running code quality analysis,
-# * creating a review app for each topic branch,
-# * and continuous deployment to production
-#
-# In order to deploy, you must have a Kubernetes cluster configured either
-# via a project integration, or via group/project variables.
-# KUBE_INGRESS_BASE_DOMAIN must also be set as a variable at the group or project
-# level, or manually added below.
-#
-# If you want to deploy to staging first, or enable canary deploys,
-# uncomment the relevant jobs in the pipeline below.
-#
-# If Auto DevOps fails to detect the proper buildpack, or if you want to
-# specify a custom buildpack, set a project variable `BUILDPACK_URL` to the
-# repository URL of the buildpack.
-# e.g. BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-ruby.git#v142
-# If you need multiple buildpacks, add a file to your project called
-# `.buildpacks` that contains the URLs, one on each line, in order.
-# Note: Auto CI does not work with multiple buildpacks yet
-
 image: alpine:latest
 
 variables:
-  # KUBE_INGRESS_BASE_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
-  # KUBE_INGRESS_BASE_DOMAIN: domain.example.com
-  BASE_HOST_NAME: review-app
-  PRODUCTION_HOST: www
-  STAGING_HOST: staging
-  DEMO_HOST: demo
   LM_JAVA_VERSION: 11
   SONAR_URL: "https://sonarqube.certification.openid.net"
 
 stages:
   - build
   - upload
-  - review
-  - demo
-  - staging
-  - canary
-  - production
+  - deploy
   - test
   - cleanup
 
@@ -74,6 +38,7 @@ build:
 
 upload:
   stage: upload
+  interruptible: true
   needs: ["build"]
   image: docker:git
   services:
@@ -146,11 +111,14 @@ sonarqube_scanner:
 .auto-deploy:
   image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.1.0"
 
-review:
+.deploy: &deploy
   extends: .auto-deploy
-  stage: review
+  stage: deploy
+  # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
+  # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
+  resource_group: deploy
   script:
-    - find_review_app_url
+    - find_deploy_url
     - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
@@ -160,16 +128,30 @@ review:
   artifacts:
     reports:
       dotenv: deploy.env
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: $DYNAMIC_ENVIRONMENT_URL
-    on_stop: stop_review
   dependencies: []
   only:
     refs:
       - branches
     kubernetes: active
+
+deploy-review:
+  <<: *deploy
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    on_stop: stop_review
+    url: $DYNAMIC_ENVIRONMENT_URL
   except:
+    - master
+    - production
+    - demo
+
+deploy-normal:
+  <<: *deploy
+  environment:
+    name: $CI_COMMIT_BRANCH
+    on_stop: stop_normal
+    url: $DYNAMIC_ENVIRONMENT_URL
+  only:
     - master
     - production
     - demo
@@ -185,7 +167,7 @@ stop_review:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
-  dependencies: []
+  needs: []
   when: manual
   allow_failure: true
   only:
@@ -197,168 +179,57 @@ stop_review:
     - production
     - demo
 
-demo:
+stop_normal:
   extends: .auto-deploy
-  stage: demo
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
   script:
-    - auto-deploy check_kube_domain
-    - auto-deploy download_chart
-    - auto-deploy ensure_namespace
     - auto-deploy initialize_tiller
-    - deploy
+    - auto-deploy delete
   environment:
-    name: demo
-    url: https://$DEMO_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  dependencies: []
+    name: $CI_COMMIT_BRANCH
+    action: stop
+  needs: []
+  when: manual
+  allow_failure: true
   only:
-    refs:
-      - demo
-    kubernetes: active
-
-# Keys that start with a dot (.) will not be processed by GitLab CI.
-# Staging and canary jobs are disabled by default, to enable them
-# remove the dot (.) before the job name.
-# https://docs.gitlab.com/ee/ci/yaml/README.html#hidden-keys
-
-# Staging deploys are disabled by default since
-# continuous deployment to production is enabled by default
-# If you prefer to automatically deploy to staging and
-# only manually promote to production, enable this job by removing the dot (.),
-# and uncomment the `when: manual` line in the `production` job.
-
-staging:
-  extends: .auto-deploy
-  stage: staging
-  script:
-    - auto-deploy check_kube_domain
-    - auto-deploy download_chart
-    - auto-deploy ensure_namespace
-    - auto-deploy initialize_tiller
-    - deploy
-  environment:
-    name: staging
-    url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  dependencies: []
-  only:
-    refs:
-      - master
-    kubernetes: active
-
-# This job continuously deploys to production on every push to `production`.
-
-production:
-  extends: .auto-deploy
-  stage: production
-  script:
-    - auto-deploy check_kube_domain
-    - auto-deploy download_chart
-    - auto-deploy ensure_namespace
-    - auto-deploy initialize_tiller
-    - deploy
-  environment:
-    name: production
-    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  dependencies: []
-  only:
-    refs:
-      - production
-    kubernetes: active
+    - demo
 
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
   image: python:alpine
-  script:
-    - check_kube_domain
-    - install_dependencies
-    - ensure_namespace
-    - set_up_for_running_test_plan
-    - run_all_test_plan
-  dependencies: []
-  artifacts:
-    when: always
-    paths:
-      - "*.zip"
-
-deployment_test_production:
-  <<: *deployment_test
-  environment:
-    name: production
-    url: https://$PRODUCTION_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  only:
-    refs:
-      - production
-    kubernetes: active
-
-deployment_test_staging:
-  <<: *deployment_test
-  environment:
-    name: staging
-    url: https://$STAGING_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  only:
-    refs:
-      - master
-    kubernetes: active
-
-deployment_test_demo:
-  <<: *deployment_test
-  environment:
-    name: demo
-    url: https://$DEMO_HOST.$KUBE_INGRESS_BASE_DOMAIN
-  only:
-    refs:
-      - demo
-    kubernetes: active
-
-.deployment_test_review: &deployment_test_review
-  stage: test
-  image: python:alpine
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    on_stop: stop_review
-  dependencies: []
   only:
     refs:
       - branches
     kubernetes: active
-  except:
-    - master
-    - production
-    - demo
   artifacts:
     when: always
     paths:
       - "*.zip"
 
-deployment_client_test_review:
-  <<: *deployment_test_review
+client_test:
+  <<: *deployment_test
   script:
-    - check_kube_domain
-    - install_dependencies
-    - ensure_namespace
     - set_up_for_running_test_plan
     - run_client_test_plan
 
-deployment_server_test_review:
-  <<: *deployment_test_review
+server_test:
+  <<: *deployment_test
   script:
-    - check_kube_domain
-    - install_dependencies
-    - ensure_namespace
     - set_up_for_running_test_plan
     - run_server_test_plan
 
-deployment_ciba_test_review:
-  <<: *deployment_test_review
+ciba_test:
+  <<: *deployment_test
   script:
-    - check_kube_domain
-    - install_dependencies
-    - ensure_namespace
     - set_up_for_running_test_plan
     - run_ciba_test_plan
 
-deployment_local_test_review:
+local_test:
   stage: test
+  interruptible: true
   image: docker:19.03.10
   services:
     - docker:dind
@@ -404,7 +275,18 @@ deployment_local_test_review:
     docker run ${cc_opts} codeclimate/codeclimate analyze -f json src > codeclimate.json
   }
 
-  function find_review_app_url() {
+  function find_deploy_url() {
+    if [ "$CI_COMMIT_BRANCH" = "master" ]; then
+      CI_ENVIRONMENT_URL=https://staging.$KUBE_INGRESS_BASE_DOMAIN
+      return
+    elif [ "$CI_COMMIT_BRANCH" = "production" ]; then
+      CI_ENVIRONMENT_URL=https://www.$KUBE_INGRESS_BASE_DOMAIN
+      return
+    elif [ "$CI_COMMIT_BRANCH" = "demo" ]; then
+      CI_ENVIRONMENT_URL=https://demo.$KUBE_INGRESS_BASE_DOMAIN
+      return
+    fi
+    # not one of the fixed branches - find a review app to use
     apk add jq
     url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
     curl --silent --show-error --header "PRIVATE-TOKEN: ${SONARQUBE_BOT_API_KEY}" "$url" > env-list.js
@@ -415,7 +297,7 @@ deployment_local_test_review:
     fi
     echo "Active review apps:"
     jq ".[] | del(.project,.state)" < env-list.js # the project element is big/always the same/unimportant
-    echo "Checking for environment for CI_ENVIRONMENT_SLUG ${CI_ENVIRONMENT_SLUG}"
+    echo "Checking for environment for CI_ENVIRONMENT_SLUG '${CI_ENVIRONMENT_SLUG}'"
     # first check if there's already an environment for this branch
     CI_ENVIRONMENT_URL=`jq -r ".[] | select(.slug==\"${CI_ENVIRONMENT_SLUG}\") | .external_url" < env-list.js`
     if [ -z "$CI_ENVIRONMENT_URL" ] || [ "$CI_ENVIRONMENT_URL" == "null" ]; then
@@ -423,7 +305,7 @@ deployment_local_test_review:
       x=1
       while :; do
         FAKE_BRANCH_NAME=dev-branch-$x
-        CI_ENVIRONMENT_URL=https://$BASE_HOST_NAME-$FAKE_BRANCH_NAME.$KUBE_INGRESS_BASE_DOMAIN
+        CI_ENVIRONMENT_URL=https://review-app-$FAKE_BRANCH_NAME.$KUBE_INGRESS_BASE_DOMAIN
         echo "Checking: $CI_ENVIRONMENT_URL"
         res=0
         jq --exit-status  ".[] | select(.external_url==\"$CI_ENVIRONMENT_URL\") | halt_error(9)" < env-list.js || res=$?
@@ -526,11 +408,18 @@ deployment_local_test_review:
     echo "Using pod: $MONGO_POD"
     echo -n "Connecting to mongodb"
     while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
+    # despite the db.version check we've seen instances of the insert failing - give it an extra few seconds to settle
+    sleep 2
     echo "Inserting CI token"
-    CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n' )
+    CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n=' )
     kubectl exec $MONGO_POD -- \
       mongo mongodb://localhost/test_suite --eval \
         "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
+
+    # This passes these two variables to the test jobs
+    echo "CONFORMANCE_SERVER=$CI_ENVIRONMENT_URL" >> deploy.env
+    # Note that this means the token is available to download from the pipeline artifacts - this isn't great, but equally the token doesn't give access to anything really important
+    echo "CONFORMANCE_TOKEN=$CI_TOKEN" >> deploy.env
   }
 
   function get_mongo_pod() {
@@ -612,14 +501,6 @@ deployment_local_test_review:
   function set_up_for_running_test_plan() {
     install_test_dependencies
     pip install requests
-    export CONFORMANCE_SERVER="${CI_ENVIRONMENT_URL}/"
-    get_mongo_pod
-    export CONFORMANCE_TOKEN=$(kubectl -n ${KUBE_NAMESPACE} exec ${MONGO_POD} -- mongo --quiet mongodb://localhost/test_suite --eval "db.API_TOKEN.findOne({ _id: \"ci_token\" }).token")
-  }
-
-  function run_all_test_plan() {
-    echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh
   }
 
   function run_client_test_plan() {
