@@ -38,6 +38,7 @@ build:
 
 upload:
   stage: upload
+  interruptible: true
   needs: ["build"]
   image: docker:git
   services:
@@ -197,6 +198,7 @@ stop_normal:
 
 .deployment_test: &deployment_test
   stage: test
+  interruptible: true
   image: python:alpine
   only:
     refs:
@@ -227,6 +229,7 @@ ciba_test:
 
 local_test:
   stage: test
+  interruptible: true
   image: docker:19.03.10
   services:
     - docker:dind
