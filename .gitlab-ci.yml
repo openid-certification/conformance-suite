@@ -152,9 +152,16 @@ deploy-normal:
     on_stop: stop_normal
     url: $DYNAMIC_ENVIRONMENT_URL
   only:
-    - master
     - production
     - demo
+
+deploy-staging:
+  <<: *deploy
+  environment:
+    name: staging
+    url: $DYNAMIC_ENVIRONMENT_URL
+  only:
+    - master
 
 stop_review:
   extends: .auto-deploy
