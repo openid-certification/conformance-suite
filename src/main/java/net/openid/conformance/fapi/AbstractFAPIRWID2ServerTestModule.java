@@ -312,11 +312,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
+		createAuthorizationRequest();
+
 		if (isPar) {
-			createParAuthorizationRequest();
+			createParAuthorizationRequestObject();
+			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
-			createAuthorizationRequest();
 			createAuthorizationRedirect();
 			performRedirect();
 		}
@@ -373,18 +375,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, profileAuthorizationEndpointSetupSteps);
 	}
 
-	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
+	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
 		protected boolean addRandomRequestUri = false;
+		protected boolean buildRedirect;
 
-		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
+		public CreateAuthorizationRedirectSteps(boolean isSecondClient, boolean buildRedirect) {
 			this.isSecondClient = isSecondClient;
+			this.buildRedirect = buildRedirect;
 		}
 
-		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient, boolean addRandomRequestUri) {
+		public CreateAuthorizationRedirectSteps(boolean isSecondClient, boolean addRandomRequestUri, boolean buildRedirect) {
 			this.isSecondClient = isSecondClient;
 			this.addRandomRequestUri = addRandomRequestUri;
+			this.buildRedirect = buildRedirect;
 		}
 
 		@Override
@@ -409,19 +414,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI-RW-5.2.3-8");
 
 			callAndStopOnFailure(SignRequestObject.class);
-		}
-	}
-
-	public static class CreateAuthorizationRedirectSteps extends CreateAuthorizationRequestObjectSteps {
-
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
-			super(isSecondClient);
-		}
-
-		@Override
-		public void evaluate() {
-			super.evaluate();
-			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
+			if (buildRedirect) {
+				callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
+			}
 		}
 	}
 
@@ -430,7 +425,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return new CreateAuthorizationRedirectSteps(isSecondClient());
+		return new CreateAuthorizationRedirectSteps(isSecondClient(), true);
 	}
 
 	protected void onAuthorizationCallbackResponse() {
@@ -765,48 +760,16 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		profileIdTokenValidationSteps = null;
 	}
 
-	protected void createParAuthorizationRequest() {
-		call(makeCreateParAuthorizationRequestSteps());
-	}
-
-	protected  ConditionSequence makeCreateParAuthorizationRequestSteps() {
-		return new CreateParAuthorizationRequestSteps(isSecondClient());
-	}
-
-	public  class CreateParAuthorizationRequestSteps extends AbstractConditionSequence {
-
-		private boolean isSecondClient;
-
-		public CreateParAuthorizationRequestSteps(boolean secondClient) {
-			this.isSecondClient = secondClient;
-		}
-
-		@Override
-		public void evaluate() {
-
-			if (isSecondClient) {
-				switchToSecondClient();
-			}
-
-			createAuthorizationRequest();
-
-			createParAuthorizationRequestObject();
-
-			addClientAuthenticationToPAREndpointRequest();
-
-		}
-	}
-
 	protected void createParAuthorizationRequestObject() {
 		call(makeCreatePARAuthorizationRequestObjectSteps());
 	}
 
 	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
+		return new CreateAuthorizationRedirectSteps(isSecondClient(), false);
 	}
 
 	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps(boolean addRandomRequestUri) {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), addRandomRequestUri);
+		return new CreateAuthorizationRedirectSteps(isSecondClient(), addRandomRequestUri, false);
 	}
 
 	protected void performPARRedirectWithRequestUri() {
