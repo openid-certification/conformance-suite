@@ -219,6 +219,12 @@ public class TestRunner implements DataUtils {
 				// user should not supply a configuration when creating a test from a test plan
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
+			// stop if the plan is immutable
+			Plan testPlan = planService.getTestPlan(planId);
+			if(testPlan.getImmutable()!=null && testPlan.getImmutable()) {
+				//the plan is immutable
+				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			}
 			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
 			if (variantFromApi == null) {

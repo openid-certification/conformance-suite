@@ -14,6 +14,7 @@ public class PublicPlan {
 	private List<Plan.Module> modules;
 	private String publish;
 	private String version;
+	private Boolean immutable;
 
 	public String getId() {
 		return _id;
@@ -45,5 +46,9 @@ public class PublicPlan {
 
 	public String getVersion() {
 		return version;
+	}
+
+	public Boolean getImmutable() {
+		return immutable;
 	}
 }

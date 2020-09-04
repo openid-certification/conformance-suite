@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -169,10 +170,11 @@ public class TestPlanApi implements DataUtils {
 	@ApiOperation(value = "Publish a test plan by plan Id")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Published test plan successfully"),
-		@ApiResponse(code = 400, message = "'public' field is missing or its value is not JsonPrimitive"),
+		@ApiResponse(code = 400, message = "'publish' field is missing or its value is not JsonPrimitive"),
 		@ApiResponse(code = 403, message = "'publish' value is not valid or couldn't find test plan by provided plan Id")
 	})
-	public ResponseEntity<Object> publishTestPlan(@ApiParam(value = "Id of test plan that you want publish") @PathVariable("id") String id, @ApiParam(value = "Configuration Json") @RequestBody JsonObject config) {
+	public ResponseEntity<Object> publishTestPlan(@ApiParam(value = "Id of test plan that you want publish") @PathVariable("id") String id,
+												  @ApiParam(value = "Configuration Json") @RequestBody JsonObject config) {
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
@@ -190,6 +192,20 @@ public class TestPlanApi implements DataUtils {
 		map.put("publish", publish);
 
 		return new ResponseEntity<>(map, HttpStatus.OK);
+	}
+
+	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.TEXT_HTML_VALUE)
+	@ApiOperation(value = "Make a test plan mutable again (requires administrator privileges)")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Made the test plan mutable again successfully"),
+		@ApiResponse(code = 400, message = "Could not find plan"),
+		@ApiResponse(code = 403, message = "Not authorized")
+	})
+	public ResponseEntity<Object> makeTestPlanMutable(@ApiParam(value = "Id of test plan that you want make mutable again") @PathVariable("id") String id) {
+		if (!planService.changeTestPlanImmutableStatus(id, Boolean.FALSE)) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping(value = "plan/info/{planName}")

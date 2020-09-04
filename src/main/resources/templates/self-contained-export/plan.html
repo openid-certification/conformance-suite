@@ -257,7 +257,10 @@ Test Plan Details
         </tr>
         <tr>
             <th>Plan ID</th>
-            <td th:text="${planHelper.getPlanId()}"></td>
+            <td>
+                <span th:text="${planHelper.getPlanId()}"></span>
+                <a target="_blank" th:attr="href=|${planHelper.getPlanLink()}|" th:text="${planHelper.getPlanLink()}"></a>
+            </td>
         </tr>
         <tr>
             <th>Description</th>

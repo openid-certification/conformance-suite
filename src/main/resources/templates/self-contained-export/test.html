@@ -397,7 +397,10 @@ Test Summary
         </tr>
         <tr>
             <th>Test ID</th>
-            <td th:text="${helper.getTestId()}"></td>
+            <td>
+                <span th:text="${helper.getTestId()}"></span>
+                <a target="_blank" th:attr="href=|${helper.getTestLink()}|" th:text="${helper.getTestLink()}"></a>
+            </td>
         </tr>
         <tr>
             <th>Created</th>
@@ -417,7 +420,10 @@ Test Summary
         </tr>
         <tr>
             <th>Plan ID</th>
-            <td th:text="${helper.getTestPlanId()}"></td>
+            <td>
+                <span th:text="${helper.getTestPlanId()}"></span>
+                <a target="_blank" th:attr="href=|${helper.getPlanLink()}|" th:text="${helper.getPlanLink()}"></a>
+            </td>
         </tr>
         <tr>
             <th>Exported From</th>

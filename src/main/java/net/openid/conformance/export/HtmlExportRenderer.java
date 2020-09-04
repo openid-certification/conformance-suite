@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class HtmlExportRenderer {
 
 	@Autowired
 	private SpringTemplateEngine exportRenderingTemplateEngine;
+
+	@Value("${fintechlabs.base_url}")
+	private String suiteBaseUrl;
 
 	private Gson gson;
 	private String planTemplateName = "self-contained-export/plan.html";
@@ -47,7 +51,7 @@ public class HtmlExportRenderer {
 	public String createHtmlForPlan(PlanExportInfo exportInfo) {
 		Context thymleafContext = new Context();
 		thymleafContext.setLocale(Locale.ENGLISH);
-		PlanHelper helper = new PlanHelper(exportInfo);
+		PlanHelper helper = new PlanHelper(exportInfo, suiteBaseUrl);
 		thymleafContext.setVariable("planHelper", helper);
 		StringWriter writer = new StringWriter();
 		exportRenderingTemplateEngine.process(planTemplateName, thymleafContext, writer);
@@ -57,7 +61,7 @@ public class HtmlExportRenderer {
 	public String createHtmlForTestLogs(TestExportInfo export) {
 		Context thymleafContext = new Context();
 		thymleafContext.setLocale(Locale.ENGLISH);
-		TestHelper helper = new TestHelper(export);
+		TestHelper helper = new TestHelper(export, suiteBaseUrl);
 		thymleafContext.setVariable("helper", helper);
 
 		for(Document testResult : helper.getTestResults()){

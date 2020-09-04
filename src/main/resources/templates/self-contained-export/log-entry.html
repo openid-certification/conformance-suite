@@ -27,7 +27,7 @@
                         <span class="label label-info" th:case="'redirect-in'">REDIRECT-IN</span>
                 </span>
 
-                <span th:if="${item.get('img')}" class="label review">IMAGE</span>
+                <span th:if="${item.get('img')}" class="label result-review">IMAGE</span>
                 <div>
                     <a class="label requirement" th:each="requirement : ${item.get('requirements')}" th:text="${requirement}" th:attr="href=${item.getRequirementLink(requirement)}" target="_blank"></a>
                 </div>
