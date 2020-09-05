@@ -40,16 +40,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
 
 	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-
-		createAuthorizationRequest();
-
-		createAuthorizationRedirect();
-
-		performRedirect();
+	protected void performRedirect() {
+		super.performNormalRedirect();
 	}
 
 	@Override

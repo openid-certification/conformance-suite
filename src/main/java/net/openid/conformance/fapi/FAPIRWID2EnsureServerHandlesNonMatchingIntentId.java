@@ -47,22 +47,18 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 	}
 
 	@Override
-	protected void performAuthorizationFlow() {
-
-		performPreAuthorizationSteps();
-
+	protected void createAuthorizationRequest() {
 		// Switch to client 2 JWKs
 		eventLog.startBlock("Swapping to Client2, Jwks2, tls2");
 		switchToSecondClient();
+		super.createAuthorizationRequest();
+	}
 
-		createAuthorizationRequest();
-		createAuthorizationRedirect();
-
+	@Override
+	protected void createAuthorizationRedirect() {
+		super.createAuthorizationRedirect();
 		unmapClient();
-
 		eventLog.endBlock();
-
-		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override
