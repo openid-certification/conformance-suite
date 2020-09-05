@@ -320,6 +320,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			performParAuthorizationRequestFlow();
 		} else {
 			createAuthorizationRedirect();
+			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 			performRedirect();
 		}
 	}
@@ -380,9 +381,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		protected boolean isSecondClient;
 		protected boolean buildRedirect;
 
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient, boolean buildRedirect) {
+		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
 			this.isSecondClient = isSecondClient;
-			this.buildRedirect = buildRedirect;
 		}
 
 		@Override
@@ -403,18 +403,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI-RW-5.2.3-8");
 
 			callAndStopOnFailure(SignRequestObject.class);
-			if (buildRedirect) {
-				callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
-			}
 		}
 	}
 
 	protected void createAuthorizationRedirect() {
+		// FIXME: this now only creates the request object so needs to be renamed
 		call(makeCreateAuthorizationRedirectSteps());
 	}
 
+	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
+		// FIXME: this is now the same as non-PAR so we can be removed
+		return new CreateAuthorizationRedirectSteps(isSecondClient());
+	}
+
 	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return new CreateAuthorizationRedirectSteps(isSecondClient(), true);
+		return new CreateAuthorizationRedirectSteps(isSecondClient());
 	}
 
 	protected void onAuthorizationCallbackResponse() {
@@ -747,10 +750,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = CDRAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
-	}
-
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		return new CreateAuthorizationRedirectSteps(isSecondClient(), false);
 	}
 
 	protected void performPARRedirectWithRequestUri() {
