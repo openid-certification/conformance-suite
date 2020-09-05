@@ -37,8 +37,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		return super.makeCreatePARAuthorizationRequestObjectSteps().
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps().
 			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirement("PAR-2"));
 	}
 

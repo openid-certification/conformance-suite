@@ -77,12 +77,17 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2PARAttemptReuseRequestUri.class,
 		FAPIRWID2PARAttemptToUseExpiredRequestUri.class,
 		FAPIRWID2PARCheckAudienceForJWTClientAssertion.class,
-		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class,
 		FAPIRWID2PAREnsureRequestUriIsBoundToClient.class,
-		FAPIRWID2PARRejectInvalidAudienceInRequestObject.class,
 		FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams.class,
+		FAPIRWID2PARRejectInvalidHttpVerb.class,
+
+		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
+		FAPIRWID2PARRejectInvalidAudienceInRequestObject.class,
 		FAPIRWID2PARRejectInvalidRedirectUri.class,
-		FAPIRWID2PARRejectInvalidHttpVerb.class
+		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class
+
+		// TODO: for PAR, we could also try passing a non-signed request to the PAR endpoint
+
 	}
 )
 public class FAPI_RW_ID2_TestPlan implements TestPlan {

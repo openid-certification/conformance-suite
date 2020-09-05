@@ -313,12 +313,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		createAuthorizationRequest();
 
+		createAuthorizationRequestObject();
+
 		if (isPar) {
-			call(makeCreatePARAuthorizationRequestObjectSteps());
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
-			createAuthorizationRequestObject();
 			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 			performRedirect();
 		}
@@ -407,11 +407,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected void createAuthorizationRequestObject() {
 		call(makeCreateAuthorizationRequestObjectSteps());
-	}
-
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		// FIXME: this is now the same as non-PAR so we can be removed
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {

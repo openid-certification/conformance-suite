@@ -39,8 +39,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPIRWID2PARRejectRequestUriInParAuthorizationRequest extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		return super.makeCreatePARAuthorizationRequestObjectSteps().
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps().
 			butFirst(condition(AddBadRequestUriToAuthorizationRequest.class).requirement("PAR-2"));
 	}
 
