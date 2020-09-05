@@ -7,7 +7,6 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddBadRequestUriToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -319,7 +318,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
-			createAuthorizationRedirect();
+			createAuthorizationRequestObject();
 			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 			performRedirect();
 		}
@@ -376,12 +375,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, profileAuthorizationEndpointSetupSteps);
 	}
 
-	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
+	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
 		protected boolean buildRedirect;
 
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
+		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
 			this.isSecondClient = isSecondClient;
 		}
 
@@ -406,18 +405,17 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 	}
 
-	protected void createAuthorizationRedirect() {
-		// FIXME: this now only creates the request object so needs to be renamed
-		call(makeCreateAuthorizationRedirectSteps());
+	protected void createAuthorizationRequestObject() {
+		call(makeCreateAuthorizationRequestObjectSteps());
 	}
 
 	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
 		// FIXME: this is now the same as non-PAR so we can be removed
-		return new CreateAuthorizationRedirectSteps(isSecondClient());
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
 	}
 
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return new CreateAuthorizationRedirectSteps(isSecondClient());
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
 	}
 
 	protected void onAuthorizationCallbackResponse() {

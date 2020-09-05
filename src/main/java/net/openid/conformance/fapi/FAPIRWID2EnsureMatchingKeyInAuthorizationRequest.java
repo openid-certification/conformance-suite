@@ -40,13 +40,13 @@ public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFA
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
 		// Switch to client 2 JWKs
 		eventLog.startBlock("Sign request object containing client_id for client 1 using JWK for client 2");
 		env.mapKey("client_jwks", "client_jwks2");
 
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
-		super.createAuthorizationRedirect();
+		super.createAuthorizationRequestObject();
 
 		env.unmapKey("client_jwks");
 		eventLog.endBlock();

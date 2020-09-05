@@ -50,8 +50,8 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(SignRequestObject.class,
 						condition(AddNonceToAuthorizationEndpointRequest.class));
 	}

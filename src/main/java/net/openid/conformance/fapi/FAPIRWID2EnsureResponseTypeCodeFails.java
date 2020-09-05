@@ -47,8 +47,8 @@ public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2Expec
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.butFirst(condition(SetAuthorizationEndpointRequestResponseTypeToCode.class),
 						condition(RemoveAuthorizationEndpointRequestResponseMode.class));
 	}

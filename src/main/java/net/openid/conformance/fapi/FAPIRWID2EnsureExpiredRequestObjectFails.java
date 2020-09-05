@@ -43,8 +43,8 @@ public class FAPIRWID2EnsureExpiredRequestObjectFails extends AbstractFAPIRWID2E
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddExpToRequestObject.class,
 						condition(AddExpiredExpToRequestObject.class).requirement("RFC7519-4.1.4"));
 	}

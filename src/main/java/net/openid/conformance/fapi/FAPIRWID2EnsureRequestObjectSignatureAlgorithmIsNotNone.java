@@ -43,16 +43,16 @@ public class FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Abs
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
 
 		env.putBoolean("expose_state_in_authorization_endpoint_request", true);
 
-		super.createAuthorizationRedirect();
+		super.createAuthorizationRequestObject();
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(SignRequestObject.class,
 						condition(SerializeRequestObjectWithNullAlgorithm.class));
 	}

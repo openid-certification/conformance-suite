@@ -42,8 +42,8 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFails extends AbstractFAPIRWI
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.skip(AddExpToRequestObject.class, "NOT adding exp to request object");
 	}
 

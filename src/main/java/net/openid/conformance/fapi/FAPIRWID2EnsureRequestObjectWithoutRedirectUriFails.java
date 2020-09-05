@@ -43,8 +43,8 @@ public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends Abstrac
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertBefore(SignRequestObject.class,
 						condition(RemoveRedirectUriFromRequestObject.class));
 	}

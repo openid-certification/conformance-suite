@@ -43,12 +43,12 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		// Note: BuildRequestObjectByValueRedirectToAuthorizationEndpoint includes
 		// as URL parameters values in "authorization_endpoint_request"
 		// which differ or are missing from the request object.
 		// Here, scope is removed from the request object.
-		return super.makeCreateAuthorizationRedirectSteps()
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
 						condition(RemoveScopeFromRequestObject.class));
 	}

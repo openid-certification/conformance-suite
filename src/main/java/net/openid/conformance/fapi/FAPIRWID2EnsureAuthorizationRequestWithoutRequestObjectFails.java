@@ -41,7 +41,7 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails extend
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
 
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class, "FAPI-RW-5.2.2-1");
 	}

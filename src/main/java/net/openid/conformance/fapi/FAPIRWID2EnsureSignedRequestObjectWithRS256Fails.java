@@ -61,7 +61,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
 
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 

@@ -45,7 +45,7 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
 		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 		callAndStopOnFailure(AddExpToRequestObject.class);

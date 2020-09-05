@@ -55,8 +55,8 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
-		super.createAuthorizationRedirect();
+	protected void createAuthorizationRequestObject() {
+		super.createAuthorizationRequestObject();
 		unmapClient();
 		eventLog.endBlock();
 	}

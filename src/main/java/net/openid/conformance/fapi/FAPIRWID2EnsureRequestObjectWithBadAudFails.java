@@ -43,8 +43,8 @@ public class FAPIRWID2EnsureRequestObjectWithBadAudFails extends AbstractFAPIRWI
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddAudToRequestObject.class,
 						condition(AddBadAudToRequestObject.class).requirements("OIDCC-6.1", "RFC7519-4.1.3"));
 	}

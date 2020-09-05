@@ -39,8 +39,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(SignRequestObject.class,
 						condition(AddStateToAuthorizationEndpointRequest.class));
 	}

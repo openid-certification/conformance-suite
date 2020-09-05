@@ -43,8 +43,8 @@ public class FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails extends Abstr
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(SignRequestObject.class,
 						condition(InvalidateRequestObjectSignature.class));
 	}
