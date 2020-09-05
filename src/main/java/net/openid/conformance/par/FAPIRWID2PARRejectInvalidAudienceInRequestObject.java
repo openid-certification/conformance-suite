@@ -2,6 +2,7 @@ package net.openid.conformance.par;
 
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -36,9 +37,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected void  createParAuthorizationRequestObject() {
-		call(super.makeCreatePARAuthorizationRequestObjectSteps().replace(AddAudToRequestObject.class,
-			condition(AddPAREndpointAsAudToRequestObject.class).requirement("PAR-2")));
+	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
+		return super.makeCreatePARAuthorizationRequestObjectSteps().
+			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirement("PAR-2"));
 	}
 
 	protected void onAuthorizationCallbackResponse() {

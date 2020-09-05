@@ -7,7 +7,7 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddBadRequestUriToRequestObject;
+import net.openid.conformance.condition.client.AddBadRequestUriToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -315,7 +315,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		createAuthorizationRequest();
 
 		if (isPar) {
-			createParAuthorizationRequestObject();
+			call(makeCreatePARAuthorizationRequestObjectSteps());
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
@@ -378,7 +378,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
-		protected boolean addRandomRequestUri = false;
 		protected boolean buildRedirect;
 
 		public CreateAuthorizationRedirectSteps(boolean isSecondClient, boolean buildRedirect) {
@@ -386,18 +385,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			this.buildRedirect = buildRedirect;
 		}
 
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient, boolean addRandomRequestUri, boolean buildRedirect) {
-			this.isSecondClient = isSecondClient;
-			this.addRandomRequestUri = addRandomRequestUri;
-			this.buildRedirect = buildRedirect;
-		}
-
 		@Override
 		public void evaluate() {
-			if (addRandomRequestUri) {
-				callAndStopOnFailure(AddBadRequestUriToRequestObject.class);
-			}
-
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 			if (isSecondClient) {
@@ -760,16 +749,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		profileIdTokenValidationSteps = null;
 	}
 
-	protected void createParAuthorizationRequestObject() {
-		call(makeCreatePARAuthorizationRequestObjectSteps());
-	}
-
 	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
 		return new CreateAuthorizationRedirectSteps(isSecondClient(), false);
-	}
-
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps(boolean addRandomRequestUri) {
-		return new CreateAuthorizationRedirectSteps(isSecondClient(), addRandomRequestUri, false);
 	}
 
 	protected void performPARRedirectWithRequestUri() {

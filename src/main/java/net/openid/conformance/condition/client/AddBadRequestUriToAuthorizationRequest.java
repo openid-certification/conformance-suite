@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 //This class adds an invalid request_uri to the request object
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
-public class AddBadRequestUriToRequestObject extends AbstractCondition {
+public class AddBadRequestUriToAuthorizationRequest extends AbstractCondition {
 
 	private static final String BAD_REQUEST_URI_VALUE = "urn%3Aexample%3Abwc4JK-ESC0w8acc191e-Y1LTC2";
 	private static final String REQUEST_URI_KEY = "request_uri";

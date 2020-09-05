@@ -1,9 +1,11 @@
 package net.openid.conformance.par;
 
 import net.openid.conformance.condition.client.AddBadRedirectUriToRequestParameters;
+import net.openid.conformance.condition.client.AddBadRequestUriToAuthorizationRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRedirectUriError;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -48,9 +50,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPIRWID2PARRejectInvalidRedirectUri extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected void createParAuthorizationRequestObject() {
-		callAndStopOnFailure(AddBadRedirectUriToRequestParameters.class);
-		super.createParAuthorizationRequestObject();
+	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
+		return super.makeCreatePARAuthorizationRequestObjectSteps().
+			butFirst(condition(AddBadRedirectUriToRequestParameters.class));
 	}
 
 	@Override
