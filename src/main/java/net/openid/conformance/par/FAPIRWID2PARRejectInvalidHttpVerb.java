@@ -1,5 +1,6 @@
 package net.openid.conformance.par;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsureParInvalidHTTPMethodError;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
@@ -42,7 +43,7 @@ public class FAPIRWID2PARRejectInvalidHttpVerb extends AbstractFAPIRWID2ServerTe
 
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndStopOnFailure(EnsureParInvalidHTTPMethodError.class, "PAR-2.3");
+		callAndContinueOnFailure(EnsureParInvalidHTTPMethodError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}

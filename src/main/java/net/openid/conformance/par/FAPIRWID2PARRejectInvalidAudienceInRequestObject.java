@@ -65,7 +65,7 @@ public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFA
 		// This may be overly strict; https://tools.ietf.org/html/draft-ietf-oauth-jwsreq-26#section-4 only says 'should':
 		// > The value of "aud" should be the value of the Authorization Server (AS) "issuer" as defined in RFC8414
 		// It might be better to try setting 'aud' to a completely different server, which we would expect to be reject.
-		callAndStopOnFailure(EnsureInvalidRequestUriError.class);
+		callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE);
 		fireTestFinished();
 	}
 }

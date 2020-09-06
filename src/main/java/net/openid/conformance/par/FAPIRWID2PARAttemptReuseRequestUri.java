@@ -71,7 +71,7 @@ public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerT
 		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
 
 		if (callbackParams.has("error")) {
-			callAndStopOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "JAR-7");
+			callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "JAR-7");
 
 			eventLog.endBlock();
 

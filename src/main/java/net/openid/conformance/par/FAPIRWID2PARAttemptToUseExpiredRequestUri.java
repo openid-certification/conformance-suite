@@ -83,7 +83,7 @@ public class FAPIRWID2PARAttemptToUseExpiredRequestUri extends AbstractFAPIRWID2
 	}
 
 	protected void verifyError() {
-		callAndStopOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2");
+		callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2");
 	}
 
 

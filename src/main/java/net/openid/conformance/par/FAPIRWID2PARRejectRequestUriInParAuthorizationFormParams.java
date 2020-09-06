@@ -1,5 +1,6 @@
 package net.openid.conformance.par;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToRequestParameters;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
@@ -45,7 +46,7 @@ public class FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams extends Ab
 
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndStopOnFailure(EnsurePARInvalidRequestError.class, "PAR-2.1-2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
 
 		fireTestFinished();
 	}
