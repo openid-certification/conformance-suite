@@ -319,9 +319,13 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
-			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
+			buildRedirect();
 			performRedirect();
 		}
+	}
+
+	protected void buildRedirect() {
+		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
