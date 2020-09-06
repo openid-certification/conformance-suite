@@ -1,8 +1,9 @@
 package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
-
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CreateBadRedirectUri;
+import net.openid.conformance.condition.client.EnsurePARInvalidRedirectUriError;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -39,6 +40,26 @@ public class FAPIRWID2EnsureRegisteredRedirectUri extends AbstractFAPIRWID2Expec
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRedirectUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+
+		fireTestFinished();
+	}
+
+	@Override
+	protected void performParAuthorizationRequestFlow() {
+		super.performParAuthorizationRequestFlow();
 	}
 
 	@Override

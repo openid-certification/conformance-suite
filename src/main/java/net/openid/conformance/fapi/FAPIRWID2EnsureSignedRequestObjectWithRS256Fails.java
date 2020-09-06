@@ -2,16 +2,17 @@ package net.openid.conformance.fapi;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -67,6 +68,9 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 
 		callAndStopOnFailure(AddExpToRequestObject.class);
 
+		// create a copy of the jwks so we can restore the original one when creating any client assertion
+		env.putObject("client_jwks_rs256", env.getObject("client_jwks").deepCopy());
+		env.mapKey("client_jwks", "client_jwks_rs256");
 		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI-RW-8.6");
 
 		callAndStopOnFailure(AddAudToRequestObject.class);
@@ -75,9 +79,25 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 
 		callAndStopOnFailure(SignRequestObject.class);
 
+		env.unmapKey("client_jwks");
+
 		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+
+		fireTestFinished();
+	}
 
 	@Override
 	protected void onAuthorizationCallbackResponse() {

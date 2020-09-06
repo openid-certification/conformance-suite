@@ -6,7 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EnsureInvalidHTTPMethodErrorPage extends AbstractCondition {
+public class EnsureParInvalidHTTPMethodError extends AbstractCondition {
 
 	private static final int HTTP_METHOD_NOT_ALLOWED = 405;
 
@@ -24,7 +24,7 @@ public class EnsureInvalidHTTPMethodErrorPage extends AbstractCondition {
 				args("expected", HTTP_METHOD_NOT_ALLOWED, "actual", status));
 		}
 
-		logSuccess("pushed authorization endpoint  correct response.");
+		logSuccess("pushed authorization endpoint returned expected HTTP error", args("actual", status));
 		return env;
 
 	}

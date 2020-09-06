@@ -1,6 +1,10 @@
 package net.openid.conformance.par;
 
-import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddPAREndpointAsAudToRequestObject;
+import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -40,6 +44,21 @@ public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFA
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps().
 			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirement("PAR-2"));
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+
+		fireTestFinished();
 	}
 
 	protected void onAuthorizationCallbackResponse() {

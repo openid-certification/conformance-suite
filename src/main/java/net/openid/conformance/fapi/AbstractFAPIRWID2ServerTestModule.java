@@ -758,6 +758,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
 
+		processParResponse();
+	}
+
+	protected void processParResponse() {
 		callAndStopOnFailure(CheckIfPAREndpointResponseError.class, "PAR-2.2", "PAR-2.3");
 
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
