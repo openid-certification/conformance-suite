@@ -8,9 +8,13 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError extends AbstractCondition {
+public class EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError extends AbstractCondition {
 
-	private static final List<String> PERMITTED_ERRORS = ImmutableList.of("invalid_request", "invalid_request_object", "access_denied");
+	private static final List<String> PERMITTED_ERRORS = ImmutableList.of(
+		"invalid_request",
+		"invalid_request_object",
+		"invalid_request_uri",
+		"access_denied");
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
