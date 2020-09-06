@@ -318,7 +318,7 @@ public class BrowserControl implements DataUtils {
 				urlVisited(url);
 
 				return "web runner exited";
-			} catch (Exception e) {
+			} catch (Exception | Error e) {
 				logger.error(testId + ": WebRunner caught exception", e);
 				eventLog.log("WebRunner",
 					ex(e,

@@ -57,7 +57,10 @@ public class TestExecutionManager {
 				// suite believe log messages had already been added for this failure.
 				// see https://gitlab.com/openid/conformance-suite/issues/443
 				throw new TestFailureException(testId, "A ConditionError has been incorrectly thrown by a TestModule, this is a bug in the test module: " + e.getMessage());
-			} catch (Exception e) {
+			} catch (Exception | Error e) {
+				// it is unusual to catch Error, but we're running in a background thread and if we don't catch it, nothing
+				// will appear in the test results - and we want to log errors (e.g. stack overflows) into the test results
+				// so they're easily visible rather than needing to dig through server console logging
 				// we /must/ throw a TestFailureException here, so that when TestRunner calls future.get() and
 				// an exception is caught, it can map the exception back to the test
 				throw new TestFailureException(testId, e);
