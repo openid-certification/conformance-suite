@@ -32,7 +32,7 @@ public class CreateRandomRequestUri extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "base_url")
-	@PostEnvironment(required = "request_uri")
+	@PostEnvironment(required = "request_uri", strings = "request_uri")
 	public Environment evaluate(Environment env) {
 		String baseUrl = env.getString("base_url");
 
@@ -70,9 +70,11 @@ public class CreateRandomRequestUri extends AbstractCondition {
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);
-		o.addProperty("fullUrl", baseUrl + "/" + path + "#" + fragment);
+		String fullUrl = baseUrl + "/" + path + "#" + fragment;
+		o.addProperty("fullUrl", fullUrl);
 
 		env.putObject("request_uri", o);
+		env.putString("request_uri", fullUrl);
 
 		log("Created random URL for request_uri",
 			args("request_uri", o));

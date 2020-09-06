@@ -54,7 +54,7 @@ public class FAPIRWID2PARAttemptToUseExpiredRequestUri extends AbstractFAPIRWID2
 
 		waitForExpiresIn();
 
-		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class);
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}

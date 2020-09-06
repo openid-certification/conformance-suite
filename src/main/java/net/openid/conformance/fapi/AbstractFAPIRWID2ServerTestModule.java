@@ -18,8 +18,8 @@ import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToRes
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.BuildRequestToAuthorizationEndpointWithRequestUri;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
@@ -750,7 +750,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performPARRedirectWithRequestUri() {
-		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class, "PAR-4");
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4");
 		performRedirect();
 	}
 
