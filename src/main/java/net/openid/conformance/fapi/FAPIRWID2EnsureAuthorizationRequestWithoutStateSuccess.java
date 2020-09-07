@@ -55,8 +55,6 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess extends Abst
 		callAndStopOnFailure(AddIssToRequestObject.class);
 
 		callAndStopOnFailure(SignRequestObject.class);
-
-		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override

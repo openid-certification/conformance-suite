@@ -80,8 +80,6 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 		callAndStopOnFailure(SignRequestObject.class);
 
 		env.unmapKey("client_jwks");
-
-		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
