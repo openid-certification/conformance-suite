@@ -9,6 +9,7 @@ stages:
   - upload
   - deploy
   - test
+  - compare
   - cleanup
 
 # These are disabled because they fail with warnings, stopping pipelines being green, and we don't get a huge
@@ -67,6 +68,31 @@ test:
       perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
   only:
     - branches
+
+.compare: &compare
+  stage: compare
+  interruptible: true
+  # we only want to show a 'warning' if there's differences, but gitlab is inflexible so any failure will show as a
+  # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
+  # something went wrong.
+  allow_failure: true
+  image: python:alpine
+  only:
+    refs:
+      - branches
+    kubernetes: active
+
+compare_cloud:
+  <<: *compare
+  needs: ["server_test", "ciba_test", "client_test"]
+  script:
+    - run_compare server_test ciba_test client_test
+
+compare_local:
+  <<: *compare
+  needs: ["local_test"]
+  script:
+    - run_compare local_test
 
 check-trailing-whitespace:
   interruptible: true
@@ -443,18 +469,6 @@ local_test:
     export MONGO_POD
   }
 
-  function install_dependencies() {
-    apk add -U --upgrade openssl curl tar gzip bash ca-certificates git
-    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
-    apk add glibc-2.23-r3.apk
-    rm glibc-2.23-r3.apk
-
-    curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-    chmod +x /usr/bin/kubectl
-    kubectl version --client
-  }
-
   function setup_docker() {
     if ! docker info &>/dev/null; then
       if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
@@ -485,6 +499,19 @@ local_test:
     curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
     ./google-cloud-sdk/bin/gcloud --quiet components update
+  }
+
+  function run_compare() {
+    apk add curl colordiff
+    mkdir reference
+    cd reference
+    for i in $*; do
+      curl --silent --show-error -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i
+      unzip $i.zip
+      rm $i.zip
+    done
+    cd ..
+    ./scripts/compare-results.py reference .
   }
 
   function upload() {
