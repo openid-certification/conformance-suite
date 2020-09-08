@@ -68,7 +68,7 @@ public class FAPIRWID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPIRWI
 	}
 
 	protected void verifyError() {
-		callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-3-3");
+		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-3-3");
 	}
 
 }
