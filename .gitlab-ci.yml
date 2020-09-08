@@ -11,9 +11,14 @@ stages:
   - test
   - cleanup
 
-include:
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
-  - template: Security/License-Scanning.gitlab-ci.yml
+# These are disabled because they fail with warnings, stopping pipelines being green, and we don't get a huge
+# amount of value from them (the security license scanning is done by github on the mirror of the project, so
+# we don't lose anything - and in fact it works better on github).
+# https://gitlab.com/gitlab-org/gitlab/-/issues/220275 is one of the issues causing warnings, but it seems like
+# another similar issue has been added to license scanning since
+#include:
+#  - template: Security/Dependency-Scanning.gitlab-ci.yml
+#  - template: Security/License-Scanning.gitlab-ci.yml
 
 .maven: &maven
   image: maven:3-jdk-11
@@ -152,9 +157,16 @@ deploy-normal:
     on_stop: stop_normal
     url: $DYNAMIC_ENVIRONMENT_URL
   only:
-    - master
     - production
     - demo
+
+deploy-staging:
+  <<: *deploy
+  environment:
+    name: staging
+    url: $DYNAMIC_ENVIRONMENT_URL
+  only:
+    - master
 
 stop_review:
   extends: .auto-deploy
