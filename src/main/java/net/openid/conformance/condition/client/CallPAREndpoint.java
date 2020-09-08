@@ -135,6 +135,10 @@ public class CallPAREndpoint extends AbstractCondition {
 	}
 
 	protected Environment handleResponseException(Environment env, RestClientException e) {
-		throw error("RestClientException happened whilst calling pushed authorization endpoint", ex(e));
+		String msg = "Call to pushed authorization request endpoint failed";
+		if (e.getCause() != null) {
+			msg += " - " + e.getCause().getMessage();
+		}
+		throw error(msg, e);
 	}
 }

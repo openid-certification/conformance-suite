@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,6 +77,12 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 
 			} catch (RestClientResponseException e) {
 				throw error("Error from registration_client_uri", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				String msg = "Call to registration_client_uri " + registrationClientUri + " failed";
+				if (e.getCause() != null) {
+					msg += " - " + e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {

@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,7 +33,8 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
 	public Environment evaluate(Environment env) {
 
-		if (env.getString("server", "registration_endpoint") == null) {
+		String url = env.getString("server", "registration_endpoint");
+		if (url == null) {
 			throw error("Couldn't find registration endpoint");
 		}
 
@@ -55,7 +58,7 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 			String jsonString = null;
 
 			try {
-				jsonString = restTemplate.postForObject(env.getString("server", "registration_endpoint"), request, String.class);
+				jsonString = restTemplate.postForObject(url, request, String.class); // common up
 				throw error("Registration endpoint returned successful response for a request with no redirect URI", args("body", jsonString));
 			} catch (RestClientResponseException e) {
 				if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST) {
@@ -64,6 +67,12 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 				} else {
 					throw error("Error from the registration endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 				}
+			} catch (RestClientException e) {
+				String msg = "Call to registration endpoint " + url + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 

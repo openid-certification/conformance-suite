@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -141,6 +142,12 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
+		} catch (RestClientException e) {
+			String msg = "Call to account requests endpoint " + resourceEndpoint + " failed";
+			if (e.getCause() != null) {
+				msg += " - " +e.getCause().getMessage();
+			}
+			throw error(msg, e);
 		}
 
 	}

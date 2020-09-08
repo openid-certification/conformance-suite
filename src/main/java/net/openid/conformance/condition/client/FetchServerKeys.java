@@ -49,7 +49,11 @@ public class FetchServerKeys extends AbstractCondition {
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
 			} catch (RestClientException e) {
-				throw error("Exception while fetching server key", e);
+				String msg = "Fetching server keys from " + jwksUri + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			} catch (JsonSyntaxException e) {
 				throw error("Server JWKs set string is not JSON", e);
 			}

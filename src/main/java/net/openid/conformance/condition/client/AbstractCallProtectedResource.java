@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -79,11 +80,11 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 	}
 
 	protected Environment callProtectedResource(Environment env) {
+		String uri = getUri(env);
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			String uri = getUri(env);
 			HttpMethod method = getMethod(env);
 			HttpHeaders headers = getHeaders(env);
 
@@ -110,6 +111,12 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			return handleClientResponseException(env, e);
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
+		} catch (RestClientException e) {
+			String msg = "Call to protected resource " + uri + " failed";
+			if (e.getCause() != null) {
+				msg += " - " +e.getCause().getMessage();
+			}
+			throw error(msg, e);
 		}
 	}
 

@@ -127,7 +127,11 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 	}
 
 	protected Environment handleResponseException(Environment env, RestClientException e) {
-		throw error("RestClientException happened whilst calling token endpoint", ex(e));
+		String msg = "Call to token endpoint failed";
+		if (e.getCause() != null) {
+			msg += " - " + e.getCause().getMessage();
+		}
+		throw error(msg, e);
 	}
 
 }

@@ -11,6 +11,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,7 +32,8 @@ public class CallRevocationEndpoint extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = { "server", "revocation_endpoint_request_form_parameters" })
 	public Environment evaluate(Environment env) {
-		if (env.getString("server", "revocation_endpoint") == null) {
+		String url = env.getString("server", "revocation_endpoint");
+		if (url == null) {
 			throw error("Couldn't find revocation endpoint");
 		}
 
@@ -59,9 +61,15 @@ public class CallRevocationEndpoint extends AbstractCondition {
 			String jsonString = null;
 
 			try {
-				jsonString = restTemplate.postForObject(env.getString("server", "revocation_endpoint"), request, String.class);
+				jsonString = restTemplate.postForObject(url, request, String.class);
 			} catch (RestClientResponseException e) {
 				throw error("Error from the revocation endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				String msg = "Call to revocation endpoint " + url + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			logSuccess("Called Revocation Endpoint", args("response", jsonString));

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,7 +32,8 @@ public abstract class AbstractCallDynamicRegistrationEndpoint extends AbstractCo
 
 	protected Environment callDynamicRegistrationEndpoint(Environment env) {
 
-		if (env.getString("server", "registration_endpoint") == null) {
+		String registrationEndpoint = env.getString("server", "registration_endpoint");
+		if (registrationEndpoint == null) {
 			throw error("Couldn't find registration endpoint");
 		}
 
@@ -55,9 +57,15 @@ public abstract class AbstractCallDynamicRegistrationEndpoint extends AbstractCo
 			String jsonString = null;
 
 			try {
-				jsonString = restTemplate.postForObject(env.getString("server", "registration_endpoint"), request, String.class);
+				jsonString = restTemplate.postForObject(registrationEndpoint, request, String.class);
 			} catch (RestClientResponseException e) {
 				return onRegistrationEndpointError(env, e, e.getRawStatusCode(), e.getStatusText(), e.getResponseBodyAsString());
+			} catch (RestClientException e) {
+				String msg = "Call to registration endpoint " + registrationEndpoint + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
