@@ -5,7 +5,8 @@ import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddPAREndpointAsAudToRequestObject;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
-import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
+import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage;
+import net.openid.conformance.fapi.AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -38,7 +39,14 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
+	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
