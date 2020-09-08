@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpoi
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsurePARInvalidRedirectUriError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingRedirectUriErrorPage;
 import net.openid.conformance.condition.client.RemoveRedirectUriFromRequestObject;
@@ -61,7 +60,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends Abstrac
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRedirectUriError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
 
 		fireTestFinished();
 	}

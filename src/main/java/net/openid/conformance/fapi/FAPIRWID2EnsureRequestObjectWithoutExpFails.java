@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestUriOrAccessDeniedError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRedirectUriError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingExpClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
