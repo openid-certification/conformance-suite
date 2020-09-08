@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -63,7 +63,7 @@ public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFA
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
 
 		fireTestFinished();
 	}
