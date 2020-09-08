@@ -301,7 +301,7 @@ local_test:
     # not one of the fixed branches - find a review app to use
     apk add jq
     url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
-    curl --silent --show-error --header "PRIVATE-TOKEN: ${SONARQUBE_BOT_API_KEY}" "$url" > env-list.js
+    curl -o env-list.js --silent --show-error --header "PRIVATE-TOKEN: ${SONARQUBE_BOT_API_KEY}" "$url"
     res=$?
     if [ $res -ne 0 ]; then
       echo "curl of $url failed: $res"
