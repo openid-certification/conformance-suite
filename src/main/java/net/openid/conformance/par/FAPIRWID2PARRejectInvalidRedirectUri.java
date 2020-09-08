@@ -3,8 +3,7 @@ package net.openid.conformance.par;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRedirectUriToRequestParameters;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
-import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -68,7 +67,7 @@ public class FAPIRWID2PARRejectInvalidRedirectUri extends AbstractFAPIRWID2Expec
 	protected void performParAuthorizationRequestFlow() {
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}

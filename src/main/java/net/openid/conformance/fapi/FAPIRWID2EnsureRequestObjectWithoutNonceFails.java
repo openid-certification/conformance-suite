@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrInvalidRequestUriError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingNonceErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -67,7 +67,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}
