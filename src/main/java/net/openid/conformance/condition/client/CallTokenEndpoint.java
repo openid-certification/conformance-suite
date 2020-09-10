@@ -16,6 +16,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -80,6 +81,12 @@ public class CallTokenEndpoint extends AbstractCondition {
 			} catch (RestClientResponseException e) {
 
 				throw error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				String msg = "Call to token endpoint " + tokenEndpoint + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {

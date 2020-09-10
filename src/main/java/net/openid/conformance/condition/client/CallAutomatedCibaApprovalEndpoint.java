@@ -7,6 +7,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -60,6 +61,12 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 				logSuccess("Successfully called "+configPath+" endpoint", args("response", jsonString));
 			} catch (RestClientResponseException e) {
 				throw error("Error from the "+configPath+" endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				String msg = "Call to automated ciba approval endpoint " + configPath + " failed";
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			return env;

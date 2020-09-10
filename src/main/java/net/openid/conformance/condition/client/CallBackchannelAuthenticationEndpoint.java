@@ -19,6 +19,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -87,6 +88,12 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 				jsonString = response.getBody();
 			} catch (RestClientResponseException e) {
 				throw error("Error from the backchannel authentication endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			} catch (RestClientException e) {
+				String msg = "Call to backchannel authentication endpoint " + bcAuthEndpoint + " failed";
+				if (e.getCause() != null) {
+					msg += " - " + e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {

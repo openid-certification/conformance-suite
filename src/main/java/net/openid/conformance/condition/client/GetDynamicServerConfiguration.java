@@ -8,7 +8,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -60,8 +60,12 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
-			} catch (RestClientResponseException e) {
-				throw error("Unable to fetch server configuration from " + discoveryUrl, e);
+			} catch (RestClientException e) {
+				String msg = "Unable to fetch server configuration from " + discoveryUrl;
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
 			}
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
