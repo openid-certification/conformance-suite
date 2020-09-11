@@ -1,13 +1,14 @@
 package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingScopeErrorPage;
 import net.openid.conformance.condition.client.RemoveScopeFromRequestObject;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -43,14 +44,29 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		// Note: BuildRequestObjectByValueRedirectToAuthorizationEndpoint includes
 		// as URL parameters values in "authorization_endpoint_request"
 		// which differ or are missing from the request object.
 		// Here, scope is removed from the request object.
-		return super.makeCreateAuthorizationRedirectSteps()
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
 						condition(RemoveScopeFromRequestObject.class));
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+
+		fireTestFinished();
 	}
 
 	@Override
@@ -65,7 +81,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutScopeFails extends AbstractFAPIR
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
 		fireTestFinished();
 	}
 }

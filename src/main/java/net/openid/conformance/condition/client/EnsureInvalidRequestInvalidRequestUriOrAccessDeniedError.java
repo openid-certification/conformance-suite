@@ -8,9 +8,9 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError extends AbstractCondition {
+public class EnsureInvalidRequestInvalidRequestUriOrAccessDeniedError extends AbstractCondition {
 
-	private static final List<String> PERMITTED_ERRORS = ImmutableList.of("invalid_request", "invalid_request_object", "access_denied");
+	private static final List<String> PERMITTED_ERRORS = ImmutableList.of("invalid_request", "invalid_request_uri", "access_denied");
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
@@ -19,14 +19,14 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError extends
 		String error = env.getString("authorization_endpoint_response", "error");
 
 		if (Strings.isNullOrEmpty(error)) {
-			throw error("Permitted 'error' field not found");
+			throw error("Expected 'error' field is missing from authorization endpoint response");
 		}
 
 		if (!PERMITTED_ERRORS.contains(error)) {
-			throw error("'error' field has unexpected value", args("permitted", PERMITTED_ERRORS, "actual", error));
+			throw error("authorization endpoint response 'error' field has unexpected value", args("permitted", PERMITTED_ERRORS, "actual", error));
 		}
 
-		logSuccess("Authorization endpoint returned 'error'", args("permitted", PERMITTED_ERRORS, "error", error));
+		logSuccess("Authorization endpoint returned an expected 'error'", args("permitted", PERMITTED_ERRORS, "error", error));
 
 		return env;
 	}

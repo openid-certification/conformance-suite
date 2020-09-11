@@ -2,7 +2,7 @@ package net.openid.conformance.par;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.BuildRequestToAuthorizationEndpointWithRequestUri;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.ExpectInvalidRequestUriErrorPage;
@@ -54,7 +54,7 @@ public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerT
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		eventLog.startBlock("Attempting reuse of request_uri and testing if Authorization server returns error in callback");
-		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class);
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 		secondAttempt = true;
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
@@ -71,7 +71,7 @@ public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerT
 		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
 
 		if (callbackParams.has("error")) {
-			callAndStopOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "JAR-7");
+			callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "JAR-7");
 
 			eventLog.endBlock();
 

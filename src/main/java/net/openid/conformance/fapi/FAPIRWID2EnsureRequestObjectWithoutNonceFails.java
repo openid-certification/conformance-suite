@@ -2,12 +2,13 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingNonceErrorPage;
 import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -50,10 +51,25 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(SignRequestObject.class,
 						condition(AddNonceToAuthorizationEndpointRequest.class));
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+
+		fireTestFinished();
 	}
 
 	@Override
@@ -68,7 +84,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutNonceFails extends AbstractFAPIR
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "OIDCC-3.3.2.6");
+		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "OIDCC-3.3.2.6");
 		fireTestFinished();
 	}
 }

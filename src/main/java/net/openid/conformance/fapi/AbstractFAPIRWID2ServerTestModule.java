@@ -7,7 +7,6 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddBadRequestUriToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -19,8 +18,8 @@ import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToRes
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.BuildRequestToAuthorizationEndpointWithRequestUri;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
@@ -312,14 +311,21 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 
+		createAuthorizationRequest();
+
+		createAuthorizationRequestObject();
+
 		if (isPar) {
-			createParAuthorizationRequest();
+			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
-			createAuthorizationRequest();
-			createAuthorizationRedirect();
+			buildRedirect();
 			performRedirect();
 		}
+	}
+
+	protected void buildRedirect() {
+		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
@@ -376,23 +382,14 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
-		protected boolean addRandomRequestUri = false;
+		protected boolean buildRedirect;
 
 		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
 			this.isSecondClient = isSecondClient;
 		}
 
-		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient, boolean addRandomRequestUri) {
-			this.isSecondClient = isSecondClient;
-			this.addRandomRequestUri = addRandomRequestUri;
-		}
-
 		@Override
 		public void evaluate() {
-			if (addRandomRequestUri) {
-				callAndStopOnFailure(AddBadRequestUriToRequestObject.class);
-			}
-
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
 			if (isSecondClient) {
@@ -412,25 +409,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 	}
 
-	public static class CreateAuthorizationRedirectSteps extends CreateAuthorizationRequestObjectSteps {
-
-		public CreateAuthorizationRedirectSteps(boolean isSecondClient) {
-			super(isSecondClient);
-		}
-
-		@Override
-		public void evaluate() {
-			super.evaluate();
-			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
-		}
+	protected void createAuthorizationRequestObject() {
+		call(makeCreateAuthorizationRequestObjectSteps());
 	}
 
-	protected void createAuthorizationRedirect() {
-		call(makeCreateAuthorizationRedirectSteps());
-	}
-
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return new CreateAuthorizationRedirectSteps(isSecondClient());
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
 	}
 
 	protected void onAuthorizationCallbackResponse() {
@@ -765,52 +749,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		profileIdTokenValidationSteps = null;
 	}
 
-	protected void createParAuthorizationRequest() {
-		call(makeCreateParAuthorizationRequestSteps());
-	}
-
-	protected  ConditionSequence makeCreateParAuthorizationRequestSteps() {
-		return new CreateParAuthorizationRequestSteps(isSecondClient());
-	}
-
-	public  class CreateParAuthorizationRequestSteps extends AbstractConditionSequence {
-
-		private boolean isSecondClient;
-
-		public CreateParAuthorizationRequestSteps(boolean secondClient) {
-			this.isSecondClient = secondClient;
-		}
-
-		@Override
-		public void evaluate() {
-
-			if (isSecondClient) {
-				switchToSecondClient();
-			}
-
-			createAuthorizationRequest();
-
-			createParAuthorizationRequestObject();
-
-			addClientAuthenticationToPAREndpointRequest();
-
-		}
-	}
-
-	protected void createParAuthorizationRequestObject() {
-		call(makeCreatePARAuthorizationRequestObjectSteps());
-	}
-
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps() {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
-	}
-
-	protected ConditionSequence makeCreatePARAuthorizationRequestObjectSteps(boolean addRandomRequestUri) {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), addRandomRequestUri);
-	}
-
 	protected void performPARRedirectWithRequestUri() {
-		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class, "PAR-4");
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4");
 		performRedirect();
 	}
 
@@ -818,6 +758,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
 
+		processParResponse();
+	}
+
+	protected void processParResponse() {
 		callAndStopOnFailure(CheckIfPAREndpointResponseError.class, "PAR-2.2", "PAR-2.3");
 
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");

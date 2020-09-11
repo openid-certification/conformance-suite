@@ -13,7 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTest {
+public class EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -21,12 +21,12 @@ public class EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError_UnitTes
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError cond;
+	private EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError cond;
 
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError();
+		cond = new EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 

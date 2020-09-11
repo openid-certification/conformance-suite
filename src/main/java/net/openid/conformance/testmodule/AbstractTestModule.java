@@ -769,7 +769,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// test status until after it's been updated, etc.
 				clearLock();
 			}
-		} catch (Exception e) {
+		} catch (Exception | Error e) {
 			// It's really best if we don't exit with the lock held, ensuring any other threads trying to take the
 			// lock won't end up blocked forever.
 			clearLockIfHeld();

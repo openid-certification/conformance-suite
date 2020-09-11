@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-authorization-request-without-request-object-fails",
 	displayName = "FAPI-RW-ID2: ensure authorization request without request_object fails",
-	summary = "This test should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test calls the authorization endpoint without using a request object (i.e. with all the parameters passed in the url query), and should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -41,11 +41,20 @@ public class FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails extend
 	}
 
 	@Override
-	protected void createAuthorizationRedirect() {
+	protected void createAuthorizationRequestObject() {
+		// Nothing as no request object required in this test
+	}
 
+	@Override
+	protected void buildRedirect() {
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class, "FAPI-RW-5.2.2-1");
 	}
 
+	@Override
+	protected void performAuthorizationFlow() {
+		isPar = false; // we're passing a non-request object to the authorization, so we never want to call par endpoint
+		super.performAuthorizationFlow();
+	}
 
 	@Override
 	protected void onAuthorizationCallbackResponse() {

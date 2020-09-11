@@ -3,11 +3,13 @@ package net.openid.conformance.fapi;
 public abstract class AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-		createAuthorizationRequest();
-		createAuthorizationRedirect();
+	protected void performRedirect() {
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
+
+	protected void performNormalRedirect() {
+		// some subclasses need access to the original performRedirect, this just makes it available to them
+		super.performRedirect();
+	}
+
 }

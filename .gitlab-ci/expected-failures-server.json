@@ -46,7 +46,7 @@
         },
         "configuration-filename": "authlete-*.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError",
+        "condition": "EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError",
         "expected-result": "failure",
         "comment": "authlete doesn't currently make this check"
     },

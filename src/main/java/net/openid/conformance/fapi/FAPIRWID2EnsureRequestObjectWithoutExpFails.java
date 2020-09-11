@@ -2,18 +2,20 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestUriOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingExpClaimErrorPage;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-request-object-without-exp-fails",
 	displayName = "FAPI-RW-ID2: ensure request object without exp fails",
-	summary = "This test should end with the authorisation server showing an error message: invalid_request, invalid_request_object or access_denied (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test should end with the authorisation server showing an error message: invalid_request, invalid_request_object (for request object by value), invalid_request_uri (when PAR in use) or access_denied (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -42,9 +44,24 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFails extends AbstractFAPIRWI
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.skip(AddExpToRequestObject.class, "NOT adding exp to request object");
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+
+		fireTestFinished();
 	}
 
 	@Override
@@ -60,7 +77,11 @@ public class FAPIRWID2EnsureRequestObjectWithoutExpFails extends AbstractFAPIRWI
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+		if (isPar) {
+			callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestUriOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+		} else {
+			callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+		}
 		fireTestFinished();
 
 	}

@@ -30,8 +30,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPIRWID2ServerTestModule {
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 			.replace(AddAudToRequestObject.class,
 					condition(AddMultipleAudToRequestObject.class).requirement("RFC7519-4.1.3"));
 	}

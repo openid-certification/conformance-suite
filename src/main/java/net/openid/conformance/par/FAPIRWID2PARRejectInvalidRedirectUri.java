@@ -1,9 +1,12 @@
 package net.openid.conformance.par;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRedirectUriToRequestParameters;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRedirectUriError;
-import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.fapi.AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -45,19 +48,26 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPIRWID2PARRejectInvalidRedirectUri extends AbstractFAPIRWID2ServerTestModule {
+public class FAPIRWID2PARRejectInvalidRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
-	protected void createParAuthorizationRequestObject() {
-		callAndStopOnFailure(AddBadRedirectUriToRequestParameters.class);
-		super.createParAuthorizationRequestObject();
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-9", "PAR-2.3");
+
+		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
+	}
+
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps().
+			butFirst(condition(AddBadRedirectUriToRequestParameters.class));
 	}
 
 	@Override
 	protected void performParAuthorizationRequestFlow() {
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndStopOnFailure(EnsurePARInvalidRedirectUriError.class, "PAR-2.3");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}

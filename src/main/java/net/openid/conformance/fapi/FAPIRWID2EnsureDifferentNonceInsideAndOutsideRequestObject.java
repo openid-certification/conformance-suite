@@ -45,12 +45,12 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		// Note: BuildRequestObjectByValueRedirectToAuthorizationEndpoint includes
 		// as URL parameters values in "authorization_endpoint_request"
 		// which differ or are missing from the request object.
 		// Here, an incorrect nonce is added as a parameter.
-		return super.makeCreateAuthorizationRedirectSteps()
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
 						condition(AddIncorrectNonceToAuthorizationEndpointRequest.class));
 	}

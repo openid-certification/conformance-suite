@@ -8,7 +8,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError;
 import net.openid.conformance.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIRWOPProfile;
@@ -47,22 +47,18 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 	}
 
 	@Override
-	protected void performAuthorizationFlow() {
-
-		performPreAuthorizationSteps();
-
+	protected void createAuthorizationRequest() {
 		// Switch to client 2 JWKs
 		eventLog.startBlock("Swapping to Client2, Jwks2, tls2");
 		switchToSecondClient();
+		super.createAuthorizationRequest();
+	}
 
-		createAuthorizationRequest();
-		createAuthorizationRedirect();
-
+	@Override
+	protected void createAuthorizationRequestObject() {
+		super.createAuthorizationRequestObject();
 		unmapClient();
-
 		eventLog.endBlock();
-
-		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
 
 	@Override
@@ -78,7 +74,7 @@ public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAP
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrAccessDeniedError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
+		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.2.2.1");
 		fireTestFinished();
 
 	}

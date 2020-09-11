@@ -3,11 +3,13 @@ package net.openid.conformance.fapi;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddBadAudToRequestObject;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithBadAudClaimErrorPage;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -43,10 +45,25 @@ public class FAPIRWID2EnsureRequestObjectWithBadAudFails extends AbstractFAPIRWI
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddAudToRequestObject.class,
 						condition(AddBadAudToRequestObject.class).requirements("OIDCC-6.1", "RFC7519-4.1.3"));
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+
+		fireTestFinished();
 	}
 
 	@Override
@@ -62,7 +79,11 @@ public class FAPIRWID2EnsureRequestObjectWithBadAudFails extends AbstractFAPIRWI
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		if (isPar) {
+			callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "JAR-4");
+		} else {
+			callAndContinueOnFailure(EnsureInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		}
 		fireTestFinished();
 
 	}

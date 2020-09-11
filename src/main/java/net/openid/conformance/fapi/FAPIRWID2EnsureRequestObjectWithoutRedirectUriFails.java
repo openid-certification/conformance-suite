@@ -2,12 +2,13 @@ package net.openid.conformance.fapi;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObject;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingRedirectUriErrorPage;
 import net.openid.conformance.condition.client.RemoveRedirectUriFromRequestObject;
 import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -43,10 +44,25 @@ public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends Abstrac
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRedirectSteps() {
-		return super.makeCreateAuthorizationRedirectSteps()
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertBefore(SignRequestObject.class,
 						condition(RemoveRedirectUriFromRequestObject.class));
+	}
+
+	@Override
+	protected void processParResponse() {
+		// the server could reject this at the par endpoint, or at the authorization endpoint
+		String key = "pushed_authorization_endpoint_response_http_status";
+		Integer http_status = env.getInteger(key);
+		if (http_status >= 200 && http_status < 300) {
+			super.processParResponse();
+			return;
+		}
+
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+
+		fireTestFinished();
 	}
 
 	@Override

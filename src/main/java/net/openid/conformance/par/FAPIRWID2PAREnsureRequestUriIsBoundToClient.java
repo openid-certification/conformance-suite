@@ -38,11 +38,12 @@ public class FAPIRWID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPIRWI
 
 	@Override
 	protected void performPARRedirectWithRequestUri() {
-		eventLog.startBlock("Attempting to send client2.clientId with request_uri to AS and expect it returns error in callback");
+		eventLog.startBlock("Attempting to send client2's clientId with request_uri to AS and expect it returns error in callback");
 
 		switchToSecondClient();
+		callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class, "PAR-2.2.1");
 
-		callAndStopOnFailure(BuildRequestToAuthorizationEndpointWithRequestUri.class);
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}
@@ -67,7 +68,7 @@ public class FAPIRWID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPIRWI
 	}
 
 	protected void verifyError() {
-		callAndStopOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-3-3");
+		callAndContinueOnFailure(EnsureInvalidRequestInvalidRequestObjectOrInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "PAR-3-3");
 	}
 
 }

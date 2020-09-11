@@ -6,9 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EnsureInvalidHTTPMethodErrorPage extends AbstractCondition {
-
-	private static final int HTTP_METHOD_NOT_ALLOWED = 405;
+public class EnsureParHTTPError extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -19,12 +17,12 @@ public class EnsureInvalidHTTPMethodErrorPage extends AbstractCondition {
 			throw error("Integer '"+key + "' not found in environment");
 		}
 
-		if (status != HTTP_METHOD_NOT_ALLOWED) {
+		if (status < 400 || status >= 600) {
 			throw error("Invalid pushed authorization endpoint response http status code",
-				args("expected", HTTP_METHOD_NOT_ALLOWED, "actual", status));
+				args("expected", "4xx or 5xx", "actual", status));
 		}
 
-		logSuccess("pushed authorization endpoint  correct response.");
+		logSuccess("pushed authorization endpoint returned a HTTP 4xx or 5xx error as expected", args("actual", status));
 		return env;
 
 	}

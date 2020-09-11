@@ -170,7 +170,7 @@ public class TestDispatcher implements DataUtils {
 			// suite believe log messages had already been added for this failure.
 			// see https://gitlab.com/openid/conformance-suite/issues/443
 			throw new TestFailureException(testId, "A ConditionError has been incorrectly thrown by a TestModule, this is a bug in the test module: " + e.getMessage());
-		} catch (Exception e) {
+		} catch (Exception | Error e) {
 			throw new TestFailureException(test.getId(), e);
 		}
 	}
@@ -268,7 +268,7 @@ public class TestDispatcher implements DataUtils {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
-		} catch (Exception e) {
+		} catch (Exception | Error e) {
 			throw new TestFailureException(test.getId(), e);
 		}
 	}
