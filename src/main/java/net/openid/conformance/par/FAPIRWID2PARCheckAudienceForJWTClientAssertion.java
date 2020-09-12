@@ -2,7 +2,7 @@ package net.openid.conformance.par;
 
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
-import net.openid.conformance.sequence.client.AddClientAuthenticationToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -50,7 +50,7 @@ public class FAPIRWID2PARCheckAudienceForJWTClientAssertion extends AbstractFAPI
 	*/
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new AddClientAuthenticationToPAREndpointRequest()).replace(
+		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
 			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
 	}
