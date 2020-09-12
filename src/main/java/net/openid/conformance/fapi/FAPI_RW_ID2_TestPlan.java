@@ -84,7 +84,9 @@ import net.openid.conformance.plan.TestPlan;
 		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
 		FAPIRWID2PARRejectInvalidAudienceInRequestObject.class,
 		FAPIRWID2PARRejectInvalidRedirectUri.class,
-		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class
+		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class,
+
+		FAPIRWID2ParWithoutDuplicateParameters.class
 
 		// TODO: for PAR, we could also try passing a non-signed request to the PAR endpoint
 

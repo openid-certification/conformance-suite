@@ -12,7 +12,7 @@ public class BuildRequestObjectByValueRedirectToAuthorizationEndpoint extends Ab
 	public Environment evaluate(Environment env) {
 		String requestObject = env.getString("request_object");
 
-		return buildRedirect(env, "request", requestObject);
+		return buildRedirect(env, "request", requestObject, true);
 	}
 
 }
