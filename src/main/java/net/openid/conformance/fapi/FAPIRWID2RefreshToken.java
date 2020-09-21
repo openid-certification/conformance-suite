@@ -3,6 +3,7 @@ package net.openid.conformance.fapi;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
+import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
@@ -17,6 +18,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIRWOPProfile;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-refresh-token",
@@ -55,8 +57,13 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 	protected void sendRefreshTokenRequestAndCheckIdTokenClaims() {
 		eventLog.startBlock(currentClientString() + "Check for refresh token");
 		callAndContinueOnFailure(ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
+
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
+			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+				// this will always fail & stop
+				callAndStopOnFailure(CDRRefreshTokenRequiredWhenSharingDurationRequested.class, "CDR-requesting-sharing-duration");
+			}
 			callAndContinueOnFailure(FAPIEnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 			// This throws an exception: the test will stop here
 			fireTestSkipped("Refresh tokens cannot be tested. No refresh token was issued.");
