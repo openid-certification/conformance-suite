@@ -49,7 +49,7 @@ public class Application {
 			// This redirects port 8443 on localhost to the same port on the ingress (httpd).
 			// This is so that selenium running on this machine can make submissions via the ingress
 			// when a developer is running the conformance suite locally, as otherwise accesses to
-			// http://localhost:8443/ will fail.
+			// https://localhost:8443/ will fail.
 			// (when deployed in the cloud, selenium will be sent to the external hostname & IP for the
 			// conformance suite which will work fine - it's only when the hostname resolves 127.0.0.1
 			// that the problem happens.)
