@@ -15,7 +15,12 @@ public abstract class ExtractHash extends AbstractCondition {
 			throw error("Couldn't find parsed ID token");
 		}
 
-		String hash = env.getString("id_token", "claims." + hashName);
+		String hash;
+		try {
+			hash = env.getString("id_token", "claims." + hashName);
+		} catch (IllegalArgumentException e) {
+			throw error(hashName + " in ID token is not a string");
+		}
 		if (hash == null) {
 			throw error("Couldn't find " + hashName + " in ID token");
 		}
