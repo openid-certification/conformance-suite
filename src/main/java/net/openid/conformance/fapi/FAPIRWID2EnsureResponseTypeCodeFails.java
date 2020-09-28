@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARUnsupportedResponseTypeOrInvalidRequestError;
 import net.openid.conformance.condition.client.EnsureUnsupportedResponseTypeOrInvalidRequestError;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-response-type-code-fails",
 	displayName = "FAPI-RW-ID2: ensure response_type code fails",
-	summary = "This test uses response_type=code in the authorization request, which (as a JARM response has not been requested) is not permitted in FAPI-RW - only the hybrid flow ('response_type=code id_token') is allowed. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response.",
+	summary = "This test uses response_type=code in the authorization request, which (as a JARM response has not been requested) is not permitted in FAPI-RW - only the hybrid flow ('response_type=code id_token') is allowed. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response, or an error could be returned from the PAR endpoint.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -64,7 +64,7 @@ public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2Expec
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+		callAndContinueOnFailure(EnsurePARUnsupportedResponseTypeOrInvalidRequestError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}
