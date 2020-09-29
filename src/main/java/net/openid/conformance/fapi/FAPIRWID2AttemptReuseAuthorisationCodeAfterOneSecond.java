@@ -8,7 +8,7 @@ import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
-	displayName = "FAPI-RW-ID2: try to reuse authorisation code after one second",
+	displayName = "FAPI-RW-ID2: try to reuse authorization code after one second",
 	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this should fail with the AS returning an invalid_grant error. If the AS does not do this a warning (not a failure) is issued - a warning will not prevent certification.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {

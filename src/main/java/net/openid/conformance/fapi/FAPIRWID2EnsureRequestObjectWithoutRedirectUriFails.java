@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-request-object-without-redirect-uri-fails",
 	displayName = "FAPI-RW-ID2: ensure request object without redirect_uri fails",
-	summary = "This test should end with the authorisation server showing an error message that the request object is invalid due to the invalid redirect uri (a screenshot of which should be uploaded) or (in the case where the client only has one redirect_uri registered) with the user being redirected back to the client's registered redirect_uri with a correct error response.",
+	summary = "This test should end with the authorization server showing an error message that the request object is invalid due to the invalid redirect uri (a screenshot of which should be uploaded) or (in the case where the client only has one redirect_uri registered) with the user being redirected back to the client's registered redirect_uri with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -69,7 +69,7 @@ public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends Abstrac
 	protected void onAuthorizationCallbackResponse() {
 		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
 
-		/* If we get an error back from the authorisation server:
+		/* If we get an error back from the authorization server:
 		 * - It must be a 'invalid_request_object' error
 		 * - It must have the correct state we supplied
 		 */

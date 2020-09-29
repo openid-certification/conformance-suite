@@ -65,7 +65,7 @@ public class FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject extends 
 			super.onAuthorizationCallbackResponse();
 
 		} else {
-			/* If we get an error back from the authorisation server:
+			/* If we get an error back from the authorization server:
 			 * - It must be a 'invalid_request' error
 			 * - It must have the correct state we supplied
 			 */

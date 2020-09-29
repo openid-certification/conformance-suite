@@ -21,7 +21,7 @@ import net.openid.conformance.util.JWKUtil;
 @PublishTestModule(
 	testName = "fapi-rw-id2-ensure-signed-request-object-with-RS256-fails",
 	displayName = "FAPI-RW-ID2: ensure signed request object with RS256 fails",
-	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the authorisation server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the authorization server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -101,7 +101,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 	protected void onAuthorizationCallbackResponse() {
 		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
 
-		/* If we get an error back from the authorisation server:
+		/* If we get an error back from the authorization server:
 		 * - It must be a 'invalid_request_object' error
 		 * - It must have the correct state we supplied
 		 */
