@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureRequestObjectMissingAudFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureRequestObjectMissingAudFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void createAuthorizationRequestObject() {

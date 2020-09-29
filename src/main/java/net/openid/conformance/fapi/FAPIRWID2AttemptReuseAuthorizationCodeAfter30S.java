@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2AttemptReuseAuthorisationCodeAfter30s extends AbstractFAPIRWID2AttemptReuseAuthorisationCode {
+public class FAPIRWID2AttemptReuseAuthorizationCodeAfter30S extends AbstractFAPIRWID2AttemptReuseAuthorizationCode {
 
 	@Override
 	protected void waitForAmountOfTime() {

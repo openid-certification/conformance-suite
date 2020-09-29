@@ -5,7 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
 
 // Send invalid request to backchannel authorization endpoint and the response is invalid_request
-public abstract class AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest extends AbstractFAPICIBAID1 {
+public abstract class AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest extends AbstractFAPICIBAID1 {
 
 	@Override
 	protected void performAuthorizationFlow() {

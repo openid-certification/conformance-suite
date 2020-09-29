@@ -27,7 +27,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void onConfigure() {

@@ -70,8 +70,8 @@ import net.openid.conformance.plan.TestPlan;
 		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class,
 
 		FAPIRWID2TestEssentialAcrScaClaim.class,
-		FAPIRWID2AttemptReuseAuthorisationCodeAfter30s.class,
-		FAPIRWID2AttemptReuseAuthorisationCodeAfterOneSecond.class,
+		FAPIRWID2AttemptReuseAuthorizationCodeAfter30S.class,
+		FAPIRWID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		//PAR tests
 		FAPIRWID2PARAttemptReuseRequestUri.class,
