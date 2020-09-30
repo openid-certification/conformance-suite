@@ -87,7 +87,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 			// OP-ClientAuth-SecretPost-Static same as OP-ClientAuth-SecretPost-Dynamic
 			new ModuleListEntry(
 				List.of(
-					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
+					OIDCCRequestUriUnsignedSupportedCorrectlyOrRejectedAsUnsupported.class, // OP-request_uri-Unsigned
 					OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
 					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported

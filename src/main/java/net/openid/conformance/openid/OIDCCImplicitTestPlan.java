@@ -55,7 +55,7 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 			OIDCCEnsureRequestWithAcrValuesSucceeds.class, // OP-Req-acr_values
 			// VerifyState() covered by OIDCCServerTest
 			OIDCCEnsureRegisteredRedirectUri.class, // OP-redirect_uri-NotReg
-			OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
+			OIDCCRequestUriUnsignedSupportedCorrectlyOrRejectedAsUnsupported.class, // OP-request_uri-Unsigned
 			OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported.class, // OP-request-Unsigned
 			OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported
 			OIDCCClaimsEssential.class // OP-claims-essential
