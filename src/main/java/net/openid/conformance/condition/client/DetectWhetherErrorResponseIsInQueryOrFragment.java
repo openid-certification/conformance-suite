@@ -22,6 +22,6 @@ public class DetectWhetherErrorResponseIsInQueryOrFragment extends AbstractCondi
 			return env;
 		}
 
-		throw error("Authorisation server did not return an error in the url query or fragment");
+		throw error("authorization server did not return an error in the url query or fragment");
 	}
 }

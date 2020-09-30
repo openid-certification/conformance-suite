@@ -80,7 +80,7 @@ public class FAPIRWID2EnsureResponseTypeCodeFails extends AbstractFAPIRWID2Expec
 		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
 		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);
 
-		/* The error from the authorisation server:
+		/* The error from the authorization server:
 		 * - must be a 'unsupported_response_type' or "invalid_request" error
 		 * - must have the correct state we supplied
 		 */

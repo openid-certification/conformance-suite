@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-unsigned-backchannel-authorization-request-fails",
 	displayName = "FAPI-CIBA-ID1: Ensure unsigned backchannel authorization request fails",
-	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid, as FAPI-CIBA requires the use of signed authentication requests.",
+	summary = "This test should end with the backchannel authorization server returning an error message that the request is invalid, as FAPI-CIBA requires the use of signed authentication requests.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -27,7 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureBackchannelAuthorizationRequestWithoutRequestFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureBackchannelAuthorizationRequestWithoutRequestFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void performAuthorizationRequest() {

@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
-	displayName = "FAPI-RW-ID2: try to reuse authorisation code after one second",
+	displayName = "FAPI-RW-ID2: try to reuse authorization code after one second",
 	summary = "This test tries reusing an authorization code after 30 seconds, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2AttemptReuseAuthorisationCodeAfter30s extends AbstractFAPIRWID2AttemptReuseAuthorisationCode {
+public class FAPIRWID2AttemptReuseAuthorizationCodeAfter30S extends AbstractFAPIRWID2AttemptReuseAuthorizationCode {
 
 	@Override
 	protected void waitForAmountOfTime() {

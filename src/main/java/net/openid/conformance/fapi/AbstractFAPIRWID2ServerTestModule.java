@@ -475,7 +475,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		if (!jarm) {
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
-			// save the id_token returned from the authorisation endpoint
+			// save the id_token returned from the authorization endpoint
 			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 			performIdTokenValidation();
 
@@ -639,7 +639,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performTokenEndpointIdTokenExtraction() {
-		/* code id_token flow - we already had an id_token from the authorisation endpoint,
+		/* code id_token flow - we already had an id_token from the authorization endpoint,
 		 * so c_hash and s_hash are optional.
 		 */
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");

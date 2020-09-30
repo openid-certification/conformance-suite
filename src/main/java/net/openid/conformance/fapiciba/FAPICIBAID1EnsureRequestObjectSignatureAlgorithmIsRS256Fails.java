@@ -8,7 +8,7 @@ import net.openid.conformance.util.JWKUtil;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-request-object-signature-algorithm-is-RS256-fails",
 	displayName = "FAPI-CIBA-ID1: Ensure request_object signature algorithm is RS256 fails",
-	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
+	summary = "This test should end with the backchannel authorization server returning an error message that the request is invalid.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -27,7 +27,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void onConfigure() {

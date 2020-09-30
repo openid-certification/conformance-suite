@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-ensure-request-without-nonce-fails",
 	displayName = "OIDCC: ensure request without nonce fails",
-	summary = "This test sends a request without a nonce included, and should end with the authorisation server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response. nonce is required for all flows that return an id_token from the authorization endpoint.",
+	summary = "This test sends a request without a nonce included, and should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response. nonce is required for all flows that return an id_token from the authorization endpoint.",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {"code", "code token"})

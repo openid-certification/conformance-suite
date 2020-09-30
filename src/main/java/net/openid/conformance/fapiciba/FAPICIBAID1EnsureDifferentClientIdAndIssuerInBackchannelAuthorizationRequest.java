@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-different-client-id-and-issuer-in-backchannel-authorization-request",
 	displayName = "FAPI-CIBA-ID1: Ensure different client_id and issuer in backchannel authorization request",
-	summary = "This test passes a different client_id and issuer in the backchannel authorization parameters to the one inside the signed request object. The backchannel authorisation server returned an error message that the client is invalid.",
+	summary = "This test passes a different client_id and issuer in the backchannel authorization parameters to the one inside the signed request object. The backchannel authorization server returned an error message that the client is invalid.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" })
-public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequest extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequest extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void configClient() {

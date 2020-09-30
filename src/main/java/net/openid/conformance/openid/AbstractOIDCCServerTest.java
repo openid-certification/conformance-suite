@@ -509,7 +509,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		if (responseType.includesIdToken()) {
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class);
 
-			// save the id_token returned from the authorisation endpoint
+			// save the id_token returned from the authorization endpoint
 			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
 			performAuthorizationEndpointIdTokenValidation();

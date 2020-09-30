@@ -15,7 +15,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
-public abstract class AbstractFAPIRWID2AttemptReuseAuthorisationCode extends AbstractFAPIRWID2ServerTestModule {
+public abstract class AbstractFAPIRWID2AttemptReuseAuthorizationCode extends AbstractFAPIRWID2ServerTestModule {
 
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 

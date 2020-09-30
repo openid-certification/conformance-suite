@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-request-object-signed-by-other-client-fails",
 	displayName = "FAPI-CIBA-ID1: Ensure request_object signed by other client fails",
-	summary = "This test should end with the backchannel authorisation server returning an error message that the request is invalid.",
+	summary = "This test should end with the backchannel authorization server returning an error message that the request is invalid.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,7 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureRequestObjectSignedByOtherClientFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorisationRequest {
+public class FAPICIBAID1EnsureRequestObjectSignedByOtherClientFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
 	protected void configClient() {
