@@ -59,7 +59,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCUiLocales.class,
 					OIDCCDisplayPage.class,
 					OIDCCDisplayPopup.class,
-					OIDCCUnsignedRequestObject.class,
+					OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported.class,
 					OIDCCRequestUriUnsigned.class,
 					OIDCCRequestUriSignedRS256.class,
 					OIDCCRefreshTokenRPKeyRotation.class,

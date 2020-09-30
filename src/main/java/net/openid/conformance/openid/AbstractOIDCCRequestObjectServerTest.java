@@ -33,7 +33,7 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 		if (error != null && error.equals("request_not_supported")) {
 			// we don't check if state is correct here, as state was only passed inside the request object and hence
 			// we can't expect the OP to return it
-			fireTestSkipped("The 'request_not_supported' error from the authorization endpoint indicates that it does not support request objects, so request objects cannot be tested.");
+			fireTestSkipped("The 'request_not_supported' error from the authorization endpoint indicates that it does not support request objects (which is permitted behaviour), so request objects cannot be tested.");
 		}
 
 		if (serverSupportsDiscovery()) {

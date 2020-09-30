@@ -88,9 +88,9 @@ public class OIDCCBasicTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned
-					OIDCCUnsignedRequestObject.class, // OP-request-Unsigned
+					OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported.class, // OP-request-Unsigned
 					OIDCCClaimsEssential.class, // OP-claims-essential
-					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObject
+					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCUnsignedRequestObjectSupportedCorrectlyOrRejectedAsUnsupported
 					OIDCCRefreshToken.class, // new test; skipped if refresh tokens not supported
 					OIDCCEnsureRequestWithValidPkceSucceeds.class // new test
 					),
