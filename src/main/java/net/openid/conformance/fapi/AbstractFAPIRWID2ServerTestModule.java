@@ -17,6 +17,7 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
+import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -402,6 +403,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			if (isSecondClient) {
 				callAndStopOnFailure(AddIatToRequestObject.class);
+				// nbf is optional in current FAPI-RW-ID2; it will become mandatory in ID3
+				callAndStopOnFailure(AddNbfToRequestObject.class);
 			}
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-12");
 
