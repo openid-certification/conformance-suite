@@ -1,5 +1,6 @@
 package net.openid.conformance.openid;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
@@ -20,6 +21,12 @@ public class AbstractOIDCCRequestObjectServerTest extends AbstractOIDCCServerTes
 			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 		}
 
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		skipTestIfNoneUnsupported();
 	}
 
 	@Override

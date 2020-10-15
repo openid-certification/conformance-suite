@@ -1,5 +1,6 @@
 package net.openid.conformance.openid;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
@@ -13,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-request-uri-unsigned",
 	displayName = "OIDCC: Unsigned request_uri",
-	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an unsigned jwt. The authorization server must successfully complete the authorization, or return a request_uri_not_supported error.",
+	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an unsigned jwt. The authorization server must successfully complete the authorization, or return a request_uri_not_supported error. This test will be skipped if none is not listed in the server's discovery endpoint request_object_signing_alg_values_supported.",
 	profile = "OIDCC"
 )
 // https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_request_uri_Unsigned
@@ -31,6 +32,12 @@ public class OIDCCRequestUriUnsignedSupportedCorrectlyOrRejectedAsUnsupported ex
 			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 		}
 
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		skipTestIfNoneUnsupported();
 	}
 
 	@Override

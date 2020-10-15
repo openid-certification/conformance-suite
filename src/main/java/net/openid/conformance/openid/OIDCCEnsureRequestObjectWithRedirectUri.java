@@ -1,8 +1,6 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddInvalidRedirectUriToAuthorizationRequest;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureOPDoesNotUseDefaultRedirectUriInCaseOfInvalidRedirectUri;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
@@ -17,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"(as per OIDCC-6.1) and process the authentication correctly, " +
 		"or show an invalid redirect_uri error - upload a screenshot of the error page. " +
 		"This is an extra test that wasn't present in the python suite, and ensures implementations are " +
-		"processing request objects correctly.",
+		"processing request objects correctly. The test will be skipped if the server discovery document does not indicate support for unsigned request objects (alg:none).",
 	profile = "OIDCC"
 )
 public class OIDCCEnsureRequestObjectWithRedirectUri extends AbstractOIDCCRequestObjectServerTestExpectingRedirectOrPlaceholder {
