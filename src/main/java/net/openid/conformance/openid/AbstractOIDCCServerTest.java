@@ -1,6 +1,9 @@
 package net.openid.conformance.openid;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -96,6 +99,8 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
 import java.util.function.Supplier;
+
+import static net.openid.conformance.variant.ServerMetadata.DISCOVERY;
 
 @VariantParameters({
 	ServerMetadata.class,
@@ -368,6 +373,18 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void skipTestIfScopesNotSupported() {
 		// Just apply for scope tests
+	}
+
+	protected void skipTestIfNoneUnsupported() {
+		if (getVariant(ServerMetadata.class) == DISCOVERY) {
+			JsonElement el = env.getElementFromObject("server", "request_object_signing_alg_values_supported");
+			if (el != null && el.isJsonArray()) {
+				JsonArray serverValues = el.getAsJsonArray();
+				if (!serverValues.contains(new JsonPrimitive("none"))) {
+					fireTestSkipped("'none' is not listed in request_object_signing_alg_values_supported - assuming it is not supported.");
+				}
+			}
+		}
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {

@@ -16,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-request-uri-signed-rs256",
 	displayName = "OIDCC: RS256 signed request object passed by reference (request_uri)",
-	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an RS256 signed JWS. The authorization server must successfully complete the authorization - whilst the OpenID Connect Core section does not require support of RS256 signed request objects, the 'dynamic' certification profile does.",
+	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an RS256 signed JWS. The authorization server must successfully complete the authorization - whilst the OpenID Connect Core specification does not require support of RS256 signed request objects, the 'dynamic' certification profile does.",
 	profile = "OIDCC"
 )
 // https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_request_uri_Sig

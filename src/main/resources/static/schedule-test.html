@@ -374,7 +374,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {, all keys must include 'alg'. PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided."></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {, all keys must include 'alg'. PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
 											</div>
 											<textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
 										</div>

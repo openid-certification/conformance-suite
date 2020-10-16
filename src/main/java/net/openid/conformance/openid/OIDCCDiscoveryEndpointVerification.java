@@ -19,7 +19,7 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
@@ -124,7 +124,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.INFO);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.INFO);
-		call(condition(OIDCCCheckDiscEndpointRequestObjectSigningAlgValuesSupported.class)
+		call(condition(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256.class)
 				.skipIfElementMissing("server", "request_object_signing_alg_values_supported")
 				.onFail(Condition.ConditionResult.WARNING)
 				.onSkip(Condition.ConditionResult.INFO)

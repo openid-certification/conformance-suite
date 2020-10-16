@@ -12,13 +12,12 @@ import net.openid.conformance.condition.client.ExpectAccessDeniedErrorFromAuthor
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIRWOPProfile;
 
 @PublishTestModule(
 	testName = "fapi-rw-id2-user-rejects-authentication",
 	displayName = "FAPI-RW-ID2: user rejects authentication",
-	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
+	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies an 'access_denied' error is correctly notified back to the relying party.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -61,7 +60,7 @@ public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2Multipl
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.1.2.1");
 
 		if (!isSecondClient()) {
 			performAuthorizationFlowWithSecondClient();

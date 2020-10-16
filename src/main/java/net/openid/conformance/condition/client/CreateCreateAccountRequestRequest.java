@@ -1,8 +1,8 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -18,7 +18,14 @@ public class CreateCreateAccountRequestRequest extends AbstractCondition {
 		JsonArray permissions = new JsonArray();
 		permissions.add("ReadAccountsBasic");
 
-		JsonObject data = new JsonObject();
+		// the user can provide additional fields to go into the 'data' part of the object
+		JsonObject data = null;
+		JsonElement e = env.getElementFromObject("config", "server.additionalOpenBankingUkAccountRequestData");
+		if (e != null) {
+			data = e.getAsJsonObject();
+		} else {
+			data = new JsonObject();
+		}
 		data.add("Permissions", permissions);
 
 		JsonObject o = new JsonObject();
