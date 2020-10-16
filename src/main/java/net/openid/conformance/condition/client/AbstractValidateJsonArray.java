@@ -2,7 +2,6 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -57,7 +56,7 @@ public abstract class AbstractValidateJsonArray extends AbstractCondition {
 			throw error(errorMessage, args("discovery_metadata_key", environmentVariable, "expected", setValues, "actual", serverValues));
 		}
 
-		logSuccess(environmentVariable, args("actual", serverValues, "expected", setValues, "minimum_matches_required", minimumMatchesRequired));
+		logSuccess("Contents of '"+environmentVariable + "' in discovery document matches expectations.", args("actual", serverValues, "expected", setValues, "minimum_matches_required", minimumMatchesRequired));
 
 		return env;
 	}
