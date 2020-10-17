@@ -12,5 +12,20 @@
         "test-name": "oidcc-idtoken-unsigned",
         "variant": "*",
         "configuration-filename": "authlete-oidcc-dcr.json"
+    },
+    {
+        "test-name": "oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json"
+    },
+    {
+        "test-name": "oidcc-request-uri-unsigned",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json"
+    },
+    {
+        "test-name": "oidcc-ensure-request-object-with-redirect-uri",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json"
     }
 ]
