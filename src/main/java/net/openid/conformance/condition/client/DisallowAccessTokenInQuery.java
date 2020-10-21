@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -16,6 +17,15 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	public Environment evaluate(Environment env) {
 
 		return callProtectedResource(env);
+	}
+
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+		HttpHeaders headers = headersFromJson(requestHeaders);
+
+		return headers;
 	}
 
 	@Override
