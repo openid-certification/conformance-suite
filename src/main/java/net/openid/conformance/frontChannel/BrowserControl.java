@@ -314,7 +314,6 @@ public class BrowserControl implements DataUtils {
 				}
 				logger.debug(testId + ": Completed Browser Commands");
 				// if we've successfully completed the command set, consider this URL visited
-				runners.remove(this);
 				urlVisited(url);
 
 				return "web runner exited";
@@ -332,6 +331,8 @@ public class BrowserControl implements DataUtils {
 					throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e.getCause());
 				}
 				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e);
+			} finally {
+				runners.remove(this);
 			}
 		}
 
