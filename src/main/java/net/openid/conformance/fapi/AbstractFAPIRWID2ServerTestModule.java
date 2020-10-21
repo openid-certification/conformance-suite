@@ -7,6 +7,7 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -116,10 +117,10 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
@@ -658,6 +659,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3");
 
 			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
+			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+				// CDR requires this header when the x-fapi-customer-ip-address header is present
+				callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
+			}
 
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
