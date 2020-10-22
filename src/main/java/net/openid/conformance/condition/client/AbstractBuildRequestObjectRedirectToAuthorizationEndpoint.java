@@ -35,14 +35,18 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 	 *    been registered, the client MUST include a redirection URI with the
 	 *    authorization request using the "redirect_uri" request parameter.
 	 */
-	private static final List<String> REQUIRED_PARAMETERS = Arrays.asList(new String[] {
+	private static final List<String> REQUIRED_DUPLICATES = Arrays.asList(new String[] {
 		"response_type",
 		"client_id",
 		"scope",
 		"redirect_uri"
 	});
 
-	protected Environment buildRedirect(Environment env, String paramName, String paramValue) {
+	/**
+	 * @param includeDuplicates If true include the duplicate parameters required by RFC6749/OIDC - if false,
+	 *                          skip the duplicates as permitted by JAR / PAR.
+	 */
+	protected Environment buildRedirect(Environment env, String paramName, String paramValue, boolean includeDuplicates) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
@@ -79,10 +83,16 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 				}
 			}
 
-			if (REQUIRED_PARAMETERS.contains(key)
-				|| requestObjectValue == null
-				|| !requestParameterValue.equals(requestObjectValue)) {
-				builder.queryParam(key, requestParameterValue);
+			if (includeDuplicates) {
+				if (REQUIRED_DUPLICATES.contains(key)
+					|| requestObjectValue == null
+					|| !requestParameterValue.equals(requestObjectValue)) {
+					builder.queryParam(key, requestParameterValue);
+				}
+			} else {
+				if (key.equals("client_id")) {
+					builder.queryParam(key, requestParameterValue);
+				}
 			}
 		}
 

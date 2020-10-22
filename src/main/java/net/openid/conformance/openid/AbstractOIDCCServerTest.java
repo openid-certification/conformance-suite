@@ -100,8 +100,6 @@ import net.openid.conformance.variant.VariantSetup;
 
 import java.util.function.Supplier;
 
-import static net.openid.conformance.variant.ServerMetadata.DISCOVERY;
-
 @VariantParameters({
 	ServerMetadata.class,
 	ClientAuthType.class,
@@ -376,13 +374,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void skipTestIfNoneUnsupported() {
-		if (getVariant(ServerMetadata.class) == DISCOVERY) {
-			JsonElement el = env.getElementFromObject("server", "request_object_signing_alg_values_supported");
-			if (el != null && el.isJsonArray()) {
-				JsonArray serverValues = el.getAsJsonArray();
-				if (!serverValues.contains(new JsonPrimitive("none"))) {
-					fireTestSkipped("'none' is not listed in request_object_signing_alg_values_supported - assuming it is not supported.");
-				}
+		JsonElement el = env.getElementFromObject("server", "request_object_signing_alg_values_supported");
+		if (el != null && el.isJsonArray()) {
+			JsonArray serverValues = el.getAsJsonArray();
+			if (!serverValues.contains(new JsonPrimitive("none"))) {
+				fireTestSkipped("'none' is not listed in request_object_signing_alg_values_supported - assuming it is not supported.");
 			}
 		}
 	}
