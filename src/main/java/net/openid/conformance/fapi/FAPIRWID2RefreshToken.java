@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowed
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
+import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.ValidateIdToken;
@@ -90,6 +91,8 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 	}
 
 	@Override
