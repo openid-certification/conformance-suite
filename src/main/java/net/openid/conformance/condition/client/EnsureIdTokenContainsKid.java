@@ -16,9 +16,9 @@ public class EnsureIdTokenContainsKid extends AbstractCondition {
 
 		if (Strings.isNullOrEmpty(kid)) {
 			throw error("kid was not found in the ID token header");
-		} else {
-			logSuccess("kid was found in the ID token header", args("kid", kid));
 		}
+
+		logSuccess("kid was found in the ID token header", args("kid", kid));
 
 		return env;
 	}
