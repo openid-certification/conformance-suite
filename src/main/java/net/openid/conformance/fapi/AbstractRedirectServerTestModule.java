@@ -11,6 +11,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -166,8 +168,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 			return "done";
 		});
 
-		return redirectToLogDetailPage();
-
+		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
 }

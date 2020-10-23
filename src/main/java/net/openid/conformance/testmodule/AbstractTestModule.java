@@ -16,11 +16,9 @@ import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -935,10 +933,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void setFinalError(TestInterruptedException finalError) {
 		this.finalError = finalError;
-	}
-
-	protected RedirectView redirectToLogDetailPage() {
-		return new RedirectView("/log-detail.html?log=" + getId());
 	}
 
 	protected void acquireLock() {
