@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.DefaultPageCreator;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebConsole;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.WebWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -531,7 +532,62 @@ public class BrowserControl implements DataUtils {
 	 */
 	private class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
-		public ResponseCodeHtmlUnitDriver() { super(true); }
+		public ResponseCodeHtmlUnitDriver() { super(true);
+			final WebConsole console = getWebClient().getWebConsole();
+			console.setLogger(new WebConsole.Logger() {
+
+				@Override
+				public void warn(final Object message) {
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public boolean isErrorEnabled() {
+					return true;
+				}
+
+				@Override
+				public boolean isTraceEnabled() {
+					return true;
+				}
+
+				@Override
+				public void trace(final Object message) {
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public boolean isDebugEnabled() {
+					return true;
+				}
+
+				@Override
+				public void info(final Object message) {
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public boolean isWarnEnabled() {
+					return true;
+				}
+
+				@Override
+				public void error(final Object message) {
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public void debug(final Object message) {
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public boolean isInfoEnabled() {
+					return true;
+				}
+			});
+
+		}
 
 		public int getResponseCode() {
 			return this.lastPage().getWebResponse().getStatusCode();
