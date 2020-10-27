@@ -664,7 +664,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		if (!isSecondClient()) {
+		if (isSecondClient()) {
+			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+				// CDR requires this header for all authenticated resource server endpoints
+				callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3", "CDR-http-headers");
+			}
+		} else {
 			// these are optional; only add them for the first client
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3");
 
