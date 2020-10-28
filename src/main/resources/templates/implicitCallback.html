@@ -44,19 +44,35 @@
     </footer>
 
 	<script type="text/javascript" th:inline="javascript">
+		var submitComplete = false;
+		function assumeComplete() {
+			if (submitComplete) {
+				return;
+			}
+			console.log("assumeComplete workaround for https://gitlab.com/openid/conformance-suite/-/issues/766 activated - assuming post has completed as 5 seconds have elapsed")
+			// add a hidden tag so that Selenium can detect we're done processing
+			$('#complete').append('<span id="submission_complete" class="hidden"></span>');
+		}
+
 		$(function() {
 
 			var hash = window.location.hash;
 
 			var returnUrl = [[${returnUrl}]];
 
+			// workaround https://gitlab.com/openid/conformance-suite/-/issues/766 by assuming that the post completes
+			// after 5 seconds
+			setTimeout(function(){ assumeComplete(); }, 5000);
+
 			$.post({
 				url: [[${implicitSubmitUrl}]],
 				data: hash,
 				contentType: "text/plain", // this will be parsed on the server side, no need to wrap it
 			}).always(function () {
+				console.log("implicit submit complete")
 				$('#complete a').attr('href', returnUrl); // provide the link only after the page is rendered.
 				$('#complete').show();
+				submitComplete = true;
 				// add a hidden tag so that Selenium can detect we're done processing
 				$('#complete').append('<span id="submission_complete" class="hidden"></span>');
 			});

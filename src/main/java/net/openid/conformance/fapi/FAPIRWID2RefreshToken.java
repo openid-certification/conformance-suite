@@ -5,10 +5,12 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
+import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
+import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.ValidateIdToken;
@@ -77,6 +79,8 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
 
 		performProfileIdTokenValidation();
@@ -90,6 +94,8 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 	}
 
 	@Override

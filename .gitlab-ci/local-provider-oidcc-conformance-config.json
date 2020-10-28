@@ -964,7 +964,7 @@
                         },
                         {
                             "task": "Expect success page",
-                            "match": "https://oidcc-provider:3000/session/end/success?*",
+                            "match": "https://oidcc-provider:3000/session/end/success",
                             "commands": [
                                 [
                                     "wait",

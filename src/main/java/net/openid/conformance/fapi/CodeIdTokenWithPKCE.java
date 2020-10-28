@@ -29,6 +29,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateS256CodeChallenge;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -179,6 +180,8 @@ public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 

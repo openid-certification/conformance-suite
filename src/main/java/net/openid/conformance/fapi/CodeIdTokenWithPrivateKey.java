@@ -37,6 +37,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateS256CodeChallenge;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -214,6 +215,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
 
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		// This condition is a warning because we're not yet 100% sure of the code
@@ -258,6 +261,8 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE,"FAPI-R-5.2.2-24");
 

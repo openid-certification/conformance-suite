@@ -1,9 +1,8 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusNot200;
+import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPendingOrAccessDenied;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest;
 import net.openid.conformance.condition.client.TellUserToRejectCIBAAuthentication;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -14,7 +13,7 @@ import net.openid.conformance.variant.CIBAMode;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-user-rejects-authentication",
 	displayName = "FAPI-CIBA-ID1: user rejects authentication",
-	summary = "This test requires the user to reject the authentication on their device, for example by pressing the 'cancel' button on the login screen. It verifies the error is correctly notified back to the relying party.",
+	summary = "This test requires the user to reject the authentication on their device, for example by pressing the 'cancel' button on the login screen. It verifies that an access_denied error (as per section 11 of the CIBA spec) is correctly notified back to the relying party.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -64,16 +63,24 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 			callTokenEndpointForCibaGrant();
 			eventLog.endBlock();
 
-			callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
+			checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
+
+			callAndStopOnFailure(EnsureErrorTokenEndpointSlowdownOrAuthorizationPendingOrAccessDenied.class, "CIBA-11");
 
 			String error = env.getString("token_endpoint_response", "error");
 			if (error.equals("access_denied")) {
 
-				verifyTokenEndpointResponseIsAccessDeniedAndFinishTest();
+				eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
+
+				// we already checked this, this just makes it obvious in the log file that we checked it
+				callAndStopOnFailure(ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest.class, "CIBA-11");
+
+				eventLog.endBlock();
+				fireTestFinished();
 				return;
 			}
 
-			verifyTokenEndpointResponseIsPendingOrSlowDown();
+			// otherwise the response was pending/slowdown - try again
 
 			if (delaySeconds < 60) {
 				delaySeconds *= 1.5;
@@ -87,21 +94,18 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 	protected void processNotificationCallback(JsonObject requestParts) {
 		if (testType == CIBAMode.PING) {
 			processPingNotificationCallback(requestParts);
-			verifyTokenEndpointResponseIsAccessDeniedAndFinishTest();
+
+			eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
+
+			checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
+
+			callAndStopOnFailure(ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest.class);
+
+			eventLog.endBlock();
+			fireTestFinished();
 		} else {
 			super.processNotificationCallback(requestParts);
 		}
-	}
-
-	protected void verifyTokenEndpointResponseIsAccessDeniedAndFinishTest() {
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
-
-		checkStatusCode400AndValidateErrorFromTokenEndpointResponse();
-
-		callAndStopOnFailure(ExpectAccessDeniedErrorFromTokenEndpointDueToUserRejectingRequest.class);
-
-		eventLog.endBlock();
-		fireTestFinished();
 	}
 
 

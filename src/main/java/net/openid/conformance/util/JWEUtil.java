@@ -216,7 +216,20 @@ public class JWEUtil {
 		if (algorithm == null) {
 			throw new RuntimeException("No 'alg' in key: " + key.toJSONString());
 		}
+		return createDecrypter(algorithm, key);
+	}
 
+	public static JWEDecrypter createDecrypter(String algStr, JWK key) throws JOSEException
+	{
+		Algorithm algorithm = new Algorithm(algStr);
+		if (algorithm == null) {
+			throw new RuntimeException("No 'alg' in key: " + key.toJSONString());
+		}
+		return createDecrypter(algorithm, key);
+	}
+
+	public static JWEDecrypter createDecrypter(Algorithm algorithm, JWK key) throws JOSEException
+	{
 		if(AESDecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			AESDecrypter decrypter = new AESDecrypter((OctetSequenceKey)key);
 			return decrypter;

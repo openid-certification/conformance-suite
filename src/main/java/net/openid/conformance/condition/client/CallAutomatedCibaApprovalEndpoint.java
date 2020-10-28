@@ -31,7 +31,7 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 		final String url = env.getString("config", configPath);
 
 		if (Strings.isNullOrEmpty(url)) {
-			log("If your server supports automated testing, you can set '"+configPath+"' in your configuration to a url like https://cibasim.example.com/action?token={auth_req_id}&type=approve (auth_req_id will be automatically substituted for the current auth_req_id by the conformance suite)");
+			log("If your server supports automated testing, you can set '"+configPath+"' in your configuration to a url like https://cibasim.example.com/action?token={auth_req_id}&type={action} (auth_req_id will be automatically substituted for the current auth_req_id by the conformance suite, action will be allow or deny depending on the test)");
 			return env;
 		}
 			//"https://cibasim.authlete.com/api/authenticate/actionize?workspace=authlete/fapidev&action={action}&token={auth_req_id}";

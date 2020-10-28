@@ -47,6 +47,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -73,6 +74,7 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
@@ -451,6 +453,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
 
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
@@ -466,6 +470,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -553,6 +559,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
 
+		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+
 		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
 
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
@@ -568,6 +576,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -654,7 +664,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		if (!isSecondClient()) {
+		if (isSecondClient()) {
+			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+				// CDR requires this header for all authenticated resource server endpoints
+				callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3", "CDR-http-headers");
+			}
+		} else {
 			// these are optional; only add them for the first client
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI-R-6.2.2-3");
 
