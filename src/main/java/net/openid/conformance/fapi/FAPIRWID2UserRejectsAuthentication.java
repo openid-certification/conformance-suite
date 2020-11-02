@@ -17,7 +17,7 @@ import net.openid.conformance.variant.FAPIRWOPProfile;
 @PublishTestModule(
 	testName = "fapi-rw-id2-user-rejects-authentication",
 	displayName = "FAPI-RW-ID2: user rejects authentication",
-	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies an 'access_denied' error is correctly notified back to the relying party.",
+	summary = "This test requires the user to reject the authentication, for example by pressing the 'cancel' button on the login screen. It verifies an 'access_denied' error is correctly notified back to the relying party. You may need to clear cookies for the OP before running this test to ensure a cancel screen is shown.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -46,10 +46,6 @@ public class FAPIRWID2UserRejectsAuthentication extends AbstractFAPIRWID2Multipl
 
 		ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
 			.insertBefore(CreateRandomStateValue.class, cmd);
-
-		if (getVariant(FAPIRWOPProfile.class) != FAPIRWOPProfile.OPENBANKING_UK) {
-			conditionSequence.insertAfter(AddNonceToAuthorizationEndpointRequest.class, condition(AddPromptLoginToAuthorizationEndpointRequest.class));
-		}
 
 		return conditionSequence;
 	}
