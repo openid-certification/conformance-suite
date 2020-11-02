@@ -394,11 +394,11 @@ public class TestRunner implements DataUtils {
 				if (TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus()) {
 					message = "Alias has now been claimed by another test";
 				} else {
-					message = "Stopping test due to alias conflict";
+					message = "Stopping test due to alias conflict - before this test finished, you or another tester have started another test using the same alias. You will need to rerun this test and ensure you complete all steps in this test before you move onto the next test.";
 				}
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 
-				test.stop("Another test has been started that uses the same alias."); // stop the currently-running test
+				test.stop(message); // stop the currently-running test
 			}
 		}
 

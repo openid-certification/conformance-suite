@@ -27,7 +27,7 @@ public class EnsureMinimumAuthorizationCodeLength extends AbstractCondition {
 			logSuccess("Authorization code is of sufficient length", args("required", requiredLength, "actual", bitLength));
 			return env;
 		} else {
-			throw error("Authorization code is not of sufficient length", args("required", requiredLength, "actual", bitLength));
+			throw error("Authorization code is not long enough", args("required_bits", requiredLength, "actual_bits", bitLength));
 		}
 
 	}
