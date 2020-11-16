@@ -26,7 +26,7 @@ import javax.servlet.http.HttpSession;
 	summary = "This test calls the dynamic registration endpoint with a jwks URI, and continues with authorization. This should result in a successful registration and authorization.",
 	profile = "OIDCC"
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = {"client_secret_basic", "client_secret_post", "client_secret_jwt", "mtls"})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "mtls"})
 @VariantNotApplicable(parameter = ResponseType.class, values = {"id_token", "id_token token"})
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 public class OIDCCRegistrationJwksUri extends AbstractOIDCCServerTest {
