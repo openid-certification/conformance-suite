@@ -13,7 +13,7 @@ public class EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders extends
 		JsonObject headers = env.getElementFromObject("backchannel_logout_endpoint_response", "headers").getAsJsonObject();
 		String humanReadableResponseName = "RP backchannel_logout_uri response";
 
-		validateCacheHeaders(headers, humanReadableResponseName);
+		validateCacheHeaders(headers, humanReadableResponseName, true);
 
 		return env;
 	}

@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
@@ -29,7 +30,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_isEmpty() {
 		JsonObject o = new JsonObject();
 		env.putObject("token_endpoint_response_headers", o);
@@ -37,8 +38,8 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test
-	public void testEvaluate_isGoodCacheControl() {
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_pragmaMissing() {
 		JsonObject o = new JsonObject();
 		o.addProperty("cache-control", "no-store, no-transform");
 		env.putObject("token_endpoint_response_headers", o);
@@ -47,7 +48,17 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_isGoodPragma() {
+	public void testEvaluate_good() {
+		JsonObject o = new JsonObject();
+		o.addProperty("cache-control", "no-store, no-transform");
+		o.addProperty("pragma", "no-cache");
+		env.putObject("token_endpoint_response_headers", o);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_cacheControlMissing() {
 		JsonObject o = new JsonObject();
 		o.addProperty("pragma", "no-cache");
 		env.putObject("token_endpoint_response_headers", o);
@@ -59,6 +70,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 	public void testEvaluate_isBadCacheControl() {
 		JsonObject o = new JsonObject();
 		o.addProperty("cache-control", "");
+		o.addProperty("pragma", "no-cache");
 		env.putObject("token_endpoint_response_headers", o);
 
 		cond.execute(env);
@@ -67,6 +79,7 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_isBadPragma() {
 		JsonObject o = new JsonObject();
+		o.addProperty("cache-control", "no-store, no-transform");
 		o.addProperty("pragma", "");
 		env.putObject("token_endpoint_response_headers", o);
 

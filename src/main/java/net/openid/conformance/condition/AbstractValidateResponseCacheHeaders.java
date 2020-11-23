@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondition {
 
-	protected void validateCacheHeaders(JsonObject headers, String humanReadableResponseName) {
+	protected void validateCacheHeaders(JsonObject headers, String humanReadableResponseName, boolean cacheControlMustHaveNoCache) {
 		String noStore = "no-store";
 		String noCache = "no-cache";
 
@@ -25,9 +25,12 @@ public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondi
 			throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
 				args("expected", noStore, "actual", cacheControl));
 		}
-		if (Strings.isNullOrEmpty(cacheControl) || !doesHeaderContainExpectedValue(cacheControl, noCache)) {
-			throw error("'cache-control' header in "+humanReadableResponseName+" does not contain expected value.",
-				args("expected", noCache, "actual", cacheControl));
+		if (cacheControlMustHaveNoCache) {
+			// the backchannel logout specs require this, but RFC6749 does not
+			if (Strings.isNullOrEmpty(cacheControl) || !doesHeaderContainExpectedValue(cacheControl, noCache)) {
+				throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
+					args("expected", noCache, "actual", cacheControl));
+			}
 		}
 
 		String pragma = OIDFJSON.getString(headers.get("pragma"));
