@@ -1,6 +1,7 @@
 package net.openid.conformance.condition;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -18,23 +19,22 @@ public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondi
 			throw error(humanReadableResponseName + " does not contain 'pragma' header", args("response_headers", headers));
 		}
 
-		String cacheControl = OIDFJSON.getString(headers.get("cache-control"));
+		JsonElement cacheControl = headers.get("cache-control");
 
-
-		if (Strings.isNullOrEmpty(cacheControl) || !doesHeaderContainExpectedValue(cacheControl, noStore)) {
+		if (!doesHeaderContainExpectedValue(headers, "cache-control", noStore)) {
 			throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
 				args("expected", noStore, "actual", cacheControl));
 		}
 		if (cacheControlMustHaveNoCache) {
 			// the backchannel logout specs require this, but RFC6749 does not
-			if (Strings.isNullOrEmpty(cacheControl) || !doesHeaderContainExpectedValue(cacheControl, noCache)) {
+			if (!doesHeaderContainExpectedValue(headers, "cache-control", noCache)) {
 				throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
 					args("expected", noCache, "actual", cacheControl));
 			}
 		}
 
-		String pragma = OIDFJSON.getString(headers.get("pragma"));
-		if (Strings.isNullOrEmpty(pragma) || !doesHeaderContainExpectedValue(pragma, noCache)) {
+		JsonElement pragma = headers.get("pragma");
+		if (!doesHeaderContainExpectedValue(headers, "pragma", noCache)) {
 			throw error("'pragma' header in "+humanReadableResponseName+" does not contain expected value.",
 						args("expected", noCache, "actual", pragma));
 		}
@@ -44,7 +44,7 @@ public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondi
 	}
 
 	private boolean doesHeaderContainExpectedValue(String header, String expected) {
-		if (header == null || header.isEmpty()) {
+		if (Strings.isNullOrEmpty(header)) {
 			return false;
 		}
 
@@ -55,5 +55,20 @@ public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondi
 		}
 
 		return false;
+	}
+
+	private boolean doesHeaderContainExpectedValue(JsonObject headers, String headerName, String expected) {
+		JsonElement headerJson = headers.get(headerName);
+		if (headerJson.isJsonArray()) {
+			for (JsonElement el : headerJson.getAsJsonArray()) {
+				String header = OIDFJSON.getString(el);
+				if (doesHeaderContainExpectedValue(header, expected)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		String header = OIDFJSON.getString(headerJson);
+		return doesHeaderContainExpectedValue(header, expected);
 	}
 }

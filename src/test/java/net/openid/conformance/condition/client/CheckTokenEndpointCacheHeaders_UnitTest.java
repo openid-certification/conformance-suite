@@ -57,6 +57,38 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
+	public void testEvaluate_isGoodCacheControlArray() {
+		// the server can legally sent several Cache-Control headers, which java presents as an array
+
+		JsonArray a = new JsonArray();
+		a.add("no-store");
+		a.add("no-transform");
+
+		JsonObject o = new JsonObject();
+		o.add("cache-control", a);
+		o.addProperty("pragma", "no-cache");
+		env.putObject("token_endpoint_response_headers", o);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_badCacheControlArray() {
+		// the server can legally sent several Cache-Control headers, which java presents as an array
+
+		JsonArray a = new JsonArray();
+		a.add("store");
+		a.add("transform");
+
+		JsonObject o = new JsonObject();
+		o.add("cache-control", a);
+		o.addProperty("pragma", "no-cache");
+		env.putObject("token_endpoint_response_headers", o);
+
+		cond.execute(env);
+	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_cacheControlMissing() {
 		JsonObject o = new JsonObject();
@@ -67,9 +99,19 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
-	public void testEvaluate_isBadCacheControl() {
+	public void testEvaluate_isBadCacheControlEmpty() {
 		JsonObject o = new JsonObject();
 		o.addProperty("cache-control", "");
+		o.addProperty("pragma", "no-cache");
+		env.putObject("token_endpoint_response_headers", o);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_isBadCacheControl() {
+		JsonObject o = new JsonObject();
+		o.addProperty("cache-control", "store");
 		o.addProperty("pragma", "no-cache");
 		env.putObject("token_endpoint_response_headers", o);
 
