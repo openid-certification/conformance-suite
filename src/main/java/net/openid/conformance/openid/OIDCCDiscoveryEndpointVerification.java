@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterS
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
@@ -19,12 +20,12 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupportedDynamic;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -136,12 +137,13 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		// Includes providerinfo-has-claims_supported assertion (OIDC test)
 		// claims_supported is recommended to be present, but not required
 		callAndContinueOnFailure(OIDCCCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.WARNING, "OIDCD-3");
-		call(condition(OIDCCCheckDiscEndpointGrantTypesSupported.class)
-				.skipIfElementMissing("server", "grant_types_supported")
-				.onFail(Condition.ConditionResult.FAILURE)
-				.onSkip(Condition.ConditionResult.INFO)
-				.requirement("OIDCD-3")
-				.dontStopOnFailure());
+
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
+			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		} else {
+			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		}
+
 		call(condition(OIDCCCheckDiscEndpointScopesSupported.class)
 				.skipIfElementMissing("server", "scopes_supported")
 				.onFail(Condition.ConditionResult.FAILURE)
