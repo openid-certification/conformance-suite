@@ -57,11 +57,11 @@ public class VariantService {
 				.collect(toMap(identity(), c -> wrapModule(c)));
 
 		this.testModulesByName = testModulesByClass.values().stream()
-				.collect(toSortedMap(m -> m.info.testName(), identity()));
+				.collect(toSortedMap("test module", m -> m.info.testName(), identity()));
 
 		this.testPlansByName = inClassesWithAnnotation(PublishTestPlan.class)
 				.map(c -> wrapPlan(c))
-				.collect(toSortedMap(holder -> holder.info.testPlanName(), identity()));
+				.collect(toSortedMap("test plan", holder -> holder.info.testPlanName(), identity()));
 	}
 
 	public TestPlanHolder getTestPlan(String name) {
@@ -153,12 +153,28 @@ public class VariantService {
 	}
 
 	private static <T, K, U> Collector<T, ?, SortedMap<K, U>> toSortedMap(
+			String itemType,
 			Function<? super T, ? extends K> keyMapper,
 			Function<? super T, ? extends U> valueMapper) {
 
 		return Collector.of(TreeMap::new,
-				(m, t) -> m.put(keyMapper.apply(t), valueMapper.apply(t)),
-				(m, r) -> { m.putAll(r); return m; });
+			(m, t) -> {
+				K key = keyMapper.apply(t);
+				U value = valueMapper.apply(t);
+				if (m.containsKey(key)) {
+					throw new RuntimeException(String.format("More than one %s with the name '%s'", itemType, key));
+				}
+				m.put(key, value);
+			},
+			(m, r) -> {
+				for (K t : r.keySet()) {
+					if (m.containsKey(t)) {
+						throw new RuntimeException(String.format("More than one %s with the name '%s'", itemType, t));
+					}
+				}
+				m.putAll(r);
+				return m;
+			});
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
