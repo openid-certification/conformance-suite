@@ -13,22 +13,27 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse extends 
 	@PreEnvironment(required = "account_requests_endpoint_response")
 	@PostEnvironment(strings = "account_request_id")
 	public Environment evaluate(Environment env) {
-		String accountRequestId;
 
 		Integer obApiVersion = env.getInteger("ob_api_version");
 		if (obApiVersion == null) {
 			throw error("ob_api_version missing from environment");
 		}
 
+		String path;
 		if (obApiVersion == 2) {
-			accountRequestId = env.getString("account_requests_endpoint_response", "Data.AccountRequestId");
+			path = "Data.AccountRequestId";
 		} else if (obApiVersion == 3) {
-			accountRequestId = env.getString("account_requests_endpoint_response", "Data.ConsentId");
+			path = "Data.ConsentId";
 		} else {
 			throw error("ob_api_version "+obApiVersion+" not supported");
 		}
+		String accountRequestId = env.getString("account_requests_endpoint_response", path);
 		if (Strings.isNullOrEmpty(accountRequestId)) {
-			throw error("Couldn't find account request ID");
+			throw error("Couldn't find account request ID. (The location this is returned in varies depending "+
+				"on which version of the OpenBanking UK API is in use - the version must be included in the resource "+
+					"endpoint url as per the OpenBanking UK specs.)",
+				args("obuk_api_version", obApiVersion,
+					"path", path));
 		}
 
 		env.putString("account_request_id", accountRequestId);
