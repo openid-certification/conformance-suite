@@ -12,7 +12,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "oidcc-request-uri-unsigned",
+	testName = "oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported",
 	displayName = "OIDCC: Unsigned request_uri",
 	summary = "This test calls the authorization endpoint as normal, but passes a request_uri that points at an unsigned jwt. The authorization server must successfully complete the authorization, or return a request_uri_not_supported error. This test will be skipped if none is not listed in the server's discovery endpoint request_object_signing_alg_values_supported.",
 	profile = "OIDCC"

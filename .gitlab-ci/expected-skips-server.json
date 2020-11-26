@@ -19,6 +19,11 @@
         "configuration-filename": "authlete-*.json"
     },
     {
+        "test-name": "oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json"
+    },
+    {
         "test-name": "oidcc-request-uri-unsigned",
         "variant": "*",
         "configuration-filename": "authlete-*.json"
