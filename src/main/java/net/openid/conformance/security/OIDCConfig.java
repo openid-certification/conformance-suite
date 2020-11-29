@@ -11,7 +11,6 @@ import org.mitre.openid.connect.client.service.RegisteredClientService;
 import org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService;
 import org.mitre.openid.connect.client.service.impl.HybridClientConfigurationService;
 import org.mitre.openid.connect.client.service.impl.HybridIssuerService;
-import org.mitre.openid.connect.client.service.impl.PlainAuthRequestUrlBuilder;
 import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +24,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.header.HeaderWriter;
@@ -38,9 +39,13 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -184,6 +189,19 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
 		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
 		oidcaf.setAuthenticationManager(authenticationManager());
+		oidcaf.setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
+			@Override
+			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+				String newUrl = new DefaultUriBuilderFactory()
+					.uriString("/login.html")
+					.queryParam("error", exception.getMessage())
+					.build()
+					.toString();
+
+				response.sendRedirect(newUrl);
+			}
+		});
+
 		return oidcaf;
 	}
 
