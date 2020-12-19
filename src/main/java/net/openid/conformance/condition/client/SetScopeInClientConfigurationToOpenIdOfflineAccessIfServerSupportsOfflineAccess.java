@@ -16,7 +16,8 @@ public class SetScopeInClientConfigurationToOpenIdOfflineAccessIfServerSupportsO
 		JsonElement scopesSupported = env.getElementFromObject("server", "scopes_supported");
 
 		if (scopesSupported == null) {
-			throw error("'scopes_supported' is null");
+			log("scopes_supported is not present in the discovery document, so assuming server does not support 'offline_access' scope and hence not adding it to the list of scopes to be requested");
+			return env;
 		}
 
 		if (!scopesSupported.isJsonArray()) {
