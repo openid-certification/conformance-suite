@@ -2,7 +2,6 @@ image: alpine:latest
 
 variables:
   LM_JAVA_VERSION: 11
-  SONAR_URL: "https://sonarqube.certification.openid.net"
 
 stages:
   - build
@@ -100,30 +99,6 @@ check-trailing-whitespace:
   image: python:2
   script:
     - ./scripts/checkwhitespace.py
-  only:
-    - branches
-
-sonarqube_scanner:
-  <<: *maven
-  stage: test
-  needs: ["build"]
-  script:
-    # Don't compile anything or run tests
-    - |
-      mvn -B -Dmaven.main.skip -Dmaven.test.skip -Dpmd.skip \
-        verify sonar:sonar \
-        -Dsonar.host.url=$SONAR_URL \
-        -Dsonar.login=$SONAR_LOGIN \
-        -Dsonar.analysis.mode=preview \
-        -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA \
-        -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME \
-        -Dsonar.gitlab.project_id=$CI_PROJECT_PATH \
-        -Dsonar.gitlab.unique_issue_per_inline=true \
-        -Dsonar.gitlab.url=https://gitlab.com \
-        -Dsonar.gitlab.user_token=$SONARQUBE_BOT_API_KEY \
-        -Dsonar.gitlab.max_blocker_issues_gate=0 \
-        -Dsonar.gitlab.json_mode=SAST \
-        -Dsonar.gitlab.failure_notification_mode=exit-code
   only:
     - branches
 
