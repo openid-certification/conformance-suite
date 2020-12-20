@@ -7,6 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class OIDCCGetStaticClientConfigurationForRPTests extends AbstractCondition {
 
@@ -29,7 +30,7 @@ public class OIDCCGetStaticClientConfigurationForRPTests extends AbstractConditi
 			// we've got a client object, put it in the environment
 			JsonObject clientObject = client.getAsJsonObject();
 			if(clientObject.has("redirect_uri")) {
-				String redirectUri = clientObject.get("redirect_uri").getAsString();
+				String redirectUri = OIDFJSON.getString(clientObject.get("redirect_uri"));
 				JsonArray redirectUrisArray = new JsonArray();
 				redirectUrisArray.add(redirectUri);
 				clientObject.remove("redirect_uri");
@@ -37,7 +38,7 @@ public class OIDCCGetStaticClientConfigurationForRPTests extends AbstractConditi
 			}
 			//post_logout_redirect_uri to post_logout_redirect_uris
 			if(clientObject.has("post_logout_redirect_uri")) {
-				String redirectUri = clientObject.get("post_logout_redirect_uri").getAsString();
+				String redirectUri = OIDFJSON.getString(clientObject.get("post_logout_redirect_uri"));
 				JsonArray redirectUrisArray = new JsonArray();
 				redirectUrisArray.add(redirectUri);
 				clientObject.remove("post_logout_redirect_uri");

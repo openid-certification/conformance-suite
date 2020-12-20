@@ -163,7 +163,7 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 
 		for(JsonElement element : jsonElements) {
 			try {
-				URI uri = new URI(element.getAsString());
+				URI uri = new URI(OIDFJSON.getString(element));
 				if(expectedURI.equals(uri)) {
 					return true;
 				}
@@ -179,7 +179,7 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 	public boolean checkSanIP(JsonArray jsonElements, String expected) {
 		InetAddress expectedAddress = InetAddresses.forString(expected);
 		for(JsonElement element : jsonElements) {
-			InetAddress address = InetAddresses.forString(element.getAsString());
+			InetAddress address = InetAddresses.forString(OIDFJSON.getString(element));
 			if(expectedAddress.equals(address)) {
 				return true;
 			}
@@ -189,7 +189,7 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 
 	private boolean jsonArrayContainsCaseInsensitive(JsonArray jsonElements, String expectedValue) {
 		for(JsonElement element : jsonElements) {
-			String elementValue = element.getAsString();
+			String elementValue = OIDFJSON.getString(element);
 			if(elementValue.toLowerCase(Locale.ENGLISH).equals(expectedValue.toLowerCase(Locale.ENGLISH))) {
 				return true;
 			}

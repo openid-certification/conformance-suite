@@ -23,6 +23,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
@@ -144,7 +145,7 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 		JWK selectedKey = null;
 		if(JWSAlgorithm.Family.HMAC_SHA.contains(jwsAlgorithm)) {
 			//if using MAC based alg, create a jwk from client secret
-			String clientSecret = client.get("client_secret").getAsString();
+			String clientSecret = OIDFJSON.getString(client.get("client_secret"));
 			selectedKey = new OctetSequenceKey.Builder(Base64URL.encode(clientSecret))
 				.keyUse(KeyUse.SIGNATURE)
 				.algorithm(jwsAlgorithm)
