@@ -59,6 +59,13 @@
 			<artifactId>jcl-over-slf4j</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<version>0.15.0</version>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- OpenID Connect Client -->
 		<dependency>
 			<groupId>org.mitre</groupId>
