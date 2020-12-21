@@ -1,15 +1,13 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Use this condition for logging a WARNING only
@@ -37,7 +35,7 @@ public class OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject
 				//only when it is exactly "openid".
 				//We will log a warning when it is "openid xyz" in http request but "openid xyz abc" in request object
 				if("scope".equals(paramName)) {
-					String scopeValue = authzEndpointReqParams.get(paramName).getAsString();
+					String scopeValue = OIDFJSON.getString(authzEndpointReqParams.get(paramName));
 					if("openid".equals(scopeValue)) {
 						continue;
 					}

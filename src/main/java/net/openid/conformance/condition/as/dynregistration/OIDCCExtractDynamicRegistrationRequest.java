@@ -1,13 +1,12 @@
 package net.openid.conformance.condition.as.dynregistration;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class OIDCCExtractDynamicRegistrationRequest extends AbstractCondition {
 
@@ -16,7 +15,7 @@ public class OIDCCExtractDynamicRegistrationRequest extends AbstractCondition {
 	@PostEnvironment(required = { "dynamic_registration_request"})
 	public Environment evaluate(Environment env) {
 
-		String requestBody = env.getObject("incoming_request").get("body").getAsString();
+		String requestBody = OIDFJSON.getString(env.getObject("incoming_request").get("body"));
 		JsonObject requestJson = new JsonParser().parse(requestBody).getAsJsonObject();
 		env.putObject("dynamic_registration_request", requestJson);
 		logSuccess("Extracted dynamic client registration request", args("request", requestJson));
