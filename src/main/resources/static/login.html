@@ -37,7 +37,7 @@
 					<a class="btn btn-primary btn-lg" href="/openid_connect_login?iss=https://gitlab.com">Log in with gitlab</a>
 				</p>
                 <div>
-                    <h4 class="lead text-center">Or use another OIDC provider</h4>
+                    <h4 class="lead text-center">Or use another OpenID Connect provider that supports <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery">'webfinger'</a></h4>
                     <form action="/openid_connect_login" method="post" id="login_form" onsubmit="addAcctToIdentifierValue()">
                         <div class="form-group">
                             <label for="identifier">User Name :</label> <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com" />

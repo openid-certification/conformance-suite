@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"(as per OIDCC-6.1) and process the authentication correctly, " +
 		"or show an invalid redirect_uri error - upload a screenshot of the error page. " +
 		"This is an extra test that wasn't present in the python suite, and ensures implementations are " +
-		"processing request objects correctly. The test will be skipped if the server discovery document does not indicate support for unsigned request objects (alg:none).",
+		"processing request objects correctly. The test will be skipped if the server discovery document indicates the server only supports signed request objects (i.e. the server does not support unsigned request objects, indicated by 'request_object_signing_alg_values_supported' not containing 'none').",
 	profile = "OIDCC"
 )
 public class OIDCCEnsureRequestObjectWithRedirectUri extends AbstractOIDCCRequestObjectServerTestExpectingRedirectOrPlaceholder {
