@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
@@ -35,6 +36,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		if(isPar) {
+			allowPlainErrorResponseForJarm = true;
+		}
+	}
 
 	@Override
 	protected void createPlaceholder() {

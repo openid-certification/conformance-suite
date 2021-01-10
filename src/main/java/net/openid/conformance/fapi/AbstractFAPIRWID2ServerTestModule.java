@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
@@ -161,6 +162,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected int whichClient;
 	protected boolean jarm = false;
+	protected boolean allowPlainErrorResponseForJarm = false;
 	protected boolean isPar = false;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -616,19 +618,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
 		if (jarm) {
-			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
-			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI-RW-5.2.5", "JARM-4.3.4", "JARM-4.3.1");
-
-			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
-
-			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
-
-			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
-
-			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
-
-			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.WARNING, "JARM-4.4-6");
-
+			processCallbackForJARM();
 		} else {
 			// FAPI-RW otherwise always requires the hybrid flow, use the hash as the response
 			env.mapKey("authorization_endpoint_response", "callback_params");
@@ -642,6 +632,33 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		eventLog.endBlock();
 	}
+
+	/**
+	 * For error responses, we allow a JARM response, or an error page or a plain (non-jarm) error response
+	 * per https://gitlab.com/openid/conformance-suite/-/issues/860
+	 */
+	protected void processCallbackForJARM() {
+		String errorParameter = env.getString("callback_query_params", "error");
+		String responseParameter = env.getString("callback_query_params", "response");
+		if(allowPlainErrorResponseForJarm && responseParameter==null && errorParameter!=null) {
+			//plain error response, no jarm
+			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
+		} else {
+			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI-RW-5.2.5", "JARM-4.3.4", "JARM-4.3.1");
+
+			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
+
+			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
+
+			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
+
+			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
+
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.WARNING, "JARM-4.4-6");
+		}
+	}
+
 
 	protected void performProfileIdTokenValidation() {
 		if (profileIdTokenValidationSteps != null) {
