@@ -10,7 +10,14 @@ import java.util.List;
 
 public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
 
-	private static final List<String> EXPECTED_PARAMS = ImmutableList.of("error", "error_description", "error_uri", "state", "session_state");
+	private static final List<String> EXPECTED_PARAMS = ImmutableList.of(
+		"error",
+		"error_description",
+		"error_uri",
+		"state",
+		"session_state",
+		"iss" // https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp
+	);
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
