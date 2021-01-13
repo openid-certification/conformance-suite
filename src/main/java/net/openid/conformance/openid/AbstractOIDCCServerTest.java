@@ -506,9 +506,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndContinueOnFailure(CheckMatchingStateParameter.class, ConditionResult.FAILURE);
 		if (responseType.includesCode()) {
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		}

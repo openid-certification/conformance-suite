@@ -426,7 +426,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 	protected void onAuthorizationCallbackResponse() {
 
-		callAndStopOnFailure(CheckMatchingCallbackParameters.class);
+		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(RejectStateInUrlQueryForHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
