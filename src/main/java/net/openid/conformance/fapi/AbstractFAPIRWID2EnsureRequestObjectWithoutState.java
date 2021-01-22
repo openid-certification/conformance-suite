@@ -60,9 +60,9 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
-			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+			callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
 			handleSuccessfulAuthorizationEndpointResponse();
 
