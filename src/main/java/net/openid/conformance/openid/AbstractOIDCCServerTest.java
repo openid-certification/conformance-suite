@@ -72,6 +72,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstReq
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
@@ -507,6 +508,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void onAuthorizationCallbackResponse() {
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
+		// as https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp is still a draft we only warn if the value is wrong,
+		// and do not require it to be present.
+		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, ConditionResult.WARNING, "OAuth2-iss-2");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		callAndContinueOnFailure(CheckMatchingStateParameter.class, ConditionResult.FAILURE);
 		if (responseType.includesCode()) {
@@ -616,6 +620,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	 */
 	protected void performGenericAuthorizationEndpointErrorResponseValidation() {
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE);
+		// as https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp is still a draft we only warn if the value is wrong,
+		// and do not require it to be present.
+		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, ConditionResult.WARNING, "OAuth2-iss-2");
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(RejectAuthCodeInAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING, "OIDCC-3.1.2.6");

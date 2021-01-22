@@ -103,6 +103,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
 import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
@@ -439,6 +440,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 
 		callAndContinueOnFailure(CheckMatchingStateParameter.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
+
+		// as https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp is still a draft we only warn if the value is wrong,
+		// and do not require it to be present.
+		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, ConditionResult.WARNING, "OAuth2-iss-2");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
