@@ -15,7 +15,7 @@ import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
 import net.openid.conformance.condition.client.CheckHeartServerJwksFields;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingStateParameter;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckRedirectUri;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -151,7 +151,7 @@ public class NativeDelegatedClientAS extends AbstractRedirectServerTestModule {
 
 	private void handleAuthorizationResult() {
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckStateInAuthorizationResponse.class);
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 

@@ -25,9 +25,8 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckMatchingStateParameter;
-import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -512,7 +511,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		// and do not require it to be present.
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, ConditionResult.WARNING, "OAuth2-iss-2");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		callAndContinueOnFailure(CheckMatchingStateParameter.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE);
 		if (responseType.includesCode()) {
 			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 		}

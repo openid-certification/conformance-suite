@@ -24,7 +24,7 @@ import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingStateParameter;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -204,7 +204,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 
 	private void handleAuthorizationResult() {
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckStateInAuthorizationResponse.class);
 
 		// check the ID token from the hybrid response
 
@@ -353,7 +353,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 	private void handleSecondClientAuthorizationResult() {
 
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckStateInAuthorizationResponse.class);
 
 		// we skip the validation steps for the second client and as long as it's not an error we use the results for negative testing
 
