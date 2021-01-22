@@ -52,6 +52,9 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
 		}
+		if(isPar) {
+			allowPlainErrorResponseForJarm = true;
+		}
 	}
 
 	@Override

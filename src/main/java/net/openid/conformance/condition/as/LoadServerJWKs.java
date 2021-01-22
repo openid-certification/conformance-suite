@@ -35,7 +35,7 @@ public class LoadServerJWKs extends AbstractCondition {
 			env.putObject("server_public_jwks", publicJwks);
 			env.putObject("server_jwks", privateJwks);
 
-			logSuccess("Parsed public and private JWK sets", args("server_public_jwks", publicJwks, "server_jwks", jwks));
+			logSuccess("Parsed public and private JWK sets", args("server_public_jwks", publicJwks, "server_jwks", privateJwks));
 
 			return env;
 

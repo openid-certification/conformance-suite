@@ -55,6 +55,7 @@ public class FAPIRWID2PARAttemptReuseRequestUri extends AbstractFAPIRWID2ServerT
 		eventLog.startBlock("Attempting reuse of request_uri and testing if Authorization server returns error in callback");
 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 		secondAttempt = true;
+		allowPlainErrorResponseForJarm = true;
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}

@@ -1,5 +1,6 @@
 package net.openid.conformance.par;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
@@ -36,6 +37,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"by_value"
 })
 public class FAPIRWID2PARAttemptToUseExpiredRequestUri extends AbstractFAPIRWID2ServerTestModule {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		allowPlainErrorResponseForJarm = true;
+	}
 
 	@Override
 	protected void createPlaceholder() {
