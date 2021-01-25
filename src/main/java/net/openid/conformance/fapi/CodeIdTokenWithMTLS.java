@@ -24,7 +24,7 @@ import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingStateParameter;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -208,7 +208,7 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 	private void handleAuthorizationResult() {
 
 
-		callAndStopOnFailure(CheckMatchingStateParameter.class);
+		callAndStopOnFailure(CheckStateInAuthorizationResponse.class);
 
 		// check the ID token from the hybrid response
 

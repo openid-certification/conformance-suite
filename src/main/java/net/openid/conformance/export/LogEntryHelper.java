@@ -42,6 +42,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");
 		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
+		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.");
 		specLinks.put("MTLS-", "https://tools.ietf.org/html/draft-ietf-oauth-mtls#section-");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
