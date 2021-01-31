@@ -40,7 +40,7 @@ public class OIDCCLoadUserInfo extends AbstractCondition {
 		user.addProperty("email", "user@example.com");
 		user.addProperty("email_verified", false);
 		user.addProperty("website", "https://openid.net/");
-		user.addProperty("updated_at", "1580000000");
+		user.addProperty("updated_at", 1580000000);
 
 		//TODO add a picture?
 		//user.addProperty("picture", );

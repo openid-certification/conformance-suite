@@ -191,7 +191,7 @@ public class LogApi_UnitTest {
 			"Hollywood\",\"region\":\"CA\",\"postal_code\":\"91608\",\"country\":\"USA\"},\"zoneinfo\":\"Amer"+
 			"ica/Los_Angeles\",\"locale\":\"en-US\",\"phone_number\":\"+1 555 5550000\",\"phone_number_"+
 			"verified\":false,\"email\":\"user@example.com\",\"email_verified\":false,\"website\":\"htt"+
-			"ps://openid.net/\",\"updated_at\":\"1580000000\"},\"testId\":\"BeDwk5rd8H\",\"src\":\"OIDCCL"+
+			"ps://openid.net/\",\"updated_at\":1580000000},\"testId\":\"BeDwk5rd8H\",\"src\":\"OIDCCL"+
 			"oadUserInfo\",\"testOwner\":{\"sub\":\"developer\",\"iss\":\"https://developer.com\"},\"time"+
 			"\":1590130872657},{\"_id\":\"BeDwk5rd8H-w7vVtF3O66LfbU791jyk3VVR4DLS7QpI\",\"msg\":\"Def"+
 			"inition for client not present in supplied configuration\",\"result\":\"INFO\",\"testI"+
