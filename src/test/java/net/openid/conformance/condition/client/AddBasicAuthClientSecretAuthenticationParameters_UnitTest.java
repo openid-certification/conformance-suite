@@ -19,6 +19,9 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @RunWith(MockitoJUnitRunner.class)
 public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 
@@ -70,4 +73,17 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 		assertThat(env.getString("token_endpoint_request_headers", "Authorization")).isEqualTo(expectedAuth);
 	}
 
+	@Test
+	public void testEvaluate_noErrorUrlEncoding() {
+		JsonObject clientWithSpecialChars = new JsonParser().parse("{"
+			+ "\"client_id\":\"s6BhdRkqt3%\","
+			+ "\"client_secret\":\"7Fjfp0Z%Br1KtDRbnfVdmIw%\""
+			+ "}").getAsJsonObject();
+
+		String expectedAuthHeader = "Basic czZCaGRSa3F0MyUyNTo3RmpmcDBaJTI1QnIxS3REUmJuZlZkbUl3JTI1";
+		env.putObject("client", clientWithSpecialChars);
+		cond.execute(env);
+		String actualAuthHeader = env.getString("token_endpoint_request_headers", "Authorization");
+		assertThat(actualAuthHeader).isEqualTo(expectedAuthHeader);
+	}
 }
