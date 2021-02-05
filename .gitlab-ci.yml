@@ -54,7 +54,10 @@ upload:
     - setup_docker
     - install_build_dependencies
     - docker build -t conformance-suite .
-    - if [ -n "$GCP_PROJECT_ID" ]; then upload; fi
+    - upload
+  allow_failure:
+    exit_codes:
+      - 137
 
 test:
   <<: *maven
@@ -490,6 +493,16 @@ local_test:
   }
 
   function upload() {
+    if [ -z "$GCP_PROJECT_ID" ]; then
+      echo "No GCP integration configured - the full set of tests cannot be run."
+      echo ""
+      echo "If this is a merge request being submitted to"
+      echo "https://gitlab.com/openid/conformance-suite"
+      echo "an OIDF developer will review the code and then create a new pipeline"
+      echo "to run the full set of tests."
+      exit 137 # this will show as a warning in the pipeline, see allow_failure: entry
+    fi
+
     docker tag conformance-suite "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
 
     echo "Logging in to container registry..."
