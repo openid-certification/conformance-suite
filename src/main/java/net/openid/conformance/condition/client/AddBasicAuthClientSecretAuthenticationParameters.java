@@ -1,5 +1,7 @@
 package net.openid.conformance.condition.client;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import com.google.gson.JsonObject;
@@ -35,7 +37,12 @@ public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCo
 			env.putObject("token_endpoint_request_headers", headers);
 		}
 
-		String pw = Base64.getEncoder().encodeToString((id + ":" + secret).getBytes());
+		String pw = Base64.getEncoder().encodeToString((
+			//application/x-www-form-urlencoded as per https://tools.ietf.org/html/rfc6749#section-2.3.1
+			URLEncoder.encode(id, StandardCharsets.UTF_8) +
+			":" +
+			URLEncoder.encode(secret, StandardCharsets.UTF_8)
+			).getBytes());
 
 		headers.addProperty("Authorization", "Basic " + pw);
 

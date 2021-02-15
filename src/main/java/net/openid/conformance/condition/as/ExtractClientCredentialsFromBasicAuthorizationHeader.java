@@ -1,5 +1,7 @@
 package net.openid.conformance.condition.as;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
@@ -46,8 +48,8 @@ public class ExtractClientCredentialsFromBasicAuthorizationHeader extends Abstra
 			throw error("Unexpected number of parts to authorization header", args("basic_auth", parts));
 		}
 
-		String clientId = parts.get(0);
-		String clientSecret = parts.get(1);
+		String clientId = URLDecoder.decode(parts.get(0), StandardCharsets.UTF_8);
+		String clientSecret = URLDecoder.decode(parts.get(1), StandardCharsets.UTF_8);
 
 		JsonObject clientAuthentication = new JsonObject();
 		clientAuthentication.addProperty("client_id", clientId);
