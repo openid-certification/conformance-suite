@@ -13,7 +13,7 @@
                 });
                 if (spec) {
                 // link to the spec if we have it %>
-                <span class="log-requirement label labelCollection label-default"><a href="<%- (FAPI_UI.specLinks[spec] + sectionIndex)%>"><%- requirement %> <span class="glyphicon glyphicon-link"></span></a></span>
+                <span class="log-requirement label labelCollection label-default"><a href="<%- (FAPI_UI.specLinks[spec] + sectionIndex)%>" target="_blank"><%- requirement %> <span class="glyphicon glyphicon-link"></span></a></span>
                 <% } else { %>
                 <span class="log-requirement label labelCollection label-default"><%- requirement %></span>
                 <% }
