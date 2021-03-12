@@ -36,6 +36,11 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13 extends AbstractConditio
 			String cipher = env.getString("client_request", "headers.x-ssl-cipher");
 
 			if (!RECOMMENDED.contains(cipher)) {
+				// "actual" here uses the openssl names instead of the standard iana ones, which is annoying but
+				// apache can only give us the openssl ones: https://httpd.apache.org/docs/current/mod/mod_ssl.html
+				// and there doesn't seem to be an easy way to map back: https://stackoverflow.com/questions/63491644/openssl-1-1-get-a-cipher-suite-by-the-iana-id
+				// https://testssl.sh/openssl-iana.mapping.html
+				// openssl ciphers -V outputs the hex codes and openssl names, in theory we could get the hex code then lookup in org.bouncycastle.crypto.tls.CipherSuite to convert to the standard name
 				throw error("TLS 1.2 in use and cipher is not one recommended by BCP195", args("expected", RECOMMENDED, "actual", cipher));
 			}
 			logSuccess("TLS 1.2 in use and cipher is one recommended by BCP195", args("recommended", RECOMMENDED, "actual", cipher));
