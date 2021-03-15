@@ -1,7 +1,8 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "trackableappname" . }}
+  creationTimestamp: null
   labels:
     app: {{ template "appname" . }}
     track: "{{ .Values.application.track }}"
@@ -11,9 +12,22 @@ metadata:
     app.gitlab.com/app: "{{ .Values.application.path_slug }}"
     app.gitlab.com/env: "{{ .Values.application.env_slug }}"
 spec:
+  progressDeadlineSeconds: 2147483647
   replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 2147483647
+  selector:
+    matchLabels:
+      app: {{ template "appname" . }}
+      track: "{{ .Values.application.track }}"
+      tier: "{{ .Values.application.tier }}"
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: {{ template "appname" . }}
         track: "{{ .Values.application.track }}"
@@ -68,18 +82,25 @@ spec:
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
+          protocol: TCP
         livenessProbe:
+          failureThreshold: 3
+          successThreshold: 1
           tcpSocket:
             port: {{ .Values.service.internalPort }}
           initialDelaySeconds: 30
           periodSeconds: 30
           timeoutSeconds: 15
         readinessProbe:
+          failureThreshold: 3
+          successThreshold: 1
           tcpSocket:
             port: {{ .Values.service.internalPort }}
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 3
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         resources:
 {{ toYaml .Values.resources | indent 12 }}
       {{- if .Values.nodeSelector }}
@@ -90,3 +111,9 @@ spec:
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
       {{- end }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}
