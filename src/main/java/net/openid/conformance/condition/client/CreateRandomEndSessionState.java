@@ -19,6 +19,10 @@ public class CreateRandomEndSessionState extends AbstractCondition {
 		// @see net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint_UnitTest.testEscape
 		state = state.replace('+', '~');
 		state = state.replace(' ', '~');
+
+		// avoid ; as spring seems to not process them correctly when they're returned to us unescaped; see
+		// https://gitlab.com/openid/conformance-suite/-/issues/871
+		state = state.replace(';', '~');
 		env.putString("end_session_state", state);
 
 		log("Created end_session_state value", args("end_session_state", state));

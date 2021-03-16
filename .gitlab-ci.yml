@@ -118,7 +118,7 @@ check-trailing-whitespace:
 #    paths: [codeclimate.json]
 
 .auto-deploy:
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.0.7"
+  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.1.0"
 
 .deploy: &deploy
   extends: .auto-deploy
@@ -399,6 +399,13 @@ local_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
+
+    # temporary change to update the deprecated kubernetes pre-1.15 configs to ones compatible with 1.16;
+    # these lines can be removed once all environments are upgraded
+    helm plugin install https://github.com/hickeyma/helm-mapkubeapis
+    # we ignore errors from this as it'll fail if this is a new deployment (e.g. new review app)
+    # it appears to be harmless if run on an already updated environment
+    helm mapkubeapis $CI_ENVIRONMENT_SLUG --release-storage configmaps --tiller-out-cluster --namespace $TILLER_NAMESPACE --v2 || true
 
     helm upgrade --install \
       --wait \

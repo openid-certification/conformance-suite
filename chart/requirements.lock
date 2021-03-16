@@ -1,6 +1,6 @@
 dependencies:
 - name: mongodb
-  repository: https://charts.helm.sh/stable
-  version: 5.0.0
-digest: sha256:fac1732653d74e23633f61fb233e27c1f07141c924b72066f790287d21dcc764
-generated: "2020-12-19T11:41:47.346297Z"
+  repository: https://charts.bitnami.com/bitnami
+  version: 7.2.11
+digest: sha256:0c20fb183ec5c3029ce0cbd498e7a63cba66fd31785ce5bc45a7714adf4063c5
+generated: "2021-03-16T08:54:17.341019Z"
