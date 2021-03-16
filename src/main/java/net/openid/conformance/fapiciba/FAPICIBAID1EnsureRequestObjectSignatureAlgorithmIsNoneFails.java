@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
@@ -39,8 +38,9 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsNoneFails extends
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
+
+		addClientAuthenticationToBackchannelRequest();
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 	}
