@@ -508,6 +508,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	}
 
 	protected void performPostAuthorizationFlow() {
+		eventLog.startBlock(currentClientString() + "Call token endpoint");
+
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
 		requestAuthorizationCode();
@@ -536,6 +538,8 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void requestAuthorizationCode() {
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
