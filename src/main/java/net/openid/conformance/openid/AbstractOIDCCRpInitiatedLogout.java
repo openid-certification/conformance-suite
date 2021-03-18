@@ -69,8 +69,6 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 
 
 	protected void onPostAuthorizationFlowComplete() {
-		callAndStopOnFailure(ExtractSessionStateFromAuthorizationResponse.class, "OIDCSM-3");
-
 		eventLog.startBlock("Redirect to end session endpoint & wait for response");
 		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCRIL-2", "RFC6749A-A.5");
 		callAndStopOnFailure(CreateEndSessionEndpointRequest.class, "OIDCRIL-2");
