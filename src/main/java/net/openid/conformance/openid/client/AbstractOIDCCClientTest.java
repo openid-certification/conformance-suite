@@ -29,6 +29,7 @@ import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNo
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureRequestDoesNotContainRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
+import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttpsOrRequestObjectIsSigned;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
@@ -1024,6 +1025,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, "OIDCC-6.1");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
 
 		String alg = env.getString("authorization_request_object", "header.alg");
 
