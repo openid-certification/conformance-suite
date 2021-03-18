@@ -758,7 +758,7 @@ def output_summary_test_plan_by_unexpected_type(variant, config_filename, overal
         result = test_result['test_result']
         if result[key]:
             test_name = test_result['test_name']
-            header = '\t\t{} ({})'.format(test_name, test_result['log_detail_link'])
+            header = '\t\t{} {}'.format(test_name, test_result['log_detail_link'])
             if 'skip' in key:
                 print(failure(header))
                 continue
