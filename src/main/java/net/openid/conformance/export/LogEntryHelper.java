@@ -34,6 +34,8 @@ public class LogEntryHelper {
 		specLinks = new HashMap<>();
 		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
 		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
+		specLinks.put("FAPI1-BASELINE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");
+		specLinks.put("FAPI1-ADVANCED-", "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.");
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
 		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");
