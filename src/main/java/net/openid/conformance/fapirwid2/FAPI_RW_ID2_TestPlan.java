@@ -1,14 +1,5 @@
 package net.openid.conformance.fapirwid2;
 
-import net.openid.conformance.par.FAPIRWID2PARAttemptReuseRequestUri;
-import net.openid.conformance.par.FAPIRWID2PARAttemptToUseExpiredRequestUri;
-import net.openid.conformance.par.FAPIRWID2PARCheckAudienceForJWTClientAssertion;
-import net.openid.conformance.par.FAPIRWID2PAREnsureRequestUriIsBoundToClient;
-import net.openid.conformance.par.FAPIRWID2PARRejectInvalidAudienceInRequestObject;
-import net.openid.conformance.par.FAPIRWID2PARRejectInvalidHttpVerb;
-import net.openid.conformance.par.FAPIRWID2PARRejectInvalidRedirectUri;
-import net.openid.conformance.par.FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams;
-import net.openid.conformance.par.FAPIRWID2PARRejectRequestUriInParAuthorizationRequest;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 

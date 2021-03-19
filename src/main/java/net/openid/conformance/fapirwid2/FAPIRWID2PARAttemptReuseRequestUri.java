@@ -1,4 +1,4 @@
-package net.openid.conformance.par;
+package net.openid.conformance.fapirwid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.ExpectInvalidRequestUriErrorPage;
-import net.openid.conformance.fapirwid2.AbstractFAPIRWID2ServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;

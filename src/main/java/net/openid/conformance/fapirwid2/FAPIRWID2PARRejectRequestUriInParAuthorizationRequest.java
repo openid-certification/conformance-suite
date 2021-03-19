@@ -1,10 +1,9 @@
-package net.openid.conformance.par;
+package net.openid.conformance.fapirwid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToAuthorizationRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
-import net.openid.conformance.fapirwid2.AbstractFAPIRWID2ServerTestModule;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
