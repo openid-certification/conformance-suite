@@ -16,7 +16,7 @@ import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForClientSecretJwt;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForMtls;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.CreateAuthorizationRequestSteps;

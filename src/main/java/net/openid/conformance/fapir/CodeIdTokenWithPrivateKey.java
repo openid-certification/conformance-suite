@@ -1,4 +1,4 @@
-package net.openid.conformance.fapi;
+package net.openid.conformance.fapir;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;

@@ -45,7 +45,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
-import net.openid.conformance.fapi.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.springframework.http.HttpStatus;

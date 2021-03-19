@@ -1,14 +1,10 @@
-package net.openid.conformance.fapi;
+package net.openid.conformance.testmodule;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.ExtractImplicitHashToCallbackResponse;
 import net.openid.conformance.condition.common.CreateRandomImplicitSubmitUrl;
-import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.UserFacing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

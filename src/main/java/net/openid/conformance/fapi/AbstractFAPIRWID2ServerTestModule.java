@@ -132,6 +132,7 @@ import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpoint
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIRWOPProfile;
