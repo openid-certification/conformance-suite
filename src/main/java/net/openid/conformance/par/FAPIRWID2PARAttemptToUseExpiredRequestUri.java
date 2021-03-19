@@ -3,7 +3,7 @@ package net.openid.conformance.par;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi.AbstractFAPIRWID2ServerTestModule;
+import net.openid.conformance.fapirwid2.AbstractFAPIRWID2ServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;

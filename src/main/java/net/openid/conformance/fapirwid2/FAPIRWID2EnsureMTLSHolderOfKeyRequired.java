@@ -1,37 +1,41 @@
-package net.openid.conformance.fapiciba;
+package net.openid.conformance.fapirwid2;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
+import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
-import net.openid.conformance.fapirwid2.FAPIRWID2EnsureMTLSHolderOfKeyRequired;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-ensure-mtls-holder-of-key-required",
-	displayName = "FAPI-CIBA-ID1: ensure mtls holder of key required",
+	testName = "fapi-rw-id2-ensure-mtls-holder-of-key-required",
+	displayName = "FAPI-RW-ID2: ensure mtls holder of key required",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
-	profile = "FAPI-CIBA-ID1",
+	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
+		"client.client_id",
 		"client.scope",
 		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"client2.client_id",
 		"client2.scope",
 		"client2.jwks",
 		"mtls2.key",
@@ -40,22 +44,20 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID1 {
+public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
-	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
-	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -99,17 +101,17 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 	}
 
 	@Override
-	protected void performPostAuthorizationResponse() {
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+		performPostAuthorizationFlow();
+	}
+
+	@Override
+	protected void performPostAuthorizationFlow() {
+		createAuthorizationCodeRequest();
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndStopOnFailure(CreateTokenEndpointRequestForCIBAGrant.class);
-		callAndStopOnFailure(AddAuthReqIdToTokenEndpointRequest.class);
-
-		addClientAuthenticationToTokenEndpointRequest();
-
 		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
-
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
@@ -122,16 +124,30 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 
 			if (env.getBoolean(CheckTokenEndpointReturnedJsonContentType.tokenEndpointResponseWasJsonKey)) {
 				call(sequence(validateTokenEndpointResponseSteps));
-				validateErrorFromTokenEndpointResponse();
+				callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+				callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
+				callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+				callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			}
 		}
 
-		cleanupAfterBackchannelRequestShouldHaveFailed();
+		fireTestFinished();
 	}
 
-	protected void processNotificationCallback(JsonObject requestParts) {
-		// we've already done the testing; we just approved the authentication so that we don't leave an
-		// in-progress authentication lying around that would sometime later send an 'expired' ping
-		fireTestFinished();
+	public static class ValidateTokenEndpointResponseWithMTLS extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
+	}
+
+	public static class ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the ssl connection was not dropped, we expect one of invalid_request, invalid_grant or invalid_client
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
 	}
 }
