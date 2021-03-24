@@ -52,8 +52,9 @@ public class FAPICIBAID1EnsureRequestObjectSignedByOtherClientFails extends Abst
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
+
+		addClientAuthenticationToBackchannelRequest();
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 

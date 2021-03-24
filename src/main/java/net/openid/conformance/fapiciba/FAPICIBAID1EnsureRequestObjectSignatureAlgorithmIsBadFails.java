@@ -54,8 +54,9 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsBadFails extends 
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
+
+		addClientAuthenticationToBackchannelRequest();
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
 	}
