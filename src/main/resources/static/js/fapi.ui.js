@@ -418,7 +418,9 @@ var FAPI_UI = {
 			} else if (typeof(v) === 'string') {
 				return v;
 			} else {
-				return Object.values(v).join(", ");
+				return Object.entries(v).map(function(val, index, arr) {
+					return val.join('=');
+				}).join(', ');
 			}
 		},
 
