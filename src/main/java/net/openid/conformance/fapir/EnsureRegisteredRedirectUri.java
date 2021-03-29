@@ -1,4 +1,4 @@
-package net.openid.conformance.fapi;
+package net.openid.conformance.fapir;
 
 import com.google.gson.JsonObject;
 
@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FapiRClientAuthType;

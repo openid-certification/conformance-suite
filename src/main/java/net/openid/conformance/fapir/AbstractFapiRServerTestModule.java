@@ -1,4 +1,4 @@
-package net.openid.conformance.fapi;
+package net.openid.conformance.fapir;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.FapiRClientAuthType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;

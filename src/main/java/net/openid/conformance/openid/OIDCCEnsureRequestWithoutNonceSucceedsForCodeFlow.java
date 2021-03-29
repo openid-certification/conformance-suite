@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-ensure-request-without-nonce-succeeds-for-code-flow",
 	displayName = "OIDCC: ensure request without nonce succeeds (non-implicit flows)",
-	summary = "This test should end with the authorization server issuing an authorization code, even though a nonce was not supplied.",
+	summary = "This test should end with the authorization server issuing an authorization code, even though a nonce was not supplied. nonce is required for all flows that return an id_token from the authorization endpoint, see https://bitbucket.org/openid/connect/issues/972/nonce-requirement-in-hybrid-auth-request / https://bitbucket.org/openid/connect/issues/1052/make-clear-that-nonce-is-always-required and the latest OpenID Connect errata draft, https://openid.net/specs/openid-connect-core-1_0-27.html#NonceNotes",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {
