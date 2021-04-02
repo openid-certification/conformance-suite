@@ -428,7 +428,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, "OIDCC-6.1");
 
-		callAndStopOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
 
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
 

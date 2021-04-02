@@ -135,8 +135,9 @@
                     </button>
                     <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
                 </div>
-                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" onsubmit="certificationPackageFormOnSubmit()">
+                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
                 <div class="modal-body">
+                    <div id="certificationPackageFormErrors"></div>
                     Clicking the &quot;Prepare Certification Package&quot; button will trigger the following:
                     <ol>
                         <li>The test plan will be published (This will make all keys, secrets, and all other test information publicly visible.)</li>
@@ -158,7 +159,7 @@
                                     <label class="text-success">
                                         OpenID-Certification-Terms-and-Conditions.pdf
                                     </label>
-                                    <input type="file" name="termsAndConditionsPdf" accept="application/pdf">
+                                    <input type="file" id="termsAndConditionsPdfBtn" name="termsAndConditionsPdf" accept="application/pdf">
                                     <p class="help-block">Upload the file as is.</p>
                                 </fieldset>
                         </div>
@@ -167,7 +168,7 @@
                                     <label class="text-success">
                                         OpenID-Certification-of-Conformance.pdf
                                     </label>
-                                    <input type="file" name="certificationOfConformancePdf" accept="application/pdf">
+                                    <input type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
                                     <p class="help-block">Upload the signed certification of conformance file.</p>
                                 </fieldset>
                         </div>
@@ -176,7 +177,7 @@
                                 <label class="text-success">
                                     Client Data (For RP Tests Only)
                                 </label>
-                                <input type="file" name="clientSideData" accept="application/zip">
+                                <input type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip">
                                 <p class="help-block">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
                             </fieldset>
                         </div>
@@ -407,11 +408,50 @@
 		   });
 	   }
 
-        function certificationPackageFormOnSubmit(){
-            $('#certificationPackageFormSubmitBtn').attr('disabled', 'disabled');
-            $('#certificationPackageFormRefreshNotice').show();
-            return true;
+       function showDialogError(containerId, error) {
+            $('<div class="alert alert-danger">' +
+               '<button type="button" class="close" data-dismiss="alert">' +
+               '&times;</button>' + error + '</div>').appendTo('#' + containerId);
         }
+
+       /**
+        * Checks file inputs to make sure they're within max file size limits
+        * @param filesToCheck array of file 'input' element IDs to check
+        * @param maxFileSize max file size
+        * @returns {number} -1 if all files are less than maxFileSize
+        *                   else the return value is the nth element
+        *                   in the list
+        */
+       function validateFileSizes(filesToCheck, maxFileSize) {
+           for(var i = 0; i < filesToCheck.length; i++) {
+               var file = $('#' + filesToCheck[i]);
+               if(file[0].files && file[0].files.length > 0) {
+                   if(file[0].files[0].size > maxFileSize) {
+                       return i;
+                   }
+               }
+           }
+           return -1;
+       }
+
+       $('#certificationPackageForm').on('submit', certificationPackageFormOnSubmit);
+
+        function certificationPackageFormOnSubmit(e){
+            const filesToCheck = ["termsAndConditionsPdfBtn", "certificationOfConformancePdfBtn", "clientSideDataBtn"];
+            const maxFileSize = 1024000;
+            const fileNum = validateFileSizes(filesToCheck, maxFileSize);
+            if( fileNum >= 0) {
+                e.preventDefault();
+                showDialogError('certificationPackageFormErrors', $('#' + filesToCheck[fileNum])[0].files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+	            return false;
+            } else {
+                $('#certificationPackageFormSubmitBtn').attr('disabled', 'disabled');
+                $('#certificationPackageFormRefreshNotice').show();
+                return true;
+            }
+        }
+
+
 		$(document).ready(function() {
 			var urlParams = new URLSearchParams(window.location.search);
 			var planId = urlParams.get('plan');

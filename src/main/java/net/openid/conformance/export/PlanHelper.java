@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 public class PlanHelper {
@@ -73,7 +72,7 @@ public class PlanHelper {
 			if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
 				PublicPlan publicPlan = (PublicPlan)planExportInfo.getPlanInfo();
 				if(publicPlan.getVariant()!=null && publicPlan.getVariant().getVariant()!=null) {
-					return String.join(", ", publicPlan.getVariant().getVariant().values());
+					return publicPlan.getVariant().getVariantAsKeyPairString();
 				} else {
 					return "";
 				}
@@ -81,7 +80,7 @@ public class PlanHelper {
 				Plan plan = (Plan)planExportInfo.getPlanInfo();
 				//will be null for old tests
 				if(plan.getVariant()!=null && plan.getVariant().getVariant()!=null) {
-					return String.join(", ", plan.getVariant().getVariant().values());
+					return plan.getVariant().getVariantAsKeyPairString();
 				} else {
 					return "";
 				}

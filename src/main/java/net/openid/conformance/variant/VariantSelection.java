@@ -58,6 +58,18 @@ public class VariantSelection {
 		return variant;
 	}
 
+	public String getVariantAsKeyPairString() {
+		if(variant != null) {
+			return variant.entrySet()
+				.stream()
+				.map(e -> e.getKey() + "=" + e.getValue())
+				.collect(Collectors.joining(", "));
+		} else {
+			return "";
+		}
+	}
+
+
 	public String getLegacyVariant() {
 		return variant.get(LEGACY_VARIANT_NAME);
 	}

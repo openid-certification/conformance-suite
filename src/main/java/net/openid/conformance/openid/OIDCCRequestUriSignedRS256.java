@@ -4,12 +4,15 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
+import net.openid.conformance.condition.client.AddRequestObjectSigningAlgRS256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsRS256;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -27,6 +30,12 @@ public class OIDCCRequestUriSignedRS256 extends AbstractOIDCCRequestUriServerTes
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
 		callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsRS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+	}
+
+	@Override
+	protected void createDynamicClientRegistrationRequest() {
+		super.createDynamicClientRegistrationRequest();
+		callAndStopOnFailure(AddRequestObjectSigningAlgRS256ToDynamicRegistrationRequest.class);
 	}
 
 	public static class CreateAuthorizationRedirectSteps extends AbstractConditionSequence {
@@ -49,7 +58,36 @@ public class OIDCCRequestUriSignedRS256 extends AbstractOIDCCRequestUriServerTes
 
 	@Override
 	protected void createAuthorizationRedirect() {
-		call(new CreateAuthorizationRedirectSteps());
+		boolean keysMapped = false;
+		try {
+			// The flow is slightly different when using client_secret_jwt client authentication.
+			// It has to map 'client_jwks' to the saved 'rsa_client_jwks' so that the RSA keys can be
+			// used to sign the request object
+			JsonObject rsaClientJwks = env.getObject("rsa_client_jwks");
+			if((getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_SECRET_JWT) && (rsaClientJwks != null)) {
+				env.mapKey("client_jwks", "rsa_client_jwks");
+				keysMapped = true;
+			}
+			call(new CreateAuthorizationRedirectSteps());
+		} finally {
+			if(keysMapped) {
+				env.unmapKey("client_jwks");
+			}
+		}
 	}
 
+	@Override
+	protected void completeClientConfiguration() {
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+		if (profileCompleteClientConfiguration != null) {
+			// When using client_secret_jwt client authentication, the client secret JWK
+			// generated overwrites the RSA keys used for signing the Request object with
+			// RS256 algorithm, so we need to save the RSA key first so we can use it later
+			JsonObject clientJwk = env.getObject("client_jwks");
+			if((getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_SECRET_JWT) && (clientJwk != null)) {
+				env.putObject("rsa_client_jwks", clientJwk);
+			}
+			call(sequence(profileCompleteClientConfiguration));
+		}
+	}
 }

@@ -8,6 +8,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -34,6 +35,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientAuthNone;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
@@ -173,6 +175,15 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
+	public class ConfigureClientForAuthTypeNone extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			if (serverSupportsDiscovery) {
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientAuthNone.class, ConditionResult.FAILURE);
+			}
+		}
+	}
+
 	public class ConfigureClientForClientSecretBasic extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
@@ -235,6 +246,13 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
+	public static class AddAuthClientNoneAuthenticationToTokenRequest extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AddFormBasedClientIdAuthenticationParameters.class);
+		}
+	}
+
 	public static class AddBasicAuthClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
@@ -252,8 +270,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupNone() {
 		profileStaticClientConfiguration = null;
-		profileCompleteClientConfiguration = null;
-		addTokenEndpointClientAuthentication = null;
+		profileCompleteClientConfiguration = () -> new ConfigureClientForAuthTypeNone();
+		addTokenEndpointClientAuthentication = AddAuthClientNoneAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")

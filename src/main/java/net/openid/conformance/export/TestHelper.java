@@ -240,13 +240,13 @@ public class TestHelper {
 			return variantDoc.toJson();
 		} else if(this.publicTestInfo!=null) {
 			if(this.publicTestInfo.getVariant()!=null && this.publicTestInfo.getVariant().getVariant()!=null) {
-				return String.join(", ", this.publicTestInfo.getVariant().getVariant().values());
+				return this.publicTestInfo.getVariant().getVariantAsKeyPairString();
 			} else {
 				return "";
 			}
 		} else if(this.testInfoObject!=null) {
 			if(this.testInfoObject.getVariant()!=null && this.testInfoObject.getVariant().getVariant()!=null) {
-				return String.join(", ", this.testInfoObject.getVariant().getVariant().values());
+				return this.testInfoObject.getVariant().getVariantAsKeyPairString();
 			} else {
 				return "";
 			}
