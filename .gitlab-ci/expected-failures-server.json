@@ -29,39 +29,6 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": {
-                "fapi_profile": "openbanking_uk"
-        },
-        "configuration-filename": "authlete-*.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
-        "expected-result": "failure",
-        "comment": "authlete doesn't currently make this check"
-    },
-    {
-        "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": {
-            "fapi_profile": "openbanking_uk"
-        },
-        "configuration-filename": "authlete-*.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError",
-        "expected-result": "failure",
-        "comment": "authlete doesn't currently make this check"
-    },
-    {
-        "test-name": "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-        "variant": {
-            "fapi_profile": "openbanking_uk"
-        },
-        "configuration-filename": "authlete-*.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
-        "expected-result": "warning",
-        "comment": "authlete doesn't currently make this check"
-    },
-    {
         "test-name": "fapi-rw-id2-refresh-token",
         "variant": {
                 "client_auth_type": "private_key_jwt",
