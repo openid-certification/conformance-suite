@@ -100,6 +100,10 @@ public class JWTUtil {
 			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
 			JWK decryptionKey = null;
 			if(JWEAlgorithm.Family.SYMMETRIC.contains(alg)) {
+				if (client == null) {
+					// see comment in ExtractIdTokenFromAuthorizationResponse
+					throw new ParseException("The JWT is encrypted with a symmetric key", 0);
+				}
 				String client_secret = OIDFJSON.getString(client.get("client_secret"));
 				if (client_secret == null) {
 					throw new ParseException("A client secret is required to decrypt this JWT", 0);
