@@ -34,8 +34,6 @@ public class OIDCCClientConfigTestPlan implements TestPlan {
 					OIDCCClientTestDiscoveryOpenIDConfiguration.class, // rp-discovery-openid-configuration
 					OIDCCClientTestDiscoveryJwksUriKeys.class,	//rp-discovery-jwks_uri-keys
 					OIDCCClientTestDiscoveryIssuerMismatch.class,	//rp-discovery-issuer-not-matching-config
-					//TODO Decide what to do: rp-id_token-sig-none is marked as "optional" in the profile document but
-					// mandatory at https://rp.certification.openid.net:8080/list?profile=CNF
 					OIDCCClientTestIdTokenSigAlgNone.class,	//rp-id_token-sig-none
 					//rp-key-rotation-op-sign-key-native does not exist in the profile document
 					OIDCCClientTestSigningKeyRotationNative.class,	//rp-key-rotation-op-sign-key-native
