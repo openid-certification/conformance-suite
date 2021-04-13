@@ -1,5 +1,7 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.ClientDidNotContinueAfterReceivingUnsignedIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.SetServerSigningAlgToNone;
 import net.openid.conformance.condition.as.SignIdTokenWithAlgNone;
@@ -66,7 +68,7 @@ public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
 			Thread.sleep(waitTimeoutSeconds * 1000);
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
-				setResult(Result.WARNING);
+				callAndContinueOnFailure(ClientDidNotContinueAfterReceivingUnsignedIdToken.class, Condition.ConditionResult.WARNING);
 				fireTestFinished();
 			}
 			return "done";
