@@ -44,8 +44,6 @@ public class OIDCCClientBasicTestPlan implements TestPlan {
 					// https://rp.certification.openid.net:8080/list?profile=C
 					OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks.class,	//rp-id_token-kid-absent-multiple-jwks
 					OIDCCClientTestIdTokenSignedUsingRS256.class,	//rp-id_token-sig-rs256
-					//TODO rp-id_token-sig-none is optional in the profile document but mandatory at
-					// https://rp.certification.openid.net:8080/list?profile=C
 					OIDCCClientTestIdTokenSigAlgNone.class,	//rp-id_token-sig-none
 					//TODO rp-id_token-bad-sig-rs256 is optional in the profile document but mandatory at
 					// https://rp.certification.openid.net:8080/list?profile=C
