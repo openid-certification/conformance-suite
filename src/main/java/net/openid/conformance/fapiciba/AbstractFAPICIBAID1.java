@@ -1089,6 +1089,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
+		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
+		// token endpoint even when using private_key_jwt client authentication
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
 	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")

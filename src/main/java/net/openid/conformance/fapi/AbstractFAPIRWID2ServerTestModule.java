@@ -773,6 +773,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
+		// token endpoint even when using private_key_jwt client authentication
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 

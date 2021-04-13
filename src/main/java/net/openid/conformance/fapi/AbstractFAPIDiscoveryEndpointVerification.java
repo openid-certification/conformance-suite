@@ -124,5 +124,8 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
+		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
+		// token endpoint even when using private_key_jwt client authentication
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 }
