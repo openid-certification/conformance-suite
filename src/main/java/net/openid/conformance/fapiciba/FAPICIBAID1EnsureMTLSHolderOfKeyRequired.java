@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -113,8 +115,15 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			call(sequence(validateTokenEndpointResponseSteps));
-			validateErrorFromTokenEndpointResponse();
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+
+			// this is only a warning to allow for an SSL terminator returning a generic 400 response
+			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.3.4");
+
+			if (env.getBoolean(CheckTokenEndpointReturnedJsonContentType.tokenEndpointResponseWasJsonKey)) {
+				call(sequence(validateTokenEndpointResponseSteps));
+				validateErrorFromTokenEndpointResponse();
+			}
 		}
 
 		cleanupAfterBackchannelRequestShouldHaveFailed();
