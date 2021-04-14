@@ -994,6 +994,11 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']:
+            # skip CI for FAPI1 Final for now as CI is not setup yet
+            untested_test_modules.remove(m)
+            continue
+
         if all_test_modules[m]['profile'] in ['HEART']:
             untested_test_modules.remove(m)
             continue
