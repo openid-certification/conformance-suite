@@ -37,7 +37,7 @@ import net.openid.conformance.variant.FAPIRWOPProfile;
 			"resource.resourceUrl"
 		}
 	)
-public class FAPIRWID2 extends AbstractFAPIRWID2MultipleClient {
+public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient {
 
 	protected void checkAccountRequestEndpointTLS() {
 		eventLog.startBlock("Accounts request endpoint TLS test");

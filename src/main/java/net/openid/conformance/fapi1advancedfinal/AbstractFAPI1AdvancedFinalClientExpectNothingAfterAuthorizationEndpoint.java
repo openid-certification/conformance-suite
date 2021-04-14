@@ -1,6 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
-public abstract class AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint extends AbstractFAPIRWID2ClientTest {
+public abstract class AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override
 	protected Object authorizationEndpoint(String requestId){

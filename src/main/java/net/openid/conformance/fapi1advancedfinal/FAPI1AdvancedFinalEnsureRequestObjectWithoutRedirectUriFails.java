@@ -34,7 +34,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

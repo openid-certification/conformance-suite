@@ -35,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalEnsureRequestObjectWithInvalidSignatureFails extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

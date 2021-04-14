@@ -46,7 +46,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPIRWID2PARRejectInvalidRedirectUri extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalPARRejectInvalidRedirectUri extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

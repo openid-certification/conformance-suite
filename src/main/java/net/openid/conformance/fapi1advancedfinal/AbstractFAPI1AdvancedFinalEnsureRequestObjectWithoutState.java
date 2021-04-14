@@ -22,7 +22,7 @@ import net.openid.conformance.condition.client.VerifyNoSHash;
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.sequence.ConditionSequence;
 
-public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public abstract class AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

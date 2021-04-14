@@ -24,6 +24,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
+public class FAPI1AdvancedFinalEnsureRequestObjectWithoutState extends AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState {
 
 }

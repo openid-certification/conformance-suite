@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPIRWID2ClientTest extends AbstractFAPIRWID2ClientTest {
+public class FAPI1AdvancedFinalClientTest extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){

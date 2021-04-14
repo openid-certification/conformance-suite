@@ -161,7 +161,7 @@ import java.util.function.Supplier;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirectServerTestModule {
+public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
 	protected boolean jarm = false;

@@ -41,7 +41,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void performIdTokenValidation() {

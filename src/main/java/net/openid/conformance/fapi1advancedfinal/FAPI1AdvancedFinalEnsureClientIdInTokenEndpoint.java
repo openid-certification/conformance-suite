@@ -35,7 +35,7 @@ import net.openid.conformance.variant.ClientAuthType;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureClientIdInTokenEndpoint extends AbstractFAPIRWID2PerformTokenEndpoint {
+public class FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {

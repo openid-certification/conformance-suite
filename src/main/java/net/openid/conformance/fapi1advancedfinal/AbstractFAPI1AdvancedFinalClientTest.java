@@ -106,7 +106,7 @@ import javax.servlet.http.HttpSession;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
+public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";

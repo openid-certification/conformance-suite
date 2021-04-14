@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPIRWID2PARAttemptToUseExpiredRequestUri extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalPARAttemptToUseExpiredRequestUri extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

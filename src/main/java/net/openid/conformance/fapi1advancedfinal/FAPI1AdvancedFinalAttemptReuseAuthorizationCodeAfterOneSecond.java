@@ -28,7 +28,7 @@ import org.apache.http.HttpStatus;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2AttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPIRWID2AttemptReuseAuthorizationCode {
+public class FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI1AdvancedFinalAttemptReuseAuthorizationCode {
 
 	@Override
 	protected void waitForAmountOfTime() {

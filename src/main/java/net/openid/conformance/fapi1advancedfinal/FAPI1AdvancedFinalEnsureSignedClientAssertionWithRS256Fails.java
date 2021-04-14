@@ -42,7 +42,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
-public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends AbstractFAPIRWID2PerformTokenEndpoint {
+public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

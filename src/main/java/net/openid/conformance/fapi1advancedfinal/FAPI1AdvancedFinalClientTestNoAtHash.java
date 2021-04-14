@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
-public class FAPIRWID2ClientTestNoAtHash extends AbstractFAPIRWID2ClientTest {
+public class FAPI1AdvancedFinalClientTestNoAtHash extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

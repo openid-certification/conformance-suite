@@ -33,7 +33,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"by_value"
 })
 //PAR-2.3.3 : If the request did not use POST, the authorization server shall return 405 Method Not Allowed HTTP error response.
-public class FAPIRWID2PARRejectInvalidHttpVerb extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalPARRejectInvalidHttpVerb extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void performParAuthorizationRequestFlow() {

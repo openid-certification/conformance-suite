@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTo
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 
-public abstract class AbstractFAPIRWID2MultipleClient extends AbstractFAPIRWID2ServerTestModule {
+public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {

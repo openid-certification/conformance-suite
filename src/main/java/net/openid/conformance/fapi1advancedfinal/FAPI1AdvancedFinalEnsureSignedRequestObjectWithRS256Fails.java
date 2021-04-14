@@ -39,7 +39,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

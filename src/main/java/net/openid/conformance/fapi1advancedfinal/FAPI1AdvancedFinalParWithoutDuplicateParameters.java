@@ -28,7 +28,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {"by_value"})
-public class FAPIRWID2ParWithoutDuplicateParameters extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalParWithoutDuplicateParameters extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void performPARRedirectWithRequestUri() {

@@ -44,7 +44,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 

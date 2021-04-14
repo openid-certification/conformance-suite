@@ -23,7 +23,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestIatIsWeekInPast extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

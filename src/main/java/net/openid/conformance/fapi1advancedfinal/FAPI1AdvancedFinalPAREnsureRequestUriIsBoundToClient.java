@@ -33,7 +33,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPIRWID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPIRWID2ServerTestModule {
+public class FAPI1AdvancedFinalPAREnsureRequestUriIsBoundToClient extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

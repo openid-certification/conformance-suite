@@ -33,7 +33,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIRWOPProfile.class, values = { "plain_fapi", "consumerdataright_au" })
-public class FAPIRWID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

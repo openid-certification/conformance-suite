@@ -9,80 +9,80 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
-		FAPIRWID2DiscoveryEndpointVerification.class,
-		FAPIRWID2.class,
-		FAPIRWID2UserRejectsAuthentication.class,
-		FAPIRWID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
-		FAPIRWID2EnsureAuthorizationRequestWithoutStateSuccess.class,
-		FAPIRWID2EnsureValidPKCESucceeds.class,
-		FAPIRWID2EnsureOtherScopeOrderSucceeds.class,
+		FAPI1AdvancedFinalDiscoveryEndpointVerification.class,
+		FAPI1AdvancedFinal.class,
+		FAPI1AdvancedFinalUserRejectsAuthentication.class,
+		FAPI1AdvancedFinalEnsureServerAcceptsRequestObjectWithMultipleAud.class,
+		FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPI1AdvancedFinalEnsureValidPKCESucceeds.class,
+		FAPI1AdvancedFinalEnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
-		FAPIRWID2EnsureResponseModeQuery.class,
-		FAPIRWID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
-		FAPIRWID2EnsureRegisteredRedirectUri.class,
-		FAPIRWID2EnsureRequestObjectWithLongNonce.class,
-		FAPIRWID2EnsureRequestObjectWithLongState.class,
+		FAPI1AdvancedFinalEnsureResponseModeQuery.class,
+		FAPI1AdvancedFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class,
+		FAPI1AdvancedFinalEnsureRegisteredRedirectUri.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithLongState.class,
 
 		// Negative tests for request objects
-		FAPIRWID2EnsureRequestObjectWithoutExpFails.class,
-		FAPIRWID2EnsureRequestObjectWithoutScopeFails.class,
-		FAPIRWID2EnsureRequestObjectWithoutState.class,
-		FAPIRWID2EnsureRequestObjectWithoutNonceFails.class,
-		FAPIRWID2EnsureRequestObjectWithoutRedirectUriFails.class,
-		FAPIRWID2EnsureExpiredRequestObjectFails.class,
-		FAPIRWID2EnsureRequestObjectWithBadAudFails.class,
-		FAPIRWID2EnsureSignedRequestObjectWithRS256Fails.class,
-		FAPIRWID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
-		FAPIRWID2EnsureRequestObjectWithInvalidSignatureFails.class,
-		FAPIRWID2EnsureMatchingKeyInAuthorizationRequest.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutExpFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutScopeFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutState.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutNonceFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails.class,
+		FAPI1AdvancedFinalEnsureExpiredRequestObjectFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails.class,
+		FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithInvalidSignatureFails.class,
+		FAPI1AdvancedFinalEnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
-		FAPIRWID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
-		FAPIRWID2EnsureRedirectUriInAuthorizationRequest.class,
-		FAPIRWID2EnsureResponseTypeCodeFails.class,
+		FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutRequestObjectFails.class,
+		FAPI1AdvancedFinalEnsureRedirectUriInAuthorizationRequest.class,
+		FAPI1AdvancedFinalEnsureResponseTypeCodeFails.class,
 
 		// Negative tests for token endpoint
-		FAPIRWID2EnsureClientIdInTokenEndpoint.class,
-		FAPIRWID2EnsureMTLSHolderOfKeyRequired.class,
-		FAPIRWID2EnsureAuthorizationCodeIsBoundToClient.class,
+		FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint.class,
+		FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired.class,
+		FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient.class,
 
 		// Private key specific tests
-		FAPIRWID2EnsureSignedClientAssertionWithRS256Fails.class,
-		FAPIRWID2EnsureClientAssertionInTokenEndpoint.class,
-		FAPIRWID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
-		FAPIRWID2EnsureClientAssertionWithWrongAudFails.class,
-		FAPIRWID2EnsureClientAssertionWithNoSubFails.class,
+		FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionInTokenEndpoint.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithWrongAudFails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithNoSubFails.class,
 
 		//Refresh token tests
-		FAPIRWID2RefreshToken.class,
+		FAPI1AdvancedFinalRefreshToken.class,
 
 		// OB systems specific tests
-		FAPIRWID2EnsureServerHandlesNonMatchingIntentId.class,
+		FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId.class,
 
-		FAPIRWID2TestEssentialAcrScaClaim.class,
-		FAPIRWID2AttemptReuseAuthorizationCodeAfter30S.class,
-		FAPIRWID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
+		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
+		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfter30S.class,
+		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		//PAR tests
-		FAPIRWID2PARAttemptReuseRequestUri.class,
-		FAPIRWID2PARAttemptToUseExpiredRequestUri.class,
-		FAPIRWID2PARCheckAudienceForJWTClientAssertion.class,
-		FAPIRWID2PAREnsureRequestUriIsBoundToClient.class,
-		FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams.class,
-		FAPIRWID2PARRejectInvalidHttpVerb.class,
+		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,
+		FAPI1AdvancedFinalPARAttemptToUseExpiredRequestUri.class,
+		FAPI1AdvancedFinalPARCheckAudienceForJWTClientAssertion.class,
+		FAPI1AdvancedFinalPAREnsureRequestUriIsBoundToClient.class,
+		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams.class,
+		FAPI1AdvancedFinalPARRejectInvalidHttpVerb.class,
 
 		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
-		FAPIRWID2PARRejectInvalidAudienceInRequestObject.class,
-		FAPIRWID2PARRejectInvalidRedirectUri.class,
-		FAPIRWID2PARRejectRequestUriInParAuthorizationRequest.class,
+		FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject.class,
+		FAPI1AdvancedFinalPARRejectInvalidRedirectUri.class,
+		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationRequest.class,
 
-		FAPIRWID2ParWithoutDuplicateParameters.class
+		FAPI1AdvancedFinalParWithoutDuplicateParameters.class
 
 		// TODO: for PAR, we could also try passing a non-signed request to the PAR endpoint
 
 	}
 )
-public class FAPIRWID2TestPlan implements TestPlan {
+public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 
 }

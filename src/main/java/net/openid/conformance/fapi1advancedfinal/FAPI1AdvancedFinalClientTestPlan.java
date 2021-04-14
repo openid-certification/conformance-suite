@@ -8,30 +8,30 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "FAPI-RW-ID2: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
-		FAPIRWID2ClientTest.class,
-		FAPIRWID2ClientTestInvalidSHash.class,
-		FAPIRWID2ClientTestInvalidCHash.class,
-		FAPIRWID2ClientTestInvalidNonce.class,
-		FAPIRWID2ClientTestInvalidIss.class,
-		FAPIRWID2ClientTestInvalidAud.class,
-		FAPIRWID2ClientTestInvalidSecondaryAud.class,
-		FAPIRWID2ClientTestInvalidSignature.class,
-		FAPIRWID2ClientTestInvalidNullAlg.class,
-		FAPIRWID2ClientTestInvalidAlternateAlg.class,
-		FAPIRWID2ClientTestInvalidExpiredExp.class,
-		FAPIRWID2ClientTestInvalidMissingExp.class,
-		FAPIRWID2ClientTestIatIsWeekInPast.class,
-		FAPIRWID2ClientTestInvalidMissingAud.class,
-		FAPIRWID2ClientTestInvalidMissingIss.class,
-		FAPIRWID2ClientTestInvalidMissingNonce.class,
-		FAPIRWID2ClientTestInvalidMissingSHash.class,
-		FAPIRWID2ClientTestValidAudAsArray.class,
+		FAPI1AdvancedFinalClientTest.class,
+		FAPI1AdvancedFinalClientTestInvalidSHash.class,
+		FAPI1AdvancedFinalClientTestInvalidCHash.class,
+		FAPI1AdvancedFinalClientTestInvalidNonce.class,
+		FAPI1AdvancedFinalClientTestInvalidIss.class,
+		FAPI1AdvancedFinalClientTestInvalidAud.class,
+		FAPI1AdvancedFinalClientTestInvalidSecondaryAud.class,
+		FAPI1AdvancedFinalClientTestInvalidSignature.class,
+		FAPI1AdvancedFinalClientTestInvalidNullAlg.class,
+		FAPI1AdvancedFinalClientTestInvalidAlternateAlg.class,
+		FAPI1AdvancedFinalClientTestInvalidExpiredExp.class,
+		FAPI1AdvancedFinalClientTestInvalidMissingExp.class,
+		FAPI1AdvancedFinalClientTestIatIsWeekInPast.class,
+		FAPI1AdvancedFinalClientTestInvalidMissingAud.class,
+		FAPI1AdvancedFinalClientTestInvalidMissingIss.class,
+		FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
+		FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
+		FAPI1AdvancedFinalClientTestValidAudAsArray.class,
 
 		// OB systems specific tests
-		FAPIRWID2ClientTestNoAtHash.class,
-		FAPIRWID2ClientTestInvalidOpenBankingIntentId.class
+		FAPI1AdvancedFinalClientTestNoAtHash.class,
+		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class
 	}
 )
-public class FAPIRWID2ClientTestPlan implements TestPlan {
+public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 
 }
