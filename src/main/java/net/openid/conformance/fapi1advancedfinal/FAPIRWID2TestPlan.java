@@ -83,6 +83,6 @@ import net.openid.conformance.plan.TestPlan;
 
 	}
 )
-public class FAPI_RW_ID2_TestPlan implements TestPlan {
+public class FAPIRWID2TestPlan implements TestPlan {
 
 }
