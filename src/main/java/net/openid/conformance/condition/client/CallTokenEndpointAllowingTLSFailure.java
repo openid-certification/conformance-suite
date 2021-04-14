@@ -1,7 +1,9 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonParseException;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.TestFailureException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
@@ -28,4 +30,9 @@ public class CallTokenEndpointAllowingTLSFailure extends CallTokenEndpointAndRet
 		return super.handleResponseException(env, e);
 	}
 
+	@Override
+	protected Environment handleJsonParseException(Environment env, JsonParseException e) {
+		log("token endpoint response parsed but not valid JSON");
+		return env;
+	}
 }

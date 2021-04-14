@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -103,27 +104,32 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 			if (Strings.isNullOrEmpty(jsonString)) {
 				throw error("Missing or empty response from the token endpoint");
-			} else {
-				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Token Endpoint did not return a JSON object");
-					}
-
-					logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
-
-					env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
-
-					return env;
-				} catch (JsonParseException e) {
-					throw error(e);
-				}
 			}
+
+			try {
+				JsonElement jsonRoot = new JsonParser().parse(jsonString);
+				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+					throw error("Token Endpoint did not return a JSON object");
+				}
+
+				logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
+
+				env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
+
+				return env;
+			} catch (JsonParseException e) {
+				return handleJsonParseException(env, e);
+			}
+
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 
+	}
+
+	protected Environment handleJsonParseException(Environment env, JsonParseException e) {
+		throw error("Error parsing token endpoint response body as JSON", e);
 	}
 
 	protected Environment handleResponseException(Environment env, RestClientException e) {

@@ -404,7 +404,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			if (isSecondClient) {
 				callAndStopOnFailure(AddIatToRequestObject.class);
-				// nbf is optional in current FAPI-RW-ID2; it will become mandatory in ID3
+				// nbf is optional in current FAPI-RW-ID2; it will become mandatory in Final
 				callAndStopOnFailure(AddNbfToRequestObject.class);
 			}
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-12");
@@ -773,6 +773,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
+		// token endpoint even when using private_key_jwt client authentication
+		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
