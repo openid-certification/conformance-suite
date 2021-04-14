@@ -712,11 +712,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-5");
 		}
 
-		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.OPENBANKING_UK) {
-			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-			// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
-		}
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
@@ -789,7 +784,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication);
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
 	}
