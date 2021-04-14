@@ -18,10 +18,10 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-client-assertion-with-no-sub-fails",
-	displayName = "FAPI-RW-ID2: ensure client_assertion with no sub fails",
+	testName = "fapi1-advanced-final-ensure-client-assertion-with-no-sub-fails",
+	displayName = "FAPI1-Advanced-Final: ensure client_assertion with no sub fails",
 	summary = "This test passes a client assertion where 'sub' is missing to the token endpoint. The server must reject this, returning an 'invalid_client' error. It is vital that the server requires the 'sub' claim, as this is the primary reason a signed request object cannot be used as a client authentication assertion.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

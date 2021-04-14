@@ -18,10 +18,10 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-client-assertion-with-wrong-aud-fails",
-	displayName = "FAPI-RW-ID2: ensure client_assertion with wrong aud fails",
+	testName = "fapi1-advanced-final-ensure-client-assertion-with-wrong-aud-fails",
+	displayName = "FAPI1-Advanced-Final: ensure client_assertion with wrong aud fails",
 	summary = "This test passes client assertion where 'aud' is wrong (is for a different server). The server must be rejected at the token endpoint and returning an error message that the 'aud' claim of the client assertion is invalid.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

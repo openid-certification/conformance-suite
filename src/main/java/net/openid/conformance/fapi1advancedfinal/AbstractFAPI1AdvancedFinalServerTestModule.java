@@ -152,8 +152,7 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
-	"resource.resourceUrlAccountsResource",
-	"resource.institution_id"
+	"resource.resourceUrlAccountsResource"
 })
 @VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"resource.cdrVersion"

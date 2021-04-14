@@ -28,10 +28,10 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-discovery-end-point-verification",
-	displayName = "FAPI-RW-ID2: Discovery Endpoint Verification",
+	testName = "fapi1-advanced-final-discovery-end-point-verification",
+	displayName = "FAPI1-Advanced-Final: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's configurations (including scopes, response_types, grant_types etc) is containing the required value in the specification",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 	}

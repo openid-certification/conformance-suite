@@ -14,10 +14,10 @@ import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-long-nonce",
-	displayName = "FAPI-RW-ID2: ensure request object with long nonce",
+	testName = "fapi1-advanced-final-ensure-request-object-with-long-nonce",
+	displayName = "FAPI1-Advanced-Final: ensure request object with long nonce",
 	summary = "This test passes a 384 character nonce in the request object. The authorization server must either successfully authenticate and return the nonce correctly, or if it does not support nonces that long it may return an invalid_request error back to the client or show an error page (saying the server rejects long nonce - upload a screenshot of the error page). The server MUST NOT return the nonce corrupted or truncated.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -16,10 +16,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIRWOPProfile;
 
 @PublishTestModule(
-		testName = "fapi-rw-id2",
-		displayName = "FAPI-RW-ID2",
+		testName = "fapi1-advanced-final",
+		displayName = "FAPI1-Advanced-Final",
 		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that TLS Certificate-Bound access tokens (required by the FAPI-RW spec) are correctly implemented.",
-		profile = "FAPI-RW-ID2",
+		profile = "FAPI1-Advanced-Final",
 		configurationFields = {
 			"server.discoveryUrl",
 			"client.client_id",

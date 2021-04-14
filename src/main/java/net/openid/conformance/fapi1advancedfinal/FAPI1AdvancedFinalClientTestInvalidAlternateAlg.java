@@ -5,10 +5,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-invalid-alternate-alg",
-	displayName = "FAPI-RW-ID2: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected",
+	testName = "fapi1-advanced-final-client-test-invalid-alternate-alg",
+	displayName = "FAPI1-Advanced-Final: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

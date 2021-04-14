@@ -10,10 +10,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
 @PublishTestModule(
-	testName = "fapi-rw-id2-par-authorization-request-containing-request_uri-form-param",
+	testName = "fapi1-advanced-final-par-authorization-request-containing-request_uri-form-param",
 	displayName = "PAR : The request_uri authorization request parameter MUST NOT be provided",
 	summary = "This test sends a random request_uri form parameter in PAR authorization request and expects authorization server to return an error",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

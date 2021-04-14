@@ -14,10 +14,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-without-nonce-fails",
-	displayName = "FAPI-RW-ID2: ensure request object without nonce fails",
+	testName = "fapi1-advanced-final-ensure-request-object-without-nonce-fails",
+	displayName = "FAPI1-Advanced-Final: ensure request object without nonce fails",
 	summary = "This test should end with the authorization server showing an error message that the request or request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error (in both cases due to the missing nonce). nonce is required for all flows that return an id_token from the authorization endpoint, see https://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken and https://bitbucket.org/openid/connect/issues/972/nonce-requirement-in-hybrid-auth-request",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

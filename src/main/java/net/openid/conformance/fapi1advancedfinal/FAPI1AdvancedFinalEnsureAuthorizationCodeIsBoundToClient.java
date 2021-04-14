@@ -20,10 +20,10 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-authorization-code-is-bound-to-client",
-	displayName = "FAPI-RW-ID2: ensure authorization code is bound to client",
+	testName = "fapi1-advanced-final-ensure-authorization-code-is-bound-to-client",
+	displayName = "FAPI1-Advanced-Final: ensure authorization code is bound to client",
 	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

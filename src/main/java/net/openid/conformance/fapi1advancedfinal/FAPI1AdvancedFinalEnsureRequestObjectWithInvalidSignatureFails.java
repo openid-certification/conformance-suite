@@ -14,10 +14,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-invalid-signature-fails",
-	displayName = "FAPI-RW-ID2: ensure request object with invalid signature fails",
+	testName = "fapi1-advanced-final-ensure-request-object-with-invalid-signature-fails",
+	displayName = "FAPI1-Advanced-Final: ensure request object with invalid signature fails",
 	summary = "This test should end with the authorization server showing an error message that the signature of the request object is not verified (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

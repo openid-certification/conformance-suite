@@ -13,10 +13,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-without-redirect-uri-fails",
-	displayName = "FAPI-RW-ID2: ensure request object without redirect_uri fails",
+	testName = "fapi1-advanced-final-ensure-request-object-without-redirect-uri-fails",
+	displayName = "FAPI1-Advanced-Final: ensure request object without redirect_uri fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid due to the invalid redirect uri (a screenshot of which should be uploaded) or (in the case where the client only has one redirect_uri registered) with the user being redirected back to the client's registered redirect_uri with a correct error response.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

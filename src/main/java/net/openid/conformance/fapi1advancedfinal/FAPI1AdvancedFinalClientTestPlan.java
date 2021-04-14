@@ -4,8 +4,8 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan (
-	testPlanName = "fapi-rw-id2-client-test-plan",
-	displayName = "FAPI-RW-ID2: Relying Party (client test)",
+	testPlanName = "fapi1-advanced-final-client-test-plan",
+	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI1AdvancedFinalClientTest.class,

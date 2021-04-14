@@ -16,10 +16,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-test-essential-acr-sca-claim",
-	displayName = "FAPI-RW-ID2: check behaviour of openbankinguk server when an essential acr claim for SCA is made",
+	testName = "fapi1-advanced-final-test-essential-acr-sca-claim",
+	displayName = "FAPI1-Advanced-Final: check behaviour of openbankinguk server when an essential acr claim for SCA is made",
 	summary = "This test requests an acr claim for SCA with essential=true, The server can choose to reject this by showing an access_denied error (a screenshot of which should be uploaded), or by the user being redirected back to the conformance suite with a correct error response. Alternatively the server can accept the request, in which case it must perform SCA and must return an acr in the id_token as SCA.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

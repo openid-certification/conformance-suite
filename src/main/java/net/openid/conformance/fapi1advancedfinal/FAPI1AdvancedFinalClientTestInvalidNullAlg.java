@@ -5,10 +5,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-invalid-null-alg",
-	displayName = "FAPI-RW-ID2: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected",
+	testName = "fapi1-advanced-final-client-test-invalid-null-alg",
+	displayName = "FAPI1-Advanced-Final: client test - null algorithm used for serialization of id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

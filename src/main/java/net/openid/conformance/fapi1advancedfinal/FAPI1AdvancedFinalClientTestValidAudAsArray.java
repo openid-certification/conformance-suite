@@ -5,10 +5,10 @@ import net.openid.conformance.condition.as.SignIdTokenBypassingNimbusChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-valid-aud-as-array",
-	displayName = "FAPI-RW-ID2: client test - valid aud in id_token as data type array",
+	testName = "fapi1-advanced-final-client-test-valid-aud-as-array",
+	displayName = "FAPI1-Advanced-Final: client test - valid aud in id_token as data type array",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

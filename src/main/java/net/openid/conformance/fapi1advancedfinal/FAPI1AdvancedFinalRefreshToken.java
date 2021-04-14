@@ -23,10 +23,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIRWOPProfile;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-refresh-token",
-	displayName = "FAPI-RW-ID2: test refresh token behaviours",
+	testName = "fapi1-advanced-final-refresh-token",
+	displayName = "FAPI1-Advanced-Final: test refresh token behaviours",
 	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

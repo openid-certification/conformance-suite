@@ -6,10 +6,10 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-par-without-duplicate-parameters",
-	displayName = "FAPI-RW-ID2: PAR request without duplicate parameters",
+	testName = "fapi1-advanced-final-par-without-duplicate-parameters",
+	displayName = "FAPI1-Advanced-Final: PAR request without duplicate parameters",
 	summary = "This test makes a PAR request and calls the authorization endpoint passing only the client_id and request_uri parameters - which must succeed, as per section 5 of https://tools.ietf.org/html/draft-ietf-oauth-jwsreq - this intent was confirmed by the FAPI working group in https://bitbucket.org/openid/fapi/issues/315/par-certification-question-must-servers",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

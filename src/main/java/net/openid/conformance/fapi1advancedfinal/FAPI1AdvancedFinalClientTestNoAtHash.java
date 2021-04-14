@@ -6,9 +6,9 @@ import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-missing-athash",
-	displayName = "FAPI-RW-ID2: client test - id_token without an at_hash value from the authorization_endpoint, should be rejected",
-	profile = "FAPI-RW-ID2",
+	testName = "fapi1-advanced-final-client-test-missing-athash",
+	displayName = "FAPI1-Advanced-Final: client test - id_token without an at_hash value from the authorization_endpoint, should be rejected",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

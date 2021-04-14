@@ -15,10 +15,10 @@ import net.openid.conformance.variant.FAPIRWOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-server-handles-non-matching-intent-id",
-	displayName = "FAPI-RW-ID2: server handles non matching openbanking_intent_id",
+	testName = "fapi1-advanced-final-ensure-server-handles-non-matching-intent-id",
+	displayName = "FAPI1-Advanced-Final: server handles non matching openbanking_intent_id",
 	summary = "This test registers an intentId with one client and then uses it with a different client. It should end with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

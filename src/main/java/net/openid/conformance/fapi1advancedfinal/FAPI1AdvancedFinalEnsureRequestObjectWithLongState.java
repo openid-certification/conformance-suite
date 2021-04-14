@@ -14,10 +14,10 @@ import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-long-state",
-	displayName = "FAPI-RW-ID2: ensure request object with long state",
+	testName = "fapi1-advanced-final-ensure-request-object-with-long-state",
+	displayName = "FAPI1-Advanced-Final: ensure request object with long state",
 	summary = "This test passes a long state in request object. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the server rejects long state - upload a screenshot of the error page) or must successfully authenticate and return the state correctly.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

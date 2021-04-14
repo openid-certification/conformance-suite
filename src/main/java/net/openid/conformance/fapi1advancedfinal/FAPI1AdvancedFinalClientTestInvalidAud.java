@@ -5,10 +5,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-client-test-invalid-aud",
-	displayName = "FAPI-RW-ID2: client test - invalid aud in id_token from authorization_endpoint, should be rejected",
+	testName = "fapi1-advanced-final-client-test-invalid-aud",
+	displayName = "FAPI1-Advanced-Final: client test - invalid aud in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the aud value in the id_token does not match the client id",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

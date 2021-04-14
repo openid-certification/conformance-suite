@@ -6,10 +6,10 @@ import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-redirect-uri-in-authorization-request",
-	displayName = "FAPI-RW-ID2: ensure redirect URI in authorization request",
+	testName = "fapi1-advanced-final-ensure-redirect-uri-in-authorization-request",
+	displayName = "FAPI1-Advanced-Final: ensure redirect URI in authorization request",
 	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

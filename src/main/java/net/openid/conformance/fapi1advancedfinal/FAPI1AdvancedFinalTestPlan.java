@@ -4,8 +4,8 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan (
-	testPlanName = "fapi-rw-id2-test-plan",
-	displayName = "FAPI-RW-ID2 (and OpenBankingUK / CDR): Authorization server test (latest version)",
+	testPlanName = "fapi1-advanced-final-test-plan",
+	displayName = "FAPI1-Advanced-Final (and OpenBankingUK / CDR): Authorization server test (latest version)",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases

@@ -6,10 +6,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-request-object-with-multiple-aud-succeeds",
-	displayName = "FAPI-RW-ID2: ensure request object with multiple aud succeeds",
+	testName = "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+	displayName = "FAPI1-Advanced-Final: ensure request object with multiple aud succeeds",
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

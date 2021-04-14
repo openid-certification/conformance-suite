@@ -10,10 +10,10 @@ import net.openid.conformance.condition.client.ExpectRequestObjectUnverifiableEr
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-rw-id2-ensure-matching-key-in-authorization-request",
-	displayName = "FAPI-RW-ID2: ensure matching key in authorization request",
+	testName = "fapi1-advanced-final-ensure-matching-key-in-authorization-request",
+	displayName = "FAPI1-Advanced-Final: ensure matching key in authorization request",
 	summary = "This test sends a valid request object for client 1 but signed by client 2, and should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI-RW-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
