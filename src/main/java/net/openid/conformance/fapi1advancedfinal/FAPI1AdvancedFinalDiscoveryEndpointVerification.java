@@ -8,11 +8,11 @@ import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
+import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseTypesSupported;
@@ -61,7 +61,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
 	}
 
 	@Override
@@ -96,10 +96,6 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
-		// FAPI-RW ID2 servers are required to return acrs, which means they must support requesting the acr claim,
-		// hence must support the claims parameter
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
-
 		call(sequence(profileSpecificChecks));
 	}
 
@@ -107,7 +103,20 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+
+	public static class AuCdrDiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			// claims parameter support is required in Australia
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
+
+			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
+
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
 		}
@@ -117,6 +126,10 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 		@Override
 		public void evaluate() {
+			// OBUK servers are required to return acrs, which means they must support requesting the acr claim (as well
+			// as the intent id claim), and hence must support the claims parameter
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
+
 			callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
 
 			callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE, "OBSP-3.4");
