@@ -24,16 +24,24 @@ import net.openid.conformance.sequence.ConditionSequence;
 public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequence {
 
 	private boolean secondClient;
+	private boolean includeXFapiFinancialId;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public OpenBankingUkPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this(secondClient,
+			true, // for FAPIID2 tests
+			addClientAuthenticationToTokenEndpointRequest);
+	}
+
+	public OpenBankingUkPreAuthorizationSteps(boolean secondClient, boolean includeXFapiFinancialId, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
 		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
+		this.includeXFapiFinancialId = includeXFapiFinancialId;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
-	@Override
+		@Override
 	public void evaluate() {
 		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain OpenBanking UK intent_id"));
 
@@ -69,9 +77,13 @@ public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequenc
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
-		// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
-		// using (v3.1.1) erroneously requires that this header is sent in all cases, so for now we send it in all cases
-		callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+
+		if (includeXFapiFinancialId) {
+			// This header is no longer mentioned in the FAPI standard as of ID2, however the UK OB spec most banks are
+			// using (v3.1.1) erroneously requires that this header is sent in all cases. We send it in the ID2 tests,
+			// but not in FAPI1-Final
+			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
+		}
 
 		if (secondClient) {
 			callAndStopOnFailure(CreateCreateAccountRequestRequestWithExpiration.class);
