@@ -13,7 +13,7 @@ public class FAPIValidateIdTokenEncryptionAlg extends AbstractCondition {
 		String alg = env.getString("id_token", "jwe_header.alg");
 
 		if (alg.equals("RSA1_5")) {
-			throw error("id_token encrypted with RSA1_5, which is not permitted by FAPI-RW", args("alg", alg));
+			throw error("id_token encrypted with RSA1_5, which is not permitted by FAPI specification", args("alg", alg));
 		}
 
 		logSuccess("id_token was encrypted with a permitted algorithm", args("alg", alg));
