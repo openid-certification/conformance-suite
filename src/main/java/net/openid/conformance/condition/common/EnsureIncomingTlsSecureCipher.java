@@ -30,7 +30,7 @@ public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
 			logSuccess("TLS cipher is allowed", args("expected", ALLOWED_CIPHERS, "actual", cipher));
 			return env;
 		} else {
-			throw error("The incoming connection used a TLS cipher is not permitted by FAPI.", args("expected", ALLOWED_CIPHERS, "actual", cipher));
+			throw error("The incoming connection from the client used a TLS cipher that is not permitted by FAPI. The client should be reconfigured so it will only use permitted TLS ciphers.", args("expected", ALLOWED_CIPHERS, "actual", cipher));
 		}
 
 	}
