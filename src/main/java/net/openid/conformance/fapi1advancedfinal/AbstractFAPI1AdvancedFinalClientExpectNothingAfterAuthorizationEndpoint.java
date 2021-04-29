@@ -7,17 +7,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthoriz
 
 		Object returnValue = super.authorizationEndpoint(requestId);
 
-		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(5 * 1000);
-			if (getStatus().equals(Status.WAITING)) {
-				setStatus(Status.RUNNING);
-				//As the client hasn't called the token endpoint after 5 seconds, assume it has correctly detected the error and aborted.
-				fireTestFinished();
-			}
-
-			return "done";
-
-		});
+		startWaitingForTimeout();
 
 		return returnValue;
 	}

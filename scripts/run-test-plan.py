@@ -224,6 +224,14 @@ def run_test_plan(test_plan, config_file, output_dir):
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
+                if re.match(r'(fapi1-.*-client-.*)', module):
+                    profile = variant['fapi_profile']
+                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
+                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                    os.environ['FAPI_AUTH_REQUEST_METHOD']= variant['fapi_auth_request_method']
+                    os.environ['FAPI_RESPONSE_MODE']= variant['fapi_response_mode']
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+
                 conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:

@@ -13,39 +13,15 @@ import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
 
-public class ExtractRequestObject extends AbstractCondition {
+public class ExtractRequestObject extends AbstractExtractRequestObject {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "client", "server_jwks"})
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
 		String requestObjectString = env.getString("authorization_endpoint_http_request_params", "request");
-
-		if (Strings.isNullOrEmpty(requestObjectString)) {
-			throw error("Could not find request object in request parameters");
-		}
-
-		try {
-			JsonObject client = env.getObject("client");
-			JsonObject serverEncKeys = env.getObject("server_encryption_keys");
-			JsonObject jsonObjectForJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObjectString, client, serverEncKeys);
-
-			if(jsonObjectForJwt==null) {
-				throw error("Couldn't extract request object", args("request", requestObjectString));
-			}
-			env.putObject("authorization_request_object", jsonObjectForJwt);
-
-			logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
-
-			return env;
-
-		} catch (ParseException e) {
-			throw error("Couldn't parse request object", e, args("request", requestObjectString));
-		} catch (JOSEException e) {
-			throw error("Request object decryption failed", e, args("request", requestObjectString));
-		}
-
-
+		processRequestObjectString(requestObjectString, env);
+		return env;
 	}
 
 }

@@ -26,7 +26,8 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
 		FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
 		FAPI1AdvancedFinalClientTestValidAudAsArray.class,
-
+		FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
+		FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
 		// OB systems specific tests
 		FAPI1AdvancedFinalClientTestNoAtHash.class,
 		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class
