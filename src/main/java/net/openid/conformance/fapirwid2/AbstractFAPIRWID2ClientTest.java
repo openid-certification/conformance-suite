@@ -53,6 +53,7 @@ import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -147,6 +148,16 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
+
+		Boolean skip = env.getBoolean("config", "skip_test");
+		if (skip != null && skip) {
+			// This is intended for use in our CI where we insist all tests run to completion
+			// It would be used as a temporary measure in an 'override' where one of the environments we are testing
+			// against is not able to run the test to completion due to an issue in that environments.
+			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+			return;
+		}
 
 		profile = getVariant(FAPIProfile.class);
 

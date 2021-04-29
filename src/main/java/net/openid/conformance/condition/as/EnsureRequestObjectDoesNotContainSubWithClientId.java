@@ -18,7 +18,7 @@ public class EnsureRequestObjectDoesNotContainSubWithClientId extends AbstractCo
 		String clientId = env.getString("client", "client_id");
 
 		if (!Strings.isNullOrEmpty(sub) && sub.equals(clientId)) {
-			throw error("Request object sub must not be Client ID",
+			throw error("Request object sub must not be Client ID - this is a security concern as it may allow the request object to be used as a client authentication assertion.",
 					args("sub", clientId));
 		} else {
 			logSuccess("Request object does not contain Client Id in sub");
