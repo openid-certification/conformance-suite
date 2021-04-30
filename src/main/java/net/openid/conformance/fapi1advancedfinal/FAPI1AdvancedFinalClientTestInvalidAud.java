@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	}
 )
 
-public class FAPI1AdvancedFinalClientTestInvalidAud extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestInvalidAud extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -28,9 +28,8 @@ public class FAPI1AdvancedFinalClientTestInvalidAud extends AbstractFAPI1Advance
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid aud value from the authorization_endpoint.");
+	protected String getIdTokenFaultErrorMessage() {
+		return "invalid aud value";
 	}
 
 }

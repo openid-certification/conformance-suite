@@ -22,6 +22,9 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
+import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
+import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
+import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptIdToken;
@@ -178,6 +181,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
+		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
+		callAndStopOnFailure(LoadServerJWKs.class);
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(ExtractServerSigningAlg.class);
+
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		if(configureAuthRequestMethodSteps!=null) {
@@ -200,10 +208,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
-
-		callAndStopOnFailure(LoadServerJWKs.class);
-
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI-R-5.2.2-5", "FAPI-R-5.2.2-6");
 
@@ -451,14 +455,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADVANCED-5.2.3-15");
 		}
 
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
-
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
-
-		if (authorizationCodeGrantTypeProfileSteps != null)
-			call(sequence(authorizationCodeGrantTypeProfileSteps));
-
-		callAndStopOnFailure(SignIdToken.class);
+		issueIdToken(false);
 
 		createTokenEndpointResponse();
 
@@ -509,11 +506,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		validateRequestObjectForAuthorizationEndpointRequest();
 
-		prepareIdToken();
+		callAndStopOnFailure(CreateAuthorizationCode.class);
+		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
 
-		signIdToken();
-
-		encryptIdToken();
+		if(responseMode!=FAPIResponseMode.JARM) {
+			issueIdToken(true);
+		}
 
 		createAuthorizationEndpointResponse();
 
@@ -570,33 +568,42 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADVANCED-5.2.3-15");
 	}
 
-	protected void prepareIdToken() {
+	protected void issueIdToken(boolean isAuthorizationEndpoint) {
+		prepareIdTokenClaims(isAuthorizationEndpoint);
 
-		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
+		signIdToken();
 
-		callAndStopOnFailure(CreateAuthorizationCode.class);
+		encryptIdToken();
+	}
 
-		callAndStopOnFailure(ExtractServerSigningAlg.class);
-
-		callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
-
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
-			ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-
+	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+
+		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
+		//TODO skip or add?
+		if(isAuthorizationEndpoint) {
+			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
+				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
-		if (authorizationEndpointProfileSteps != null)
+		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
+			call(sequence(authorizationCodeGrantTypeProfileSteps));
+		}
+
+		if (isAuthorizationEndpoint && authorizationEndpointProfileSteps != null) {
 			call(sequence(authorizationEndpointProfileSteps));
+		}
 
-		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
-
-		skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
-			AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
-
+		//TODO skip or add?
+		if(isAuthorizationEndpoint) {
+			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
+				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
+		}
 		callAndStopOnFailure(AddAtHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
@@ -619,13 +626,30 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 
-		callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
+			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 
-		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
+			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
+		}
+		if(responseMode==FAPIResponseMode.JARM) {
+			createJARMResponse();
+			//send via redirect
+			callAndStopOnFailure(SendJARMResponseWitResponseModeQuery.class, "OIDCC-3.3.2.5", "JARM-4.3.1");
+		}
 
 		exposeEnvString("authorization_endpoint_response_redirect");
 	}
 
+	protected void createJARMResponse() {
+		generateJARMResponseClaims();
+		callAndStopOnFailure(SignJARMResponse.class,"JARM-4.2");
+		//authorization_signed_response_alg will not be taken into account. signing_algorithm will be used
+		//TODO encrypt JARM response, using authorization_encrypted_response_alg and authorization_encrypted_response_enc?
+	}
+
+	protected void generateJARMResponseClaims() {
+		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-4.1.1");
+	}
 
 	/**
 	 * OpenBanking account request API
@@ -669,7 +693,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
-	private Object accountsEndpoint(String requestId) {
+	protected Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Accounts endpoint"));

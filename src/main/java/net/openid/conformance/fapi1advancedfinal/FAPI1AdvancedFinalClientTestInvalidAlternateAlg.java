@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	}
 )
 
-public class FAPI1AdvancedFinalClientTestInvalidAlternateAlg extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestInvalidAlternateAlg extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -34,9 +34,7 @@ public class FAPI1AdvancedFinalClientTestInvalidAlternateAlg extends AbstractFAP
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an alg value of RS256 (it was originally PS256) from the authorization_endpoint.");
+	protected String getIdTokenFaultErrorMessage() {
+		return "signed using RS256 instead of PS256";
 	}
-
 }

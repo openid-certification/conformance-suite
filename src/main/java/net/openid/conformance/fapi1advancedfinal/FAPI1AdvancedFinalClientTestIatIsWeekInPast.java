@@ -23,14 +23,15 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-public class FAPI1AdvancedFinalClientTestIatIsWeekInPast extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestIatIsWeekInPast extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
 
 		callAndStopOnFailure(AddIatValueIsWeekInPastToIdToken.class, "OIDCC-3.1.3.7-10");
 	}
-
+/*
+TODO why was this class different from other similar classes?
 	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 
@@ -39,5 +40,9 @@ public class FAPI1AdvancedFinalClientTestIatIsWeekInPast extends AbstractFAPI1Ad
 		fireTestFinished();
 		return new ResponseEntity<Object>("Client has incorrectly called token_endpoint after receiving an id_token with an iat value which is a week in the past from the authorization_endpoint.", HttpStatus.BAD_REQUEST);
 	}
-
+*/
+	@Override
+	protected String getIdTokenFaultErrorMessage() {
+		return "iat value is a week in the past";
+	}
 }
