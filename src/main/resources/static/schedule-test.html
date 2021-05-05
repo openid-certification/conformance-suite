@@ -553,7 +553,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format. Optional, can be omitted if using self-signed certificates or if the server does not require any certificate authority elements to be supplied."></span>
 											</div>
 											<textarea class="form-control config-form-element" data-json-target="mtls.ca"></textarea>
 										</div>
@@ -741,7 +741,7 @@
 									<div class="col-md-10">
 										<div class="input-group">
 											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource server tests. For UK OpenBanking tests, this should end in '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs)."></span>
+												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs)."></span>
 											</div>
 											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrl"></input>
 										</div>
