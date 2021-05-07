@@ -20,8 +20,7 @@ import net.openid.conformance.variant.VariantParameters;
 		more info on what they are.
 	 */
 	configurationFields = {
-		"resource.resourceUrl",
-		"resource.resourceMethod"
+		"resource.resourceUrl"
 	}
 )
 /*
@@ -33,19 +32,26 @@ import net.openid.conformance.variant.VariantParameters;
 })
 public class MoreConfigurableApiCallTest extends AbstractTestModule {
 
+	/*
+		The configure method allows us to pre-configure our test.
+	 */
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putObject("config", config);
 		String url = OIDFJSON.getString(config.getAsJsonObject("resource").get("resourceUrl"));
 		env.putString("resource_url", url);
 		callAndContinueOnFailure(CallHttpResource.class);
+		callAndStopOnFailure(ExtractSimpleMessage.class);
 		setStatus(Status.CONFIGURED);
 	}
 
 	@Override
+	/*
+		The essense of the test itself. Here is where we run actual assertions on the response object
+		or whatever we are testing.
+	 */
 	public void start() {
 		setStatus(Status.RUNNING);
-		callAndStopOnFailure(ExtractSimpleMessage.class);
 		callAndStopOnFailure(SimpleMessageAssert.class, Condition.ConditionResult.FAILURE);
 		setResult(Result.PASSED);
 		setStatus(Status.FINISHED);

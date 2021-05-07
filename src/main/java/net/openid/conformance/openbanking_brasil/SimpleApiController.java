@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Map;
 
+/**
+ * This endpoint is purely for demonstration purposes and will be
+ * deleted in the near future.
+ */
 @Controller
 public class SimpleApiController {
 
