@@ -16,7 +16,7 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "A cunning plan",// This appears in the test plan dropdown
 	summary = "More cunning than a fox who just got made professor of cunning at Oxford", // a short description
 	testModules = {
-		SimpleApiCallTest.class // these classes implement specific sets of tests
+		MoreConfigurableApiCallTest.class // these classes implement specific sets of tests
 	})
 public class CunningPlan implements TestPlan {
 }

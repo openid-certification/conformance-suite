@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 /*
 	We endeavour to keep individual conditions as atomic as possible. Each one is presented
@@ -17,11 +18,11 @@ public class ExtractSimpleMessage extends AbstractCondition {
 	/*
 		PreEnvironment lets us set preconditions for this evaluation
 	 */
-	@PreEnvironment(required = "response")
+	@PreEnvironment(required = "resource_endpoint_response")
 	@PostEnvironment(strings = "message")
 	public Environment evaluate(Environment env) {
-		JsonObject response = env.getObject("response");
-		String message = response.get("message").getAsString();
+		JsonObject response = env.getObject("resource_endpoint_response");
+		String message = OIDFJSON.getString(response.get("message"));
 		env.putString("message", message);
 		logSuccess("Message extracted");
 		return env;

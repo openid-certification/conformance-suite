@@ -1,6 +1,7 @@
 package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * Wrappers around the GSON getAsXXXX methods
@@ -97,6 +98,16 @@ public final class OIDFJSON {
 		}
 
 		return json.getAsString();
+	}
+
+	public static JsonObject toObject(JsonElement json) {
+		if (!json.isJsonObject()) {
+			// I'm not 100% sure if bool/object conversions should be blocked; I suspect if we ever find a reason to
+			// allow them then it's fine to do so, it's just not a path the current code uses.
+			throw new UnexpectedJsonTypeException("toObject called on something that is not a JsonObject: " + json);
+		}
+
+		return json.getAsJsonObject();
 	}
 
 	/**
