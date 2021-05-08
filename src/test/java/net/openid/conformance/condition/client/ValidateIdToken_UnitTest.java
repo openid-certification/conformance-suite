@@ -397,7 +397,7 @@ public class ValidateIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidAuthTimeString() {
 		claims.addProperty("auth_time", String.valueOf(nowSeconds-3600));
 
@@ -408,7 +408,7 @@ public class ValidateIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidExpString() {
 
 		JsonElement o = claims.remove("exp");
@@ -443,7 +443,7 @@ public class ValidateIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_acrArray() {
 		claims.add("acr", new JsonParser().parse("[ \"foo\" ]"));
 
