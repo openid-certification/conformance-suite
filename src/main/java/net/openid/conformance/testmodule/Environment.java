@@ -211,7 +211,8 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
 			return OIDFJSON.getString(e);
 		} else {
-			throw new UnexpectedTypeException("Found non-string value for " + key + " / " + path);
+			throw new UnexpectedTypeException(String.format("A string is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -238,7 +239,8 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
 			return OIDFJSON.getNumber(e).intValue();
 		} else {
-			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -266,7 +268,8 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()) {
 			return OIDFJSON.getBoolean(e);
 		} else {
-			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -293,7 +296,8 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
 			return OIDFJSON.getNumber(e).longValue();
 		} else {
-			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
