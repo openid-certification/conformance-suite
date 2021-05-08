@@ -203,21 +203,15 @@ public class Environment {
 	 */
 	public String getString(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isString()) {
-					return OIDFJSON.getString(e);
-				} else {
-					throw new UnexpectedTypeException("Found non-string value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new UnexpectedTypeException("Found non-string value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			// we didn't find it
 			return null;
+		}
+
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
+			return OIDFJSON.getString(e);
+		} else {
+			throw new UnexpectedTypeException("Found non-string value for " + key + " / " + path);
 		}
 	}
 
@@ -237,19 +231,14 @@ public class Environment {
 	 */
 	public Integer getInteger(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isNumber()) {
-					return OIDFJSON.getNumber(e).intValue();
-				} else {
-					throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+			return OIDFJSON.getNumber(e).intValue();
+		} else {
+			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
 		}
 	}
 
@@ -271,19 +260,13 @@ public class Environment {
 
 	public Boolean getBoolean(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isBoolean()) {
-					return OIDFJSON.getBoolean(e);
-				} else {
-					throw new UnexpectedTypeException("Found non-boolean value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()) {
+			return OIDFJSON.getBoolean(e);
+		} else {
+			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
 		}
 	}
 
@@ -304,20 +287,13 @@ public class Environment {
 	 */
 	public Long getLong(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-
-				if (e.getAsJsonPrimitive().isNumber()) {
-					return OIDFJSON.getNumber(e).longValue();
-				} else {
-					throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+			return OIDFJSON.getNumber(e).longValue();
+		} else {
+			throw new UnexpectedTypeException("Found non-number value for " + key + " / " + path);
 		}
 	}
 
