@@ -2,9 +2,17 @@
 package net.openid.conformance;
 
 import java.security.Security;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
@@ -74,6 +82,7 @@ public class Application {
 	public static void main(String[] args) {
 
 		Security.addProvider(new BouncyCastleProvider());
+		configureJsonPathForGson();
 
 		// quiet down CSS errors/warnings in the parser selenium/htmlunit uses
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
@@ -81,6 +90,28 @@ public class Application {
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new EventListener());
 		springApplication.run(args);
+	}
+
+	private static void configureJsonPathForGson() {
+		Configuration.setDefaults(new Configuration.Defaults() {
+			private final JsonProvider jsonProvider = new GsonJsonProvider();
+			private final MappingProvider mappingProvider = new GsonMappingProvider();
+
+			@Override
+			public JsonProvider jsonProvider() {
+				return jsonProvider;
+			}
+
+			@Override
+			public MappingProvider mappingProvider() {
+				return mappingProvider;
+			}
+
+			@Override
+			public Set<Option> options() {
+				return EnumSet.noneOf(Option.class);
+			}
+		});
 	}
 
 	@Bean
