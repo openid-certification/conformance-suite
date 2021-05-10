@@ -41,7 +41,6 @@ public class MoreConfigurableApiCallTest extends AbstractTestModule {
 		String url = OIDFJSON.getString(config.getAsJsonObject("resource").get("resourceUrl"));
 		env.putString("resource_url", url);
 		callAndContinueOnFailure(CallHttpResource.class);
-		callAndStopOnFailure(ExtractSimpleMessage.class);
 		setStatus(Status.CONFIGURED);
 	}
 
@@ -52,7 +51,7 @@ public class MoreConfigurableApiCallTest extends AbstractTestModule {
 	 */
 	public void start() {
 		setStatus(Status.RUNNING);
-		callAndStopOnFailure(SimpleMessageAssert.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ValidateHelloMessage.class, Condition.ConditionResult.FAILURE);
 		setResult(Result.PASSED);
 		setStatus(Status.FINISHED);
 	}

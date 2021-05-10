@@ -19,7 +19,7 @@ public class SimpleMessageAssert extends AbstractCondition {
 		String message = env.getString("message");
 		if(!message.equals("Hello")) {
 			logFailure("Message not correct");
-			throw new ConditionError(getTestId(), "Message was not 'Hello'");
+			throw error("Message was not 'Hello'");
 		}
 		logSuccess("Message was correct!");
 		return env;
