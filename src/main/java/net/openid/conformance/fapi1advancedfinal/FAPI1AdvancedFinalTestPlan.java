@@ -32,6 +32,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI1AdvancedFinalEnsureExpiredRequestObjectFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithExpOver60Fails.class,
 		FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithInvalidSignatureFails.class,
