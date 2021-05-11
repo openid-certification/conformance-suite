@@ -64,7 +64,6 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId.class,
 
 		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
-		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfter30S.class,
 		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		//PAR tests
