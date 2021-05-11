@@ -65,21 +65,12 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 
 	@Override
 	protected void createAuthorizationRequestObject() {
-
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
 		// create a copy of the jwks so we can restore the original one when creating any client assertion
 		env.putObject("client_jwks_rs256", env.getObject("client_jwks").deepCopy());
 		env.mapKey("client_jwks", "client_jwks_rs256");
 		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI-RW-8.6");
 
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
+		super.createAuthorizationRequestObject();
 
 		env.unmapKey("client_jwks");
 	}
