@@ -26,6 +26,7 @@ import net.openid.conformance.plan.TestPlan;
 
 		// Negative tests for request objects
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutExpFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutNbfFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutScopeFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutState.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutNonceFails.class,
