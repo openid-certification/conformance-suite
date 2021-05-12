@@ -1,7 +1,12 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Wrappers around the GSON getAsXXXX methods
@@ -81,6 +86,19 @@ public final class OIDFJSON {
 			throw new UnexpectedJsonTypeException("getString called on something that is not a string: " + json);
 		}
 		return json.getAsString();
+	}
+
+	public static List<String> getStringArray(JsonElement json) {
+		if (!json.isJsonArray()) {
+			throw new UnexpectedJsonTypeException("getString called on something that is not an array: " + json);
+		}
+		JsonArray array = json.getAsJsonArray();
+		Iterator<JsonElement> iterator = array.iterator();
+		List<String> strings = new ArrayList<>();
+		while(iterator.hasNext()) {
+			strings.add(getString(iterator.next()));
+		}
+		return strings;
 	}
 
 	public static boolean getBoolean(JsonElement json) {
