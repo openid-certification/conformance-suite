@@ -994,8 +994,8 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']:
-            # skip CI for FAPI1 Final for now as CI is not setup yet
+        if all_test_modules[m]['profile'] in ['FAPI-RW-ID2']:
+            # skip CI for FAPI ID2 as we don't have access to a server supporting ID2
             untested_test_modules.remove(m)
             continue
 
@@ -1020,29 +1020,40 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
+        client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
+                      re.match(r'fapi1-advanced-final-client-.*', m) or \
+                      re.match(r'oidcc-client-.*', m)
+        ciba_test = re.match(r'fapi-ciba-id1.*', m)
+        rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
+
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
-            if not ( re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-rw-id2-ob-client-.*)', m)  or re.match(r'(oidcc-client-.*)', m) ):
+            if not client_test:
+                untested_test_modules.remove(m)
+                continue
+
+            if all_test_modules[m]['profile'] in ['FAPI-RW-ID2']:
+                # no tests for FAPI1-Final yet
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if re.match(r'(fapi-.*)', m) or re.match(r'(oidcc-client-.*)', m):
+            if re.match(r'fapi1?-.*', m) or client_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
-            if re.match(r'(fapi-rw-id2-client-.*)', m) or re.match(r'(fapi-ciba-id1.*)', m) or re.match(r'(oidcc-client-.*)', m) or re.match(r'(oidcc-.*-logout.*)', m):
+            if client_test or ciba_test or rp_initiated_logout:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':
             # we don't run the rp initiated logout tests against Authlete
-            if re.match(r'(oidcc-.*-logout.*)', m):
+            if rp_initiated_logout:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
-            if not re.match(r'(fapi-ciba-id1.*)', m):
+            if not ciba_test:
                 untested_test_modules.remove(m)
                 continue
 
