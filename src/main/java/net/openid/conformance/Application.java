@@ -32,6 +32,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import javax.annotation.PostConstruct;
 
+import static net.openid.conformance.util.JsonPathUtil.configureJsonPathForGson;
+
 @SpringBootApplication
 public class Application {
 	@Autowired
@@ -90,28 +92,6 @@ public class Application {
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new EventListener());
 		springApplication.run(args);
-	}
-
-	private static void configureJsonPathForGson() {
-		Configuration.setDefaults(new Configuration.Defaults() {
-			private final JsonProvider jsonProvider = new GsonJsonProvider();
-			private final MappingProvider mappingProvider = new GsonMappingProvider();
-
-			@Override
-			public JsonProvider jsonProvider() {
-				return jsonProvider;
-			}
-
-			@Override
-			public MappingProvider mappingProvider() {
-				return mappingProvider;
-			}
-
-			@Override
-			public Set<Option> options() {
-				return EnumSet.noneOf(Option.class);
-			}
-		});
 	}
 
 	@Bean
