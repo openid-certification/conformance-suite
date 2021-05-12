@@ -1032,7 +1032,7 @@ if __name__ == '__main__':
                 untested_test_modules.remove(m)
                 continue
 
-            if all_test_modules[m]['profile'] in ['FAPI-RW-ID2']:
+            if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']:
                 # no tests for FAPI1-Final yet
                 untested_test_modules.remove(m)
                 continue
