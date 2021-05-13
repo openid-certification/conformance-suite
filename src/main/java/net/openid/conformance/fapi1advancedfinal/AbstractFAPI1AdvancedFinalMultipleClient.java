@@ -48,7 +48,7 @@ public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractF
 		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
 		unmapClient();
 
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "MTLS-3");
+		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
 
 		eventLog.endBlock();
 	}
