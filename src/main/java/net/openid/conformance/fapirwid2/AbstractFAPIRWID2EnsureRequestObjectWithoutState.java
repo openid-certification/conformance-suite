@@ -39,13 +39,6 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return super.makeCreateAuthorizationRequestObjectSteps()
-				.insertAfter(SignRequestObject.class,
-						condition(AddStateToAuthorizationEndpointRequest.class));
-	}
-
-	@Override
 	protected void onAuthorizationCallbackResponse() {
 		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
 		JsonObject callbackParams = env.getObject("authorization_endpoint_response");

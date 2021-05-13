@@ -1,16 +1,11 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -41,19 +36,6 @@ public class FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutStateSuccess ext
 	@Override
 	protected void performRedirect() {
 		super.performNormalRedirect();
-	}
-
-	@Override
-	protected void createAuthorizationRequestObject() {
-		callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-		callAndStopOnFailure(AddExpToRequestObject.class);
-
-		callAndStopOnFailure(AddAudToRequestObject.class);
-
-		callAndStopOnFailure(AddIssToRequestObject.class);
-
-		callAndStopOnFailure(SignRequestObject.class);
 	}
 
 	@Override
