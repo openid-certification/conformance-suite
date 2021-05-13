@@ -1,5 +1,8 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -25,5 +28,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalEnsureRequestObjectWithoutState extends AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState {
+
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
+			.insertAfter(SignRequestObject.class,
+				condition(AddStateToAuthorizationEndpointRequest.class));
+	}
 
 }

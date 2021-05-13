@@ -1,5 +1,8 @@
 package net.openid.conformance.fapirwid2;
 
+import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -25,5 +28,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPIRWID2EnsureRequestObjectWithoutState extends AbstractFAPIRWID2EnsureRequestObjectWithoutState {
+
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
+		return super.makeCreateAuthorizationRequestObjectSteps()
+			.insertAfter(SignRequestObject.class,
+				condition(AddStateToAuthorizationEndpointRequest.class));
+	}
+
 
 }

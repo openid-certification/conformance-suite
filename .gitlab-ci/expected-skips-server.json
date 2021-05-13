@@ -1,6 +1,6 @@
 [
     {
-        "test-name": "fapi-rw-id2-refresh-token",
+        "test-name": "fapi1-advanced-final-refresh-token",
         "variant": {
                 "client_auth_type": "private_key_jwt",
                 "fapi_profile": "openbanking_uk",

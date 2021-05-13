@@ -1,6 +1,6 @@
 [
     {
-        "test-name": "fapi-rw-id2-discovery-end-point-verification",
+        "test-name": "fapi1-advanced-final-discovery-end-point-verification",
         "variant": {
                 "fapi_profile": "openbanking_uk"
         },
@@ -11,7 +11,7 @@
         "comment": "this occurs on everything except production bank deployments"
     },
     {
-        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-one-second",
+        "test-name": "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",
         "variant": "*",
         "configuration-filename": "authlete*.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
@@ -20,7 +20,7 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi-rw-id2-attempt-reuse-authorisation-code-after-30seconds",
+        "test-name": "fapi1-advanced-final-attempt-reuse-authorisation-code-after-30seconds",
         "variant": "*",
         "configuration-filename": "authlete*.json",
         "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
@@ -29,7 +29,7 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi-rw-id2-refresh-token",
+        "test-name": "fapi1-advanced-final-refresh-token",
         "variant": {
                 "client_auth_type": "private_key_jwt",
                 "fapi_profile": "openbanking_uk",

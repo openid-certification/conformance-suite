@@ -50,7 +50,7 @@ public class FAPIRWID2PARRejectRequestUriInParAuthorizationRequest extends Abstr
 
 		// this might be too strict, the spec mentions this error but doesn't require servers to use it
 		// the only firm requirement is for the http status code to indicate failure
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "PAR-2.1");
 
 		fireTestFinished();
 	}
