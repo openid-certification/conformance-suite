@@ -304,7 +304,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-6");
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-5");
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
