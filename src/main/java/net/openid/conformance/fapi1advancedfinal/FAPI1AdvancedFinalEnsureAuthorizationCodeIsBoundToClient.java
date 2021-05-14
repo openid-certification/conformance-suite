@@ -57,7 +57,7 @@ public class FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient extends Ab
 		// This condition is a warning because we're not yet 100% sure of the code
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 	}
 
 	@Override
