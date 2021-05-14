@@ -47,7 +47,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone ex
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-7.3-1");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI1-ADVANCED-5.2.3.1-3");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -77,7 +77,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone ex
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}

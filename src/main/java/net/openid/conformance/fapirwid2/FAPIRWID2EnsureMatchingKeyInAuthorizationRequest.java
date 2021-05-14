@@ -63,7 +63,7 @@ public class FAPIRWID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFA
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}

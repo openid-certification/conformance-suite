@@ -85,7 +85,7 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}

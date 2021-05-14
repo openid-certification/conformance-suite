@@ -85,7 +85,7 @@ public class FAPIRWID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFA
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}
