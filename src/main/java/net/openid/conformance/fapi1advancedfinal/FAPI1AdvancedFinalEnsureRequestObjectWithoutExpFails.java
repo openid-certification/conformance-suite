@@ -38,7 +38,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithoutExpFails extends Abstra
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingExpClaimErrorPage.class, "FAPI-RW-5.2.2-13");
+		callAndStopOnFailure(ExpectRequestObjectMissingExpClaimErrorPage.class, "FAPI1-ADVANCED-5.2.2-13");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

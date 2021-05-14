@@ -64,7 +64,7 @@ public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI-R-5.2.2-8");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI1-BASELINE-5.2.2-8");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}

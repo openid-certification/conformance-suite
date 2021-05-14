@@ -95,7 +95,7 @@ public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequenc
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASELINE-6.2.1-11");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromAccountRequestsEndpointResponse.class);
 
