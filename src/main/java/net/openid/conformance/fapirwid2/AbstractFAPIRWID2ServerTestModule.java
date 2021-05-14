@@ -407,7 +407,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 				// nbf is optional in current FAPI-RW-ID2; it will become mandatory in Final
 				callAndStopOnFailure(AddNbfToRequestObject.class);
 			}
-			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-12");
+			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-13");
 
 			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI-RW-5.2.2-14");
 

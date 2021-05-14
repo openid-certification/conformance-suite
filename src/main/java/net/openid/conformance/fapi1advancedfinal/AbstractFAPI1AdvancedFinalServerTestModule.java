@@ -405,7 +405,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 				callAndStopOnFailure(AddIatToRequestObject.class);
 			}
 			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI1-ADVANCED-5.2.2-17"); // mandatory in FAPI1-Advanced-Final
-			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-12");
+			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI-RW-5.2.2-13");
 
 			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI-RW-5.2.2-14");
 
