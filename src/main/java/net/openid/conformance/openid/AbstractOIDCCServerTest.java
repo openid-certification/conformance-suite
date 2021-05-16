@@ -607,7 +607,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.3.2.5");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
 
 		// save the id_token returned from the token endpoint
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));

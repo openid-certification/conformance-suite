@@ -9,7 +9,7 @@ public class ValidateSuccessfulHybridResponseFromAuthorizationEndpoint extends A
 	@Override
 	protected List<String> getExpectedParams()
 	{
-		return ImmutableList.of("code", "state", "id_token", "session_state");
+		return ImmutableList.of("code", "state", "id_token", "session_state", "iss");
 	}
 
 }

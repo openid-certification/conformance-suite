@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import net.openid.conformance.condition.Condition;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +80,7 @@ public class EnsureResourceAssertionTypeIsJwt_UnitTest {
 
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_nullAssertionType() {
 
 		resourceAssertion.add("assertion_type", JsonNull.INSTANCE);

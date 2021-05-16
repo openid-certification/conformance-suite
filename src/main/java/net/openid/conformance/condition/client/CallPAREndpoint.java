@@ -71,6 +71,9 @@ public class CallPAREndpoint extends AbstractCondition {
 
 			try {
 				final String parEndpointUri = env.getString("server", "pushed_authorization_request_endpoint");
+				if (Strings.isNullOrEmpty(parEndpointUri)) {
+					throw error("Couldn't find pushed_authorization_request_endpoint in server discovery document. This endpoint is required as you have selected to test pushed authorization requests.");
+				}
 
 				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 					@Override

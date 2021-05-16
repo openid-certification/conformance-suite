@@ -95,7 +95,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueNull() {
 
 		JsonObject nullClaims = new JsonParser().parse("{\n" +

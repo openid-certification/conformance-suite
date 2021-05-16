@@ -74,7 +74,7 @@ public class CreateRedirectUri_UnitTest {
 
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueNull() {
 
 		env.putString("base_url", null);
