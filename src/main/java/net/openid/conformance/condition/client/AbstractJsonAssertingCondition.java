@@ -22,7 +22,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
-		String entityString = environment.getString("resource_endpoint_response");;
+		String entityString = environment.getString("resource_endpoint_response");
 		return new JsonParser().parse(entityString).getAsJsonObject();
 	}
 

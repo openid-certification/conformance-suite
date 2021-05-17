@@ -1,5 +1,6 @@
 package net.openid.conformance.apis;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
@@ -56,7 +57,7 @@ public abstract class AbstractJsonResponseConditionUnitTest implements DataUtils
 	private void enrichCondition(AbstractCondition condition) {
 		TestInstanceEventLog eventLog = mock(TestInstanceEventLog.class);
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-		environment.putObject("resource_endpoint_response", jsonObject);
+		environment.putString("resource_endpoint_response", new Gson().toJson(jsonObject));
 		environment.putObject("resource_endpoint_response_headers", mapToJsonObject(responseHeaders, false));
 	}
 
