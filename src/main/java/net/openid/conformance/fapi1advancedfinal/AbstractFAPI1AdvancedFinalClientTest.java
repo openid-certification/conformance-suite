@@ -617,13 +617,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
 				"FAPI1-ADVANCED-5.2.3-5", "OIDCC-5.5.1.1");
 		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADVANCED-5.2.2.13");
+		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADVANCED-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADVANCED-5.2.2.1");
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADVANCED-5.2.2-1");
 		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
 	}
 
