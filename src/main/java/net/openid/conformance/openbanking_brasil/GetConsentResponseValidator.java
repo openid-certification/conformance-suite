@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 public class GetConsentResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response")
+	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 
 		JsonObject body = bodyFrom(environment);

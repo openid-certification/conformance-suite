@@ -5,16 +5,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.UseResurce;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -35,8 +39,14 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 			return super.methodInvoker(method, test);
 		}
 		String resource = useResurce.value();
+		String rawJson;
+		try {
+			rawJson = IOUtils.resourceToString(resource, Charset.defaultCharset(), getClass().getClassLoader());
+		} catch (IOException exception) {
+			return new FailingStatement("Unable to load JSON document %s in test %s", resource, method.getName());
+		}
 
-		JsonObject jsonObject = reader(resource);
+		JsonObject jsonObject = new JsonParser().parse(rawJson).getAsJsonObject();
 		if(jsonObject == null) {
 			return new FailingStatement("Unable to load JSON document %s in test %s", resource, method.getName());
 		}
@@ -58,19 +68,6 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 		}
 		Statement statement =  super.methodInvoker(method, test);
 		return withBefores(method, test, statement);
-	}
-
-
-	private JsonObject reader(String resource) {
-		try {
-			InputStream documentStream = getClass().getClassLoader().getResourceAsStream(resource);
-			Reader reader = new InputStreamReader(documentStream);
-			JsonElement element = new JsonParser().parse(reader);
-			JsonObject jsonObject = OIDFJSON.toObject(element);
-			return jsonObject;
-		} catch(NullPointerException npe) {
-			return null;
-		}
 	}
 
 	private static class FailingStatement extends Statement {

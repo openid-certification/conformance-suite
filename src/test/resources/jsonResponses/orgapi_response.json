@@ -1,0 +1,433 @@
+{
+    "OrgDetails": {
+        "OrganisationId": "e1ebedfc-7600-46af-a30a-180a1e6f49c1",
+        "Status": "Active",
+        "OrganisationName": "CECME DO GRUPO PAO ACUCAR/BSB",
+        "CreatedOn": "2020-12-30T13:43:08.900Z",
+        "LegalEntityName": "COOPERATIVA DE ECONOMIA E CRÃDITO MÃTUO DOS EMPREGADOS DO GRUPO PAO DE ACUCAR - BRASILIA - LTDA.",
+        "CountryOfRegistration": "BR",
+        "CompanyRegister": "Cadastro Nacional da Pessoa JurÃ­dica",
+        "RegistrationNumber": "00543108",
+        "RegistrationId": "00543108",
+        "RegisteredName": "COOPERATIVA DE ECONOMIA E CRÃDITO MÃTUO DOS EMPREGADOS DO GRUPO PAO DE ACUCAR - BRASILIA - LTDA.",
+        "AddressLine1": "ADDRESS TBC",
+        "AddressLine2": "ADDRESS TBC",
+        "City": "BrasÃ­lia",
+        "Postcode": "ADDRESS TBC",
+        "Country": "BR",
+        "RequiresParticipantTermsAndConditionsSigning": true
+    },
+    "TncDetails": {
+        "TnCSigned": false,
+        "TnCsToBeSigned": [{
+            "TnCId": 71,
+            "Name": "jjjjjjjjjj",
+            "Type": "Participant",
+            "Content": "vbvbnvnbn jbjhk h hjkhkj",
+            "Status": "Active"
+        }, {
+            "TnCId": 48,
+            "Name": "qqqqqqq",
+            "Type": "Participant",
+            "Content": "qqqqqqq",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "qqqqqqqq",
+                    "Signer1Version": 3
+                },
+                "ExternalSigningServiceSubject": "qqqqqqqq"
+            }
+        }, {
+            "TnCId": 49,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tncupdated",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 6
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 50,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tncupdated 2",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer1Version": 7,
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 7
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 53,
+            "Name": "xxxxxxxxx",
+            "Type": "Participant",
+            "Content": "xxxxxxxxxxxxxxxx",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "xxxxxxxx",
+                    "Signer1Version": 82,
+                    "Signer2TemplateId": "xxxxxxxx",
+                    "Signer2Version": 82,
+                    "Signer3TemplateId": "xxxxxxxx",
+                    "Signer3Version": 82,
+                    "Signer4TemplateId": "xxxxxxxx",
+                    "Signer4Version": 82
+                },
+                "ExternalSigningServiceSubject": "xxxxxxxx"
+            }
+        }, {
+            "TnCId": 54,
+            "Name": "xxxxxxxxx",
+            "Type": "Participant",
+            "Content": "xxxxxxxxxxxxxxxxL",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "xxxxxxxxL",
+                    "Signer1Version": 83,
+                    "Signer2TemplateId": "xxxxxxxxL",
+                    "Signer2Version": 83,
+                    "Signer3TemplateId": "xxxxxxxxL",
+                    "Signer3Version": 83,
+                    "Signer4TemplateId": "xxxxxxxxL",
+                    "Signer4Version": 83
+                },
+                "ExternalSigningServiceSubject": "xxxxxxxxL"
+            }
+        }, {
+            "TnCId": 57,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tncupdated 2 again",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer1Version": 8,
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 8
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 58,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tncupdated again",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 7
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 59,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tncupdated 2",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer1Version": 8,
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 8
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 60,
+            "Name": "wewewewewewew",
+            "Type": "Participant",
+            "Content": "sdfsdghjghjghjgf",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "aaaaaaaaaaa",
+                    "Signer1Version": 700,
+                    "Signer2TemplateId": "bbbbbbbbbb",
+                    "Signer2Version": 700,
+                    "Signer3TemplateId": "ccccccccccccc",
+                    "Signer3Version": 700,
+                    "Signer4TemplateId": "ddddddddddd",
+                    "Signer4Version": 700
+                },
+                "ExternalSigningServiceSubject": "sdfdhgjghjgf"
+            }
+        }, {
+            "TnCId": 61,
+            "Name": "wewewewewewew",
+            "Type": "Participant",
+            "Content": "sdfsdghjghjghjgfLLLLLLLLL",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "aaaaaaaaaaa",
+                    "Signer1Version": 701,
+                    "Signer2TemplateId": "bbbbbbbbbb",
+                    "Signer2Version": 701,
+                    "Signer3TemplateId": "ccccccccccccc",
+                    "Signer3Version": 701,
+                    "Signer4TemplateId": "ddddddddddd",
+                    "Signer4Version": 701
+                },
+                "ExternalSigningServiceSubject": "sdfdhgjghjgf"
+            }
+        }, {
+            "TnCId": 62,
+            "Name": "wewewewewewew",
+            "Type": "Participant",
+            "Content": "sdfsdghjghjghjgfLLLLLLLLLB",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "aaaaaaaaaaa",
+                    "Signer1Version": 702,
+                    "Signer2TemplateId": "bbbbbbbbbb",
+                    "Signer2Version": 702,
+                    "Signer3TemplateId": "ccccccccccccc",
+                    "Signer3Version": 702,
+                    "Signer4TemplateId": "ddddddddddd",
+                    "Signer4Version": 702
+                },
+                "ExternalSigningServiceSubject": "sdfdhgjghjgf"
+            }
+        }, {
+            "TnCId": 63,
+            "Name": "Testing tnc",
+            "Type": "Participant",
+            "Content": "tnc asked by saud",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer4TemplateId": "31c584dc-6b54-4d4a-8fa2-cd340c2cc969",
+                    "Signer4Version": 6
+                },
+                "ExternalSigningServiceSubject": "b680b610-3c4f-45f6-a9a2-1321d7479c55"
+            }
+        }, {
+            "TnCId": 64,
+            "Name": "Test",
+            "Type": "Participant",
+            "Content": "Cntn",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "1 signer",
+                    "Signer1Version": 34,
+                    "Signer4TemplateId": "4 Signer",
+                    "Signer4Version": 34
+                },
+                "ExternalSigningServiceSubject": "Sub"
+            }
+        }, {
+            "TnCId": 65,
+            "Name": "DocuSign demo with 2 signatories",
+            "Type": "Participant",
+            "Content": "Please sign DocuSign TnCs",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "877db91f-14f4-4630-8beb-b39ce42ac4e0",
+                    "Signer1Version": 2,
+                    "Signer4TemplateId": "877db91f-14f4-4630-8beb-b39ce42ac4e0",
+                    "Signer4Version": 2
+                },
+                "ExternalSigningServiceSubject": "b767d11e-bcea-460e-b297-581e6e2fc68f"
+            }
+        }, {
+            "TnCId": 66,
+            "Name": "qqqqqqq",
+            "Type": "Participant",
+            "Content": "qqqqqqq",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer2TemplateId": "qqqqqqqq",
+                    "Signer2Version": 4,
+                    "Signer3TemplateId": "bbbbbbbb",
+                    "Signer3Version": 4
+                },
+                "ExternalSigningServiceSubject": "qqqqqqqq"
+            }
+        }, {
+            "TnCId": 67,
+            "Name": "jhkhkj",
+            "Type": "Participant",
+            "Content": "gfxfdsgfdgfdgf",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "hgfhgfgfjf",
+                    "Signer1Version": 67779,
+                    "Signer2TemplateId": "hggfhgfv",
+                    "Signer2Version": 67779,
+                    "Signer3TemplateId": "ghfhgfhgfm",
+                    "Signer3Version": 67779,
+                    "Signer4TemplateId": "hgfhgfh",
+                    "Signer4Version": 67779
+                },
+                "ExternalSigningServiceSubject": "hjgfhgvhgv"
+            }
+        }, {
+            "TnCId": 68,
+            "Name": "Terms and Conditions",
+            "Type": "Participant",
+            "Content": "Terms and Conditions",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "1234",
+                    "Signer1Version": 87,
+                    "Signer2TemplateId": "1234",
+                    "Signer2Version": 87,
+                    "Signer3TemplateId": "1234",
+                    "Signer3Version": 87,
+                    "Signer4TemplateId": "1234",
+                    "Signer4Version": 87
+                },
+                "ExternalSigningServiceSubject": "1234"
+            }
+        }, {
+            "TnCId": 69,
+            "Name": "Test TnC",
+            "Type": "Participant",
+            "Content": "content",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {},
+                "ExternalSigningServiceSubject": "A subject"
+            }
+        }, {
+            "TnCId": 70,
+            "Name": "wikiwiki",
+            "Type": "Participant",
+            "Content": "gfgggghfghhhj hghghg",
+            "Status": "Active"
+        }, {
+            "TnCId": 72,
+            "Name": "vvvvvvvv",
+            "Type": "Participant",
+            "Content": "zxcv fgh fghjk ghj",
+            "Status": "Active"
+        }, {
+            "TnCId": 73,
+            "Name": "mmmmmmmm",
+            "Type": "Participant",
+            "Content": "zxcvb fgh fghjk fghj hjk",
+            "Status": "Active"
+        }, {
+            "TnCId": 74,
+            "Name": "xxxxxxzzzzzzz",
+            "Type": "Participant",
+            "Content": "vbnbjhjh hjh",
+            "Status": "Active"
+        }, {
+            "TnCId": 75,
+            "Name": "qqwwweeeeeqqqq",
+            "Type": "Participant",
+            "Content": "dfnvhh gnhj fgfhg",
+            "Status": "Active"
+        }, {
+            "TnCId": 76,
+            "Name": "johnnnnnnyy",
+            "Type": "Participant",
+            "Content": "johhhnnnyy johhhnnnyy johhhnnnyy",
+            "Status": "Active"
+        }, {
+            "TnCId": 78,
+            "Name": "dddddddeeerreee",
+            "Type": "Participant",
+            "Content": "dfsdghgj ghhj fhhjkl",
+            "Status": "Active"
+        }, {
+            "TnCId": 79,
+            "Name": "ioioioioio",
+            "Type": "Participant",
+            "Content": "dgfdfg hgfghf hgfgh",
+            "Status": "Active"
+        }, {
+            "TnCId": 80,
+            "Name": "imichaeltye",
+            "Type": "Participant",
+            "Content": "dgfdfg hgfghf hgfgh",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer4TemplateId": "aa4d14e2-c5e0-48d1-a5b4-ae94f8528dec",
+                    "Signer4Version": 1,
+                    "Signer6TemplateId": "c6d749d1-15dc-4128-a101-cc4b1e9575cf",
+                    "Signer6Version": 1
+                },
+                "ExternalSigningServiceSubject": "iamagod"
+            }
+        }, {
+            "TnCId": 81,
+            "Name": "andybigfoot",
+            "Type": "Participant",
+            "Content": "andy big foot subject",
+            "Status": "Active"
+        }, {
+            "TnCId": 82,
+            "Name": "dfghjkjhgf",
+            "Type": "Participant",
+            "Content": "sfghjk",
+            "Status": "Active"
+        }, {
+            "TnCId": 83,
+            "Name": "uuuuuuuuuuu",
+            "Type": "Participant",
+            "Content": "jhhjhghfg",
+            "Status": "Active"
+        }, {
+            "TnCId": 84,
+            "Name": "mikeIsagoodboy",
+            "Type": "Participant",
+            "Content": "ghfhhj hjg jhghjg ghj",
+            "Status": "Active"
+        }, {
+            "TnCId": 85,
+            "Name": "a testers worth",
+            "Type": "Participant",
+            "Content": "do not go quietly into the night",
+            "Status": "Active"
+        }, {
+            "TnCId": 86,
+            "Name": "DocuSign with 1 signatory",
+            "Type": "Participant",
+            "Content": "Please sign DocuSign TnCs",
+            "Status": "Active"
+        }]
+    }
+}
