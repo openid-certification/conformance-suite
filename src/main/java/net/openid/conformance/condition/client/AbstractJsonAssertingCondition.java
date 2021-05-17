@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
@@ -21,7 +22,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
-		return environment.getObject("resource_endpoint_response");
+		String entityString = environment.getString("resource_endpoint_response");;
+		return new JsonParser().parse(entityString).getAsJsonObject();
 	}
 
 	protected JsonObject headersFrom(Environment environment) {
