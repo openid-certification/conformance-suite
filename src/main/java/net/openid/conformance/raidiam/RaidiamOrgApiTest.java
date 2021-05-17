@@ -11,6 +11,13 @@ import net.openid.conformance.variant.VariantParameters;
 	summary = "Calls the org api using a FAPI security profile",
 	profile = "PROFILE",
 	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
 		"resource.resourceUrl"
 	}
 )
