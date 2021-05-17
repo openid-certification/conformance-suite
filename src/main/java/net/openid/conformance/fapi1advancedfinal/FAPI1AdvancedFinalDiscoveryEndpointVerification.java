@@ -77,7 +77,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.1.1");
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-2");
 		}
 
 		if (par) {
@@ -87,9 +87,9 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		super.performEndpointVerification();
 
 		if (par) {
-			callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-1", "OIDCD-3", "PAR-4");
+			callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-1", "OIDCD-3", "PAR-4");
 		} else {
-			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-1", "OIDCD-3");
+			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-1", "OIDCD-3");
 		}
 
 		callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
@@ -113,7 +113,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		@Override
 		public void evaluate() {
 			// claims parameter support is required in Australia
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADVANCED-5.2.3-3");
 
 			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
 
@@ -128,7 +128,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		public void evaluate() {
 			// OBUK servers are required to return acrs, which means they must support requesting the acr claim (as well
 			// as the intent id claim), and hence must support the claims parameter
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADVANCED-5.2.3-3");
 
 			callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
 

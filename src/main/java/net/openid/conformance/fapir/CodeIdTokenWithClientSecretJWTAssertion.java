@@ -216,7 +216,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractFapiRServer
 		// This condition is a warning because we're not yet 100% sure of the code
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
 
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
 		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
@@ -252,18 +252,18 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractFapiRServer
 
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2.1-6");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE,"FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE,"FAPI-R-5.2.2.1-6");
 
 		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2.1-6");
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6");
 
 		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI-RW-5.2.2-4");
 
@@ -298,7 +298,7 @@ public class CodeIdTokenWithClientSecretJWTAssertion extends AbstractFapiRServer
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-6");
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI-R-6.2.2-5");
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 

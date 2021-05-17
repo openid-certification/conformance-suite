@@ -807,20 +807,20 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2-24");
+		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2.1-6");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		performProfileIdTokenValidation();
 
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
 		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-24");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2.1-6");
 
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2-24", "OB-5.2.2-8");
+		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");

@@ -68,31 +68,31 @@ public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAP
 
 		eventLog.startBlock("Authorization endpoint TLS test");
 		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
 		// additional ciphers are allowed on the authorization endpoint
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.5-2");
 
 		eventLog.endBlock();
 		env.unmapKey("tls");
@@ -111,7 +111,7 @@ public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAP
 
 		callAndStopOnFailure(RemoveMTLSCertificates.class);
 
-		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
+		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI1-ADVANCED-5.2.2-6");
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert

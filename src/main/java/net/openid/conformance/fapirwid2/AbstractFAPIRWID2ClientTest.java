@@ -430,7 +430,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, "FAPI-RW-5.2.3-5", "OIDCC-5.5.1.1");
 
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2.13");
+		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI-RW-5.2.2-13");
 
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
@@ -441,7 +441,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
 
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2.1");
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-1");
 
 		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1");
 

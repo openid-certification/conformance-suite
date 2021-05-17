@@ -26,7 +26,7 @@ public abstract class AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState 
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingStateErrorPage.class, "FAPI-RW-5.2.3-8");
+		callAndStopOnFailure(ExpectRequestObjectMissingStateErrorPage.class, "FAPI1-ADVANCED-5.2.3-8");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -82,7 +82,7 @@ public abstract class AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState 
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 		if (!jarm) {
-			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADVANCED-5.2.2.1-4");
 
 			// save the id_token returned from the authorization endpoint
 			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
@@ -90,7 +90,7 @@ public abstract class AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState 
 			performIdTokenValidation();
 
 			// s_hash must not be returned, as AS must ignore the state parameter outside the request object
-			callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-10");
+			callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-10");
 
 			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 

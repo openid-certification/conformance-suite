@@ -38,7 +38,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails extend
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingRedirectUriErrorPage.class, "FAPI-RW-5.2.3-8");
+		callAndStopOnFailure(ExpectRequestObjectMissingRedirectUriErrorPage.class, "FAPI1-ADVANCED-5.2.3-8");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -60,7 +60,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails extend
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}

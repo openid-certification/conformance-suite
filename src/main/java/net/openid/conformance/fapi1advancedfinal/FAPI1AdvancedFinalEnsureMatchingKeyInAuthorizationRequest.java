@@ -35,7 +35,7 @@ public class FAPI1AdvancedFinalEnsureMatchingKeyInAuthorizationRequest extends A
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI-RW-5.2.2-1", "OIDCC-6.3.2");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI1-ADVANCED-5.2.2-1", "OIDCC-6.3.2");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -63,7 +63,7 @@ public class FAPI1AdvancedFinalEnsureMatchingKeyInAuthorizationRequest extends A
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2", "FAPI-RW-7.3-1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
 
 		fireTestFinished();
 	}

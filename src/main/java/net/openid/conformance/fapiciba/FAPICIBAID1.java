@@ -142,7 +142,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 			unmapClient();
 
 			// Try client 2's access token with client 1's keys
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "MTLS-3");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
 
 			eventLog.endBlock();
 
