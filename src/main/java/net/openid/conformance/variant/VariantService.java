@@ -9,6 +9,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -18,20 +20,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -49,7 +40,13 @@ public class VariantService {
 	private final SortedMap<String, TestModuleHolder> testModulesByName;
 	private final SortedMap<String, TestPlanHolder> testPlansByName;
 
-	public VariantService() {
+	@Autowired
+	public VariantService(@Value("${fintechlabs.profiles.visible:#{null}}") List<String> profilesToSurface) {
+		this(testPlanHolder -> profilesToSurface == null || profilesToSurface.size() == 0 || profilesToSurface.contains(testPlanHolder.info.profile()));
+	}
+
+	public VariantService(Predicate<? super TestPlanHolder> byProfile) {
+
 		this.variantParametersByClass = inClassesWithAnnotation(VariantParameter.class)
 				.collect(toMap(identity(), c -> wrapParameter(c)));
 
@@ -61,6 +58,7 @@ public class VariantService {
 
 		this.testPlansByName = inClassesWithAnnotation(PublishTestPlan.class)
 				.map(c -> wrapPlan(c))
+				.filter(byProfile)
 				.collect(toSortedMap("test plan", holder -> holder.info.testPlanName(), identity()));
 	}
 
