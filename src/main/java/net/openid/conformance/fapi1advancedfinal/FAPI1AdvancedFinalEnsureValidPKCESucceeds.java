@@ -1,9 +1,11 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-valid-pkce-succeeds",
@@ -27,6 +29,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
+	"pushed" // All PAR requests must use PKCE, so we don't need a separate test valid PKCE for PAR
+})
 public class FAPI1AdvancedFinalEnsureValidPKCESucceeds extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
