@@ -8,7 +8,7 @@ services:
     build:
       context: ./httpd
     ports:
-     - "8443:8443"
+     - "443:8443"
     depends_on:
      - server
   server:
@@ -19,7 +19,7 @@ services:
     command: >
       java
       -jar /server/fapi-test-suite.jar
-      --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
+      --fintechlabs.base_url=https://localhost.emobix.co.uk:443
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:

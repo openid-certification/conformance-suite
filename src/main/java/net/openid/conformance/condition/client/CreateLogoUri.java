@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CreateLogoUri extends AbstractCondition {
 
-	private static final String LOGO_PATH = "/images/openid.png";
+	private static final String LOGO_PATH = "/images/raidiam.png";
 
 	@Override
 	@PreEnvironment(strings = "base_url")
