@@ -51,10 +51,12 @@ public class ValidateSignedUserInfoResponseStandardJWTClaims extends AbstractCon
 			if (!aud.getAsJsonArray().contains(new JsonPrimitive(clientId))) {
 				throw error("Audience not found", args("expected", clientId, "actual", aud));
 			}
-		} else {
+		} else if (aud.isJsonPrimitive() && aud.getAsJsonPrimitive().isString()) {
 			if (!clientId.equals(OIDFJSON.getString(aud))) {
 				throw error("Audience mismatch", args("expected", clientId, "actual", aud));
 			}
+		} else {
+			throw error("'aud' is neither a string nor an array");
 		}
 
 		Long exp = env.getLong(USERINFO_OBJECT, "claims.exp");
