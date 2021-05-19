@@ -353,7 +353,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASELINE-7.1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASELINE-7.1", "FAPI1-ADVANCED-8.5-1");
 
 		call(exec().unmapKey("client_request"));
 
