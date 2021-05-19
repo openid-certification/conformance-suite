@@ -91,6 +91,16 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.gitlab.iss:https://gitlab.com}")
 	private String gitlabIss;
 
+	// Static Client for OBB Directory
+	@Value("${oidc.obbrazil.clientid}")
+	private String obbrazilClientId;
+
+	@Value("${oidc.obbrazil.secret}")
+	private String obbrazilClientSecret;
+
+	@Value("${oidc.obbrazil.iss:https://auth.sandbox.directory.openbankingbrasil.org.br}")
+	private String obbrazilIss;
+
 	// Config for the admin role
 	@Value("${oidc.admin.domains:}")
 	private String adminDomains;
@@ -102,19 +112,10 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
-	private RegisteredClient googleClientConfig() {
+	private RegisteredClient obbrazilClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
-		rc.setClientId(googleClientId);
-		rc.setClientSecret(googleClientSecret);
-		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
-		rc.setRedirectUris(ImmutableSet.of(redirectURI));
-		return rc;
-	}
-
-	private RegisteredClient gitlabClientConfig() {
-		RegisteredClient rc = new RegisteredClient();
-		rc.setClientId(gitlabClientId);
-		rc.setClientSecret(gitlabClientSecret);
+		rc.setClientId(obbrazilClientId);
+		rc.setClientSecret(obbrazilClientSecret);
 		// email is only asked for to make it clear to the user which account they're logged into, if they have multiple gitlab ones
 		rc.setScope(ImmutableSet.of("openid", "email"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
@@ -152,7 +153,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
 
 		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(googleIss, googleClientConfig(), gitlabIss, gitlabClientConfig()));
+		clientConfigService.setClients(ImmutableMap.of(obbrazilIss, obbrazilClientConfig()));
 
 		// Setup template for dynamic registration
 		clientConfigService.setTemplate(getClientTemplate());

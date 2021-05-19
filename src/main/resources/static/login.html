@@ -2,7 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
 	<meta charset="UTF-8">
-	<title>OIDF Conformance: Login</title>
+	<title>Raidiam Functional Conformance: Login</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -19,7 +19,7 @@
 	<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
-				<a href="index.html"><img src="/images/openid.png"></a>
+				<a href="index.html"><img src="/images/raidiam.png"></a>
 			</div>
 			<div id="userInfoDiv" class="col-md-4 text-right"></div>
 		</div>
@@ -29,33 +29,12 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
-				<h1 class="text-center">Login to the OpenID Foundation Conformance Suite</h1>
+				<h1 class="text-center">Login to the Raidiam Functional Conformance Suite</h1>
 				<p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
 				<p id="logout" class="bg-info collapse">You have been logged out.</p>
 				<p class="text-center">
-					<a class="btn btn-danger btn-lg" href="/openid_connect_login?iss=https://accounts.google.com">Log in with Google</a>
-					<a class="btn btn-primary btn-lg" href="/openid_connect_login?iss=https://gitlab.com">Log in with gitlab</a>
+					<a class="btn btn-success btn-lg" href="/openid_connect_login?iss=https://auth.sandbox.directory.openbankingbrasil.org.br/">Log in with OB Brazil Directory</a>
 				</p>
-                <div>
-                    <h4 class="lead text-center">Or use another OpenID Connect provider that supports <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery">'webfinger'</a></h4>
-                    <form action="/openid_connect_login" method="post" id="login_form" onsubmit="addAcctToIdentifierValue()">
-                        <div class="form-group">
-                            <label for="identifier">User Name :</label> <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com" />
-                        </div>
-                        <input type="submit" class="btn btn-default" value="Sign In" />
-                    </form>
-                    <script>
-                        function addAcctToIdentifierValue(){
-                            var input = document.getElementById('identifier');
-                            if(input){
-                                var inputValue = input.value;
-                                if(inputValue.indexOf('@')!==-1 && inputValue.indexOf('acct:')!==0){
-                                    input.value = 'acct:' + input.value;
-                                }
-                            }
-                        }
-                    </script>
-                </div>
 			</div>
 		</div>
 		<div class="row">
@@ -71,7 +50,7 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
+        <span class="muted">Raidiam Functional Conformance Suite - with thanks to the OpenID Foundation</span>
     </footer>
 
     <script type="text/javascript">
