@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "organisation-api-test",
 	displayName = "Raidiam Directory Org API test",
 	summary = "Calls the org api using a FAPI security profile",
-	profile = "PROFILE",
+	profile = "Raidiam Directory Tests",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -23,7 +23,7 @@ public class RaidiamOrgApiTest extends AbstractFunctionalTestModule {
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(OrgApiValidator.class);
+		callAndStopOnFailure(OrgApiStructureValidator.class);
 	}
 
 }
