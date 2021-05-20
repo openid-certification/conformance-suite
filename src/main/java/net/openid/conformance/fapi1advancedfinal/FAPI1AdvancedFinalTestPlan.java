@@ -72,6 +72,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI1AdvancedFinalPARRejectInvalidHttpVerb.class,
 		FAPI1AdvancedFinalPAREnsurePKCERequired.class,
+		FAPI1AdvancedFinalPAREnsurePKCECodeVerifierRequired.class,
 
 		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
 		FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject.class,

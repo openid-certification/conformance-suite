@@ -537,8 +537,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		addClientAuthenticationToTokenEndpointRequest();
 
 		if (isPar) {
-			callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5");
+			addPkceCodeVerifier();
 		}
+	}
+
+	protected void addPkceCodeVerifier() {
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
