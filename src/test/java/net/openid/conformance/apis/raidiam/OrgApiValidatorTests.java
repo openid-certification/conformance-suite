@@ -1,7 +1,7 @@
 package net.openid.conformance.apis.raidiam;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
-import net.openid.conformance.raidiam.OrgApiValidator;
+import net.openid.conformance.raidiam.OrgApiStructureValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ public class OrgApiValidatorTests extends AbstractJsonResponseConditionUnitTest 
 	@UseResurce("jsonResponses/orgapi_response.json")
 	public void validateStructure() {
 
-		OrgApiValidator condition = new OrgApiValidator();
+		OrgApiStructureValidator condition = new OrgApiStructureValidator();
 
 		run(condition);
 
