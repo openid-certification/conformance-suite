@@ -14,8 +14,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 //PAR-2.0.1/JAR-4.0: The value of "aud" should be the value of the Authorization Server (AS) issuer
 @PublishTestModule(
 	testName = "fapi-rw-id2-par-pushed-authorization-url-as-audience-in-request-object",
-	displayName = "PAR : try to use pushed authorization endpoint url as audience in request object",
-	summary = "This test tries to use the pushed authorization endpoint url as audience in request object, the authorization server is expected to reject the request - depending when the server chooses to verify the request object, the refusal may be an error from the pushed request object endpoint, or may be returned from the authorization endpoint.",
+	displayName = "PAR : try to use pushed authorization request endpoint url as audience in request object",
+	summary = "This test tries to use the pushed authorization request endpoint url as audience in request object, the authorization server is expected to reject the request - depending when the server chooses to verify the request object, the refusal may be an error from the pushed authorization request endpoint, or may be returned from the authorization endpoint.",
 	profile = "FAPI-RW-ID2",
 	configurationFields = {
 		"server.discoveryUrl",

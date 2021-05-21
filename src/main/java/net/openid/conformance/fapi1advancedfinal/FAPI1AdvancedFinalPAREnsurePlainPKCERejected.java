@@ -15,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-par-plain-pkce-rejected",
 	displayName = "FAPI1-Advanced-Final: ensure plain pkce is rejected",
-	summary = "This test makes a FAPI authorization request using plain PKCE (RFC7636), which must be rejected. FAPI1-Advanced-Final requires servers to reject PAR requests that do not use S256, clause 5.2.2-18. Depending on when the server chooses to verify the request, the refusal may be an error from the pushed request object endpoint, or an invalid_request error may be returned from the authorization endpoint, or an error may be shown to the user (a screenshot of which must be uploaded).",
+	summary = "This test makes a FAPI authorization request using plain PKCE (RFC7636), which must be rejected. FAPI1-Advanced-Final requires servers to reject PAR requests that do not use S256, clause 5.2.2-18. Depending on when the server chooses to verify the request, the refusal may be an error from the pushed authorization request endpoint, or an invalid_request error may be returned from the authorization endpoint, or an error may be shown to the user (a screenshot of which must be uploaded).",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

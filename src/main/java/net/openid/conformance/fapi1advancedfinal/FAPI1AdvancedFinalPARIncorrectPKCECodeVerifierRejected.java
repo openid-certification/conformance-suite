@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-incorrect-pkce-code-verifier-rejected",
 	displayName = "FAPI1-Advanced-Final: Incorrect PKCE code_verifier rejected",
-	summary = "his test authenticates as normal except that when calling the token endpoint it passes an incorrect value in the 'code_verifier' parameter. The test must end with the the token endpoint returning an 'invalid_grant' error, due to the incorrect the code_verifier parameter.",
+	summary = "This test authenticates as normal except that when calling the token endpoint it passes an incorrect value in the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, due to the incorrect the code_verifier parameter.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
