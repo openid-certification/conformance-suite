@@ -98,7 +98,7 @@ public class CallPAREndpoint extends AbstractCondition {
 				jsonString = response.getBody();
 
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling pushed authorization endpoint",
+				throw error("RestClientResponseException occurred whilst calling pushed authorization request endpoint",
 					e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleResponseException(env, e);
@@ -110,7 +110,7 @@ public class CallPAREndpoint extends AbstractCondition {
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Missing or empty response from the pushed authorization endpoint");
+				throw error("Missing or empty response from the pushed authorization request endpoint");
 			}
 
 			try {
@@ -119,7 +119,7 @@ public class CallPAREndpoint extends AbstractCondition {
 					throw error("Pushed Authorization did not return a JSON object");
 				}
 
-				logSuccess("Parsed pushed authorization endpoint response", jsonRoot.getAsJsonObject());
+				logSuccess("Parsed pushed authorization request endpoint response", jsonRoot.getAsJsonObject());
 
 				env.putObject("pushed_authorization_endpoint_response", jsonRoot.getAsJsonObject());
 

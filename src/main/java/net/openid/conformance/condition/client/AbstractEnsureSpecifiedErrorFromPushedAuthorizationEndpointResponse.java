@@ -27,7 +27,7 @@ public abstract class AbstractEnsureSpecifiedErrorFromPushedAuthorizationEndpoin
 		Integer status = env.getInteger("pushed_authorization_endpoint_response_http_status");
 
 		if (status != getExpectedResponseCode()) {
-			throw error("Invalid pushed authorization endpoint response http status code",
+			throw error("Invalid pushed authorization request endpoint response http status code",
 				args("expected", getExpectedResponseCode(), "actual", status));
 		}
 
@@ -39,7 +39,7 @@ public abstract class AbstractEnsureSpecifiedErrorFromPushedAuthorizationEndpoin
 		} else if (!expected.contains(error)) {
 			throw error("'error' field has unexpected value", args("expected", expected, "actual", error));
 		} else {
-			logSuccess("Pushed Authorization Endpoint returned expected 'error' of '"+expected+"'",
+			logSuccess("Pushed Authorization Request Endpoint returned expected 'error' of '"+expected+"'",
 				args("error", error, "expected", expected));
 
 			return env;

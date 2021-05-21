@@ -1,12 +1,13 @@
 package net.openid.conformance.fapi1advancedfinal;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
@@ -15,14 +16,13 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.util.JWKUtil;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-signed-client-assertion-with-RS256-fails",
-	displayName = "FAPI1-Advanced-Final: ensure signed client assertion with RS256 fails",
-	summary = "This test authenticates as normal except that the client assertion passed to the token endpoint when exchanging the authorization code for tokens is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the token endpoint returning an 'invalid_client' error, due to the client authentication being invalid.",
+	testName = "fapi1-advanced-final-ensure-pkce-code-verifier-required",
+	displayName = "FAPI1-Advanced-Final: Ensure PKCE code_verifier required",
+	summary = "This test authenticates as normal except that when calling the token endpoint it omits the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, as PKCE is required and requires the code_verifier parameter.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -41,41 +41,22 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
-public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
+@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
+	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
+})
+public class FAPI1AdvancedFinalPAREnsurePKCECodeVerifierRequired extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		String alg = JWKUtil.getAlgFromClientJwks(env);
-		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
-			// This throws an exception: the test will stop here
-			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
-		}
-	}
-
-
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-
-		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADVANCED-8.6");
-
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
+	protected void addPkceCodeVerifier() {
 	}
 
 	@Override
 	protected void requestAuthorizationCode() {
-		/* If we get an error back from the token endpoint server:
-		 * - It must be a 'invalid_client' error
-		 */
+		/* expect an 'invalid_grant' error */
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASELINE-5.2.2-19");
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC7636-4.6", "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");

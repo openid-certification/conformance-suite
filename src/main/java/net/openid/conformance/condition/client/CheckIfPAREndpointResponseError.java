@@ -23,7 +23,7 @@ public class CheckIfPAREndpointResponseError extends AbstractCondition {
 		Integer status = env.getInteger("pushed_authorization_endpoint_response_http_status");
 
 		if (status != HTTP_STATUS_CREATED) {
-			throw error("Invalid pushed authorization endpoint response http status code",
+			throw error("Invalid pushed authorization request endpoint response http status code",
 				args("expected", HTTP_STATUS_CREATED, "actual", status));
 		}
 
@@ -32,11 +32,11 @@ public class CheckIfPAREndpointResponseError extends AbstractCondition {
 		JsonElement errorResponse = resp.get("error");
 
 		if (errorResponse != null) {
-			throw error("pushed authorization endpoint error response."
+			throw error("pushed authorization request endpoint error response."
 				, args("actual", resp.toString()));
 		}
 
-		logSuccess("pushed authorization endpoint correct response.");
+		logSuccess("pushed authorization request endpoint correct response.");
 
 		return env;
 
