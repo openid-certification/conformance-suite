@@ -1,13 +1,12 @@
 FROM openjdk:11-jdk-slim
 COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL https://web.conformance.directory.openbankingbrasil.org.br
-ENV MONGODB_HOST mongodb
 ENV JAVA_EXTRA_ARGS=
 EXPOSE 8080
 EXPOSE 9090
 ENTRYPOINT java \
   -D"fintechlabs.base_url=${BASE_URL}" \
-  -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
+  -D"spring.data.mongodb.uri=mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/test_suite" \
   ${JWKS:+-D"fintechlabs.jwks=${JWKS}"} \
   ${SIGNING_KEY:+-D"fintechlabs.signingKey=${SIGNING_KEY}"} \
   -D"oidc.google.clientid=${OIDC_GOOGLE_CLIENTID}" \
