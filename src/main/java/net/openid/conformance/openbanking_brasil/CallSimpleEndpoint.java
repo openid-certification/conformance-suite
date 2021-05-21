@@ -39,7 +39,6 @@ public class CallSimpleEndpoint extends AbstractCondition {
 		JsonObject resourceConfig = env.getObject("resource");
 		String url = OIDFJSON.getString(resourceConfig.get("resourceUrl"));
 
-		HttpMethod method = getMethod(env);
 		try {
 
 			RestTemplate restTemplate = createRestTemplate(env);
