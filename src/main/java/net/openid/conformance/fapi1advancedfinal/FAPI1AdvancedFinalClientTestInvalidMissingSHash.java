@@ -37,7 +37,7 @@ public class FAPI1AdvancedFinalClientTestInvalidMissingSHash extends AbstractFAP
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(RemoveSHashFromIdToken.class, "FAPI-RW-5.2.3");
+		callAndStopOnFailure(RemoveSHashFromIdToken.class, "FAPI1-ADVANCED-5.2.2.1-5");
 	}
 
 	@Override
