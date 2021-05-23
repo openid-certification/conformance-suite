@@ -66,13 +66,19 @@ import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
+import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
@@ -103,6 +109,8 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.OIDCCClientAuthType;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -123,6 +131,15 @@ import javax.servlet.http.HttpSession;
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
+	"client2.client_id",
+	"client2.scope",
+	"client2.redirect_uri",
+	"client2.certificate",
+	"client2.jwks",
+	"client2.id_token_encrypted_response_alg",
+	"client2.id_token_encrypted_response_enc",
 })
 public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestModule {
 
@@ -213,18 +230,64 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
+		configureClients();
+
+		onConfigurationCompleted();
+		setStatus(Status.CONFIGURED);
+		fireSetupDone();
+	}
+
+	/**
+	 * will be called at the end of configure
+	 */
+	protected void onConfigurationCompleted() {
+
+	}
+
+	protected void configureClients()
+	{
+		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
+		validateClientJwks(false);
+		validateClientConfiguration();
+
+		eventLog.startBlock("Verify configuration of second client");
+		// extract second client
+		switchToSecondClient();
+		callAndStopOnFailure(GetStaticClient2Configuration.class);
+
+		validateClientJwks(true);
+		validateClientConfiguration();
+
+		//switch back to the first client
+		unmapClient();
+		eventLog.endBlock();
+	}
+
+	protected void validateClientConfiguration() {
+	}
+
+
+	protected void switchToSecondClient() {
+		env.mapKey("client", "client2");
+		env.mapKey("client_jwks", "client_jwks2");
+	}
+
+	protected void unmapClient() {
+		env.unmapKey("client");
+		env.unmapKey("client_jwks");
+	}
+
+	protected void validateClientJwks(boolean isSecondClient)
+	{
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 
-		// for signing request objects
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI-R-5.2.2.5");
 
-		setStatus(Status.CONFIGURED);
-		fireSetupDone();
+		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI-R-5.2.2.5");
 	}
 
 	@Override
@@ -573,7 +636,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		signIdToken();
 
-		encryptIdToken();
+		encryptIdToken(isAuthorizationEndpoint);
 	}
 
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
@@ -616,9 +679,16 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		addCustomSignatureOfIdToken();
 	}
 
-	protected void encryptIdToken() {
-		skipIfElementMissing("client", "id_token_encrypted_response_alg", Condition.ConditionResult.INFO,
-			EncryptIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2");
+	/**
+	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
+	 * "5.2.3.1.  ID Token as detached signature" reads:
+	 *  "5. shall support both signed and signed & encrypted ID Tokens."
+	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
+	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
+	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 * @param isAuthorizationEndpoint
+	 */
+	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
 	}
 
 	protected void createAuthorizationEndpointResponse() {

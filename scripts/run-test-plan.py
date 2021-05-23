@@ -217,24 +217,29 @@ def run_test_plan(test_plan, config_file, output_dir):
                 state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
-                # If it's a client test, we need to run the client
-                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                # If it's a client test, we need to run the client.
+                # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
+                if re.match(r'(fapi.*-client-.*)', module):
+                    print("FAPI client test: " + module + " " + json.dumps(variant))
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+                    if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
+                    else:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
+                    if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
+                        os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
+                    else:
+                        os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
 
-                if re.match(r'(fapi1-.*-client-.*)', module):
-                    profile = variant['fapi_profile']
-                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
-                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    os.environ['FAPI_AUTH_REQUEST_METHOD']= variant['fapi_auth_request_method']
-                    os.environ['FAPI_RESPONSE_MODE']= variant['fapi_response_mode']
+                    os.environ['TEST_MODULE_NAME'] = module
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
                 conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
+            traceback.print_exc()
             print('Exception: Test {} failed to run to completion: {}'.format(module_with_variants, e))
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time

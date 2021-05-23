@@ -391,6 +391,28 @@
 										</div>
                                     </div>
                                 </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">id_token_encrypted_response_alg</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JWE alg algorithm for encrypting the ID Token issued to this Client."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.id_token_encrypted_response_alg"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">id_token_encrypted_response_enc</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JWE enc algorithm for encrypting the ID Token issued to this Client, defaults to A128CBC-HS256."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.id_token_encrypted_response_enc"></input>
+                                        </div>
+                                    </div>
+                                </div>
 								<div class="row config-form-element-container">
 									<div class="col-md-2 key">certificate</div>
 									<div class="col-md-10">
@@ -644,6 +666,17 @@
 										</div>
 									</div>
 								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">certificate</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client2.certificate"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">

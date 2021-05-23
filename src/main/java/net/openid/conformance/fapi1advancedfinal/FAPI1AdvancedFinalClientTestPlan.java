@@ -9,6 +9,8 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI1AdvancedFinalClientTest.class,
+		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
+		FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
 		FAPI1AdvancedFinalClientTestInvalidSHash.class,
 		FAPI1AdvancedFinalClientTestInvalidCHash.class,
 		FAPI1AdvancedFinalClientTestInvalidNonce.class,
