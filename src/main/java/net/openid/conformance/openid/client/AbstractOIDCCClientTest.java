@@ -45,9 +45,9 @@ import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObjec
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
+import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCExtractServerSigningAlg;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
@@ -981,12 +981,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		callAndStopOnFailure(OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
+		callAndStopOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
 
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			validateRequestObject();
-			callAndStopOnFailure(OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
-			callAndContinueOnFailure(OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject.class,
+			callAndStopOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class,
 										Condition.ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
 		}
 
