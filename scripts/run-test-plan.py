@@ -232,6 +232,10 @@ def run_test_plan(test_plan, config_file, output_dir):
                         os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
                     else:
                         os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
+                    if 'fapi_jarm_type' in variant.keys() and variant['fapi_jarm_type']:
+                        os.environ['FAPI_JARM_TYPE'] =  variant['fapi_jarm_type']
+                    else:
+                        os.environ['FAPI_JARM_TYPE'] = 'oidc'
 
                     os.environ['TEST_MODULE_NAME'] = module
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")

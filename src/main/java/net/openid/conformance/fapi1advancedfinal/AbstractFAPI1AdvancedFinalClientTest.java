@@ -22,6 +22,8 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
+import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
@@ -103,6 +105,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -122,7 +125,8 @@ import javax.servlet.http.HttpSession;
 	ClientAuthType.class,
 	FAPIProfile.class,
 	FAPIAuthRequestMethod.class,
-	FAPIResponseMode.class
+	FAPIResponseMode.class,
+	FAPIJARMType.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -158,6 +162,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected ClientAuthType clientAuthType;
 
+	protected FAPIJARMType jarmType;
+
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
@@ -190,7 +196,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
-
+		jarmType = getVariant(FAPIJARMType.class);
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
@@ -513,7 +519,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADVANCED-5.2.3-15");
 		}
 
-		issueIdToken(false);
+		issueAccessToken();
+
+		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+		if("yes".equals(isOpenIdScopeRequested)) {
+			issueIdToken(false);
+		}
 
 		createTokenEndpointResponse();
 
@@ -565,9 +576,21 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
-		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASELINE-5.2.3-8");
+		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+		if("yes".equals(isOpenIdScopeRequested)) {
+			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
+				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
+			}
+			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASELINE-5.2.2.2");
+		} else {
+			if(jarmType==FAPIJARMType.OIDC) {
+				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
+			}
+			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASELINE-5.2.2.3-1");
+		}
 
-		if(responseMode!=FAPIResponseMode.JARM) {
+		if(responseMode!=FAPIResponseMode.JARM && "yes".equals(isOpenIdScopeRequested)) {
+			//issueAccessToken();
 			issueIdToken(true);
 		}
 
@@ -594,8 +617,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, "OIDCC-6.1");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADVANCED-5.2.2.1");
 		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
 	}
@@ -610,18 +633,22 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				"OIDCC-6.1", "FAPI1-ADVANCED-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
 				"OIDCC-6.1", "OIDCC-6.2");
-			callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class,  ConditionResult.FAILURE,
-				"OIDCC-6.1", "OIDCC-6.2");
+			if(responseMode!=FAPIResponseMode.JARM) {
+				callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
+					"OIDCC-6.1", "OIDCC-6.2");
+			}
 		}
+		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 
 		if(responseMode==FAPIResponseMode.JARM) {
 			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADVANCED-5.2.2-2");
 		} else if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADVANCED-5.2.2-1");
+			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASELINE-5.2.3-7");
 		}
-		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASELINE-5.2.3-7");
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 	}
 
@@ -638,9 +665,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		encryptIdToken(isAuthorizationEndpoint);
 	}
 
-	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
+	protected void issueAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+	}
+
+	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
 
 		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
 		//TODO skip or add?
@@ -666,7 +696,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
 				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2.1-5");
 		}
-		callAndStopOnFailure(AddAtHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
+		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
+			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
 

@@ -15,13 +15,12 @@ public class GenerateJARMResponseClaims extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "client", CreateAuthorizationEndpointResponseParams.ENV_KEY },
-		strings = {"nonce", "issuer", "authorization_code"})
+		strings = {"issuer", "authorization_code"})
 	@PostEnvironment(required = "jarm_response_claims")
 	public Environment evaluate(Environment env) {
 
 		String issuer = env.getString("issuer");
 		String code = env.getString("authorization_code");
-		String nonce = env.getString("nonce");
 		String clientId = env.getString("client", "client_id");
 		String state = env.getString(CreateAuthorizationEndpointResponseParams.ENV_KEY, CreateAuthorizationEndpointResponseParams.STATE);
 
@@ -32,8 +31,9 @@ public class GenerateJARMResponseClaims extends AbstractCondition {
 		claims.addProperty("iss", issuer);
 		claims.addProperty("aud", clientId);
 		claims.addProperty("code", code);
-		claims.addProperty("state", state);
-		claims.addProperty("nonce", nonce);
+		if(!Strings.isNullOrEmpty(state)) {
+			claims.addProperty("state", state);
+		}
 		claims.addProperty("exp", exp.getEpochSecond());
 
 		env.putObject("jarm_response_claims", claims);
