@@ -5,8 +5,10 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 public abstract class AbstractCheckEndpointContentTypeReturned extends AbstractCondition {
-	protected Environment checkContentType(Environment env, String headersEnvKey, String expected) {
-		String contentType = env.getString(headersEnvKey, "content-type");
+
+	// this currently copes with the "old" way of using three seperate environment variables, one for each status / headers / body and the new preferred way of the object returned by AbstractCondition.convertResponseForEnvironment
+	protected Environment checkContentType(Environment env, String headersEnvKey, String pathPrefix, String expected) {
+		String contentType = env.getString(headersEnvKey, pathPrefix + "content-type");
 		if (Strings.isNullOrEmpty(contentType)) {
 			throw error("Couldn't find content-type header in "+headersEnvKey);
 		}
