@@ -5,7 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-test-plan",
-	displayName = "FAPI1-Advanced-Final (and OpenBankingUK / CDR): Authorization server test (latest version)",
+	displayName = "FAPI1-Advanced-Final: Authorization server test - NOT YET COMPLETE, CERTIFICATION PROGRAM NOT YET LAUNCHED",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
@@ -71,6 +71,12 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalPAREnsureRequestUriIsBoundToClient.class,
 		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI1AdvancedFinalPARRejectInvalidHttpVerb.class,
+
+		// PKCE tests
+		FAPI1AdvancedFinalPAREnsurePKCERequired.class,
+		FAPI1AdvancedFinalPAREnsurePKCECodeVerifierRequired.class,
+		FAPI1AdvancedFinalPARIncorrectPKCECodeVerifierRejected.class,
+		FAPI1AdvancedFinalPAREnsurePlainPKCERejected.class,
 
 		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
 		FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject.class,

@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 
-//Sets the Pushed Authorization Endpoint URL as the Audience claim for Client Authentication Assertion.
+//Sets the Pushed Authorization Request Endpoint URL as the Audience claim for Client Authentication Assertion.
 public class AddPAREndpointAsAudToClientAuthenticationAssertionClaims extends AbstractCondition {
 
 	@Override

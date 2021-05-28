@@ -158,6 +158,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				"result", ConditionResult.FAILURE
 			));
 			throw alreadyLoggedPrePostError("Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact certification@oidf.org with the full details) - couldn't get 'evaluate' method for condition '" + this.getClass().getSimpleName() + "'", e);
+		} catch (Environment.UnexpectedTypeException e) {
+			throw error(e.getMessage(), e);
 		}
 	}
 

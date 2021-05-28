@@ -10,8 +10,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-par-test-pushed-authorization-url-as-audience-for-client-JWT-assertion",
-	displayName = "PAR : try to use pushed authorization endpoint url as audience for Client JWT Assertion",
-	summary = "This test tries to use the pushed authorization endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
+	displayName = "PAR : try to use pushed authorization request endpoint url as audience for Client JWT Assertion",
+	summary = "This test tries to use the pushed authorization request endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

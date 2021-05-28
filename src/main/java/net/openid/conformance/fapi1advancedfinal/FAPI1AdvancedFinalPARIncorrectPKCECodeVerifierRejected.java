@@ -1,22 +1,23 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
-import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-client-id-in-token-endpoint",
-	displayName = "FAPI1-Advanced-Final: ensure client_id in token endpoint",
-	summary = "Send client_id for the second client to the token endpoint, which should result in the token endpoint returning an error message that the client is invalid. Note that you must configure the second client to use client credentials that are not equivalent to those for the first client - e.g. if using tls_client_auth_subject_dn, the certificates must have different subject distinguished names.",
+	testName = "fapi1-advanced-final-incorrect-pkce-code-verifier-rejected",
+	displayName = "FAPI1-Advanced-Final: Incorrect PKCE code_verifier rejected",
+	summary = "This test authenticates as normal except that when calling the token endpoint it passes an incorrect value in the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, due to the incorrect the code_verifier parameter.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,32 +36,25 @@ import net.openid.conformance.variant.ClientAuthType;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
+@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
+	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
+})
+public class FAPI1AdvancedFinalPARIncorrectPKCECodeVerifierRejected extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 
 	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-
-		// Switch to client 2 client
-		eventLog.startBlock("Swapping to Client2");
-		env.mapKey("client", "client2");
-
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "FAPI1-BASELINE-5.2.2-19");
-
-		// For this test, we explicitly add the client ID - so don't do it twice
-		if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
-			super.addClientAuthenticationToTokenEndpointRequest();
-		}
+	protected void addPkceCodeVerifier() {
+		// create a new, different code verified
+		call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
+		super.addPkceCodeVerifier();
 	}
 
 	@Override
 	protected void requestAuthorizationCode() {
-		/* If we get an error back from the token endpoint server:
-		 * - It must be a 'invalid_client' error
-		 */
+		/* expect an 'invalid_grant' error */
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASELINE-5.2.2-19");
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC7636-4.6", "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-5.2");
@@ -68,4 +62,5 @@ public class FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint extends AbstractFAP
 
 		fireTestFinished();
 	}
+
 }

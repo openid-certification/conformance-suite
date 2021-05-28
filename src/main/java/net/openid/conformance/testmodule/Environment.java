@@ -199,25 +199,20 @@ public class Environment {
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
-	 * @throws IllegalArgumentException if the element is not the appropriate native type
+	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
 	public String getString(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isString()) {
-					return OIDFJSON.getString(e);
-				} else {
-					throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new IllegalArgumentException("Found non-string value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			// we didn't find it
 			return null;
+		}
+
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
+			return OIDFJSON.getString(e);
+		} else {
+			throw new UnexpectedTypeException(String.format("A string is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -233,23 +228,19 @@ public class Environment {
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
-	 * @throws IllegalArgumentException if the element is not the appropriate native type
+	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
 	public Integer getInteger(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isNumber()) {
-					return OIDFJSON.getNumber(e).intValue();
-				} else {
-					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+			return OIDFJSON.getNumber(e).intValue();
+		} else {
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -266,24 +257,19 @@ public class Environment {
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
-	 * @throws IllegalArgumentException if the element is not the appropriate native type
+	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
 
 	public Boolean getBoolean(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-				if (e.getAsJsonPrimitive().isBoolean()) {
-					return OIDFJSON.getBoolean(e);
-				} else {
-					throw new IllegalArgumentException("Found non-boolean value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()) {
+			return OIDFJSON.getBoolean(e);
+		} else {
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -300,24 +286,18 @@ public class Environment {
 	 * @param path the path within the object to search; in dot-separated notation
 	 * @returns the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
-	 * @throws IllegalArgumentException if the element is not the appropriate native type
+	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
 	public Long getLong(String key, String path) {
 		JsonElement e = getElementFromObject(key, path);
-		if (e != null) {
-			if (e.isJsonPrimitive()) {
-
-				if (e.getAsJsonPrimitive().isNumber()) {
-					return OIDFJSON.getNumber(e).longValue();
-				} else {
-					throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
-				}
-			} else {
-				// it wasn't a primitive
-				throw new IllegalArgumentException("Found non-number value for " + key + " / " + path);
-			}
-		} else {
+		if (e == null) {
 			return null;
+		}
+		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+			return OIDFJSON.getNumber(e).longValue();
+		} else {
+			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+				key, path, e.getClass().getSimpleName()));
 		}
 	}
 
@@ -551,5 +531,15 @@ public class Environment {
 		natives.remove(key);
 	}
 
+	/**
+	 * To allow conditions catch these exceptions when necessary
+	 * i.e to catch and throw a nicer 'error(..., args(...))' from a condition
+	 */
+	@SuppressWarnings("serial")
+	public static class UnexpectedTypeException extends IllegalArgumentException {
+		public UnexpectedTypeException(String msg) {
+			super(msg);
+		}
+	}
 
 }

@@ -38,7 +38,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithoutScopeFails extends Abst
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingScopeErrorPage.class, "FAPI-RW-5.2.3-8");
+		callAndStopOnFailure(ExpectRequestObjectMissingScopeErrorPage.class, "FAPI1-ADVANCED-5.2.3-8");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

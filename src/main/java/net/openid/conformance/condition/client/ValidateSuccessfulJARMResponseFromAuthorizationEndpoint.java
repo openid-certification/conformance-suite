@@ -9,7 +9,7 @@ public class ValidateSuccessfulJARMResponseFromAuthorizationEndpoint extends Abs
 	@Override
 	protected List<String> getExpectedParams()
 	{
-		return ImmutableList.of("code", "state", "session_state");
+		return ImmutableList.of("code", "state", "session_state", "iss");
 	}
 
 }

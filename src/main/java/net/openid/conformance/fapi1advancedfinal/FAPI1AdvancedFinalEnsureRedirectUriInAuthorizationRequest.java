@@ -31,7 +31,7 @@ public class FAPI1AdvancedFinalEnsureRedirectUriInAuthorizationRequest extends A
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI-R-5.2.2-9");
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI1-BASELINE-5.2.2-9");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
 	}

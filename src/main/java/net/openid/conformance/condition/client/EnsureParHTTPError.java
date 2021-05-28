@@ -18,11 +18,11 @@ public class EnsureParHTTPError extends AbstractCondition {
 		}
 
 		if (status < 400 || status >= 600) {
-			throw error("Invalid pushed authorization endpoint response http status code",
+			throw error("Invalid pushed authorization request endpoint response http status code",
 				args("expected", "4xx or 5xx", "actual", status));
 		}
 
-		logSuccess("pushed authorization endpoint returned a HTTP 4xx or 5xx error as expected", args("actual", status));
+		logSuccess("Pushed Authorization Request Endpoint returned a HTTP 4xx or 5xx error as expected", args("actual", status));
 		return env;
 
 	}

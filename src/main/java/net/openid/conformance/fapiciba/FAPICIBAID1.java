@@ -25,7 +25,9 @@ import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
@@ -56,12 +58,14 @@ import net.openid.conformance.variant.VariantSetup;
 )
 
 public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
+	private Class<? extends ConditionSequence> generateNewClientAssertionSteps = null;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
+		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
@@ -142,12 +146,16 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 			unmapClient();
 
 			// Try client 2's access token with client 1's keys
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "MTLS-3");
+			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
 
 			eventLog.endBlock();
 
 			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail)");
 			switchToSecondClient();
+
+			if (generateNewClientAssertionSteps != null) {
+				call(sequence(generateNewClientAssertionSteps));
+			}
 
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
