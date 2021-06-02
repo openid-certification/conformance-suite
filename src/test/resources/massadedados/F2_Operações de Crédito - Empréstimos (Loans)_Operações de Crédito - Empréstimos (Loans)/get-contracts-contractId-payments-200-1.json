@@ -1,0 +1,40 @@
+{
+    "data": {
+        "paidInstalments": 1,
+        "contractOutstandingBalance": 18333.33,
+        "releases": [
+            {
+                "paymentId": "00c33b70-69ef-4bc0-84db-57b3635534aa",
+                "isOverParcelPayment": false,
+                "instalmentId": "685618a0-e8bd-4a49-b4e1-f6bfe9d52073",
+                "paidDate": "2021-05-14",
+                "currency": "BRL",
+                "paidAmount": 1666.67,
+                "overParcel": {
+                    "fees": [
+                        {
+                            "feeName": "Taxa de cadastro",
+                            "feeCode": "CADASTRO",
+                            "feeAmount": 75
+                        }
+                    ],
+                    "charges": [
+                        {
+                            "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+                            "chargeAdditionalInfo": "Informações adicionais",
+                            "chargeAmount": 33.33
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/loans/v1/contracts/d8a6b20e-94a8-42e7-9a4a-6987164a5a2c/payments"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-27T14:49:00Z"
+    }
+}

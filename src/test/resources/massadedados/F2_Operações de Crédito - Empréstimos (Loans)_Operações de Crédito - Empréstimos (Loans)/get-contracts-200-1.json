@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "contractId": "d8a6b20e-94a8-42e7-9a4a-6987164a5a2c",
+            "brandName": "Sib Bank S.A",
+            "companyCnpj": "40156018000100",
+            "productType": "EMPRESTIMOS",
+            "productSubType": "CREDITO_PESSOAL_COM_CONSIGNACAO",
+            "ipocCode": "4015601802021875174004441321341"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/loans/v1/contracts"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-26T14:06:00Z"
+    }
+}

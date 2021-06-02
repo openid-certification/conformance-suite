@@ -1,0 +1,48 @@
+{
+    "data": {
+        "paidInstalments": 2,
+        "contractOutstandingBalance": 9144.9661,
+        "releases": [
+            {
+                "paymentId": "58c6a801-f1fa-4d2e-b671-c12f466a59bb",
+                "isOverParcelPayment": false,
+                "instalmentId": "f0501b52-3523-44f4-8916-521727b034ee",
+                "paidDate": "2021-04-03",
+                "currency": "BRL",
+                "paidAmount": 4357.4881,
+                "overParcel": {
+                    "fees": [
+                        {
+                            "feeName": "Manutenção em Conta",
+                            "feeCode": "MANUTENCAO_CONTA",
+                            "feeAmount": 150
+                        }
+                    ],
+                    "charges": [
+                        {
+                            "chargeType": "MULTA_ATRASO_PAGAMENTO",
+                            "chargeAdditionalInfo": "NA",
+                            "chargeAmount": 330.7333
+                        }
+                    ]
+                }
+            },
+            {
+                "paymentId": "1fbfd2ba-4fbb-4d82-9673-f0bec47ff16b",
+                "isOverParcelPayment": false,
+                "instalmentId": "8d7800b8-d818-48b9-b3b0-c170de1bd0f2",
+                "paidDate": "2021-05-02",
+                "currency": "BRL",
+                "paidAmount": 4357.4881
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/unarranged-accounts-overdraft/v1/contracts/5e57608a-9053-4613-b28c-cc5ee139b554/payments"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-28T10:02:00Z"
+    }
+}

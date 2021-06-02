@@ -1,0 +1,33 @@
+{
+    "data": [
+        {
+            "transactionId": "e67ed6ac-6841-44a6-b3d7-1f19d34dc204",
+            "identificationNumber": "8921",
+            "lineName": "CREDITO_PARCELADO",
+            "transactionName": "PAGAMENTO",
+            "billId": "c3260672-f517-4c22-8514-44270f990293",
+            "creditDebitType": "DEBITO",
+            "transactionType": "TARIFA",
+            "transactionalAdditionalInfo": "NA",
+            "paymentType": "A_VISTA",
+            "feeType": "ANUIDADE",
+            "feeTypeAdditionalInfo": "NA",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 2,
+            "brazilianAmount": 771.52,
+            "amount": 0.0,
+            "currency": "BRL",
+            "transactionDate": "2021-05-20",
+            "billPostDate": "2021-05-21",
+            "payeeMCC": 5912
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/credit-cards-accounts/v1/accounts/PIITR3459087/bills/c3260672-f517-4c22-8514-44270f990293/transactions"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T15:11:21Z"
+    }
+}

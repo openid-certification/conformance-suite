@@ -1,0 +1,41 @@
+{
+  "data": {
+    "updateDateTime": "2021-05-21T08:30:00Z",
+    "startDate": "2020-05-21T08:30:00Z",
+    "productsServicesType": [
+      "CONTA_SALARIO", 
+	  "OPERACAO_CREDITO",
+	  "CARTAO_CREDITO",
+	  "SEGURO",
+	  "OPERACOES_CAMBIO",
+	  "CONTA_POUPANCA"
+    ],
+    "productsServicesTypeAdditionalInfo": "",
+    "procurators": [
+      {
+        "type": "PROCURADOR",
+        "cpfNumber": "43075253022",
+        "civilName": "Juliana Nunes",
+        "socialName": ""
+      }
+    ],
+    "accounts": [
+      {
+        "compeCode": "001",
+        "branchCode": "1478",
+        "number": "55870285",
+        "checkDigit": "4",
+        "type": "CONTA_DEPOSITO_A_VISTA",
+        "subtype": "INDIVIDUAL"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/customers/v1/personal/financial-relations"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-21T08:30:00Z"
+  }
+}

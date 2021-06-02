@@ -1,7 +1,8 @@
-package net.openid.conformance.apis;
+package net.openid.conformance.apis.account;
 
+import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.AccountTransactionsValidator;
+import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -9,7 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
 
-@UseResurce("jsonResponses/accountTransactionsResponse.json")
+@UseResurce("jsonResponses/account/accountTransactionsResponse.json")
 public class AccountTransactionsValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -25,7 +26,7 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 	}
 
 	@Test
-	@UseResurce("jsonResponses/accountTransactionsResponse_missing_consents.json")
+	@UseResurce("jsonResponses/account/accountTransactionsResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 
 		// Here we simply create an instance of our Condition class
@@ -37,7 +38,7 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString("AccountTransactionsValidator: Unable to find path $.data[0].accountID"));
+		assertThat(error.getMessage(), containsString("AccountTransactionsValidator: Unable to find path $.data[0].transactionId"));
 
 	}
 }

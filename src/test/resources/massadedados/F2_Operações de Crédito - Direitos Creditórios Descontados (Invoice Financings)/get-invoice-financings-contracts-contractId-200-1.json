@@ -1,0 +1,60 @@
+{
+  "data": {
+    "contractNumber": "92525769252",
+    "ipocCode": "42061493000110792118751740044492525769252",
+    "productName": "Direitos Creditórios Descontados",
+    "productType": "DIREITOS_CREDITORIOS_DESCONTADOS",
+    "productSubType": "OUTROS_DIREITOS_CREDITORIOS_DESCONTADOS",
+    "contractDate": "2021-01-22",
+    "disbursementDate": "2021-01-25",
+    "settlementDate": "2028-01-15",
+    "contractAmount": 100005.95,
+    "currency": "BRL",
+    "dueDate": "2028-01-15",
+    "instalmentPeriodicity": "SEM_PERIODICIDADE_REGULAR",
+    "instalmentPeriodicityAdditionalInfo": "Adiantamento de parcelas",
+    "firstInstalmentDueDate": "2021-02-22",
+    "CET": 0.29,
+    "amortizationScheduled": "SAC",
+    "amortizationScheduledAdditionalInfo": "NA",
+    "interestRates": [
+      {
+        "taxType": "EFETIVA",
+        "interestRateType": "SIMPLES",
+        "taxPeriodicity": "AA",
+        "calculation": "21/252",
+        "referentialRateIndexerType": "PRE_FIXADO",
+        "referentialRateIndexerSubType": "SEM_SUB_TIPO_INDEXADOR",
+        "referentialRateIndexerAdditionalInfo": "NA",
+        "preFixedRate": 0.6,
+        "postFixedRate": 0.55,
+        "additionalInfo": "NA"
+      }
+    ],
+    "contractedFees": [
+      {
+        "feeName": "Anteciação de Debito",
+        "feeCode": "ANTECIPA_DEBITO",
+        "feeChargeType": "UNICA",
+        "feeCharge": "MINIMO",
+        "feeAmount": 50,
+        "feeRate": 0.050
+      }
+    ],
+    "contractedFinanceCharges": [
+      {
+        "chargeType": "SEM_ENCARGO",
+        "chargeAdditionalInfo": "NA",
+        "chargeRate": 0.00
+      }
+    ]
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/invoice-financings/v1/contracts/3ce5ba54-95fa-4e0b-bb94-5ff0ad3db515"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-28T15:52:00Z"
+  }
+}

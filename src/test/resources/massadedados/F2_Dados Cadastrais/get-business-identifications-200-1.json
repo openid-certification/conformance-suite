@@ -1,0 +1,88 @@
+{
+    "data": [
+        {
+            "updateDateTime": "2021-05-24T08:42:35Z",
+            "businessId": "46c922c1-c33c-4d3c-a47c-4fbf319cba36",
+            "brandName": "Sib Bank S.A",
+            "companyName": "Sib Bank S.A",
+            "tradeName": "Sibank",
+            "incorporationDate": "1996-09-21T16:35:12Z",
+            "cnpjNumber": "40156018000100",
+            "companyCnpjNumber": [
+                "87250168000133",
+                "18664628000157"
+            ],
+            "otherDocuments": [
+                {
+                    "type": "EIN",
+                    "number": "601855441",
+                    "country": "USA",
+                    "expirationDate": "2028-11-12"
+                }
+            ],
+            "parties": [
+                {
+                    "personType": "PESSOA_NATURAL",
+                    "type": "ADMINISTRADOR",
+                    "civilName": "Amelia Sandoval Holt",
+                    "socialName": "Amelia Sandoval Holt",
+                    "companyName": "Sib Bank S.A",
+                    "tradeName": "Sibank",
+                    "startDate": "1996-09-21T16:35:12Z",
+                    "shareholding": "0.41",
+                    "documentType": "CPF",
+                    "documentNumber": "14528821427",
+                    "documentAdditionalInfo": "NA",
+                    "documentCountry": "BRA",
+                    "documentExpirationDate": "2024-04-29",
+                    "documentIssueDate": "2019-04-29"
+                }
+            ],
+            "contacts": {
+                "postalAddresses": [
+                    {
+                        "isMain": true,
+                        "address": "Av Basílio Conrado, 861",
+                        "additionalInfo": "1º Andar",
+                        "districtName": "Centro",
+                        "townName": "Maringá",
+                        "ibgeTownCode": "4115200",
+                        "countrySubDivision": "PR",
+                        "postCode": "87013190",
+                        "country": "Brasil",
+                        "countryCode": "BRA",
+                        "geographicCoordinates": {
+                            "latitude": "-23.425730",
+                            "longitude": "-51.938301"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "isMain": true,
+                        "type": "FIXO",
+                        "additionalInfo": "NA",
+                        "countryCallingCode": "55",
+                        "areaCode": "44",
+                        "number": "39875132",
+                        "phoneExtension": "512"
+                    }
+                ],
+                "emails": [
+                    {
+                        "isMain": true,
+                        "email": "contact@sibank.com"
+                    }
+                ]
+            }
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/customers/v1/business/identifications"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T11:17:48Z"
+    }
+}

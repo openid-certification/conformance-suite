@@ -1,0 +1,18 @@
+{
+    "data": {
+        "overdraftContractedLimit": 5000,
+        "overdraftContractedLimitCurrency": "BRL",
+        "overdraftUsedLimit": 0.0000,
+        "overdraftUsedLimitCurrency": "BRL",
+        "unarrangedOverdraftAmount": 5000,
+        "unarrangedOverdraftAmountCurrency": "BRL"
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/accounts/v1/accounts/291e5a29-49ed-401f-a583-193caa7ac79d/overdraft-limits"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-25T15:46:00Z"
+    }
+}

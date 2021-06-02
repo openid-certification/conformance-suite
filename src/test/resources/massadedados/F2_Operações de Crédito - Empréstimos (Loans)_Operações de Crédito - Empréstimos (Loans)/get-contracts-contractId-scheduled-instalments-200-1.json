@@ -1,0 +1,26 @@
+{
+    "data": {
+        "typeNumberOfInstalments": "ANO",
+        "totalNumberOfInstalments": 12,
+        "typeContractRemaining": "MES",
+        "contractRemainingNumber": 11,
+        "paidInstalments": 1,
+        "dueInstalments": 11,
+        "pastDueInstalments": 0,
+        "balloonPayments": [
+            {
+                "dueDate": "2022-06-01",
+                "currency": "BRL",
+                "amount": 3500.94
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/loans/v1/contracts/d8a6b20e-94a8-42e7-9a4a-6987164a5a2c/scheduled-instalments"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-27T14:23:00Z"
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "data": [
+        {
+            "transactionId": "e67ed6ac-6841-44a6-b3d7-1f19d34dc204",
+            "identificationNumber": "8921",
+            "lineName": "CREDITO_A_VISTA",
+            "transactionName": "PAGAMENTO",
+            "billId": "c3260672-f517-4c22-8514-44270f990293",
+            "creditDebitType": "DEBITO",
+            "transactionType": "TARIFA",
+            "transactionalAdditionalInfo": "NA",
+            "paymentType": "A_VISTA",
+            "feeType": "ANUIDADE",
+            "feeTypeAdditionalInfo": "NA",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 2,
+            "brazilianAmount": 771.52,
+            "amount": 0.00,
+            "currency": "BRL",
+            "transactionDate": "2021-05-20",
+            "billPostDate": "2021-05-21",
+            "payeeMCC": 5912
+        },
+        {
+            "transactionId": "00fd8fdd-bafc-485c-adde-a1a11879173e",
+            "identificationNumber": "8921",
+            "lineName": "CREDITO_A_VISTA",
+            "transactionName": "PAGAMENTO",
+            "billId": "e5c9d7d6-dce7-43ce-b64a-e32bb37328b5",
+            "creditDebitType": "DEBITO",
+            "transactionType": "OPERACOES_CREDITO_CONTRATADAS_CARTAO",
+            "transactionalAdditionalInfo": "NA",
+            "paymentType": "A_VISTA",
+            "otherCreditsType": "CREDITO_ROTATIVO",
+            "otherCreditsAdditionalInfo": "NA",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 1,
+            "brazilianAmount": 120.03,
+            "amount": 0.00,
+            "currency": "BRL",
+            "transactionDate": "2021-05-18",
+            "billPostDate": "2021-05-18",
+            "payeeMCC": 5912
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/credit-cards-accounts/v1/accounts/PIITR3459087/transactions"
+    },
+    "meta": {
+        "totalRecords": 2,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-25T08:50:00Z"
+    }
+}
