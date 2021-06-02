@@ -5,7 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "Raidiam Services",
-	profile = "Raidiam Directory Tests",
+	profile = RaidiamProfile.RAIDIAM_PROFILE,
 	displayName = "Test simple access to a protected resource",
 	summary = "Calls resources on the directory, largely to prove the FAPI security profile",
 	testModules = {

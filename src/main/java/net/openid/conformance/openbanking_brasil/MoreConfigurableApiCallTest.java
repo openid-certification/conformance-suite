@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantParameters;
 	testName = "configurable-endpoint-test",
 	displayName = "A simple configurable endpoint test",
 	summary = "A test which hits a plain text, unprotected endpoint and carries out asserts on the response",
-	profile = "PROFILE",
+	profile = "Raidiam",
 	/*
 		These contribute to the configuration UI. There are a number of areas and fields
 		which can be configured. Example src/main/resources/static/schedule-test.html for

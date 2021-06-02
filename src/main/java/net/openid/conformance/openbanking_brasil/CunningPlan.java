@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.raidiam.RaidiamProfile;
 
 /**
  * CunningPlan
@@ -12,7 +13,7 @@ import net.openid.conformance.plan.TestPlan;
  */
 @PublishTestPlan(
 	testPlanName = "cunning-plan",
-	profile = "Some simple examples which will not be committed", // A sub-heading in the test plan dropdown
+	profile = RaidiamProfile.RAIDIAM_PROFILE,
 	displayName = "A cunning plan",// This appears in the test plan dropdown
 	summary = "More cunning than a fox who just got made professor of cunning at Oxford", // a short description
 	testModules = {

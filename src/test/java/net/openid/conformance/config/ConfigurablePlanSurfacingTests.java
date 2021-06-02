@@ -22,7 +22,7 @@ public class ConfigurablePlanSurfacingTests {
 
 		Collection<VariantService.TestPlanHolder> testPlans = variantService().getTestPlans();
 
-		List<String> profilesToSurface = List.of("Raidiam Directory Tests", "Some simple examples which will not be committed", TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
+		List<String> profilesToSurface = List.of("Raidiam Directory Tests", TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));
