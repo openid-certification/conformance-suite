@@ -1,0 +1,60 @@
+{
+    "data": {
+        "contractNumber": "1324926521496",
+        "ipocCode": "4015601802021875174004441321300",
+        "productName": "AD",
+        "productType": "ADIANTAMENTO_A_DEPOSITANTES",
+        "productSubType": "ADIANTAMENTO_A_DEPOSITANTES",
+        "contractDate": "2021-03-01",
+        "disbursementDate": "2021-03-01",
+        "settlementDate": "2021-07-28",
+        "contractAmount": 17859.9423,
+        "currency": "BRL",
+        "dueDate": "2021-07-28",
+        "instalmentPeriodicity": "MENSAL",
+        "instalmentPeriodicityAdditionalInfo": "NA",
+        "firstInstalmentDueDate": "2021-04-02",
+        "CET": 0.0929,
+        "amortizationScheduled": "PRICE",
+        "amortizationScheduledAdditionalInfo": "NA",
+        "interestRates": [
+            {
+                "taxType": "EFETIVA",
+                "interestRateType": "SIMPLES",
+                "taxPeriodicity": "AA",
+                "calculation": "21/252",
+                "referentialRateIndexerType": "PRE_FIXADO",
+                "referentialRateIndexerSubType": "PRE_FIXADO",
+                "referentialRateIndexerAdditionalInfo": "NA",
+                "preFixedRate": 0.06,
+                "postFixedRate": 0.055,
+                "additionalInfo": "NA"
+            }
+        ],
+        "contractedFees": [
+            {
+                "feeName": "Manutenção em Conta",
+                "feeCode": "MANUTENCAO_CONTA",
+                "feeChargeType": "POR_PARCELA",
+                "feeCharge": "MINIMO",
+                "feeAmount": 150,
+                "feeRate": 0.0510
+            }
+        ],
+        "contractedFinanceCharges": [
+            {
+                "chargeType": "MULTA_ATRASO_PAGAMENTO",
+                "chargeAdditionalInfo": "NA",
+                "chargeRate": 0.0759
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/unarranged-accounts-overdraft/v1/contracts/5e57608a-9053-4613-b28c-cc5ee139b554"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-27T16:19:00Z"
+    }
+}

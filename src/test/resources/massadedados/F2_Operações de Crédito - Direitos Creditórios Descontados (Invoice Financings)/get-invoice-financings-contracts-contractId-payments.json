@@ -1,0 +1,40 @@
+{
+  "data": {
+    "paidInstalments": 1,
+    "contractOutstandingBalance": 98755.8756,
+    "releases": [
+      {
+        "paymentId": "c3760e5e-400d-3c49-9cae-03b76935d531",
+        "isOverParcelPayment": false,
+        "instalmentId": "bdb90d7c-10a4-351e-b62e-8435d531492b",
+        "paidDate": "2021-02-23",
+        "currency": "BRL",
+        "paidAmount": 1250.0743,
+        "overParcel": {
+          "fees": [
+            {
+              "feeName": "Anteciação de Debito",
+              "feeCode": "ANTECIPA_DEBITO",
+              "feeAmount": 100000.04
+            }
+          ],
+          "charges": [
+            {
+              "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+              "chargeAdditionalInfo": "string",
+              "chargeAmount": 50
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/invoice-financings/v1/contracts/3ce5ba54-95fa-4e0b-bb94-5ff0ad3db515/payments"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-28T16:05:00Z"
+  }
+}

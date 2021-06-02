@@ -1,14 +1,15 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.account;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
-/**This is validator for API-Contas| Transações da contas
- * https://openbanking-brasil.github.io/areadesenvolvedor/#transacoes-da-conta*/
+/**This is validator for API-Contas|Lista de contas
+ * https://openbanking-brasil.github.io/areadesenvolvedor/#lista-de-contas*/
+public class AccountListValidator extends AbstractJsonAssertingCondition {
 
-public class GetAccountResponseValidator extends AbstractJsonAssertingCondition {
 	@Override
+	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 
 		JsonObject body = bodyFrom(environment);

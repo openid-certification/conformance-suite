@@ -1,0 +1,26 @@
+{
+    "data": {
+        "typeNumberOfInstalments": "MES",
+        "totalNumberOfInstalments": 5,
+        "typeContractRemaining": "MES",
+        "contractRemainingNumber": 2,
+        "paidInstalments": 2,
+        "dueInstalments": 3,
+        "pastDueInstalments": 2,
+        "balloonPayments": [
+            {
+                "dueDate": "2021-07-28",
+                "currency": "BRL",
+                "amount": 424.99
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/unarranged-accounts-overdraft/v1/contracts/5e57608a-9053-4613-b28c-cc5ee139b554/scheduled-installments"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-27T16:37:00Z"
+    }
+}

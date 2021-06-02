@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "transactionId": "e67ed6ac-6841-44a6-b3d7-1f19d34dc204",
+            "completedAuthorisedPaymentType": "TRANSACAO_EFETIVADA",
+            "creditDebitType": "DEBITO",
+            "transactionName": "PAGAMENTO",
+            "type": "CARTAO",
+            "amount": 771.52,
+            "transactionCurrency": "BRL",
+            "transactionDate": "2021-05-20",
+            "partieCnpjCpf": "87517400444",
+            "partiePersonType": "PESSOA_NATURAL",
+            "partieCompeCode": "123",
+            "partieBranchCode": "6272",
+            "partieNumber": "94088392",
+            "partieCheckDigit": "4"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/accounts/v1/accounts/291e5a29-49ed-401f-a583-193caa7ac79d/transactions"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-25T15:43:00Z"
+    }
+}

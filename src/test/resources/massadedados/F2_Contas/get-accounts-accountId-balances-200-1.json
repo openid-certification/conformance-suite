@@ -1,0 +1,18 @@
+{
+  "data": {
+    "availableAmount": 100000.04,
+    "availableAmountCurrency": "BRL",
+    "blockedAmount": 0.0,
+    "blockedAmountCurrency": "BRL",
+    "automaticallyInvestedAmount": 15000.00,
+    "automaticallyInvestedAmountCurrency": "BRL"
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/accounts/v1/accounts/291e5a29-49ed-401f-a583-193caa7ac79d/balances"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-21T08:30:00Z"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "data": {
+    "paidInstalments": 4,
+    "contractOutstandingBalance": 120616.00,
+    "releases": [
+      {
+        "paymentId": "jslgchiRwQh1VZrJPVkxJtOcIeYiUKRaUeNDyRjp09m",
+        "isOverParcelPayment": true,
+        "instalmentId": "M9uxCqYNKHaoEyN3R5E8nQLFgwuemvELrQ9rRnMtmF7I",
+        "paidDate": "2021-05-15",
+        "currency": "BRL",
+        "paidAmount": 1507.70,
+        "overParcel": {
+          "fees": [
+            {
+              "feeName": "Reavaliação periódica do bem",
+              "feeCode": "aval_bem",
+              "feeAmount": 109214.85
+            }
+          ],
+          "charges": [
+            {
+              "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+              "chargeAdditionalInfo": "",
+              "chargeAmount": 128.54
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/financings/v1/contracts/42061493000110792118751740044492525769252/payments"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-21T08:30:00Z"
+  }
+}

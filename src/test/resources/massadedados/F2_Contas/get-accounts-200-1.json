@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "brandName": "Sib Bank",
+            "companyCnpj": "40156018000100",
+            "type": "CONTA_DEPOSITO_A_VISTA",
+            "compeCode": "123",
+            "branchCode": "6272",
+            "number": "94088392",
+            "checkDigit": "4",
+            "accountId": "291e5a29-49ed-401f-a583-193caa7ac79d"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/accounts/v1/accounts"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-25T13:48:00Z"
+    }
+}

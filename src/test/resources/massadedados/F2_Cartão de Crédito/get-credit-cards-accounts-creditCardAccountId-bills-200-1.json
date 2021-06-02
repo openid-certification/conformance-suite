@@ -1,0 +1,38 @@
+{
+    "data": [
+        {
+            "billId": "c3260672-f517-4c22-8514-44270f990293",
+            "dueDate": "2021-06-10",
+            "billTotalAmount": 1543.04,
+            "billTotalAmountCurrency": "BRL",
+            "billMinimumAmount": 154.43,
+            "billMinimumAmountCurrency": "BRL",
+            "isInstalment": true,
+            "financeCharges": [
+                {
+                    "type": "JUROS_REMUNERATORIOS_ATRASO_PAGAMENTO_FATURA",
+                    "additionalInfo": "NA",
+                    "amount": 120.54,
+                    "currency": "BRL"
+                }
+            ],
+            "payments": [
+                {
+                    "valueType": "OUTRO_VALOR_PAGO_FATURA",
+                    "paymentDate": "2021-04-21",
+                    "paymentMode": "BOLETO_BANCARIO",
+                    "amount": 574.26,
+                    "currency": "BRL"
+                }
+            ]
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/credit-cards-accounts/v1/accounts/PIITR3459087/bills"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-24T14:28:47Z"
+    }
+}

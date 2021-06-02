@@ -7,12 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="conformance-suite" />
+        <module name="fapi-conformance-suite" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror" />
+      <module name="fapi-conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror" />
     </option>
   </component>
 </project>

@@ -1,0 +1,26 @@
+{
+    "data": [
+        {
+            "creditLineLimitType": "LIMITE_CREDITO_TOTAL",
+            "consolidationType": "CONSOLIDADO",
+            "identificationNumber": "8921",
+            "lineName": "CREDITO_A_VISTA",
+            "lineNameAdditionalInfo": "NA",
+            "isLimitFlexible": true,
+            "limitAmountCurrency": "BRL",
+            "limitAmount": 23000.9761,
+            "usedAmountCurrency": "BRL",
+            "usedAmount": 7500.05,
+            "availableAmountCurrency": "BRL",
+            "availableAmount": 15500.9261
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/credit-cards-accounts/v1/accounts/PIITR3459087/limits"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T15:32:59Z"
+    }
+}

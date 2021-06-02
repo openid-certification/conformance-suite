@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
 
-@UseResurce("jsonResponses/readConsentResponse.json")
+@UseResurce("jsonResponses/account/readConsentResponse.json")
 /**
  * This class tests the condition class ConsentResponseValidator
  *
@@ -40,7 +40,7 @@ public class GetConsentResponseValidatorTests extends AbstractJsonResponseCondit
 	}
 
 	@Test
-	@UseResurce("jsonResponses/readConsentResponse_missing_consents.json")
+	@UseResurce("jsonResponses/account/readConsentResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 
 		// Here we simply create an instance of our Condition class

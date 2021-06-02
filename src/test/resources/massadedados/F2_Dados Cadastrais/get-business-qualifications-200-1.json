@@ -1,0 +1,31 @@
+{
+    "data": {
+        "updateDateTime": "2021-05-24T11:22:33Z",
+        "economicActivities": [
+            {
+                "code": 64212,
+                "isMain": true
+            }
+        ],
+        "informedRevenue": {
+            "frequency": "QUINZENAL",
+            "frequencyAdditionalInfo": "NA",
+            "amount": 9563.04,
+            "currency": "BRL",
+            "year": 2006
+        },
+        "informedPatrimony": {
+            "amount": 354200.96,
+            "currency": "BRL",
+            "date": "2006-12-31"
+        }
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/customers/v1/business/qualifications"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-24T13:41:54Z"
+    }
+}

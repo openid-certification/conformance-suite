@@ -1,0 +1,61 @@
+{
+    "data": {
+        "contractNumber": "1321341",
+        "ipocCode": "4015601802021875174004441321341",
+        "productName": "Crédito Pessoal Consignado",
+        "productType": "EMPRESTIMOS",
+        "productSubType": "CREDITO_PESSOAL_COM_CONSIGNACAO",
+        "contractDate": "2021-04-05",
+        "disbursementDate": "2021-06-15",
+        "settlementDate": "NA",
+        "contractAmount": 20000.00,
+        "currency": "BRL",
+        "dueDate": "2022-07-15",
+        "instalmentPeriodicity": "MENSAL",
+        "instalmentPeriodicityAdditionalInfo": "NA",
+        "firstInstalmentDueDate": "2021-07-15",
+        "CET": 0.09,
+        "amortizationScheduled": "PRICE",
+        "amortizationScheduledAdditionalInfo": "NA",
+        "cnpjConsignee": "40156018000100",
+        "interestRates": [
+            {
+                "taxType": "EFETIVA",
+                "interestRateType": "SIMPLES",
+                "taxPeriodicity": "AA",
+                "calculation": "21/252",
+                "referentialRateIndexerType": "PRE_FIXADO",
+                "referentialRateIndexerSubType": "SEM_SUB_TIPO_INDEXADOR",
+                "referentialRateIndexerAdditionalInfo": "NA",
+                "preFixedRate": 0.0600,
+                "postFixedRate": 0.0550,
+                "additionalInfo": "NA"
+            }
+        ],
+        "contractedFees": [
+            {
+                "feeName": "Renovação de cadastro",
+                "feeCode": "CADASTRO",
+                "feeChargeType": "UNICA",
+                "feeCharge": "FIXO",
+                "feeAmount": 75,
+                "feeRate": 0.0150
+            }
+        ],
+        "contractedFinanceCharges": [
+            {
+                "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+                "chargeAdditionalInfo": "Informações adicionais sobre encargos.",
+                "chargeRate": 0.0200
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/loans/v1/contracts/d8a6b20e-94a8-42e7-9a4a-6987164a5a2c"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-27T12:29:00Z"
+    }
+}
