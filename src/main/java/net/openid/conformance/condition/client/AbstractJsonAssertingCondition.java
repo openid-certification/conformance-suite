@@ -8,6 +8,8 @@ import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.validation.Match;
+import org.springframework.security.core.parameters.P;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
@@ -144,6 +146,23 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String stringValue = getOrFail(() -> getString(actual));
 		if(!stringValue.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
+		}
+	}
+
+	protected void assertJsonField(JsonObject jsonObject, String path, Match match) {
+		JsonElement actual = findByPath(jsonObject, path);
+		String stringValue = "";
+		try {
+			stringValue = getString(actual);
+		} catch (UnexpectedJsonTypeException e) {
+			try {
+				stringValue = String.valueOf(getNumber(actual));
+			} catch (UnexpectedJsonTypeException ex) {
+				throw error(String.format("Path %s was not a string or number", path), jsonObject);
+			}
+		}
+		if(!match.matches(stringValue)) {
+			throw error(String.format("Path %s did not match %s", path, match), jsonObject);
 		}
 	}
 

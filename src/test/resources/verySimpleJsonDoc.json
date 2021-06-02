@@ -1,3 +1,6 @@
 {
-    "message": "This is a simple json document"
+    "message": "This is a simple json document",
+    "fixedString": "abcde12345",
+    "fixedNumber": 1983,
+    "bool": false
 }

@@ -6,8 +6,13 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.UseResurce;
+import net.openid.conformance.validation.Match;
+import net.openid.conformance.validation.RegexMatch;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
@@ -138,6 +143,52 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 		};
 
 		runAndFail(condition);
+
+	}
+
+	@Test
+	public void assertsRegexes() {
+
+		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+			@Override
+			public Environment evaluate(Environment environment) {
+				assertJsonField(bodyFrom(environment), "$.fixedString", RegexMatch.regex("^[a-z0-9]+$"));
+				assertJsonField(bodyFrom(environment), "$.fixedNumber", RegexMatch.regex("^\\d{4,20}$|^NA$"));
+				return environment;
+			}
+		};
+
+		run(condition);
+
+	}
+
+	@Test(expected = AssertionError.class)
+	public void regexFailsIfNoMatch() {
+
+		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+			@Override
+			public Environment evaluate(Environment environment) {
+				assertJsonField(bodyFrom(environment), "$.fixedString", RegexMatch.regex("^MATCH$"));
+				return environment;
+			}
+		};
+
+		run(condition);
+
+	}
+
+	@Test(expected = AssertionError.class)
+	public void regexFailsIfNotNumberOrString() {
+
+		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+			@Override
+			public Environment evaluate(Environment environment) {
+				assertJsonField(bodyFrom(environment), "$.bool", RegexMatch.regex("^[a-z0-9]+$"));
+				return environment;
+			}
+		};
+
+		run(condition);
 
 	}
 
