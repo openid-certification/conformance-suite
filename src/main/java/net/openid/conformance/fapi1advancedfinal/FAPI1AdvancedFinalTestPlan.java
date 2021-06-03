@@ -26,12 +26,15 @@ import net.openid.conformance.plan.TestPlan;
 
 		// Negative tests for request objects
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutExpFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithoutNbfFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutScopeFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutState.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutNonceFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI1AdvancedFinalEnsureExpiredRequestObjectFails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithExpOver60Fails.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWithNbfOver60Fails.class,
 		FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails.class,
 		FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithInvalidSignatureFails.class,
@@ -61,7 +64,6 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId.class,
 
 		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
-		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfter30S.class,
 		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		//PAR tests
