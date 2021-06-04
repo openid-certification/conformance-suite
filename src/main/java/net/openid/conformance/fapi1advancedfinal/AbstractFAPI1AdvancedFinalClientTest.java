@@ -20,6 +20,8 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
+import net.openid.conformance.condition.as.EncryptIdToken;
+import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
@@ -611,8 +613,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADVANCED-8.6");
-		callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-			"FAPI1-ADVANCED-5.2.3-5", "OIDCC-5.5.1.1");
+		if(jarmType==FAPIJARMType.OIDC) {
+			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
+				"FAPI1-ADVANCED-5.2.3-5", "OIDCC-5.5.1.1");
+		}
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADVANCED-5.2.2.13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
@@ -742,9 +746,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void createJARMResponse() {
 		generateJARMResponseClaims();
-		callAndStopOnFailure(SignJARMResponse.class,"JARM-4.2");
 		//authorization_signed_response_alg will not be taken into account. signing_algorithm will be used
-		//TODO encrypt JARM response, using authorization_encrypted_response_alg and authorization_encrypted_response_enc?
+		callAndStopOnFailure(SignJARMResponse.class,"JARM-4.2");
+		encryptJARMResponse();
+	}
+
+	protected void encryptJARMResponse() {
+		skipIfElementMissing("client", "authorization_encrypted_response_alg", ConditionResult.INFO,
+			EncryptJARMResponse.class, ConditionResult.FAILURE, "JARM-5");
+
 	}
 
 	protected void generateJARMResponseClaims() {
