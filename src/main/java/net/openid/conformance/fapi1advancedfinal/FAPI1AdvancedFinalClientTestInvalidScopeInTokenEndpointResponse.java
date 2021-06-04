@@ -45,6 +45,12 @@ public class FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse ext
 	}
 
 	@Override
+	protected Object accountsEndpoint(String requestId) {
+		throw new TestFailureException(getId(), "Client has incorrectly called accounts endpoint after receiving " +
+			"an invalid scope value in token response.");
+	}
+
+	@Override
 	protected Object userinfoEndpoint(String requestId) {
 		throw new TestFailureException(getId(), "Client has incorrectly called userinfo endpoint after receiving " +
 			"an invalid scope value in token response.");
