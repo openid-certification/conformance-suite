@@ -36,6 +36,7 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 makeClientTest() {
+    ls -al
     . ./node-client-setup.sh
     . ./node-core-client-setup.sh
 

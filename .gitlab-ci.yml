@@ -224,6 +224,7 @@ stop_normal:
     when: always
     paths:
       - "*.zip"
+      - "*.txt"
 
 client_test:
   <<: *deployment_test
@@ -263,7 +264,7 @@ local_test:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
     - sleep 5
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test > run-tests-log.txt
   after_script:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
@@ -276,6 +277,7 @@ local_test:
       - server-log.txt
       - mongo/data/mongodb-dump.gz
       - "*.zip"
+      - "*.txt"
 
 # ---------------------------------------------------------------------------
 
@@ -538,17 +540,18 @@ local_test:
   function run_client_test_plan() {
     apk add nodejs npm
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only > ../conformance-suite/run-tests-log.txt
   }
 
   function run_server_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only > ../conformance-suite/run-tests-log.txt
   }
 
   function run_ciba_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only > ../conformance-suite/run-tests-log.txt
+    ls -alR ..
   }
 
   function run_brazil_test_plan() {

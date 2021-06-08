@@ -37,7 +37,7 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 	@Override
 	protected void callAutomatedEndpoint() {
 		env.putString("request_action", "deny");
-		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
+		callAndContinueOnFailure(CallAutomatedCibaApprovalEndpoint.class);
 	}
 
 	@Override

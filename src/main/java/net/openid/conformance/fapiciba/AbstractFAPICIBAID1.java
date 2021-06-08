@@ -908,7 +908,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	protected void callAutomatedEndpoint() {
 		env.putString("request_action", "allow");
-		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
+		callAndContinueOnFailure(CallAutomatedCibaApprovalEndpoint.class);
 	}
 
 	protected void requestProtectedResource() {
