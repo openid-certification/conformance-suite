@@ -309,6 +309,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
+			if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
+				// we only need to call the mtls aliased backchannel authentication endpoint when using mtls client auth
+				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
+				// access tokens)
+				env.removeNativeValue("backchannel_authentication_endpoint");
+			}
 		}
 
 		// make sure the server configuration passes some basic sanity checks
