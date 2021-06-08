@@ -17,7 +17,7 @@ import java.util.Map;
  * MUST always be passed using the OAuth 2.0 request syntax containing the openid scope
  * value to indicate to the underlying OAuth 2.0 logic that this is an OpenID Connect request.
  */
-public class OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope extends AbstractCondition {
+public class EnsureAuthorizationHttpRequestContainsOpenIDScope extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params"})

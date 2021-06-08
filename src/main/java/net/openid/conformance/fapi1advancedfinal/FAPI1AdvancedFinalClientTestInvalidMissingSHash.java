@@ -4,6 +4,8 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.RemoveSHashFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-missing-shash",
@@ -19,8 +21,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"client.jwks",
 	}
 )
-
-public class FAPI1AdvancedFinalClientTestInvalidMissingSHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
+public class FAPI1AdvancedFinalClientTestInvalidMissingSHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void endTestIfRequiredParametersAreMissing() {
@@ -35,14 +37,11 @@ public class FAPI1AdvancedFinalClientTestInvalidMissingSHash extends AbstractFAP
 	@Override
 	protected void addCustomValuesToIdToken() {
 
-		callAndStopOnFailure(RemoveSHashFromIdToken.class, "FAPI-RW-5.2.3");
+		callAndStopOnFailure(RemoveSHashFromIdToken.class, "FAPI1-ADVANCED-5.2.2.1-5");
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a missing s_hash value from the authorization_endpoint.");
-
+	protected String getIdTokenFaultErrorMessage() {
+		return "missing s_hash value";
 	}
-
 }

@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIProfile.class, values = { "plain_fapi" })
-public class FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -30,10 +30,7 @@ public class FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId extends Abst
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid openbanking_intent_id value from the authorization_endpoint.");
-
+	protected String getIdTokenFaultErrorMessage() {
+		return "invalid openbanking_intent_id value";
 	}
-
 }

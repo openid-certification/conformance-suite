@@ -4,6 +4,8 @@ import net.openid.conformance.condition.as.AddInvalidSHashValueToIdToken;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-shash",
@@ -19,8 +21,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"client.jwks",
 	}
 )
-
-public class FAPI1AdvancedFinalClientTestInvalidSHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
+public class FAPI1AdvancedFinalClientTestInvalidSHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void endTestIfRequiredParametersAreMissing() {
@@ -34,15 +36,11 @@ public class FAPI1AdvancedFinalClientTestInvalidSHash extends AbstractFAPI1Advan
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-
-		callAndStopOnFailure(AddInvalidSHashValueToIdToken.class, "FAPI-RW-5.2.3");
+		callAndStopOnFailure(AddInvalidSHashValueToIdToken.class, "FAPI1-ADVANCED-5.2.2.1-5");
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid s_hash value from the authorization_endpoint.");
-
+	protected String getIdTokenFaultErrorMessage() {
+		return "invalid s_hash value";
 	}
-
 }

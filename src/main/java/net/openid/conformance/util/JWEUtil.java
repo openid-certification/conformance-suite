@@ -60,7 +60,7 @@ public class JWEUtil {
 			keyType = KeyType.EC;
 		}
 
-		JWKMatcher jwkMatcher = new JWKMatcher.Builder().keyType(keyType).build();
+		JWKMatcher jwkMatcher = new JWKMatcher.Builder().keyType(keyType).keyUses(KeyUse.ENCRYPTION, null).build();
 		JWK currentMatch = null;
 		for(JWK jwk : jwkSet.getKeys()) {
 			if(jwkMatcher.matches(jwk)) {

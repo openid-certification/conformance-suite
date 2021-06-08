@@ -50,6 +50,8 @@ public abstract class AbstractJWEEncryptStringToClient extends AbstractCondition
 		//id_token_encrypted_response_enc
 		//  OPTIONAL. JWE enc algorithm [JWA] REQUIRED for encrypting the ID Token issued to this Client.
 		//  If id_token_encrypted_response_alg is specified, the default for this value is A128CBC-HS256.
+		//Also for JARM:
+		// ...If authorization_encrypted_response_alg is specified, the default for this value is A128CBC-HS256...
 		EncryptionMethod encryptionMethod = EncryptionMethod.A128CBC_HS256;
 		if(enc!=null) {
 			encryptionMethod = EncryptionMethod.parse(enc);

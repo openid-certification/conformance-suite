@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	}
 )
 
-public class FAPI1AdvancedFinalClientTestInvalidExpiredExp extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+public class FAPI1AdvancedFinalClientTestInvalidExpiredExp extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -28,9 +28,7 @@ public class FAPI1AdvancedFinalClientTestInvalidExpiredExp extends AbstractFAPI1
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with a expired exp value from the authorization_endpoint.");
+	protected String getIdTokenFaultErrorMessage() {
+		return "expired exp value";
 	}
-
 }
