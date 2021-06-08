@@ -219,7 +219,8 @@ def run_test_plan(test_plan, config_file, output_dir):
             if state == "WAITING":
                 # If it's a client test, we need to run the client.
                 # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
-                if re.match(r'(fapi.*-client-.*)', module):
+                if re.match(r'fapi-rw-id2-client-.*', module) or \
+                    re.match(r'fapi1-advanced-final-client-.*', module):
                     print("FAPI client test: " + module + " " + json.dumps(variant))
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
