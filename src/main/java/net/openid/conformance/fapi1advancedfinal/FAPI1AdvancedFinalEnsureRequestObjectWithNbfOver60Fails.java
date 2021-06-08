@@ -48,7 +48,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithNbfOver60Fails extends Abs
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddNbfToRequestObject.class,
-						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI1-ADVANCED-5.2.2-17"));
+						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI1-ADV-5.2.2-17"));
 	}
 
 	@Override

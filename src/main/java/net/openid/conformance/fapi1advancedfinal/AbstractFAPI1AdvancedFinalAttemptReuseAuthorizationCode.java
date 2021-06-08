@@ -32,7 +32,7 @@ public abstract class AbstractFAPI1AdvancedFinalAttemptReuseAuthorizationCode ex
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI1-BASELINE-5.2.2-13");
+		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-5.2.2-13");
 
 		verifyError();
 

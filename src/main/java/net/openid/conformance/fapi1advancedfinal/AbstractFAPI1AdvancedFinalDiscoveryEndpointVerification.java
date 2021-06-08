@@ -40,7 +40,7 @@ public abstract class AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification ex
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-6");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6");
 
 		}
 	}
@@ -49,7 +49,7 @@ public abstract class AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification ex
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-6");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6");
 
 		}
 	}
@@ -78,18 +78,18 @@ public abstract class AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification ex
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
-		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-6", "RFC8705-3.3");
+		callAndContinueOnFailure(FAPIRWCheckTLSClientCertificateBoundAccessTokens.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6", "RFC8705-3.3");
 
-		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.6");
+		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-14");
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-8.6");
+		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-14");
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 
 		call(condition(FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("FAPI1-ADVANCED-8.6")
+			.requirement("FAPI1-ADV-8.6")
 			.dontStopOnFailure()
 		);
 

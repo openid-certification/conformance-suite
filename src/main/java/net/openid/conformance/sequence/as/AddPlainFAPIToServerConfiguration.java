@@ -9,6 +9,6 @@ public class AddPlainFAPIToServerConfiguration extends AbstractConditionSequence
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class, "FAPI1-ADVANCED-5.2.2-2");
+		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class, "FAPI1-ADV-5.2.2-2");
 	}
 }

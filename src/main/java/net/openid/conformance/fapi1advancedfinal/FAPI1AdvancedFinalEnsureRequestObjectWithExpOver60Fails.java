@@ -39,7 +39,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithExpOver60Fails extends Abs
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectWithExpOver60ClaimErrorPage.class, "FAPI1-ADVANCED-5.2.2-13");
+		callAndStopOnFailure(ExpectRequestObjectWithExpOver60ClaimErrorPage.class, "FAPI1-ADV-5.2.2-13");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

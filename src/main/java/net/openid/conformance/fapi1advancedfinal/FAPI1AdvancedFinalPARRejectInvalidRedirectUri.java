@@ -50,7 +50,7 @@ public class FAPI1AdvancedFinalPARRejectInvalidRedirectUri extends AbstractFAPI1
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI1-BASELINE-5.2.2-9", "PAR-2.3");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI1-BASE-5.2.2-9", "PAR-2.3");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
 	}

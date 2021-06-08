@@ -58,7 +58,7 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectSignedRS256RequestObjectErrorPage.class, "FAPI1-ADVANCED-8.6");
+		callAndStopOnFailure(ExpectSignedRS256RequestObjectErrorPage.class, "FAPI1-ADV-8.6");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -68,7 +68,7 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 		// create a copy of the jwks so we can restore the original one when creating any client assertion
 		env.putObject("client_jwks_rs256", env.getObject("client_jwks").deepCopy());
 		env.mapKey("client_jwks", "client_jwks_rs256");
-		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADVANCED-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADV-8.6");
 
 		super.createAuthorizationRequestObject();
 
