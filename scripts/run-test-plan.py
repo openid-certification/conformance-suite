@@ -11,8 +11,8 @@ import sys
 import time
 import subprocess
 import fnmatch
+import asyncio
 
-import requests
 import json
 import argparse
 import traceback
@@ -63,7 +63,7 @@ def split_name_and_variant(test_plan):
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
 #this function runs plans in a loop and returns an array of results
-def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile, output_dir):
+async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptest_configfile, output_dir):
     oidcc_test_config_json = []
     with open(oidcc_rptest_configfile) as f:
         oidcc_test_config = f.read()
@@ -83,7 +83,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
             pass
         #remove client_metadata_defaults otherwise plan api call will fail
         del test_plan_config['client_metadata_defaults']
-        test_plan_info = conformance.create_test_plan(test_plan_name, json_config, test_plan_config)
+        test_plan_info = await conformance.create_test_plan(test_plan_name, json_config, test_plan_config)
 
         variantstr = json.dumps(test_plan_config)
         print('VARIANT {}'.format(variantstr))
@@ -106,14 +106,14 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
 
             try:
                 print('Running test module: {}'.format(module))
-                test_module_info = conformance.create_test_from_plan(plan_id, module)
+                test_module_info = await conformance.create_test_from_plan(plan_id, module)
                 module_id = test_module_info['id']
                 module_info['id'] = module_id
                 test_info[module] = module_info
                 print('Created test module, new id: {}'.format(module_id))
                 print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
-                state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+                state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
                 if state == "WAITING":
                     oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
@@ -130,22 +130,22 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                     os.putenv('ISSUER', oidcc_issuer_str)
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
 
-                    conformance.wait_for_state(module_id, ["FINISHED"])
+                    await conformance.wait_for_state(module_id, ["FINISHED"])
 
             except Exception as e:
                 traceback.print_exc()
-                print('Exception: Test {} failed to run to completion: {}'.format(module, e))
+                print('Exception: Test {} {} failed to run to completion: {}'.format(module, module_id, e))
             if module_id != '':
                 test_time_taken[module_id] = time.time() - test_start_time
-                module_info['info'] = conformance.get_module_info(module_id)
-                module_info['logs'] = conformance.get_test_log(module_id)
+                module_info['info'] = await conformance.get_module_info(module_id)
+                module_info['logs'] = await conformance.get_test_log(module_id)
 
         time_for_plan = time.time() - start_time_for_plan
         print('Finished test plan - id: {} total time: {}'.format(plan_id, time_for_plan))
         if output_dir != None:
             start_time_for_save = time.time()
-            filename = conformance.exporthtml(plan_id, output_dir)
-            print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
+            filename = await conformance.exporthtml(plan_id, output_dir)
+            print('{} results saved to "{}" in {:.1f} seconds'.format(plan_id, filename, time.time() - start_time_for_save))
         print('\n\n')
         result_for_plan = {
             'test_plan': test_plan_name,
@@ -174,8 +174,28 @@ def get_string_name_for_module_with_variant(moduledict):
             name += "[{}={}]".format(v, variants[v])
     return name
 
+async def queue_worker(q):
+    while True:
+        code = await q.get()
+        try:
+            await code
+        except Exception as e:
+            # log and ignore all exceptions, as run_queue otherwise locks up
+            print('Exception caught in queue_worker: {}'.format(e))
+        finally:
+            q.task_done()
 
-def run_test_plan(test_plan, config_file, output_dir):
+async def run_queue(q, parallel_jobs):
+    workers = [asyncio.create_task(queue_worker(q)) for _ in range(parallel_jobs)]
+    await q.join()  # wait for all tasks to be processed
+    print("queue done, cancelling workers")
+    for worker in workers:
+        worker.cancel()
+    print("workers cancelled, gathering")
+    await asyncio.gather(*workers, return_exceptions=True)
+    print("workers gathered")
+
+async def run_test_plan(test_plan, config_file, output_dir):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     start_section(test_plan, "Results", True)
     with open(config_file) as f:
@@ -183,9 +203,17 @@ def run_test_plan(test_plan, config_file, output_dir):
     (test_plan_name, variant) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
-        return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
-    test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
+        return await run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
+    test_plan_info = await conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
+    parsed_config = json.loads(json_config)
+    parallel_jobs = 3
+    if args.no_parallel:
+        parallel_jobs = 1
+        print("{}: no_parallel command line argument passed - not running tests in parallel".format(plan_id))
+    elif "alias" in parsed_config:
+        parallel_jobs = 1
+        print("{}: Config '{}' contains an alias - not running tests in parallel. If the test supports dynamic client registration and you have enanbled it, you can remove the alias to from your configuration file to speed up tests.".format(plan_id, config_file))
     plan_modules = test_plan_info['modules']
     test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
@@ -193,69 +221,14 @@ def run_test_plan(test_plan, config_file, output_dir):
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
+    queue = asyncio.Queue()
     for moduledict in plan_modules:
-        module=moduledict['testModule']
-        module_with_variants = get_string_name_for_module_with_variant(moduledict)
-        test_start_time = time.time()
-        module_id = ''
-        module_info = {}
-
-        try:
-            print('Running test module: {}'.format(module_with_variants))
-            test_module_info = conformance.create_test_from_plan_with_variant(plan_id, module, moduledict.get('variant'))
-            module_id = test_module_info['id']
-            module_info['id'] = module_id
-            test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
-            print('Created test module, new id: {}'.format(module_id))
-            print('{}log-detail.html?log={}'.format(api_url_base, module_id))
-
-            state = conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
-            if state == "CONFIGURED":
-                if module == 'oidcc-server-rotate-keys':
-                    # This test needs manually started once the OP keys have been rotated; we can't actually do that
-                    # but at least we can run the test and check it finishes even if it always fails.
-                    print('Starting test')
-                    conformance.start_test(module_id)
-                state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
-
-            if state == "WAITING":
-                # If it's a client test, we need to run the client.
-                # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
-                if re.match(r'fapi-rw-id2-client-.*', module) or \
-                    re.match(r'fapi1-advanced-final-client-.*', module):
-                    print("FAPI client test: " + module + " " + json.dumps(variant))
-                    profile = variant['fapi_profile']
-                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
-                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
-                    if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
-                        os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
-                    else:
-                        os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
-                    if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
-                        os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
-                    else:
-                        os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
-                    if 'fapi_jarm_type' in variant.keys() and variant['fapi_jarm_type']:
-                        os.environ['FAPI_JARM_TYPE'] =  variant['fapi_jarm_type']
-                    else:
-                        os.environ['FAPI_JARM_TYPE'] = 'oidc'
-
-                    os.environ['TEST_MODULE_NAME'] = module
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
-
-                conformance.wait_for_state(module_id, ["FINISHED"])
-
-        except Exception as e:
-            traceback.print_exc()
-            print('Exception: Test {} failed to run to completion: {}'.format(module_with_variants, e))
-        if module_id != '':
-            test_time_taken[module_id] = time.time() - test_start_time
-            module_info['info'] = conformance.get_module_info(module_id)
-            module_info['logs'] = conformance.get_test_log(module_id)
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant))
+    await run_queue(queue, parallel_jobs)
     overall_time = time.time() - overall_start_time
     if output_dir != None:
         start_time_for_save = time.time()
-        filename = conformance.exporthtml(plan_id, output_dir)
+        filename = await conformance.exporthtml(plan_id, output_dir)
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
     end_section(test_plan)
     print('\n\n')
@@ -268,6 +241,67 @@ def run_test_plan(test_plan, config_file, output_dir):
         'test_time_taken': test_time_taken,
         'overall_time': overall_time
     }
+
+
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant):
+    module = moduledict['testModule']
+    module_with_variants = get_string_name_for_module_with_variant(moduledict)
+    test_start_time = time.time()
+    module_id = ''
+    module_info = {}
+    try:
+        print('Running test module: {}'.format(module_with_variants))
+        test_module_info = await conformance.create_test_from_plan_with_variant(plan_id, module,
+                                                                                moduledict.get('variant'))
+        module_id = test_module_info['id']
+        module_info['id'] = module_id
+        test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
+        print('Created test module, new id: {}'.format(module_id))
+        print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+
+        state = await conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
+        if state == "CONFIGURED":
+            if module == 'oidcc-server-rotate-keys':
+                # This test needs manually started once the OP keys have been rotated; we can't actually do that
+                # but at least we can run the test and check it finishes even if it always fails.
+                print('Starting test')
+                await conformance.start_test(module_id)
+            state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+
+        if state == "WAITING":
+            # If it's a client test, we need to run the client.
+            # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
+            if re.match(r'fapi-rw-id2-client-.*', module) or \
+                re.match(r'fapi1-advanced-final-client-.*', module):
+                print("FAPI client test: " + module + " " + json.dumps(variant))
+                profile = variant['fapi_profile']
+                os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
+                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
+                    os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
+                else:
+                    os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
+                if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
+                    os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
+                else:
+                    os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
+                if 'fapi_jarm_type' in variant.keys() and variant['fapi_jarm_type']:
+                    os.environ['FAPI_JARM_TYPE'] =  variant['fapi_jarm_type']
+                else:
+                    os.environ['FAPI_JARM_TYPE'] = 'oidc'
+
+                os.environ['TEST_MODULE_NAME'] = module
+                subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+
+            await conformance.wait_for_state(module_id, ["FINISHED"])
+
+    except Exception as e:
+        traceback.print_exc()
+        print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+    if module_id != '':
+        test_time_taken[module_id] = time.time() - test_start_time
+        module_info['info'] = await conformance.get_module_info(module_id)
+        module_info['logs'] = await conformance.get_test_log(module_id)
 
 
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
@@ -869,6 +903,7 @@ def parser_args_cli():
     parser = argparse.ArgumentParser(description='Parser arguments list which is supplied by the user')
 
     parser.add_argument('--export-dir', help='Directory to save exported results into', default=None)
+    parser.add_argument('--no-parallel', help='Disable parallel running of tests', action='store_true')
     parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', default='')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
@@ -899,8 +934,19 @@ def end_section(name):
     sys.stdout.flush()
     sys.stderr.flush()
 
-if __name__ == '__main__':
-    requests_session = requests.Session()
+async def run_test_plan_wrapper(plan_name, config_json, export_dir):
+    result = await run_test_plan(plan_name, config_json, export_dir)
+    if isinstance(result, list):
+        results.extend(result)
+    else:
+        results.append(result)
+
+
+async def main():
+    global conformance
+    global api_url_base
+    global untested_test_modules
+    global args
 
     dev_mode = 'CONFORMANCE_DEV_MODE' in os.environ
 
@@ -925,13 +971,6 @@ if __name__ == '__main__':
     else:
         token = os.environ['CONFORMANCE_TOKEN']
 
-    if dev_mode or 'DISABLE_SSL_VERIFY' in os.environ:
-        # disable https certificate validation
-        requests_session.verify = False
-        import urllib3
-
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
     args = parser_args_cli()
     show_untested = args.show_untested_test_modules
     params = args.params
@@ -945,11 +984,12 @@ if __name__ == '__main__':
         to_run.append((params[0], params[1]))
         params = params[2:]
 
-    conformance = Conformance(api_url_base, token, requests_session)
+    verify_ssl = not dev_mode and not 'DISABLE_SSL_VERIFY' in os.environ
+    conformance = Conformance(api_url_base, token, verify_ssl)
 
     for attempt in range(1, 12):
         try:
-            all_test_modules_array = conformance.get_all_test_modules()
+            all_test_modules_array = await conformance.get_all_test_modules()
             break
         except Exception as exc:
             # the server may not have finished starting yet; sleep & try again
@@ -970,13 +1010,36 @@ if __name__ == '__main__':
     if args.expected_skips_file:
         expected_skips_list = load_expected_problems(args.expected_skips_file)
 
+    global results
     results = []
+    queues = {} # key is alias for test plan, or None
+    workers = []
     for (plan_name, config_json) in to_run:
-        result = run_test_plan(plan_name, config_json, args.export_dir)
-        if isinstance(result, list):
-            results.extend(result)
+        with open(config_json) as f:
+            json_config = f.read()
+        parsed_config = json.loads(json_config)
+        if args.no_parallel:
+            alias = None
         else:
-            results.append(result)
+            alias = parsed_config["alias"] if "alias" in parsed_config else None
+        if alias not in queues:
+            queues[alias] = asyncio.Queue()
+            parallel_jobs = 2 if alias == None and not args.no_parallel else 1
+            print("Creating queue for "+str(alias)+" parallel="+str(parallel_jobs))
+            workers.extend([asyncio.create_task(queue_worker(queues[alias])) for _ in range(parallel_jobs)])
+        queues[alias].put_nowait(run_test_plan_wrapper(plan_name, config_json, args.export_dir))
+
+    for q in queues:
+        print("plan: joining "+str(q))
+        await queues[q].join()
+    print("plan: queues done, cancelling workers")
+    for worker in workers:
+        worker.cancel()
+    print("plan: workers cancelled, gathering")
+    await asyncio.gather(*workers, return_exceptions=True)
+    print("plan: workers gathered")
+
+    await conformance.requests_session.close()
 
     print("\n\nScript complete - results:")
 
@@ -1116,3 +1179,6 @@ if __name__ == '__main__':
 
     print(success("All tests ran to completion. See above for any test condition failures."))
     sys.exit(0)
+
+if __name__ == '__main__':
+    asyncio.run(main())

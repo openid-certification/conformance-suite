@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 cleanup() {
@@ -32,8 +32,8 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 makeClientTest() {
-    . node-client-setup.sh
-    . node-core-client-setup.sh
+    . ./node-client-setup.sh
+    . ./node-core-client-setup.sh
 
     # client FAPI1-ADVANCED
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
@@ -280,6 +280,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel" # there seemed to be a lot of "Server disconnected" failures trying to run these in parallel
     echo "Run client tests"
     makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
@@ -299,6 +300,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel" # the authlete authentication device simulator doesn't seem to support parallel authorizations
     echo "Run ciba tests"
     makeCIBATest
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
