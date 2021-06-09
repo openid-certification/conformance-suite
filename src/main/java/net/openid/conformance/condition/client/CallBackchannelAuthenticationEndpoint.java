@@ -42,7 +42,8 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 	@PostEnvironment(required = "backchannel_authentication_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		final String bcAuthEndpoint = env.getString("server", "backchannel_authentication_endpoint");
+		final String endpointKey = "backchannel_authentication_endpoint";
+		final String bcAuthEndpoint = env.getString(endpointKey) != null ? env.getString(endpointKey) : env.getString("server", endpointKey);
 		if (bcAuthEndpoint == null) {
 			throw error("Couldn't find backchannel authentication endpoint");
 		}

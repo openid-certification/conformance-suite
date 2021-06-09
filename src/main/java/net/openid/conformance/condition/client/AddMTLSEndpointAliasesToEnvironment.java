@@ -7,6 +7,13 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+/**
+ * This copies any server endpoints into the root of the environment, overriding it with any entry found in
+ * mtls_endpoint_aliases.
+ *
+ * It is assumed that, when a test needs to use mtls, it will use the value in the root of the
+ * environment.
+ */
 public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 
 	@Override
