@@ -229,7 +229,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASELINE-5.2.2-5", "FAPI1-BASELINE-5.2.2-6");
+		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
@@ -290,7 +290,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
-		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASELINE-5.2.4-2", "FAPI1-BASELINE-5.2.4-3");
+		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
 	}
 
 	@Override
@@ -311,7 +311,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASELINE-7.1", "FAPI1-ADVANCED-8.5");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
 
 		call(exec().unmapKey("client_request"));
 
@@ -353,7 +353,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASELINE-7.1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
 
 		call(exec().unmapKey("client_request"));
 
@@ -381,7 +381,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("token_endpoint_request", requestId));
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADVANCED-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 		call(sequence(validateClientAuthenticationSteps));
 //TODO Due to historical reasons there is potential ambiguity regarding the
@@ -428,12 +428,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASELINE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASELINE-6.2.2-1");
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASELINE-5.2.3.1-1");
+		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
@@ -468,7 +468,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADVANCED-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
 
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
@@ -518,7 +518,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ValidateRedirectUri.class);
 
 		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADVANCED-5.2.3-15");
+			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
 		}
 
 		issueAccessToken();
@@ -567,7 +567,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
-			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADVANCED-5.2.2-10");
+			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
 		}
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
@@ -583,12 +583,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 			}
-			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASELINE-5.2.2.2");
+			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASE-5.2.2.2");
 		} else {
 			if(jarmType==FAPIJARMType.OIDC) {
 				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
 			}
-			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASELINE-5.2.2.3-1");
+			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
 		}
 
 		if(responseMode!=FAPIResponseMode.JARM && "yes".equals(isOpenIdScopeRequested)) {
@@ -612,29 +612,29 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 * Common checks applicable to both PAR endpoint and authorization requests
 	 */
 	protected void validateRequestObjectCommonChecks() {
-		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADVANCED-8.6");
+		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(jarmType==FAPIJARMType.OIDC) {
 			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-				"FAPI1-ADVANCED-5.2.3-5", "OIDCC-5.5.1.1");
+				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
 		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADVANCED-5.2.2.13");
-		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-17");
+		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
+		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADVANCED-5.2.2.1");
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
 		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
 		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADVANCED-5.2.3-16");
+				"FAPI1-ADV-5.2.3-16");
 		} else {
 			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
 			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
-				"OIDCC-6.1", "FAPI1-ADVANCED-5.2.3-9");
+				"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
 				"OIDCC-6.1", "OIDCC-6.2");
 			if(responseMode!=FAPIResponseMode.JARM) {
@@ -647,10 +647,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 
 		if(responseMode==FAPIResponseMode.JARM) {
-			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADVANCED-5.2.2-2");
+			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADV-5.2.2-2");
 		} else if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADVANCED-5.2.2-1");
-			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASELINE-5.2.3-7");
+			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
+			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
@@ -658,7 +658,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void validateRequestObjectForPAREndpointRequest() {
 		validateRequestObjectCommonChecks();
-		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADVANCED-5.2.3-15");
+		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADV-5.2.3-15");
 	}
 
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
@@ -681,7 +681,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(isAuthorizationEndpoint) {
 			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
-				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2.1-5");
+				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
@@ -698,7 +698,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(isAuthorizationEndpoint) {
 			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
-				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2.1-5");
+				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
 		}
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
@@ -774,20 +774,20 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().startBlock("Account request endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASELINE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASELINE-6.2.2-1");
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-5");
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
 
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASELINE-6.2.1-11");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
@@ -811,24 +811,24 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("token_endpoint_request", requestId));
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADVANCED-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 
 		call(exec().unmapKey("token_endpoint_request"));
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASELINE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASELINE-6.2.2-1");
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASELINE-6.2.2-5");
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASELINE-6.2.1-11");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 

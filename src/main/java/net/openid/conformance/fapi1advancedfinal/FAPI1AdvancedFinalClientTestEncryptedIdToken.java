@@ -52,14 +52,14 @@ public class FAPI1AdvancedFinalClientTestEncryptedIdToken extends AbstractFAPI1A
 		super.validateClientJwks(isSecondClient);
 		if(isSecondClient) {
 			//ensure that there is a key we can use for id_token encryption
-			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsNotRSA1_5.class, "FAPI1-ADVANCED-8.6.1-1");
-			callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADVANCED-5.2.3.1-5", "FAPI1-ADVANCED-8.6.1-1");
-			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, "OIDCR-2", "FAPI1-ADVANCED-5.2.2.1-6");
+			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsNotRSA1_5.class, "FAPI1-ADV-8.6.1-1");
+			callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
+			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, "OIDCR-2", "FAPI1-ADV-5.2.2.1-6");
 		}
 	}
 
 	@Override
 	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
-		callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADVANCED-5.2.2.1-6");
+		callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6");
 	}
 }

@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import datetime
 import os
 import re
 import sys
@@ -176,6 +177,7 @@ def get_string_name_for_module_with_variant(moduledict):
 
 def run_test_plan(test_plan, config_file, output_dir):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
+    start_section(test_plan, "Results", True)
     with open(config_file) as f:
         json_config = f.read()
     (test_plan_name, variant) = split_name_and_variant(test_plan)
@@ -255,6 +257,7 @@ def run_test_plan(test_plan, config_file, output_dir):
         start_time_for_save = time.time()
         filename = conformance.exporthtml(plan_id, output_dir)
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
+    end_section(test_plan)
     print('\n\n')
     return {
         'test_plan': test_plan,
@@ -808,18 +811,20 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
             else:
                 print(failure(msg))
                 if print_template:
-                    print("Template expected failure json:\n")
+                    start_section("template_expected_failure", "Template expected failure json:", True)
                     # print json, skipping timestamp addition for easy C&P
                     print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
+                    end_section("template_expected_failure")
         else:
             if expected:
                 print(expected_warning(msg))
             else:
                 print(warning(msg))
                 if print_template:
-                    print("Template expected warning json:\n")
+                    start_section("template_expected_warning", "Template expected warning json:", True)
                     # print json, skipping timestamp addition for easy C&P
                     print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
+                    end_section("template_expected_warning")
 
 
 def load_expected_problems(filespec):
@@ -870,6 +875,29 @@ def parser_args_cli():
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
     return parser.parse_args()
+
+
+def secondssince1970():
+    return int(time.mktime(datetime.datetime.now().timetuple()))
+
+
+def start_section(name, heading, collapsed=False):
+    if "CI" not in os.environ:
+        return
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # documentation: https://docs.gitlab.com/ee/ci/jobs/#custom-collapsible-sections
+    if collapsed:
+        name += "[collapsed=true]"
+    print("\x1b[0Ksection_start:{}:{}\r\x1b[0K{}".format(secondssince1970(), name, heading), file=sys.__stdout__)
+
+
+def end_section(name):
+    if "CI" not in os.environ:
+        return
+    print("\x1b[0Ksection_end:{}:{}\r\x1b[0K".format(secondssince1970(), name,), file=sys.__stdout__)
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 if __name__ == '__main__':
     requests_session = requests.Session()
@@ -977,6 +1005,7 @@ if __name__ == '__main__':
     unused_expected_failures = list(filter(is_unused, expected_failures_list))
     if unused_expected_failures:
         print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
+        start_section("unused_expected_failures", "unused expected failures detail", True)
         for entry in unused_expected_failures:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -987,6 +1016,7 @@ if __name__ == '__main__':
                 'expected-result': entry['expected-result']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        end_section("unused_expected_failures")
         failed = True
 
     unused_expected_skips = list(filter(is_unused, expected_skips_list))
@@ -1080,9 +1110,6 @@ if __name__ == '__main__':
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
-
-    # wait a bit before exiting so that end of output isn't lost - https://gitlab.com/gitlab-org/gitlab/-/issues/217199
-    time.sleep(20)
 
     if failed:
         sys.exit(1)

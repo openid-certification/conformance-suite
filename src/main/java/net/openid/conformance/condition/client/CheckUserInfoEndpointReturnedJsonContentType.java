@@ -8,7 +8,7 @@ public class CheckUserInfoEndpointReturnedJsonContentType  extends AbstractCheck
 	@Override
 	@PreEnvironment(required = "userinfo_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
-		return checkContentType(env, "userinfo_endpoint_response_headers", "application/json");
+		return checkContentType(env, "userinfo_endpoint_response_headers", "", "application/json");
 	}
 
 }

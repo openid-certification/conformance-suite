@@ -216,7 +216,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 
 		call(exec().unmapKey("client_request"));
 
@@ -257,7 +257,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 
 		call(exec().unmapKey("client_request"));
 

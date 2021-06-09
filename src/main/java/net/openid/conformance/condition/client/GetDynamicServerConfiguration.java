@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -8,6 +9,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,7 +26,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "server")
+	@PostEnvironment(required = { "server", "discovery_endpoint_response" } )
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("config")) {
@@ -57,7 +60,12 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			String jsonString;
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
-				jsonString = restTemplate.getForObject(discoveryUrl, String.class);
+				ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
+				JsonObject responseInfo = convertResponseForEnvironment(response);
+
+				env.putObject("discovery_endpoint_response", responseInfo);
+
+				jsonString = response.getBody();
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
 			} catch (RestClientException e) {

@@ -36,7 +36,7 @@ public class FAPI1AdvancedFinalClientTestInvalidSHash extends AbstractFAPI1Advan
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-		callAndStopOnFailure(AddInvalidSHashValueToIdToken.class, "FAPI1-ADVANCED-5.2.2.1-5");
+		callAndStopOnFailure(AddInvalidSHashValueToIdToken.class, "FAPI1-ADV-5.2.2.1-5");
 	}
 
 	@Override

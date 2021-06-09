@@ -58,14 +58,14 @@ public class FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15 extends Abst
 		super.validateClientJwks(isSecondClient);
 		if(isSecondClient) {
 			//ensure that there is a key we can use for id_token encryption
-			callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADVANCED-5.2.3.1-5", "FAPI1-ADVANCED-8.6.1-1");
+			callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
 		}
 	}
 
 	@Override
 	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
-		callAndStopOnFailure(ChangeIdTokenEncryptedResponseAlgToRSA15.class, "FAPI1-ADVANCED-8.6.1-1");
-		callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADVANCED-5.2.2.1-6");
+		callAndStopOnFailure(ChangeIdTokenEncryptedResponseAlgToRSA15.class, "FAPI1-ADV-8.6.1-1");
+		callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6");
 		startWaitingForTimeout();
 	}
 

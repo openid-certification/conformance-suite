@@ -938,7 +938,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 
 		env.unmapKey("client_request");
