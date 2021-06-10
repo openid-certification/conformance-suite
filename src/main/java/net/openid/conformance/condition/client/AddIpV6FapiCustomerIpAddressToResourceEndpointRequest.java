@@ -20,7 +20,7 @@ public class AddIpV6FapiCustomerIpAddressToResourceEndpointRequest extends Abstr
 		}
 		headers.addProperty("x-fapi-customer-ip-address", ip);
 
-		log("Added x-fapi-customer-ip-address containing IPv5 address to resource endpoint request headers", args("resource_endpoint_request_headers", headers));
+		log("Added x-fapi-customer-ip-address containing IPv6 address to resource endpoint request headers", args("resource_endpoint_request_headers", headers));
 
 		return env;
 	}
