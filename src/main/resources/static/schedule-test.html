@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-	<title>OIDF Conformance: Conformance Suite</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>OIDF Conformance: Conformance Suite</title>
 
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-	<link rel="stylesheet" type="text/css" href="css/layout.css">
-	<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
-	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-	<!--[if lt IE 9]>
-		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -28,7 +28,7 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
 
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
@@ -37,58 +37,58 @@
 </head>
 <body>
 
-	<div class="pageHeader container-fluid">
-		<div class="row-fluid">
-			<div class="col-md-8">
-				<a href="index.html"><img src="/images/openid.png"></a>
-			</div>
-			<div id="userInfoHolder" class="col-md-4 text-right"></div>
-		</div>
-	</div>
-	<div class="clearfix"></div>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/openid.png"></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
 
-	<!-- error modal -->
-	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Error</h4>
-				</div>
-				<div class="modal-body">
-					Error: <span id="errorMessage"></span>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- loading modal -->
-	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
-		<div class="modal-dialog modal-sm" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
-				</div>
-				<div class="modal-body">
-					<div class="text-center">
-						<img src="/images/spinner.gif" width="100px" height="30px" />
-					</div>
-					<div>
-						<span id="loadingMessage"></span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- loading modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
-	<div class="container-fluid">
-		<div id="scheduleTestPage">
+    <div class="container-fluid">
+        <div id="scheduleTestPage">
 
             <div class="row">
                 <div class="col-md-12">
@@ -96,89 +96,89 @@
                 </div>
             </div>
 
-			<div class="form-group row">
-				<label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
-				<div class="col-md-10">
+            <div class="form-group row">
+                <label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
+                <div class="col-md-10">
                     <div class="input-group">
                         <div class="input-group-addon">
                             <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Test plan name. This selects whether you are testing a Relying Party (client) or OpenID Provider (authorization server). It also selects which exact tests you want to run. UK Openbanking compliant systems should select 'FAPI-RW-ID2'"></span>
                         </div>
                         <select id="planSelect" class="form-control">
-						    <option value="select">--- Select A Test Plan ----</option>
-					    </select>
+                            <option value="select">--- Select A Test Plan ----</option>
+                        </select>
                     </div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-12">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <form id="variantSelectors">
-						<!-- render variant selectors here -->
+                        <!-- render variant selectors here -->
                     </form>
                 </div>
             </div>
 
-			<div class="row" id="configForm">
-				<div class="col-md-12">
+            <div class="row" id="configForm">
+                <div class="col-md-12">
 
-					<h3>Configure Test</h3>
+                    <h3>Configure Test</h3>
 
-					<ul class="nav nav-tabs">
-						<li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
-						<li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
-					</ul>
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" id="tab-form-elements" href="#formInput">Form</a></li>
+                        <li><a data-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
+                    </ul>
 
 
-					<div class="tab-content">
-						<div id="formInput" class="tab-pane fade in active">
+                    <div class="tab-content">
+                        <div id="formInput" class="tab-pane fade in active">
 
-							<div class="config-form-container">
+                            <div class="config-form-container">
 
-								<h3 class="config-form-container-header">Test Information</h3>
+                                <h3 class="config-form-container-header">Test Information</h3>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">alias</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. If using dynamic client registration, this can be left blank and a random one will be generated."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="alias"></input>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">alias</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. If using dynamic client registration, this can be left blank and a random one will be generated."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="alias"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">description</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Freeform text to help you identify this test run (optional)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="description"></input>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">description</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Freeform text to help you identify this test run (optional)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="description"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">publish</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later."></span>
-											</div>
-											<select class="form-control config-form-element" data-json-target="publish">
-												<option value="" selected>No</option>
-												<option value="summary">Summary</option>
-												<option value="everything">Everything</option>
-											</select>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">publish</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later."></span>
+                                            </div>
+                                            <select class="form-control config-form-element" data-json-target="publish">
+                                                <option value="" selected>No</option>
+                                                <option value="summary">Summary</option>
+                                                <option value="everything">Everything</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
 
-							</div>
+                            </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Server</h3>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Server</h3>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">issuer</div>
@@ -253,40 +253,40 @@
                                 </div>
 
                                 <div class="row config-form-element-container">
-									<div class="col-md-2 key">discoveryUrl</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's .well-known/openid-configuration."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="server.discoveryUrl"></input>
-										</div>
-									</div>
-								</div>
+                                    <div class="col-md-2 key">discoveryUrl</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Full URL to server's .well-known/openid-configuration."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.discoveryUrl"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">discoveryIssuer</div>
                                     <div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Server's issuer URL."></span>
-											</div>
-	                                        <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
-										</div>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Server's issuer URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
+                                        </div>
                                     </div>
                                 </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">jwks</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="server.jwks"></textarea>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="server.jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">login_hint</div>
                                     <div class="col-md-10">
@@ -312,83 +312,83 @@
                             </div>
 
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Client</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_id</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="OAuth client id used with the authorization server."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.client_id"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_secret</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client secret."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.client_secret"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_name</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client name to use in dynamic registration request. This may be left empty, in which case a random name is used."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.client_name"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">scope</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Scopes to use in authorization request, e.g. 'openid accounts'."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.scope"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">redirect_uri</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI the conformance suite should redirect back to with the result of the authorization endpoint call appended."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.redirect_uri"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">jwks</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Client</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_id</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="OAuth client id used with the authorization server."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.client_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_secret</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client secret."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.client_secret"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_name</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client name to use in dynamic registration request. This may be left empty, in which case a random name is used."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.client_name"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">scope</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Scopes to use in authorization request, e.g. 'openid accounts'."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.scope"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">redirect_uri</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URI the conformance suite should redirect back to with the result of the authorization endpoint call appended."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.redirect_uri"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Algorithm for client_secret_jwt authentication, defaults to HS256."></span>
-											</div>
-	                                        <input type="text" class="form-control config-form-element" data-json-target="client.client_secret_jwt_alg"></input>
-										</div>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Algorithm for client_secret_jwt authentication, defaults to HS256."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.client_secret_jwt_alg"></input>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
@@ -413,44 +413,44 @@
                                         </div>
                                     </div>
                                 </div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">certificate</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="client.certificate"></textarea>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">hint_type</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Type of hint to identify user, passed with hint_value in authorization request."></span>
-											</div>
-											<select class="form-control config-form-element" data-json-target="client.hint_type">
-												<option value="" selected>None</option>
-												<option value="login_hint_token">login_hint_token</option>
-												<option value="id_token_hint">id_token_hint</option>
-												<option value="login_hint">login_hint</option>
-											</select>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">hint_value</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Hint value to identify user, passed with hint_type in authorization request."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client.hint_value"></input>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">certificate</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client.certificate"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">hint_type</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Type of hint to identify user, passed with hint_value in authorization request."></span>
+                                            </div>
+                                            <select class="form-control config-form-element" data-json-target="client.hint_type">
+                                                <option value="" selected>None</option>
+                                                <option value="login_hint_token">login_hint_token</option>
+                                                <option value="id_token_hint">id_token_hint</option>
+                                                <option value="login_hint">login_hint</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">hint_value</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Hint value to identify user, passed with hint_type in authorization request."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.hint_value"></input>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">post_logout_redirect_uri</div>
                                     <div class="col-md-10">
@@ -544,44 +544,44 @@
                                 </div>
                             </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">TLS certificates for client (used to make MTLS connections)</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls.cert</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls.cert"></textarea>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">TLS certificates for client (used to make MTLS connections)</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls.cert</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls.cert"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls.key</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls.key"></textarea>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls.key</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls.key"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls.ca</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format. Optional, can be omitted if using self-signed certificates or if the server does not require any certificate authority elements to be supplied."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls.ca"></textarea>
-										</div>
-									</div>
-								</div>
-							</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls.ca</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format. Optional, can be omitted if using self-signed certificates or if the server does not require any certificate authority elements to be supplied."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls.ca"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="config-form-container">
                                 <h3 class="config-form-container-header">Client for client_secret_post</h3>
@@ -609,63 +609,63 @@
                                 </div>
                             </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Second client</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_id</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="OAuth client id used with the authorization server."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client2.client_id"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_secret</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client secret"></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client2.client_secret"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">client_name</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client name to use in dynamic registration request. This may be left empty, in which case a random name is used."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client2.client_name"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">scope</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Scopes to use in authorization request, e.g. 'openid accounts'."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="client2.scope"></input>
-										</div>
-									</div>
-								</div>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">jwks</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Second client</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_id</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="OAuth client id used with the authorization server."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client2.client_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_secret</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Client secret"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client2.client_secret"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">client_name</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client name to use in dynamic registration request. This may be left empty, in which case a random name is used."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client2.client_name"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">scope</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Scopes to use in authorization request, e.g. 'openid accounts'."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client2.scope"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">certificate</div>
                                     <div class="col-md-10">
@@ -680,12 +680,12 @@
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Algorithm for client_secret_jwt authentication, defaults to HS256."></span>
-											</div>
-	                                        <input type="text" class="form-control config-form-element" data-json-target="client2.client_secret_jwt_alg"></input>
-										</div>
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Algorithm for client_secret_jwt authentication, defaults to HS256."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client2.client_secret_jwt_alg"></input>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
@@ -699,111 +699,111 @@
                                         </div>
                                     </div>
                                 </div>
-							</div>
+                            </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Second client TLS certificates</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls2.cert</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls2.cert"></textarea>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Second client TLS certificates</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls2.cert</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls2.cert"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls2.key</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls2.key"></textarea>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls2.key</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls2.key"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">mtls2.ca</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."></span>
-											</div>
-											<textarea class="form-control config-form-element" data-json-target="mtls2.ca"></textarea>
-										</div>
-									</div>
-								</div>
-							</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">mtls2.ca</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="mtls2.ca"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">TLS</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">testHost</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Hostname for TLS connection tests (only used in sample-test-test)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="tls.testHost"></input>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">TLS</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">testHost</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Hostname for TLS connection tests (only used in sample-test-test)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="tls.testHost"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">testPort</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Port number for TLS connection tests (only used in sample-test-test)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="tls.testPort"></input>
-										</div>
-									</div>
-								</div>
-							</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">testPort</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Port number for TLS connection tests (only used in sample-test-test)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="tls.testPort"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-							<div class="config-form-container">
-								<h3 class="config-form-container-header">Resource</h3>
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">resourceUrl</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrl"></input>
-										</div>
-									</div>
-								</div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Resource</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">resourceUrl</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrl"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">resourceUrlAccountRequests</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource account request server tests (optional, use if endpoints split across servers)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountRequests"></input>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">resourceUrlAccountRequests</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource account request server tests (optional, use if endpoints split across servers)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountRequests"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">resourceUrlAccountsResource</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountsResource"></input>
-										</div>
-									</div>
-								</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">resourceUrlAccountsResource</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrlAccountsResource"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">cdrVersion</div>
@@ -818,228 +818,228 @@
                                 </div>
 
 
-								<div class="row config-form-element-container">
-									<div class="col-md-2 key">institution_id</div>
-									<div class="col-md-10">
-										<div class="input-group">
-											<div class="input-group-addon">
-												<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Financial institution ID to send to FAPI resources, i.e. Institution ID assigned by UK OpenBanking. This can be left empty if the resource server does not require this header."></span>
-											</div>
-											<input type="text" class="form-control config-form-element" data-json-target="resource.institution_id"></input>
-										</div>
-									</div>
-								</div>
-							</div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">institution_id</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Financial institution ID to send to FAPI resources, i.e. Institution ID assigned by UK OpenBanking. This can be left empty if the resource server does not require this header."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.institution_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
 
-						</div>
-						<div id="JSONInput" class="tab-pane fade">
-							<textarea autocomplete="off" autocorrect="off" autocapitalize="off"
+                        </div>
+                        <div id="JSONInput" class="tab-pane fade">
+                            <textarea autocomplete="off" autocorrect="off" autocapitalize="off"
                                       spellcheck="false" id="config" placeholder="{JSON data}"></textarea>
-						</div>
-					</div>
-					<!-- / .tab-content -->
-				</div>
-			</div>
+                        </div>
+                    </div>
+                    <!-- / .tab-content -->
+                </div>
+            </div>
 
-			<div class="row top10" id="launchButtons">
-				<div class="well col-md-6 col-md-offset-3">
-				    <button class="btn btn-block collapse">Fake Button for spacing, ignore</button>
-					<button class="btn btn-primary btn-block btn-lg" id="createPlanBtn" disabled="">
+            <div class="row top10" id="launchButtons">
+                <div class="well col-md-6 col-md-offset-3">
+                    <button class="btn btn-block collapse">Fake Button for spacing, ignore</button>
+                    <button class="btn btn-primary btn-block btn-lg" id="createPlanBtn" disabled="">
                         <span class="glyphicon glyphicon-flag"></span> Create Test Plan
                     </button>
-				</div>
-			</div>
-		</div>
-	</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<script type="text/javascript">
-		/**
-		 *
-		 */
-		$(function() {
+    <script type="text/javascript">
+        /**
+         *
+         */
+        $(function() {
 
             FAPI_UI.showBusy('Loading available tests...');
 
-			FAPI_UI.loadScheduleTestPageTemplates()
-			.then(function() {
-				return FAPI_UI.getUserInfo();
-			}).then(function() {
-			    return loadAvailableTests();
-			}).then(function() {
-				return loadAvailablePlans();
-			}).then(function() {
-				return loadConfig();
-			}).then(function() {
-				return loadScheduleTestPage();
-			}).then(function() {
-				return loadServerInfo();
-			}).always(function() {
-				FAPI_UI.activeTooltip();
-			});
-		});
+            FAPI_UI.loadScheduleTestPageTemplates()
+            .then(function() {
+                return FAPI_UI.getUserInfo();
+            }).then(function() {
+                return loadAvailableTests();
+            }).then(function() {
+                return loadAvailablePlans();
+            }).then(function() {
+                return loadConfig();
+            }).then(function() {
+                return loadScheduleTestPage();
+            }).then(function() {
+                return loadServerInfo();
+            }).always(function() {
+                FAPI_UI.activeTooltip();
+            });
+        });
 
-		function loadAvailableTests() {
-			return $.getJSON('/api/runner/available', function(data) {
+        function loadAvailableTests() {
+            return $.getJSON('/api/runner/available', function(data) {
                 // save the list of available tests and associated info for later
                 FAPI_UI.availableTests = _.keyBy(data, 'testName');
             });
-		}
+        }
 
-		function loadAvailablePlans() {
-			return $.getJSON('/api/plan/available', function(data) {
-				FAPI_UI.availablePlans = _.keyBy(data, 'planName');
+        function loadAvailablePlans() {
+            return $.getJSON('/api/plan/available', function(data) {
+                FAPI_UI.availablePlans = _.keyBy(data, 'planName');
 
-				// sort the plans into groups by profile
-				var groupedPlans = _.groupBy(data, 'profile');
-				// consistent ordering for plans
-				var profiles = _.keys(groupedPlans).sort();
+                // sort the plans into groups by profile
+                var groupedPlans = _.groupBy(data, 'profile');
+                // consistent ordering for plans
+                var profiles = _.keys(groupedPlans).sort();
 
-				// render all the plans into the dropdown
-				_.each(profiles, function(profile) {
+                // render all the plans into the dropdown
+                _.each(profiles, function(profile) {
 
-					var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
-						label: profile
-					}));
-					$('#planSelect').append(optGroup);
+                    var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
+                        label: profile
+                    }));
+                    $('#planSelect').append(optGroup);
 
-					// note that we're sorting the plans within each group as well
-					_.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
-						optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
-							val: item.planName,
-							display: item.displayName
-						}));
-					});
-				});
+                    // note that we're sorting the plans within each group as well
+                    _.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
+                        optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
+                            val: item.planName,
+                            display: item.displayName
+                        }));
+                    });
+                });
 
-			});
-		}
+            });
+        }
 
-		function saveConfig(config) {
-			var localStorage = tryGetStorage('sessionStorage');
-			if (localStorage) {
-				localStorage.setItem('savedConfig', JSON.stringify(config));
-			}
-		}
+        function saveConfig(config) {
+            var localStorage = tryGetStorage('sessionStorage');
+            if (localStorage) {
+                localStorage.setItem('savedConfig', JSON.stringify(config));
+            }
+        }
 
-		function clearSavedConfig() {
-			var localStorage = tryGetStorage('sessionStorage');
-			if (localStorage) {
-				localStorage.removeItem('savedConfig');
-			}
-		}
+        function clearSavedConfig() {
+            var localStorage = tryGetStorage('sessionStorage');
+            if (localStorage) {
+                localStorage.removeItem('savedConfig');
+            }
+        }
 
-		function loadConfig() {
-			var urlParams = new URLSearchParams(window.location.search);
-			var planId = urlParams.get('edit-plan');
-			var testId = urlParams.get('edit-test');
-			if (planId) {
-				return loadPlanConfig(planId);
-			} else if (testId) {
-				return loadTestConfig(testId);
-			} else {
-				return loadLastConfig();
-			}
-		}
+        function loadConfig() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var planId = urlParams.get('edit-plan');
+            var testId = urlParams.get('edit-test');
+            if (planId) {
+                return loadPlanConfig(planId);
+            } else if (testId) {
+                return loadTestConfig(testId);
+            } else {
+                return loadLastConfig();
+            }
+        }
 
-		function loadPlanConfig(planId) {
-			// Load config of plan from database
-			return $.getJSON('/api/plan/' + encodeURIComponent(planId), function(data) {
+        function loadPlanConfig(planId) {
+            // Load config of plan from database
+            return $.getJSON('/api/plan/' + encodeURIComponent(planId), function(data) {
 
-				if (data.config) {
-					// we found a configuration file, load it up
-					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName);
-					if (data.variant) {
-						FAPI_UI.selectedVariant = data.variant;
-					}
-				} else {
-					// otherwise set the defaults
-					$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-				}
+                if (data.config) {
+                    // we found a configuration file, load it up
+                    $("#config").val(JSON.stringify(data.config, null, 4));
+                    updateSelectedTestSelector(data.planName);
+                    if (data.variant) {
+                        FAPI_UI.selectedVariant = data.variant;
+                    }
+                } else {
+                    // otherwise set the defaults
+                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+                }
 
-			});
-		}
+            });
+        }
 
-		function loadTestConfig(testId) {
-			// Load config of test from database
-			return $.getJSON('/api/info/' + encodeURIComponent(testId), function(data) {
+        function loadTestConfig(testId) {
+            // Load config of test from database
+            return $.getJSON('/api/info/' + encodeURIComponent(testId), function(data) {
 
-				if (data.config) {
-					// we found a configuration file, load it up
-					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName);
-					if (data.variant) {
-						FAPI_UI.selectedVariant = data.variant;
-					}
-				} else {
-					// otherwise set the defaults
-					$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-				}
+                if (data.config) {
+                    // we found a configuration file, load it up
+                    $("#config").val(JSON.stringify(data.config, null, 4));
+                    updateSelectedTestSelector(data.planName);
+                    if (data.variant) {
+                        FAPI_UI.selectedVariant = data.variant;
+                    }
+                } else {
+                    // otherwise set the defaults
+                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+                }
 
-			});
-		}
+            });
+        }
 
-		function loadLastConfig() {
-			var localStorage = tryGetStorage('sessionStorage');
-			var localSavedConfig;
+        function loadLastConfig() {
+            var localStorage = tryGetStorage('sessionStorage');
+            var localSavedConfig;
 
-			try {
-				localSavedConfig = localStorage ? JSON.parse(localStorage.getItem('savedConfig')) : null;
-				clearSavedConfig();
-			} catch (e) {
-				localSavedConfig = null;
-			}
+            try {
+                localSavedConfig = localStorage ? JSON.parse(localStorage.getItem('savedConfig')) : null;
+                clearSavedConfig();
+            } catch (e) {
+                localSavedConfig = null;
+            }
 
-			// If we left the page with an unsaved config, restore it now.
+            // If we left the page with an unsaved config, restore it now.
 
-			if (localSavedConfig) {
-				$('#config').val(localSavedConfig.config);
-				updateSelectedTestSelector(localSavedConfig.planName);
-				if (localSavedConfig.variant) {
-					FAPI_UI.selectedVariant = localSavedConfig.variant;
-				}
-				return true;
-			}
+            if (localSavedConfig) {
+                $('#config').val(localSavedConfig.config);
+                updateSelectedTestSelector(localSavedConfig.planName);
+                if (localSavedConfig.variant) {
+                    FAPI_UI.selectedVariant = localSavedConfig.variant;
+                }
+                return true;
+            }
 
-			// Otherwise, try to get a config from the server
+            // Otherwise, try to get a config from the server
 
-			return $.getJSON('/api/lastconfig', function(data) {
+            return $.getJSON('/api/lastconfig', function(data) {
 
-				if (data.config) {
-					// we found a configuration file, load it up
+                if (data.config) {
+                    // we found a configuration file, load it up
 
-					$("#config").val(JSON.stringify(data.config, null, 4));
-					updateSelectedTestSelector(data.planName);
-					if (data.variant) {
-						FAPI_UI.selectedVariant = data.variant;
-					}
-				} else {
+                    $("#config").val(JSON.stringify(data.config, null, 4));
+                    updateSelectedTestSelector(data.planName);
+                    if (data.variant) {
+                        FAPI_UI.selectedVariant = data.variant;
+                    }
+                } else {
 
-					// otherwise set the defaults
+                    // otherwise set the defaults
 
-					$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-				}
+                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+                }
 
-			});
-		}
+            });
+        }
 
-		function updateSelectedTestSelector(planName) {
-			$('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
-		}
+        function updateSelectedTestSelector(planName) {
+            $('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
+        }
 
-		function loadScheduleTestPage() {
+        function loadScheduleTestPage() {
 
-			$('#createPlanBtn').click(function(evt) {
-				var planName = $('#planSelect').val();
+            $('#createPlanBtn').click(function(evt) {
+                var planName = $('#planSelect').val();
 
-				// if the user hasn't picked anything, just bail
-				if (!planName || planName == 'select') {
-					FAPI_UI.showError({
-						error: "Please select a test plan from the dropdown list"
-					});
-					return;
-				}
+                // if the user hasn't picked anything, just bail
+                if (!planName || planName == 'select') {
+                    FAPI_UI.showError({
+                        error: "Please select a test plan from the dropdown list"
+                    });
+                    return;
+                }
 
                 /* Figures out which tab is visible then populates the form appropriately
                 this is to ensure that the $('#config') value has properly updated in the event of a
@@ -1050,33 +1050,33 @@
 
                 FAPI_UI.showBusy('Creating plan...');
 
-				var selectedVariant = getSelectedVariant();
+                var selectedVariant = getSelectedVariant();
 
-				// Stash the config in case we are unable to create the test
-				saveConfig({ config: $('#config').val(), planName: planName, variant: selectedVariant });
+                // Stash the config in case we are unable to create the test
+                saveConfig({ config: $('#config').val(), planName: planName, variant: selectedVariant });
 
-				var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
-				for (var [key, value] of Object.entries(selectedVariant)) {
-					// if the user hasn't picked a value for some variant
-					if (value == 'select') {
-						FAPI_UI.showError({
-							error: "Please select a value for " + key + " from the dropdown list"
-						});
-						return;
-					}
-					createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
-				}
+                var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
+                for (var [key, value] of Object.entries(selectedVariant)) {
+                    // if the user hasn't picked a value for some variant
+                    if (value == 'select') {
+                        FAPI_UI.showError({
+                            error: "Please select a value for " + key + " from the dropdown list"
+                        });
+                        return;
+                    }
+                    createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
+                }
 
                 $.ajax({
-                	   url: createUrl,
-                	   type: 'POST',
-                	   contentType: 'application/json',
-                	   data: $('#config').val(),
-                	   success: function(data, status) {
-                		   clearSavedConfig();
-                		   // forward to the test plan page
-                		   window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
-                	   },
+                       url: createUrl,
+                       type: 'POST',
+                       contentType: 'application/json',
+                       data: $('#config').val(),
+                       success: function(data, status) {
+                           clearSavedConfig();
+                           // forward to the test plan page
+                           window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
+                       },
                     error: function(jqxhr, status, error) {
                         FAPI_UI.hideBusy();
                         FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
@@ -1085,95 +1085,95 @@
                         });
                     }
                 });
-			});
+            });
 
-			// update field visibility when the selectors change
-			$('#planSelect').on('change', function(_) {
-				updateVariants();
-				updateConfigFieldVisibility();
-			});
-			$('#variantSelectors').on('change', function(_) {
-				updateConfigFieldVisibility();
-			});
+            // update field visibility when the selectors change
+            $('#planSelect').on('change', function(_) {
+                updateVariants();
+                updateConfigFieldVisibility();
+            });
+            $('#variantSelectors').on('change', function(_) {
+                updateConfigFieldVisibility();
+            });
 
-			// update the config visibility right now
-			updateVariants();
-			if (FAPI_UI.selectedVariant) {
-			    var selection = FAPI_UI.selectedVariant;
-			    _.each(selection, function(value, key) {
-			        $('.variant-selector[data-variant-parameter="' + key + '"]').val(value);
-			    });
-			}
-			updateConfigFieldVisibility();
+            // update the config visibility right now
+            updateVariants();
+            if (FAPI_UI.selectedVariant) {
+                var selection = FAPI_UI.selectedVariant;
+                _.each(selection, function(value, key) {
+                    $('.variant-selector[data-variant-parameter="' + key + '"]').val(value);
+                });
+            }
+            updateConfigFieldVisibility();
 
-			// Config UI
-			$(".config-form-element").attr("autocomplete", "off");
-			$(".config-form-element").attr("autocorrect", "off");
-			$(".config-form-element").attr("autocapitalize", "off");
-			$(".config-form-element").attr("spellcheck", "false");
+            // Config UI
+            $(".config-form-element").attr("autocomplete", "off");
+            $(".config-form-element").attr("autocorrect", "off");
+            $(".config-form-element").attr("autocapitalize", "off");
+            $(".config-form-element").attr("spellcheck", "false");
 
-			// tab actions
-			$('#tab-form-elements').click(function(e) {
-				updateFormElementsFromJSON();
-			})
+            // tab actions
+            $('#tab-form-elements').click(function(e) {
+                updateFormElementsFromJSON();
+            })
 
-			$('#tab-json-elements').click(function(e) {
-				updateJSONFromFormElements();
-			})
+            $('#tab-json-elements').click(function(e) {
+                updateJSONFromFormElements();
+            })
 
-			// sync the JSON at least once
-			updateFormElementsFromJSON();
+            // sync the JSON at least once
+            updateFormElementsFromJSON();
 
             FAPI_UI.hideBusy();
 
-		}
+        }
 
-		function updateConfigFieldVisibility() {
+        function updateConfigFieldVisibility() {
             // Hide the entire config form and launch button until a plan/test & all variants are selected.
             $('#configForm').hide();
             $('#launchButtons').hide();
 
-			var fieldsNotToShow = [];
+            var fieldsNotToShow = [];
 
-			// multi test plan selected
-			var planName = $('#planSelect').val();
+            // multi test plan selected
+            var planName = $('#planSelect').val();
 
-			// if the user hasn't picked anything, disable the create button
-			if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
-				var fieldsToShow = [];
-				$('#createPlanBtn').prop('disabled', true);
-			} else {
-				var selectedPlan = FAPI_UI.availablePlans[planName];
-				var fieldsToShow = selectedPlan.configurationFields;
-				fieldsNotToShow = selectedPlan.hidesConfigurationFields;
+            // if the user hasn't picked anything, disable the create button
+            if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+                var fieldsToShow = [];
+                $('#createPlanBtn').prop('disabled', true);
+            } else {
+                var selectedPlan = FAPI_UI.availablePlans[planName];
+                var fieldsToShow = selectedPlan.configurationFields;
+                fieldsNotToShow = selectedPlan.hidesConfigurationFields;
 
-				// add in any fields from the associated modules
-				_.each(selectedPlan.modules, function(module) {
-					if (FAPI_UI.availableTests[module.testModule]) {
-						fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module.testModule].configurationFields));
-					}
-				});
+                // add in any fields from the associated modules
+                _.each(selectedPlan.modules, function(module) {
+                    if (FAPI_UI.availableTests[module.testModule]) {
+                        fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module.testModule].configurationFields));
+                    }
+                });
 
-				var planVariants = selectedPlan.variants;
-				var allVariantsSelected = true;
-				_.each(getSelectedVariant(), function(v, p) {
-					if (!v || v == 'select') {
-						allVariantsSelected = false;
-					} else {
-						// add in any fields from the selected variant
-						fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p]["variantValues"][v].configurationFields));
-						fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p]["variantValues"][v].hidesConfigurationFields));
-					}
-				});
-				$('#createPlanBtn').prop('disabled', !allVariantsSelected);
-				if (allVariantsSelected) {
-					$('#configForm').show();
-					$('#launchButtons').show();
-				}
+                var planVariants = selectedPlan.variants;
+                var allVariantsSelected = true;
+                _.each(getSelectedVariant(), function(v, p) {
+                    if (!v || v == 'select') {
+                        allVariantsSelected = false;
+                    } else {
+                        // add in any fields from the selected variant
+                        fieldsToShow = _.uniqBy(fieldsToShow.concat(planVariants[p]["variantValues"][v].configurationFields));
+                        fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p]["variantValues"][v].hidesConfigurationFields));
+                    }
+                });
+                $('#createPlanBtn').prop('disabled', !allVariantsSelected);
+                if (allVariantsSelected) {
+                    $('#configForm').show();
+                    $('#launchButtons').show();
+                }
             }
 
-			fieldsToShow = _.difference(fieldsToShow, fieldsNotToShow);
-			fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
+            fieldsToShow = _.difference(fieldsToShow, fieldsNotToShow);
+            fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
 
             if ($('#configForm').css('display') !== 'none') {
 
@@ -1205,174 +1205,174 @@
                     }
                 });
             }
-		}
+        }
 
-		function updateVariants() {
-			var map = FAPI_UI.availablePlans;
-			var itemSelected = $('#planSelect').val();
+        function updateVariants() {
+            var map = FAPI_UI.availablePlans;
+            var itemSelected = $('#planSelect').val();
 
-			$('#variantSelectors').empty();
-			if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
+            $('#variantSelectors').empty();
+            if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
 
-				// update the variant display
-				_.each(map[itemSelected].variants, function(values, parameter) {
+                // update the variant display
+                _.each(map[itemSelected].variants, function(values, parameter) {
 
-					var id = 'vp_' + parameter;
-					var selector = $('<div class="form-group row">' +
-							'<label for="' + id + '" class="col-md-2 col-form-label">' + values.variantInfo.displayName + '</label>' +
-							'<div class="col-md-10">' +
+                    var id = 'vp_' + parameter;
+                    var selector = $('<div class="form-group row">' +
+                            '<label for="' + id + '" class="col-md-2 col-form-label">' + values.variantInfo.displayName + '</label>' +
+                            '<div class="col-md-10">' +
                             '<div class="input-group">\n' +
                             '<div class="input-group-addon">' +
                             '<span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="' + values.variantInfo.description + '" aria-describedby="tooltip1553"></span>' +
-							'</div>' +
+                            '</div>' +
                             '<select class="form-control variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
-							'<option value="select">--- Select A Variant ----</option>' +
-							'</select></div></div></div>');
-					$('#variantSelectors').append(selector);
-					_.each(values.variantValues, function(info, value) {
-						$('#' + id).append(FAPI_UI.logTemplates.TEST_OPTION({
-							val: value,
-							display: value
-						}));
-					});
-				});
+                            '<option value="select">--- Select A Variant ----</option>' +
+                            '</select></div></div></div>');
+                    $('#variantSelectors').append(selector);
+                    _.each(values.variantValues, function(info, value) {
+                        $('#' + id).append(FAPI_UI.logTemplates.TEST_OPTION({
+                            val: value,
+                            display: value
+                        }));
+                    });
+                });
 
-				$('#variantSelectors').show();
-			} else {
+                $('#variantSelectors').show();
+            } else {
 
-				// don't show the variant if there's none to show
-				$('#variantSelectors').hide();
-			}
-			FAPI_UI.activeTooltip();
-		}
+                // don't show the variant if there's none to show
+                $('#variantSelectors').hide();
+            }
+            FAPI_UI.activeTooltip();
+        }
 
-		function getSelectedVariant() {
-			var selection = {};
-			$('.variant-selector[data-variant-parameter]').each(function() {
-				selection[$(this).attr('data-variant-parameter')] = $(this).val();
-			});
-			return selection;
-		}
+        function getSelectedVariant() {
+            var selection = {};
+            $('.variant-selector[data-variant-parameter]').each(function() {
+                selection[$(this).attr('data-variant-parameter')] = $(this).val();
+            });
+            return selection;
+        }
 
-		/**
-		 *
-		 */
-		function updateJSONFromFormElements() {
-			var children = $("#formInput").find(".config-form-element");
+        /**
+         *
+         */
+        function updateJSONFromFormElements() {
+            var children = $("#formInput").find(".config-form-element");
 
-			_.each(children, function(child) {
-				populateJSON($(child).data("jsonTarget"), $(child).val());
-			});
+            _.each(children, function(child) {
+                populateJSON($(child).data("jsonTarget"), $(child).val());
+            });
 
-			$("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-		}
+            $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+        }
 
-		/**
-		 *
-		 */
-		function updateFormElementsFromJSON() {
-			try {
-				FAPI_UI.testJSON = JSON.parse($("#config").val());
-			} catch (e) {
-				FAPI_UI.showError({
-					error: e
-				});
-				return false;
-			}
+        /**
+         *
+         */
+        function updateFormElementsFromJSON() {
+            try {
+                FAPI_UI.testJSON = JSON.parse($("#config").val());
+            } catch (e) {
+                FAPI_UI.showError({
+                    error: e
+                });
+                return false;
+            }
 
-			// valid JSON, but we also want to verify that it is an object at the root node
-			if (typeof FAPI_UI.testJSON != 'object') {
-				FAPI_UI.showError({
-					error: "Please ensure that your root node JSON is an object"
-				});
-				return false;
-			}
+            // valid JSON, but we also want to verify that it is an object at the root node
+            if (typeof FAPI_UI.testJSON != 'object') {
+                FAPI_UI.showError({
+                    error: "Please ensure that your root node JSON is an object"
+                });
+                return false;
+            }
 
-			$(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+            $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
 
-			walkJSON(FAPI_UI.testJSON);
-		}
+            walkJSON(FAPI_UI.testJSON);
+        }
 
-		/**
-		 *
-		 */
-		function walkJSON(element, root) {
+        /**
+         *
+         */
+        function walkJSON(element, root) {
 
-			_.each(element, function(value, key, obj) {
-				var el = null;
+            _.each(element, function(value, key, obj) {
+                var el = null;
 
-				if (_.isString(value) && root == undefined && key != undefined) {
-					el = $(".config-form-element[data-json-target='" + key + "']");
-				} else {
-					el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
-				}
+                if (_.isString(value) && root == undefined && key != undefined) {
+                    el = $(".config-form-element[data-json-target='" + key + "']");
+                } else {
+                    el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+                }
 
-				if (el && $(document).find(el).length) {
-					if (_.isArray(value) || _.isObject(value)) {
-						el.val(JSON.stringify(value));
-					} else {
-						el.val(value);
-					}
-				} else {
-					if (_.isObject(value)) {
-						if (root != undefined) {
-							walkJSON(value, root + "." + key);
-						} else {
-							walkJSON(value, key);
-						}
-					}
-				}
-			});
-		}
+                if (el && $(document).find(el).length) {
+                    if (_.isArray(value) || _.isObject(value)) {
+                        el.val(JSON.stringify(value));
+                    } else {
+                        el.val(value);
+                    }
+                } else {
+                    if (_.isObject(value)) {
+                        if (root != undefined) {
+                            walkJSON(value, root + "." + key);
+                        } else {
+                            walkJSON(value, key);
+                        }
+                    }
+                }
+            });
+        }
 
-		/**
-		 *
-		 */
+        /**
+         *
+         */
 
-		function populateJSON(key, val) {
-			// check to see if we have an "array string" or a "number string"
-			// i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
-			try {
-				var stringToJSON = JSON.parse(val); // an array, object or number ?
-				if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
-					FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
-				} else if (_.isNumber(stringToJSON)) {
-					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
-				}
-			} catch (e) { // a string
-				if (val == "") { // if we have an empty string then delete the value
-					FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
-				} else {
-					FAPI_UI.prop(FAPI_UI.testJSON, key, val);
-				}
-			}
+        function populateJSON(key, val) {
+            // check to see if we have an "array string" or a "number string"
+            // i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
+            try {
+                var stringToJSON = JSON.parse(val); // an array, object or number ?
+                if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
+                    FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
+                } else if (_.isNumber(stringToJSON)) {
+                    FAPI_UI.prop(FAPI_UI.testJSON, key, val);
+                }
+            } catch (e) { // a string
+                if (val == "") { // if we have an empty string then delete the value
+                    FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
+                } else {
+                    FAPI_UI.prop(FAPI_UI.testJSON, key, val);
+                }
+            }
 
-			//console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
-		}
+            //console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
+        }
 
-		function loadServerInfo() {
-			return $.getJSON('/api/server', function(data) {
-				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
-			});
-		}
+        function loadServerInfo() {
+            return $.getJSON('/api/server', function(data) {
+                $(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+            });
+        }
 
-		function tryGetStorage(type) {
-			// simple check to see whether browser storage is usable
-			try {
-				var storage = window[type];
-				var x = '__storage_test__';
-				storage.setItem(x, x);
-				storage.removeItem(x);
-				return storage;
-			} catch (e) {
-				return null;
-			}
-		}
-	</script>
+        function tryGetStorage(type) {
+            // simple check to see whether browser storage is usable
+            try {
+                var storage = window[type];
+                var x = '__storage_test__';
+                storage.setItem(x, x);
+                storage.removeItem(x);
+                return storage;
+            } catch (e) {
+                return null;
+            }
+        }
+    </script>
 
-	<footer class="pageFooter">
-		<span class="muted">OpenID Foundation conformance suite</span>
-		<div class="serverInfo"></div>
-	</footer>
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+        <div class="serverInfo"></div>
+    </footer>
 </body>
 </html>

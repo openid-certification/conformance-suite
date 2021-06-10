@@ -2,129 +2,129 @@
 <html>
 
 <head>
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta charset="UTF-8">
-	<title>OIDF Conformance: Test Plan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Test Plan</title>
 
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-	<link rel="stylesheet" type="text/css" href="css/layout.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
-	<script type="text/javascript" src="js/fapi.ui.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
 <body>
 
-	<div class="pageHeader container-fluid">
-		<div class="row-fluid">
-			<div class="col-md-8">
-				<a href="index.html"><img src="/images/openid.png"></a>
-			</div>
-			<div id="userInfoHolder" class="col-md-4 text-right"></div>
-		</div>
-	</div>
-	<div class="clearfix"></div>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/openid.png"></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
 
-	<!-- error modal -->
-	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Error</h4>
-				</div>
-				<div class="modal-body">
-					Error: <span id="errorMessage"></span>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- loading modal -->
-	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
-		<div class="modal-dialog modal-sm" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
-				</div>
-				<div class="modal-body">
-					<div class="text-center">
-						<img src="/images/spinner.gif" width="100px" height="30px" />
-					</div>
-					<div>
-						<span id="loadingMessage"></span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- loading modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- Config modal popup -->
-	<div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title">
-						<button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
-						Configuration for <code id="configTestId" class="text-muted"></code>
-					</h4>
-				</div>
-				<div class="modal-body">
-					<div class="wrapLongStrings">
-						<pre id="config"></pre>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Config modal popup -->
+    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">
+                        <button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+                        Configuration for <code id="configTestId" class="text-muted"></code>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="wrapLongStrings">
+                        <pre id="config"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- Publish modal -->
-	<div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Publish</h4>
-				</div>
-				<div class="modal-body">
-					Are you sure? This will make all keys, secrets, and all other test information publicly visible.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal" data-publish="everything">Publish</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Publish modal -->
+    <div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Publish</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" data-publish="everything">Publish</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Certification submission modal -->
     <div class="modal fade" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
@@ -193,54 +193,54 @@
         </div>
     </div>
 
-	<!-- Rerun test confirmation modal -->
-	<div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title">Run test confirmation</h4>
-				</div>
-				<div class="modal-body">
-					Are you sure you want to rerun this test? It is owned by a different user.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Rerun test confirmation modal -->
+    <div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Run test confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to rerun this test? It is owned by a different user.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- resident DOM -->
-	<div class="container-fluid">
-		<div id="planDetail">
-			<div class="header"></div>
-			<div class="content container-fluid">
-				<!-- main page is rendered here -->
-			</div>
-		</div>
-	</div>
+    <!-- resident DOM -->
+    <div class="container-fluid">
+        <div id="planDetail">
+            <div class="header"></div>
+            <div class="content container-fluid">
+                <!-- main page is rendered here -->
+            </div>
+        </div>
+    </div>
 
-	<script type="text/javascript">
+    <script type="text/javascript">
 
-	   function getPlan(planId, public) {
-		   return $.ajax({
-			   type: 'GET',
-			   url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
-			   data: {},
-			   success: function(data) {
+       function getPlan(planId, public) {
+           return $.ajax({
+               type: 'GET',
+               url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
+               data: {},
+               success: function(data) {
                    $('#certificationPackageForm').attr('action','/api/plan/'+planId+'/certificationpackage');
-				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant) }));
+                   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant) }));
 
                    $('#downloadAllBtn').click(function(evt) {
                        evt.preventDefault();
                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
                    });
 
-				   // wire up configuration button
+                   // wire up configuration button
                    $('#showConfigBtn').click(function(evt) {
                        evt.preventDefault();
                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
@@ -248,37 +248,37 @@
                        $('#configModal').modal('show');
                    });
 
-				   // wire up publish button
-				   $('#publishBtn').click(function(evt) {
-					   evt.preventDefault();
-					   $('#publishModal').modal('show');
-				   });
-
-				   $('#certificationPackageBtn').click(function(evt) {
-					   evt.preventDefault();
-					   $('#certificationPackageModal').modal('show');
-				   });
-
-				   $('[data-module]').click(function(evt) {
+                   // wire up publish button
+                   $('#publishBtn').click(function(evt) {
                        evt.preventDefault();
-					   var testName = $(this).data('module');
-					   var variant = $(this).data('variant')
-					   if(FAPI_UI.currentUser.sub !== data.owner.sub){
-						   $('#reRunTestModalBtn').data('test-name', testName);
-						   $('#reRunTestModalBtn').data('variant', variant);
-						   $('#reRunTestModal').modal('show');
-					   } else {
-						   runTest(testName, variant, planId);
-					   }
-				   });
+                       $('#publishModal').modal('show');
+                   });
 
-				   $('[data-instance-id]').each(function() {
+                   $('#certificationPackageBtn').click(function(evt) {
+                       evt.preventDefault();
+                       $('#certificationPackageModal').modal('show');
+                   });
+
+                   $('[data-module]').click(function(evt) {
+                       evt.preventDefault();
+                       var testName = $(this).data('module');
+                       var variant = $(this).data('variant')
+                       if(FAPI_UI.currentUser.sub !== data.owner.sub){
+                           $('#reRunTestModalBtn').data('test-name', testName);
+                           $('#reRunTestModalBtn').data('variant', variant);
+                           $('#reRunTestModal').modal('show');
+                       } else {
+                           runTest(testName, variant, planId);
+                       }
+                   });
+
+                   $('[data-instance-id]').each(function() {
                       var _self = $(this);
 
-					  var testId = _self.data('instanceId');
+                      var testId = _self.data('instanceId');
 
-					  if (testId) {
-						  // wire up the download button
+                      if (testId) {
+                          // wire up the download button
                           $('.downloadBtn', _self).click(function(evt) {
                               evt.preventDefault();
                               window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
@@ -288,125 +288,125 @@
                           $('.viewBtn', _self).css('display', 'inline-block');
                           // fetch the test status
                           console.log('Fetching |' + testId + '|');
-	                      $.ajax({
-	                          type: 'GET',
-	                          url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
-	                          data: {},
-	                          success: function(data) {
-	                              $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
-	                              $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
+                          $.ajax({
+                              type: 'GET',
+                              url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
+                              data: {},
+                              success: function(data) {
+                                  $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+                                  $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
                                   FAPI_UI.activeTooltip();
                               },
-	                          error: function(jqxhr, status, error) {
-	                              if (jqxhr.status == 404) {
-	                                  // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
-	                                  // we won't be able to fetch the status (error 404).
-	                                  // Just ignore it.
-	                              } else {
-	                                  FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-	                                      code: jqxhr.status,
-	                                      error: error
-	                                  });
-	                              }
-	                          }
-	                      });
-					  } else {
-						  // render an "UNKNOWN" field
+                              error: function(jqxhr, status, error) {
+                                  if (jqxhr.status == 404) {
+                                      // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
+                                      // we won't be able to fetch the status (error 404).
+                                      // Just ignore it.
+                                  } else {
+                                      FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                          code: jqxhr.status,
+                                          error: error
+                                      });
+                                  }
+                              }
+                          });
+                      } else {
+                          // render an "UNKNOWN" field
                           $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
                           $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''}));
                           FAPI_UI.activeTooltip();
-					  }
+                      }
 
 
-				   });
+                   });
 
-				   $('[data-publish]').click(function(evt) {
-				       evt.preventDefault();
+                   $('[data-publish]').click(function(evt) {
+                       evt.preventDefault();
 
-				       var publish = $(this).data('publish');
+                       var publish = $(this).data('publish');
 
-				       $.ajax({
-				           type: 'POST',
-				           url: '/api/plan/' + encodeURIComponent(planId) + '/publish',
-				           contentType: 'application/json',
-				           data: JSON.stringify({ publish: publish }),
-				           success: function(data) {
-				               // redirect to the published version or reload
-				               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
-				           },
-				           error: function(jqxhr, status, error) {
-				               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-				                   code: jqxhr.status,
-				                   error: error
-				               });
-				           }
-				       });
-				   });
+                       $.ajax({
+                           type: 'POST',
+                           url: '/api/plan/' + encodeURIComponent(planId) + '/publish',
+                           contentType: 'application/json',
+                           data: JSON.stringify({ publish: publish }),
+                           success: function(data) {
+                               // redirect to the published version or reload
+                               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
+                           },
+                           error: function(jqxhr, status, error) {
+                               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                   code: jqxhr.status,
+                                   error: error
+                               });
+                           }
+                       });
+                   });
 
                     //only for making an immutable plan mutable again
-				   $('[data-immutable]').click(function(evt) {
-				       evt.preventDefault();
+                   $('[data-immutable]').click(function(evt) {
+                       evt.preventDefault();
 
-				       $.ajax({
-				           type: 'POST',
-				           url: '/api/plan/' + encodeURIComponent(planId) + '/makemutable',
-				           contentType: 'application/x-www-form-urlencoded',
-				           success: function(data) {
-				               // redirect to the published version or reload
-				               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
-				           },
-				           error: function(jqxhr, status, error) {
-				               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-				                   code: jqxhr.status,
-				                   error: error
-				               });
-				           }
-				       });
-				   });
+                       $.ajax({
+                           type: 'POST',
+                           url: '/api/plan/' + encodeURIComponent(planId) + '/makemutable',
+                           contentType: 'application/x-www-form-urlencoded',
+                           success: function(data) {
+                               // redirect to the published version or reload
+                               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
+                           },
+                           error: function(jqxhr, status, error) {
+                               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                   code: jqxhr.status,
+                                   error: error
+                               });
+                           }
+                       });
+                   });
 
-				   $('#reRunTestModalBtn').click(function(evt) {
-					   evt.preventDefault();
-					   var testName = $('#reRunTestModalBtn').data('test-name');
-					   var variant = $('#reRunTestModalBtn').data('variant');
-					   runTest(testName, variant, planId);
-				   });
+                   $('#reRunTestModalBtn').click(function(evt) {
+                       evt.preventDefault();
+                       var testName = $('#reRunTestModalBtn').data('test-name');
+                       var variant = $('#reRunTestModalBtn').data('variant');
+                       runTest(testName, variant, planId);
+                   });
 
-			   },
+               },
                error: function(jqxhr, status, error) {
                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
                        code: jqxhr.status,
                        error: error
                    });
                }
-		   })
+           })
 
-	   }
+       }
 
-	   function runTest(testName, testVariant, planId) {
-		   var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+       function runTest(testName, testVariant, planId) {
+           var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
 
-		   if (testVariant !== null && testVariant !== undefined) {
-			   runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
-		   }
+           if (testVariant !== null && testVariant !== undefined) {
+               runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
+           }
 
-		   FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+           FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
 
-		   $.ajax({
-			   url: runTestUrl,
-			   type: 'POST',
-			   contentType: 'application/json',
-			   success: function(testData, status) {
-				   // we need to switch to the new window now
-				   window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));
-			   },
-			   error: function(jqxhr, status, error) {
-				   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-					   code: jqxhr.status,
-					   error: error
-				   });
-			   }
-		   });
-	   }
+           $.ajax({
+               url: runTestUrl,
+               type: 'POST',
+               contentType: 'application/json',
+               success: function(testData, status) {
+                   // we need to switch to the new window now
+                   window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));
+               },
+               error: function(jqxhr, status, error) {
+                   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                       code: jqxhr.status,
+                       error: error
+                   });
+               }
+           });
+       }
 
        function showDialogError(containerId, error) {
             $('<div class="alert alert-danger">' +
@@ -443,7 +443,7 @@
             if( fileNum >= 0) {
                 e.preventDefault();
                 showDialogError('certificationPackageFormErrors', $('#' + filesToCheck[fileNum])[0].files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
-	            return false;
+                return false;
             } else {
                 $('#certificationPackageFormSubmitBtn').attr('disabled', 'disabled');
                 $('#certificationPackageFormRefreshNotice').show();
@@ -452,38 +452,38 @@
         }
 
 
-		$(document).ready(function() {
-			var urlParams = new URLSearchParams(window.location.search);
-			var planId = urlParams.get('plan');
-			var public = Boolean(urlParams.get('public'));
+        $(document).ready(function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var planId = urlParams.get('plan');
+            var public = Boolean(urlParams.get('public'));
 
-			FAPI_UI.showBusy();
+            FAPI_UI.showBusy();
 
-			FAPI_UI.loadPlanTemplates() // Load the templates
-			.then(function() {
-				return FAPI_UI.getUserInfo() // Then get the current user info
-			}).then(function() {
-				return getPlan(planId, public); // Only once the user is loaded, then render the plan info
-			}).always(function() {
-				FAPI_UI.activeTooltip();
-				FAPI_UI.hideBusy();
-			});
+            FAPI_UI.loadPlanTemplates() // Load the templates
+            .then(function() {
+                return FAPI_UI.getUserInfo() // Then get the current user info
+            }).then(function() {
+                return getPlan(planId, public); // Only once the user is loaded, then render the plan info
+            }).always(function() {
+                FAPI_UI.activeTooltip();
+                FAPI_UI.hideBusy();
+            });
 
-			var clipboard = new ClipboardJS('.btn-clipboard');
-			clipboard.on('success', function(e) {
-				console.log(e);
-			});
-			clipboard.on('error', function(e) {
-				console.log(e);
-			});
+            var clipboard = new ClipboardJS('.btn-clipboard');
+            clipboard.on('success', function(e) {
+                console.log(e);
+            });
+            clipboard.on('error', function(e) {
+                console.log(e);
+            });
 
-		});
-	</script>
+        });
+    </script>
 
 
-	<footer class="pageFooter">
-		<span class="muted">OpenID Foundation conformance suite</span>
-	</footer>
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+    </footer>
 
 </body>
 

@@ -1,257 +1,257 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta charset="UTF-8">
-	<title>OIDF Conformance: API tokens</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: API tokens</title>
 
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-	<link rel="stylesheet" type="text/css" href="css/layout.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
-	<!-- DataTables -->
-	<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-	<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
 
-	<script type="text/javascript" src="js/fapi.ui.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
 
 <body>
 
-	<div class="pageHeader container-fluid">
-		<div class="row-fluid">
-			<div class="col-md-8">
-				<a href="index.html"><img src="/images/openid.png"></a>
-			</div>
-			<div id="userInfoHolder" class="col-md-4 text-right"></div>
-		</div>
-	</div>
-	<div class="clearfix"></div>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/openid.png"></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
 
-	<!-- resident DOM -->
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-md-12" id="tokenTable">
-				<p>Loading...</p>
-			</div>
-		</div>
-	</div>
+    <!-- resident DOM -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12" id="tokenTable">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
 
-	<!-- error modal -->
-	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Error</h4>
-				</div>
-				<div class="modal-body">
-					Error: <span id="errorMessage"></span>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- New token popup -->
-	<div class="modal fade" id="createdModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title">
-						<button class="btn-clipboard btn btn-xs" data-clipboard-target="#tokenValue" alt="Copy token to clipboard" title="Copy token to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
-						Token created
-					</h4>
-				</div>
-				<div class="modal-body">
-					<div class="wrapLongStrings">
-						<p>Here is your new token. This value will only be displayed once.</p>
-						<pre id="tokenValue"></pre>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- New token popup -->
+    <div class="modal fade" id="createdModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">
+                        <button class="btn-clipboard btn btn-xs" data-clipboard-target="#tokenValue" alt="Copy token to clipboard" title="Copy token to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+                        Token created
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="wrapLongStrings">
+                        <p>Here is your new token. This value will only be displayed once.</p>
+                        <pre id="tokenValue"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- Delete modal -->
-	<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Delete</h4>
-				</div>
-				<div class="modal-body">
-					Are you sure? This permanently remove this token.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal" id="confirmDelete">Delete</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Delete modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Delete</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure? This permanently remove this token.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="confirmDelete">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<script>
-		/**
-		 *
-		 */
-		$(document).ready(function() {
+    <script>
+        /**
+         *
+         */
+        $(document).ready(function() {
 
-			FAPI_UI.loadTokenListTemplates()
-			.then(function() {
-				return FAPI_UI.getUserInfo();
-			})
-			.then(function() {
-				$('#tokenTable').html(FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser}));
-				// wire up create buttons
-				$('#newTemporaryToken').click(function(evt) {
-					evt.preventDefault();
-					newToken(false);
-				});
+            FAPI_UI.loadTokenListTemplates()
+            .then(function() {
+                return FAPI_UI.getUserInfo();
+            })
+            .then(function() {
+                $('#tokenTable').html(FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser}));
+                // wire up create buttons
+                $('#newTemporaryToken').click(function(evt) {
+                    evt.preventDefault();
+                    newToken(false);
+                });
 
-				$('#newPermanentToken').click(function(evt) {
-					evt.preventDefault();
-					newToken(true);
-				});
-				return loadTokens();
-			});
+                $('#newPermanentToken').click(function(evt) {
+                    evt.preventDefault();
+                    newToken(true);
+                });
+                return loadTokens();
+            });
 
-			var clipboard = new ClipboardJS('.btn-clipboard');
-			clipboard.on('success', function(e) {
-				console.log(e);
-			});
-			clipboard.on('error', function(e) {
-				console.log(e);
-			});
-		});
+            var clipboard = new ClipboardJS('.btn-clipboard');
+            clipboard.on('success', function(e) {
+                console.log(e);
+            });
+            clipboard.on('error', function(e) {
+                console.log(e);
+            });
+        });
 
-		/**
-		 *
-		 */
-		function loadTokens() {
-			return $('#tokensListing').DataTable({
-				ajax: {
-					url: '/api/token',
-					dataSrc: '',
-					error: function(jqxhr, status, error) {
-						if (status == "abort") {
-							// Request was aborted (probably a reload); not an error
-							return;
-						}
-						FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-							code: jqxhr.status,
-							error: error
-						});
-					}
-				},
-				columns: [
-					{
-						title: 'Token ID',
-						data: '_id'
-					},
-					{
-						title: 'Expires',
-						data: function(row) { return row.expires || null; },
-						render: {
-							display: function(data) { return data ? FAPI_UI.logTemplates.DATE({ date: data }) : 'Never'; }
-						}
-					},
-					{
-						title: 'Delete',
-						data: null,
-						defaultContent: '<button class="btn btn-danger deleteBtn">Delete</button>',
-						orderable: false
-					}
-				],
-				createdRow: function(row, data) {
-					// wire up delete button
-					var id = data._id;
-					$('.deleteBtn', row).click(function(evt) {
-						evt.preventDefault();
-						$('#confirmDelete').click(function(evt) {
-							evt.preventDefault();
-							$.ajax({
-								type: 'DELETE',
-								url: '/api/token/' + encodeURIComponent(id),
-								beforeSend: function(jqxhr) {
-									// Prevent browser from trying to parse an empty OK response as XML
-									jqxhr.overrideMimeType("text/plain");
-								},
-								success: function() {
-									// reload the list of tokens
-									$('#tokensListing').DataTable().ajax.reload();
-								},
-								error: function(jqxhr, status, error) {
-									FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-										code: jqxhr.status,
-										error: error
-									});
-								}
-							});
-						});
-						$('#deleteModal').modal('show');
-					});
-				},
-				order: [[1, "asc"]] // sort by the "expires" column, ascending, by default
-			});
-		}
+        /**
+         *
+         */
+        function loadTokens() {
+            return $('#tokensListing').DataTable({
+                ajax: {
+                    url: '/api/token',
+                    dataSrc: '',
+                    error: function(jqxhr, status, error) {
+                        if (status == "abort") {
+                            // Request was aborted (probably a reload); not an error
+                            return;
+                        }
+                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                            code: jqxhr.status,
+                            error: error
+                        });
+                    }
+                },
+                columns: [
+                    {
+                        title: 'Token ID',
+                        data: '_id'
+                    },
+                    {
+                        title: 'Expires',
+                        data: function(row) { return row.expires || null; },
+                        render: {
+                            display: function(data) { return data ? FAPI_UI.logTemplates.DATE({ date: data }) : 'Never'; }
+                        }
+                    },
+                    {
+                        title: 'Delete',
+                        data: null,
+                        defaultContent: '<button class="btn btn-danger deleteBtn">Delete</button>',
+                        orderable: false
+                    }
+                ],
+                createdRow: function(row, data) {
+                    // wire up delete button
+                    var id = data._id;
+                    $('.deleteBtn', row).click(function(evt) {
+                        evt.preventDefault();
+                        $('#confirmDelete').click(function(evt) {
+                            evt.preventDefault();
+                            $.ajax({
+                                type: 'DELETE',
+                                url: '/api/token/' + encodeURIComponent(id),
+                                beforeSend: function(jqxhr) {
+                                    // Prevent browser from trying to parse an empty OK response as XML
+                                    jqxhr.overrideMimeType("text/plain");
+                                },
+                                success: function() {
+                                    // reload the list of tokens
+                                    $('#tokensListing').DataTable().ajax.reload();
+                                },
+                                error: function(jqxhr, status, error) {
+                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                        code: jqxhr.status,
+                                        error: error
+                                    });
+                                }
+                            });
+                        });
+                        $('#deleteModal').modal('show');
+                    });
+                },
+                order: [[1, "asc"]] // sort by the "expires" column, ascending, by default
+            });
+        }
 
-		function newToken(permanent) {
-			$.ajax({
-				type: 'POST',
-				url: '/api/token',
-				contentType: 'application/json',
-				data: JSON.stringify({ permanent: permanent }),
-				success: function(data) {
-					$('#tokenValue').html(_.escape(data.token));
-					$('#createdModal').modal('show');
-					$('#tokensListing').DataTable().ajax.reload();
-				},
-				error: function(jqxhr, status, error) {
-					FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-						code: jqxhr.status,
-						error: error
-					});
-				}
-			});
-		}
-	</script>
+        function newToken(permanent) {
+            $.ajax({
+                type: 'POST',
+                url: '/api/token',
+                contentType: 'application/json',
+                data: JSON.stringify({ permanent: permanent }),
+                success: function(data) {
+                    $('#tokenValue').html(_.escape(data.token));
+                    $('#createdModal').modal('show');
+                    $('#tokensListing').DataTable().ajax.reload();
+                },
+                error: function(jqxhr, status, error) {
+                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                        code: jqxhr.status,
+                        error: error
+                    });
+                }
+            });
+        }
+    </script>
 
-	<footer class="pageFooter">
-		<span class="muted">OpenID Foundation conformance suite</span>
-	</footer>
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+    </footer>
 
 </body>
 
