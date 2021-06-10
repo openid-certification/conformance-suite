@@ -20,7 +20,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIRWOPProfile;
+import net.openid.conformance.variant.FAPIFinalOPProfile;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-refresh-token",
@@ -62,7 +62,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
-			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			if (getVariant(FAPIFinalOPProfile.class) == FAPIFinalOPProfile.CONSUMERDATARIGHT_AU) {
 				// this will always fail & stop
 				callAndStopOnFailure(CDRRefreshTokenRequiredWhenSharingDurationRequested.class, "CDR-requesting-sharing-duration");
 			}

@@ -11,7 +11,7 @@ import net.openid.conformance.condition.client.ExpectAccessDeniedErrorPage;
 import net.openid.conformance.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIRWOPProfile;
+import net.openid.conformance.variant.FAPIFinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -38,10 +38,10 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 // only applicable to UK OpenBanking as the SCA acr value we use is specific to that ecosystem
-@VariantNotApplicable(parameter = FAPIRWOPProfile.class, values = { "plain_fapi", "consumerdataright_au" })
+@VariantNotApplicable(parameter = FAPIFinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au" })
 public class FAPI1AdvancedFinalTestEssentialAcrScaClaim extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;
