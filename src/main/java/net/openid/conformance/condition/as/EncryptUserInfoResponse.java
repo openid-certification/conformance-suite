@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EncryptUserInfoResponse extends AbstractJWEEncryptStringToClient
+public class EncryptUserInfoResponse extends AbstractJWEEncryptString
 {
 
 	/**
@@ -34,7 +34,7 @@ public class EncryptUserInfoResponse extends AbstractJWEEncryptStringToClient
 			clientJwks = clientJwksElement.getAsJsonObject();
 		}
 
-		String encryptedResponse = encrypt(userinfoResponse, clientSecret, clientJwks, alg, enc,
+		String encryptedResponse = encrypt("client", userinfoResponse, clientSecret, clientJwks, alg, enc,
 			"userinfo_encrypted_response_alg", "userinfo_encrypted_response_enc");
 
 		logSuccess("Encrypted userinfo response", args("userinfo", encryptedResponse,

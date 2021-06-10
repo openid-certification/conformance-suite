@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EncryptJARMResponse extends AbstractJWEEncryptStringToClient
+public class EncryptJARMResponse extends AbstractJWEEncryptString
 {
 
 	@Override
@@ -25,7 +25,7 @@ public class EncryptJARMResponse extends AbstractJWEEncryptStringToClient
 			clientJwks = clientJwksElement.getAsJsonObject();
 		}
 
-		String encryptedResponse = encrypt(response, clientSecret, clientJwks, alg, enc,
+		String encryptedResponse = encrypt("client", response, clientSecret, clientJwks, alg, enc,
 			"authorization_encrypted_response_alg", "authorization_encrypted_response_enc");
 
 		log("Encrypted the JARM response", args("response", encryptedResponse,
