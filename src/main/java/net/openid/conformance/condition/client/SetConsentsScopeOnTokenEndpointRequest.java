@@ -18,7 +18,7 @@ public class SetConsentsScopeOnTokenEndpointRequest extends AbstractCondition {
 		// overwrite anyhing that's already there
 		tokenEndpointRequest.addProperty("scope", "consents");
 
-		logSuccess("Set scope parameter to 'consent'", tokenEndpointRequest);
+		logSuccess("Set scope parameter to 'consents'", tokenEndpointRequest);
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 
