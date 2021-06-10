@@ -47,7 +47,7 @@ public class JsonAssertingConditionTests {
 			}
 
 		};
-
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 		condition.evaluate(environment);
 
 	}
@@ -76,6 +76,7 @@ public class JsonAssertingConditionTests {
 			}
 
 		};
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 
 		condition.evaluate(environment);
 
@@ -140,7 +141,7 @@ public class JsonAssertingConditionTests {
 			}
 
 		};
-		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE, "");
 
 		condition.evaluate(environment);
 
@@ -177,7 +178,7 @@ public class JsonAssertingConditionTests {
 			}
 
 		};
-		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE, "");
 
 		condition.evaluate(environment);
 

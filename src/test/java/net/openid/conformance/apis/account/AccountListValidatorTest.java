@@ -37,7 +37,7 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString("AccountListValidator: Unable to find path $.data[0].accountID"));
+		assertThat(error.getMessage(), containsString("AccountListValidator: Unable to find path $.data[0].accountId"));
 
 	}
 
