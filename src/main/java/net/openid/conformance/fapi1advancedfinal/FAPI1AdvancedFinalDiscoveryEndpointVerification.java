@@ -22,7 +22,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.FAPIFinalOPProfile;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -37,7 +37,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPIFinalOPProfile.class,
+	FAPI1FinalOPProfile.class,
 	FAPIResponseMode.class,
 	FAPIAuthRequestMethod.class
 })
@@ -49,22 +49,22 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	protected boolean par = false;
 
-	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
