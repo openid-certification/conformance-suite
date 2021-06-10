@@ -128,6 +128,8 @@ import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
@@ -157,6 +159,10 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPIFinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"resource.cdrVersion"
+})
+@VariantConfigurationFields(parameter = FAPIFinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.consentUrl",
+	"resource.brazilCpf"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -815,8 +821,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	@VariantSetup(parameter = FAPIFinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		preAuthorizationSteps = null;
-		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		preAuthorizationSteps = () -> new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 

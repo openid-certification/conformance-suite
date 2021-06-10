@@ -774,9 +774,21 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs)."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs). For Brazil OpenBanking use the accounts resource url."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="resource.resourceUrl"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">consentUrl</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL for the consent endpoint."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.consentUrl"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -817,6 +829,17 @@
                                     </div>
                                 </div>
 
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">brazilCpf</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The 'CPF' value to be used in the consent creation request."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.brazilCpf"></input>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">institution_id</div>
