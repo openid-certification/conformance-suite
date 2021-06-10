@@ -1,7 +1,9 @@
 package net.openid.conformance.config;
 
+import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.raidiam.RaidiamOrgApiTest;
+import net.openid.conformance.raidiam.RaidiamProfile;
 import net.openid.conformance.variant.VariantService;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -22,7 +24,7 @@ public class ConfigurablePlanSurfacingTests {
 
 		Collection<VariantService.TestPlanHolder> testPlans = variantService().getTestPlans();
 
-		List<String> profilesToSurface = List.of("Raidiam Directory Tests", TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
+		List<String> profilesToSurface = List.of(RaidiamProfile.RAIDIAM_PROFILE, OBBProfile.OBB_PROFILE, TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));

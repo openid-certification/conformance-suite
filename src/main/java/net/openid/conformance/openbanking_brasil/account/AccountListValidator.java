@@ -21,7 +21,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertHasStringField(body,"$.data[0].branchCode");
 		assertHasStringField(body,"$.data[0].number");
 		assertHasStringField(body,"$.data[0].checkDigit");
-		assertHasStringField(body,"$.data[0].accountID");
+		assertHasStringField(body,"$.data[0].accountId");
 
 		return environment;
 	}
