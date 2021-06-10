@@ -28,363 +28,363 @@
 <script type="text/javascript" src="js/fapi.ui.js"></script>
 
 <script type="text/javascript">
-	$(document).ready(function() {
+    $(document).ready(function() {
 
-		var urlParams = new URLSearchParams(window.location.search);
-		var testId = urlParams.get('log');
+        var urlParams = new URLSearchParams(window.location.search);
+        var testId = urlParams.get('log');
 
-		FAPI_UI.showBusy();
+        FAPI_UI.showBusy();
 
-		FAPI_UI.loadImageUploadTemplates() // load the templates
-		.then(function() {
-			return FAPI_UI.getUserInfo(); // then get the current user
-		}).then(function() {
-			return loadImagesForLog(testId); // load the existing and placeholder images and render the page
-		}).then(function() {
-			return getHeader(testId); // render the header, which includes test info
-		}).always(function() {
-			FAPI_UI.hideBusy();
-		});
+        FAPI_UI.loadImageUploadTemplates() // load the templates
+        .then(function() {
+            return FAPI_UI.getUserInfo(); // then get the current user
+        }).then(function() {
+            return loadImagesForLog(testId); // load the existing and placeholder images and render the page
+        }).then(function() {
+            return getHeader(testId); // render the header, which includes test info
+        }).always(function() {
+            FAPI_UI.hideBusy();
+        });
 
-	});
+    });
 
-		// browse for a local file
-		$('#file').change(function(evt) {
-			var reader = new FileReader();
+        // browse for a local file
+        $('#file').change(function(evt) {
+            var reader = new FileReader();
 
-			reader.onload = function(evt) {
-				var content = evt.target.result;
-				//console.log(content);
-				$('#preview').prop('src', content);
-			};
+            reader.onload = function(evt) {
+                var content = evt.target.result;
+                //console.log(content);
+                $('#preview').prop('src', content);
+            };
 
-			reader.readAsDataURL($('#file').prop('files')[0]);
-		});
+            reader.readAsDataURL($('#file').prop('files')[0]);
+        });
 
-		// paste an image
-		$('body').on('paste', function(e) {
-			var reader = new FileReader();
+        // paste an image
+        $('body').on('paste', function(e) {
+            var reader = new FileReader();
 
-			reader.onload = function(evt) {
-				var content = evt.target.result;
-				//console.log(content);
-				$('#preview').prop('src', content);
-			};
+            reader.onload = function(evt) {
+                var content = evt.target.result;
+                //console.log(content);
+                $('#preview').prop('src', content);
+            };
 
-			// loop through the clipboard to see if there's an image
-			_.each(e.originalEvent.clipboardData.items, function(item) {
-				if (item.type.startsWith('image/')) {
-					reader.readAsDataURL(item.getAsFile());
-				}
-			});
+            // loop through the clipboard to see if there's an image
+            _.each(e.originalEvent.clipboardData.items, function(item) {
+                if (item.type.startsWith('image/')) {
+                    reader.readAsDataURL(item.getAsFile());
+                }
+            });
 
-		});
+        });
 
-		$('#upload').click(function(evt) {
-			evt.preventDefault();
+        $('#upload').click(function(evt) {
+            evt.preventDefault();
 
-			var urlParams = new URLSearchParams(window.location.search);
-			var testId = urlParams.get('log');
-			var placeholder = urlParams.get('placeholder');
+            var urlParams = new URLSearchParams(window.location.search);
+            var testId = urlParams.get('log');
+            var placeholder = urlParams.get('placeholder');
 
-			if (placeholder) {
-				var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(placeholder);
-			} else {
-				var url = "/api/log/" + encodeURIComponent(testId) + '/images'
-			}
+            if (placeholder) {
+                var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(placeholder);
+            } else {
+                var url = "/api/log/" + encodeURIComponent(testId) + '/images'
+            }
 
-			$.ajax({
-				type: 'POST',
-				url: url,
-				data: $('#preview').prop('src'),
-				contentType: false,
-				processData: false,
-				success: function(data) {
-					$('#preview').prop('src', '');
-					$('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
-					$('#success').show();
-				}
-			});
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: $('#preview').prop('src'),
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $('#preview').prop('src', '');
+                    $('#success a').prop('href', 'log-detail.html?log=' + encodeURIComponent(testId));
+                    $('#success').show();
+                }
+            });
 
-		});
+        });
 
-	function loadImagesForLog(testId) {
-		return $.ajax({
-			type: 'GET',
-			url: '/api/log/' + encodeURIComponent(testId) + '/images',
-			success: function(data) {
-				_.each(data, function(item) {
-					// check to see if it's an "upload required" or an existing image
-					if (item.upload) {
-						//console.log('Upload required: ' + item._id);
-						$('#imageBlocks').append(FAPI_UI.logTemplates.PENDING({item: item}));
-					} else if (item.img) {
-						//console.log('Existing image: ' + item._id);
-						$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: item}));
-					} else {
-						FAPI_UI.showError({
-							error: 'Unhandled image entry from logs: ' + item._id
-						});
-					}
-				});
+    function loadImagesForLog(testId) {
+        return $.ajax({
+            type: 'GET',
+            url: '/api/log/' + encodeURIComponent(testId) + '/images',
+            success: function(data) {
+                _.each(data, function(item) {
+                    // check to see if it's an "upload required" or an existing image
+                    if (item.upload) {
+                        //console.log('Upload required: ' + item._id);
+                        $('#imageBlocks').append(FAPI_UI.logTemplates.PENDING({item: item}));
+                    } else if (item.img) {
+                        //console.log('Existing image: ' + item._id);
+                        $('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: item}));
+                    } else {
+                        FAPI_UI.showError({
+                            error: 'Unhandled image entry from logs: ' + item._id
+                        });
+                    }
+                });
 
-				// wire up the buttons on all the image uploaders
-				$('[data-upload-id]').each(function() {
-					var el = $(this);
+                // wire up the buttons on all the image uploaders
+                $('[data-upload-id]').each(function() {
+                    var el = $(this);
 
-					$('[type="file"]', el).change(function(evt) {
-						var reader = new FileReader();
+                    $('[type="file"]', el).change(function(evt) {
+                        var reader = new FileReader();
 
-						reader.onload = function(evt) {
-							// once it's loaded from the file, preview it and enable the upload button
+                        reader.onload = function(evt) {
+                            // once it's loaded from the file, preview it and enable the upload button
 
-							var content = evt.target.result;
-							$('.imagePreview', el).prop('src', content);
+                            var content = evt.target.result;
+                            $('.imagePreview', el).prop('src', content);
 
-							$('.uploadBtn', el)
-								.prop('disabled', false)
-								.removeClass('btn-default')
-								.addClass('btn-success');
+                            $('.uploadBtn', el)
+                                .prop('disabled', false)
+                                .removeClass('btn-default')
+                                .addClass('btn-success');
 
-						};
+                        };
 
-						// this reads the file data and triggers the 'onload' function above
-						reader.readAsDataURL($(this).prop('files')[0]);
-					});
+                        // this reads the file data and triggers the 'onload' function above
+                        reader.readAsDataURL($(this).prop('files')[0]);
+                    });
 
-					$('.uploadBtn', el).click(function(evt) {
-						evt.preventDefault();
+                    $('.uploadBtn', el).click(function(evt) {
+                        evt.preventDefault();
 
-						var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
+                        var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
 
-						$.ajax({
-							type: 'POST',
-							url: url,
-							data: $('.imagePreview', el).prop('src'),
-							contentType: false,
-							processData: false,
-							success: function(data) {
-								// on a successful upload, replace the old element with a new one
-								el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
-							},
-							error: function(jqxhr, status, error) {
-								FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-									code: jqxhr.status,
-									error: error
-								});
-							}
-						});
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: $('.imagePreview', el).prop('src'),
+                            contentType: false,
+                            processData: false,
+                            success: function(data) {
+                                // on a successful upload, replace the old element with a new one
+                                el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
+                            },
+                            error: function(jqxhr, status, error) {
+                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                    code: jqxhr.status,
+                                    error: error
+                                });
+                            }
+                        });
 
-					});
-				});
+                    });
+                });
 
-				// wire up the buttons on the "add a new image" panel
-				$('#additionalUploader [type="file"]').change(function(evt) {
-					var reader = new FileReader();
+                // wire up the buttons on the "add a new image" panel
+                $('#additionalUploader [type="file"]').change(function(evt) {
+                    var reader = new FileReader();
 
-					reader.onload = function(evt) {
-						// once it's loaded from the file, preview it and enable the upload button
+                    reader.onload = function(evt) {
+                        // once it's loaded from the file, preview it and enable the upload button
 
-						var content = evt.target.result;
-						$('#additionalUploader .imagePreview').prop('src', content);
+                        var content = evt.target.result;
+                        $('#additionalUploader .imagePreview').prop('src', content);
 
-						$('#additionalUploader .uploadBtn')
-							.prop('disabled', false)
-							.removeClass('btn-default')
-							.addClass('btn-success');
+                        $('#additionalUploader .uploadBtn')
+                            .prop('disabled', false)
+                            .removeClass('btn-default')
+                            .addClass('btn-success');
 
-					};
+                    };
 
-					// this reads the file data and triggers the 'onload' function above
-					reader.readAsDataURL($(this).prop('files')[0]);
-				});
+                    // this reads the file data and triggers the 'onload' function above
+                    reader.readAsDataURL($(this).prop('files')[0]);
+                });
 
-				$('#additionalUploader .uploadBtn').click(function(evt) {
-					evt.preventDefault();
+                $('#additionalUploader .uploadBtn').click(function(evt) {
+                    evt.preventDefault();
 
-					var desc = $('#additionalUploader #uploadDescription').val();
+                    var desc = $('#additionalUploader #uploadDescription').val();
 
-					var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+                    var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
 
-					$.ajax({
-						type: 'POST',
-						url: url,
-						data: $('#additionalUploader .imagePreview').prop('src'),
-						contentType: false,
-						processData: false,
-						success: function(data) {
-							// on a successful upload, append the new log entry to the display
-							$('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: $('#additionalUploader .imagePreview').prop('src'),
+                        contentType: false,
+                        processData: false,
+                        success: function(data) {
+                            // on a successful upload, append the new log entry to the display
+                            $('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
 
-							// reset the form
-							$('#additionalUploader .uploadBtn')
-								.prop('disabled', true)
-								.removeClass('btn-success')
-								.addClass('btn-default');
+                            // reset the form
+                            $('#additionalUploader .uploadBtn')
+                                .prop('disabled', true)
+                                .removeClass('btn-success')
+                                .addClass('btn-default');
 
-							$('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
+                            $('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
 
-							$('#additionalUploader [type="file"]').val('');
-						},
-						error: function(jqxhr, status, error) {
-							FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-								code: jqxhr.status,
-								error: error
-							});
-						}
-					});
+                            $('#additionalUploader [type="file"]').val('');
+                        },
+                        error: function(jqxhr, status, error) {
+                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                code: jqxhr.status,
+                                error: error
+                            });
+                        }
+                    });
 
-				});
+                });
 
-				// wire up paste support
-				$('body').on('paste', function(e) {
+                // wire up paste support
+                $('body').on('paste', function(e) {
 
-					var reader = new FileReader();
+                    var reader = new FileReader();
 
-					reader.onload = function(evt) {
-						var content = evt.target.result;
+                    reader.onload = function(evt) {
+                        var content = evt.target.result;
 
-						// find the first image preview in the document -- this will either be the top placeholder or the "add an additional image" block if there are no placeholders
-						// note that "existing image" viewers don't have the "imagePasteTarget" class on them and therefore don't show up in this query
+                        // find the first image preview in the document -- this will either be the top placeholder or the "add an additional image" block if there are no placeholders
+                        // note that "existing image" viewers don't have the "imagePasteTarget" class on them and therefore don't show up in this query
 
-						var target = $('.imagePasteTarget').first();
+                        var target = $('.imagePasteTarget').first();
 
-						target.prop('src', content);
+                        target.prop('src', content);
 
-						$('.uploadBtn', target.parents('.logItem'))
-							.prop('disabled', false)
-							.removeClass('btn-default')
-							.addClass('btn-success');
+                        $('.uploadBtn', target.parents('.logItem'))
+                            .prop('disabled', false)
+                            .removeClass('btn-default')
+                            .addClass('btn-success');
 
-					};
+                    };
 
-					// loop through the clipboard to see if there's an image; when found, send to the reader which triggers the 'onload' function above
-					_.each(e.originalEvent.clipboardData.items, function(item) {
-						if (item.type.startsWith('image/')) {
-							reader.readAsDataURL(item.getAsFile());
-						}
-					});
+                    // loop through the clipboard to see if there's an image; when found, send to the reader which triggers the 'onload' function above
+                    _.each(e.originalEvent.clipboardData.items, function(item) {
+                        if (item.type.startsWith('image/')) {
+                            reader.readAsDataURL(item.getAsFile());
+                        }
+                    });
 
-				});
+                });
 
-			},
-			error: function(jqxhr, status, error) {
-				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-					code: jqxhr.status,
-					error: error
-				});
-			}
-		});
+            },
+            error: function(jqxhr, status, error) {
+                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                    code: jqxhr.status,
+                    error: error
+                });
+            }
+        });
 
-	}
+    }
 
-	function getHeader(testId) {
-		return $.ajax({
-			type: 'GET',
-			url: '/api/info/' + encodeURIComponent(testId),
-			data: {},
-			success: function(data) {
-				$('#testInfo').html(FAPI_UI.logTemplates.UPLOAD_HEADER({test: data}));
-			},
-			error: function(jqxhr, status, error) {
-				FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-					code: jqxhr.status,
-					error: error
-				});
-			}
-		});
-	}
+    function getHeader(testId) {
+        return $.ajax({
+            type: 'GET',
+            url: '/api/info/' + encodeURIComponent(testId),
+            data: {},
+            success: function(data) {
+                $('#testInfo').html(FAPI_UI.logTemplates.UPLOAD_HEADER({test: data}));
+            },
+            error: function(jqxhr, status, error) {
+                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                    code: jqxhr.status,
+                    error: error
+                });
+            }
+        });
+    }
 </script>
 </head>
 <body>
 
-	<div class="pageHeader container-fluid">
-		<div class="row-fluid">
-			<div class="col-md-8">
-				<a href="index.html"><img src="/images/openid.png" alt=""></a>
-			</div>
-			<div id="userInfoHolder" class="col-md-4 text-right"></div>
-		</div>
-	</div>
-	<div class="clearfix"></div>
+    <div class="pageHeader container-fluid">
+        <div class="row-fluid">
+            <div class="col-md-8">
+                <a href="index.html"><img src="/images/openid.png" alt=""></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
 
-	<!-- error modal -->
-	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title" id="errorLabel">Error</h4>
-				</div>
-				<div class="modal-body">
-					Error: <span id="errorMessage"></span>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- loading modal -->
-	<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
-		<div class="modal-dialog modal-sm" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h4 class="modal-title" id="loadingLabel">Loading...</h4>
-				</div>
-				<div class="modal-body">
-					<div class="text-center">
-						<img src="/images/spinner.gif" width="100px" height="30px" alt="" />
-					</div>
-					<div>
-						<span id="loadingMessage"></span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- loading modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<div class="container-fluid">
-		<div id="testInfo" class="well well-sm container-fluid">
-		</div>
+    <div class="container-fluid">
+        <div id="testInfo" class="well well-sm container-fluid">
+        </div>
 
-		<div class="logContent container-fluid">
-			<div id="imageBlocks">
+        <div class="logContent container-fluid">
+            <div id="imageBlocks">
 
-			</div>
+            </div>
 
-			<div class="row">
-				<div class="col-md-12 logItem" id="additionalUploader">
-					<div class="row">
-						<div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
-						<div class="col-md-3">
-							<!-- image preview -->
-							<img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
-						</div>
-						<div class="col-md-8">
-							<p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+            <div class="row">
+                <div class="col-md-12 logItem" id="additionalUploader">
+                    <div class="row">
+                        <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="glyphicon glyphicon-cloud-upload"></span></div></div>
+                        <div class="col-md-3">
+                            <!-- image preview -->
+                            <img src="images/placeholder.png" alt="" class="img-responsive center-block imagePreview imagePasteTarget" />
+                        </div>
+                        <div class="col-md-8">
+                            <p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
 
-							<input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
-							<label class="btn btn-default">
-								<span class="glyphicon glyphicon-camera"></span> Select File</input>
-									<input type="file" hidden>
-							</label>
-							<button class="btn btn-default uploadBtn" disabled>Upload</button>
-						</div>
-					</div>
-				</div>
-			</div>
+                            <input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
+                            <label class="btn btn-default">
+                                <span class="glyphicon glyphicon-camera"></span> Select File</input>
+                                    <input type="file" hidden>
+                            </label>
+                            <button class="btn btn-default uploadBtn" disabled>Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-		</div>
+        </div>
 
-	</div>
+    </div>
 
-	<footer class="pageFooter">
-		<span class="muted">OpenID Foundation conformance suite</span>
-	</footer>
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+    </footer>
 
 </body>
 

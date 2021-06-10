@@ -44,7 +44,7 @@
 
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-responsive center-block imagePreview">
-			<% } else if (!_.isUndefined(value.verifiable_jws)) { %>
+            <% } else if (!_.isUndefined(value.verifiable_jws)) { %>
                 <% var tokenJWTSplit = jwtRe.exec(value.verifiable_jws);%>
 
                         <span class="jwtHeader"><%- tokenJWTSplit[1] %></span><b>.</b><span class="jwtPayload"><%- tokenJWTSplit[2] %></span><b>.</b><span class="jwtSignature"><%- tokenJWTSplit[3] %><%
