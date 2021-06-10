@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.BrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
@@ -405,9 +406,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
+		protected boolean encrypt;
 
-		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
+		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient, boolean encrypt) {
 			this.isSecondClient = isSecondClient;
+			this.encrypt = encrypt;
 		}
 
 		@Override
@@ -429,6 +432,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI1-ADV-5.2.3-8");
 
 			callAndStopOnFailure(SignRequestObject.class);
+
+			if (encrypt) {
+				callAndStopOnFailure(BrazilEncryptRequestObject.class, "BrazilOB-5.2.2-1", "BrazilOB-6.1.1-1");
+			}
 		}
 	}
 
@@ -437,7 +444,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
+		boolean isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
+		boolean isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		boolean encrypt = isBrazil && !isPar;
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), encrypt);
 	}
 
 	protected void onAuthorizationCallbackResponse() {
