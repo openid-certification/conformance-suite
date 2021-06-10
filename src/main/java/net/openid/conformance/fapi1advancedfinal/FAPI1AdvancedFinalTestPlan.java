@@ -61,10 +61,12 @@ import net.openid.conformance.plan.TestPlan;
 		//Refresh token tests
 		FAPI1AdvancedFinalRefreshToken.class,
 
-		// OB systems specific tests
+		// OBUK specific tests
 		FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId.class,
-
 		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
+
+		// OB Brazil specific tests
+		FAPI1AdvancedFinalBrazilEnsureEncryptionRequired.class,
 
 		//PAR tests
 		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,
