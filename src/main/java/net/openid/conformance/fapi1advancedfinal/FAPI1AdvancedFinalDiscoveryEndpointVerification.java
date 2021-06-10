@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantSetup;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-discovery-end-point-verification",
 	displayName = "FAPI1-Advanced-Final: Discovery Endpoint Verification",
-	summary = "This test ensures that the server's configurations (including scopes, response_types, grant_types etc) is containing the required value in the specification",
+	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
