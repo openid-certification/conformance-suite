@@ -8,7 +8,7 @@ public class CheckUserInfoEndpointReturnedJwtContentType extends AbstractCheckEn
 	@Override
 	@PreEnvironment(required = "userinfo_endpoint_response_headers")
 	public Environment evaluate(Environment env) {
-		return checkContentType(env, "userinfo_endpoint_response_headers", "application/jwt");
+		return checkContentType(env, "userinfo_endpoint_response_headers", "", "application/jwt");
 	}
 
 }

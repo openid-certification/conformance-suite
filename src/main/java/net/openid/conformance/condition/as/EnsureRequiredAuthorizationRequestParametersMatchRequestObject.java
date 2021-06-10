@@ -23,7 +23,7 @@ import java.util.Set;
  * MUST always be passed using the OAuth 2.0 request syntax containing the openid scope
  * value to indicate to the underlying OAuth 2.0 logic that this is an OpenID Connect request.
  */
-public class OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject extends AbstractCondition {
+public class EnsureRequiredAuthorizationRequestParametersMatchRequestObject extends AbstractCondition {
 
 	public static final Set<String> parametersThatMustMatch = Set.of("response_type", "client_id");
 

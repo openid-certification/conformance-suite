@@ -9,6 +9,8 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI1AdvancedFinalClientTest.class,
+		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
+		FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
 		FAPI1AdvancedFinalClientTestInvalidSHash.class,
 		FAPI1AdvancedFinalClientTestInvalidCHash.class,
 		FAPI1AdvancedFinalClientTestInvalidNonce.class,
@@ -26,7 +28,8 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
 		FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
 		FAPI1AdvancedFinalClientTestValidAudAsArray.class,
-
+		FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
+		FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
 		// OB systems specific tests
 		FAPI1AdvancedFinalClientTestNoAtHash.class,
 		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class

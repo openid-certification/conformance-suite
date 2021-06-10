@@ -34,6 +34,7 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 
 		JsonObject authzEndpointReqParams = env.getObject("authorization_endpoint_http_request_params");
 		JsonObject effective = authzEndpointReqParams.deepCopy();
+		effective.remove("request_uri");
 
 		//override request parameters if authorization_request_object exists
 		if(env.containsObject("authorization_request_object")) {

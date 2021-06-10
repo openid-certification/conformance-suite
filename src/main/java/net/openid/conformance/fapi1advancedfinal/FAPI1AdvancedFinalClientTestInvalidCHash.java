@@ -3,6 +3,8 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-chash",
@@ -18,8 +20,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"client.jwks",
 	}
 )
-
-public class FAPI1AdvancedFinalClientTestInvalidCHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterAuthorizationEndpoint {
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
+public class FAPI1AdvancedFinalClientTestInvalidCHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
@@ -28,9 +30,7 @@ public class FAPI1AdvancedFinalClientTestInvalidCHash extends AbstractFAPI1Advan
 	}
 
 	@Override
-	protected Object authorizationCodeGrantType(String requestId) {
-
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an id_token with an invalid c_hash value from the authorization_endpoint.");
+	protected String getIdTokenFaultErrorMessage() {
+		return "invalid c_hash value";
 	}
-
 }

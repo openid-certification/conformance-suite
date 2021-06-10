@@ -5,24 +5,24 @@ var textColor = chroma(bgColor).luminance() > 0.6 ? 'black' : 'white';
 
 %>
 <div class="row">
-	<div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem startBlock"
-		style="background: <%- bgColor %>; color: <%- textColor %>;">
+    <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem startBlock"
+        style="background: <%- bgColor %>; color: <%- textColor %>;">
 
-		<div class="row"><!-- time / block title / owner -->
+        <div class="row"><!-- time / block title / owner -->
 
-			<div class="col-md-1">
-				<% if (item.time) { %>
-				    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
-				<% } %>
+            <div class="col-md-1">
+                <% if (item.time) { %>
+                    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                <% } %>
 
-				<div class="col-md-1 moreButtonContainer">
+                <div class="col-md-1 moreButtonContainer">
 
-				</div>
-			</div>
+                </div>
+            </div>
 
              <div class="col-md-10">
                  <% if (item.msg) { %>
-					<%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
                  <% } %>
              </div>
 
@@ -35,13 +35,13 @@ var textColor = chroma(bgColor).luminance() > 0.6 ? 'black' : 'white';
                  <% } %>
              </div>
 
-		</div>
+        </div>
 
-		<div class="row"><!-- more info panel -->
-			<div class="moreInfoContainer">
+        <div class="row"><!-- more info panel -->
+            <div class="moreInfoContainer">
 
-			</div>
-		</div>
+            </div>
+        </div>
 
-	</div>
+    </div>
 </div>

@@ -13,7 +13,7 @@ import java.util.Map;
  * Use this condition for logging a WARNING only
  * Normally this condition should never lead to a failure
  */
-public class OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject extends AbstractCondition {
+public class EnsureOptionalAuthorizationRequestParametersMatchRequestObject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "authorization_request_object"})
@@ -26,7 +26,7 @@ public class OIDCCEnsureOptionalAuthorizationRequestParametersMatchRequestObject
 		Map<String, Object> argsForLog = new HashMap<>();
 
 		for (String paramName : authzEndpointReqParams.keySet()) {
-			if(OIDCCEnsureRequiredAuthorizationRequestParametersMatchRequestObject.parametersThatMustMatch.contains(paramName)) {
+			if(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.parametersThatMustMatch.contains(paramName)) {
 				//these should be already checked. checking again would cause duplicate logs
 				continue;
 			}

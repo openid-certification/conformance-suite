@@ -2,8 +2,10 @@ package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.CheckDiscCheckSessionIframe;
 import net.openid.conformance.condition.client.CheckDiscEndSessionEndpoint;
+import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -38,6 +40,8 @@ public class OIDCCSessionManagementDiscoveryEndpointVerification extends Abstrac
 
 		// Includes check-http-response assertion (OIDC test)
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
+		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();

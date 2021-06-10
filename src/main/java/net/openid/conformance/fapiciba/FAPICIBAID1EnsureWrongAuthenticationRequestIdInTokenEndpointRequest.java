@@ -14,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-wrong-auth-req-id-in-token-endpoint-request",
 	displayName = "FAPI-CIBA-ID1: Ensure wrong auth_req_id in token endpoint request",
-	summary = "This test passes the clinent_2's information (e.g client_id, client_jwks, client_mutual_tls_authentication) and the client_1's auth_req_id in the token endpoint parameters to the one inside the request. The token endpoint server returned an error message that the grant permission is invalid.",
+	summary = "This test uses an auth_req_id issued to client 1 at the token endpoint, but authenticates as client 2. The token endpoint server must return an 'invalid_grant' error.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
