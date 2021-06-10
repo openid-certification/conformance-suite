@@ -15,6 +15,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static net.openid.conformance.testmodule.OIDFJSON.*;
@@ -202,8 +204,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	private JsonElement findByPath(JsonObject jsonObject, String path) {
+		String[] parts = path.split("\\.");
+		String elementName = parts[parts.length -1];
+
 		try {
-			return JsonPath.read(jsonObject, path);
+			JsonElement element = JsonPath.read(jsonObject, path);
+			logSuccess("Validating " + elementName);
+			return element;
 		} catch (PathNotFoundException e) {
 			throw error("Unable to find path " + path, jsonObject);
 		}
