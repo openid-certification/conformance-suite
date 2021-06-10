@@ -12,7 +12,7 @@ public class CheckTokenEndpointReturnedJsonContentType extends AbstractCheckEndp
 
 		env.putBoolean(tokenEndpointResponseWasJsonKey, false);
 
-		env = checkContentType(env, "token_endpoint_response_headers", "application/json");
+		env = checkContentType(env, "token_endpoint_response_headers", "", "application/json");
 
 		env.putBoolean(tokenEndpointResponseWasJsonKey, true);
 

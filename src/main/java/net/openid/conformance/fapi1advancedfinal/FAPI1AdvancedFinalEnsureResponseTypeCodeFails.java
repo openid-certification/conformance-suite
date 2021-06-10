@@ -42,7 +42,7 @@ public class FAPI1AdvancedFinalEnsureResponseTypeCodeFails extends AbstractFAPI1
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI1-ADVANCED-5.2.2-2");
+		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI1-ADV-5.2.2-2");
 
 		env.putString("error_callback_placeholder", env.getString("response_type_error"));
 	}
@@ -74,8 +74,8 @@ public class FAPI1AdvancedFinalEnsureResponseTypeCodeFails extends AbstractFAPI1
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint error response");
 
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-2");
-		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-2");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-2");
+		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-2");
 
 		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
 		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);

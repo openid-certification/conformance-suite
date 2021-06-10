@@ -25,6 +25,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -610,4 +611,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return chain;
 	}
 
+	protected JsonObject convertResponseForEnvironment(ResponseEntity<String> response) {
+		JsonObject responseInfo = new JsonObject();
+		responseInfo.addProperty("status", response.getStatusCode().value());
+
+		JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
+
+		responseInfo.add("headers", responseHeaders);
+
+		responseInfo.addProperty("body", response.getBody());
+		return responseInfo;
+	}
 }

@@ -22,7 +22,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.FAPIRWOPProfile;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -37,7 +37,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPIRWOPProfile.class,
+	FAPI1FinalOPProfile.class,
 	FAPIResponseMode.class,
 	FAPIAuthRequestMethod.class
 })
@@ -49,19 +49,24 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	protected boolean par = false;
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
+	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	public void setupOpenBankingBrazil() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
 	@Override
@@ -77,7 +82,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.1.1");
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-2");
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-2");
 		}
 
 		if (par) {
@@ -87,9 +92,9 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		super.performEndpointVerification();
 
 		if (par) {
-			callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-1", "OIDCD-3", "PAR-4");
+			callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-1", "OIDCD-3", "PAR-4");
 		} else {
-			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADVANCED-5.2.2-1", "OIDCD-3");
+			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-1", "OIDCD-3");
 		}
 
 		callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
@@ -113,7 +118,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		@Override
 		public void evaluate() {
 			// claims parameter support is required in Australia
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADVANCED-5.2.3-3");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADV-5.2.3-3");
 
 			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
 
@@ -128,7 +133,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		public void evaluate() {
 			// OBUK servers are required to return acrs, which means they must support requesting the acr claim (as well
 			// as the intent id claim), and hence must support the claims parameter
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADVANCED-5.2.3-3");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADV-5.2.3-3");
 
 			callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
 

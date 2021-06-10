@@ -1,7 +1,7 @@
           <div class="row">
             <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<%
                 if (item.blockId) {
-					var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
+                    var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
                     %> style="border-left: 3px solid <%- bgColor %>"<%
                 } %>>
 
@@ -23,13 +23,13 @@
                         <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
                       <% } %>
 
-					  <% if (item.upload) { %>
-						<span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
-					  <% } %>
+                      <% if (item.upload) { %>
+                        <span class="label label-warning"><span class="glyphicon glyphicon-camera"></span> IMAGE REQUIRED</span>
+                      <% } %>
 
-					  <% if (item.img) { %>
-						<span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
-					  <% } %>
+                      <% if (item.img) { %>
+                        <span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
+                      <% } %>
                     </div>
 
                     <div class="col-md-9">
@@ -62,19 +62,19 @@
 
                     <div class="col-md-10">
                         <% if (item.msg) { %>
-							<div class="row">
-								<div class="col-md-12">
-        		        		            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-								</div>
-							</div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                                </div>
+                            </div>
                         <% } %>
-		                <% if (!public && item.upload) { %>
-	        			        <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
-    	            			    		<div class="col-md-12">
-    	                     		   <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
-    		                			</div>
-							</div>
-						<% } %>
+                        <% if (!public && item.upload) { %>
+                                <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
+                                            <div class="col-md-12">
+                                       <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+                                        </div>
+                            </div>
+                        <% } %>
 
                     </div>
 

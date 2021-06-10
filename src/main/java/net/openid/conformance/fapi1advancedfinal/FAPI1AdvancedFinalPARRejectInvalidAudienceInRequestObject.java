@@ -41,7 +41,7 @@ public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends A
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectInvalidAudienceErrorPage.class, "FAPI1-BASELINE-5.2.2-9");
+		callAndStopOnFailure(ExpectInvalidAudienceErrorPage.class, "FAPI1-BASE-5.2.2-9");
 
 		env.putString("error_callback_placeholder", env.getString("invalid_aud_error"));
 	}

@@ -96,10 +96,6 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
-		// FAPI-RW ID2 servers are required to return acrs, which means they must support requesting the acr claim,
-		// hence must support the claims parameter
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
-
 		call(sequence(profileSpecificChecks));
 	}
 
@@ -118,6 +114,9 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckJwksUriIsHostedOnOpenBankingDirectory.class, Condition.ConditionResult.WARNING, "OBSP-3.4");
+
+			// OB uk servers must support the client requesting the openbanking_intent_id so must support the client parameter
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI-RW-5.2.3-3");
 
 			callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE, "OBSP-3.4");
 			callAndContinueOnFailure(FAPIOBCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);

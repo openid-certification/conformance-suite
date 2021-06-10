@@ -39,7 +39,7 @@ public class FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond exten
 	protected void verifyError() {
 		Integer httpStatus = env.getInteger("token_endpoint_response_http_status");
 		if (httpStatus == HttpStatus.SC_OK) {
-			callAndContinueOnFailure(ServerAllowedReusingAuthorizationCode.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ServerAllowedReusingAuthorizationCode.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-13");
 		} else {
 			super.verifyError();
 		}

@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
+import net.openid.conformance.condition.client.WaitFor5Seconds;
 import net.openid.conformance.frontChannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
@@ -248,7 +249,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		// We skip these checks for a condition that we deliberately call without the lock held so as not to block
 		// other threads; I suspect it means that this condition should have the ability to call setStatus or that
 		// their functionality should be in a method in AbstractTestModule instead
-		if (builder.getConditionClass() != SleepUntilAuthReqExpires.class) {
+		// Not all the 'WaitFor' functions are listed here; that means some of them we are calling with the lock held
+		// which may be problematic (e.g. it prevents any incoming connections being process and I suspect may prevent
+		// the test being aborted until the sleep expires). It would probably be preferable to always release the
+		// lock whilst sleeping (which is probably best achieve by one of the ways outlined in the previous paragraph.)
+		if (builder.getConditionClass() != SleepUntilAuthReqExpires.class &&
+			builder.getConditionClass() != WaitFor5Seconds.class) {
 			if (getStatus() != Status.CREATED) {
 				// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
 				// https://gitlab.com/openid/conformance-suite/issues/688

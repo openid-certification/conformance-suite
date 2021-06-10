@@ -20,15 +20,6 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi1-advanced-final-attempt-reuse-authorisation-code-after-30seconds",
-        "variant": "*",
-        "configuration-filename": "authlete*.json",
-        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
-        "expected-result": "warning",
-        "comment": "known case where authlete doesn't implement a 'should'"
-    },
-    {
         "test-name": "fapi1-advanced-final-refresh-token",
         "variant": {
                 "client_auth_type": "private_key_jwt",

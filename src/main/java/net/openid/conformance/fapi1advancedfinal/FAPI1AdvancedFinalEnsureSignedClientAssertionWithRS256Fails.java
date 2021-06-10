@@ -59,7 +59,7 @@ public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADVANCED-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADV-8.6");
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
@@ -72,7 +72,7 @@ public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' error
 		 */
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASELINE-5.2.2-19");
+		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");

@@ -9,24 +9,24 @@
                         <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>
                         <dd class="wrapLongStrings"><i><%- val %></i></dd>
                     <% }); %>
-					<% _.each(browser.runners, function(val) { %>
-						<dt>Selenium Instance</dt>
-						<dd class="well">
-							<dl class="dl-horizontal">
-								<dt>Starting Url</dt>
-								<dd class="wrapLongStrings"><i><%- val.url %></i></dd>
-								<dt>Current Url</dt>
-								<dd class="wrapLongStrings"><i><%- val.currentUrl %></i></dd>
-								<dt>Current Task</dt>
-								<dd class="wrapLongStrings"><i><%- val.currentTask %></i></dd>
-								<dt>Current Command</dt>
-								<dd class="wrapLongStrings"><i><%- val.currentCommand %></i></dd>
-								<dt>Last Response Code</dt>
-								<dd class="wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
-								<dt>Last Exception</dt>
-								<dd class="wrapLongStrings"><i><%- val.lastException %></i></dd>
-							</dl>
-						</dd>
-					<% }); %>
+                    <% _.each(browser.runners, function(val) { %>
+                        <dt>Selenium Instance</dt>
+                        <dd class="well">
+                            <dl class="dl-horizontal">
+                                <dt>Starting Url</dt>
+                                <dd class="wrapLongStrings"><i><%- val.url %></i></dd>
+                                <dt>Current Url</dt>
+                                <dd class="wrapLongStrings"><i><%- val.currentUrl %></i></dd>
+                                <dt>Current Task</dt>
+                                <dd class="wrapLongStrings"><i><%- val.currentTask %></i></dd>
+                                <dt>Current Command</dt>
+                                <dd class="wrapLongStrings"><i><%- val.currentCommand %></i></dd>
+                                <dt>Last Response Code</dt>
+                                <dd class="wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
+                                <dt>Last Exception</dt>
+                                <dd class="wrapLongStrings"><i><%- val.lastException %></i></dd>
+                            </dl>
+                        </dd>
+                    <% }); %>
                 </dl>
             </fieldset>

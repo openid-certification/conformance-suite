@@ -1,9 +1,9 @@
 
 <div class="alert alert-danger">
-	<strong>There was an error while running the test:</strong> <em><%- error.error %> (<%- error.error_class %>)</em>.
-	<button class="btn btn-default btn-xs" id="stacktraceBtn">Show Stacktrace</button>
-	<ul id="stacktrace" class="collapse">
-		<% _.each(error.stacktrace, function(v) { %>
-		<li><%- v %></li> <% }); %>
-	</ul>
+    <strong>There was an error while running the test:</strong> <em><%- error.error %> (<%- error.error_class %>)</em>.
+    <button class="btn btn-default btn-xs" id="stacktraceBtn">Show Stacktrace</button>
+    <ul id="stacktrace" class="collapse">
+        <% _.each(error.stacktrace, function(v) { %>
+        <li><%- v %></li> <% }); %>
+    </ul>
 </div>

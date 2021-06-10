@@ -35,7 +35,7 @@ public class FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutRequestObjectFai
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectAuthorizationRequestWithoutRequestObjectErrorPage.class, "FAPI1-ADVANCED-5.2.2-1");
+		callAndStopOnFailure(ExpectAuthorizationRequestWithoutRequestObjectErrorPage.class, "FAPI1-ADV-5.2.2-1");
 
 		env.putString("error_callback_placeholder", env.getString("request_unverifiable_error"));
 	}
@@ -47,7 +47,7 @@ public class FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutRequestObjectFai
 
 	@Override
 	protected void buildRedirect() {
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class, "FAPI1-ADVANCED-5.2.2-1");
+		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class, "FAPI1-ADV-5.2.2-1");
 	}
 
 	@Override

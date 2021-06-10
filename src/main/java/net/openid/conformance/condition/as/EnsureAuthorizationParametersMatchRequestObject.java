@@ -17,8 +17,8 @@ public class EnsureAuthorizationParametersMatchRequestObject extends AbstractCon
 		for (String claim : params.keySet()) {
 			// make sure every claim in the "params" input is included in the request object
 
-			// don't count the "request" param itself
-			if (claim.equals("request")) {
+			// skip "request" and "request_uri"
+			if (claim.equals("request") || claim.equals("request_uri")) {
 				continue;
 			}
 

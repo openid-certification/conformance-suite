@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import datetime
 import os
 import re
 import sys
@@ -176,6 +177,7 @@ def get_string_name_for_module_with_variant(moduledict):
 
 def run_test_plan(test_plan, config_file, output_dir):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
+    start_section(test_plan, "Results", True)
     with open(config_file) as f:
         json_config = f.read()
     (test_plan_name, variant) = split_name_and_variant(test_plan)
@@ -217,16 +219,34 @@ def run_test_plan(test_plan, config_file, output_dir):
                 state = conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
             if state == "WAITING":
-                # If it's a client test, we need to run the client
-                if re.match(r'(fapi-rw-id2(-ob)?-client-.*)', module):
+                # If it's a client test, we need to run the client.
+                # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
+                if re.match(r'fapi-rw-id2-client-.*', module) or \
+                    re.match(r'fapi1-advanced-final-client-.*', module):
+                    print("FAPI client test: " + module + " " + json.dumps(variant))
                     profile = variant['fapi_profile']
                     os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                    if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
+                    else:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
+                    if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
+                        os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
+                    else:
+                        os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
+                    if 'fapi_jarm_type' in variant.keys() and variant['fapi_jarm_type']:
+                        os.environ['FAPI_JARM_TYPE'] =  variant['fapi_jarm_type']
+                    else:
+                        os.environ['FAPI_JARM_TYPE'] = 'oidc'
+
+                    os.environ['TEST_MODULE_NAME'] = module
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
                 conformance.wait_for_state(module_id, ["FINISHED"])
 
         except Exception as e:
+            traceback.print_exc()
             print('Exception: Test {} failed to run to completion: {}'.format(module_with_variants, e))
         if module_id != '':
             test_time_taken[module_id] = time.time() - test_start_time
@@ -237,6 +257,7 @@ def run_test_plan(test_plan, config_file, output_dir):
         start_time_for_save = time.time()
         filename = conformance.exporthtml(plan_id, output_dir)
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
+    end_section(test_plan)
     print('\n\n')
     return {
         'test_plan': test_plan,
@@ -790,18 +811,20 @@ def print_failure_warning(failure_warning_list, status, tab_format, variant=None
             else:
                 print(failure(msg))
                 if print_template:
-                    print("Template expected failure json:\n")
+                    start_section("template_expected_failure", "Template expected failure json:", True)
                     # print json, skipping timestamp addition for easy C&P
                     print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
+                    end_section("template_expected_failure")
         else:
             if expected:
                 print(expected_warning(msg))
             else:
                 print(warning(msg))
                 if print_template:
-                    print("Template expected warning json:\n")
+                    start_section("template_expected_warning", "Template expected warning json:", True)
                     # print json, skipping timestamp addition for easy C&P
                     print(json.dumps(template, indent=4)+",\n", file=sys.__stdout__)
+                    end_section("template_expected_warning")
 
 
 def load_expected_problems(filespec):
@@ -852,6 +875,29 @@ def parser_args_cli():
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
     return parser.parse_args()
+
+
+def secondssince1970():
+    return int(time.mktime(datetime.datetime.now().timetuple()))
+
+
+def start_section(name, heading, collapsed=False):
+    if "CI" not in os.environ:
+        return
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # documentation: https://docs.gitlab.com/ee/ci/jobs/#custom-collapsible-sections
+    if collapsed:
+        name += "[collapsed=true]"
+    print("\x1b[0Ksection_start:{}:{}\r\x1b[0K{}".format(secondssince1970(), name, heading), file=sys.__stdout__)
+
+
+def end_section(name):
+    if "CI" not in os.environ:
+        return
+    print("\x1b[0Ksection_end:{}:{}\r\x1b[0K".format(secondssince1970(), name,), file=sys.__stdout__)
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 if __name__ == '__main__':
     requests_session = requests.Session()
@@ -959,6 +1005,7 @@ if __name__ == '__main__':
     unused_expected_failures = list(filter(is_unused, expected_failures_list))
     if unused_expected_failures:
         print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
+        start_section("unused_expected_failures", "unused expected failures detail", True)
         for entry in unused_expected_failures:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -969,6 +1016,7 @@ if __name__ == '__main__':
                 'expected-result': entry['expected-result']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        end_section("unused_expected_failures")
         failed = True
 
     unused_expected_skips = list(filter(is_unused, expected_skips_list))
@@ -1062,9 +1110,6 @@ if __name__ == '__main__':
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
-
-    # wait a bit before exiting so that end of output isn't lost - https://gitlab.com/gitlab-org/gitlab/-/issues/217199
-    time.sleep(20)
 
     if failed:
         sys.exit(1)

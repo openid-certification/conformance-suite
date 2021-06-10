@@ -55,14 +55,7 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 			HttpEntity<?> request = new HttpEntity<>(headers);
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(registrationClientUri, HttpMethod.GET, request, String.class);
-				JsonObject responseInfo = new JsonObject();
-				responseInfo.addProperty("status", response.getStatusCode().value());
-
-				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-
-				responseInfo.add("headers", responseHeaders);
-
-				responseInfo.addProperty("body", response.getBody());
+				JsonObject responseInfo = convertResponseForEnvironment(response);
 
 				JsonElement jsonRoot = new JsonParser().parse(response.getBody());
 				if (jsonRoot == null || !jsonRoot.isJsonObject()) {

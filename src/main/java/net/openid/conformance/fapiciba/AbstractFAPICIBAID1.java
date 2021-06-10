@@ -309,6 +309,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
+			if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
+				// we only need to call the mtls aliased backchannel authentication endpoint when using mtls client auth
+				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
+				// access tokens)
+				env.removeNativeValue("backchannel_authentication_endpoint");
+			}
 		}
 
 		// make sure the server configuration passes some basic sanity checks
@@ -938,7 +944,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 
 		env.unmapKey("client_request");

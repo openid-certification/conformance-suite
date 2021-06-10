@@ -26,5 +26,5 @@ public class FAPI1AdvancedFinalClientTestNoAtHash extends AbstractFAPI1AdvancedF
 
 		callAndStopOnFailure(RemoveAtHashFromIdToken.class, "OIDCC-3.3.2.9");
 	}
-
+	//TODO should not the client stop after receiving an invalid id token? this test should start waiting for timeout?
 }

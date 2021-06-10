@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddRequestedExp30sToAuthorization
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusNot200;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.condition.client.TellUserToIgnoreCIBAAuthentication;
+import net.openid.conformance.condition.client.WaitFor5Seconds;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 
@@ -50,11 +51,12 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 		callAndStopOnFailure(TellUserToIgnoreCIBAAuthentication.class);
 
 		setStatus(Status.WAITING);
-		if (testType == CIBAMode.PING) {
-			// test resumes when notification endpoint called
-			return;
-		}
 		callAndStopOnFailure(SleepUntilAuthReqExpires.class);
+		if (testType == CIBAMode.PING) {
+			// a ping notification may or may not be issued; allow an extra 5 seconds to make sure any ping arrives
+			// before we continue
+			callAndStopOnFailure(WaitFor5Seconds.class);
+		}
 		setStatus(Status.RUNNING);
 
 		callTokenEndpointAndFinishTest();
@@ -64,7 +66,8 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 	protected void processNotificationCallback(JsonObject requestParts) {
 		if (testType == CIBAMode.PING) {
 			verifyNotificationCallback(requestParts);
-			callTokenEndpointAndFinishTest();
+			setStatus(Status.WAITING);
+			// test continues when the above sleep/wait completes
 		} else {
 			super.processNotificationCallback(requestParts);
 		}

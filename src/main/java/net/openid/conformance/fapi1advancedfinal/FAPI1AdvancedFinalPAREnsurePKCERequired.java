@@ -38,7 +38,7 @@ public class FAPI1AdvancedFinalPAREnsurePKCERequired extends AbstractFAPI1Advanc
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectPkceMissingErrorPage.class, "FAPI1-ADVANCED-5.2.2-18");
+		callAndStopOnFailure(ExpectPkceMissingErrorPage.class, "FAPI1-ADV-5.2.2-18");
 
 		env.putString("error_callback_placeholder", env.getString("pkce_missing_error"));
 	}

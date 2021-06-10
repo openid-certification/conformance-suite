@@ -1,1 +1,11 @@
-[]
+[
+    {
+        "test-name": "fapi1-advanced-final-client-test-invalid-scope-in-token-endpoint-response",
+        "variant": "*",
+        "configuration-filename": "automated-ob-client-test*.json",
+        "current-block": "",
+        "condition": "fapi1-advanced-final-client-test-invalid-scope-in-token-endpoint-response",
+        "expected-result": "failure",
+        "comment": "The client does not support fapi1 final yet"
+    }
+]

@@ -425,7 +425,7 @@ public class HtmlExportRenderer_UnitTest
 			"deDGWlJ3IT1hVgG2fg3M8yBuQNXN\",\"msg\":\"Found \\u0027openid\\u0027 in scope http requ"+
 			"est parameter\",\"result\":\"SUCCESS\",\"blockId\":\"d825e6\",\"actual\":[\"openid\"],\"requir"+
 			"ements\":[\"OIDCC-6.2\",\"OIDCC-6.1\"],\"expected\":\"openid\",\"testId\":\"BeDwk5rd8H\",\"src"+
-			"\":\"OIDCCEnsureAuthorizationHttpRequestContainsOpenIDScope\",\"testOwner\":{\"sub\":\"d"+
+			"\":\"EnsureAuthorizationHttpRequestContainsOpenIDScope\",\"testOwner\":{\"sub\":\"d"+
 			"eveloper\",\"iss\":\"https://developer.com\"},\"time\":1590130872822},{\"_id\":\"BeDwk5rd8"+
 			"H-l1BSGOPLy7GTeUH3cStUlaCq2hPuJ6z2\",\"msg\":\"Merged http request parameters with r"+
 			"equest object claims\",\"result\":\"SUCCESS\",\"blockId\":\"d825e6\",\"requirements\":[\"OID"+
