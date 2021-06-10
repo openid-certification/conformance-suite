@@ -405,7 +405,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
-		protected boolean buildRedirect;
 
 		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
 			this.isSecondClient = isSecondClient;
