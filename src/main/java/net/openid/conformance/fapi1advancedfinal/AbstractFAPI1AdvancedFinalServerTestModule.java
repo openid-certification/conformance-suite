@@ -128,6 +128,8 @@ import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
@@ -136,7 +138,7 @@ import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.FAPIRWOPProfile;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -147,16 +149,20 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPIRWOPProfile.class,
+	FAPI1FinalOPProfile.class,
 	FAPIResponseMode.class,
 	FAPIAuthRequestMethod.class
 })
-@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "openbanking_uk", configurationFields = {
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
 	"resource.resourceUrlAccountsResource"
 })
-@VariantConfigurationFields(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au", configurationFields = {
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"resource.cdrVersion"
+})
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.consentUrl",
+	"resource.brazilCpf"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -489,7 +495,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
-		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
 	}
@@ -607,7 +613,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
-		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
 
@@ -708,7 +714,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		if (isSecondClient()) {
-			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 				// CDR requires this header for all authenticated resource server endpoints
 				callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3", "CDR-http-headers");
 			}
@@ -717,7 +723,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
 
 			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
-			if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 				// CDR requires this header when the x-fapi-customer-ip-address header is present
 				callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 			}
@@ -727,7 +733,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 		}
 
-		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
@@ -788,7 +794,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
@@ -796,7 +802,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileIdTokenValidationSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication);
@@ -804,11 +810,19 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileIdTokenValidationSteps = ValidateOpenBankingUkIdToken.class;
 	}
 
-	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = CDRAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
+	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	public void setupOpenBankingBrazil() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = () -> new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 
