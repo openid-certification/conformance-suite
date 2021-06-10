@@ -19,6 +19,9 @@ public class AddFAPIInteractionIdToResourceEndpointRequest extends AbstractCondi
 		String interactionId = env.getString("fapi_interaction_id");
 		headers.addProperty("x-fapi-interaction-id", interactionId);
 
+		logSuccess("Added x-fapi-interaction-id to resource endpoint request headers",
+			args("resource_endpoint_request_headers", headers));
+
 		return env;
 	}
 
