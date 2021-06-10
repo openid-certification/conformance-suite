@@ -49,6 +49,7 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint.class,
 		FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired.class,
 		FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient.class,
+		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		// Private key specific tests
 		FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails.class,
@@ -64,7 +65,6 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId.class,
 
 		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
-		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		//PAR tests
 		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,

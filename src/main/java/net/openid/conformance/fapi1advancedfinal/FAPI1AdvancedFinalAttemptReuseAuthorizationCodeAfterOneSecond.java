@@ -9,7 +9,7 @@ import org.apache.http.HttpStatus;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",
 	displayName = "FAPI1-Advanced-Final: try to reuse authorization code after one second",
-	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this should fail with the AS returning an invalid_grant error. If the AS does not do this a warning (not a failure) is issued - a warning will not prevent certification.",
+	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
