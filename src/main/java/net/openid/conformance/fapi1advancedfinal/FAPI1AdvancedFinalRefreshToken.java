@@ -3,7 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
-import net.openid.conformance.condition.client.BrazilRefreshTokenRequired;
+import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
@@ -69,7 +69,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 			}
 			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				// this will always fail & stop
-				callAndStopOnFailure(BrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-12");
+				callAndStopOnFailure(FAPIBrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-12");
 			}
 			callAndContinueOnFailure(FAPIEnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 			// This throws an exception: the test will stop here

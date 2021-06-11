@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.BrazilEncryptRequestObject;
+import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectOrAccessDeniedError;
 import net.openid.conformance.condition.client.ExpectEncryptionRequiredErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -53,7 +53,7 @@ public class FAPI1AdvancedFinalBrazilEnsureEncryptionRequired extends AbstractFA
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return super.makeCreateAuthorizationRequestObjectSteps().skip(BrazilEncryptRequestObject.class, "NOT encrypting request object");
+		return super.makeCreateAuthorizationRequestObjectSteps().skip(FAPIBrazilEncryptRequestObject.class, "NOT encrypting request object");
 	}
 
 	protected void onAuthorizationCallbackResponse() {

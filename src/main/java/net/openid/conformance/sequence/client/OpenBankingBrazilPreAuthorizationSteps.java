@@ -6,9 +6,8 @@ import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToke
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import net.openid.conformance.condition.client.CheckIfAccountRequestsEndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CreateBrazilConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -68,7 +67,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		callAndStopOnFailure(CreateBrazilConsentRequest.class);
+		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 
 		callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
 

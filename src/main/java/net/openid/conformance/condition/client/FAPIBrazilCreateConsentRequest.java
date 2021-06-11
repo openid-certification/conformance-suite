@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.hibernate.validator.constraints.br.CNPJ;
 import org.hibernate.validator.constraints.br.CPF;
 
-public class CreateBrazilConsentRequest extends AbstractCondition {
+public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment()
