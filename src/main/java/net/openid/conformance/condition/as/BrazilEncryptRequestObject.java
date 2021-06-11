@@ -19,16 +19,11 @@ public class BrazilEncryptRequestObject extends AbstractJWEEncryptString
 		// https://github.com/OpenBanking-Brasil/specs-seguranca/blob/main/open-banking-brasil-financial-api-1_ID1.md#encryption-algorithm-considerations
 		String alg = "RSA-OAEP";
 		String enc = "A256GCM";
-		String clientSecret = null;
-		//client jwks may be null
-		JsonElement clientJwksElement = env.getObject("server_jwks");
-		JsonObject clientJwks = null;
-		if(clientJwksElement!=null) {
-			clientJwks = clientJwksElement.getAsJsonObject();
-		}
+		String clientSecret = null; // client_secret is not allowed in FAPI
+		JsonObject serverJwks = env.getObject("server_jwks");
 
-		String encryptedRequestObject = encrypt("server", requestObject, clientSecret, clientJwks, alg, enc,
-			"id_token_encrypted_response_alg", "id_token_encrypted_response_enc");
+		String encryptedRequestObject = encrypt("server", requestObject, clientSecret, serverJwks, alg, enc,
+			"request_object_encryption_alg", "request_object_encryption_enc");
 
 		log("Encrypted the request object", args("request_object", encryptedRequestObject,
 			"alg", alg,
