@@ -3,12 +3,13 @@ package net.openid.conformance.openbanking_brasil.registrationData;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 /**
  * This is validator for API-Dados Cadastrais | Identificacao pessoa jurídica
  * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-pessoa-juridica">Identificação Pessoa Jurídica </a>
  **/
-
+@ApiName("Legal Identity")
 public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCondition {
 
 	@Override

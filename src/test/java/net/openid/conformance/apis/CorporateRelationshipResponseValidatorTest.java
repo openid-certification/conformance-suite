@@ -22,7 +22,7 @@ public class CorporateRelationshipResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWithMissingField() {
 		CorporateRelationshipResponseValidator condition = new CorporateRelationshipResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = "CorporateRelationshipResponseValidator: Unable to find path $.data.procurators[0].type";
+		String expected = condition.createElementNotFoundMessage("procurators[0].type");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 

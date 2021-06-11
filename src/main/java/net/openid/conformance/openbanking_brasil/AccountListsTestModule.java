@@ -18,20 +18,16 @@ import net.openid.conformance.variant.*;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"resource.consentUrl",
+		"resource.brazilCpf",
 		"resource.resourceUrl"
 	}
 )
-@VariantParameters({
-	ClientAuthType.class,
-	FAPIRWOPProfile.class,
-	FAPIResponseMode.class,
-	FAPIAuthRequestMethod.class
-})
-public class AccountListsTestModule extends AbstractFunctionalTestModule {
-
+public class AccountListsTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountListValidator.class);
 	}
+
 }

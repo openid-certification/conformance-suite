@@ -52,7 +52,7 @@ public class GetConsentResponseValidatorTests extends AbstractJsonResponseCondit
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString("ConsentResponseValidator: Unable to find path $.data.permissions"));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("permissions")));
 
 	}
 

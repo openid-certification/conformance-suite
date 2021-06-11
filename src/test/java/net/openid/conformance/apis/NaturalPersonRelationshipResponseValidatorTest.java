@@ -22,7 +22,7 @@ public class NaturalPersonRelationshipResponseValidatorTest extends AbstractJson
 	public void validateStructureWithMissingField() {
 		NaturalPersonRelationshipResponseValidator condition = new NaturalPersonRelationshipResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = "NaturalPersonRelationshipResponseValidator: Unable to find path $.data.procurators[0].cpfNumber";
+		String expected = condition.createElementNotFoundMessage("procurators[0].cpfNumber");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }
