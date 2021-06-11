@@ -3,13 +3,14 @@ package net.openid.conformance.openbanking_brasil.registrationData;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 
 /**
  * This is validator for API-Dados Cadastrais "Relacionamento Pessoa Jurídica"
  * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/?java#relacionamento-pessoa-natural">Relacionamento Pessoa Jurídica</a>
  **/
-
+@ApiName("Corporate Relationship")
 public class CorporateRelationshipResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override

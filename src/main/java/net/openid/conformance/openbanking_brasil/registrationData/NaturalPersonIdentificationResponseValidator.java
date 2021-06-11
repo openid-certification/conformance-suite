@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.registrationData;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 
 /**
@@ -10,6 +11,7 @@ import net.openid.conformance.testmodule.Environment;
  * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-pessoa-natural">Identificação Pessoa Natural</a>
  **/
 
+@ApiName("Natural Person Identity")
 public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override

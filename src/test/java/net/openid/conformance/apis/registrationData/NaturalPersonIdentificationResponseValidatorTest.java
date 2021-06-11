@@ -23,8 +23,7 @@ public class NaturalPersonIdentificationResponseValidatorTest extends AbstractJs
 	public void validateStructureWithMissingField() {
 		NaturalPersonIdentificationResponseValidator condition = new NaturalPersonIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = "NaturalPersonIdentificationResponseValidator: " +
-			"Unable to find path $.data[0].sex";
+		String expected = condition.createElementNotFoundMessage("sex");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

@@ -6,14 +6,12 @@ import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.validation.Match;
-import org.springframework.security.core.parameters.P;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +21,7 @@ import static net.openid.conformance.testmodule.OIDFJSON.*;
 
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
+	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
@@ -204,16 +203,47 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	private JsonElement findByPath(JsonObject jsonObject, String path) {
-		String[] parts = path.split("\\.");
-		String elementName = parts[parts.length -1];
+
+		Matcher matcher = JSONPATH_PRETTIFIER.matcher(path);
+		String elementName = "data";
+		if(matcher.matches()) {
+			elementName = matcher.group("path");
+		}
 
 		try {
+			logQuerying(elementName);
 			JsonElement element = JsonPath.read(jsonObject, path);
-			logSuccess("Validating " + elementName);
+			logElementFound(elementName);
 			return element;
 		} catch (PathNotFoundException e) {
-			throw error("Unable to find path " + path, jsonObject);
+			throw error(createElementNotFoundMessage(elementName), jsonObject);
 		}
+	}
+
+	private void logElementFound(String elementName) {
+		log(createElementFoundMessage(elementName));
+	}
+
+	private void logQuerying(String elementName) {
+		log(createQueryMessage(elementName));
+	}
+
+	public String createQueryMessage(String elementName) {
+		return String.format("Looking up %s on the %s API response", elementName, getApiName());
+	}
+
+	public String createElementFoundMessage(String elementName) {
+		return String.format("Successfully validated the %s element on the %s API response", elementName, getApiName());
+	}
+
+	public String createElementNotFoundMessage(String elementName) {
+		return String.format("Unable to find element %s on the %s API response", elementName, getApiName());
+	}
+
+	private final String getApiName() {
+		Class<?> clazz = getClass();
+		ApiName apiName = clazz.getDeclaredAnnotation(ApiName.class);
+		return apiName == null ? clazz.getSimpleName() : apiName.value();
 	}
 
 	private <T> T getOrFail(Lambda<T> lambda) {

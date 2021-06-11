@@ -24,6 +24,6 @@ public class AccountIdentificationResponseValidatorTest extends AbstractJsonResp
 		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString("AccountIdentificationResponseValidator: Unable to find path $.data.currency"));
+			containsString(condition.createElementNotFoundMessage("currency")));
 	}
 }

@@ -24,7 +24,7 @@ public class AccountLimitsValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWithMissingField() {
 		AccountLimitsValidator condition = new AccountLimitsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString("AccountLimitsValidator: Unable to find path $.data.unarrangedOverdraftAmountCurrency"));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("unarrangedOverdraftAmountCurrency")));
 
 	}
 }

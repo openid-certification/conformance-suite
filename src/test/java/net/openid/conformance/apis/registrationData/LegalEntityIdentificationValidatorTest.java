@@ -22,7 +22,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithMissingField() {
 		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = "LegalEntityIdentificationValidator: Unable to find path $.data[0].contacts.emails[0].email";
+		String expected = condition.createElementNotFoundMessage("contacts.emails[0].email");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 

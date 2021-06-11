@@ -38,7 +38,7 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString("AccountTransactionsValidator: Unable to find path $.data[0].transactionId"));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("transactionId")));
 
 	}
 }
