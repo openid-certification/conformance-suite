@@ -19,30 +19,31 @@ import java.text.ParseException;
 import java.util.UUID;
 
 /**
- * Can be used to encrypt id tokens, userinfo responses
+ * Can be used to encrypt id tokens, userinfo responses, request objects
  */
-public abstract class AbstractJWEEncryptStringToClient extends AbstractCondition {
+public abstract class AbstractJWEEncryptString extends AbstractCondition {
 
 	/**
 	 *
+	 * @param destination the entity the object is for (usually client or server)
 	 * @param stringToBeEncrypted e.g the id_token as string
-	 * @param clientSecret null if client has no secret, e.g using private_key_jwt
-	 * @param clientJwksJsonObject null if client does not have a jwks
+	 * @param clientSecret null if encryptor has no secret, e.g using private_key_jwt
+	 * @param jwksJsonObject null if destination does not have a jwks
 	 * @param alg
 	 * @param enc
 	 * @param algMetadataName used for logging only
 	 * @param encMetadataName used for logging only
 	 * @return
 	 */
-	public String encrypt(String stringToBeEncrypted, String clientSecret, JsonObject clientJwksJsonObject,
+	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
 						  String alg, String enc, String algMetadataName, String encMetadataName) {
 
 		if(alg == null) {
-			throw error(algMetadataName + " is not defined for the client. This is a bug in the test module. skipIfElementMissing should be used");
+			throw error(algMetadataName + " is not defined for the " + destination + ". This is a bug in the test module. skipIfElementMissing should be used");
 		}
 
 		if(enc != null && alg == null) {
-			throw error(encMetadataName + " is set but " + algMetadataName + " is not set for the client." +
+			throw error(encMetadataName + " is set but " + algMetadataName + " is not set for the " + destination + "." +
 						" When " + encMetadataName + " is set, " + algMetadataName + " MUST also be provided.");
 		}
 
@@ -67,16 +68,16 @@ public abstract class AbstractJWEEncryptStringToClient extends AbstractCondition
 		JWK recipientJWK = null;
 		if(JWEAlgorithm.Family.ASYMMETRIC.contains(algorithm)) {
 			//asymmetric key
-			if(clientJwksJsonObject==null) {
-				throw error("Client jwks is required for " + algorithm.getName() + " algorithm");
+			if(jwksJsonObject==null) {
+				throw error(destination + " jwks is required for " + algorithm.getName() + " algorithm");
 			}
-			JWKSet clientJwks = null;
+			JWKSet jwks = null;
 			try {
-				clientJwks = JWKUtil.parseJWKSet(clientJwksJsonObject.toString());
+				jwks = JWKUtil.parseJWKSet(jwksJsonObject.toString());
 			} catch (ParseException e) {
-				throw error("Failed to parse client jwks", e, args("client_jwks", clientJwksJsonObject));
+				throw error("Failed to parse " + destination + " jwks", e, args("jwks", jwksJsonObject));
 			}
-			recipientJWK = JWEUtil.selectAsymmetricKeyForEncryption(clientJwks, algorithm);
+			recipientJWK = JWEUtil.selectAsymmetricKeyForEncryption(jwks, algorithm);
 		} else {
 			//symmetric key
 			try
@@ -89,6 +90,7 @@ public abstract class AbstractJWEEncryptStringToClient extends AbstractCondition
 		if(recipientJWK==null) {
 			throw error("Failed to select a key", args("algorithm", algorithm));
 		}
+
 		// Encrypt with the recipient's public key
 		JWEEncrypter jweEncrypter = null;
 		try {

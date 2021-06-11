@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class EncryptIdToken extends AbstractJWEEncryptStringToClient
+public class EncryptIdToken extends AbstractJWEEncryptString
 {
 
 	@Override
@@ -25,7 +25,7 @@ public class EncryptIdToken extends AbstractJWEEncryptStringToClient
 			clientJwks = clientJwksElement.getAsJsonObject();
 		}
 
-		String encryptedIdToken = encrypt(idToken, clientSecret, clientJwks, alg, enc,
+		String encryptedIdToken = encrypt("client", idToken, clientSecret, clientJwks, alg, enc,
 			"id_token_encrypted_response_alg", "id_token_encrypted_response_enc");
 
 		log("Encrypted the id token", args("id_token", encryptedIdToken,
