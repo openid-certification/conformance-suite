@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public abstract class AbstractEnsureError extends AbstractCondition {
+public abstract class AbstractEnsureAuthorizationEndpointError extends AbstractCondition {
 	protected abstract ImmutableList<String> getPermittedErrors();
 
     @Override
