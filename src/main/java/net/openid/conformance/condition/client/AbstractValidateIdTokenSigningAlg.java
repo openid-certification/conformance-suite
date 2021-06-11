@@ -25,7 +25,7 @@ public abstract class AbstractValidateIdTokenSigningAlg extends AbstractConditio
             String alg = jwt.getHeader().getAlgorithm().getName();
 
             if (!permitted.contains(alg)) {
-                throw error("id_token must be signed with permitted alg",
+                throw error("id_token must be signed with a permitted alg",
 					args("alg", alg, "permitted", permitted));
             }
 
