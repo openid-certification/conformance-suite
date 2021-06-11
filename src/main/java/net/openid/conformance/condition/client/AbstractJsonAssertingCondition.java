@@ -221,7 +221,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	private void logElementFound(String elementName) {
-		log(createElementFoundMessage(elementName));
+		logSuccess(createElementFoundMessage(elementName));
 	}
 
 	private void logQuerying(String elementName) {
