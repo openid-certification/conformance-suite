@@ -236,8 +236,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
