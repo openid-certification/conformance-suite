@@ -42,7 +42,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
 
-		/* get an openbanking intent id */
+		/* get access token */
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -61,7 +61,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 				.onFail(Condition.ConditionResult.FAILURE)
 				.dontStopOnFailure());
 
-		/* create account request */
+		/* create consent request */
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
