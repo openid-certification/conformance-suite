@@ -10,13 +10,10 @@ import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.jce.PrincipalUtil;
-import org.bouncycastle.jce.X509Principal;
 
+import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
 import java.security.NoSuchProviderException;
-import java.security.Principal;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -42,10 +39,12 @@ public class ExtractClientMTLSCertificateSubject extends AbstractCondition {
 		}
 
 		X509Certificate certificate = generateCertificateFromMTLSCert(certString, certFactory);
-		X500Name x500name = X500Name.getInstance(certificate.getSubjectX500Principal().getEncoded());
+		X500Principal x500Principal = certificate.getSubjectX500Principal();
 
-		Principal principal = certificate.getSubjectDN();
-		String subjectDn = principal.getName();
+		// we are careful to get the subjectDN in RFC 4514 format here, that is what is required for
+		// tls_client_auth_subject_dn as per https://datatracker.ietf.org/doc/html/rfc8705#section-2.1.2
+		X500Name x500name = X500Name.getInstance(x500Principal.getEncoded());
+		String subjectDn = x500Principal.getName();
 
 		RDN ou = x500name.getRDNs(BCStyle.OU)[0];
 		String ouAsString = IETFUtils.valueToString(ou.getFirst().getValue());
