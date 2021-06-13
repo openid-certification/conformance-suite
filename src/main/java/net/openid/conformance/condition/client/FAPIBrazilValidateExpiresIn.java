@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class BrazilValidateExpiresIn extends AbstractCondition {
+public class FAPIBrazilValidateExpiresIn extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = {}, required = "expires_in")

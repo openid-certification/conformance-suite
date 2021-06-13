@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailu
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
@@ -61,6 +62,8 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		// check that all known endpoints support TLS correctly
 
