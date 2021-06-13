@@ -17,7 +17,7 @@ import net.openid.conformance.condition.client.EnsureImplicitGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureTokenResponseTypeInClient;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToAuthorizationCode;
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToImplicit;
@@ -76,7 +76,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 
 		// get the client configuration that we'll use to dynamically register
-		callAndStopOnFailure(GetDynamicClientConfiguration.class);
+		callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
 		callAndStopOnFailure(CheckRedirectUri.class);

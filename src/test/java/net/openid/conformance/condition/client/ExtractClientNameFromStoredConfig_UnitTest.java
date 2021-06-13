@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +44,7 @@ public class ExtractClientNameFromStoredConfig_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link GetDynamicClientConfiguration#evaluate(Environment)}
+	 * Test method for {@link StoreOriginalClientConfiguration#evaluate(Environment)}
 	 */
 	@Test
 	public void testEvaluate_ClientNameInConfig() {

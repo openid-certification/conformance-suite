@@ -53,7 +53,7 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -415,7 +415,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			configureStaticClient();
 			break;
 		case DYNAMIC_CLIENT:
-			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			configureDynamicClient();
 			break;

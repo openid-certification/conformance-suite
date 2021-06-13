@@ -10,7 +10,7 @@ import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
@@ -105,7 +105,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(GetDynamicClientConfiguration.class);
+		callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
 		// Perform any custom configuration

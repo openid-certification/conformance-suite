@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class GetDynamicClient2Configuration extends AbstractCondition {
+public class StoreOriginalClient2Configuration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")

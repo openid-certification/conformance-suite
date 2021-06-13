@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GetDynamicClientConfiguration_UnitTest {
+public class StoreOriginalClientConfiguration_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,14 +24,14 @@ public class GetDynamicClientConfiguration_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private GetDynamicClientConfiguration cond;
+	private StoreOriginalClientConfiguration cond;
 
 	/**
 	 * @throws Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new GetDynamicClientConfiguration();
+		cond = new StoreOriginalClientConfiguration();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -58,7 +58,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link GetDynamicClientConfiguration#evaluate(Environment)}
+	 * Test method for {@link StoreOriginalClientConfiguration#evaluate(Environment)}
 	 */
 	@Test
 	public void testEvaluate_ClientNameInConfig() {

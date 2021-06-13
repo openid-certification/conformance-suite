@@ -109,8 +109,8 @@ import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
-import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -366,7 +366,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("First client: registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;
@@ -400,7 +400,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;

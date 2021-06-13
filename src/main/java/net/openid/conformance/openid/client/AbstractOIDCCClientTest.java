@@ -99,7 +99,7 @@ import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSigne
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -385,7 +385,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			validateClientMetadata();
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			// I am not sure the result of either of these condition calls is used
-			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
+			callAndContinueOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
 			//signing_algorithm will be also set after registration
