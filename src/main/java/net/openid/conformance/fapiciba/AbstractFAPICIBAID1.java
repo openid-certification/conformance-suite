@@ -92,6 +92,7 @@ import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJso
 import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -366,6 +367,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("First client: registering client using dynamic client registration");
 			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;
 		}
@@ -399,6 +401,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
 			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;
 		}

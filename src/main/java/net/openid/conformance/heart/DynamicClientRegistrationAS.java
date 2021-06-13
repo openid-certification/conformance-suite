@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.EnsureCodeResponseTypeInClient;
 import net.openid.conformance.condition.client.EnsureDynamicRegistrationEndpointRequiresRedirectUri;
 import net.openid.conformance.condition.client.EnsureImplicitGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureTokenResponseTypeInClient;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -76,6 +77,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		// get the client configuration that we'll use to dynamically register
 		callAndStopOnFailure(GetDynamicClientConfiguration.class);
+		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
 		callAndStopOnFailure(CheckRedirectUri.class);
 

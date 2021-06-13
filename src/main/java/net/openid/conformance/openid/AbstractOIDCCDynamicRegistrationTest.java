@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrl
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
@@ -16,13 +17,13 @@ import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForClientSecretJwt;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForMtls;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.CreateAuthorizationRequestSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
@@ -105,6 +106,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(GetDynamicClientConfiguration.class);
+		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
