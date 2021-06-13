@@ -4,16 +4,17 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateDynamicRegistrationRequest extends AbstractCondition {
+public class AddClientNameToDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
+	@PreEnvironment(required = "dynamic_registration_request")
 	@PostEnvironment(required = "dynamic_registration_request")
 	public Environment evaluate(Environment env) {
 
-		// create an empty JSON to act as the registration request
-		JsonObject dynamicRegistrationRequest = new JsonObject();
+		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
 
 		// get the specified "client_name" from the client object if there is one.
 		String clientName = env.getString("client_name");
@@ -25,9 +26,8 @@ public class CreateDynamicRegistrationRequest extends AbstractCondition {
 		}
 
 		dynamicRegistrationRequest.addProperty("client_name", clientName);
-		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 
-		logSuccess("Created dynamic registration request", dynamicRegistrationRequest);
+		log("Added client_name to registration request", dynamicRegistrationRequest);
 
 		return env;
 	}

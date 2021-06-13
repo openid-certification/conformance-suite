@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToDyn
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
@@ -70,8 +71,8 @@ import net.openid.conformance.condition.client.CopyAcrValueFromDynamicRegistrati
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CreateCIBANotificationEndpointUri;
-import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -425,7 +426,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
 
 		// create basic dynamic registration request
-		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddClientNameToDynamicRegistrationRequest.class);
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");

@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -13,7 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateDynamicRegistrationRequest_UnitTest {
+public class AddClientNameToDynamicRegistrationRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,17 +23,17 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 
-	private CreateDynamicRegistrationRequest cond;
+	private AddClientNameToDynamicRegistrationRequest cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CreateDynamicRegistrationRequest();
+		cond = new AddClientNameToDynamicRegistrationRequest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		JsonObject dynamicRegistrationRequest = new JsonObject();
+
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
 	}
 
-	/**
-	 * Test for {@link CreateDynamicRegistrationRequest#evaluate(Environment)}
-	 */
 	@Test
 	public void testEvaluate_noClientName(){
 		cond.execute(env);
@@ -40,9 +41,6 @@ public class CreateDynamicRegistrationRequest_UnitTest {
 		assertThat(env.getString("dynamic_registration_request","client_name")).isEqualTo("OIDF Conformance Test UNIT-TEST");
 	}
 
-	/**
-	 * Test for {@link CreateDynamicRegistrationRequest#evaluate(Environment)}
-	 */
 	@Test
 	public void testEvaluate_withClientName(){
 		env.putString("client_name","my-client-name");

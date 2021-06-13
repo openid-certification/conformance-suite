@@ -2,12 +2,13 @@ package net.openid.conformance.heart;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckHeartServerJwksFields;
 import net.openid.conformance.condition.client.CheckRedirectUri;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
-import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureAuthorizationCodeGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureCodeResponseTypeInClient;
@@ -88,7 +89,8 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		// create basic dynamic registration request
-		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddClientNameToDynamicRegistrationRequest.class);
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		// Run without redirect uris OAuth 2.0 Dynamic Registration section 2.
