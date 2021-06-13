@@ -13,28 +13,28 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "dynamic_client_registration_template")
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 
-		if (!in.containsObject("config")) {
+		if (!env.containsObject("config")) {
 			throw error("Couldn't find a configuration");
 		}
 
-		JsonElement dynamicClientRegistrationTemplate = in.getElementFromObject("config", "client");
+		JsonElement dynamicClientRegistrationTemplate = env.getElementFromObject("config", "client");
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
 			// we don't actually need anything; if no client_name is given we'll pick one
-			in.putObject("dynamic_client_registration_template", new JsonObject());
+			env.putObject("dynamic_client_registration_template", new JsonObject());
 			logSuccess("No client details on configuration, created an empty dynamic_client_registration_template object.");
 		} else {
 			// we've got a client object, put it in the environment
-			in.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
+			env.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
 
 			// pull out the client name and put it in the root environment for easy access (if there is one)
-			String clientName = in.getString("dynamic_client_registration_template", "client_name");
+			String clientName = env.getString("dynamic_client_registration_template", "client_name");
 			if (!Strings.isNullOrEmpty(clientName)) {
-				in.putString("client_name", in.getString("dynamic_client_registration_template", "client_name"));
+				env.putString("client_name", env.getString("dynamic_client_registration_template", "client_name"));
 			}
 			logSuccess("Created dynamic_client_registration_template object from the client configuration.", dynamicClientRegistrationTemplate.getAsJsonObject());
 		}
-		return in;
+		return env;
 	}
 }
