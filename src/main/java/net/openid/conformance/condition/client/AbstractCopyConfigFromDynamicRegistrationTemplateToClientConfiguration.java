@@ -12,12 +12,12 @@ public abstract class AbstractCopyConfigFromDynamicRegistrationTemplateToClientC
 	protected abstract String getExpectedConfigName();
 
 	@Override
-	@PreEnvironment(required = "dynamic_client_registration_template")
+	@PreEnvironment(required = "original_client_config")
 	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
 		String configName = getExpectedConfigName();
-		String specifiedConfigValue = env.getString("dynamic_client_registration_template", configName);
+		String specifiedConfigValue = env.getString("original_client_config", configName);
 
 		if (Strings.isNullOrEmpty(specifiedConfigValue)) {
 			throw error(String.format("Couldn't find %s in configuration", configName));
@@ -27,7 +27,7 @@ public abstract class AbstractCopyConfigFromDynamicRegistrationTemplateToClientC
 		client.addProperty(configName, specifiedConfigValue);
 		env.putObject("client", client);
 
-		log(String.format("Copied %s from dynamic_client_registration_template to client configuration", configName), args("client", client));
+		log(String.format("Copied %s from original_client_config to client configuration", configName), args("client", client));
 
 		return env;
 	}

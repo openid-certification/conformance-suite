@@ -41,7 +41,7 @@ public class GetDynamicClientConfiguration_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("original_client_config")).isInstanceOf(JsonObject.class);
 	}
 
 	@Test
@@ -53,8 +53,8 @@ public class GetDynamicClientConfiguration_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
-		assertThat(env.getObject("dynamic_client_registration_template").get("client_name")).isNull();
+		assertThat(env.getObject("original_client_config")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("original_client_config").get("client_name")).isNull();
 	}
 
 	/**
@@ -69,8 +69,8 @@ public class GetDynamicClientConfiguration_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getObject("dynamic_client_registration_template")).isInstanceOf(JsonObject.class);
-		assertThat(env.getObject("dynamic_client_registration_template").get("client_name")).isNotNull();
-		assertThat(OIDFJSON.getString(env.getObject("dynamic_client_registration_template").get("client_name"))).isEqualTo("foo");
+		assertThat(env.getObject("original_client_config")).isInstanceOf(JsonObject.class);
+		assertThat(env.getObject("original_client_config").get("client_name")).isNotNull();
+		assertThat(OIDFJSON.getString(env.getObject("original_client_config").get("client_name"))).isEqualTo("foo");
 	}
 }

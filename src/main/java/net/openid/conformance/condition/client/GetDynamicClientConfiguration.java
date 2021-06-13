@@ -12,18 +12,18 @@ public class GetDynamicClientConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "dynamic_client_registration_template")
+	@PostEnvironment(required = "original_client_config")
 	public Environment evaluate(Environment env) {
 		JsonElement dynamicClientRegistrationTemplate = env.getElementFromObject("config", "client");
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
 			// we don't actually need anything; if no client_name is given we'll pick one
-			env.putObject("dynamic_client_registration_template", new JsonObject());
-			log("No client details on configuration, created an empty dynamic_client_registration_template object.");
+			env.putObject("original_client_config", new JsonObject());
+			log("No client details on configuration, created an empty original_client_config object.");
 		} else {
 			// we've got a client object, put it in the environment
-			env.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
+			env.putObject("original_client_config", dynamicClientRegistrationTemplate.getAsJsonObject());
 
-			log("Created dynamic_client_registration_template object from the client configuration.", dynamicClientRegistrationTemplate.getAsJsonObject());
+			log("Created original_client_config object from the client configuration.", dynamicClientRegistrationTemplate.getAsJsonObject());
 		}
 		return env;
 	}

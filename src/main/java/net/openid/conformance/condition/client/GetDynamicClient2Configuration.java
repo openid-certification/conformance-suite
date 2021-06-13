@@ -11,7 +11,7 @@ public class GetDynamicClient2Configuration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = "dynamic_client_registration_template")
+	@PostEnvironment(required = "original_client_config")
 	public Environment evaluate(Environment in) {
 
 		JsonElement dynamicClientRegistrationTemplate = in.getElementFromObject("config", "client2");
@@ -19,9 +19,9 @@ public class GetDynamicClient2Configuration extends AbstractCondition {
 			throw error("Definition for client not present in supplied configuration");
 		} else {
 			// we've got a client object, put it in the environment
-			in.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate.getAsJsonObject());
+			in.putObject("original_client_config", dynamicClientRegistrationTemplate.getAsJsonObject());
 
-			log("Found a dynamic_client_registration_template object", dynamicClientRegistrationTemplate.getAsJsonObject());
+			log("Found a original_client_config object", dynamicClientRegistrationTemplate.getAsJsonObject());
 			return in;
 		}
 	}

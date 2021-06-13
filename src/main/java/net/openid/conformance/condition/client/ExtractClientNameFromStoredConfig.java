@@ -11,10 +11,10 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractClientNameFromStoredConfig extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "dynamic_client_registration_template")
+	@PreEnvironment(required = "original_client_config")
 	public Environment evaluate(Environment env) {
 		// pull out the client name and put it in the root environment for easy access (if there is one)
-		String clientName = env.getString("dynamic_client_registration_template", "client_name");
+		String clientName = env.getString("original_client_config", "client_name");
 		if (!Strings.isNullOrEmpty(clientName)) {
 			env.putString("client_name", clientName);
 		}

@@ -37,7 +37,7 @@ public class ExtractClientNameFromStoredConfig_UnitTest {
 
 	@Test
 	public void testEvaluate_noClientNameInConfig() {
-		env.putObject("dynamic_client_registration_template", new JsonObject());
+		env.putObject("original_client_config", new JsonObject());
 
 		cond.execute(env);
 
@@ -52,7 +52,7 @@ public class ExtractClientNameFromStoredConfig_UnitTest {
 		JsonObject config = new JsonParser().parse("{" +
 			"\"client_name\":\"foo\"" +
 			"}").getAsJsonObject();
-		env.putObject("dynamic_client_registration_template", config);
+		env.putObject("original_client_config", config);
 
 		cond.execute(env);
 
