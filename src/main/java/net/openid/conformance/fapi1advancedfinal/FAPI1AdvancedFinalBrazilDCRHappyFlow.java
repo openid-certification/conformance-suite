@@ -4,7 +4,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddContactsToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddImplicitGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
@@ -13,7 +12,7 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
-import net.openid.conformance.condition.client.CallDirectorySoftwareStatementEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -37,7 +36,6 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIResponseMode;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazil-dcr-happy-flow",
@@ -102,7 +100,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 
 		// use access token to get ssa
 		// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
-		callAndStopOnFailure(CallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
 
 		eventLog.endBlock();
 	}

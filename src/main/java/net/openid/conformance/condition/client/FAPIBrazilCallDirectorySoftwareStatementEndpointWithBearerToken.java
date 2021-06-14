@@ -30,7 +30,7 @@ import java.text.ParseException;
 import java.util.Collections;
 
 
-public class CallDirectorySoftwareStatementEndpointWithBearerToken extends AbstractCondition {
+public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "config", "certificate_subject" })
