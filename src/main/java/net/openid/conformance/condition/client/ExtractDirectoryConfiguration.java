@@ -24,14 +24,13 @@ public class ExtractDirectoryConfiguration extends AbstractCondition {
 		}
 
 		JsonObject server = new JsonObject();
-		server.addProperty("discoveryUrl", "https://auth.sandbox.directory.openbankingbrasil.org.br/.well-known/openid-configuration");
+		server.addProperty("discoveryUrl", discoveryUrl);
 		JsonObject directoryConfig = new JsonObject();
 		directoryConfig.add("server", server);
 		env.putObject("directory_config", directoryConfig);
 
-
 		JsonObject directoryClient = new JsonObject();
-		directoryClient.addProperty("client_id", "NqKz9-A_LivAIOAjHyXpL");
+		directoryClient.addProperty("client_id", clientId);
 		env.putObject("directory_client", directoryClient);
 
 		logSuccess("Extracted directory configuration parameters",
