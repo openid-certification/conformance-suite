@@ -155,8 +155,6 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class,"BrazilOBDCR-7.1-6");
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 
-		callAndContinueOnFailure(AddContactsToDynamicRegistrationRequest.class);
-
 		callAndStopOnFailure(AddSoftwareStatementToDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
