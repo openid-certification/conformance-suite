@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToDyn
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
@@ -70,8 +71,8 @@ import net.openid.conformance.condition.client.CopyAcrValueFromDynamicRegistrati
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CreateCIBANotificationEndpointUri;
-import net.openid.conformance.condition.client.CreateDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -91,6 +92,7 @@ import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJso
 import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -107,8 +109,8 @@ import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
-import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -364,7 +366,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("First client: registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;
 		}
@@ -397,7 +400,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			break;
 		case DYNAMIC_CLIENT:
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
-			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			registerClient();
 			break;
 		}
@@ -425,7 +429,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
 
 		// create basic dynamic registration request
-		callAndStopOnFailure(CreateDynamicRegistrationRequest.class);
+		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
+		callAndStopOnFailure(AddClientNameToDynamicRegistrationRequest.class);
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");

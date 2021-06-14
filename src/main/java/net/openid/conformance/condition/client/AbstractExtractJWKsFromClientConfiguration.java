@@ -10,8 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.text.ParseException;
 
 public abstract class AbstractExtractJWKsFromClientConfiguration extends AbstractCondition {
-	protected void extractJwks(Environment env, String key) {
-		JsonElement jwks = env.getElementFromObject(key, "jwks");
+	protected void extractJwks(Environment env, JsonElement jwks) {
 
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in client configuration");

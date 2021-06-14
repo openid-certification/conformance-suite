@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -8,21 +7,26 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddContactsToDynamicRegistrationRequest extends AbstractCondition {
+public class SetResponseTypeCodeIdTokenInDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_request")
 	@PostEnvironment(required = "dynamic_registration_request")
 	public Environment evaluate(Environment env) {
-
 		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
+		String responseType = "code id_token";
 
-		JsonArray contacts = new JsonArray();
-		contacts.add("certification@oidf.org");
-		dynamicRegistrationRequest.add("contacts", contacts);
+		JsonArray responseTypes = new JsonArray();
+		responseTypes.add(responseType);
 
-		log("Added contacts array to dynamic registration request", args("dynamic_registration_request", dynamicRegistrationRequest));
+		dynamicRegistrationRequest.add("response_types", responseTypes);
+
+		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
+
+		log("Added response_type 'code id_token' to dynamic registration request",
+			args("dynamic_registration_request", dynamicRegistrationRequest));
 
 		return env;
 	}
+
 }

@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
-import net.openid.conformance.condition.client.GetDynamicClient2Configuration;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
+import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
@@ -43,7 +44,8 @@ public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTes
 			configureStaticClient();
 			break;
 		case DYNAMIC_CLIENT:
-			callAndStopOnFailure(GetDynamicClient2Configuration.class);
+			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			configureDynamicClient();
 			break;
 		}

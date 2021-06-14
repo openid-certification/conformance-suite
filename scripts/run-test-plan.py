@@ -1062,7 +1062,10 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if m in ["fapi1-advanced-final-brazil-ensure-encryption-required"]:
+        if m in [
+            "fapi1-advanced-final-brazil-ensure-encryption-required",
+            "fapi1-advanced-final-brazil-dcr-happy-flow"
+        ]:
             # Brazil specific tests; we don't have an automated test environment yet
             untested_test_modules.remove(m)
             continue
