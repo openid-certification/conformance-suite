@@ -39,7 +39,7 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 		assertJsonField(body, "$.data.availableAmountCurrency", RegexMatch.regex("^(\\w{3}){1}$"));
 		assertJsonField(body, "$.data.blockedAmount", RegexMatch.regex(".+"));
 		assertJsonField(body, "$.data.blockedAmountCurrency", RegexMatch.regex("^(\\w{3}){1}$"));
-//		assertJsonField(body, "$.data.automaticallyInvestedAmount", RegexMatch.regex("([^.])+"));
+		assertJsonField(body, "$.data.automaticallyInvestedAmount", RegexMatch.regex("([^.])+"));
 		assertJsonField(body, "$.data.automaticallyInvestedAmountCurrency", RegexMatch.regex("([^.])+"));
 	}
 }
