@@ -17,9 +17,6 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 
 		// Here we simply create an instance of our Condition class
 		AccountListValidator condition = new AccountListValidator();
-
-		// This evaluates the condition, passing in the loaded JSON document as
-		// if it were an HTTP response
 		run(condition);
 
 	}
@@ -30,10 +27,6 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 
 		// Here we simply create an instance of our Condition class
 		AccountListValidator condition = new AccountListValidator();
-
-		// This evaluates the condition, passing in the loaded JSON document as
-		// if it were an HTTP response
-		// In this instance, we expect a failure, and thus, examine it
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
@@ -41,4 +34,34 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 
 	}
 
+	@Test
+	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(LengthNotMatch).json")
+	public void validateStructureExcessMaxLength() {
+		AccountListValidator condition = new AccountListValidator();
+		ConditionError error = runAndFail(condition);
+		// We make sure it is the error we're expecting
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage(
+				"checkDigit")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(EnumNotMatch).json")
+	public void validateStructureEnumNotMatch() {
+		AccountListValidator condition = new AccountListValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchEnumerationMessage(
+				"type")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(PatternNotMatch).json")
+	public void validateStructurePatternNotMatch() {
+		AccountListValidator condition = new AccountListValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchPatternMessage(
+				"compeCode")));
+	}
 }
