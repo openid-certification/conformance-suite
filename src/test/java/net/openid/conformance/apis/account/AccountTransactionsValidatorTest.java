@@ -14,31 +14,55 @@ import static org.hamcrest.Matchers.containsString;
 public class AccountTransactionsValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
+	@UseResurce("jsonResponses/account/transactions/accountTransactionsResponseOK.json")
 	public void validateStructure() {
-
-		// Here we simply create an instance of our Condition class
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
-
-		// This evaluates the condition, passing in the loaded JSON document as
-		// if it were an HTTP response
 		run(condition);
-
 	}
 
 	@Test
-	@UseResurce("jsonResponses/account/accountTransactionsResponse_missing_consents.json")
-	public void validateStructureWithMissingField() {
-
-		// Here we simply create an instance of our Condition class
+	@UseResurce("jsonResponses/account/transactions/accountTransactionsResponseOK(missingNotMandatoryField).json")
+	public void validateStructureWithMissingNotMandatoryField() {
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
+		run(condition);
+	}
 
-		// This evaluates the condition, passing in the loaded JSON document as
-		// if it were an HTTP response
-		// In this instance, we expect a failure, and thus, examine it
+	@Test
+	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(missingConsents).json")
+	public void validateStructureWithMissingField() {
+		AccountTransactionsValidator condition = new AccountTransactionsValidator();
 		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage(
+			"partieCheckDigit")));
+	}
 
+	@Test
+	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(PatternNotMatch).json")
+	public void validateStructurePatternNotMatch() {
+		AccountTransactionsValidator condition = new AccountTransactionsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchPatternMessage("transactionDate")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(ExcessMaxLength).json")
+	public void validateStructureExcessMaxLength() {
+		AccountTransactionsValidator condition = new AccountTransactionsValidator();
+		ConditionError error = runAndFail(condition);
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("transactionId")));
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage(
+				"partieCheckDigit")));
+	}
 
+	@Test
+	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(EnumNotMatch).json")
+	public void validateStructureEnumNotMatch() {
+		AccountTransactionsValidator condition = new AccountTransactionsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchEnumerationMessage(
+				"creditDebitType")));
 	}
 }

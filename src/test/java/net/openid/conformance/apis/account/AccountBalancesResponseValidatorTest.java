@@ -23,7 +23,7 @@ public class AccountBalancesResponseValidatorTest extends AbstractJsonResponseCo
 	public void validateStructureWithMissingField() {
 		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("blockedAmount");
+		String expected = condition.createElementNotFoundMessage("$.data.blockedAmount");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

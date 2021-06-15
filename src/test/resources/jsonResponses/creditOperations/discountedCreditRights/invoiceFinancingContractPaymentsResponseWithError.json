@@ -1,0 +1,43 @@
+{
+    "data": {
+        "paidInstalments": 73,
+        "contractOutstandingBalance": 100000.04,
+        "releases": [
+            {
+                "paymentId": "Parcela regular",
+                "instalmentId": "15",
+                "paidDate": "2021-05-21",
+                "currency": "BRL",
+                "paidAmount": 100000.04,
+                "overParcel": {
+                    "fees": [
+                        {
+                            "feeName": "Excesso em Conta",
+                            "feeCode": "EXCESSO_CONTA",
+                            "feeAmount": 100000.04
+                        }
+                    ],
+                    "charges": [
+                        {
+                            "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+                            "chargeAdditionalInfo": "string",
+                            "chargeAmount": 100000.04
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

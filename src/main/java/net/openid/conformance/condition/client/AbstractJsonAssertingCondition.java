@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -9,12 +10,18 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.fields.BooleanField;
+import net.openid.conformance.util.fields.DoubleField;
+import net.openid.conformance.util.fields.Field;
+import net.openid.conformance.util.fields.StringField;
 import net.openid.conformance.validation.Match;
+import net.openid.conformance.validation.RegexMatch;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static net.openid.conformance.testmodule.OIDFJSON.*;
@@ -22,6 +29,7 @@ import static net.openid.conformance.testmodule.OIDFJSON.*;
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
+	public static final String ROOT_PATH = "$.data";
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
@@ -47,9 +55,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	protected void assertHasField(JsonObject jsonObject, String path) {
-
 		findByPath(jsonObject, path);
-
 	}
 
 	protected void assertHasStringField(JsonObject jsonObject, String path) {
@@ -61,12 +67,79 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	protected void assertStringField(JsonObject jsonObject, StringField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+
+		assertHasStringField(jsonObject, field.getPath());
+
+		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
+		assertPatternAndMaxLength(stringFieldValue, field);
+
+		if	(!field.getEnumList().isEmpty()) {
+			assertValueFromEnumList(stringFieldValue, field.getEnumList(), field.getPath());
+		}
+	}
+
 	protected void assertHasIntField(JsonObject jsonObject, String path) {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getInt(found);
 		} catch(UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not an int", jsonObject);
+		}
+	}
+
+	protected void assertBooleanField(JsonObject jsonObject, BooleanField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		assertHasBooleanField(jsonObject, field.getPath());
+
+		String stringFieldValue = findByPath(jsonObject, field.getPath()).toString();
+		assertPatternAndMaxLength(stringFieldValue, field);
+	}
+
+	protected void assertIntField(JsonObject jsonObject, DoubleField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		assertHasIntField(jsonObject, field.getPath());
+
+		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
+		assertPatternAndMaxLength(stringFieldValue, field);
+
+		if	(field.getMinLength() > 0) {
+			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
+		}
+	}
+
+	protected void assertDoubleField(JsonObject jsonObject, DoubleField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		assertHasDoubleField(jsonObject, field.getPath());
+
+		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
+		assertPatternAndMaxLength(stringFieldValue, field);
+
+		if	(field.getMinLength() > 0) {
+			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
+		}
+	}
+
+	protected void assertLongField(JsonObject jsonObject, DoubleField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		assertHasLongField(jsonObject, field.getPath());
+
+		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
+		assertPatternAndMaxLength(stringFieldValue, field);
+
+		if	(field.getMinLength() > 0) {
+			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 	}
 
@@ -151,17 +224,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	protected void assertJsonField(JsonObject jsonObject, String path, Match match) {
-		JsonElement actual = findByPath(jsonObject, path);
-		String stringValue = "";
-		try {
-			stringValue = getString(actual);
-		} catch (UnexpectedJsonTypeException e) {
-			try {
-				stringValue = String.valueOf(getNumber(actual));
-			} catch (UnexpectedJsonTypeException ex) {
-				throw error(String.format("Path %s was not a string or number", path), jsonObject);
-			}
-		}
+		String stringValue = getJsonValueAsString(jsonObject, path);
 		if(!match.matches(stringValue)) {
 			throw error(String.format("Path %s did not match %s", path, match), jsonObject);
 		}
@@ -202,7 +265,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
-	private JsonElement findByPath(JsonObject jsonObject, String path) {
+	protected JsonElement findByPath(JsonObject jsonObject, String path) {
 
 		Matcher matcher = JSONPATH_PRETTIFIER.matcher(path);
 		String elementName = "data";
@@ -216,7 +279,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			logElementFound(elementName);
 			return element;
 		} catch (PathNotFoundException e) {
-			throw error(createElementNotFoundMessage(elementName), jsonObject);
+			throw error(createElementNotFoundMessage(path), jsonObject);
 		}
 	}
 
@@ -240,10 +303,94 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return String.format("Unable to find element %s on the %s API response", elementName, getApiName());
 	}
 
+	public String createFieldValueNotMatchPatternMessage(String elementName) {
+		return String.format("Value from element %s doesn't match the required pattern on the %s API response",
+			elementName, getApiName());
+	}
+
+	public String createFieldValueNotMatchEnumerationMessage(String elementName) {
+		return String.format("Value from element %s does not match any given enumeration on the " +
+			"%s API response", elementName, getApiName());
+	}
+
+	public String createFieldValueIsMoreThanMaxLengthMessage(String elementName) {
+		return String.format("Value from element %s is more than the required maxLength on the " +
+			"%s API response", elementName, getApiName());
+	}
+
+	public String createFieldValueIsLessThanMinLengthMessage(String elementName) {
+		return String.format("Value from element %s is less than the required minLength " +
+				"on the %s API response", elementName, getApiName());
+	}
+
 	private final String getApiName() {
 		Class<?> clazz = getClass();
 		ApiName apiName = clazz.getDeclaredAnnotation(ApiName.class);
 		return apiName == null ? clazz.getSimpleName() : apiName.value();
+	}
+
+	protected void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
+		JsonArray array = (JsonArray) findByPath(body, pathToJsonArray);
+		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
+	}
+
+	private boolean ifExists(JsonObject jsonObject, String path) {
+		try {
+			JsonPath.read(jsonObject, path);
+			return true;
+		} catch (PathNotFoundException e) {
+			return false;
+		}
+	}
+
+	private String getJsonValueAsString(JsonObject jsonObject, String path) {
+		JsonElement actual = findByPath(jsonObject, path);
+		String stringValue = "";
+		try {
+			stringValue = getString(actual);
+		} catch (UnexpectedJsonTypeException e) {
+			try {
+				stringValue = String.valueOf(getNumber(actual));
+			} catch (UnexpectedJsonTypeException ex) {
+				throw error(String.format("Path %s was not a string or number", path), jsonObject);
+			}
+		}
+		return stringValue;
+	}
+
+	private void assertPatternAndMaxLength(String stringFieldValue, Field field) {
+		if (!field.getPattern().isEmpty()) {
+			assertRegexMatchesField(stringFieldValue, field.getPath(),
+				RegexMatch.regex(field.getPattern()));
+		}
+
+		if (field.getMaxLength() > 0) {
+			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
+		}
+	}
+
+	private void assertRegexMatchesField(String value, String path, Match match) {
+		if(!match.matches(value)) {
+			throw error(createFieldValueNotMatchPatternMessage(path));
+		}
+	}
+
+	private void assertValueFromEnumList(String fieldValue, List<String> enumList, String path) {
+		if	(!enumList.contains(fieldValue)) {
+			throw error(createFieldValueNotMatchEnumerationMessage(path));
+		}
+	}
+
+	private void assertMaxLength(String stringValue, String path, int maxLength) {
+		if (stringValue.length() > maxLength) {
+			throw error(createFieldValueIsMoreThanMaxLengthMessage(path));
+		}
+	}
+
+	private void assertMinLength(String stringValue, String path, int minLength) {
+		if (stringValue.length() < minLength) {
+			throw error(createFieldValueIsLessThanMinLengthMessage(path));
+		}
 	}
 
 	private <T> T getOrFail(Lambda<T> lambda) {
