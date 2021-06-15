@@ -12,9 +12,11 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.security.core.parameters.P;
 
 import java.text.ParseException;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class JWTUtil {
 
@@ -28,6 +30,17 @@ public class JWTUtil {
 	public static JWT parseJWT(String jwtAsString) throws ParseException {
 		JWT jwt = JWTParser.parse(jwtAsString);
 		return jwt;
+	}
+
+	public static void validateJwtContainsOnlyAllowedCharacters(String jwt) throws ParseException {
+		// the allowed characters is base64url plus '.'
+		String regex = "[.a-zA-Z0-9_-]";
+		for (char character : jwt.toCharArray()) {
+			if (!Pattern.matches(regex, String.valueOf(character))) {
+				throw new ParseException(String.format("The jwt is invalid because it contains the character %s that is neither a '.' nor one permitted in unpadded base64url", character), 0);
+			}
+		}
+
 	}
 
 	/**
@@ -93,6 +106,7 @@ public class JWTUtil {
 	 */
 	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject privateJwksWithEncKeys)
 		throws ParseException, JOSEException {
+		validateJwtContainsOnlyAllowedCharacters(jwtAsString);
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 		if(token instanceof EncryptedJWT) {
 			EncryptedJWT encryptedJWT = (EncryptedJWT) token;
@@ -118,7 +132,13 @@ public class JWTUtil {
 			}
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(alg, decryptionKey);
 			encryptedJWT.decrypt(decrypter);
-			JsonObject out = JWTUtil.jwtStringToJsonObjectForEnvironment(encryptedJWT.getPayload().toString());
+			String decryptedJwt = encryptedJWT.getPayload().toString();
+			try {
+				validateJwtContainsOnlyAllowedCharacters(decryptedJwt);
+			} catch (ParseException e) {
+				throw new ParseException("The JWE has been decrypted. " + e.getMessage(), 0);
+			}
+			JsonObject out = JWTUtil.jwtStringToJsonObjectForEnvironment(decryptedJwt);
 			out.add("jwe_header", jweHeader);
 			return out;
 		} else {
