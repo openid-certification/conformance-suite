@@ -9,7 +9,7 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "Functional tests for accounts API",
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Account API",
 	testModules = {
-		AccountListsTestModule.class,
+		AccountApiTestModule.class,
 		AccountGetTestModule.class
 	})
 public class AccountsApiTestPlan implements TestPlan {
