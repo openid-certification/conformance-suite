@@ -1,7 +1,8 @@
 package net.openid.conformance.openbanking_brasil;
 
 import net.openid.conformance.AbstractFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.*;
 
@@ -27,7 +28,21 @@ public class AccountListsTestModule extends AbstractOBBrasilFunctionalTestModule
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(AccountListValidator.class);
+		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(AccountSelector.class);
+		callAndStopOnFailure(PrepareAccountFetch.class);
+		preCallProtectedResource("Fetch Account");
+		callAndContinueOnFailure(AccountIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(PrepareBalanceFetch.class);
+		preCallProtectedResource("Fetch Account balance");
+		callAndContinueOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(PrepareTransactionsFetch.class);
+		preCallProtectedResource("Fetch Account transactions");
+		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(PrepareLimitsFetch.class);
+		preCallProtectedResource("Fetch Account limits");
+		callAndContinueOnFailure(AccountLimitsValidator.class, Condition.ConditionResult.FAILURE);
+
 	}
 
 }
