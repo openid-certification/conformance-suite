@@ -241,9 +241,33 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public static class ConfigureStaticClientForPrivateKeyJwt extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		}
+	}
+
+	public static class ConfigureStaticClient extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// for auth types other than private_key_jwt we might still need a jwks if the server is returning
+			// encrypted id_tokens; extract one if it's there.
+			call(condition(ValidateClientJWKsPrivatePart.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirements("RFC7517-1.1")
+				.onFail(Condition.ConditionResult.FAILURE));
+
+			call(condition(ExtractJWKsFromStaticClientConfiguration.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE));
+
+			call(condition(CheckDistinctKeyIdValueInClientJWKs.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirements("RFC7517-4.5")
+				.onFail(Condition.ConditionResult.FAILURE));
 		}
 	}
 
@@ -270,28 +294,28 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupNone() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForAuthTypeNone();
 		addTokenEndpointClientAuthentication = AddAuthClientNoneAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretBasic();
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretPost();
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJwt() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
@@ -305,7 +329,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;

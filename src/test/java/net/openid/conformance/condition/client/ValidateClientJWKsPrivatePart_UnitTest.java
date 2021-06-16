@@ -56,6 +56,32 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
+	public void testEvaluate_encryptionKeyOnlyNoError() {
+		// This happens when testing with client_secret_basic but using encrypted id_tokens
+		client.add("jwks", new JsonParser().parse("{\n" +
+			"            \"keys\": [\n" +
+			"                {\n" +
+			"                    \"p\": \"0_PYObuWtoSKNPp4vKSbZUbVPxn0Pw5Z7r6SRfnYyE8mPaXvptdmQxGazBzt4kABfRHN1aUvnEH8aF2F3HlIP0938wyXWUN-0WvMDcdm1OZYW4bWCjom1JBS8IrvjCoaFzQsWzL-K-1xtTjIu8dSIFco4su9r3vn2YRlCqw-_A8\",\n" +
+			"                    \"kty\": \"RSA\",\n" +
+			"                    \"q\": \"qqUV6TYILpRiBmN28uqUFeUIEdbo1618EMIJyCRoRH6m2A-F1mXBchEALY8pyU8sLMYxzvfTtHM7JTA3zaR42v-sySvq2pkcwlvyVFHyGzfcc5yHhxxxFTcD48a5SCz0ah0Ua0DKUNXByRkpXCFjAxvWmIn2Oi48GQKRfBURz70\",\n" +
+			"                    \"d\": \"eUGjAoaBszhxfytcv7n6M-AaesYPGKplMxTLhI275rtnYgjzv1Cof2suhuZ2pmjqThI3HsAOu0VaHFEeEIQbB7KgwGyZxFU4gwo0aLwtl4arRVFb37J36FkDuAh5ehsNnZPfgPWfGDerRTjuyNBzb4yxWdf8j0N1j6rFN0dDggz31IOyDunGvgUPaSNdSWau65HJq0T4EajoRzhUGEIxMBvLjJehUtxIup0vuPqYsHuZPRXdOAURvHZHI-xNS1xVIxAvIr37OVFREWtuaJ5-cM4NlR9HuxfMU1cvrbkdr3fzzG5jJRmbt5WGe8dHfdaehwG9bLS8OaFpo7W7Hwf_eQ\",\n" +
+			"                    \"e\": \"AQAB\",\n" +
+			"                    \"use\": \"enc\",\n" +
+			"                    \"kid\": \"certification_client_13\",\n" +
+			"                    \"qi\": \"e3_GKMA5SqMC5N3QFdd_yCGj4MdwQiH7cjZKoSfHEqxzgBAfDe6tY6N7kfGwl9dRyAMPOA1RJU_IF-aI9UjbX7I5Rb7Ury-FjudQkCvORKBWaZLzv1kAbPBIYPZ3BZU3lOjlFOQaV22s_SBWwx-FnKuwlwHwBHDzvygnToQXVeU\",\n" +
+			"                    \"dp\": \"rbjrvUY4HZk8_nddhqEUjUoldvb67sQAimLA2YITYPseyOC9MO7T7pz7V9lOUWdM0QpKv5YJE_YxwAkHstHlmZ61Hg1v78YWp-fG9HQ_oLi8Kyi1PuSy9v7kPCxkc2n-wI4O3SFKmw6faH4GaYLRmZhW9q0v6CmSuwJ9HuZXKZk\",\n" +
+			"                    \"alg\": \"RSA1_5\",\n" +
+			"                    \"dq\": \"X3nWdJFiqo0i-2gTWX6eNFHc3f5ccLAERmwKhQy5ufkS6LhmrbppLaUNcHA1dQjzMmoB3EcVEFWYtgnwbwKjDAUZa8VCteQND0HaqArhZxEuKxFdUt869h-98Wdyq0tbxTNYBVpO2EOBFT8awQ19FHQy8U3fklXkEio5tC8ltBE\",\n" +
+			"                    \"n\": \"jUib5MowvBJatOuT5GBoDWjg4uos-H4Uu8xFpFBqVwcflqDqq0TwQdj3o7ikTs8r-aFmpq0KRPQRbiAnCjNKrFS2O11q2zvueCi0bdYAaIS67uKeCXM-N1btNlSUg2i63P5DAkIPACKt0fyazwBOWyoJLY-CtPiUm1kramPcO3wvUKOPhObYf4847tBerkHm5NkxmJDSxET8sdzQMMncdyEtuTlGQGz9ruxYjhiPiqDaNs7uZ2Y5Y5_8iz1ZZFJEEv1d7z75cSJvheD2rsgVETbkD7-gQAxksp1ZH124ZucfnX-G_-CTq5un8ZCsQswt2OwV-5KzgnzErWtIEE84Ew\"\n" +
+			"                }\n" +
+			"            ]\n" +
+			"        }").getAsJsonObject());
+		env.putObject("client", client);
+
+		cond.execute(env);
+	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_RSAPrivateKeyErrorKeysNotMatch() {
 		client.add("jwks", new JsonParser().parse("{" +
