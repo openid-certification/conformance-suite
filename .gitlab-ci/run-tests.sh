@@ -26,6 +26,7 @@ export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
 export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
 export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
 export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
+export BRAZIL_CONSENT_REQUEST='test/a/fintech-clienttest/consents/v1/consents'
 
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
