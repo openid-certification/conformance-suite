@@ -116,6 +116,15 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		RegisteredClient rc = new RegisteredClient();
 		rc.setClientId(obbrazilClientId);
 		rc.setClientSecret(obbrazilClientSecret);
+		rc.setScope(ImmutableSet.of("openid", "email"));
+		rc.setRedirectUris(ImmutableSet.of(redirectURI));
+		return rc;
+	}
+
+	private RegisteredClient gitlabClientConfig() {
+		RegisteredClient rc = new RegisteredClient();
+		rc.setClientId(gitlabClientId);
+		rc.setClientSecret(gitlabClientSecret);
 		// email is only asked for to make it clear to the user which account they're logged into, if they have multiple gitlab ones
 		rc.setScope(ImmutableSet.of("openid", "email"));
 		rc.setRedirectUris(ImmutableSet.of(redirectURI));
@@ -153,7 +162,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
 
 		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(obbrazilIss, obbrazilClientConfig()));
+		clientConfigService.setClients(ImmutableMap.of(obbrazilIss, obbrazilClientConfig(), gitlabIss, gitlabClientConfig() ));
 
 		// Setup template for dynamic registration
 		clientConfigService.setTemplate(getClientTemplate());
