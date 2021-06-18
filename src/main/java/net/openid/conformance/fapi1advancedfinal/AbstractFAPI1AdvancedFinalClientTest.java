@@ -20,6 +20,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
+import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -36,6 +37,7 @@ import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInSer
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
+import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
@@ -579,8 +581,29 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				callAndStopOnFailure(FAPIBrazilEnsureRequestedScopeContainsConsents.class);
 				return clientCredentialsGrantType(requestId);
 			}
+		} else if (grantType.equals("refresh_token")) {
+			return refreshTokenGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
+	}
+
+	protected Object refreshTokenGrantType(String requestId) {
+
+		callAndStopOnFailure(ValidateRefreshToken.class);
+
+		issueAccessToken();
+
+		//generate a new refresh token
+		issueRefreshToken();
+
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
 	}
 
 	protected Object clientCredentialsGrantType(String requestId) {
@@ -611,6 +634,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		issueAccessToken();
+
+		issueRefreshToken();
 
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if("yes".equals(isOpenIdScopeRequested)) {
@@ -779,6 +804,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void issueAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+	}
+
+	protected void issueRefreshToken() {
+		callAndStopOnFailure(CreateRefreshToken.class);
 	}
 
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
