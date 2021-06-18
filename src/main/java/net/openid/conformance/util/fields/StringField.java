@@ -1,14 +1,18 @@
 package net.openid.conformance.util.fields;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 public class StringField extends Field {
 
-	private List<String> enumList = Collections.emptyList();
+	private Set<String> enums = Collections.emptySet();
 
-	public List<String> getEnumList() {
-		return this.enumList;
+	public Set<String> getEnums() {
+		return this.enums;
+	}
+
+	public void setEnums(Set<String> enums) {
+		this.enums = enums;
 	}
 
 	public static class Builder {
@@ -24,8 +28,8 @@ public class StringField extends Field {
 			return this;
 		}
 
-		public Builder setFieldOptional(boolean isOptional) {
-			stringField.setOptional(isOptional);
+		public Builder setFieldOptional() {
+			stringField.setOptional();
 			return this;
 		}
 
@@ -34,8 +38,8 @@ public class StringField extends Field {
 			return this;
 		}
 
-		public Builder setEnumList(List<String> enumList) {
-			stringField.enumList = enumList;
+		public Builder setEnums(Set<String> enums) {
+			stringField.enums = enums;
 			return this;
 		}
 

@@ -9,8 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-
-@UseResurce("jsonResponses/account/accountLimitsResponse.json")
+@UseResurce("jsonResponses/account/limits/accountLimitsResponse.json")
 public class AccountLimitsValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -20,11 +19,18 @@ public class AccountLimitsValidatorTest extends AbstractJsonResponseConditionUni
 	}
 
 	@Test
-	@UseResurce("jsonResponses/account/accountLimitsResponse_missing_consents.json")
+	@UseResurce("jsonResponses/account/limits/accountLimitsResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 		AccountLimitsValidator condition = new AccountLimitsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data.unarrangedOverdraftAmountCurrency")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("unarrangedOverdraftAmountCurrency")));
+	}
 
+	@Test
+	@UseResurce("jsonResponses/account/limits/errors/accountLimitsResponseWrongRegexp.json")
+	public void validateStructureWrongRegexp() {
+		AccountLimitsValidator condition = new AccountLimitsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("overdraftUsedLimitCurrency")));
 	}
 }

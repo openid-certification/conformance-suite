@@ -5,6 +5,11 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.fields.BooleanField;
+import net.openid.conformance.util.fields.StringArrayField;
+import net.openid.conformance.util.fields.StringField;
+
+import java.util.Set;
 
 /**
  * This is validator for API - Dados Cadastrais "Identificação Pessoa Natural"
@@ -18,79 +23,443 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-		assertHasField(body, "$.data");
-		assertHasStringField(body, "$.data[0].updateDateTime");
-		assertHasStringField(body, "$.data[0].personalId");
-		assertHasStringField(body, "$.data[0].brandName");
-		assertHasStringField(body, "$.data[0].civilName");
-		assertHasStringField(body, "$.data[0].socialName");
-		assertHasStringField(body, "$.data[0].birthDate");
-		assertHasStringField(body, "$.data[0].maritalStatusCode");
-		assertHasStringField(body, "$.data[0].maritalStatusAdditionalInfo");
-		assertHasStringField(body, "$.data[0].sex");
-
-		assertHasStringArrayField(body, "$.data[0].companyCnpj");
-
-		assertHasField(body, "$.data[0].documents");
-		assertHasStringField(body, "$.data[0].documents.cpfNumber");
-		assertHasStringField(body, "$.data[0].documents.passportNumber");
-		assertHasStringField(body, "$.data[0].documents.passportCountry");
-		assertHasStringField(body, "$.data[0].documents.passportExpirationDate");
-		assertHasStringField(body, "$.data[0].documents.passportIssueDate");
-
-		assertHasField(body, "$.data[0].otherDocuments[0]");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].type");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].typeAdditionalInfo");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].number");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].checkDigit");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].additionalInfo");
-		assertHasStringField(body, "$.data[0].otherDocuments[0].expirationDate");
-
-		assertHasBooleanField(body, "$.data[0].hasBrazilianNationality");
-
-		assertHasField(body, "$.data[0].nationality[0]");
-		assertHasStringField(body, "$.data[0].nationality[0].otherNationalitiesInfo");
-
-		assertHasField(body, "$.data[0].nationality[0].documents[0]");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].type");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].number");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].expirationDate");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].issueDate");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].country");
-		assertHasStringField(body, "$.data[0].nationality[0].documents[0].typeAdditionalInfo");
-
-		assertHasField(body, "$.data[0].filiation[0]");
-		assertHasStringField(body, "$.data[0].filiation[0].type");
-		assertHasStringField(body, "$.data[0].filiation[0].civilName");
-		assertHasStringField(body, "$.data[0].filiation[0].socialName");
-
-		assertHasField(body, "$.data[0].contacts.postalAddresses[0]");
-		assertHasBooleanField(body, "$.data[0].contacts.postalAddresses[0].isMain");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].address");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].additionalInfo");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].districtName");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].townName");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].ibgeTownCode");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].countrySubDivision");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].postCode");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].country");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].countryCode");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].geographicCoordinates.latitude");
-		assertHasStringField(body, "$.data[0].contacts.postalAddresses[0].geographicCoordinates.longitude");
-
-		assertHasField(body, "$.data[0].contacts.phones[0]");
-		assertHasBooleanField(body, "$.data[0].contacts.phones[0].isMain");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].type");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].additionalInfo");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].countryCallingCode");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].areaCode");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].number");
-		assertHasStringField(body, "$.data[0].contacts.phones[0].phoneExtension");
-
-		assertHasField(body, "$.data[0].contacts.emails[0]");
-		assertHasBooleanField(body, "$.data[0].contacts.emails[0].isMain");
-		assertHasStringField(body, "$.data[0].contacts.emails[0].email");
-
+		assertHasField(body, ROOT_PATH);
+		assertJsonArrays(body, ROOT_PATH, this::assertInnerFieldsForData);
 		return environment;
+	}
+
+	private void assertInnerFieldsForData(JsonObject body) {
+		final Set<String> enumMaritalStatusCode = Set.of("SOLTEIRO", "CASADO",
+			"VIUVO", "SEPARADO_JUDICIALMENTE", "DIVORCIADO", "UNIAO_ESTAVEL", "OUTRO");
+		final Set<String> enumSex = Set.of("FEMININO", "MASCULINO", "OUTRO");
+
+		assertStringField(body,
+			new StringField
+				.Builder("updateDateTime")
+				.setMaxLength(20)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("personalId")
+				.setMaxLength(100)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("brandName")
+				.setMaxLength(80)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("civilName")
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("socialName")
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("birthDate")
+				.setMaxLength(10)
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("maritalStatusCode")
+				.setEnums(enumMaritalStatusCode)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("maritalStatusAdditionalInfo")
+				.setMaxLength(50)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("sex")
+				.setEnums(enumSex)
+				.build());
+
+		assertStringArrayField(body,
+			new StringArrayField
+				.Builder("companyCnpj")
+				.setPattern("\\d{14}|^NA$")
+				.setMaxLength(14)
+				.build());
+
+		assertBooleanField(body, new BooleanField
+			.Builder("hasBrazilianNationality")
+			.build());
+
+		assertDocuments(body);
+		assertOtherDocuments(body);
+		assertNationality(body);
+		assertFiliation(body);
+		assertContracts(body);
+	}
+
+	private void assertContracts(JsonObject body) {
+		assertHasField(body, "contacts");
+		assertHasField(body, "contacts.postalAddresses");
+		assertJsonArrays(body, "contacts.postalAddresses", this::assertInnerPostalAddressesFields);
+
+		assertHasField(body, "contacts.phones");
+		assertJsonArrays(body, "contacts.phones", this::assertInnerPhonesFields);
+
+		assertHasField(body, "contacts.emails");
+		assertJsonArrays(body, "contacts.emails", this::assertInnerEmailsFields);
+	}
+
+	private void assertFiliation(JsonObject body) {
+		assertHasField(body, "filiation");
+		assertJsonArrays(body, "filiation", this::assertInnerFiliationFields);
+	}
+
+	private void assertNationality(JsonObject body) {
+		assertHasField(body, "nationality");
+		assertJsonArrays(body, "nationality", this::assertInnerNationalityFields);
+	}
+
+	private void assertOtherDocuments(JsonObject body) {
+		assertHasField(body, "otherDocuments");
+		assertJsonArrays(body, "otherDocuments", this::assertInnerOtherDocuments);
+	}
+
+	private void assertDocuments(JsonObject body) {
+		JsonObject documents = findByPath(body, "documents").getAsJsonObject();
+
+		assertStringField(documents,
+			new StringField
+				.Builder("cpfNumber")
+				.setPattern("^\\d{11}$|^NA$")
+				.setMaxLength(11)
+				.build());
+
+		assertStringField(documents,
+			new StringField
+				.Builder("passportNumber")
+				.setPattern("\\w*\\W*|^NA$")
+				.setMaxLength(20)
+				.build());
+
+		assertStringField(documents,
+			new StringField
+				.Builder("passportCountry")
+				.setPattern("^(\\w{3}){1}$|^NA$")
+				.setMaxLength(3)
+				.build());
+
+		assertStringField(documents,
+			new StringField
+				.Builder("passportExpirationDate")
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.setMaxLength(10)
+				.build());
+
+		assertStringField(documents,
+			new StringField
+				.Builder("passportIssueDate")
+				.setFieldOptional()
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.setMaxLength(10)
+				.build());
+	}
+
+	private void assertInnerOtherDocuments(JsonObject body) {
+		final Set<String> enumPersonalOtherDocumentTypes = Set.of("CNH", "RG", "NIF", "RNE",
+			"OUTROS", "SEM_OUTROS_DOCUMENTOS");
+
+		assertStringField(body,
+			new StringField
+				.Builder("type")
+				.setEnums(enumPersonalOtherDocumentTypes)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("typeAdditionalInfo")
+				.setMaxLength(70)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("number")
+				.setMaxLength(11)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("checkDigit")
+				.setMaxLength(2)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("checkDigit")
+				.setFieldOptional()
+				.setMaxLength(50)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("expirationDate")
+				.setMaxLength(10)
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.build());
+	}
+
+	private void assertInnerNationalityFields(JsonObject body) {
+		assertStringField(body,
+			new StringField
+				.Builder("otherNationalitiesInfo")
+				.setMaxLength(40)
+				.build());
+
+		assertHasField(body, "documents");
+		assertJsonArrays(body, "documents", this::assertInnerNationalityDocumentsFields);
+	}
+
+	private void assertInnerNationalityDocumentsFields(JsonObject body) {
+		assertStringField(body,
+			new StringField
+				.Builder("type")
+				.setMaxLength(10)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("number")
+				.setMaxLength(40)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("expirationDate")
+				.setMaxLength(10)
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("issueDate")
+				.setMaxLength(10)
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("country")
+				.setFieldOptional()
+				.setMaxLength(80)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("typeAdditionalInfo")
+				.setFieldOptional()
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*")TODO: wrong pattern
+				.build());
+	}
+
+	private void assertInnerFiliationFields(JsonObject body) {
+		final Set<String> enumFiliationType = Set.of("MAE", "PAI", "SEM_FILIACAO");
+
+		assertStringField(body,
+			new StringField
+				.Builder("type")
+				.setEnums(enumFiliationType)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("civilName")
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("socialName")
+				.setFieldOptional()
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.build());
+	}
+
+	private void assertInnerPostalAddressesFields(JsonObject body) {
+		final Set<String> enumCountrySubDivision =  Set.of("AC", "AL", "AP", "AM",
+			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
+			"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
+
+		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("address")
+				.setMaxLength(150)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("additionalInfo")
+				.setFieldOptional()
+				.setMaxLength(30)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("districtName")
+				.setMaxLength(50)
+				.setPattern("\\w*\\W*|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("townName")
+				.setMaxLength(50)
+				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("ibgeTownCode")
+				.setFieldOptional()
+				.setMaxLength(7)
+				.setPattern("\\d{7}$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("countrySubDivision")
+				.setEnums(enumCountrySubDivision)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("postCode")
+				.setMaxLength(8)
+				.setPattern("\\d{8}|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("country")
+				.setMaxLength(80)
+				.setPattern("\\w*\\W*")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("countryCode")
+				.setFieldOptional()
+				.setMaxLength(3)
+				.build());
+
+//TODO: need to add latitude & longitude checking
+		assertStringField(body,
+			new StringField
+				.Builder("latitude")
+				.setFieldOptional()
+				.setMaxLength(13)
+				.setPattern("^-?\\d{1,2}\\.\\d{1,9}$")
+				.build());
+
+//TODO: need to add latitude & longitude checking
+		assertStringField(body,
+			new StringField
+				.Builder("longitude")
+				.setFieldOptional()
+				.setMaxLength(13)
+				.setPattern("^-?\\d{1,3}\\.\\d{1,8}$")
+				.build());
+	}
+
+	private void assertInnerPhonesFields(JsonObject body) {
+		final Set<String> enumCustomerPhoneType = Set.of("FIXO", "MOVEL", "OUTRO");
+		final Set<String> enumAreaCodes = Set.of("11", "12", "13", "14", "15", "16", "17",
+			"18", "19", "21", "22", "24", "27", "28", "31", "32", "33", "34", "35", "37", "38",
+			"41", "42", "43", "44", "45", "46", "47", "48", "49", "51", "53", "54", "55",
+			"61", "62", "63", "64", "65", "66", "67", "68", "69", "71", "73", "74", "75",
+			"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
+			"93", "94", "95", "96", "97", "98", "99", "NA");
+
+		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("type")
+				.setEnums(enumCustomerPhoneType)
+				.setMaxLength(5)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("additionalInfo")
+				.setFieldOptional()
+				.setMaxLength(70)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("countryCallingCode")
+				.setMaxLength(4)
+				.setPattern("^\\d{2,4}$|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("areaCode")
+				.setMaxLength(2)
+				.setEnums(enumAreaCodes)
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("number")
+				.setMaxLength(11)
+				.setPattern("^([0-9]{8,11})|^NA$")
+				.build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("phoneExtension")
+				.setMaxLength(5)
+				.setPattern("^\\d{1,5}$|^NA$")
+				.build());
+	}
+
+	private void assertInnerEmailsFields(JsonObject body) {
+		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+
+		assertStringField(body,
+			new StringField
+				.Builder("email")
+				.setMaxLength(320)
+				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.build());
 	}
 }

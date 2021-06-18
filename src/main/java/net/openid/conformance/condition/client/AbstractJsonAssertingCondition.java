@@ -7,29 +7,33 @@ import com.google.gson.JsonParser;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.fields.BooleanField;
-import net.openid.conformance.util.fields.DoubleField;
-import net.openid.conformance.util.fields.Field;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.fields.*;
 import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static net.openid.conformance.testmodule.OIDFJSON.*;
 
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
+	private static final Logger logger = LoggerFactory.getLogger(AbstractJsonAssertingCondition.class);
+
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
 	public static final String ROOT_PATH = "$.data";
+
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
@@ -43,7 +47,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertStatus(int expected, Environment environment) {
 		int actual = statusFrom(environment);
-		if(expected != actual) {
+		if (expected != actual) {
 			throw error(String.format("Expected HTTP response code to be %d but it was %d", expected, actual));
 		}
 	}
@@ -62,7 +66,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getString(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a string", jsonObject);
 		}
 	}
@@ -77,16 +81,31 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
 		assertPatternAndMaxLength(stringFieldValue, field);
 
-		if	(!field.getEnumList().isEmpty()) {
-			assertValueFromEnumList(stringFieldValue, field.getEnumList(), field.getPath());
+		if (!field.getEnums().isEmpty()) {
+			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
 		}
+	}
+
+	protected void assertDateTimeField(JsonObject jsonObject, DatetimeField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		assertHasStringField(jsonObject, field.getPath());
+
+		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
+
+		assertPatternAndMaxLength(stringFieldValue, field);
+		if (field.getMaxLength() > 0) {
+			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
+		}
+
 	}
 
 	protected void assertHasIntField(JsonObject jsonObject, String path) {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getInt(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not an int", jsonObject);
 		}
 	}
@@ -101,7 +120,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertPatternAndMaxLength(stringFieldValue, field);
 	}
 
-	protected void assertIntField(JsonObject jsonObject, DoubleField field) {
+	protected void assertIntField(JsonObject jsonObject, IntField field) {
 		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
 			return;
 		}
@@ -110,7 +129,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
 		assertPatternAndMaxLength(stringFieldValue, field);
 
-		if	(field.getMinLength() > 0) {
+		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 	}
@@ -124,7 +143,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
 		assertPatternAndMaxLength(stringFieldValue, field);
 
-		if	(field.getMinLength() > 0) {
+		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 	}
@@ -138,16 +157,28 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
 		assertPatternAndMaxLength(stringFieldValue, field);
 
-		if	(field.getMinLength() > 0) {
+		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
+	}
+
+	protected void assertStringArrayField(JsonObject jsonObject, StringArrayField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+
+		assertHasStringArrayField(jsonObject, field.getPath());
+
+		JsonElement found = findByPath(jsonObject, field.getPath());
+		List<String> strings = OIDFJSON.getStringArray(found);
+		strings.forEach(s -> assertPatternAndMaxLength(s, field));
 	}
 
 	protected void assertHasDoubleField(JsonObject jsonObject, String path) {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getDouble(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a double", jsonObject);
 		}
 	}
@@ -156,7 +187,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getFloat(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a float", jsonObject);
 		}
 	}
@@ -165,7 +196,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getLong(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a long", jsonObject);
 		}
 	}
@@ -174,7 +205,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getBoolean(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a boolean", jsonObject);
 		}
 	}
@@ -183,7 +214,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getStringArray(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not an array of strings", jsonObject);
 		}
 	}
@@ -192,7 +223,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getCharacter(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a character", jsonObject);
 		}
 	}
@@ -201,7 +232,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getShort(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a short", jsonObject);
 		}
 	}
@@ -210,22 +241,27 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
 			OIDFJSON.getByte(found);
-		} catch(UnexpectedJsonTypeException u) {
+		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not a byte", jsonObject);
 		}
+	}
+
+	protected void assertJsonObject(JsonObject body, String pathToJsonObject, Consumer<JsonObject> consumer) {
+		JsonObject object = (JsonObject) findByPath(body, pathToJsonObject);
+		consumer.accept(object.getAsJsonObject());
 	}
 
 	protected void assertJsonField(JsonObject jsonObject, String path, String expected) {
 		JsonElement actual = findByPath(jsonObject, path);
 		String stringValue = getOrFail(() -> getString(actual));
-		if(!stringValue.equals(expected)) {
+		if (!stringValue.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
 		}
 	}
 
 	protected void assertJsonField(JsonObject jsonObject, String path, Match match) {
 		String stringValue = getJsonValueAsString(jsonObject, path);
-		if(!match.matches(stringValue)) {
+		if (!match.matches(stringValue)) {
 			throw error(String.format("Path %s did not match %s", path, match), jsonObject);
 		}
 	}
@@ -236,7 +272,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		List<String> found = Arrays.stream(expected)
 			.filter(s -> !array.contains(s))
 			.collect(Collectors.toList());
-		if(found.size() != 0) {
+		if (found.size() != 0) {
 			throw error(String.format("Headers did not contain all of %s", String.join(" ", expected)), jsonObject);
 		}
 	}
@@ -244,7 +280,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	protected void assertJsonField(JsonObject jsonObject, String path, Number expected) {
 		JsonElement actual = findByPath(jsonObject, path);
 		Number number = getOrFail(() -> getNumber(actual));
-		if(!number.equals(expected)) {
+		if (!number.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
 		}
 	}
@@ -252,7 +288,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	protected void assertJsonField(JsonObject jsonObject, String path, Character expected) {
 		JsonElement actual = findByPath(jsonObject, path);
 		Character c = getOrFail(() -> getCharacter(actual));
-		if(!c.equals(expected)) {
+		if (!c.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
 		}
 	}
@@ -260,7 +296,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	protected void assertJsonField(JsonObject jsonObject, String path, boolean expected) {
 		JsonElement actual = findByPath(jsonObject, path);
 		Boolean bool = getOrFail(() -> getBoolean(actual));
-		if(!bool.equals(expected)) {
+		if (!bool.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
 		}
 	}
@@ -269,7 +305,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 		Matcher matcher = JSONPATH_PRETTIFIER.matcher(path);
 		String elementName = "data";
-		if(matcher.matches()) {
+		if (matcher.matches()) {
 			elementName = matcher.group("path");
 		}
 
@@ -289,6 +325,43 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	private void logQuerying(String elementName) {
 		log(createQueryMessage(elementName));
+	}
+
+	protected void assertLatitude(JsonObject jsonObject, DoubleField doubleField) {
+		if (doubleField.isOptional() && !ifExists(jsonObject, doubleField.getPath())) {
+			return;
+		}
+
+		assertDoubleField(jsonObject, doubleField);
+
+		JsonElement found = findByPath(jsonObject, doubleField.getPath());
+		try {
+			double latitude = getDouble(found);
+			if (latitude > 91.0 && latitude < -91.0) {
+				throw error("Field at " + doubleField.getPath() + " was not a latitude", jsonObject);
+			}
+		} catch (UnexpectedJsonTypeException u) {
+			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+		}
+	}
+
+	protected void assertLongitude(JsonObject jsonObject, DoubleField doubleField) {
+		if (doubleField.isOptional() && !ifExists(jsonObject, doubleField.getPath())) {
+			return;
+		}
+
+		assertDoubleField(jsonObject, doubleField);
+
+		JsonElement found = findByPath(jsonObject, doubleField.getPath());
+		try {
+			String s = getString(found);
+			double latitude = Double.parseDouble(s);
+			if (latitude > 181.0 && latitude < -181.0) {
+				throw error("Field at " + doubleField.getPath() + " was not a longtitude", jsonObject);
+			}
+		} catch (UnexpectedJsonTypeException u) {
+			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+		}
 	}
 
 	public String createQueryMessage(String elementName) {
@@ -320,7 +393,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	public String createFieldValueIsLessThanMinLengthMessage(String elementName) {
 		return String.format("Value from element %s is less than the required minLength " +
-				"on the %s API response", elementName, getApiName());
+			"on the %s API response", elementName, getApiName());
 	}
 
 	private final String getApiName() {
@@ -332,6 +405,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	protected void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
 		JsonArray array = (JsonArray) findByPath(body, pathToJsonArray);
 		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
+	}
+
+	protected void assertOptionalJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
+		try {
+			JsonArray array = (JsonArray) findByPath(body, pathToJsonArray);
+			array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
+		} catch (ConditionError error) {
+			logger.error("The optional field not found. " + error.getMessage());
+		}
 	}
 
 	private boolean ifExists(JsonObject jsonObject, String path) {
@@ -367,17 +449,20 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		if (field.getMaxLength() > 0) {
 			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
 		}
-	}
-
-	private void assertRegexMatchesField(String value, String path, Match match) {
-		if(!match.matches(value)) {
-			throw error(createFieldValueNotMatchPatternMessage(path));
+		if (!field.getEnums().isEmpty()) {
+			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
 		}
 	}
 
-	private void assertValueFromEnumList(String fieldValue, List<String> enumList, String path) {
-		if	(!enumList.contains(fieldValue)) {
+	private void assertValueFromEnum(String fieldValue, Set<String> enums, String path) {
+		if (!enums.contains(fieldValue)) {
 			throw error(createFieldValueNotMatchEnumerationMessage(path));
+		}
+	}
+
+	private void assertRegexMatchesField(String value, String path, Match match) {
+		if (!match.matches(value)) {
+			throw error(createFieldValueNotMatchPatternMessage(path));
 		}
 	}
 

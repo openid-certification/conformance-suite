@@ -15,8 +15,8 @@ public class BooleanField extends Field {
 			return this;
 		}
 
-		public Builder setFieldOptional(boolean isOptional) {
-			booleanField.setOptional(isOptional);
+		public Builder setFieldOptional() {
+			booleanField.setOptional();
 			return this;
 		}
 

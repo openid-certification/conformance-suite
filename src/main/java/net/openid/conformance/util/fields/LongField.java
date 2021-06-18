@@ -15,8 +15,8 @@ public class LongField extends Field {
 			return this;
 		}
 
-		public Builder setFieldOptional(boolean isOptional) {
-			longField.setOptional(isOptional);
+		public Builder setFieldOptional() {
+			longField.setOptional();
 			return this;
 		}
 

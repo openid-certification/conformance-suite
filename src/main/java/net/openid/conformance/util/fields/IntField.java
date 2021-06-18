@@ -15,8 +15,8 @@ public class IntField extends Field {
 			return this;
 		}
 
-		public Builder setFieldOptional(boolean isOptional) {
-			intField.setOptional(isOptional);
+		public Builder setFieldOptional() {
+			intField.setOptional();
 			return this;
 		}
 
