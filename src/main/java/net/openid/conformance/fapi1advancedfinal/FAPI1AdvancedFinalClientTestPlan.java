@@ -34,7 +34,8 @@ import net.openid.conformance.plan.TestPlan;
 		FAPI1AdvancedFinalClientTestNoAtHash.class,
 		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
-		FAPI1AdvancedFinalClientRefreshTokenTest.class
+		FAPI1AdvancedFinalClientRefreshTokenTest.class,
+		FAPI1AdvancedFinalClientEncryptedRequestObjectTest.class
 	}
 )
 public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
