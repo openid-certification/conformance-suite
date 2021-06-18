@@ -15,3 +15,4 @@ ENTRYPOINT java \
   -D"oidc.obbrazil.clientid=${OIDC_OBBRAZIL_CLIENTID}" \
   -D"oidc.obbrazil.secret=${OIDC_OBBRAZIL_SECRET}" \
   -jar /server/fapi-test-suite.jar
+  
