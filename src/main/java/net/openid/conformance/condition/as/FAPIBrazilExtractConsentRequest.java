@@ -14,7 +14,7 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "incoming_request")
-	//also adds consent_request_cpnj if found in request
+	//also adds consent_request_cnpj if found in request
 	@PostEnvironment(strings = {"consent_request_cpf"}, required = {"new_consent_request"})
 	public Environment evaluate(Environment env) {
 
@@ -50,7 +50,7 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 				throw error("businessEntity.document.rel is not equal to 'CNPJ'", args("businessEntity", businessEntity));
 			}
 			String businessIdentification = OIDFJSON.getString(businessEntityDocument.get("identification"));
-			env.putString("consent_request_cpnj", businessIdentification);
+			env.putString("consent_request_cnpj", businessIdentification);
 		}
 		JsonArray permissions = data.get("permissions").getAsJsonArray();
 

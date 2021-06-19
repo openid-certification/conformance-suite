@@ -31,6 +31,8 @@ import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestedScopeContainsConsents;
@@ -525,6 +527,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		}
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 
@@ -827,6 +832,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		}
 
 		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
 			call(sequence(authorizationCodeGrantTypeProfileSteps));
