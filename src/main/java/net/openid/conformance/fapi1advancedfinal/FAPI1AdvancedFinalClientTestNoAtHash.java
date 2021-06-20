@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.RemoveAtHashFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -19,6 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks",
 	}
 )
+@VariantNotApplicable(parameter = FAPIJARMType.class, values = { "plain_oauth" })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi" })
 public class FAPI1AdvancedFinalClientTestNoAtHash extends AbstractFAPI1AdvancedFinalClientTest {
 

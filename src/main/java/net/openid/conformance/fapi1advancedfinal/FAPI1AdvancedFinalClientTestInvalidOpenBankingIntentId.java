@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks",
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi" })
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil" })
 public class FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
