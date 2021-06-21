@@ -1,6 +1,8 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.plans;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -23,6 +25,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class AccountApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
+	}
 
 	@Override
 	protected void validateResponse() {

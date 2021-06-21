@@ -16,6 +16,7 @@ import org.hibernate.validator.constraints.br.CPF;
 import org.openqa.selenium.json.Json;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -28,14 +29,14 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 	@PostEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
 
+		String[] permissions = Optional.ofNullable(env.getString("consent_permissions"))
+			.map(p -> p.split("\\W"))
+			.orElse(new String[] { "ACCOUNTS_READ" });
+
 		String cpf = env.getString("config", "resource.brazilCpf");
 		if (Strings.isNullOrEmpty(cpf)) {
 			throw error("CPF value missing from test configuration");
 		}
-
-		String[] permissions = Optional.ofNullable(env.getString("consent_permissions"))
-			.map(c -> c.split("\\W"))
-			.orElse(new String[] {"ACCOUNTS_READ"});
 
 		// see https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-parcelas-do-contrato
 		OpenBankingBrasilConsentRequest consentRequest =

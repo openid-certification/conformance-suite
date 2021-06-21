@@ -1,5 +1,6 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.plans;
 
+import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 

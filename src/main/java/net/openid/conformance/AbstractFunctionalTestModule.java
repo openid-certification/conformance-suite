@@ -3,13 +3,11 @@ package net.openid.conformance;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalServerTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
 public abstract class AbstractFunctionalTestModule extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
 	protected void requestProtectedResource() {
-
 		super.requestProtectedResource();
 		eventLog.startBlock(currentClientString() + "Validate response");
 		validateResponse();
