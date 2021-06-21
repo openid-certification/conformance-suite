@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
@@ -20,16 +21,29 @@ import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
-import net.openid.conformance.condition.as.EncryptIdToken;
+import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
+import net.openid.conformance.condition.as.EnsureRequestObjectWasEncrypted;
 import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
+import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
+import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
+import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
+import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestedScopeContainsConsents;
+import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
+import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
+import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
+import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
+import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
@@ -71,6 +85,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -87,6 +102,8 @@ import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
@@ -106,9 +123,9 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
-import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -125,7 +142,7 @@ import javax.servlet.http.HttpSession;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPIProfile.class,
+	FAPI1FinalOPProfile.class,
 	FAPIAuthRequestMethod.class,
 	FAPIResponseMode.class,
 	FAPIJARMType.class
@@ -146,7 +163,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
-
+	public static final String BRAZIL_CONSENTS_PATH = "consents/v1/consents";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
@@ -156,7 +173,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
 	// Controls which endpoints we should expose to the client
-	protected FAPIProfile profile;
+	protected FAPI1FinalOPProfile profile;
 
 	protected FAPIAuthRequestMethod authRequestMethod;
 
@@ -194,7 +211,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
-		profile = getVariant(FAPIProfile.class);
+		profile = getVariant(FAPI1FinalOPProfile.class);
 		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
@@ -204,7 +221,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndStopOnFailure(ExtractServerSigningAlg.class);
+
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
+			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
+			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+		} else {
+			callAndStopOnFailure(ExtractServerSigningAlg.class);
+		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
@@ -215,8 +240,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
-
+		//TODO check if this is correct and necessary
 		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
+
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
@@ -335,11 +361,17 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
-		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPIProfile.OPENBANKING_UK) {
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if(BRAZIL_CONSENTS_PATH.equals(path)) {
+				return brazilHandleNewConsentRequest(requestId);
+			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
+				return brazilHandleGetConsentRequest(requestId, path);
+			}
+		}
+		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
 	@Override
@@ -365,9 +397,72 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			return accountsEndpoint(requestId);
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
+
+		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	protected Object brazilHandleNewConsentRequest(String requestId) {
+		setStatus(Status.RUNNING);
+		//Requires method=POST
+		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+
+		callAndStopOnFailure(FAPIBrazilExtractConsentRequest.class, "BrazilOB-5.2.2.2");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+
+		callAndStopOnFailure(FAPIBrazilGenerateNewConsentResponse.class, "BrazilOB-5.2.2.2");
+		JsonObject response = env.getObject("consent_response");
+		JsonObject headerJson = env.getObject("consent_response_headers");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(response, headersFromJson(headerJson), HttpStatus.CREATED);
+	}
+
+
+
+	protected Object brazilHandleGetConsentRequest(String requestId, String path) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
+
+		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+		/*
+		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
+		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
+		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		*/
+
+		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
+		env.putString("requested_consent_id", requestedConsentId);
+		callAndStopOnFailure(FAPIBrazilGenerateGetConsentResponse.class, "BrazilOB-5.2.2.2");
+
+		JsonObject response = env.getObject("get_consent_response");
+		JsonObject headerJson = env.getObject("get_consent_response_headers");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(response, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected Object discoveryEndpoint() {
@@ -436,6 +531,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		}
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 
@@ -486,12 +584,37 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials") && profile == FAPIProfile.OPENBANKING_UK) {
-			// we're doing the client credentials grant for initial token access
-			return clientCredentialsGrantType(requestId);
-		} else {
-			throw new TestFailureException(getId(), "Got a grant type on the token endpoint we didn't understand: " + grantType);
+		} else if (grantType.equals("client_credentials")) {
+			if( profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+				// we're doing the client credentials grant for initial token access
+				return clientCredentialsGrantType(requestId);
+			} else if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				callAndStopOnFailure(FAPIBrazilEnsureRequestedScopeContainsConsents.class);
+				return clientCredentialsGrantType(requestId);
+			}
+		} else if (grantType.equals("refresh_token")) {
+			return refreshTokenGrantType(requestId);
 		}
+		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
+	}
+
+	protected Object refreshTokenGrantType(String requestId) {
+
+		callAndStopOnFailure(ValidateRefreshToken.class);
+
+		issueAccessToken();
+
+		//generate a new refresh token
+		issueRefreshToken();
+
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
 	}
 
 	protected Object clientCredentialsGrantType(String requestId) {
@@ -522,6 +645,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		issueAccessToken();
+
+		issueRefreshToken();
 
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if("yes".equals(isOpenIdScopeRequested)) {
@@ -568,6 +693,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
 			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
+				callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
+			}
 		}
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
@@ -596,6 +725,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			issueIdToken(true);
 		}
 
+		/*
+		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
+			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
+				usuário na instituição transmissora dos dados.
+		 */
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class, "");
+		}
+
 		createAuthorizationEndpointResponse();
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
@@ -614,8 +752,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(jarmType==FAPIJARMType.OIDC) {
-			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
+					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
+			} else {
+				callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
+					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
+			}
 		}
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
@@ -644,7 +787,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
+		} else {
+			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+		}
 
 		if(responseMode==FAPIResponseMode.JARM) {
 			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADV-5.2.2-2");
@@ -674,6 +821,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
+	protected void issueRefreshToken() {
+		callAndStopOnFailure(CreateRefreshToken.class);
+	}
+
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
 
 		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
@@ -685,6 +836,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		}
 
 		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
 			call(sequence(authorizationCodeGrantTypeProfileSteps));
@@ -705,7 +859,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		addCustomValuesToIdToken();
 
-		callAndStopOnFailure(AddACRClaimToIdTokenClaims.class,  "OIDCC-3.1.3.7-12");
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				FAPIBrazilAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		} else {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		}
+
+
 	}
 	protected void signIdToken() {
 		callAndStopOnFailure(SignIdToken.class);
@@ -860,14 +1022,14 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPIProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;

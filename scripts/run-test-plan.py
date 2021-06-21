@@ -225,8 +225,8 @@ def run_test_plan(test_plan, config_file, output_dir):
                     re.match(r'fapi1-advanced-final-client-.*', module):
                     print("FAPI client test: " + module + " " + json.dumps(variant))
                     profile = variant['fapi_profile']
-                    os.putenv('CLIENTTESTMODE', 'fapi-ob' if re.match(r'openbanking', profile) else 'fapi-rw')
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                    os.environ['FAPI_PROFILE'] = profile
                     if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
                         os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
                     else:
