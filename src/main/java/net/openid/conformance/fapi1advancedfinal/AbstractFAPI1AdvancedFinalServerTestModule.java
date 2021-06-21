@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
@@ -21,6 +22,7 @@ import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
@@ -76,6 +78,7 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
@@ -119,6 +122,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -137,8 +141,8 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -232,8 +236,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
-
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
@@ -298,7 +300,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilCheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
+		} else {
+			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		}
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
@@ -405,10 +411,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
 
 		protected boolean isSecondClient;
-		protected boolean buildRedirect;
+		protected boolean encrypt;
 
-		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient) {
+		public CreateAuthorizationRequestObjectSteps(boolean isSecondClient, boolean encrypt) {
 			this.isSecondClient = isSecondClient;
+			this.encrypt = encrypt;
 		}
 
 		@Override
@@ -430,6 +437,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI1-ADV-5.2.3-8");
 
 			callAndStopOnFailure(SignRequestObject.class);
+
+			if (encrypt) {
+				callAndStopOnFailure(FAPIBrazilEncryptRequestObject.class, "BrazilOB-5.2.2-1", "BrazilOB-6.1.1-1");
+			}
 		}
 	}
 
@@ -438,7 +449,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return new CreateAuthorizationRequestObjectSteps(isSecondClient());
+		boolean isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
+		boolean isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		boolean encrypt = isBrazil && !isPar;
+		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), encrypt);
 	}
 
 	protected void onAuthorizationCallbackResponse() {
@@ -574,7 +588,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
+		}
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
@@ -608,7 +625,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI1-BASE-5.2.2.1-6");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1-1");
+		} else {
+			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		}
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,

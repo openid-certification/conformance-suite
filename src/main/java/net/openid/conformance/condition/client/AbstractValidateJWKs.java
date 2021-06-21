@@ -113,14 +113,16 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 				}
 				count++;
 			}
-			if (count != 1) {
-				throw error("Expected only one signing JWK in the keyset", args("jwks", jwks));
+			if (count > 1) {
+				throw error("The JWKS contains more than one signing key.", args("jwks", jwks));
 			}
-			// sign jwt using private key
-			SignedJWT jwt = signJWT(jwkSet, claimSet);
+			if (count > 0) {
+				// sign jwt using private key
+				SignedJWT jwt = signJWT(jwkSet, claimSet);
 
-			// Verify JWT after signed to check valid JWKs
-			verifyJWTAfterSigned(jwkSet, jwt);
+				// Verify JWT after signed to check valid JWKs
+				verifyJWTAfterSigned(jwkSet, jwt);
+			}
 		} catch (JOSEException | ParseException e) {
 			throw error("Error validating JWKS", ex(e, args("jwks", jwks)));
 		}

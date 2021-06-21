@@ -189,6 +189,44 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
+	public void testEvaluate_encryptedButNotSigned() {
+		String idToken = "eyJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiY2VydGlmaWNhdGlvbl9jbGllbnRfMTYiLCJjdHkiOiJKU09OIiwiZXhwIjoxNjIzODQ0MDc2LCJuYmYiOjE2MjM3NTc2NzYsImFsZyI6IlJTQTFfNSJ9.RmdnvchWM7VV2BuSE_3DZbD0Xzo4T-j4fK9p50P0rC0_zRXmDQDJ79xErYH-XjoZ-qyUrAqv4JCW6vpXPTOZKMroJXFXJ4OqZI8Sxw-If_pYfB_c5gS9WVzk6rnGh1No7Sdd-OwFpZWMVH-y0a9_zTuhhujtIswZxQytnONsSkefLFx4C1rxPEK3JzqOB46lQnle6wfSc8eDO06loSQQenwUeS9TohxO4RqV2NbXy-EtrWorjudmQu1ODAPikRhCECPtk6UpN613uvXmVfeqc1tWDb0xXWArsWzF9mjNqpnmwROSMRidNLNKI-WYTNqd2QuBRc07z0BPN9d4bHIEqg.FEmCtUg_Fk8F-W_Rc65VdQ.A0lzf6eQLnIFzWH1nZbduwPTdhZl23G4brvzYSmTtH05bd0gIOrlEcIR9pBF5dg6-lYHaOGKgPTg5xZ6LVMIRG2MPz6dZS3S9BQurT6cMAde7AhLxJ6FKgVEyXxpFU_CrwMZFulmrC0q-6FY-aeNPMCb_RalF7JsbbIGQMwYfNG8gEVPh8Mx4ZseVlKfN6EAR2HdQlsluy5dKhYZowZ3vO93VW_Ll6M7pTULEb0AJoRVScVMINTtR75-Kl7ui5cv5ggwpRabdggCrm_UHylsRdbE5iwUQZBWIWFwUHS7k-KNK-PcV9HxIzHZJIgmXZlVaR44vTk1eutDoRL571_6lu2bcAIl0SiUXcD_DbiBqKq2FgxRr-HbPecbadxNuY3vgAI1iv-1DzTG9vcP8O2h2Q.111GdTQtllmt64vjWBCMulKRW3K-y6pf-knRP_UOlo8";
+		JsonObject response = new JsonObject();
+		String decryptedIdToken = "eyJraWQiOiJhdXRobGV0ZS1mYXBpZGV2LWFwaS0yMDE4MDUyNCIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiIxMDAxIiwiYXVkIjpbIjIzMzQzODIzNTQxNTM0OTgiXSwiYWNyIjoidXJuOm1hY2U6aW5jb21tb246aWFwOnNpbHZlciIsImNfaGFzaCI6Ilk5SEFvWDUxM2xCZi1ObDhPY1ZLZGciLCJzX2hhc2giOiJ6WWdCSTFSal9XYXVCOGlXMnJaZ1p3IiwiYXV0aF90aW1lIjoxNTkzMDAxNjIyLCJpc3MiOiJodHRwczovL2ZhcGlkZXYtYXMuYXV0aGxldGUubmV0LyIsImV4cCI6MTU5MzAwMTkyMiwiaWF0IjoxNTkzMDAxNjIyLCJub25jZSI6Ik1LaFFjRzM3ZzkifQ.DaIaQB-ypPnB3humfuqW7VeTAsdWUNJSQFrAsjO3lHlslPT9neFe31zBnfn_1sODEMJHOA2Cep2P6crPFVsL-9UuWepB9El7_2j29QP0TY9O1bfafZ2BsUopTFkTfM8uE8YmdYPuvwQRAnkf3qCvczhAHjGVdS4zVggTirOz8QIWhKOphhkXeEsz4xbbUxWL0mG7cVxagWgoQYJydixOyuUM18JlhS_8XtUROsMxeJib_IvHSGPYV0JUZC4-MeVnsagxTqeX79Qx2nU7_-UE2RaB9KYZpGA9lhUw24mLL-U3lvLDODsoD5-rH3K6S57hsCl4bWrKDCvhMpfJY9YVIg";
+		response.addProperty("id_token", idToken);
+
+		String jwks =
+			"{\n" +
+				"            \"keys\": [\n" +
+				"                {\n" +
+				"                    \"p\": \"zjaMZNPo374rnLWABlXdtf6p7ogsrqAgXVodzGTWza6-K_ZR6mmu3zoBlTPk_8GYx5Y2WNzZAf3WZjgUyB3Zm9X3kfwIN0uG7DM2tCOOpBpqib4WC5pqgX_U5guK50L2ub9dikkgGamhPje6FicJGpqCSeSXqAaQ7Jtxkbswpp8\",\n" +
+				"                    \"kty\": \"RSA\",\n" +
+				"                    \"q\": \"qieioR_qmaOZlMYDifNyubqImRW3jAYCIy9AB7wV3xm5zS_ys_fn5beHqS0CAAvJooW3CR50OZUdV6L-urtRmegU55WHPZqGMvEpsytsVgIuPLkOrKcv6ZoHb3BuzjKM1JpO4-8cyaxtI1mPexgeKowL7R4-fXHjVjTnmGqXMRc\",\n" +
+				"                    \"d\": \"c5a4OjQBM47fU7W5T0imCvG53R-OUC343ek6vBYpiCvpXaX236KcyQp1uW563_mWvj_ER2eJqdqin0TT23lweobircZaZttat_MA00UD1OJzjQx9sKXvnAJ7g2oXaPJYrSEzhZyws64pT2QkDJUe6FyAYLtLkwzZpB_447N4-pNemTwPG-lw18_Z6DvY-LPS8ra6QfcPEMC3l1ZluLSx4s8EzYHiPCyrJN6oVpYInIaTSNlFyIrdkGjtufZDNm2wcBWZyKUDAFL5n-hvOt5_0x3oRIhAXAlgHUMpZkR9IUg2LnwVhnNufwXDtVB5-3EtLubjdH7Rswtqn2PMc4S7ZQ\",\n" +
+				"                    \"e\": \"AQAB\",\n" +
+				"                    \"use\": \"enc\",\n" +
+				"                    \"kid\": \"certification_client_16\",\n" +
+				"                    \"qi\": \"Y-cSENMCMH7IbyoyeETU9tJRhlQq1MgjjLFJgfY2tFj9581pAZ4rCGQZMPyu6_ciMAZZ9c5NnQ5cLkbOB_tFZ1h7KzoPG5WvoqB5QnkDuX0nJudxy2EHts5Cmdo5EPhM0OHAPuiE7v8lM9nvrKpvLi7zcSJQUOjybE0onWx_uMk\",\n" +
+				"                    \"dp\": \"Zdl5VB96CHBT-A2JExf77nS-l6q4bvN1qMXmq9ouYd5p3SrG4MGb9nMe7wN3mn6TKBjf9Nn3cM1fxJL0aLadkSOIKJlTsYPjOuw8m5JoVFMbxbaWCtsUuataitiunXRsieejmrZtXV9z3VgG2AQlsfcYXMjDwuCjWcmYuUK8T78\",\n" +
+				"                    \"alg\": \"RSA1_5\",\n" +
+				"                    \"dq\": \"VtIiiVRfwEVZ-C-RXrJ5t4sWaAZMwYXPUWSqp0exYUUfKTNuA6ZbDTu4XPo6KwvYtrTD0ENZyofrkOv6Tg2GdaGWCRSjDSvrjdLAFEvz228BaLqEYlRsfiW55YLZBx2D_nc-Cc_YQI9aoM7yBz0nJ06OR09HU3rpJPOZuIuq2cE\",\n" +
+				"                    \"n\": \"iRAmiqbwmy_uJsFZYIO39oNH4uGZKVmntNMpYf3nlQwLn78GuBGoobSA84u48IunpCuk5WhPfV0PwKuUaW2HtaoaP1Ker1f_1HyZ-X7_ZurUY3AI9D9F2BLSYUlScEaidN8Obp6r6OQPdYzbnE7_ygbGdra_gKS7VjPMavFaO-9M0lhlmwHpkBeofqOp4CCs5QlnLs5sG4BSmQWyqeaWNHcjQE1tZjOtFR4MfCO7xrqxXQpUkkuK5X11KGC3X149JdEyAJvo_6DiJOjWJ9zgpy6FfcPK06xc7i24JULiogAKT-uGtgHkMfYHr6CKsTNX_lZPQsRje02ktA8EPwxnSQ\"\n" +
+				"                }\n" +
+				"            ]\n" +
+				"        }";
+
+		env.putObject("token_endpoint_response", response);
+		env.putObjectFromJsonString("client_jwks", jwks);
+
+		cond.execute(env);
+
+		assertThat(env.getObject("id_token")).isNotNull();
+		assertThat(env.getString("id_token", "value")).isEqualTo(decryptedIdToken);
+		assertThat(env.getElementFromObject("id_token", "header")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "claims")).isNotNull();
+	}
+
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_encryptedNoJWKS() {
 		String idToken = "eyJraWQiOiJmYXBpMjAyMDA2MjMiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiUlNBLU9BRVAifQ.FuPr3fjrF_K5WpXRh7aYsEVj_hOJ9BWQOFNk_zEnz3YmwhEvolnMUUyIxHunSQ18asXggNEl6kTAtwo0V3RAJ00eIDQVxzLXfElH4Cw8Lpn34X4iqCeUDtwkKInyhETdvOkSd_Wzyw_dSLYlb60tpp5MYKzL68fNteBHv5mTmkQK6KZGO6JBg8ongx4mUa82w5syivHQMM7y46oTdBijy45adsDMRN8zB9p_PwQV-SYPOziQvlFeZnOISTiHBOT8PvL7TqSkY4sjZyBBt-cinHz-lf4uWe8F1r55HOTQj78HJl2W88g2viBGOOioq6Ie1FdBfe3h8xKenOD-k5ezfQ.8wRpiZTYGKNQq-l-y8UfEg.QEXO2olUMgqGJABKvlhQ_gf4HLa5lAgJ19BGT1lVGixkdlW7pc3VnXfv4DIXYYCXkvu1uyYhDf-T8BXRyokHzUGwslLFyLW4OjY59WZzfKXCBSb26pDuinY3PACNNOH9Q1WOjCtod0OoBnfMNuitfCGAqC7NryMWy_M-cZVIZxhGNtFkK8FqVCn2OlziXBqbdMXRJgCB7kRHSIWW1WqJE-8LHZ9X5fYWRB5XNrBVY1_t3ja6APR88CziQ4EJoGjVVfqXwH05ZMUQIOrLl3evzIEKfpzi8PDOunkSzZXkLZXH9zAbiQttD5Wy660LZ56ThGsbuEFvrImcn6NXrQlFtm3hmASG2D97Pp2WXtoWsJ3EUeuBuWHtEbe4Txger_0S4_1_c3M_1mk8Gretpq_3AMFOx1b95olZWl8rDMEkXQSWqMlyrh1oNdc1iP7axy6yv7fZwqVQhrrUBA7PfUZKlFlQA6VAeyluCVTvMfyVSnEy7ss9inc62ro2kEzIu5jzccR5GrkkfN86TKIRLupxJGXZgWk8TPo8hLr1Dj-8IDGSS07d9T8QV3C3LG67lKpgGoS2YXu0wm_FAt7q28qD0_sOfQCcGnq4GUv9n3zqzDfsJozOKHEbDFsn9UXA5lxyWzB0Qi5yJyKnO7b89UHzsF2gUlyPT5TUs5fd43ssaIaunfy6zaaf_7rt9KF2XTiRkHqtDENYT2vx7SMhlDfwsDaB8bZYJu69msUbG6Gye8KlhhsEX7Oa2kLZbhl0JcFRn8Hc00OrdlhbyGX3_NIhaV-7tF8AnJDDR5FQP1AMAKS5B6ACljFcjIWphktC6T-mJzemP-zaTMh7EBZQ7AQLWj8mrIU8unE7t4dc-78c2GDrq4NE-3wg1SNIC3Y8_RnhljsXmaXDWv-3svXxnhOxbw4MilKWoVgAA2sLTSHK9IHz7CVfKC4lEmPtgZFI2qgqcFvqHp_s6iA0DyBwCjcyse-z8DfVg0geISGrgj5_cLEgZcMc7cb2fIPrU_8juSZLd-1auuj9Oepq2MM8VMH5fw.p4il_u3aG-Ter7gru7XWOg";
 		JsonObject response = new JsonObject();

@@ -195,7 +195,7 @@ public class LogApi_UnitTest {
 			"oadUserInfo\",\"testOwner\":{\"sub\":\"developer\",\"iss\":\"https://developer.com\"},\"time"+
 			"\":1590130872657},{\"_id\":\"BeDwk5rd8H-w7vVtF3O66LfbU791jyk3VVR4DLS7QpI\",\"msg\":\"Def"+
 			"inition for client not present in supplied configuration\",\"result\":\"INFO\",\"testI"+
-			"d\":\"BeDwk5rd8H\",\"src\":\"GetDynamicClientConfiguration\",\"testOwner\":{\"sub\":\"develo"+
+			"d\":\"BeDwk5rd8H\",\"src\":\"StoreOriginalClientConfiguration\",\"testOwner\":{\"sub\":\"develo"+
 			"per\",\"iss\":\"https://developer.com\"},\"time\":1590130872659},{\"_id\":\"BeDwk5rd8H-geC"+
 			"snUelN0gJVsIh0lB8LBuThIUGC2hF\",\"testId\":\"BeDwk5rd8H\",\"src\":\"oidcc-client-test\",\""+
 			"testOwner\":{\"sub\":\"developer\",\"iss\":\"https://developer.com\"},\"time\":159013087266"+

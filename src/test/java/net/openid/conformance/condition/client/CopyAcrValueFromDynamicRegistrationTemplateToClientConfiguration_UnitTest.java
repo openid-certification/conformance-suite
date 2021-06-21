@@ -38,7 +38,7 @@ public class CopyAcrValueFromDynamicRegistrationTemplateToClientConfiguration_Un
 	public void testEvaluate_NoError() {
 		JsonObject dynamicClientRegistrationTemplate = new JsonObject();
 		dynamicClientRegistrationTemplate.addProperty("acr_value", "urn:openbanking:psd2:sca");
-		env.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate);
+		env.putObject("original_client_config", dynamicClientRegistrationTemplate);
 
 		JsonObject client = new JsonObject();
 		client.add("client", new JsonObject());
@@ -52,7 +52,7 @@ public class CopyAcrValueFromDynamicRegistrationTemplateToClientConfiguration_Un
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingInConfiguration() {
 		JsonObject dynamicClientRegistrationTemplate = new JsonObject();
-		env.putObject("dynamic_client_registration_template", dynamicClientRegistrationTemplate);
+		env.putObject("original_client_config", dynamicClientRegistrationTemplate);
 		cond.execute(env);
 	}
 }

@@ -20,16 +20,19 @@ import net.openid.conformance.condition.as.CreateWebfingerResponse;
 import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone;
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptUserInfoResponse;
+import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
+import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestDoesNotContainRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttpsOrRequestObjectIsSigned;
+import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdTokenToken;
@@ -45,9 +48,6 @@ import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObjec
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.OIDCCExtractServerSigningAlg;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
@@ -97,8 +97,9 @@ import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTi
 import net.openid.conformance.condition.as.dynregistration.ValidateTokenEndpointAuthSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -383,7 +384,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			processAndValidateClientJwks();
 			validateClientMetadata();
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndContinueOnFailure(GetDynamicClientConfiguration.class);
+			// I am not sure the result of either of these condition calls is used
+			callAndContinueOnFailure(StoreOriginalClientConfiguration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
 			//signing_algorithm will be also set after registration
 		}

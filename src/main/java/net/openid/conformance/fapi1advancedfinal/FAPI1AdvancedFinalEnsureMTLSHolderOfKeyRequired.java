@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -63,6 +64,8 @@ public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAP
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
 		// check that all known endpoints support TLS correctly
 

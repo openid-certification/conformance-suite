@@ -12,13 +12,9 @@ public class ExtractIdTokenFromAuthorizationResponse extends AbstractExtractJWT 
 	@PreEnvironment(required = "authorization_endpoint_response")
 	@PostEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {
-
+		JsonObject client = env.getObject("client");
 		JsonObject clientJwks = env.getObject("client_jwks");
-		// this passes 'client' as null, and hence doesn't currently support symmetric keys, as they're not allowed in
-		// FAPI - we should add explicit checks so the FAPI tests fail if symmetric encryption is used, and then
-		// enable symmetric encryption for the OIDCC tests
-		return extractJWT(env, "authorization_endpoint_response", "id_token", "id_token", null, clientJwks);
-
+		return extractJWT(env, "authorization_endpoint_response", "id_token", "id_token", client, clientJwks);
 	}
 
 }

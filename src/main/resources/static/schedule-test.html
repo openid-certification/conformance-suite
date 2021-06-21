@@ -854,6 +854,45 @@
                                 </div>
                             </div>
 
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Directory</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Discovery Endpoint</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="URL to the OpenBanking Directory. e.g. for Brazil directory sandbox use https://auth.sandbox.directory.openbankingbrasil.org.br/.well-known/openid-configuration"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="directory.discoveryUrl"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Directory ClientID</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client_id for this client on the OpenBanking Directory. This is used to obtain an access token to retrieve the software statement."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="directory.client_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Directory API base</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL for the OpenBanking Directory. e.g. for Brazil Directory sandbox use https://matls-api.sandbox.directory.openbankingbrasil.org.br/"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="directory.apibase"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
 
                         </div>
                         <div id="JSONInput" class="tab-pane fade">

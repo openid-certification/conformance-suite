@@ -26,8 +26,8 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -43,6 +43,7 @@ import net.openid.conformance.condition.client.EnsureServerConfigurationSupports
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
@@ -52,7 +53,7 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
-import net.openid.conformance.condition.client.GetDynamicClientConfiguration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -83,13 +84,13 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
@@ -240,9 +241,33 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public static class ConfigureStaticClientForPrivateKeyJwt extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(ValidateClientJWKsPrivatePart .class, "RFC7517-1.1");
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration .class);
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		}
+	}
+
+	public static class ConfigureStaticClient extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// for auth types other than private_key_jwt we might still need a jwks if the server is returning
+			// encrypted id_tokens; extract one if it's there.
+			call(condition(ValidateClientJWKsPrivatePart.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirements("RFC7517-1.1")
+				.onFail(Condition.ConditionResult.FAILURE));
+
+			call(condition(ExtractJWKsFromStaticClientConfiguration.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE));
+
+			call(condition(CheckDistinctKeyIdValueInClientJWKs.class)
+				.skipIfElementMissing("client", "jwks")
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirements("RFC7517-4.5")
+				.onFail(Condition.ConditionResult.FAILURE));
 		}
 	}
 
@@ -269,28 +294,28 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "none")
 	public void setupNone() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForAuthTypeNone();
 		addTokenEndpointClientAuthentication = AddAuthClientNoneAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
 	public void setupClientSecretBasic() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretBasic();
 		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
 	public void setupClientSecretPost() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretPost();
 		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
 	public void setupClientSecretJwt() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
@@ -304,7 +329,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
-		profileStaticClientConfiguration = null;
+		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient());
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
@@ -414,7 +439,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			configureStaticClient();
 			break;
 		case DYNAMIC_CLIENT:
-			callAndStopOnFailure(GetDynamicClientConfiguration.class);
+			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
+			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			configureDynamicClient();
 			break;
 		}

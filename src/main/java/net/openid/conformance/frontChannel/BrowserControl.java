@@ -1,13 +1,17 @@
 package net.openid.conformance.frontChannel;
 
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.DefaultPageCreator;
+import com.gargoylesoftware.htmlunit.HttpWebConnection;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebConsole;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.WebWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -89,6 +93,7 @@ public class BrowserControl implements DataUtils {
 
 	private TestExecutionManager executionManager;
 	private JsonArray browserCommands = null;
+	private boolean verboseLogging;
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
@@ -109,6 +114,11 @@ public class BrowserControl implements DataUtils {
 		browserCommands = config.getAsJsonArray("browser");
 		if (browserCommands == null) {
 			browserCommands = new JsonArray();
+		}
+		this.verboseLogging = false;
+		JsonElement browserVerbose = config.get("browser_verbose");
+		if (browserVerbose != null) {
+			this.verboseLogging = OIDFJSON.getBoolean(browserVerbose);
 		}
 	}
 
@@ -527,6 +537,68 @@ public class BrowserControl implements DataUtils {
 		}
 	}
 
+	private class LoggingHttpWebConnection extends HttpWebConnection {
+
+		public LoggingHttpWebConnection(WebClient webClient) {
+			super(webClient);
+		}
+
+		/**
+		 * Convert headers returned by HTMLUnit into a JsonObject
+		 */
+		public JsonObject mapHeadersToJsonObject(List<NameValuePair> headers) {
+			JsonObject o = new JsonObject();
+			for (NameValuePair pair : headers) {
+				String name = pair.getName();
+				if (o.has(name)) {
+					// If header occurs multiple times, put each value as an array element
+					JsonArray array;
+					JsonElement existing = o.get(name);
+					if (existing.isJsonPrimitive()) {
+						array = new JsonArray();
+					} else {
+						array = (JsonArray) existing;
+					}
+					array.add(pair.getValue());
+				} else {
+					o.addProperty(name, pair.getValue());
+				}
+			}
+			return o;
+		}
+
+		@Override
+		public WebResponse getResponse(WebRequest webRequest) throws IOException {
+			eventLog.log("WebRunner", args(
+				"msg", "Request "+webRequest.getHttpMethod()+" "+webRequest.getUrl(),
+				"headers", webRequest.getAdditionalHeaders(),
+				"params", webRequest.getRequestParameters(),
+				"body", webRequest.getRequestBody(),
+				"result", Condition.ConditionResult.INFO
+			));
+
+			WebResponse response = super.getResponse(webRequest);
+
+			if (response.getStatusCode() == 302) {
+				eventLog.log("WebRunner", args(
+					"msg", "Redirect "+response.getStatusCode() + " " + response.getStatusMessage()+" to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO
+				));
+			} else {
+				eventLog.log("WebRunner", args(
+					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO
+				));
+			}
+
+			return response;
+		}
+	}
+
 	/**
 	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
 	 */
@@ -613,6 +685,11 @@ public class BrowserControl implements DataUtils {
 		}
 
 		@Override
+		protected WebClient newWebClient(BrowserVersion version) {
+			return new WebClient(version);
+		}
+
+		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
 			// use same cookie manager for all instances within this testmodule instance
@@ -621,6 +698,11 @@ public class BrowserControl implements DataUtils {
 			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
+
+			if (verboseLogging) {
+				client.setWebConnection(new LoggingHttpWebConnection(client));
+			}
+
 			return client;
 		}
 	}
