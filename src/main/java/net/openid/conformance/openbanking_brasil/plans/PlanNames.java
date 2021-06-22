@@ -8,4 +8,5 @@ public class PlanNames {
 	public static final String CREDIT_OPERATIONS_API_PLAN_NAME = "Functional tests for credit operations API - based on Swagger version: 1.0.0-rc6.7 (WIP)";
 	public static final String REGISTRATION_DATA_API_PLAN_NAME = "Functional tests for registration data API - based on Swagger version: 1.0.0-rc6.7 (WIP)";
 	public static final String RESOURCES_API_PLAN_NAME = "Functional tests for resources API - based on Swagger version: 1.0.0-rc6.7 (WIP)";
+
 }
