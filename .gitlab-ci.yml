@@ -7,7 +7,7 @@ variables:
 
 stages:
   - build
-  - upload_dev
+#  - upload_dev
   - upload
 #  - deploy
 #  - test
@@ -34,28 +34,25 @@ build:
     paths:
       - target/
 
-upload_dev:
-  rules:
-    - if: $CI_COMMIT_BRANCH != "master"
-  stage: upload_dev
-  except:
-    refs:
-        - merge_requests
-  interruptible: true
-  needs: ["build"]
-  image: docker:git
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay2
-  script:
-    - setup_docker
-    - install_build_dependencies
-    - docker build -t conformance-suite .
-    - upload_dev
-  allow_failure:
-    exit_codes:
-      - 137
+#upload_dev:
+#  rules:
+#    - if: $CI_COMMIT_BRANCH != "master"
+#  stage: upload_dev
+#  interruptible: true
+#  needs: ["build"]
+#  image: docker:git
+#  services:
+#    - docker:dind
+#  variables:
+#    DOCKER_DRIVER: overlay2
+#  script:
+#    - setup_docker
+#    - install_build_dependencies
+#    - docker build -t conformance-suite .
+#    - upload_dev
+#  allow_failure:
+#    exit_codes:
+#      - 137
 
 upload:
   rules:
