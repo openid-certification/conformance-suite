@@ -7,7 +7,8 @@ import net.openid.conformance.plan.TestPlan;
 @PublishTestPlan(
 	testPlanName = "Resources api test",
 	profile = OBBProfile.OBB_PROFILE,
-	displayName = "Functional tests for resources API (WIP)",
+	displayName = PlanNames.RESOURCES_API_PLAN_NAME,
+//	displayName = "Functional tests for resources API (WIP)",
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Resources API",
 	testModules = {
 		ResourcesApiTestModule.class
