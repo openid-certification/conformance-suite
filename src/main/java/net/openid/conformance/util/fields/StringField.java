@@ -7,12 +7,12 @@ public class StringField extends Field {
 
 	private Set<String> enums = Collections.emptySet();
 
-	public Set<String> getEnums() {
-		return this.enums;
-	}
-
 	public void setEnums(Set<String> enums) {
 		this.enums = enums;
+	}
+
+	public Set<String> getEnums() {
+		return this.enums;
 	}
 
 	public static class Builder {
@@ -35,6 +35,11 @@ public class StringField extends Field {
 
 		public Builder setMaxLength(int maxLength) {
 			stringField.setMaxLength(maxLength);
+			return this;
+		}
+
+		public Builder setMinLength(int minLength) {
+			stringField.setMinLength(minLength);
 			return this;
 		}
 

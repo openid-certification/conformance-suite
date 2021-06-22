@@ -41,4 +41,12 @@ public class LegalEntityQualificationResponseValidatorTest extends AbstractJsonR
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("date")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/registrationData/legalEntityQualification/legalEntityQualificationResponseWrongMaximum.json")
+	public void validateStructureWrongMaximum() {
+		LegalEntityQualificationResponseValidator condition = new LegalEntityQualificationResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("year")));
+	}
 }

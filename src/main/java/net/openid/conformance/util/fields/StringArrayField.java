@@ -32,6 +32,16 @@ public class StringArrayField extends Field {
 			return this;
 		}
 
+		public Builder setMaxItems(int maxItems) {
+			stringArrayField.setMaxItems(maxItems);
+			return this;
+		}
+
+		public Builder setMinItems(int minItems) {
+			stringArrayField.setMinItems(minItems);
+			return this;
+		}
+
 		public StringArrayField build() {
 			return stringArrayField;
 		}

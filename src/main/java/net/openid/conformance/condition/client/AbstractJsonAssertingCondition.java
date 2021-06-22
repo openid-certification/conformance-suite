@@ -1,9 +1,7 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
@@ -79,7 +77,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertHasStringField(jsonObject, field.getPath());
 
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 
 		if (!field.getEnums().isEmpty()) {
 			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
@@ -94,7 +92,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
 
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 		if (field.getMaxLength() > 0) {
 			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
 		}
@@ -117,7 +115,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertHasBooleanField(jsonObject, field.getPath());
 
 		String stringFieldValue = findByPath(jsonObject, field.getPath()).toString();
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 	}
 
 	protected void assertIntField(JsonObject jsonObject, IntField field) {
@@ -127,10 +125,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertHasIntField(jsonObject, field.getPath());
 
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 
 		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
+		}
+		if (field.getMaximum() > 0) {
+			assertMaximum(stringFieldValue, field.getPath(), field.getMaximum());
 		}
 	}
 
@@ -141,25 +142,33 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertHasDoubleField(jsonObject, field.getPath());
 
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 
 		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 	}
 
-	protected void assertLongField(JsonObject jsonObject, DoubleField field) {
+	protected void assertLongField(JsonObject jsonObject, LongField field) {
 		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
 			return;
 		}
 		assertHasLongField(jsonObject, field.getPath());
 
 		String stringFieldValue = getJsonValueAsString(jsonObject, field.getPath());
-		assertPatternAndMaxLength(stringFieldValue, field);
+		assertPatternAndMaxMinLength(stringFieldValue, field);
 
 		if (field.getMinLength() > 0) {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
+	}
+
+	protected void assertArrayField(JsonObject jsonObject, ArrayField field) {
+		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+			return;
+		}
+		JsonElement found = findByPath(jsonObject, field.getPath());
+		assertMinAndMaxItems(found.getAsJsonArray(), field);
 	}
 
 	protected void assertStringArrayField(JsonObject jsonObject, StringArrayField field) {
@@ -171,7 +180,14 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 		JsonElement found = findByPath(jsonObject, field.getPath());
 		List<String> strings = OIDFJSON.getStringArray(found);
-		strings.forEach(s -> assertPatternAndMaxLength(s, field));
+
+		JsonElement element = new Gson()
+			.toJsonTree(strings, new TypeToken<List<String>>() {
+			}.getType());
+
+		assertMinAndMaxItems(element.getAsJsonArray(), field);
+
+		strings.forEach(s -> assertPatternAndMaxMinLength(s, field));
 	}
 
 	protected void assertHasDoubleField(JsonObject jsonObject, String path) {
@@ -391,10 +407,26 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			"%s API response", elementName, getApiName());
 	}
 
+	public String createArrayIsMoreThanMaxItemsMessage(String elementName) {
+		return String.format("Array from element %s is more than the required maxItems on the " +
+			"%s API response", elementName, getApiName());
+	}
+
+	public String createArrayIsLessThanMaxItemsMessage(String elementName) {
+		return String.format("Array from element %s is less than the required minItems on the " +
+			"%s API response", elementName, getApiName());
+	}
+
 	public String createFieldValueIsLessThanMinLengthMessage(String elementName) {
 		return String.format("Value from element %s is less than the required minLength " +
 			"on the %s API response", elementName, getApiName());
 	}
+
+	public String createFieldValueIsMoreThanMaximum(String elementName) {
+		return String.format("Value from element %s is more than the required maximum " +
+			"on the %s API response", elementName, getApiName());
+	}
+
 
 	private final String getApiName() {
 		Class<?> clazz = getClass();
@@ -440,7 +472,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return stringValue;
 	}
 
-	private void assertPatternAndMaxLength(String stringFieldValue, Field field) {
+	private void assertPatternAndMaxMinLength(String stringFieldValue, Field field) {
 		if (!field.getPattern().isEmpty()) {
 			assertRegexMatchesField(stringFieldValue, field.getPath(),
 				RegexMatch.regex(field.getPattern()));
@@ -448,6 +480,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 		if (field.getMaxLength() > 0) {
 			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
+		}
+		if (field.getMaxLength() > 0) {
+			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 		if (!field.getEnums().isEmpty()) {
 			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
@@ -457,6 +492,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertValueFromEnum(String fieldValue, Set<String> enums, String path) {
 		if (!enums.contains(fieldValue)) {
 			throw error(createFieldValueNotMatchEnumerationMessage(path));
+		}
+	}
+
+	private void assertMinAndMaxItems(JsonArray array, Field field) {
+		if (array.size() < field.getMinItems()) {
+			throw error(createArrayIsLessThanMaxItemsMessage(field.getPath()));
+		}
+
+		if (field.getMaxItems() != 0 && array.size() > field.getMaxItems()) {
+			throw error(createArrayIsMoreThanMaxItemsMessage(field.getPath()));
 		}
 	}
 
@@ -475,6 +520,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertMinLength(String stringValue, String path, int minLength) {
 		if (stringValue.length() < minLength) {
 			throw error(createFieldValueIsLessThanMinLengthMessage(path));
+		}
+	}
+
+	private void assertMaximum(String stringValue, String path, int maximum) {
+		if (Integer.parseInt(stringValue) > maximum) {
+			throw error(createFieldValueIsMoreThanMaximum(path));
 		}
 	}
 
