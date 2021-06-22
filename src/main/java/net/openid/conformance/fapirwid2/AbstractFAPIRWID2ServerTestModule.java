@@ -221,6 +221,12 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
+			if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
+				// we only need to call the mtls aliased pushed_authorization_request_endpoint when using mtls client auth
+				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
+				// access tokens)
+				env.removeNativeValue("pushed_authorization_request_endpoint");
+			}
 		}
 
 		// make sure the server configuration passes some basic sanity checks
