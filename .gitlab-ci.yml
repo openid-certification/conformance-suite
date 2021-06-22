@@ -38,6 +38,9 @@ upload_dev:
   rules:
     - if: $CI_COMMIT_BRANCH != "master"
   stage: upload_dev
+  except:
+    refs:
+        - merge_requests
   interruptible: true
   needs: ["build"]
   image: docker:git
@@ -57,8 +60,6 @@ upload_dev:
 upload:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-  only:
-    - merge_requests
   stage: upload
   interruptible: true
   needs: ["build"]
