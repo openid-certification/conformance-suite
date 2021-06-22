@@ -37,29 +37,24 @@
                         "address": "Av Naburo Ykesaki, 1270",
                         "districtName": "Centro",
                         "townName": "Marília",
-                        "countrySubDivision": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "countrySubDivision": "SP",
                         "postCode": "17500001",
                         "country": "Brasil",
                         "additionalInfo": "Fundos",
                         "ibgeTownCode": "3550308",
                         "countryCode": "BRA",
                         "geographicCoordinates": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
+                            "latitude": "-90.8365180",
+                            "longitude": "-180.836519"
                         }
                     }
                 ],
                 "phones": [
                     {
                         "isMain": true,
-                        "type": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "type": "FIXO",
                         "countryCallingCode": "55",
-                        "areaCode": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "areaCode": "19",
                         "number": "29875132",
                         "phoneExtension": "932",
                         "additionalInfo": "Informações adicionais."
@@ -67,7 +62,8 @@
                 ],
                 "emails": [
                     {
-                        "isMain": true
+                        "isMain": true,
+                        "email": "karinafernandes-81@br.inter.net"
                     }
                 ]
             },
@@ -117,29 +113,24 @@
                         "address": "Av Naburo Ykesaki, 1270",
                         "districtName": "Centro",
                         "townName": "Marília",
-                        "countrySubDivision": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "countrySubDivision": "SP",
                         "postCode": "17500001",
                         "country": "Brasil",
                         "additionalInfo": "Fundos",
                         "ibgeTownCode": "3550308",
                         "countryCode": "BRA",
                         "geographicCoordinates": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
+                            "latitude": "-90.8365180",
+                            "longitude": "-180.836519"
                         }
                     }
                 ],
                 "phones": [
                     {
                         "isMain": true,
-                        "type": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "type": "FIXO",
                         "countryCallingCode": "55",
-                        "areaCode": {
-                            "value": "<Error: Too many levels of nesting to fake this schema>"
-                        },
+                        "areaCode": "19",
                         "number": "29875132",
                         "phoneExtension": "932",
                         "additionalInfo": "Informações adicionais."
@@ -151,15 +142,7 @@
                         "email": "karinafernandes-81@br.inter.net"
                     }
                 ]
-            },
-            "otherDocuments": [
-                {
-                    "number": "128328453",
-                    "country": "CAN",
-                    "expirationDate": "2021-05-21",
-                    "type": "EIN"
-                }
-            ]
+            }
         }
     ],
     "links": {

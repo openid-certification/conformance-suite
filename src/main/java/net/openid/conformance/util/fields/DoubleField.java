@@ -1,6 +1,8 @@
 package net.openid.conformance.util.fields;
 
 public class DoubleField extends Field {
+	public static final String DEFAULT_REGEXP = "(-?\\d{1,15}(.?\\d{0,4}?))$";
+	public static final int DEFAULT_MAX_LENGTH = 20;
 
 	public static class Builder {
 		private DoubleField doubleField;
@@ -8,6 +10,8 @@ public class DoubleField extends Field {
 		public Builder(String path) {
 			doubleField = new DoubleField();
 			doubleField.setPath(path);
+			doubleField.setPattern(DEFAULT_REGEXP);
+			doubleField.setMaxLength(DEFAULT_MAX_LENGTH);
 		}
 
 		public Builder setPattern(String pattern) {
@@ -15,8 +19,8 @@ public class DoubleField extends Field {
 			return this;
 		}
 
-		public Builder setFieldOptional(boolean isOptional) {
-			doubleField.setOptional(isOptional);
+		public Builder setFieldOptional() {
+			doubleField.setOptional();
 			return this;
 		}
 

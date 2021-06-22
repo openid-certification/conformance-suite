@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.account;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
@@ -8,8 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.fields.DoubleField;
 import net.openid.conformance.util.fields.StringField;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 /**
  * This is validator for API-Contas| Transações da contas
@@ -29,22 +29,21 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		List<String> enumCompletedAuthorisedPaymentIndicator = Arrays.asList("TRANSACAO_EFETIVADA",
-			"LANCAMENTO_FUTURO");
-		List<String> enumCreditDebitIndicator = Arrays.asList("CREDITO", "DEBITO");
-		List<String> enumTransactionTypes = Arrays.asList(
+		Set<String> enumCompletedAuthorisedPaymentIndicator = Sets.newHashSet("TRANSACAO_EFETIVADA", "LANCAMENTO_FUTURO");
+		Set<String> enumCreditDebitIndicator = Sets.newHashSet("CREDITO", "DEBITO");
+		Set<String> enumTransactionTypes = Sets.newHashSet(
 			"TED", "DOC", "PIX", "TRANSFERENCIA_MESMA_INSTITUICAO",
 			"BOLETO", "CONVENIO_ARRECADACAO", "PACOTE_TARIFA_SERVICOS",
 			"TARIFA_SERVICOS_AVULSOS", "FOLHA_PAGAMENTO", "DEPOSITO",
 			"SAQUE", "CARTAO", "ENCARGOS_JUROS_CHEQUE_ESPECIAL",
 			"RENDIMENTO_APLIC_FINANCEIRA", "PORTABILIDADE_SALARIO",
 			"RESGATE_APLIC_FINANCEIRA", "OPERACAO_CREDITO", "OUTROS");
-		List<String> enumPartiePersonType = Arrays.asList("PESSOA_NATURAL", "PESSOA_JURIDICA");
+		Set<String> enumPartiePersonType = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
 		assertStringField(body,
 			new StringField
 				.Builder("transactionId")
-				.setFieldOptional(true)
+				.setFieldOptional()
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.setMaxLength(100)
 				.build());
@@ -52,14 +51,14 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertStringField(body,
 			new StringField
 				.Builder("completedAuthorisedPaymentType")
-				.setEnumList(enumCompletedAuthorisedPaymentIndicator)
+				.setEnums(enumCompletedAuthorisedPaymentIndicator)
 				.build());
 
 		assertStringField(body,
 			new StringField
 				.Builder("creditDebitType")
 				.setMaxLength(7)
-				.setEnumList(enumCreditDebitIndicator)
+				.setEnums(enumCreditDebitIndicator)
 				.build());
 
 		assertStringField(body,
@@ -73,15 +72,13 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("type")
 				.setMaxLength(31)
-				.setEnumList(enumTransactionTypes)
+				.setEnums(enumTransactionTypes)
 				.build());
 
 		assertDoubleField(body,
 			new DoubleField
 				.Builder("amount")
-				.setMaxLength(19)
 				.setMinLength(0)
-				.setPattern("(-?\\d{1,15}(.?\\d{0,4}?))$")
 				.build());
 
 		assertStringField(body,
@@ -108,7 +105,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertStringField(body,
 			new StringField
 				.Builder("partiePersonType")
-				.setEnumList(enumPartiePersonType)
+				.setEnums(enumPartiePersonType)
 				.build());
 
 		assertStringField(body,

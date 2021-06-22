@@ -1,16 +1,13 @@
 {
-    "data": [
-        {
-            "brandName": "Organização A",
-            "companyCnpj": "21128159000166",
-            "type": "CONTA_DEPOSITO_A_VISTAAAA",
-            "compeCode": "001",
-            "branchCode": "6272",
-            "number": "94088392",
-            "checkDigit": "4",
-            "accountId": "92792126019929279212650822221989319252576"
-        }
-    ],
+    "data": {
+        "consentId": "urn:bancoex:C1DD33123",
+        "creationDateTime": "2021-05-21T08:30:00Z",
+        "status": "AWAITING_AUTHORISATION",
+        "statusUpdateDateTime": "2021-05-21T08:30:00Z",
+        "expirationDateTime": "2021-05-21T08:30:00Z",
+        "transactionFromDateTime": "2021-01-01T00:00:00Z",
+        "transactionToDateTime": "2021-02-01T23:59:59Z"
+    },
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",
         "first": "https://api.banco.com.br/open-banking/api/v1/resource",

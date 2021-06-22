@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.account;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
@@ -7,8 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.fields.StringField;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 /**
  * This is validator for API-Contas|Lista de contas
@@ -30,7 +30,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 
 	private void assertInnerFields(JsonObject body) {
 
-		List<String> enumType = Arrays.asList("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
+		Set<String> enumType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
 
 		assertStringField(body,
 			new StringField
@@ -49,7 +49,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertStringField(body,
 			new StringField
 				.Builder("type")
-				.setEnumList(enumType)
+				.setEnums(enumType)
 				.build());
 
 		assertStringField(body,
@@ -89,5 +89,4 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 
 
 	}
-
 }

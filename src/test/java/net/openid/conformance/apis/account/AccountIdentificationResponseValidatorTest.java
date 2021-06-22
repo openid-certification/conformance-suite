@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/account/accountIdentificationResponse.json")
+@UseResurce("jsonResponses/account/identification/accountIdentificationResponse.json")
 public class AccountIdentificationResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,11 +19,29 @@ public class AccountIdentificationResponseValidatorTest extends AbstractJsonResp
 	}
 
 	@Test
-	@UseResurce("jsonResponses/account/accountIdentificationResponseWithError.json")
+	@UseResurce("jsonResponses/account/identification/accountIdentificationResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createElementNotFoundMessage("$.data.currency")));
+			containsString(condition.createElementNotFoundMessage("currency")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/identification/accountIdentificationResponseWrongFieldRegexp.json")
+	public void validateStructureWithMissingWrongFieldRegexp() {
+		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchPatternMessage("number")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/identification/accountIdentificationResponseWrongEnum.json")
+	public void validateStructureWithMissingWrongEnum() {
+		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
 	}
 }

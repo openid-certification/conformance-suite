@@ -1,0 +1,103 @@
+{
+    "data": [
+        {
+            "updateDateTime": "2021-05-21T08:30:00Z",
+            "personalId": "c57-466-1254590932-3fa314",
+            "brandName": "Alana e Bianca Assessoria Jurídica Ltda",
+            "civilName": "Tatiana Galvão",
+            "socialName": "",
+            "birthDate": "1989-03-23",
+            "maritalStatusCode": "SOLTEIRO",
+            "maritalStatusAdditionalInfo": "",
+            "sex": "MASCULINO",
+            "companyCnpj": [
+                "25349207000105"
+            ],
+            "documents": {
+                "cpfNumber": "53580793004",
+                "passportNumber": "34229643119827236458",
+                "passportCountry": "CAN",
+                "passportExpirationDate": "2022-05-24",
+                "passportIssueDate": "2018-05-24"
+            },
+            "otherDocuments": [
+                {
+                    "type": "CNH",
+                    "typeAdditionalInfo": "NA",
+                    "number": "58438287",
+                    "checkDigit": "P",
+                    "additionalInfo": "SSP/RS",
+                    "expirationDate": "2025-05-21"
+                }
+            ],
+            "hasBrazilianNationality": false,
+            "nationality": [
+                {
+                    "otherNationalitiesInfo": "true",
+                    "documents": [
+                        {
+                            "type": "SOCIAL SEC",
+                            "number": "423929299",
+                            "expirationDate": "2022-08-21",
+                            "issueDate": "2020-05-30",
+                            "country": "Brasil",
+                            "typeAdditionalInfo": ""
+                        }
+                    ]
+                }
+            ],
+            "filiation": [
+                {
+                    "type": "MAE",
+                    "civilName": "Andreia Galvao",
+                    "socialName": "NA"
+                }
+            ],
+            "contacts": {
+                "postalAddresses": [
+                    {
+                        "isMain": true,
+                        "address": "Rua Laguna 129",
+                        "additionalInfo": "Casa Amarela",
+                        "districtName": "Cavalhada",
+                        "townName": "Porto Alegre",
+                        "ibgeTownCode": "4314902",
+                        "countrySubDivision": "RS",
+                        "postCode": "90820060",
+                        "country": "Brasil",
+                        "countryCode": "BRA",
+                        "geographicCoordinates": {
+                            "latitude": "-30.0953952",
+                            "longitude": "-51.2279909"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "isMain": true,
+                        "type": "FIXO",
+                        "additionalInfo": "Informações adicionais.",
+                        "countryCallingCode": "55",
+                        "areaCode": "51",
+                        "number": "325421328",
+                        "phoneExtension": "258"
+                    }
+                ],
+                "emails": [
+                    {
+                        "isMain": true,
+                        "email": "tatiana.galvao@email.com"
+                    }
+                ]
+            }
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/customers/v1/personal/identifications"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

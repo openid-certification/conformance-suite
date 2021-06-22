@@ -30,38 +30,8 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("accountId")));
+		assertThat(error.getMessage(),  containsString(condition.createElementNotFoundMessage("accountId")));
 
 	}
 
-	@Test
-	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(LengthNotMatch).json")
-	public void validateStructureExcessMaxLength() {
-		AccountListValidator condition = new AccountListValidator();
-		ConditionError error = runAndFail(condition);
-		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage(
-				"checkDigit")));
-	}
-
-	@Test
-	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(EnumNotMatch).json")
-	public void validateStructureEnumNotMatch() {
-		AccountListValidator condition = new AccountListValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage(
-				"type")));
-	}
-
-	@Test
-	@UseResurce("jsonResponses/account/list/errors/accountListResponseWithError(PatternNotMatch).json")
-	public void validateStructurePatternNotMatch() {
-		AccountListValidator condition = new AccountListValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage(
-				"compeCode")));
-	}
 }

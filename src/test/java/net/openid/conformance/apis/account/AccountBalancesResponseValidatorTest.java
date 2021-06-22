@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/account/accountBalancesResponse.json")
+@UseResurce("jsonResponses/account/balances/accountBalancesResponse.json")
 public class AccountBalancesResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,11 +19,20 @@ public class AccountBalancesResponseValidatorTest extends AbstractJsonResponseCo
 	}
 
 	@Test
-	@UseResurce("jsonResponses/account/accountBalancesResponse_missing_consents.json")
+	@UseResurce("jsonResponses/account/balances/accountBalancesResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("$.data.blockedAmount");
+		String expected = condition.createElementNotFoundMessage("blockedAmount");
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/account/balances/errors/accountBalancesResponseWrongPattern.json")
+	public void validateStructureWithWrongRegexp() {
+		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		String expected = condition.createFieldValueNotMatchPatternMessage("blockedAmountCurrency");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

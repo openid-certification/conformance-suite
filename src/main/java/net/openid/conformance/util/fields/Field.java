@@ -1,5 +1,12 @@
 package net.openid.conformance.util.fields;
 
+
+import java.util.Collections;
+import java.util.Set;
+
+/**
+ * The base class describes features of value that can contain key
+ */
 public abstract class Field {
 
 	private boolean isOptional;
@@ -7,13 +14,22 @@ public abstract class Field {
 	private String pattern = "";
 	private int maxLength;
 	private int minLength;
+	private Set<String> enums = Collections.emptySet();
+
+	public Set<String> getEnums() {
+		return this.enums;
+	}
+
+	public void setEnums(Set<String> enums) {
+		this.enums = enums;
+	}
 
 	public boolean isOptional() {
 		return isOptional;
 	}
 
-	public void setOptional(boolean optional) {
-		isOptional = optional;
+	public void setOptional() {
+		isOptional = true;
 	}
 
 	public String getPath() {
@@ -47,4 +63,6 @@ public abstract class Field {
 	public void setMinLength(int minLength) {
 		this.minLength = minLength;
 	}
+
+
 }
