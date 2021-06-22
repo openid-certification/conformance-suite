@@ -12,7 +12,8 @@ import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBanking
 import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointClaimsSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
@@ -155,7 +156,9 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE,
 				"OIDCD-3", "BrazilOB-5.2.2-3");
 
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE,
+			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE,
+				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6");
+			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported.class, Condition.ConditionResult.FAILURE,
 				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
