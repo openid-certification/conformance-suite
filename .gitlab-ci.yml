@@ -36,8 +36,7 @@ build:
 
 upload_dev:
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      when: never
+    - if: $CI_COMMIT_BRANCH != "master"
   stage: upload_dev
   interruptible: true
   needs: ["build"]
