@@ -3,9 +3,11 @@ image: alpine:latest
 variables:
   LM_JAVA_VERSION: 11
   DOCKER_REGISTRY: 574283098123.dkr.ecr.us-west-2.amazonaws.com/obb-conformance-suite
+  DEV_DOCKER_REGISTRY: 574283098123.dkr.ecr.us-west-2.amazonaws.com/obb-dev-conformance-suite
 
 stages:
   - build
+  - upload_dev
   - upload
 #  - deploy
 #  - test
@@ -31,6 +33,26 @@ build:
   artifacts:
     paths:
       - target/
+
+upload_dev:
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master"
+  stage: upload_dev
+  interruptible: true
+  needs: ["build"]
+  image: docker:git
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    - setup_docker
+    - install_build_dependencies
+    - docker build -t conformance-suite .
+    - upload_dev
+  allow_failure:
+    exit_codes:
+      - 137
 
 upload:
   rules:
@@ -479,6 +501,25 @@ upload:
     done
     cd ..
     ./scripts/compare-results.py reference .
+  }
+
+  function upload_dev() {
+    if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+      echo "No AWS access credentials configured - cannot push image"
+      exit 138
+    fi
+
+    docker tag conformance-suite "$DEV_DOCKER_REGISTRY:$CI_APPLICATION_TAG"
+    docker tag conformance-suite "$DEV_DOCKER_REGISTRY:dev"
+
+    echo "Logging in to container registry..."
+
+    aws ecr --region us-west-2 get-login-password | docker login --username AWS --password-stdin $DEV_DOCKER_REGISTRY
+
+    echo "Pusing image to ECR"
+    docker push $DEV_DOCKER_REGISTRY:$CI_APPLICATION_TAG
+    docker push $DEV_DOCKER_REGISTRY:dev
+
   }
 
   function upload() {
