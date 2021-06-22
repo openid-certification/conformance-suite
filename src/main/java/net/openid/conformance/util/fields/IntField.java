@@ -30,6 +30,11 @@ public class IntField extends Field {
 			return this;
 		}
 
+		public Builder setMaximum(int maximum) {
+			intField.setMaximum(maximum);
+			return this;
+		}
+
 		public IntField build() {
 			return intField;
 		}

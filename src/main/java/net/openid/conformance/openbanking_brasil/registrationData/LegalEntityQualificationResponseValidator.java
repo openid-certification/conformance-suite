@@ -36,6 +36,13 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 				.Builder("updateDateTime")
 				.build());
 		assertHasField(data, "economicActivities");
+
+		assertArrayField(data,
+			new ArrayField
+				.Builder("economicActivities")
+				.setMinItems(1)
+				.build());
+
 		assertJsonArrays(data, "economicActivities", this::assertInnerFieldsEconomicActivities);
 		assertInformedRevenue(data);
 		assertInnerFieldsInformedPatrimony(data);
@@ -95,6 +102,7 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 				.Builder("year")
 				.setFieldOptional()
 				.setMaxLength(4)
+				.setMaximum(9999)
 				.build());
 	}
 

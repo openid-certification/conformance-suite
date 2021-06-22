@@ -14,6 +14,9 @@ public abstract class Field {
 	private String pattern = "";
 	private int maxLength;
 	private int minLength;
+	private int maxItems;
+	private int minItems;
+	private int maximum;
 	private Set<String> enums = Collections.emptySet();
 
 	public Set<String> getEnums() {
@@ -64,5 +67,27 @@ public abstract class Field {
 		this.minLength = minLength;
 	}
 
+	public int getMaxItems() {
+		return maxItems;
+	}
 
+	public void setMaxItems(int maxItems) {
+		this.maxItems = maxItems;
+	}
+	public int getMaximum() {
+		return maximum;
+	}
+
+	public void setMaximum(int maximum) {
+		this.maximum = maximum;
+	}
+
+
+	public int getMinItems() {
+		return minItems;
+	}
+
+	public void setMinItems(int minItems) {
+		this.minItems = minItems;
+	}
 }
