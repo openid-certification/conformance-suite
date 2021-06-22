@@ -166,7 +166,8 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.consentUrl",
-	"resource.brazilCpf"
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"

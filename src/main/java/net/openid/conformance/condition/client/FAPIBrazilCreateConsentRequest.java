@@ -21,22 +21,22 @@ import java.util.stream.Collectors;
 public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment()
+	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
 
 		String cpf = env.getString("config", "resource.brazilCpf");
-		if (Strings.isNullOrEmpty(cpf)) {
-			throw error("CPF value missing from test configuration");
+		String cnpj = env.getString("config", "resource.brazilCnpj");
+		if (Strings.isNullOrEmpty(cpf) && Strings.isNullOrEmpty(cnpj)) {
+			throw error("A least one of CPF and CNPJ must be specified in the test configuration");
 		}
 
 		String[] permissions = Optional.ofNullable(env.getString("consent_permissions"))
 			.map(c -> c.split("\\W"))
 			.orElse(new String[] {"ACCOUNTS_READ"});
 
-		// see https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-parcelas-do-contrato
 		OpenBankingBrasilConsentRequest consentRequest =
-			new OpenBankingBrasilConsentRequest(cpf, permissions);
+			new OpenBankingBrasilConsentRequest(cpf, cnpj, permissions);
 		JsonObject requestObject = consentRequest.toJson();
 
 		env.putObject("consent_endpoint_request", requestObject);
