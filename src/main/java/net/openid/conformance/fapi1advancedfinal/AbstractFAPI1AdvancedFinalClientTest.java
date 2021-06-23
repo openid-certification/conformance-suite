@@ -159,6 +159,10 @@ import javax.servlet.http.HttpSession;
 	"client2.id_token_encrypted_response_alg",
 	"client2.id_token_encrypted_response_enc",
 })
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.scope",
+	"client2.scope"
+})
 public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
@@ -402,6 +406,17 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
+	protected void validateResourceEndpointHeaders() {
+		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
+			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
+			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+	}
 	protected Object brazilHandleNewConsentRequest(String requestId) {
 		setStatus(Status.RUNNING);
 		//Requires method=POST
@@ -411,9 +426,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(FAPIBrazilExtractConsentRequest.class, "BrazilOB-5.2.2.2");
 
@@ -442,12 +455,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-		/*
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+
+		validateResourceEndpointHeaders();
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
-		*/
 
 		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
 		env.putString("requested_consent_id", requestedConsentId);
@@ -604,9 +614,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		issueAccessToken();
 
-		//generate a new refresh token
-		issueRefreshToken();
-
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
@@ -731,7 +738,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				usuário na instituição transmissora dos dados.
 		 */
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class, "");
+			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
 		createAuthorizationEndpointResponse();
@@ -942,9 +949,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
@@ -986,9 +991,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 
