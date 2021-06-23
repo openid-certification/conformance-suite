@@ -11,7 +11,7 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.AddTokenEndpointSigningAlg;
+import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -35,6 +35,7 @@ import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestedScopeContainsConsents;
@@ -100,7 +101,6 @@ import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestRespon
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
-import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
@@ -244,8 +244,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
-		//TODO check if this is correct and necessary
-		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+		} else {
+			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+		}
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
