@@ -11,7 +11,7 @@ import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResp
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.AddTokenEndpointSigningAlg;
+import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -166,7 +166,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(AddResponseTypeCodeIdTokenToServerConfiguration.class);
-		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
+		callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 

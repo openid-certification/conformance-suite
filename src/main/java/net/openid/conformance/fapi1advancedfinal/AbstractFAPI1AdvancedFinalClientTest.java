@@ -11,7 +11,7 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.AddTokenEndpointSigningAlg;
+import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -35,6 +35,7 @@ import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
+import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestedScopeContainsConsents;
@@ -100,7 +101,6 @@ import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestRespon
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
-import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
@@ -158,6 +158,10 @@ import javax.servlet.http.HttpSession;
 	"client2.jwks",
 	"client2.id_token_encrypted_response_alg",
 	"client2.id_token_encrypted_response_enc",
+})
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.scope",
+	"client2.scope"
 })
 public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestModule {
 
@@ -240,8 +244,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
-		//TODO check if this is correct and necessary
-		callAndStopOnFailure(AddTokenEndpointSigningAlg.class);
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+		} else {
+			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+		}
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
@@ -402,6 +409,17 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
+	protected void validateResourceEndpointHeaders() {
+		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
+			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
+			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+	}
 	protected Object brazilHandleNewConsentRequest(String requestId) {
 		setStatus(Status.RUNNING);
 		//Requires method=POST
@@ -411,9 +429,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(FAPIBrazilExtractConsentRequest.class, "BrazilOB-5.2.2.2");
 
@@ -442,12 +458,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-		/*
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+
+		validateResourceEndpointHeaders();
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
-		*/
 
 		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
 		env.putString("requested_consent_id", requestedConsentId);
@@ -604,9 +617,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		issueAccessToken();
 
-		//generate a new refresh token
-		issueRefreshToken();
-
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
@@ -731,7 +741,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				usuário na instituição transmissora dos dados.
 		 */
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class, "");
+			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
 		createAuthorizationEndpointResponse();
@@ -942,9 +952,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(GenerateAccountRequestId.class);
 		exposeEnvString("account_request_id");
@@ -986,9 +994,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		// TODO: should we clear the old headers?
-		callAndContinueOnFailure(ExtractFapiDateHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-3");
-		callAndContinueOnFailure(ExtractFapiIpAddressHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-4");
-		callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.INFO, "FAPI1-BASE-6.2.2-5");
+		validateResourceEndpointHeaders();
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 
