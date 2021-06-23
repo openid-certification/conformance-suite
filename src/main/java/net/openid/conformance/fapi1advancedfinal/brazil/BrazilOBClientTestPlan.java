@@ -23,6 +23,7 @@ import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInv
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidSecondaryAud;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidSignature;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse;
+import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestValidAudAsArray;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -30,6 +31,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @PublishTestPlan(
@@ -44,7 +46,7 @@ import java.util.List;
 )
 public class BrazilOBClientTestPlan implements TestPlan {
 	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
-		List<Class<? extends TestModule>> modulesList = List.of(
+		List<Class<? extends TestModule>> byValueModules = List.of(
 			FAPI1AdvancedFinalClientTest.class,
 			FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
 			FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
@@ -69,6 +71,10 @@ public class BrazilOBClientTestPlan implements TestPlan {
 			FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
 			FAPI1AdvancedFinalClientRefreshTokenTest.class
 		);
+		List<Class<? extends TestModule>> parModules = new LinkedList<>();
+		parModules.addAll(byValueModules);
+		parModules.add(FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR.class);
+
 		List<TestPlan.Variant> variantListByValue = List.of(
 			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
 			new TestPlan.Variant(FAPIAuthRequestMethod.class, "by_value")
@@ -79,8 +85,8 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		);
 
 		return List.of(
-			new TestPlan.ModuleListEntry(modulesList, variantListByValue),
-			new TestPlan.ModuleListEntry(modulesList, variantListPushed)
+			new TestPlan.ModuleListEntry(byValueModules, variantListByValue),
+			new TestPlan.ModuleListEntry(parModules, variantListPushed)
 		);
 
 	}

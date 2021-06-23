@@ -52,7 +52,7 @@ public class FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration extends Ab
 		}
 
 
-		log("Successfully set grant_types_supported", args("server", server));
+		log("Added open banking Brazil specific server settings", args("server", server));
 		return env;
 	}
 
