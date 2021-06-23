@@ -5,14 +5,14 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIBrazilCheckDiscEndpointClaimsSupported extends AbstractValidateJsonArray {
+public class FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";
 
-	private static final String[] SET_VALUES = new String[] { "acr", "cpf", "cnpj" };
-	private static final int minimumMatchesRequired = SET_VALUES.length;
+	private static final String[] SET_VALUES = new String[] { "cpf", "cnpj" };
+	private static final int minimumMatchesRequired = 1;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";
+	private static final String errorMessageNotEnough = "The server must support at least one of the 'cpf' or 'cnpj' claims.";
 
 	@Override
 	@PreEnvironment(required = "server")

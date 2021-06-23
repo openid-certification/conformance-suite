@@ -70,7 +70,9 @@ public class CallPAREndpoint extends AbstractCondition {
 				HttpMethod.POST : HttpMethod.valueOf(env.getString(HTTP_METHOD_KEY));
 
 			try {
-				final String parEndpointUri = env.getString("server", "pushed_authorization_request_endpoint");
+				final String parEndpointUri = env.getString("pushed_authorization_request_endpoint") != null ?
+					env.getString("pushed_authorization_request_endpoint") :
+					env.getString("server", "pushed_authorization_request_endpoint");
 				if (Strings.isNullOrEmpty(parEndpointUri)) {
 					throw error("Couldn't find pushed_authorization_request_endpoint in server discovery document. This endpoint is required as you have selected to test pushed authorization requests.");
 				}
