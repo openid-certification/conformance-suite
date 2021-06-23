@@ -68,8 +68,6 @@ public class BrazilOBClientTestPlan implements TestPlan {
 			FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
 			FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
 			FAPI1AdvancedFinalClientRefreshTokenTest.class
-			//This is not necessary as we will already test both PAR and non-PAR cases under the same plan
-			//FAPI1AdvancedFinalClientEncryptedRequestObjectTest.class
 		);
 		List<TestPlan.Variant> variantListByValue = List.of(
 			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
