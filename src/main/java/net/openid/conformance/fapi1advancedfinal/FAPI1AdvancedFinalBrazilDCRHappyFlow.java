@@ -21,7 +21,7 @@ import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationT
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractClientMTLSCertificateSubject;
+import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
@@ -96,7 +96,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		// restore MTLS aliases to the values for the server being tested
 		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
 
-		callAndStopOnFailure(ExtractClientMTLSCertificateSubject.class);
+		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
 
 		// use access token to get ssa
 		// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion

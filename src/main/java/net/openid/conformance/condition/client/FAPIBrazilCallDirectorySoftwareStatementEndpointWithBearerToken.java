@@ -58,7 +58,7 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 		if (Strings.isNullOrEmpty(ou)) {
 			throw error("'ou' not found in TLS certificate subject");
 		}
-		String cn = env.getString("certificate_subject", "cn");
+		String cn = env.getString("certificate_subject", "brazil_software_id");
 		if (Strings.isNullOrEmpty(cn)) {
 			throw error("'cn' not found in TLS certificate subject");
 		}
