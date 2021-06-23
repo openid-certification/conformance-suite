@@ -7,7 +7,8 @@ variables:
 
 stages:
   - build
-#  - upload_dev
+  - dev_build
+  - upload_dev
   - upload
 #  - deploy
 #  - test
@@ -27,6 +28,8 @@ stages:
 
 build:
   <<: *maven
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
   stage: build
   script:
     - mvn -B -Dpmd.skip clean package
@@ -34,32 +37,43 @@ build:
     paths:
       - target/
 
-#upload_dev:
-#  rules:
-#    - if: $CI_COMMIT_BRANCH != "master"
-#  stage: upload_dev
-#  interruptible: true
-#  needs: ["build"]
-#  image: docker:git
-#  services:
-#    - docker:dind
-#  variables:
-#    DOCKER_DRIVER: overlay2
-#  script:
-#    - setup_docker
-#    - install_build_dependencies
-#    - docker build -t conformance-suite .
-#    - upload_dev
-#  allow_failure:
-#    exit_codes:
-#      - 137
+dev_build:
+  <<: *maven
+  rules:
+   - if: $CI_COMMIT_BRANCH != "master"
+  stage: build
+  script:
+    - mvn -B -Dpmd.skip clean package
+  artifacts:
+    paths:
+      - target/
+
+upload_dev:
+ rules:
+   - if: $CI_COMMIT_BRANCH != "master"
+ stage: upload_dev
+ needs: ["dev_build"]
+ interruptible: true
+ image: docker:git
+ services:
+   - docker:dind
+ variables:
+   DOCKER_DRIVER: overlay2
+ script:
+   - setup_docker
+   - install_build_dependencies
+   - docker build -t conformance-suite .
+   - upload_dev
+ allow_failure:
+   exit_codes:
+     - 137
 
 upload:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   stage: upload
-  interruptible: true
   needs: ["build"]
+  interruptible: true
   image: docker:git
   services:
     - docker:dind
