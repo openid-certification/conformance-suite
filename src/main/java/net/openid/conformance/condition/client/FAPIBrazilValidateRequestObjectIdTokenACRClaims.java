@@ -19,14 +19,12 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 	public Environment evaluate(Environment env) {
 
 		JsonElement acrClaim = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
-
-		if (acrClaim == null || !acrClaim.isJsonObject()) {
-			throw error("The acr claim is missing or is not a JsonObject", args("acrClaim", acrClaim));
+		if (acrClaim == null) {
+			log("acr claim is not requested");
+			return env;
 		}
-
-		Boolean validateEssential = OIDFJSON.getBoolean(acrClaim.getAsJsonObject().get("essential"));
-		if (!validateEssential) {
-			throw error("The acr claim must be requested as essential: true", args("received", validateEssential, "required", true));
+		if (!acrClaim.isJsonObject()) {
+			throw error("The acr claim is not a JsonObject", args("acrClaim", acrClaim));
 		}
 
 		// https://openid.net/specs/openid-connect-core-1_0.html#acrSemantics
