@@ -70,7 +70,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// this overwrites the non-directory values; we will have to replace them below
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
@@ -94,7 +94,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		env.unmapKey("config");
 
 		// restore MTLS aliases to the values for the server being tested
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
 		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
 

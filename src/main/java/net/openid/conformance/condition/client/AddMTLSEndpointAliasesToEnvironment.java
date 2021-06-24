@@ -24,8 +24,13 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 
 		JsonElement mtlsEndpointAliases = env.getElementFromObject("server", "mtls_endpoint_aliases");
 
-		if (mtlsEndpointAliases == null || !mtlsEndpointAliases.isJsonObject()) {
-			throw error("The mtls_endpoint_aliases is not present in the server configuration", args("server", server));
+		if (mtlsEndpointAliases == null) {
+			log("mtls_endpoint_aliases is not present in the server configuration");
+			return env;
+		}
+
+		if (!mtlsEndpointAliases.isJsonObject()) {
+			throw error("mtls_endpoint_aliases in the server configuration is not a JSON object", args("server", server));
 		}
 
 		JsonObject mtlsEndpointAliasesObj = (JsonObject) mtlsEndpointAliases;
