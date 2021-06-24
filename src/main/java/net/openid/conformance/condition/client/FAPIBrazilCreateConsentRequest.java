@@ -1,27 +1,20 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.models.external.OBBrasilConsentPermissions;
 import net.openid.conformance.models.external.OpenBankingBrasilConsentRequest;
 import net.openid.conformance.testmodule.Environment;
-import org.hibernate.validator.constraints.br.CNPJ;
-import org.hibernate.validator.constraints.br.CPF;
 
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "config" )
 	@PostEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
 
@@ -31,9 +24,24 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 			throw error("A least one of CPF and CNPJ must be specified in the test configuration");
 		}
 
-		String[] permissions = Optional.ofNullable(env.getString("consent_permissions"))
-			.map(c -> c.split("\\W"))
-			.orElse(new String[] {"ACCOUNTS_READ"});
+		String[] permissions;
+
+		String consentPermissions = env.getString("consent_permissions");
+		if (Strings.isNullOrEmpty(consentPermissions)) {
+			String scope = env.getString("client", "scope");
+			if (Strings.isNullOrEmpty(scope)) {
+				throw error("scope missing from client configuration");
+			}
+			List<String> scopes = Arrays.asList(scope.split(" "));
+			if (scopes.contains("accounts")) {
+				permissions = new String[] {"ACCOUNTS_READ"};
+			} else {
+				permissions = new String[] {"RESOURCES_READ"};
+			}
+
+		} else {
+			permissions = consentPermissions.split("\\W");
+		}
 
 		OpenBankingBrasilConsentRequest consentRequest =
 			new OpenBankingBrasilConsentRequest(cpf, cnpj, permissions);

@@ -49,6 +49,29 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 	}
 
 	@Test
+	public void infersDefaultPermissionAccountsIfNoneProvided() {
+
+		JsonObject config = new JsonObject();
+		JsonObject resourceConfig = new JsonObject();
+		config.add("resource", resourceConfig);
+		resourceConfig.addProperty("brazilCpf", "138830383");
+
+		env.putObject("config", config);
+
+		JsonObject client = new JsonObject();
+		client.addProperty("scope", "openid accounts");
+		env.putObject("client", client);
+
+		condition.execute(env);
+
+		JsonObject consents = env.getObject("consent_endpoint_request").getAsJsonObject("data");
+		JsonArray permissions = consents.getAsJsonArray("permissions");
+
+		assertTrue(permissions.contains(new JsonPrimitive("ACCOUNTS_READ")));
+
+	}
+
+	@Test
 	public void infersDefaultPermissionIfNoneProvided() {
 
 		JsonObject config = new JsonObject();
@@ -58,12 +81,16 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 
 		env.putObject("config", config);
 
+		JsonObject client = new JsonObject();
+		client.addProperty("scope", "openid flibble");
+		env.putObject("client", client);
+
 		condition.execute(env);
 
 		JsonObject consents = env.getObject("consent_endpoint_request").getAsJsonObject("data");
 		JsonArray permissions = consents.getAsJsonArray("permissions");
 
-		assertTrue(permissions.contains(new JsonPrimitive("ACCOUNTS_READ")));
+		assertTrue(permissions.contains(new JsonPrimitive("RESOURCES_READ")));
 
 	}
 
