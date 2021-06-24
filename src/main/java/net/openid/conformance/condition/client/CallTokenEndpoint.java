@@ -46,6 +46,9 @@ public class CallTokenEndpoint extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
+		String a = env.getString("token_endpoint");
+		String b = env.getString("server", "token_endpoint");
+
 		String tokenEndpoint = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
 		if (Strings.isNullOrEmpty(tokenEndpoint)) {
