@@ -21,7 +21,7 @@ import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationT
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractClientMTLSCertificateSubject;
+import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
@@ -70,7 +70,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// this overwrites the non-directory values; we will have to replace them below
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
@@ -94,9 +94,9 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		env.unmapKey("config");
 
 		// restore MTLS aliases to the values for the server being tested
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
-		callAndStopOnFailure(ExtractClientMTLSCertificateSubject.class);
+		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
 
 		// use access token to get ssa
 		// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion

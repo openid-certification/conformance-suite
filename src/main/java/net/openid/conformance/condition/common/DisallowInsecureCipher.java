@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+@SuppressWarnings("deprecation")
 public class DisallowInsecureCipher extends AbstractCondition {
 
 	private static final List<Integer> ALLOWED_CIPHERS = ImmutableList.of(

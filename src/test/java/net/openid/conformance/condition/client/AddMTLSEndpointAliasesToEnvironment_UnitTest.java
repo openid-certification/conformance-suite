@@ -59,7 +59,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notPresentMtlsEndpointAliases() {
 
 		JsonObject server = new JsonParser().parse("{"
