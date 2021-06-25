@@ -127,7 +127,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                         for envvarname in other_environment_vars_for_script:
                             os.putenv(envvarname, other_environment_vars_for_script[envvarname])
                     # Pass response_type into VARIANT to distinguish oidcc-client tests which have the same module id
-                    if moduledict.get('variant').get('response_type') != None:
+                    if moduledict.get('variant') != None and moduledict.get('variant').get('response_type') != None:
                         variantstr = json.dumps({**test_plan_config, **{"response_type": moduledict.get('variant').get('response_type')}})
                     os.putenv('VARIANT', variantstr)
                     os.putenv('MODULE_NAME', module)
