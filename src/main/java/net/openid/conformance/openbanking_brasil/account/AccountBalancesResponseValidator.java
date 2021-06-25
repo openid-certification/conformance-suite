@@ -5,8 +5,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.DoubleField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.StringField;
 
 /**
  * This is validator for API - Contas - Saldos da conta
@@ -29,36 +29,36 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("availableAmount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("availableAmountCurrency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
 				.build());
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("blockedAmount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("blockedAmountCurrency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
 				.build());
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("automaticallyInvestedAmount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("automaticallyInvestedAmountCurrency")
 				.setPattern("^(\\w{3}){1}$")

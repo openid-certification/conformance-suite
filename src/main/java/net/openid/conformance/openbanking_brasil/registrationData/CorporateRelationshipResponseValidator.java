@@ -5,10 +5,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.ArrayField;
-import net.openid.conformance.util.fields.DatetimeField;
-import net.openid.conformance.util.fields.StringArrayField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 
 import java.util.Set;
@@ -38,15 +38,15 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 			"SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO",
 			"CREDENCIAMENTO", "OUTROS");
 
-		assertDateTimeField(body, new DatetimeField.Builder("updateDateTime").build());
-		assertDateTimeField(body, new DatetimeField.Builder("startDate").build());
+		assertField(body, new DatetimeField.Builder("updateDateTime").build());
+		assertField(body, new DatetimeField.Builder("startDate").build());
 
-		assertStringArrayField(body,
+		assertField(body,
 			new StringArrayField
 				.Builder("productsServicesType")
 				.setMinItems(1)
 				.setMaxItems(12)
-				.setEnum(productServiceTypes)
+				.setEnums(productServiceTypes)
 				.setMaxLength(24)
 				.build());
 
@@ -57,7 +57,7 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	private void assertAccounts(JsonObject body) {
 		assertHasField(body, "accounts");
 
-		assertArrayField(body,
+		assertField(body,
 			new ArrayField.Builder("accounts")
 				.setMinItems(1)
 				.build());
@@ -70,35 +70,35 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 		final Set<String> types = Set.of("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA",
 			"CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("compeCode")
 				.setPattern("\\d{3}|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("branchCode")
 				.setPattern("\\d{4}|^NA$")
 				.setMaxLength(4)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setPattern("^\\d{8,20}$|^NA$")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("checkDigit")
 				.setPattern("\\w*\\W*")
 				.setMaxLength(1)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(types)
@@ -108,7 +108,7 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	private void assertProcurators(JsonObject body) {
 		assertHasField(body, "procurators");
 
-		assertArrayField(body,
+		assertField(body,
 			new ArrayField.Builder("procurators")
 				.setMinItems(1)
 				.build());
@@ -120,28 +120,28 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	private void assertInnerFieldsForProcurators(JsonObject body) {
 		final Set<String> types = Set.of("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_POSSUI");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(19)
 				.setEnums(types)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("cnpjCpfNumber")
 				.setMaxLength(14)
 				.setPattern("^\\d{11}$|^\\d{14}$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)

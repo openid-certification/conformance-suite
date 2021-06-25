@@ -7,9 +7,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.DatetimeField;
-import net.openid.conformance.util.fields.StringArrayField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
@@ -39,52 +39,52 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 			"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "LOANS_READ, LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "LOANS_WARRANTIES_READ",
 			"UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("consentId")
 				.setPattern("^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\\-.:=@;$_!*'%\\/?#]+$")
 				.setMaxLength(256)
 				.build());
 
-		assertDateTimeField(body,
+		assertField(body,
 			new DatetimeField
 				.Builder("creationDateTime")
 				.build());
 
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("status")
 				.setEnums(statusList)
 				.build());
 
-		assertDateTimeField(body,
+		assertField(body,
 			new DatetimeField
 				.Builder("statusUpdateDateTime")
 				.build());
 
-		assertStringArrayField(body,
+		assertField(body,
 			new StringArrayField
 				.Builder("permissions")
-				.setEnum(permissionsList)
+				.setEnums(permissionsList)
 				.build());
 
-		assertDateTimeField(body,
+		assertField(body,
 			new DatetimeField
 				.Builder("expirationDateTime")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertDateTimeField(body,
+		assertField(body,
 			new DatetimeField
 				.Builder("transactionFromDateTime")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertDateTimeField(body,
+		assertField(body,
 			new DatetimeField
 				.Builder("transactionToDateTime")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 	}
 

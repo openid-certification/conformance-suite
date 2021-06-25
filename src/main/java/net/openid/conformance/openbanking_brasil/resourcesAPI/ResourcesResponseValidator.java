@@ -6,8 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.ArrayField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
@@ -24,7 +24,7 @@ public class ResourcesResponseValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertArrayField(body,
+		assertField(body,
 			new ArrayField.Builder("data")
 				.setMinItems(1)
 				.build());
@@ -37,7 +37,7 @@ public class ResourcesResponseValidator extends AbstractJsonAssertingCondition {
 		Set<String> enumType = Sets.newHashSet("ACCOUNT", "CREDIT_CARD_ACCOUNT", "LOAN", "FINANCING", "UNARRANGED_ACCOUNT_OVERDRAFT", "INVOICE_FINANCING");
 
 		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("resourceId")
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
@@ -45,13 +45,13 @@ public class ResourcesResponseValidator extends AbstractJsonAssertingCondition {
 				.setMinLength(1)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(enumType)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("status")
 				.setEnums(enumStatus)

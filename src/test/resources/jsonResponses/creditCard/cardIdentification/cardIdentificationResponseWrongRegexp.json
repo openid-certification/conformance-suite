@@ -5,9 +5,12 @@
         "productAdditionalInfo": "OURO_INTERNACIONAL",
         "creditCardNetwork": "VISA",
         "networkAdditionalInfo": "NA",
-        "paymentMethod": {
-            "identificationNumber": "4453"
-        }
+        "paymentMethod": [
+            {
+                "identificationNumber": "4453ss232@",
+                "isMultipleCreditCard": true
+            }
+        ]
     },
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",

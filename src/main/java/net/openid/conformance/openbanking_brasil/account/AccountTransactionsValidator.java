@@ -6,8 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.DoubleField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
@@ -40,96 +40,96 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			"RESGATE_APLIC_FINANCEIRA", "OPERACAO_CREDITO", "OUTROS");
 		Set<String> enumPartiePersonType = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("transactionId")
-				.setFieldOptional()
+				.setOptional()
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.setMaxLength(100)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("completedAuthorisedPaymentType")
 				.setEnums(enumCompletedAuthorisedPaymentIndicator)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("creditDebitType")
 				.setMaxLength(7)
 				.setEnums(enumCreditDebitIndicator)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("transactionName")
 				.setMaxLength(60)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(31)
 				.setEnums(enumTransactionTypes)
 				.build());
 
-		assertDoubleField(body,
+		assertField(body,
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("transactionCurrency")
 				.setMaxLength(3)
 				.setPattern("^(\\w{3}){1}$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("transactionDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partieCnpjCpf")
 				.setMaxLength(14)
 				.setPattern("^\\d{11}$|^\\d{14}$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partiePersonType")
 				.setEnums(enumPartiePersonType)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partieCompeCode")
 				.setMaxLength(3)
 				.setPattern("\\d{3}|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partieBranchCode")
 				.setMaxLength(4)
 				.setPattern("\\d{4}|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partieNumber")
 				.setMaxLength(20)
 				.setPattern("^\\d{8,20}$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("partieCheckDigit")
 				.setMaxLength(1)

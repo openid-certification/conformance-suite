@@ -6,9 +6,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.DoubleField;
-import net.openid.conformance.util.fields.IntField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
@@ -37,26 +37,26 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 		Set<String> occupationCodes = Sets.newHashSet("RECEITA_FEDERAL", "CBO", "OUTRO");
 		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("updateDateTime")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("companyCnpj")
 				.setPattern("\\d{14}|^NA$")
 				.setMaxLength(14)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("occupationCode")
 				.setEnums(occupationCodes)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("occupationDescription")
 				.setPattern("\\w*\\W*")
@@ -69,26 +69,26 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 			"TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_RENDA_INFORMADA", "OUTROS");
 
 		JsonObject informedIncome = findByPath(body, "$.data.informedIncome").getAsJsonObject();
-		assertStringField(informedIncome,
+		assertField(informedIncome,
 			new StringField
 				.Builder("frequency")
 				.setEnums(frequencies)
 				.build());
 
-		assertDoubleField(informedIncome,
+		assertField(informedIncome,
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
 				.build());
 
-		assertStringField(informedIncome,
+		assertField(informedIncome,
 			new StringField
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(informedIncome,
+		assertField(informedIncome,
 			new StringField
 				.Builder("date")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
@@ -99,20 +99,20 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 	private void assertInformedPatrimony(JsonObject body) {
 		JsonObject informedPatrimony = findByPath(body, "$.data.informedPatrimony").getAsJsonObject();
 
-		assertDoubleField(informedPatrimony,
+		assertField(informedPatrimony,
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
 				.build());
 
-		assertStringField(informedPatrimony,
+		assertField(informedPatrimony,
 			new StringField
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertIntField(informedPatrimony,
+		assertField(informedPatrimony,
 			new IntField
 				.Builder("year")
 				.setMaxLength(4)
