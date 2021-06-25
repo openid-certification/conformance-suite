@@ -1,11 +1,10 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainAccessTokenWithClientCredentials;
 
-public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends AbstractTestModule {
+public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

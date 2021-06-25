@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.sequence.AbstractConditionSequence;

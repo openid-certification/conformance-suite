@@ -1,13 +1,12 @@
-package net.openid.conformance.openbanking_brasil.plans;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.openbanking_brasil.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "credit-operations-api-test",
-	displayName = "Validate structure of all credit operations API resources",
-	summary = "Validates the structure of all credit operations API resources",
+	testName = "registration-data-api-test",
+	displayName = "Validate structure of all registration data API resources",
+	summary = "Validates the structure of all registration data API resources",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -22,7 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class CreditOperationsTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class RegistrationDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 	@Override
 	protected void validateResponse() {
 

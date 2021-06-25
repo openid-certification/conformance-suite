@@ -1,11 +1,10 @@
-package net.openid.conformance.openbanking_brasil.plans;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.account.AccountBalancesResponseValidator;
-import net.openid.conformance.openbanking_brasil.account.AccountIdentificationResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

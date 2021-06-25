@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;

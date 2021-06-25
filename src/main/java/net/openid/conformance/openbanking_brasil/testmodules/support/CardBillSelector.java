@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.plans;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
