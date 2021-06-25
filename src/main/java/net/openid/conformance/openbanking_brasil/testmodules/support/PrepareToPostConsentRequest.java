@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.plans;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -10,6 +10,7 @@ public class PrepareToPostConsentRequest extends AbstractCondition {
 	@PostEnvironment(strings = "http_method")
 	public Environment evaluate(Environment env) {
 		env.putString("http_method", "POST");
+		logSuccess("Call to consent API will be an HTTP POST");
 		return env;
 	}
 }

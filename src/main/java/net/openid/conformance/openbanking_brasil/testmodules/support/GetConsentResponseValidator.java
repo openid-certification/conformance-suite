@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;

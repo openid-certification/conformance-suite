@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
@@ -56,6 +56,8 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 		if (Strings.isNullOrEmpty(method)) {
 			throw error("HTTP method not found");
 		}
+
+		log("Preparing to call endpoint with HTTP method " + method);
 
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
