@@ -16,7 +16,10 @@ import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrVal
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
@@ -25,6 +28,7 @@ import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMRespon
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -56,6 +60,8 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	protected boolean par = false;
 
+	protected boolean brazil = false;
+
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
@@ -74,6 +80,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
+		brazil = true;
 	}
 
 	@Override
@@ -109,6 +116,12 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
 		call(sequence(profileSpecificChecks));
+
+		if (brazil && !par) {
+			// encrypted request object support is only required for redirect based flows
+			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
+			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
+		}
 	}
 
 	public static class PlainFAPIDiscoveryEndpointChecks extends AbstractConditionSequence {
