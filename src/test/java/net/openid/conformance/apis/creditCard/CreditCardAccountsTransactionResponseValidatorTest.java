@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditCard/cardTransactionsResponse.json")
+@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponse.json")
 public class CreditCardAccountsTransactionResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,34 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditCard/cardTransactionsResponse_with_missed_identificationNumber_field.json")
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponse_with_missed_identificationNumber_field.json")
 	public void validateStructureWithMissingField() {
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data[0].identificationNumber")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("identificationNumber")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseWrongEnum.json")
+	public void validateStructureWrongEnum() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("lineName")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseWrongMaxLength.json")
+	public void validateStructureWrongMaxLength() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("payeeMCC")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseWrongRegexp.json")
+	public void validateStructureWrongRegexp() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("billId")));
 	}
 }

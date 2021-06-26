@@ -5,8 +5,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.DoubleField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.StringField;
 
 /**
  * This validates Account Limits
@@ -27,36 +27,36 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 	private void assertInnerFields(JsonObject body) {
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("overdraftContractedLimit")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("overdraftContractedLimitCurrency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
 				.build());
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("overdraftUsedLimit")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("overdraftUsedLimitCurrency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
 				.build());
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("unarrangedOverdraftAmount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("unarrangedOverdraftAmountCurrency")
 				.setPattern("^(\\w{3}){1}$")

@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditCard/cardListResponse.json")
+@UseResurce("jsonResponses/creditCard/cardList/cardListResponse.json")
 public class CardListResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,26 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditCard/cardListResponseWithError.json")
+	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data[0].productType")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("productType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWrongEnum.json")
+	public void validateStructureWithWrongEnum() {
+		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWrongRegexp.json")
+	public void validateStructureWithWrongRegexp() {
+		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
 	}
 }

@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.*;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
@@ -27,39 +27,39 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertData(JsonObject body) {
-		assertDateTimeField(body, new DatetimeField("updateDateTime"));
+		assertField(body, new DatetimeField("updateDateTime"));
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("businessId")
 //				.setPattern("\\w*\\W*")
 				.setMaxLength(100)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("brandName")
 //				.setPattern("\\w*\\W*")
 				.setMaxLength(80)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("companyName")
 //				.setPattern("\\w*\\W*")
 				.setMaxLength(70)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("tradeName")
 //				.setPattern("\\w*\\W*")
 				.setMaxLength(70)
 				.build());
 
-		assertDateTimeField(body, new DatetimeField("incorporationDate"));
+		assertField(body, new DatetimeField("incorporationDate"));
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("cnpjNumber")
 				.setPattern("\\d{14}|^NA$")
@@ -67,7 +67,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.build());
 
 		//TODO need to check impl. for array
-		assertStringArrayField(body,
+		assertField(body,
 			new StringArrayField
 				.Builder("companyCnpjNumber")
 				.setPattern("\\d{14}|^NA$")
@@ -83,29 +83,29 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertOtherDocuments(JsonObject body) {
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setPattern("\\w*\\W*")
 				.setMaxLength(20)
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setPattern("\\w*\\W*")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("country")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("expirationDate")
 				.setPattern("(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
@@ -116,96 +116,96 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	private void assertParties(JsonObject body) {
 		Set<String> personTypes = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("personType")
 				.setEnums(personTypes)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(Sets.newHashSet("SOCIO", "ADMINISTRADOR"))
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
 //				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
 //				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("companyName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("tradeName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertDateTimeField(body, new DatetimeField("startDate"));
+		assertField(body, new DatetimeField("startDate"));
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("shareholding")
 				.setMaxLength(4)
 				.setPattern("^((\\d{1,9}\\.\\d{2}){1}|NA)$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentType")
 				.setEnums(Sets.newHashSet("CPF", "PASSAPORTE", "OUTRO_DOCUMENTO_VIAGEM", "CNPJ"))
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentNumber")
 				.setMaxLength(20)
 				//.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentAdditionalInfo")
 				.setMaxLength(100)
 				//.setPattern("\\w*\\W*")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentCountry")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentExpirationDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("documentIssueDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 	}
 
@@ -222,9 +222,9 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerEmails(JsonObject body) {
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+		assertField(body, new BooleanField.Builder("isMain").build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("email")
 				.setMaxLength(320)
@@ -245,44 +245,44 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
 			"93", "94", "95", "96", "97", "98", "99", "NA");
 
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
-		assertStringField(body,
+		assertField(body, new BooleanField.Builder("isMain").build());
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(5)
 				.setEnums(Sets.newHashSet("FIXO", "MOVEL", "OUTRO"))
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countryCallingCode")
 				.setPattern("^\\d{2,4}$|^NA$")
 				.setMaxLength(4)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("areaCode")
 				.setMaxLength(2)
 				.setEnums(areaCodes)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(11)
 				.setPattern("^([0-9]{8,11})|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("phoneExtension")
 				.setMaxLength(5)
@@ -296,20 +296,14 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertGeographicCoordinates(JsonObject body) {
-		assertLatitude(body,
-			new DoubleField
-				.Builder("latitude")
-				.setMaxLength(13)
-				.setPattern("^-?\\d{1,2}\\.\\d{1,9}$")
-				.setFieldOptional()
+		assertField(body,
+			new LatitudeField.Builder()
+				.setOptional()
 				.build());
 
-		assertLongitude(body,
-			new DoubleField
-				.Builder("longitude")
-				.setMaxLength(13)
-				.setPattern("^-?\\d{1,3}\\.\\d{1,8}$")
-				.setFieldOptional()
+		assertField(body,
+			new LatitudeField.Builder()
+				.setOptional()
 				.build());
 	}
 
@@ -318,70 +312,70 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
 			"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
 
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+		assertField(body, new BooleanField.Builder("isMain").build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("address")
 				.setMaxLength(150)
 //				.setPattern("\\w*\\W*|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(30)
 				//.setPattern("\\w*\\W*")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("districtName")
 				.setMaxLength(50)
 				//.setPattern("\\w*\\W*|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("townName")
 				.setMaxLength(50)
 				//.setPattern("\\w*\\W*|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("ibgeTownCode")
 				.setMaxLength(7)
 				.setPattern("\\d{7}$")
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countrySubDivision")
 				.setEnums(countrySubDivisions)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("postCode")
 				.setMaxLength(8)
 				.setPattern("\\d{8}|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
 				//.setPattern("\\w*\\W*|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countryCode")
 				.setMaxLength(3)
-				.setFieldOptional()
+				.setOptional()
 				.build());
 
 		assertGeographicCoordinates(body);

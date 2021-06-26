@@ -6,10 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.StringField;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,47 +34,47 @@ public class AccountIdentificationResponseValidator extends AbstractJsonAssertin
 		Set<String> enumSubType = Sets.newHashSet("INDIVIDUAL", "CONJUNTA_SIMPLES", "CONJUNTA_SOLIDARIA");
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("compeCode")
 				.setPattern("\\d{3}|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("branchCode")
 				.setPattern("\\d{4}|^NA$")
 				.setMaxLength(4)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("number")
 				.setPattern("^\\d{8,20}$|^NA$")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("checkDigit")
 				.setPattern("\\w*\\W*")
 				.setMaxLength(1)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("type")
 				.setEnums(enumType)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("subtype")
 				.setEnums(enumSubType)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$")

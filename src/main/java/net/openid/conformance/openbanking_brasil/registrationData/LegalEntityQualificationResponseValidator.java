@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.*;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
@@ -31,13 +31,13 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 
 	private void assertInnerFields(JsonObject body) {
 		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
-		assertDateTimeField(data,
+		assertField(data,
 			new DatetimeField
 				.Builder("updateDateTime")
 				.build());
 		assertHasField(data, "economicActivities");
 
-		assertArrayField(data,
+		assertField(data,
 			new ArrayField
 				.Builder("economicActivities")
 				.setMinItems(1)
@@ -52,14 +52,14 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 
 	private void assertInnerFieldsEconomicActivities(JsonObject body) {
 
-		assertIntField(body,
+		assertField(body,
 			new IntField
 				.Builder("code")
 				.setPattern("^\\d{7}$|^NA$")
 				.setMaxLength(31)
 				.build());
 
-		assertBooleanField(body,
+		assertField(body,
 			new BooleanField
 				.Builder("isMain")
 				.build());
@@ -70,39 +70,39 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 		Set<String> enumFrequency = Sets.newHashSet("DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_FATURAMENTO_INFORMADO", "OUTROS");
 		assertHasField(body, "informedRevenue");
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("frequency")
 				.setEnums(enumFrequency)
 				.build());
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("amount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("frequencyAdditionalInfo")
 				//.setPattern("\\w*\\W*") // Todo wrong pattern
 				.setPattern(".+")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(100)
 				.build());
 
-		assertIntField(data,
+		assertField(data,
 			new IntField
 				.Builder("year")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(4)
-				.setMaximum(9999)
+				.setMaxValue(9999)
 				.build());
 	}
 
@@ -110,19 +110,19 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 		JsonObject data = findByPath(body, "informedPatrimony").getAsJsonObject();
 		assertHasField(body, "informedPatrimony");
 
-		assertDoubleField(data,
+		assertField(data,
 			new DoubleField
 				.Builder("amount")
 				.build());
 
-		assertStringField(data,
+		assertField(data,
 			new StringField
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertDateTimeField(data,
+		assertField(data,
 			new DatetimeField
 				.Builder("date")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")

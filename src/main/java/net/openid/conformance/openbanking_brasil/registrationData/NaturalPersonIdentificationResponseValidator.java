@@ -5,9 +5,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.fields.BooleanField;
-import net.openid.conformance.util.fields.StringArrayField;
-import net.openid.conformance.util.fields.StringField;
+import net.openid.conformance.util.field.BooleanField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
@@ -33,74 +33,74 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			"VIUVO", "SEPARADO_JUDICIALMENTE", "DIVORCIADO", "UNIAO_ESTAVEL", "OUTRO");
 		final Set<String> enumSex = Set.of("FEMININO", "MASCULINO", "OUTRO");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("updateDateTime")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("personalId")
 				.setMaxLength(100)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("brandName")
 				.setMaxLength(80)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("birthDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("maritalStatusCode")
 				.setEnums(enumMaritalStatusCode)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("maritalStatusAdditionalInfo")
 				.setMaxLength(50)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("sex")
 				.setEnums(enumSex)
 				.build());
 
-		assertStringArrayField(body,
+		assertField(body,
 			new StringArrayField
 				.Builder("companyCnpj")
 				.setPattern("\\d{14}|^NA$")
 				.setMaxLength(14)
 				.build());
 
-		assertBooleanField(body, new BooleanField
+		assertField(body, new BooleanField
 			.Builder("hasBrazilianNationality")
 			.build());
 
@@ -141,38 +141,38 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	private void assertDocuments(JsonObject body) {
 		JsonObject documents = findByPath(body, "documents").getAsJsonObject();
 
-		assertStringField(documents,
+		assertField(documents,
 			new StringField
 				.Builder("cpfNumber")
 				.setPattern("^\\d{11}$|^NA$")
 				.setMaxLength(11)
 				.build());
 
-		assertStringField(documents,
+		assertField(documents,
 			new StringField
 				.Builder("passportNumber")
 				.setPattern("\\w*\\W*|^NA$")
 				.setMaxLength(20)
 				.build());
 
-		assertStringField(documents,
+		assertField(documents,
 			new StringField
 				.Builder("passportCountry")
 				.setPattern("^(\\w{3}){1}$|^NA$")
 				.setMaxLength(3)
 				.build());
 
-		assertStringField(documents,
+		assertField(documents,
 			new StringField
 				.Builder("passportExpirationDate")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.setMaxLength(10)
 				.build());
 
-		assertStringField(documents,
+		assertField(documents,
 			new StringField
 				.Builder("passportIssueDate")
-				.setFieldOptional()
+				.setOptional()
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.setMaxLength(10)
 				.build());
@@ -182,42 +182,42 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		final Set<String> enumPersonalOtherDocumentTypes = Set.of("CNH", "RG", "NIF", "RNE",
 			"OUTROS", "SEM_OUTROS_DOCUMENTOS");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(enumPersonalOtherDocumentTypes)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("typeAdditionalInfo")
 				.setMaxLength(70)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(11)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("checkDigit")
 				.setMaxLength(2)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("checkDigit")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(50)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("expirationDate")
 				.setMaxLength(10)
@@ -226,7 +226,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerNationalityFields(JsonObject body) {
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("otherNationalitiesInfo")
 				.setMaxLength(40)
@@ -237,46 +237,46 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerNationalityDocumentsFields(JsonObject body) {
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(10)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(40)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("expirationDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("issueDate")
 				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("country")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(80)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("typeAdditionalInfo")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")TODO: wrong pattern
 				.build());
@@ -285,23 +285,23 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	private void assertInnerFiliationFields(JsonObject body) {
 		final Set<String> enumFiliationType = Set.of("MAE", "PAI", "SEM_FILIACAO");
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(enumFiliationType)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("socialName")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
 				.build());
@@ -312,86 +312,86 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
 			"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
 
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+		assertField(body, new BooleanField("isMain"));
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("address")
 				.setMaxLength(150)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("additionalInfo")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(30)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("districtName")
 				.setMaxLength(50)
 				.setPattern("\\w*\\W*|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("townName")
 				.setMaxLength(50)
 				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("ibgeTownCode")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(7)
 				.setPattern("\\d{7}$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countrySubDivision")
 				.setEnums(enumCountrySubDivision)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("postCode")
 				.setMaxLength(8)
 				.setPattern("\\d{8}|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
 				.setPattern("\\w*\\W*")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countryCode")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(3)
 				.build());
 
 //TODO: need to add latitude & longitude checking
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("latitude")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(13)
 				.setPattern("^-?\\d{1,2}\\.\\d{1,9}$")
 				.build());
 
 //TODO: need to add latitude & longitude checking
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("longitude")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(13)
 				.setPattern("^-?\\d{1,3}\\.\\d{1,8}$")
 				.build());
@@ -406,45 +406,45 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
 			"93", "94", "95", "96", "97", "98", "99", "NA");
 
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+		assertField(body, new BooleanField.Builder("isMain").build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("type")
 				.setEnums(enumCustomerPhoneType)
 				.setMaxLength(5)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("additionalInfo")
-				.setFieldOptional()
+				.setOptional()
 				.setMaxLength(70)
 				//.setPattern("\\w*\\W*")TODO:wrong pattern
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("countryCallingCode")
 				.setMaxLength(4)
 				.setPattern("^\\d{2,4}$|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("areaCode")
 				.setMaxLength(2)
 				.setEnums(enumAreaCodes)
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(11)
 				.setPattern("^([0-9]{8,11})|^NA$")
 				.build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("phoneExtension")
 				.setMaxLength(5)
@@ -453,9 +453,9 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerEmailsFields(JsonObject body) {
-		assertBooleanField(body, new BooleanField.Builder("isMain").build());
+		assertField(body, new BooleanField.Builder("isMain").build());
 
-		assertStringField(body,
+		assertField(body,
 			new StringField
 				.Builder("email")
 				.setMaxLength(320)
