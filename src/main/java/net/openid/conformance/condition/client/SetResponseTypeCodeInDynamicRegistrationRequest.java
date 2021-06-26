@@ -7,10 +7,10 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SetResponseTypeCodeIdTokenInDynamicRegistrationRequest extends AbstractSetResponseTypeInDynamicRegistrationRequest {
+public class SetResponseTypeCodeInDynamicRegistrationRequest extends AbstractSetResponseTypeInDynamicRegistrationRequest {
 
 	protected String responseType() {
-		return "code id_token";
+		return "code";
 	}
 
 }
