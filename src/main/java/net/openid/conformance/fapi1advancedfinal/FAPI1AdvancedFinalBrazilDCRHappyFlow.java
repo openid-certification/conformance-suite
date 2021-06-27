@@ -12,7 +12,6 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -26,11 +25,13 @@ import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeIdTokenInDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -149,7 +150,11 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 
 		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
-		callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);
+		if (jarm) {
+			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
+		} else {
+			callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);
+		}
 		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class,"BrazilOBDCR-7.1-6");
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 
