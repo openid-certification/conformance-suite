@@ -254,7 +254,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		exposeEnvString("issuer");
 
 		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-		exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			exposePath("consents_endpoint", BRAZIL_CONSENTS_PATH);
+		} else {
+			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+		}
 
 		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			exposeMtlsPath("par_endpoint", "par");
