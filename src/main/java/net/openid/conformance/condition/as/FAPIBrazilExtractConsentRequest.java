@@ -29,19 +29,27 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 		}
 		if(!data.get("permissions").isJsonArray()) {
 			throw error("'permissions' must be an array", args("request_json", parsedRequest));
+		} else {
+			JsonArray permissions = data.get("permissions").getAsJsonArray();
+			if (permissions.size() < 1 || permissions.size() > 30) {
+				throw error("'permissions' must contain at least 1 entry and cannot have more than 30 entries",
+					args("permissions", permissions, "size", permissions.size()));
+			}
 		}
 
-		if(!data.has("loggedUser")) {
-			throw error("'data' object must contain a 'loggedUser' element", args("request_json", parsedRequest));
-		}
-		JsonObject loggedUser = data.get("loggedUser").getAsJsonObject();
+		boolean hasCnpj = false;
+		boolean hasCpf = false;
+		if(data.has("loggedUser")) {
+			JsonObject loggedUser = data.get("loggedUser").getAsJsonObject();
 
-		JsonObject loggedUserDocument = loggedUser.get("document").getAsJsonObject();
-		if(!loggedUserDocument.has("rel") || !"CPF".equals(OIDFJSON.getString(loggedUserDocument.get("rel")))) {
-			throw error("loggedUser.document.rel is not equal to 'CPF'", args("loggedUser", loggedUser));
+			JsonObject loggedUserDocument = loggedUser.get("document").getAsJsonObject();
+			if(!loggedUserDocument.has("rel") || !"CPF".equals(OIDFJSON.getString(loggedUserDocument.get("rel")))) {
+				throw error("loggedUser.document.rel is not equal to 'CPF'", args("loggedUser", loggedUser));
+			}
+			String identification = OIDFJSON.getString(loggedUserDocument.get("identification"));
+			env.putString("consent_request_cpf", identification);
+			hasCpf = true;
 		}
-		String identification = OIDFJSON.getString(loggedUserDocument.get("identification"));
-		env.putString("consent_request_cpf", identification);
 
 		if(data.has("businessEntity")) {
 			JsonObject businessEntity = data.get("businessEntity").getAsJsonObject();
@@ -51,12 +59,10 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 			}
 			String businessIdentification = OIDFJSON.getString(businessEntityDocument.get("identification"));
 			env.putString("consent_request_cnpj", businessIdentification);
+			hasCnpj = true;
 		}
-		JsonArray permissions = data.get("permissions").getAsJsonArray();
-
-		if(permissions.size()<1 || permissions.size()>30) {
-			throw error("'permissions' must contain at least 1 entry and cannot have more than 30 entries",
-				args("permissions", permissions, "size", permissions.size()));
+		if(!hasCnpj && !hasCpf) {
+			throw error("Either 'CPF' or 'CNPJ' must be provided");
 		}
 		env.putObject("new_consent_request", parsedRequest);
 		return env;
