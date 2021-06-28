@@ -140,7 +140,10 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
-		callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
+		if (!jarm) {
+			// implicit is only required when id_token is returned in frontchannel
+			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
+		}
 		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class);
 
