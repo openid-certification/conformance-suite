@@ -10,7 +10,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * TODO: I assumed that the cpf value in the consent request must match the cpf claim value requested in the request object
  //if the cpf Claim is requested as an Essential Claim for the ID Token or UserInfo response with a values parameter
  // requesting a specific cpf value, the Authorization Server MUST return a cpf Claim Value that matches the requested
  // value. If this is an Essential Claim and the requirement cannot be met, then the Authorization Server MUST
@@ -29,12 +28,11 @@ public abstract class AbstractFAPIBrazilAddCPFAndCPNJToGeneratedClaims extends A
 
 		JsonElement claimsElementInRequestObject = env.getElementFromObject("authorization_request_object", "claims.claims." + location);
 		if(claimsElementInRequestObject==null) {
-			log("Request object does not contain claims." + location);
+			log("Request object does not contain a claims element." + location);
 			return false;
 		}
 		JsonObject requestedClaims = claimsElementInRequestObject.getAsJsonObject();
-		//as per https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_consents_apis.yaml
-		// cpf is required in consent request
+
 		if(requestedClaims.has("cpf") && !requestedClaims.get("cpf").isJsonNull()) {
 			JsonObject cpf = requestedClaims.get("cpf").getAsJsonObject();
 			String cpfFromConsentRequest = env.getString("consent_request_cpf");
@@ -54,7 +52,7 @@ public abstract class AbstractFAPIBrazilAddCPFAndCPNJToGeneratedClaims extends A
 					//use the cpf value from consent request
 					cpfValue = cpfFromConsentRequest;
 				}
-				if(!cpfFromConsentRequest.equals(cpfValue)) {
+				if(cpfFromConsentRequest!=null && !cpfFromConsentRequest.equals(cpfValue)) {
 					throw error("Requested cpf claim value does not match the cpf value from the consent request",
 						args("requested_cpf_value", cpfValue, "cpf_in_consent_request", cpfFromConsentRequest));
 				} else {
@@ -62,8 +60,7 @@ public abstract class AbstractFAPIBrazilAddCPFAndCPNJToGeneratedClaims extends A
 				}
 			}
 		}
-		//as per https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_consents_apis.yaml
-		// cnpj is NOT required in consent request
+
 		if(requestedClaims.has("cnpj") && !requestedClaims.get("cnpj").isJsonNull()) {
 			JsonObject cnpj = requestedClaims.get("cnpj").getAsJsonObject();
 			String cnpjFromConsentRequest = env.getString("consent_request_cnpj");
