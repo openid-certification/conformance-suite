@@ -516,8 +516,7 @@ local_test:
 
   function install_test_dependencies() {
     echo "Installing extra dependencies"
-    apk add -U openssh-client git
-    apk add --update nodejs nodejs-npm
+    apk add -U openssh-client git nodejs npm
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
