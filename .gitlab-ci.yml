@@ -78,7 +78,7 @@ test:
   # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
   # something went wrong.
   allow_failure: true
-  image: python:alpine
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
@@ -215,7 +215,7 @@ stop_normal:
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
-  image: python:alpine
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
