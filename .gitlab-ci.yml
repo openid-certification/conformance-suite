@@ -78,7 +78,7 @@ test:
   # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
   # something went wrong.
   allow_failure: true
-  image: python:alpine
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
@@ -215,7 +215,7 @@ stop_normal:
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
-  image: python:alpine
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
@@ -516,8 +516,7 @@ local_test:
 
   function install_test_dependencies() {
     echo "Installing extra dependencies"
-    apk add -U openssh-client git
-    apk add --update nodejs nodejs-npm
+    apk add -U openssh-client git nodejs npm
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
