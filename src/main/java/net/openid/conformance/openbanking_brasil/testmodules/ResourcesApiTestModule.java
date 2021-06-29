@@ -1,7 +1,14 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.openbanking_brasil.OBBProfile;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openbanking_brasil.*;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+
+//import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "resources-api-test",
@@ -22,8 +29,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+	}
+
 	@Override
 	protected void validateResponse() {
-
+		callAndContinueOnFailure(ResourcesResponseValidator.class);
 	}
 }
