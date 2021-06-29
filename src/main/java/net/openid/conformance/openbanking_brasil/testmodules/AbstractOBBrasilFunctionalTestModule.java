@@ -6,4 +6,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"openbanking_uk", "plain_fapi", "consumerdataright_au"})
 public abstract class AbstractOBBrasilFunctionalTestModule extends AbstractFunctionalTestModule {
+
+	protected void runInBlock(String blockText, Runnable actor) {
+		eventLog.startBlock(blockText);
+		actor.run();
+		eventLog.endBlock();
+	}
+
 }
