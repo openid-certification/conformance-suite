@@ -4,14 +4,12 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareAllResourceRelatedConsentsForHappyPathTest extends AbstractCondition {
+public class PrepareAllResourceRelatedConsentsForEmptyResourcesTest extends AbstractCondition {
 
 	@Override
 	@PostEnvironment(strings = "consent_permissions")
 	public Environment evaluate(Environment env) {
-		String[] permissions = {"ACCOUNTS_READ",
-								"ACCOUNTS_BALANCES_READ",
-								"RESOURCES_READ"};
+		String[] permissions = {"RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}
