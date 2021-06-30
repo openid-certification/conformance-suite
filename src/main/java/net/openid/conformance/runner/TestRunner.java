@@ -384,15 +384,15 @@ public class TestRunner implements DataUtils {
 	private boolean createTestAlias(String alias, String id) {
 		// first see if the alias is already in use
 		if (support.hasAlias(alias)) {
-			// find the test that has the alias
-			TestModule test = support.getRunningTestByAlias(alias);
+			// find the test that has the alias (even if it's owned by a different user)
+			TestModule test = support.getRunningTestByAliasIgnoringLoggedInUser(alias);
 
 			if (test != null) {
 				String message;
 				if (TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus()) {
 					message = "Alias has now been claimed by another test";
 				} else {
-					message = "Stopping test due to alias conflict - before this test finished, you or another tester have started another test using the same alias. You will need to rerun this test and ensure you complete all steps in this test before you move onto the next test.";
+					message = "Stopping test due to alias conflict - before this test finished, you or another tester have started another test using the same alias. You will need to rerun this test and ensure you complete all steps in this test before you move onto the next test. Please check that the alias in your test configuration is unique, for example include your company name in it.";
 				}
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 

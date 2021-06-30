@@ -22,7 +22,7 @@ public interface TestRunnerSupport {
 	 * @param alias
 	 * @return
 	 */
-	TestModule getRunningTestByAlias(String alias);
+	TestModule getRunningTestByAliasIgnoringLoggedInUser(String alias);
 
 	/**
 	 * @param alias
