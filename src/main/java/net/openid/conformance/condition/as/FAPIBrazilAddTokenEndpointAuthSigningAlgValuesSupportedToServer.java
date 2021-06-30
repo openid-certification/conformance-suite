@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddTokenEndpointSigningAlg extends AbstractCondition {
+public class FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server", strings = "base_url")
@@ -18,9 +18,9 @@ public class AddTokenEndpointSigningAlg extends AbstractCondition {
 		data.add("PS256");
 
 		JsonObject server = env.getObject("server");
-		server.add("token_endpoint_auth_signing_alg", data);
+		server.add("token_endpoint_auth_signing_alg_values_supported", data);
 
-		logSuccess("Set 'PS256' for token_endpoint_auth_signing_alg");
+		logSuccess("Set token_endpoint_auth_signing_alg_values_supported", args("values", data));
 
 		return env;
 	}

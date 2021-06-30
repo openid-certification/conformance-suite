@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
+@SuppressWarnings("deprecation")
 public class FAPITLSClient extends DefaultTlsClient {
 
 	private Object targetHost;

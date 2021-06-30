@@ -8,7 +8,7 @@ public class SupportMTLSEndpointAliases extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
-		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.INFO, "RFC8705-5");
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 	}
 
 }

@@ -13,6 +13,8 @@ indent_style=space
 indent_style=space
 [*.html]
 indent_style=space
+[*.sh]
+indent_style=space
 [*.yml]
 indent_style=space
 indent_size=2

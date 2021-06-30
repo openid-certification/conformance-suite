@@ -30,6 +30,13 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 		claims.addProperty("iss", issuer);
 		claims.addProperty("sub", issuer);
 
+		// This code uses the mtls aliased token endpoint if there is one
+		// This is probably not correct, according to this ticket we should always use the non-MTLS one:
+		// https://bitbucket.org/openid/mobile/issues/203/mtls-aliases-ambiguity-in-private_key_jwt
+		// This probably only matters in FAPI tests, as they are the only case where we need to apply the
+		// mtls aliases when using private_key_jwt (due to the requirement for mtls sender constrained access tokens).
+		// Arguably the MTLS aliases value is still acceptable when we are sending the assertion to the MTLS aliased
+		// token endpoint, but we may want to check that the non-MATLS value is also accepted.
 		String audience = env.getString("token_endpoint") != null ?
 			env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
