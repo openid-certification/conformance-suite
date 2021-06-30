@@ -56,7 +56,7 @@ public class RequirePKCE extends AbstractRedirectServerTestModule {
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		if (getVariant(FapiRClientAuthType.class) == FapiRClientAuthType.MTLS) {
-			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.INFO, "RFC8705-5");
+			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 		}
 
 		// Make sure the server configuration passes some basic sanity checks

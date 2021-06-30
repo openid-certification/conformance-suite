@@ -5,14 +5,14 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIBrazilCheckDiscEndpointClaimsSupported extends AbstractValidateJsonArray {
+public class FAPIBrazilCheckDiscEndpointScopesSupported extends AbstractValidateJsonArray {
 
-	private static final String environmentVariable = "claims_supported";
+	private static final String environmentVariable = "scopes_supported";
 
-	private static final String[] SET_VALUES = new String[] { "acr", "cpf", "cnpj" };
+	private static final String[] SET_VALUES = new String[] { "openid", "consents", "resources" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";
+	private static final String errorMessageNotEnough = "The server does not support the required scopes";
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -20,7 +20,7 @@ public class FAPIBrazilCheckDiscEndpointClaimsSupported extends AbstractValidate
 
 		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), minimumMatchesRequired,
 				errorMessageNotEnough);
-	}
 
+	}
 
 }

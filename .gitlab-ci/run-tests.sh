@@ -26,6 +26,7 @@ export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
 export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
 export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
 export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
+export BRAZIL_CONSENT_REQUEST='test/a/fintech-clienttest/consents/v1/consents'
 
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
@@ -36,11 +37,14 @@ makeClientTest() {
     . node-core-client-setup.sh
 
     # client FAPI1-ADVANCED
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-brazil-client-test.json"
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-brazil-client-test.json"
+    #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=jarm][fapi_jarm_type=plain_oauth] automated-brazil-client-test-no-openid-scope.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_auth_request_method=pushed][fapi_response_mode=jarm][fapi_jarm_type=oidc] automated-ob-client-test.json"
     #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
     #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_jarm_type=oidc] automated-ob-client-test.json"
-	TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_jarm_type=plain_oauth] automated-ob-client-test-no-openid-scope.json"
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_jarm_type=plain_oauth] automated-ob-client-test-no-openid-scope.json"
 
 
     # client FAPI-RW-ID2
@@ -51,7 +55,7 @@ makeClientTest() {
     TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
     TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
 
-	# client OpenID Connect Core Client Tests
+    # client OpenID Connect Core Client Tests
     TESTS="${TESTS} oidcc-client-test-plan(../conformance-suite/.gitlab-ci/oidcc-rp-tests-config.json) automated-oidcc-client-test.json"
     # OIDC Core RP refresh token tests
     TESTS="${TESTS} oidcc-client-refreshtoken-test-plan(../conformance-suite/.gitlab-ci/oidcc-rp-refreshtoken-test-plan-config.json) automated-oidcc-client-test.json"
@@ -156,6 +160,16 @@ makeServerTest() {
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token][response_mode=form_post][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][response_mode=form_post][client_registration=dynamic_client] authlete-oidcc-dcr.json"
 
+    # Brazil FAPI Dynamic client registration
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+
+    # Brazil FAPI
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-privatekey.json"
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-privatekey.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-ob-mtls.json"

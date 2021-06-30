@@ -12,7 +12,6 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -21,16 +20,18 @@ import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationT
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractClientMTLSCertificateSubject;
+import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeIdTokenInDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -70,7 +71,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
 		// this overwrites the non-directory values; we will have to replace them below
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
@@ -94,9 +95,9 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		env.unmapKey("config");
 
 		// restore MTLS aliases to the values for the server being tested
-		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
+		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
-		callAndStopOnFailure(ExtractClientMTLSCertificateSubject.class);
+		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
 
 		// use access token to get ssa
 		// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
@@ -139,7 +140,10 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
-		callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
+		if (!jarm) {
+			// implicit is only required when id_token is returned in frontchannel
+			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
+		}
 		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class);
 
@@ -149,7 +153,11 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 
 		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
-		callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);
+		if (jarm) {
+			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
+		} else {
+			callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);
+		}
 		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class,"BrazilOBDCR-7.1-6");
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 

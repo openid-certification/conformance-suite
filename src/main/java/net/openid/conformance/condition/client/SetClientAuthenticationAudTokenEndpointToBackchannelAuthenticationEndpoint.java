@@ -15,6 +15,8 @@ public class SetClientAuthenticationAudTokenEndpointToBackchannelAuthenticationE
 
 		JsonObject claims = env.getObject("client_assertion_claims");
 
+		// Note that this deliberately DOESN'T use the mtls aliased token endpoint; see
+		// https://bitbucket.org/openid/mobile/issues/203/mtls-aliases-ambiguity-in-private_key_jwt
 		String aud = env.getString("server", "token_endpoint");
 
 		claims.addProperty("aud", aud);

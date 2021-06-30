@@ -17,6 +17,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.security.SecureRandom;
 
+@SuppressWarnings("deprecation")
 public class DisallowTLS10 extends AbstractCondition {
 
 	@Override

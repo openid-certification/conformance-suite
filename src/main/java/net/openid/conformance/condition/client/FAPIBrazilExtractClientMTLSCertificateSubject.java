@@ -19,7 +19,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-public class ExtractClientMTLSCertificateSubject extends AbstractCondition {
+public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "mutual_tls_authentication")
@@ -49,13 +49,21 @@ public class ExtractClientMTLSCertificateSubject extends AbstractCondition {
 		RDN ou = x500name.getRDNs(BCStyle.OU)[0];
 		String ouAsString = IETFUtils.valueToString(ou.getFirst().getValue());
 
-		RDN cn = x500name.getRDNs(BCStyle.CN)[0];
-		String cnAsString = IETFUtils.valueToString(cn.getFirst().getValue());
+		RDN[] uid = x500name.getRDNs(BCStyle.UID);
+		String softwareId;
+		if (uid.length == 0) {
+			RDN cn = x500name.getRDNs(BCStyle.CN)[0];
+			softwareId = IETFUtils.valueToString(cn.getFirst().getValue());
+		} else {
+			// newer Brazilian style certificate as per
+			// https://github.com/OpenBanking-Brasil/specs-seguranca/blob/main/open-banking-brasil-certificate-standards-1_ID1-ptbr.md
+			softwareId = IETFUtils.valueToString(uid[0].getFirst().getValue());
+		}
 
 		JsonObject o = new JsonObject();
 		o.addProperty("subjectdn", subjectDn);
 		o.addProperty("ou", ouAsString);
-		o.addProperty("cn", cnAsString);
+		o.addProperty("brazil_software_id", softwareId);
 
 		env.putObject("certificate_subject", o);
 

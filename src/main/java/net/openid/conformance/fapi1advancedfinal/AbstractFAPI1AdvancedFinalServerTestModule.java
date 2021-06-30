@@ -166,7 +166,8 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.consentUrl",
-	"resource.brazilCpf"
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -231,6 +232,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
+			if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
+				// we only need to call the mtls aliased pushed_authorization_request_endpoint when using mtls client auth
+				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
+				// access tokens)
+				env.removeNativeValue("pushed_authorization_request_endpoint");
+			}
 		}
 
 		// make sure the server configuration passes some basic sanity checks
