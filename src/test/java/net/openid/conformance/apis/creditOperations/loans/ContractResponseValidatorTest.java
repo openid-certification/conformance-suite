@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/loans/contractResponse.json")
+@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponseOK.json")
 public class ContractResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,25 @@ public class ContractResponseValidatorTest extends AbstractJsonResponseCondition
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/loans/contractResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		ContractResponseValidator condition = new ContractResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data.CET")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("CET")));
+	}
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponse(WrongEnum).json")
+	public void validateStructureWrongEnum() {
+		ContractResponseValidator condition = new ContractResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponse(WrongRegexp).json")
+	public void validateStructureWrongRegexp() {
+		ContractResponseValidator condition = new ContractResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("settlementDate")));
 	}
 }

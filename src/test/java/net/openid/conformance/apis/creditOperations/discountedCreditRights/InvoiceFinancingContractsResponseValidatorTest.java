@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingContractsResponse.json")
+@UseResurce("jsonResponses/creditOperations/discountedCreditRights/contracts/invoiceFinancingContractsResponse.json")
 public class InvoiceFinancingContractsResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,26 @@ public class InvoiceFinancingContractsResponseValidatorTest extends AbstractJson
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingContractsResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/contracts/invoiceFinancingContractsResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data[0].ipocCode")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("ipocCode")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/contracts/invoiceFinancingContractsResponse(WrongEnum).json")
+	public void validateStructureWrongEnum() {
+		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productSubType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/contracts/invoiceFinancingContractsResponse(WrongPattern).json")
+	public void validateStructureWrongRegexp() {
+		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
 	}
 }

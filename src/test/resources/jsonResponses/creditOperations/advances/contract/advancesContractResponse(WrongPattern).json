@@ -2,20 +2,21 @@
     "data": {
         "contractNumber": "1324926521496",
         "ipocCode": "92792126019929279212650822221989319252576",
-        "productName": "Crédito Pessoal Consignado",
-        "productType": "EMPRESTIMOS",
-        "productSubType": "CREDITO_PESSOAL_COM_CONSIGNACAO",
+        "productName": "AD",
+        "productType": "ADIANTAMENTO_A_DEPOSITANTES",
+        "productSubType": "ADIANTAMENTO_A_DEPOSITANTES",
         "contractDate": "2018-01-05",
+        "disbursementDate": "2018-01-15",
+        "settlementDate": "2018-01-1@",
         "contractAmount": 100000.04,
-        "settlementDate": "2018-01-15",
         "currency": "BRL",
         "dueDate": "2028-01-15",
         "instalmentPeriodicity": "SEMANAL",
         "instalmentPeriodicityAdditionalInfo": "Informações adicionais sobre periodicidade",
         "firstInstalmentDueDate": "2018-02-15",
+        "CET": 0.29,
         "amortizationScheduled": "SAC",
         "amortizationScheduledAdditionalInfo": "NA",
-        "cnpjConsignee": "60500998000135",
         "interestRates": [
             {
                 "taxType": "EFETIVA",
@@ -23,33 +24,21 @@
                 "taxPeriodicity": "AA",
                 "calculation": "21/252",
                 "referentialRateIndexerType": "PRE_FIXADO",
+                "referentialRateIndexerSubType": "TJLP",
+                "referentialRateIndexerAdditionalInfo": "Informações adicionais",
                 "preFixedRate": 0.6,
                 "postFixedRate": 0.55,
-                "additionalInfo": "Informações adicionais",
-                "referentialRateIndexerSubType": "TJLP",
-                "referentialRateIndexerAdditionalInfo": "Informações adicionais"
-            },
-            {
-                "taxType": "EFETIVA",
-                "interestRateType": "SIMPLES",
-                "taxPeriodicity": "AA",
-                "calculation": "21/252",
-                "referentialRateIndexerType": "PRE_FIXADO",
-                "preFixedRate": 0.6,
-                "postFixedRate": 0.55,
-                "additionalInfo": "Informações adicionais",
-                "referentialRateIndexerSubType": "TJLP",
-                "referentialRateIndexerAdditionalInfo": "Informações adicionais"
+                "additionalInfo": "Informações adicionais"
             }
         ],
         "contractedFees": [
             {
-                "feeName": "Renovação de cadastro",
-                "feeCode": "CADASTRO",
+                "feeName": "Excesso em Conta",
+                "feeCode": "EXCESSO_CONTA",
                 "feeChargeType": "UNICA",
                 "feeCharge": "MINIMO",
-                "feeAmount": 50,
-                "feeRate": 0.25
+                "feeAmount":  100000.04,
+                "feeRate": 50
             }
         ],
         "contractedFinanceCharges": [
@@ -58,8 +47,7 @@
                 "chargeAdditionalInfo": "Informações adicionais sobre encargos.",
                 "chargeRate": 0.07
             }
-        ],
-        "disbursementDate": "2018-01-15"
+        ]
     },
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",

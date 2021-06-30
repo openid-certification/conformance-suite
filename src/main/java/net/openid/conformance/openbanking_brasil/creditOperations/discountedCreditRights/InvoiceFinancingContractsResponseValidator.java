@@ -5,6 +5,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.StringField;
+
+import java.util.Set;
 
 /**
  * This is validator for API Credit Operations/Discounted Credit Rights "
@@ -18,15 +21,53 @@ public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAsse
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-
-		assertHasField(body, "$.data");
-		assertHasStringField(body, "$.data[0].contractId");
-		assertHasStringField(body, "$.data[0].brandName");
-		assertHasStringField(body, "$.data[0].companyCnpj");
-		assertHasStringField(body, "$.data[0].productType");
-		assertHasStringField(body, "$.data[0].productSubType");
-		assertHasStringField(body, "$.data[0].ipocCode");
-
+		assertHasField(body, ROOT_PATH);
+		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
 		return environment;
+	}
+
+	private void assertInnerFields(JsonObject body) {
+		final Set<String> productType = Set.of("DIREITOS_CREDITORIOS_DESCONTADOS");
+		final Set<String> contractProductSubTypes = Set.of("DESCONTO_DUPLICATAS",
+			"DESCONTO_CHEQUES", "ANTECIPACAO_FATURA_CARTAO_CREDITO",
+			"OUTROS_DIREITOS_CREDITORIOS_DESCONTADOS", "OUTROS_TITULOS_DESCONTADOS");
+
+		assertField(body,
+			new StringField
+				.Builder("contractId")
+				.setMaxLength(100)
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("brandName")
+				.setMaxLength(80)
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("companyCnpj")
+				.setPattern("\\d{14}|^NA$")
+				.setMaxLength(14)
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("productType")
+				.setEnums(productType)
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("productSubType")
+				.setMaxLength(47)
+				.setEnums(contractProductSubTypes)
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("ipocCode")
+				.setMaxLength(67)
+				.build());
 	}
 }

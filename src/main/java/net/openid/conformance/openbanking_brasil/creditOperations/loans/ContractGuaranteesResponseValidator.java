@@ -23,10 +23,8 @@ public class ContractGuaranteesResponseValidator extends AbstractJsonAssertingCo
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-
 		assertHasField(body, ROOT_PATH);
 		assertJsonArrays(body, ROOT_PATH, this::assertData);
-
 		return environment;
 	}
 
@@ -72,6 +70,7 @@ public class ContractGuaranteesResponseValidator extends AbstractJsonAssertingCo
 		assertField(element,
 			new DoubleField
 				.Builder("warrantyAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setOptional()
 				.build());
 	}

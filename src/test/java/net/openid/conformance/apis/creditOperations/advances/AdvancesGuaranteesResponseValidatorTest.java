@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/advances/advancesGuaranteesResponse.json")
+@UseResurce("jsonResponses/creditOperations/advances/advancesGuarantees/advancesGuaranteesResponse.json")
 public class AdvancesGuaranteesResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,26 @@ public class AdvancesGuaranteesResponseValidatorTest extends AbstractJsonRespons
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/advances/advancesGuaranteesResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/advances/advancesGuarantees/advancesGuaranteesResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		AdvancesGuaranteesResponseValidator condition = new AdvancesGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data[0].warrantyAmount")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("warrantyAmount")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/advances/advancesGuarantees/advancesGuaranteesResponseWrongEnum.json")
+	public void validateStructureWrongEnum() {
+		AdvancesGuaranteesResponseValidator condition = new AdvancesGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantyType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/advances/advancesGuarantees/advancesGuaranteesResponseWrongRegexp.json")
+	public void validateStructureWrongRegexp() {
+		AdvancesGuaranteesResponseValidator condition = new AdvancesGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("currency")));
 	}
 }

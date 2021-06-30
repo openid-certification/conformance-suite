@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingContractGuaranteesResponse.json")
+@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponse.json")
 public class InvoiceFinancingContractGuaranteesResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,11 +19,27 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorTest extends Abs
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingContractGuaranteesResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data[0].warrantyType")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("warrantyType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponse(WrongEnum).json")
+	public void validateStructureWrongEnum() {
+		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantySubType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponse(WrongPattern).json")
+	public void validateStructureWrongRegexp() {
+		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("warrantyAmount")));
 	}
 }
 
