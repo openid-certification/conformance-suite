@@ -388,8 +388,6 @@ public class TestRunner implements DataUtils {
 			TestModule test = support.getRunningTestByAlias(alias);
 
 			if (test != null) {
-				// TODO: make the override configurable to allow for conflict of re-used aliases
-
 				String message;
 				if (TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus()) {
 					message = "Alias has now been claimed by another test";
