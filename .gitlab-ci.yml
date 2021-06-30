@@ -87,52 +87,52 @@ upload:
   allow_failure:
     exit_codes:
       - 137
-
-test:
-  <<: *maven
-  stage: test
-  needs: ["build"]
-  script:
-    # Don't recompile the main app
-    - mvn -B -Dmaven.main.skip test
-    - |
-      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
-  only:
-    - branches
-
-.compare: &compare
-  stage: compare
-  interruptible: true
-  # we only want to show a 'warning' if there's differences, but gitlab is inflexible so any failure will show as a
-  # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
-  # something went wrong.
-  allow_failure: true
-  image: python:3.9-alpine3.14
-  only:
-    refs:
-      - branches
-    kubernetes: active
-
-compare_cloud:
-  <<: *compare
-  needs: ["server_test", "ciba_test", "client_test"]
-  script:
-    - run_compare server_test ciba_test client_test
-
-compare_local:
-  <<: *compare
-  needs: ["local_test"]
-  script:
-    - run_compare local_test
-
-check-trailing-whitespace:
-  interruptible: true
-  stage: build
-  image: python:2
-  script:
-    - ./scripts/checkwhitespace.py
-  only:
-    - branches
+#
+#test:
+#  <<: *maven
+#  stage: test
+#  needs: ["build"]
+#  script:
+#    # Don't recompile the main app
+#    - mvn -B -Dmaven.main.skip test
+#    - |
+#      perl -ne '/Total.*?(\d+%)/ && print "Unit test coverage $1\n"' target/site/jacoco/index.html
+#  only:
+#    - branches
+#
+#.compare: &compare
+#  stage: compare
+#  interruptible: true
+#  # we only want to show a 'warning' if there's differences, but gitlab is inflexible so any failure will show as a
+#  # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
+#  # something went wrong.
+#  allow_failure: true
+#  image: python:alpine
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#
+#compare_cloud:
+#  <<: *compare
+#  needs: ["server_test", "ciba_test", "client_test"]
+#  script:
+#    - run_compare server_test ciba_test client_test
+#
+#compare_local:
+#  <<: *compare
+#  needs: ["local_test"]
+#  script:
+#    - run_compare local_test
+#
+#check-trailing-whitespace:
+#  interruptible: true
+#  stage: build
+#  image: python:2
+#  script:
+#    - ./scripts/checkwhitespace.py
+#  only:
+#    - branches
 
 #codequality:
 #  image: docker:latest
@@ -145,160 +145,160 @@ check-trailing-whitespace:
 #    - codeclimate
 #  artifacts:
 #    paths: [codeclimate.json]
-
-.auto-deploy:
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.1.0"
-
-.deploy: &deploy
-  extends: .auto-deploy
-  stage: deploy
-  # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
-  # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
-  resource_group: deploy
-  script:
-    - find_deploy_url
-    - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
-    - auto-deploy check_kube_domain
-    - auto-deploy download_chart
-    - auto-deploy ensure_namespace
-    - auto-deploy initialize_tiller
-    - deploy
-  artifacts:
-    reports:
-      dotenv: deploy.env
-  dependencies: []
-  only:
-    refs:
-      - branches
-    kubernetes: active
-
-deploy-review:
-  <<: *deploy
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    on_stop: stop_review
-    url: $DYNAMIC_ENVIRONMENT_URL
-  except:
-    - master
-    - production
-    - demo
-
-deploy-normal:
-  <<: *deploy
-  environment:
-    name: $CI_COMMIT_BRANCH
-    on_stop: stop_normal
-    url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - production
-    - demo
-
-deploy-staging:
-  <<: *deploy
-  environment:
-    name: staging
-    url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - master
-
-stop_review:
-  extends: .auto-deploy
-  stage: cleanup
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - auto-deploy initialize_tiller
-    - auto-deploy delete
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
-  needs: []
-  when: manual
-  allow_failure: true
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  except:
-    - master
-    - production
-    - demo
-
-stop_normal:
-  extends: .auto-deploy
-  stage: cleanup
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - auto-deploy initialize_tiller
-    - auto-deploy delete
-  environment:
-    name: $CI_COMMIT_BRANCH
-    action: stop
-  needs: []
-  when: manual
-  allow_failure: true
-  only:
-    - demo
-
-.deployment_test: &deployment_test
-  stage: test
-  interruptible: true
-  image: python:3.9-alpine3.14
-  only:
-    refs:
-      - branches
-    kubernetes: active
-  artifacts:
-    when: always
-    paths:
-      - "*.zip"
-
-client_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_client_test_plan
-
-server_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_server_test_plan
-
-ciba_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_ciba_test_plan
-
-local_test:
-  stage: test
-  interruptible: true
-  image: docker:19.03.10
-  services:
-    - docker:dind
-  needs: ["build"]
-  script:
-    - apk add docker-compose
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
-    - sleep 5
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
-  after_script:
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
-  artifacts:
-    when: always
-    paths:
-      - oidcc-provider-log.txt
-      - server-log.txt
-      - mongo/data/mongodb-dump.gz
-      - "*.zip"
+#
+#.auto-deploy:
+#  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.1.0"
+#
+#.deploy: &deploy
+#  extends: .auto-deploy
+#  stage: deploy
+#  # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
+#  # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
+#  resource_group: deploy
+#  script:
+#    - find_deploy_url
+#    - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
+#    - auto-deploy check_kube_domain
+#    - auto-deploy download_chart
+#    - auto-deploy ensure_namespace
+#    - auto-deploy initialize_tiller
+#    - deploy
+#  artifacts:
+#    reports:
+#      dotenv: deploy.env
+#  dependencies: []
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#
+#deploy-review:
+#  <<: *deploy
+#  environment:
+#    name: review/$CI_COMMIT_REF_NAME
+#    on_stop: stop_review
+#    url: $DYNAMIC_ENVIRONMENT_URL
+#  except:
+#    - master
+#    - production
+#    - demo
+#
+#deploy-normal:
+#  <<: *deploy
+#  environment:
+#    name: $CI_COMMIT_BRANCH
+#    on_stop: stop_normal
+#    url: $DYNAMIC_ENVIRONMENT_URL
+#  only:
+#    - production
+#    - demo
+#
+#deploy-staging:
+#  <<: *deploy
+#  environment:
+#    name: staging
+#    url: $DYNAMIC_ENVIRONMENT_URL
+#  only:
+#    - master
+#
+#stop_review:
+#  extends: .auto-deploy
+#  stage: cleanup
+#  variables:
+#    GIT_STRATEGY: none
+#  script:
+#    - auto-deploy initialize_tiller
+#    - auto-deploy delete
+#  environment:
+#    name: review/$CI_COMMIT_REF_NAME
+#    action: stop
+#  needs: []
+#  when: manual
+#  allow_failure: true
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#  except:
+#    - master
+#    - production
+#    - demo
+#
+#stop_normal:
+#  extends: .auto-deploy
+#  stage: cleanup
+#  variables:
+#    GIT_STRATEGY: none
+#  script:
+#    - auto-deploy initialize_tiller
+#    - auto-deploy delete
+#  environment:
+#    name: $CI_COMMIT_BRANCH
+#    action: stop
+#  needs: []
+#  when: manual
+#  allow_failure: true
+#  only:
+#    - demo
+#
+#.deployment_test: &deployment_test
+#  stage: test
+#  interruptible: true
+#  image: python:alpine
+#  only:
+#    refs:
+#      - branches
+#    kubernetes: active
+#  artifacts:
+#    when: always
+#    paths:
+#      - "*.zip"
+#
+#client_test:
+#  <<: *deployment_test
+#  script:
+#    - set_up_for_running_test_plan
+#    - run_client_test_plan
+#
+#server_test:
+#  <<: *deployment_test
+#  script:
+#    - set_up_for_running_test_plan
+#    - run_server_test_plan
+#
+#ciba_test:
+#  <<: *deployment_test
+#  script:
+#    - set_up_for_running_test_plan
+#    - run_ciba_test_plan
+#
+#local_test:
+#  stage: test
+#  interruptible: true
+#  image: docker:19.03.10
+#  services:
+#    - docker:dind
+#  needs: ["build"]
+#  script:
+#    - apk add docker-compose
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
+#    - sleep 5
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
+#  after_script:
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
+#    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
+#  artifacts:
+#    when: always
+#    paths:
+#      - oidcc-provider-log.txt
+#      - server-log.txt
+#      - mongo/data/mongodb-dump.gz
+#      - "*.zip"
 
 # ---------------------------------------------------------------------------
 
@@ -557,7 +557,8 @@ local_test:
 
   function install_test_dependencies() {
     echo "Installing extra dependencies"
-    apk add -U openssh-client git nodejs npm
+    apk add -U openssh-client git
+    apk add --update nodejs nodejs-npm
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
