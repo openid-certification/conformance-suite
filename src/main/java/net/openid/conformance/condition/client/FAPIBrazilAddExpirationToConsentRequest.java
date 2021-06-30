@@ -22,10 +22,11 @@ public class FAPIBrazilAddExpirationToConsentRequest extends AbstractCondition {
 		JsonObject data = consentRequest.getAsJsonObject("data");
 
 		Instant expiryTime = Instant.now().plus(2, ChronoUnit.HOURS);
+		Instant expiryTimeNoFractionalSeconds = expiryTime.truncatedTo(ChronoUnit.SECONDS);
 
-		String rfc339ExpiryTime = DateTimeFormatter.ISO_INSTANT.format(expiryTime);
+		String rfc3339ExpiryTime = DateTimeFormatter.ISO_INSTANT.format(expiryTimeNoFractionalSeconds);
 
-		data.addProperty("expirationDateTime", rfc339ExpiryTime);
+		data.addProperty("expirationDateTime", rfc3339ExpiryTime);
 
 		logSuccess("Added expiration time to consent request", args("consent_endpoint_request", consentRequest));
 

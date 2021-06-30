@@ -150,6 +150,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 
 		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "cert");
 
+		// note that subjectdn includes a number of numeric oids - see comment in FAPIBrazilExtractClientMTLSCertificateSubject.java
 		assertThat(env.getString("certificate_subject", "subjectdn")).isEqualTo("1.3.6.1.4.1.311.60.2.1.3=#13024252,2.5.4.15=#131450726976617465204f7267616e697a6174696f6e,UID=be42d3a5-9861-4305-9deb-a22756ea7e82,2.5.4.5=#130d31333335333233363030313839,CN=Whatever,OU=74e929d9-33b6-4d85-8ba7-c146c867a817,O=Open Banking Brasil,L=BOTAFOGO,ST=BOTAFOGO / RIO DE JANEIRO\\, RJ,C=BR");
 		assertThat(env.getString("certificate_subject", "ou")).isEqualTo("74e929d9-33b6-4d85-8ba7-c146c867a817");
 		assertThat(env.getString("certificate_subject", "brazil_software_id")).isEqualTo("be42d3a5-9861-4305-9deb-a22756ea7e82");
