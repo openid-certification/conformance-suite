@@ -16,13 +16,18 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.*;
 
 public class JsonAssertingConditionTests {
 
@@ -49,6 +54,47 @@ public class JsonAssertingConditionTests {
 		};
 		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 		condition.evaluate(environment);
+
+	}
+
+	@Test
+	public void foundFieldIsLogged() {
+
+		JsonObject object = OIDFJSON.toObject(new Gson().toJsonTree(Map.of(
+			"data", Map.of(
+				"nest", Map.of("field", "value")
+			)
+		)));
+
+		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
+
+		Environment environment = new Environment();
+		environment.putObject("response", object);
+
+		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+
+			@Override
+			public Environment evaluate(Environment env) {
+				JsonObject object = env.getObject("response");
+
+				assertHasField(object, "$.data.nest.field");
+
+				return env;
+			}
+
+		};
+		condition.setProperties("test", log, Condition.ConditionResult.FAILURE);
+
+		condition.evaluate(environment);
+
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(log).log(anyString(), captor.capture());
+
+		Map<String, Object> args = captor.getValue();
+		String message = String.valueOf(args.get("msg"));
+
+		assertEquals("Successfully validated the nest.field element on the  API response", message);
 
 	}
 
