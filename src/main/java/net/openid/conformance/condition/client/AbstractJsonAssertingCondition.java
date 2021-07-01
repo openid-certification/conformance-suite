@@ -253,6 +253,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		String elementName = "data";
 		if (matcher.matches()) {
 			elementName = matcher.group("path");
+		} else {
+			elementName = path;
 		}
 
 		try {
