@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEnd
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
@@ -88,7 +88,7 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 		super.performEndpointVerification();
 
 		if (par) {
-			callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-1", "OIDCD-3", "PAR-4");
+			callAndContinueOnFailure(CheckDiscRequirePushedAuthorizationRequestsIsABoolean.class, Condition.ConditionResult.FAILURE, "PAR-5");
 		} else {
 			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-1", "OIDCD-3");
 		}
