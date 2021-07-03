@@ -20,8 +20,6 @@ public class GetConsentResponseValidator extends AbstractJsonAssertingCondition 
 		assertHasStringField(body, "$.data.status");
 		assertHasStringField(body, "$.data.statusUpdateDateTime");
 		assertHasStringField(body, "$.data.expirationDateTime");
-		assertHasStringField(body, "$.data.transactionFromDateTime");
-		assertHasStringField(body, "$.data.transactionToDateTime");
 		assertHasStringArrayField(body, "$.data.permissions");
 
 		return environment;

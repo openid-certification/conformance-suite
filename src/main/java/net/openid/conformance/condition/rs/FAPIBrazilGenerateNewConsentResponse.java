@@ -33,8 +33,6 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		String creationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
 		//TODO check plus-minus values or skip completely
 		String expirationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(2, ChronoUnit.HOURS));
-		String transactionFromDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.minus(5, ChronoUnit.MINUTES));
-		String transactionToDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(2, ChronoUnit.HOURS));
 
 		dataElement.addProperty("consentId", consentId);
 		dataElement.addProperty("creationDateTime", creationDateTime);
@@ -44,8 +42,6 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		permissions.add("ACCOUNTS_READ");
 		dataElement.add("permissions", permissions);
 		dataElement.addProperty("expirationDateTime", expirationDateTime);
-		dataElement.addProperty("transactionFromDateTime", transactionFromDateTime);
-		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
 		JsonObject links = new JsonObject();
 		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_CONSENTS_PATH);

@@ -11,9 +11,7 @@
             "CUSTOMERS_BUSINESS_ADITTIONALINFO_READ",
             "RESOURCES_READ"
         ],
-        "expirationDateTime": "2023-05-28T23:59:59Z",
-        "transactionFromDateTime": "2021-05-01T00:00:00Z",
-        "transactionToDateTime": "2024-05-28T23:59:59Z"
+        "expirationDateTime": "2023-05-28T23:59:59Z"
     },
     "links": {
         "self": "https://api.banco.com.br/open-banking/consents/v1/consents/443b4853-74c1-336b-861f-8c0525a66f13"

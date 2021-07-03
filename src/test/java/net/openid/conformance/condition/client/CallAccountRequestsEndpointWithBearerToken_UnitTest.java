@@ -46,9 +46,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		"      \"ReadTransactionsDebits\",\n" +
 		"      \"ReadTransactionsDetail\"\n" +
 		"    ],\n" +
-		"    \"ExpirationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" +
-		"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" +
-		"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" +
+		"    \"ExpirationDateTime\": \"2017-05-02T00:00:00+00:00\"\n" +
 		"  },\n" +
 		"  \"Risk\": {}\n" +
 		"}").getAsJsonObject();
@@ -69,9 +67,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		"      \"ReadTransactionsDebits\",\n" +
 		"      \"ReadTransactionsDetail\"\n" +
 		"    ],\n" +
-		"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\",\n" +
-		"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" +
-		"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" +
+		"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\"\n" +
 		"  },\n" +
 		"  \"Risk\": {},\n" +
 		"  \"Links\": {\n" +

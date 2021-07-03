@@ -8,9 +8,7 @@
             "ACCOUNTS_READ",
             "ACCOUNTS_OVERDRAFT_LIMITS_READ",
             "RESOURCES_READ"
-        ],
-        "transactionFromDateTime": "2021-01-01T00:00:00Z",
-        "transactionToDateTime": "2021-02-01T23:59:59Z"
+        ]
     },
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",

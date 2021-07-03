@@ -51,7 +51,6 @@ public class ConsentDetailsIdentifiedByConsentIdValidator extends AbstractJsonAs
 				.Builder("creationDateTime")
 				.build());
 
-
 		assertField(body,
 			new StringField
 				.Builder("status")
@@ -72,19 +71,6 @@ public class ConsentDetailsIdentifiedByConsentIdValidator extends AbstractJsonAs
 		assertField(body,
 			new DatetimeField
 				.Builder("expirationDateTime")
-				.setOptional()
-				.build());
-
-		assertField(body,
-			new DatetimeField
-				.Builder("transactionFromDateTime")
-				.setOptional()
-				.build());
-
-		assertField(body,
-			new DatetimeField
-				.Builder("transactionToDateTime")
-				.setOptional()
 				.build());
 	}
 
