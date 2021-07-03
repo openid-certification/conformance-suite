@@ -60,7 +60,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 			"      \"ReadTransactionsDebits\",\n" +
 			"      \"ReadTransactionsDetail\"\n" +
 			"    ],\n" +
-			"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\",\n" +
+			"    \"ExpirationDateTime\": \"2017-08-02T00:00:00Z\"\n" +
 			"  },\n" +
 			"  \"Risk\": {},\n" +
 			"  \"Links\": {\n" +

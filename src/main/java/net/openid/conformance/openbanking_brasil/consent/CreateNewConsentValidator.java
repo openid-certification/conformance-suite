@@ -72,6 +72,7 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DatetimeField
 				.Builder("expirationDateTime")
+				.setOptional()
 				.build());
 	}
 
