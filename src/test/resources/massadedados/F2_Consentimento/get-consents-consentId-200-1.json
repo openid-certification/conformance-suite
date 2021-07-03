@@ -36,9 +36,7 @@
             "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ",
             "RESOURCES_READ"
         ],
-        "expirationDateTime": "2024-05-28T23:59:59Z",
-        "transactionFromDateTime": "2021-02-01T00:00:00Z",
-        "transactionToDateTime": "2024-05-28T23:59:59Z"
+        "expirationDateTime": "2024-05-28T23:59:59Z"
     },
     "links": {
         "self": "https://api.banco.com.br/open-banking/consents/v1/consents/9d981b8a-d1f5-42d4-bb5d-e900fc0415f3"

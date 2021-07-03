@@ -29,16 +29,12 @@ public class CreateCreateAccountRequestRequestWithExpiration extends AbstractCon
 		Instant baseDateRough = Instant.now();
 		Instant baseDate = baseDateRough.minusNanos(baseDateRough.getNano());
 
+		Instant expiryTimeNoFractionalSeconds = baseDate.truncatedTo(ChronoUnit.SECONDS);
+
 		String expirationDateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
-				.format(baseDate.plus(2, ChronoUnit.HOURS));
-		String fromDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
-				.format(baseDate.minus(30, ChronoUnit.DAYS));
-		String toDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
-				.format(baseDate);
+				.format(expiryTimeNoFractionalSeconds.plus(2, ChronoUnit.HOURS));
 
 		data.addProperty("ExpirationDateTime", expirationDateTime);
-		data.addProperty("TransactionFromDateTime", fromDate);
-		data.addProperty("TransactionToDateTime", toDate);
 
 		JsonObject o = new JsonObject();
 		o.add("Data", data);
