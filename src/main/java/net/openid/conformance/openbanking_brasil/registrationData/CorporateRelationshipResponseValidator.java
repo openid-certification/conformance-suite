@@ -94,7 +94,7 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 		assertField(body,
 			new StringField
 				.Builder("checkDigit")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(1)
 				.build());
 
@@ -138,14 +138,14 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 }

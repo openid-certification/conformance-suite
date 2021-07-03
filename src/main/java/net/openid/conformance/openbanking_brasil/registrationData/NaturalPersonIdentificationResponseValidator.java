@@ -43,28 +43,28 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("personalId")
 				.setMaxLength(100)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("brandName")
 				.setMaxLength(80)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -84,7 +84,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("maritalStatusAdditionalInfo")
 				.setMaxLength(50)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -151,7 +151,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(documents,
 			new StringField
 				.Builder("passportNumber")
-				.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(20)
 				.build());
 
@@ -192,21 +192,21 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("typeAdditionalInfo")
 				.setMaxLength(70)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(11)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("checkDigit")
 				.setMaxLength(2)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -214,7 +214,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("checkDigit")
 				.setOptional()
 				.setMaxLength(50)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -241,14 +241,14 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("type")
 				.setMaxLength(10)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("number")
 				.setMaxLength(40)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -270,7 +270,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("country")
 				.setOptional()
 				.setMaxLength(80)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -278,7 +278,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("typeAdditionalInfo")
 				.setOptional()
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO: wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -295,7 +295,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -303,7 +303,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("socialName")
 				.setOptional()
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -318,7 +318,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("address")
 				.setMaxLength(150)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -326,21 +326,21 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("additionalInfo")
 				.setOptional()
 				.setMaxLength(30)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("districtName")
 				.setMaxLength(50)
-				.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("townName")
 				.setMaxLength(50)
-				//.setPattern("\\w*\\W*|^NA$")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -368,7 +368,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -420,7 +420,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("additionalInfo")
 				.setOptional()
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -459,7 +459,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("email")
 				.setMaxLength(320)
-				//.setPattern("\\w*\\W*")TODO:wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 }
