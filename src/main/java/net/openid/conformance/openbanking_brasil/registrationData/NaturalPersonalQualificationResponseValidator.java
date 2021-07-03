@@ -59,7 +59,7 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 		assertField(data,
 			new StringField
 				.Builder("occupationDescription")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(100)
 				.build());
 	}

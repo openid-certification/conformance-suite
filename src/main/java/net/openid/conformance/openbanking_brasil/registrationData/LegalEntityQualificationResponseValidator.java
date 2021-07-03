@@ -91,7 +91,7 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new StringField
 				.Builder("frequencyAdditionalInfo")
-				//.setPattern("\\w*\\W*") // Todo wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setPattern(".+")
 				.setOptional()
 				.setMaxLength(100)

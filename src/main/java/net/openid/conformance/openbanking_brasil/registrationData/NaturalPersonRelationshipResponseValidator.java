@@ -104,14 +104,14 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
-			//	.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -145,7 +145,7 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("checkDigit")
 				.setMaxLength(1)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,

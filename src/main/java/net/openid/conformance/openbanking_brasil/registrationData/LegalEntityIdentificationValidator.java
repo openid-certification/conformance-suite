@@ -32,28 +32,28 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertField(body,
 			new StringField
 				.Builder("businessId")
-//				.setPattern("\\w*\\W*")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.setMaxLength(100)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-//				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("companyName")
-//				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(70)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("tradeName")
-//				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(70)
 				.build());
 
@@ -86,7 +86,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(20)
 				.setOptional()
 				.build());
@@ -94,7 +94,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertField(body,
 			new StringField
 				.Builder("number")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(20)
 				.build());
 
@@ -132,28 +132,28 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("civilName")
 				.setMaxLength(70)
-//				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("socialName")
 				.setMaxLength(70)
-//				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("companyName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("tradeName")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -176,14 +176,14 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("documentNumber")
 				.setMaxLength(20)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("documentAdditionalInfo")
 				.setMaxLength(100)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -228,7 +228,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("email")
 				.setMaxLength(320)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -257,7 +257,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(70)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -318,14 +318,14 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("address")
 				.setMaxLength(150)
-//				.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(30)
-				//.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -333,14 +333,14 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("districtName")
 				.setMaxLength(50)
-				//.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("townName")
 				.setMaxLength(50)
-				//.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -368,7 +368,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
-				//.setPattern("\\w*\\W*|^NA$")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
