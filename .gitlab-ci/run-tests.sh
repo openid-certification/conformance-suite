@@ -162,14 +162,23 @@ makeServerTest() {
 
     # Brazil FAPI Dynamic client registration
     TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
-    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
-    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
-    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
-    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    #TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
+    #TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    #TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    #TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=jarm][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=jarm][fapi_auth_request_method=by_value] authlete-fapi-brazil-dcr.json"
+    TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
+    #TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
 
     # Brazil FAPI
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-mtls.json"
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-mtls.json"
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-brazil-privatekey.json"
-    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=jarm][fapi_auth_request_method=by_value] authlete-fapi-brazil-privatekey-jarm.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-privatekey-jarm.json"
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_response_mode=jarm][fapi_auth_request_method=by_value] authlete-fapi-brazil-mtls-jarm.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-brazil-mtls-jarm.json"
 
     # authlete openbanking
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-ob-mtls.json"
@@ -184,8 +193,8 @@ makeServerTest() {
 
     # authlete FAPI (PAR)
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-mtls.json"
-    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-privatekey.json"
-    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-mtls-jarm.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-privatekey.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-mtls-jarm.json"
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-privatekey-jarm.json"
 
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"
