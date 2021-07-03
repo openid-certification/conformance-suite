@@ -1,34 +1,24 @@
 package net.openid.conformance.logging;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
 import net.openid.conformance.export.TestHelper;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.PublicPlan;
-import net.openid.conformance.info.TestPlanService;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import net.openid.conformance.info.PublicTestInfo;
 import net.openid.conformance.info.TestInfo;
 import net.openid.conformance.info.TestInfoRepository;
+import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -56,13 +46,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-
-import net.openid.conformance.CollapsingGsonHttpMessageConverter;
-
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -495,9 +493,11 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+		String fileDate = DateTimeFormatter.ofPattern("dd-MMM-yyyy").format(LocalDate.now());
+
 		HttpHeaders headers = new HttpHeaders();
 
-		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + planId + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + planId + "-" + fileDate + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
