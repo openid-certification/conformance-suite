@@ -36,7 +36,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-brazil-client-test-plan",
-	displayName = "FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan (not currently part of certification program)",
+	displayName = "FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan",
 	summary = "Open Banking Brazil specific tests. " +
 		"This plan requires the client to run the same set of tests twice, once passing the request object by value and once by using PAR. " +
 		"Server jwks configured for this plan must contain one signing and one encryption key. " +
