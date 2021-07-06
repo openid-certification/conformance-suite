@@ -9,9 +9,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "registration-data-api-test",
-	displayName = "Validate structure of all registration data API resources",
-	summary = "Validates the structure of all registration data API resources",
+	testName = "customer-personal-data-api-test",
+	displayName = "Validate structure of all personal customer data API resources",
+	summary = "Validates the structure of all personal customer data API resources",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -25,36 +25,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class RegistrationDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddScopesForRegistrationApi.class);
-		callAndStopOnFailure(PrepareAllRegistrationRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
+		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-		runInBlock("Validating corporate relationship response", () ->{
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(CorporateRelationshipResponseValidator.class, Condition.ConditionResult.FAILURE);
-		});
-
-		runInBlock("Validating business identifications response", () -> {
-			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(LegalEntityIdentificationValidator.class, Condition.ConditionResult.FAILURE);
-		});
-
-		runInBlock("Validating business qualifications response", () -> {
-			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(LegalEntityQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
-		});
-
 		runInBlock("Validating personal financial relationship response", () -> {
-			callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(NaturalPersonRelationshipResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
