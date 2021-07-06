@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class AddScopesForRegistrationApi extends AbstractCondition {
+public class AddScopesForCustomerApi extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
