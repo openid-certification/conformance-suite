@@ -28,23 +28,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class ConsentsApiWideningPermissionsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
-	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
-		callAndStopOnFailure(RequestAccountReadOnly.class);
-	}
-
-	@Override
 	protected void runTests() {
-		// first one needs to be explicit as the resource is called before we get to here
-		runInBlock("Validate ACCOUNTS_READ request only gives ACCOUNTS_READ back", () -> {
 
-			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(ValidateRequestedPermissionsAreNotWidened.class, Condition.ConditionResult.FAILURE);
-
-		});
-
+		validatePermissions("ACCOUNTS_READ", RequestAccountReadOnly.class);
 		validatePermissions("ACCOUNTS_BALANCES_READ", RequestAccountBalancesReadOnly.class);
 		validatePermissions("CREDIT_CARDS_ACCOUNTS_READ", RequestCreditCardsAccountsReadOnly.class);
 		validatePermissions("FINANCINGS_READ FINANCINGS_PAYMENTS_READ", RequestFinancingsReadAndPaymentsReadOnly.class);
