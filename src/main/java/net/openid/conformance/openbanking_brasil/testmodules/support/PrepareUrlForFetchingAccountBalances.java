@@ -13,6 +13,7 @@ public class PrepareUrlForFetchingAccountBalances extends AbstractCondition {
 		String accountId = env.getString("accountId");
 		resourceUrl = String.format("%s/%s/balances", resourceUrl, accountId);
 		env.putString("protected_resource_url", resourceUrl);
+		logSuccess("URL for specific account resource set up");
 		return env;
 	}
 }

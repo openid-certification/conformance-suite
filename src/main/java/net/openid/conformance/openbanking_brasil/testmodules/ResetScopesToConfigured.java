@@ -1,4 +1,4 @@
-package net.openid.conformance.condition.client;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
@@ -8,28 +8,20 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class FAPIBrazilAddConsentIdToClientScope extends AbstractCondition {
+public class ResetScopesToConfigured extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "client")
+	@PreEnvironment(strings = "original_scopes", required = "client")
 	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
-		String consentId = env.getString("consent_id");
 
 		JsonObject client = env.getObject("client");
 
-		String scope = OIDFJSON.getString(client.get("scope"));
-		if (Strings.isNullOrEmpty(scope)) {
-			throw error("scope missing/empty in client object");
-		}
-
-		scope += " consent:"+consentId;
-
+		String scope = env.getString("original_scopes");
 		client.addProperty("scope", scope);
 
-		logSuccess("Added scope of '"+scope+"' to client's scope", client);
+		logSuccess("Scopes reset", args("scope", scope, "client", client));
 
 		return env;
 	}
-
 }
