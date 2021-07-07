@@ -14,7 +14,7 @@ https://gitlab.com/openid/conformance-suite/wikis/home
 
 For user instructions for testing / certifying please see:
 https://openid.net/certification/instructions/ in the first instance.
-(A specific Open Banking Brasil guide is available [INSERT LINK])
+(A specific Open Banking Brasil guide is available https://gitlab.com/obb1/certification/-/wikis/Instructions-for-running-Conformance-tests)
 
 To get started as a developer or running the conformance suite locally, see:
 
