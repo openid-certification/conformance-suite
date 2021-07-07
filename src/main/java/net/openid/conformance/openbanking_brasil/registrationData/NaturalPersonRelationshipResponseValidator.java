@@ -95,9 +95,9 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 
 		assertField(data,
 			new StringField
-				.Builder("cnpjCpfNumber")
+				.Builder("cpfNumber")
 				.setMaxLength(14)
-				.setPattern("^\\d{11}$|^\\d{14}$|^NA$")
+				.setPattern("^\\d{11}$|^NA$")
 				.build());
 
 		assertField(data,
