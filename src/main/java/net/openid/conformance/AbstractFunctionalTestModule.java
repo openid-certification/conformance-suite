@@ -6,12 +6,17 @@ import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalServe
 
 public abstract class AbstractFunctionalTestModule extends AbstractFAPI1AdvancedFinalServerTestModule {
 
+	private boolean validationStarted = false;
+
 	@Override
 	protected void requestProtectedResource() {
-		super.requestProtectedResource();
-		eventLog.startBlock(currentClientString() + "Validate response");
-		validateResponse();
-		eventLog.endBlock();
+		if(!validationStarted) {
+			validationStarted = true;
+			super.requestProtectedResource();
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
 
 	}
 

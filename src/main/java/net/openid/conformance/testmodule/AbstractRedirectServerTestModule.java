@@ -36,6 +36,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	}
 
 	protected void performRedirect() {
+
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
