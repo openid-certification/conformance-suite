@@ -11,6 +11,7 @@ public class RequestAccountReadOnly extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String[] permissions = {"ACCOUNTS_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
+		logSuccess("Requested consent will be for the ACCOUNTS_READ permission only");
 		return env;
 	}
 
