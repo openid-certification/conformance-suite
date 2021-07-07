@@ -8,14 +8,16 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		preConfigure(config, baseUrl, externalUrlOverride);
+
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 		call(sequence(ObtainAccessTokenWithClientCredentials.class));
-
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
+		postConfigure(config, baseUrl, externalUrlOverride);
 		setStatus(Status.CONFIGURED);
 	}
 
@@ -29,5 +31,16 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 	}
 
 	protected abstract void runTests();
+
+
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+
+	}
+
+
+	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+
+	}
+
 
 }
