@@ -532,14 +532,14 @@ public class LogApi {
 					}
 
 					if(termsAndConditionsPdf!=null && termsAndConditionsPdf.getSize()>0) {
-						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-Terms-and-Conditions.pdf");
+						ZipArchiveEntry zipEntry = new ZipArchiveEntry("Termos-e-condições.pdf");
 						zipEntry.setSize(termsAndConditionsPdf.getSize());
 						archiveOutputStream.putArchiveEntry(zipEntry);
 						archiveOutputStream.write(termsAndConditionsPdf.getBytes());
 						archiveOutputStream.closeArchiveEntry();
 					}
 					if(certificationOfConformancePdf!=null && certificationOfConformancePdf.getSize()>0) {
-						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-of-Conformance.pdf");
+						ZipArchiveEntry zipEntry = new ZipArchiveEntry("Certificado-de-conformidade-funcional.pdf");
 						zipEntry.setSize(certificationOfConformancePdf.getSize());
 						archiveOutputStream.putArchiveEntry(zipEntry);
 						archiveOutputStream.write(certificationOfConformancePdf.getBytes());
