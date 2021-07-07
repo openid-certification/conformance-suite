@@ -3,7 +3,30 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainAccessTokenWithClientCredentials;
+import net.openid.conformance.variant.*;
 
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"openbanking_uk", "plain_fapi", "consumerdataright_au"})
+@VariantParameters({
+	ClientAuthType.class,
+	FAPI1FinalOPProfile.class,
+	FAPIResponseMode.class,
+	FAPIAuthRequestMethod.class
+})
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
+	"resource.resourceUrlAccountRequests",
+	"resource.resourceUrlAccountsResource"
+})
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
+	"resource.cdrVersion"
+})
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.consentUrl",
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
 	@Override
