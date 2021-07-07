@@ -30,18 +30,15 @@ import java.util.Map;
 		"resource.resourceUrl"
 	}
 )
-public class AccountsApiWrongPermissionsTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(RememberOriginalScopes.class);
+	protected void prepareCorrectConsents() {
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
-//		callAndStopOnFailure(ProvideIncorrectPermissionsForAccountsApi.class);
 	}
 
-
 	@Override
-	protected void validateResponse() {
+	protected void preFetchResources() {
 
 		callAndStopOnFailure(AccountSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
@@ -54,48 +51,43 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractOBBrasilFunct
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits");
 
-		callAndStopOnFailure(ResetScopesToConfigured.class);
+	}
+
+	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForAccountsApi.class);
-
-		performAuthorizationFlow();
-
 	}
 
-	private void waitForBrowserToReturn() {
+	protected void requestResourcesWithIncorrectPermissions() {
 
-		// this happens in the background so that we can check the state of the browser controller
-		getTestExecutionManager().runFinalisationTaskInBackground(() -> {
-
-			// wait for web runners to wrap up first
-
-			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
-			while (browser.getWebRunners().size() > 0
-				&& Instant.now().isBefore(timeout)) {
-				Thread.sleep(100); // sleep before we check again
-			}
-
-			return "Done";
+		runInBlock("Ensure we cannot call the accounts root API", () -> {
+			callAndStopOnFailure(PrepareUrlForAccountsRoot.class);
+			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
-	}
 
-	boolean i = false;
+		runInBlock("Ensure we cannot call the account resource API", () -> {
+			callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
+			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(EnsureResponseCodeWas403.class);
+		});
 
-	@Override // To allow multiple auth code flows
-	protected void onPostAuthorizationFlowComplete() {
+		runInBlock("Ensure we cannot call the account balance API", () -> {
+			callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
+			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(EnsureResponseCodeWas403.class);
+		});
 
-		if(!i) {
-			i = true;
-			return;
-		}
+		runInBlock("Ensure we cannot call the account transactions API", () -> {
+			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(EnsureResponseCodeWas403.class);
+		});
 
-		eventLog.log(getName(), "WAIT FOR BROWSWSERR - start");
-		waitForBrowserToReturn();
-
-		eventLog.log(getName(), "WAIT FOR BROWSWSERR - end");
-		call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-		forceReleaseLock();
-		setResult(Result.PASSED);
-		setStatus(Status.FINISHED);
+		runInBlock("Ensure we cannot call the account limits API", () -> {
+			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
+			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(EnsureResponseCodeWas403.class);
+		});
 
 	}
 

@@ -19,6 +19,7 @@ public class AccountSelector extends AbstractCondition {
 		JsonObject firstAccount = data.get(0).getAsJsonObject();
 		String accountId = OIDFJSON.getString(firstAccount.get("accountId"));
 		env.putString("accountId", accountId);
+		logSuccess("Specific account selected");
 		return env;
 	}
 

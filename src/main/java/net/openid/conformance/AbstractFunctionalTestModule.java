@@ -17,7 +17,6 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 			validateResponse();
 			eventLog.endBlock();
 		}
-
 	}
 
 	protected void preCallProtectedResource(String blockHeader) {

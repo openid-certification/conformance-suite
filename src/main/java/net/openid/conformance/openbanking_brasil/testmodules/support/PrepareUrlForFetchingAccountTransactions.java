@@ -13,6 +13,7 @@ public class PrepareUrlForFetchingAccountTransactions extends AbstractCondition 
 		String accountId = env.getString("accountId");
 		resourceUrl = String.format("%s/%s/transactions", resourceUrl, accountId);
 		env.putString("protected_resource_url", resourceUrl);
+		logSuccess("URL for account transactions set up");
 		return env;
 	}
 }
