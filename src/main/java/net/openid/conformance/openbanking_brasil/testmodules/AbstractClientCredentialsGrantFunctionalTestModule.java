@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainAccessTokenWithClientCredentials;
 import net.openid.conformance.variant.*;
 
