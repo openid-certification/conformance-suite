@@ -11,8 +11,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "account-api-permissions-restriction-test",
-	displayName = "Ensures permissions allow you call only the correct resources",
-	summary = "Ensures permissions allow you call only the correct resources",
+	displayName = "Ensures permissions allow you to call only the correct resources",
+	summary = "Ensures permissions allow you to call only the correct resources - When completed, please upload a screenshot of the permissions being requested by the bank",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -57,6 +57,9 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
+
+		fireTestReviewNeeded();
+
 	}
 
 }
