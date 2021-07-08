@@ -3,6 +3,7 @@ package net.openid.conformance;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalServerTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 
 public abstract class AbstractFunctionalTestModule extends AbstractFAPI1AdvancedFinalServerTestModule {
 
@@ -51,7 +52,9 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 	}
 
 	protected void configureClient() {
+
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(AddOpenIdScope.class);
 
 		exposeEnvString("client_id");
 
