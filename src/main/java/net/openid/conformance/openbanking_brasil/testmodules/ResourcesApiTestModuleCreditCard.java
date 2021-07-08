@@ -12,9 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 //import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "resources-api-test",
-	displayName = "Validate structure of all resources API resources",
-	summary = "Validates the structure of all resources API resources",
+	testName = "resources-api-test-credit-card",
+	displayName = "Validate structure of resources API - with CREDIT_CARDS permissions",
+	summary = "Validate structure of resources API - with CREDIT_CARDS permissions",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,19 +29,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class ResourcesApiTestModuleCreditCard extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareResourceRelatedConsentsForCreditCardTest.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-
-		String logMessage = String.format("Validate resources api request");
+		String logMessage = String.format("Validate resources api request for CREDIT_CARD_ACCOUNT only");
 		runInBlock(logMessage, () -> {
-			callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(CreditCardResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }

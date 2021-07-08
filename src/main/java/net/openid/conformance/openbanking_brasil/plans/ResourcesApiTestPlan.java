@@ -3,6 +3,8 @@ package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleNoResources;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleAccount;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleCreditCard;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -13,8 +15,10 @@ import net.openid.conformance.plan.TestPlan;
 //	displayName = "Functional tests for resources API (WIP)",
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Resources API",
 	testModules = {
+		ResourcesApiTestModule.class,
 		ResourcesApiTestModuleNoResources.class,
-		ResourcesApiTestModule.class
+		ResourcesApiTestModuleAccount.class,
+		ResourcesApiTestModuleCreditCard.class
 	})
 public class ResourcesApiTestPlan implements TestPlan {
 }

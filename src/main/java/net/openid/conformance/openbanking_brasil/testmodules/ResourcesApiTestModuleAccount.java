@@ -12,9 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 //import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "resources-api-test",
-	displayName = "Validate structure of all resources API resources",
-	summary = "Validates the structure of all resources API resources",
+	testName = "resources-api-test-accounts",
+	displayName = "Validate structure of resources API - with ACCOUNTS_READ permissions",
+	summary = "Validate structure of resources API - with ACCOUNTS_READ permissions",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -29,19 +29,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class ResourcesApiTestModuleAccount extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareResourceRelatedConsentsForAccountsTest.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-
-		String logMessage = String.format("Validate resources api request");
+		String logMessage = String.format("Validate resources api request for ACCOUNTS only");
 		runInBlock(logMessage, () -> {
-			callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(AccountResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }
