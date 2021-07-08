@@ -12,8 +12,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "resources-api-test-no-resources",
-	displayName = "Validate structure of all resources API resources",
-	summary = "Validates the structure of all resources API resources",
+	displayName = "Validate structure of resources API - without any resource permissions",
+	summary = "Validates the structure of all resources API - without any resource permissions",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -37,7 +37,9 @@ public class ResourcesApiTestModuleNoResources extends AbstractOBBrasilFunctiona
 
 	@Override
 	protected void validateResponse() {
-		preCallProtectedResource("Fetch Resource without any resource permissions");
-		callAndContinueOnFailure(ResourcesResponseValidator.class);
+		String logMessage = String.format("Validate resources api request with no permissions requested");
+		runInBlock(logMessage, () -> {
+			callAndStopOnFailure(EmptyResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+		});
 	}
 }
