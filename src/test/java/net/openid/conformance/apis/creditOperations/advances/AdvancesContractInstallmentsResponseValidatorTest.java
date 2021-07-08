@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/advances/advancesInstallmentsResponse.json")
+@UseResurce("jsonResponses/creditOperations/advances/installments/advancesInstallmentsResponse.json")
 public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,35 @@ public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJ
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/advances/advancesInstallmentsResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/advances/installments/advancesInstallmentsResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data.typeContractRemaining")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("typeContractRemaining")));
+	}
+
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/advances/installments/advancesInstallmentsResponse(WrongEnum).json")
+	public void validateStructureWrongEnum() {
+		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("typeNumberOfInstalments")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/advances/installments/advancesInstallmentsResponse(WrongPattern).json")
+	public void validateStructureWrongRegexp() {
+		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("dueDate")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/advances/installments/advancesInstallmentsResponse(WrongMaxLength).json")
+	public void validateStructureWrongMaxLength() {
+		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments")));
 	}
 }

@@ -1,13 +1,20 @@
 {
-    "data": [
-        {
-            "contractId": "92792126019929279212650822221989319252576",
-            "brandName": "Organização A",
-            "companyCnpj": "21128159000166",
-            "productType": "EMPRESTIMOS",
-            "productSubType": "CREDITO_PESSOAL_COM_CONSIGNACAO"
-        }
-    ],
+    "data": {
+        "typeNumberOfInstalments": "MES",
+        "totalNumberOfInstalments": 130632,
+        "typeContractRemaining": "DIA",
+        "contractRemainingNumber": 14600,
+        "paidInstalments": 73,
+        "dueInstalments": 57,
+        "pastDueInstalments": 73,
+        "balloonPayments": [
+            {
+                "dueDate": "2020-01-1l",
+                "currency": "BRL",
+                "amount": 100000.04
+            }
+        ]
+    },
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",
         "first": "https://api.banco.com.br/open-banking/api/v1/resource",

@@ -378,23 +378,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.setMaxLength(3)
 				.build());
 
-//TODO: need to add latitude & longitude checking
-		assertField(body,
-			new StringField
-				.Builder("latitude")
-				.setOptional()
-				.setMaxLength(13)
-				.setPattern("^-?\\d{1,2}\\.\\d{1,9}$")
-				.build());
-
-//TODO: need to add latitude & longitude checking
-		assertField(body,
-			new StringField
-				.Builder("longitude")
-				.setOptional()
-				.setMaxLength(13)
-				.setPattern("^-?\\d{1,3}\\.\\d{1,8}$")
-				.build());
+		assertGeographicCoordinates(body);
 	}
 
 	private void assertInnerPhonesFields(JsonObject body) {

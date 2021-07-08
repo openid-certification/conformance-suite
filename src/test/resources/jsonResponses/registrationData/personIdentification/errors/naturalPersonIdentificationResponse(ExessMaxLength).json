@@ -68,8 +68,8 @@
                         "country": "Brasil",
                         "countryCode": "BRAerror",
                         "geographicCoordinates": {
-                            "latitude": "-90.8365180",
-                            "longitude": "-180.836519"
+                            "latitude": -89.8365180,
+                            "longitude": -179.836519
                         }
                     }
                 ],

@@ -58,4 +58,12 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 		assertThat(runAndFail(condition).getMessage(),
 			containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(coordinateNotMatch).json")
+	public void validateStructureCoordinatesNotMatch() {
+		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		assertThat(runAndFail(condition).getMessage(),
+			containsString(condition.createCoordinateIsNotWithinAllowedAreaMessage("latitude")));
+	}
 }

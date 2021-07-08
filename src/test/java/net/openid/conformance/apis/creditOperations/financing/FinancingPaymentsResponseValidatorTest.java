@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/financing/financingPaymentsResponse.json")
+@UseResurce("jsonResponses/creditOperations/financing/financingPayments/financingPaymentsResponse.json")
 public class FinancingPaymentsResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -19,10 +19,26 @@ public class FinancingPaymentsResponseValidatorTest extends AbstractJsonResponse
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/financing/financingPaymentsResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/financing/financingPayments/financingPaymentsResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		FinancingPaymentsResponseValidator condition = new FinancingPaymentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data.releases[0].isOverParcelPayment")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("isOverParcelPayment")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/financing/financingPayments/financingPaymentsResponseWrongEnum.json")
+	public void validateStructureWrongEnum() {
+		FinancingPaymentsResponseValidator condition = new FinancingPaymentsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("chargeType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/financing/financingPayments/financingPaymentsResponseWrongRegexp.json")
+	public void validateStructureWrongRegexp() {
+		FinancingPaymentsResponseValidator condition = new FinancingPaymentsResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("paidDate")));
 	}
 }

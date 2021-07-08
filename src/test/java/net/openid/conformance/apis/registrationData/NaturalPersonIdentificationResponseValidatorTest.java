@@ -61,7 +61,15 @@ public class NaturalPersonIdentificationResponseValidatorTest extends AbstractJs
 		NaturalPersonIdentificationResponseValidator condition = new NaturalPersonIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage(
-				"sex")));
+			containsString(condition.createFieldValueNotMatchEnumerationMessage("sex")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/registrationData/personIdentification/errors/naturalPersonIdentificationResponse(coordinateNotMatch).json")
+	public void validateStructureCoordinatesNotMatch() {
+		NaturalPersonIdentificationResponseValidator condition = new NaturalPersonIdentificationResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createCoordinateIsNotWithinAllowedAreaMessage("latitude")));
 	}
 }

@@ -1,0 +1,64 @@
+{
+    "data": {
+        "contractNumber": "1324926521496",
+        "ipocCode": "92792126019929279212650822221989319252576",
+        "productName": "AD",
+        "productType": "DIREITOS_CREDITORIOS_DESCONTADOS",
+        "productSubType": "DESCONTO_CHEQUES",
+        "contractDate": "2018-01-05",
+        "disbursementDate": "2018-01-15",
+        "settlementDate": "2018-01-1&",
+        "contractAmount": 100000.04,
+        "currency": "BRL",
+        "dueDate": "2028-01-15",
+        "instalmentPeriodicity": "SEMANAL",
+        "instalmentPeriodicityAdditionalInfo": "Informações adicionais sobre periodicidade",
+        "firstInstalmentDueDate": "2018-02-15",
+        "CET": 0.29,
+        "amortizationScheduled": "SAC",
+        "amortizationScheduledAdditionalInfo": "NA",
+        "interestRates": [
+            {
+                "taxType": "EFETIVA",
+                "interestRateType": "SIMPLES",
+                "taxPeriodicity": "AA",
+                "calculation": "21/252",
+                "referentialRateIndexerType": "PRE_FIXADO",
+                "referentialRateIndexerSubType": "TJLP",
+                "referentialRateIndexerAdditionalInfo": "",
+                "preFixedRate": 0.6,
+                "postFixedRate": 0.55,
+                "additionalInfo": ""
+            }
+        ],
+        "contractedFees": [
+            {
+                "feeName": "Excesso em Conta",
+                "feeCode": "EXCESSO_CONTA",
+                "feeChargeType": "UNICA",
+                "feeCharge": "MINIMO",
+                "feeAmount": 100000.04,
+                "feeRate": 50
+            }
+        ],
+        "contractedFinanceCharges": [
+            {
+                "chargeType": "JUROS_REMUNERATORIOS_POR_ATRASO",
+                "chargeAdditionalInfo": "string",
+                "chargeRate": 0.07
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

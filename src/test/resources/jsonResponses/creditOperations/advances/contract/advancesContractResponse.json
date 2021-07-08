@@ -37,7 +37,7 @@
                 "feeCode": "EXCESSO_CONTA",
                 "feeChargeType": "UNICA",
                 "feeCharge": "MINIMO",
-                "feeAmount": 50,
+                "feeAmount":  100000.04,
                 "feeRate": 50
             }
         ],

@@ -295,18 +295,6 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertJsonArrays(body, "postalAddresses", this::assertInnerPostalAddresses);
 	}
 
-	private void assertGeographicCoordinates(JsonObject body) {
-		assertField(body,
-			new LatitudeField.Builder()
-				.setOptional()
-				.build());
-
-		assertField(body,
-			new LatitudeField.Builder()
-				.setOptional()
-				.build());
-	}
-
 	private void assertInnerPostalAddresses(JsonObject body) {
 		final Set<String> countrySubDivisions = Set.of("AC", "AL", "AP", "AM",
 			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",

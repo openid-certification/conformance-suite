@@ -111,6 +111,21 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	protected void assertGeographicCoordinates(JsonObject body) {
+		JsonObject geographicCoordinates = findByPath(body, "geographicCoordinates").getAsJsonObject();
+
+		assertField(geographicCoordinates,
+			new LatitudeField.Builder()
+				.setOptional()
+				.build());
+
+		assertField(geographicCoordinates,
+			new LongitudeField.Builder()
+				.setOptional()
+				.build());
+
+	}
+
 	protected void assertHasIntField(JsonObject jsonObject, String path) {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
@@ -279,8 +294,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
 			double latitude = getDouble(found);
-			if (latitude > 91.0 && latitude < -91.0) {
-				throw error("Field at " + doubleField.getPath() + " was not a latitude", jsonObject);
+			if (latitude > 90.0 || latitude < -90.0) {
+				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
@@ -290,10 +305,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertLongitude(JsonObject jsonObject, Field doubleField) {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
-			String s = getString(found);
-			double latitude = Double.parseDouble(s);
-			if (latitude > 181.0 && latitude < -181.0) {
-				throw error("Field at " + doubleField.getPath() + " was not a longtitude", jsonObject);
+			double Longitude =  getDouble(found);
+			if (Longitude > 180.0 || Longitude < -180.0) {
+				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
@@ -347,6 +361,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			"on the %s API response", elementName, getApiName());
 	}
 
+	public String createCoordinateIsNotWithinAllowedAreaMessage(String elementName) {
+		return String.format("The %s does not enter to coordinate area. " +
+			"It is not latitude or longitude", elementName, getApiName());
+	}
 
 	private final String getApiName() {
 		Class<?> clazz = getClass();

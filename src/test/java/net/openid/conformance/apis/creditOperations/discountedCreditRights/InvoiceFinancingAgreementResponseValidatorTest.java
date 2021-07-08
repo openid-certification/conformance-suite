@@ -9,20 +9,44 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingAgreementResponse.json")
 public class InvoiceFinancingAgreementResponseValidatorTest extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/agreement/invoiceFinancingAgreementResponse.json")
 	public void validateStructure() {
 		InvoiceFinancingAgreementResponseValidator condition = new InvoiceFinancingAgreementResponseValidator();
 		run(condition);
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/invoiceFinancingAgreementResponseWithError.json")
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/agreement/invoiceFinancingAgreementResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingAgreementResponseValidator condition = new InvoiceFinancingAgreementResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("$.data.productType")));
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("productType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/agreement/invoiceFinancingAgreementResponse(WrongEnum).json")
+	public void validateStructureWrongEnum() {
+		InvoiceFinancingAgreementResponseValidator condition = new InvoiceFinancingAgreementResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/agreement/invoiceFinancingAgreementResponse(WrongPattern).json")
+	public void validateStructureWrongRegexp() {
+		InvoiceFinancingAgreementResponseValidator condition = new InvoiceFinancingAgreementResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("settlementDate")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/agreement/invoiceFinancingAgreementResponse(WrongMaxLength).json")
+	public void validateStructureWrongMaxLength() {
+		InvoiceFinancingAgreementResponseValidator condition = new InvoiceFinancingAgreementResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("instalmentPeriodicityAdditionalInfo")));
 	}
 }
