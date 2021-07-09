@@ -76,4 +76,14 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
+.DS_Store
+./src/.DS_Store
+./src/main/.DS_Store
+./src/main/java/.DS_Store
+./src/main/java/net/.DS_Store
+./src/main/java/net/openid/conformance/.DS_Store
+./.idea/.DS_Store
+./mongo/.DS_Store
+./package/.DS_Store
+
 ## End of JetBrains section
