@@ -15,7 +15,7 @@ import org.springframework.http.HttpHeaders;
 
 import java.util.List;
 
-import static net.openid.conformance.util.JsonPathUtil.configureJsonPathForGson;
+import static net.openid.conformance.util.JsonUtils.configureJsonPathForGson;
 import static org.mockito.Mockito.mock;
 
 @RunWith(JsonLoadingJUnitRunner.class)

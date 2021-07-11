@@ -1,9 +1,6 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
@@ -11,12 +8,15 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.*;
 import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +29,8 @@ import static net.openid.conformance.testmodule.OIDFJSON.*;
 
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
+	private static Gson GSON = JsonUtils.createBigDecimalAwareGson();
+
 	private static final Logger logger = LoggerFactory.getLogger(AbstractJsonAssertingCondition.class);
 
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
@@ -38,7 +40,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected JsonObject bodyFrom(Environment environment) {
 		String entityString = environment.getString("resource_endpoint_response");
-		return new JsonParser().parse(entityString).getAsJsonObject();
+		return GSON.fromJson(entityString, JsonObject.class);
 	}
 
 	protected JsonObject headersFrom(Environment environment) {
@@ -447,7 +449,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	private void assertRegexMatchesField(String value, String path, Match match) {
 		if (!match.matches(value)) {
-			throw error(createFieldValueNotMatchPatternMessage(path));
+			throw error(createFieldValueNotMatchPatternMessage(path),
+				args("path", path, "value", value));
 		}
 	}
 
