@@ -1,9 +1,17 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
+import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
+import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainAccessTokenWithClientCredentials;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.*;
 import net.openid.conformance.variant.*;
 
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"openbanking_uk", "plain_fapi", "consumerdataright_au"})
@@ -30,13 +38,15 @@ import net.openid.conformance.variant.*;
 })
 public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
+	private Class<? extends ConditionSequence> clientAuthSequence;
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		preConfigure(config, baseUrl, externalUrlOverride);
-
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
-		call(sequence(ObtainAccessTokenWithClientCredentials.class));
+
+		call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
@@ -45,10 +55,13 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 		setStatus(Status.CONFIGURED);
 	}
 
+	private ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
+		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
+	}
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-
 		runTests();
 		setResult(Result.PASSED);
 		setStatus(Status.FINISHED);
@@ -66,5 +79,14 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 
 	}
 
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	public void setupMTLS() {
+		clientAuthSequence = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
+		clientAuthSequence = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+	}
 
 }
