@@ -2,17 +2,9 @@
 package net.openid.conformance;
 
 import java.security.Security;
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.GsonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
-import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
@@ -32,7 +24,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import javax.annotation.PostConstruct;
 
-import static net.openid.conformance.util.JsonPathUtil.configureJsonPathForGson;
+import static net.openid.conformance.util.JsonUtils.configureJsonPathForGson;
 
 @SpringBootApplication
 public class Application {

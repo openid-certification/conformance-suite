@@ -14,19 +14,17 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.field.DoubleField;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
 
 public class JsonAssertingConditionTests {
@@ -226,6 +224,33 @@ public class JsonAssertingConditionTests {
 		};
 		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE, "");
 
+		condition.evaluate(environment);
+
+	}
+
+	@Test
+	public void correctlyValidatesDoublesAtLength() {
+
+		Environment environment = new Environment();
+		String incoming = "{\"doubleField\": 999999999999999.9999}";
+
+		environment.putString("resource_endpoint_response", incoming);
+		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+
+			@Override
+			public Environment evaluate(Environment env) {
+				JsonObject object = bodyFrom(environment);
+
+				assertField(object,
+					new DoubleField
+						.Builder("doubleField")
+						.build());
+
+				return env;
+			}
+
+		};
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 		condition.evaluate(environment);
 
 	}
