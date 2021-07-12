@@ -18,8 +18,7 @@ import net.openid.conformance.variant.*;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI1FinalOPProfile.class,
-	FAPIResponseMode.class,
-	FAPIAuthRequestMethod.class
+	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -50,7 +49,6 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
-		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 		postConfigure(config, baseUrl, externalUrlOverride);
 		setStatus(Status.CONFIGURED);
 	}
