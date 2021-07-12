@@ -67,8 +67,8 @@
                         "country": "Brasil",
                         "countryCode": "BRA",
                         "geographicCoordinates": {
-                            "latitude": -30.0953952,
-                            "longitude": -51.2279909
+                            "latitude": "-30.0953952",
+                            "longitude": "-51.2279909"
                         }
                     }
                 ],
