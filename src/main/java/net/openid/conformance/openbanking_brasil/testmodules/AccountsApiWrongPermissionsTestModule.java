@@ -16,7 +16,7 @@ import java.util.Map;
 @PublishTestModule(
 	testName = "account-api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
-	summary = "Ensures API resource cannot be called with wrong permissions",
+	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
