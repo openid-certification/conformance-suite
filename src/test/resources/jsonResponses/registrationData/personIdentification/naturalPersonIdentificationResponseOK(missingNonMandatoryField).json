@@ -67,8 +67,8 @@
                         "postCode": "17500001",
                         "country": "Brasil",
                         "geographicCoordinates": {
-                            "latitude": -89.8365180,
-                            "longitude": -179.836519
+                            "latitude": "-89.8365180",
+                            "longitude": "-179.836519"
                         }
                     }
                 ],

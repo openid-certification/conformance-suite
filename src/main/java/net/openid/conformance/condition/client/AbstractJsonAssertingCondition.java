@@ -89,12 +89,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof BooleanField) {
 			assertHasBooleanField(jsonObject, field.getPath());
 		} else if (field instanceof LatitudeField) {
-			assertHasDoubleField(jsonObject, field.getPath());
+			assertHasStringField(jsonObject, field.getPath());
 			assertLatitude(jsonObject, field);
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof LongitudeField) {
-			assertHasDoubleField(jsonObject, field.getPath());
+			assertHasStringField(jsonObject, field.getPath());
 			assertLongitude(jsonObject, field);
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
@@ -295,24 +295,30 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertLatitude(JsonObject jsonObject, Field doubleField) {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
-			double latitude = getDouble(found);
+			String rawValue = getString(found);
+			double latitude = Double.parseDouble(rawValue);
 			if (latitude > 90.0 || latitude < -90.0) {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+		} catch (NumberFormatException nfe) {
+			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
 		}
 	}
 
 	private void assertLongitude(JsonObject jsonObject, Field doubleField) {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
-			double Longitude =  getDouble(found);
+			String rawValue = getString(found);
+			double Longitude = Double.parseDouble(rawValue);
 			if (Longitude > 180.0 || Longitude < -180.0) {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+		} catch (NumberFormatException nfe) {
+			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
 		}
 	}
 

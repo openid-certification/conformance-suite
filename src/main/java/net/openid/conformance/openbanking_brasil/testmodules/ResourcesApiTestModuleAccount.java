@@ -6,6 +6,7 @@ import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareResourceRelatedConsentsForAccountsTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 
@@ -19,7 +20,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
