@@ -18,7 +18,6 @@ public class ObtainAccessTokenWithClientCredentials extends AbstractConditionSeq
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 		callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		callAndStopOnFailure(AddOpenIdScope.class);
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);

@@ -2,6 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
+import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
@@ -16,7 +18,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
@@ -32,6 +33,9 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+//			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+			callAndStopOnFailure(AddConsentScope.class);
+			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);

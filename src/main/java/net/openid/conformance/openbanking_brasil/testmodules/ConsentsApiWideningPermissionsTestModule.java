@@ -16,7 +16,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
