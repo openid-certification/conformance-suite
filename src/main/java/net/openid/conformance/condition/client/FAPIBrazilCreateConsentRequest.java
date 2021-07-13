@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -40,6 +41,11 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 		} else {
 			permissions = consentPermissions.split("\\W");
 		}
+
+		JsonObject e = new JsonObject();
+		e.add("requested_permissions", new Gson().toJsonTree(permissions));
+
+		env.putObject("brazil_consent", e);
 
 		OpenBankingBrasilConsentRequest consentRequest =
 			new OpenBankingBrasilConsentRequest(cpf, cnpj, permissions);
