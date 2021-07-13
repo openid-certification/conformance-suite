@@ -33,12 +33,10 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 				throw error("scope missing from client configuration");
 			}
 			List<String> scopes = Arrays.asList(scope.split(" "));
-			if (scopes.contains("accounts")) {
-				permissions = new String[] {"ACCOUNTS_READ"};
-			} else {
-				permissions = new String[] {"RESOURCES_READ"};
-			}
-
+			// This is believed to be the most minimal set of permissions that will allow a successful
+			// operation at the accounts endpoint. The Brazil user experience guidelines do not allow
+			// only ACCOUNTS_READ to be required.
+			permissions = new String[]{"ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "RESOURCES_READ"};
 		} else {
 			permissions = consentPermissions.split("\\W");
 		}
