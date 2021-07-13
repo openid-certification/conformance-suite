@@ -17,7 +17,7 @@ public class ExtractConsentIdFromConsentEndpointResponse extends AbstractConditi
 
 		String accountRequestId = env.getString("consent_endpoint_response", path);
 		if (Strings.isNullOrEmpty(accountRequestId)) {
-			throw error("Couldn't find data.consentId in the consent response");
+			throw error("Couldn't find "+path+" in the consent response");
 		}
 
 		env.putString("consent_id", accountRequestId);

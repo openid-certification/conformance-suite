@@ -23,23 +23,24 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 		JsonObject server = env.getObject("server");
 
 		JsonElement mtlsEndpointAliases = env.getElementFromObject("server", "mtls_endpoint_aliases");
+		JsonObject mtlsEndpointAliasesObj = null;
 
-		if (mtlsEndpointAliases == null) {
-			log("mtls_endpoint_aliases is not present in the server configuration");
-			return env;
+		if (mtlsEndpointAliases != null) {
+			if (!mtlsEndpointAliases.isJsonObject()) {
+				throw error("mtls_endpoint_aliases in the server configuration is not a JSON object", args("server", server));
+			}
+
+			mtlsEndpointAliasesObj = (JsonObject) mtlsEndpointAliases;
 		}
 
-		if (!mtlsEndpointAliases.isJsonObject()) {
-			throw error("mtls_endpoint_aliases in the server configuration is not a JSON object", args("server", server));
-		}
-
-		JsonObject mtlsEndpointAliasesObj = (JsonObject) mtlsEndpointAliases;
-
-		server.keySet().forEach(k -> {
+		for (String k : server.keySet()) {
 
 			if (k.endsWith("_endpoint")) {
 
-				JsonElement jsonElement = mtlsEndpointAliasesObj.get(k);
+				JsonElement jsonElement = null;
+
+				if (mtlsEndpointAliasesObj != null)
+					jsonElement = mtlsEndpointAliasesObj.get(k);
 
 				if (jsonElement != null) {
 					env.putString(k, OIDFJSON.getString(jsonElement));
@@ -48,9 +49,9 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 				}
 
 			}
-		});
+		}
 
-		logSuccess("Added mtls_endpoint_aliases to environment", args("mtls_endpoint_aliases", mtlsEndpointAliasesObj));
+		logSuccess("Added mtls_endpoint_aliases to environment");
 
 		return env;
 	}
