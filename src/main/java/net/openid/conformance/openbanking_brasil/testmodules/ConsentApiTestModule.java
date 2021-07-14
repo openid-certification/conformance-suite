@@ -33,7 +33,6 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-//			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 			callAndStopOnFailure(AddConsentScope.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);

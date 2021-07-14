@@ -37,7 +37,7 @@ import net.openid.conformance.variant.*;
 })
 public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
-	private Class<? extends ConditionSequence> clientAuthSequence;
+	protected Class<? extends ConditionSequence> clientAuthSequence;
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -53,7 +53,7 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 		setStatus(Status.CONFIGURED);
 	}
 
-	private ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
+	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
