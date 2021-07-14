@@ -70,7 +70,7 @@ public class CardListResponseResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("productAdditionalInfo")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(50)
 				.setOptional()
 				.build());
