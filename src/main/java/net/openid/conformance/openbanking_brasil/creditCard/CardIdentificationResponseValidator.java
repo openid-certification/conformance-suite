@@ -52,7 +52,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 			new StringField
 				.Builder("productAdditionalInfo")
 				.setOptional()
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(50)
 				.build());
 
@@ -76,6 +76,8 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 				Builder("paymentMethod")
 				.setMinItems(1)
 				.build());
+
+
 		assertJsonArrays(data, "paymentMethod", this::assertInnerFieldsPaymentMethod);
 	}
 
