@@ -42,9 +42,9 @@ def read_zipped_results():
         print("Reading results from "+results_zip_filename)
         zip_name = os.path.splitext(results_zip_filename)[0]
         try:
-            module_and_variant, plan_id = zip_name.rsplit('-', 1)
+            module_and_variant, plan_id, _, _, _ = zip_name.rsplit("-",4)
         except:
-            print("Results zip '"+zip_name+"' it not in the format <testplan>-<variants>-<testid>.zip")
+            print("Results zip '"+zip_name+"' it not in the format <testplan>-<variants>-<planid>-dd-mmm-yyyy.zip")
             sys.exit(1)
         # print("Test: "+module_and_variant)
         with zipfile.ZipFile(results_zip_filename, "r") as zip_ref:
