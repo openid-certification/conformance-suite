@@ -19,6 +19,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -40,10 +42,20 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 		}
 		String resource = useResurce.value();
 		String rawJson;
-		try {
-			rawJson = IOUtils.resourceToString(resource, Charset.defaultCharset(), getClass().getClassLoader());
-		} catch (IOException exception) {
-			return new FailingStatement("Unable to load JSON document %s in test %s", resource, method.getName());
+		String resourceOverride = System.getProperty("resource.override");
+		if(resourceOverride != null) {
+			try {
+				rawJson = Files.readString(Path.of(resourceOverride), Charset.defaultCharset());
+			} catch (IOException exception) {
+				return new FailingStatement("Unable to override JSON document with %s in test %s", resourceOverride, method.getName());
+			}
+		} else {
+			try {
+				rawJson = IOUtils.resourceToString(resource, Charset.defaultCharset(), getClass().getClassLoader());
+			} catch (IOException exception) {
+				return new FailingStatement("Unable to load JSON document %s in test %s", resource, method.getName());
+			}
+
 		}
 
 		JsonObject jsonObject = new JsonParser().parse(rawJson).getAsJsonObject();
