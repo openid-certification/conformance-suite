@@ -5,9 +5,11 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Arrays;
+
 public abstract class AbstractCheckErrorFromTokenEndpointResponseError extends AbstractCondition {
 
-	protected abstract String getExpectedError();
+	protected abstract String[] getExpectedError();
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
@@ -21,12 +23,12 @@ public abstract class AbstractCheckErrorFromTokenEndpointResponseError extends A
 			throw error("Couldn't find error field");
 		}
 
-		String expected = getExpectedError();
-		if (!expected.equals(error)) {
+		String[] expected = getExpectedError();
+		if (!Arrays.asList(expected).contains(error)) {
 			throw error("'error' field has unexpected value", args("expected", expected, "actual", error));
 		}
 
-		logSuccess("Token Endpoint response error returned expected 'error' of '" + expected + "'", args("error", error));
+		logSuccess("Token Endpoint response error returned expected 'error' of '" + error + "'", args("expected", expected));
 		return env;
 	}
 }
