@@ -18,7 +18,7 @@ public class PrepareAllFinancingContractsRelatedConsentsForHappyPathTest extends
 		String[] permissions = {"FINANCINGS_READ",
 			"FINANCINGS_SCHEDULED_INSTALMENTS_READ",
 			"FINANCINGS_WARRANTIES_READ",
-			"FINANCINGS_PAYMENTS_READ" };
+			"FINANCINGS_PAYMENTS_READ", "RESOURCES_READ" };
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}

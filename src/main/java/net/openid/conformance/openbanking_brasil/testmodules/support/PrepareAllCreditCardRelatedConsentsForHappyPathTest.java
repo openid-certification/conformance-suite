@@ -14,7 +14,7 @@ public class PrepareAllCreditCardRelatedConsentsForHappyPathTest extends Abstrac
 			"CREDIT_CARDS_ACCOUNTS_BILLS_READ",
 			"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ",
 			"CREDIT_CARDS_ACCOUNTS_LIMITS_READ",
-		"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ"};
+		"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ", "RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}
