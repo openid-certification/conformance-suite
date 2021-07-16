@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpoi
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -78,6 +79,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
 
 		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+
+		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
 

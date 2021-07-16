@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -18,9 +19,14 @@ public class FAPIBrazilAddConsentIdToClientScope extends AbstractCondition {
 
 		JsonObject client = env.getObject("client");
 
-		String scope = OIDFJSON.getString(client.get("scope"));
+		JsonElement scopeElement = client.get("scope");
+		if (scopeElement == null) {
+			throw error("scope missing in client object");
+		}
+
+		String scope = OIDFJSON.getString(scopeElement);
 		if (Strings.isNullOrEmpty(scope)) {
-			throw error("scope missing/empty in client object");
+			throw error("scope empty in client object");
 		}
 
 		scope += " consent:"+consentId;

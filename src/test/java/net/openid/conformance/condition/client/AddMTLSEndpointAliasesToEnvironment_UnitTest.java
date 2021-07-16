@@ -70,6 +70,8 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 		cond.execute(env);
 
+		assertThat(env.getString("server", "token_endpoint")).isEqualTo(env.getString("token_endpoint"));
+
 	}
 
 	@Test(expected = ConditionError.class)

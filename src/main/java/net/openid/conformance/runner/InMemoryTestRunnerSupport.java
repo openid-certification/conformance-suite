@@ -52,9 +52,10 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	 * @see TestRunnerSupport#getRunningTestByAlias(java.lang.String)
 	 */
 	@Override
-	public synchronized TestModule getRunningTestByAlias(String alias) {
+	public synchronized TestModule getRunningTestByAliasIgnoringLoggedInUser(String alias) {
 		expireOldTests();
-		return getRunningTestById(getTestIdForAlias(alias));
+		String testId = getTestIdForAlias(alias);
+		return runningTests.get(testId);
 	}
 
 	/* (non-Javadoc)

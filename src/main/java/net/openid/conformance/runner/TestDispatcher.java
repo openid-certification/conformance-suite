@@ -92,19 +92,19 @@ public class TestDispatcher implements DataUtils {
 			// it's an aliased test, look it up
 			String alias = pathParts.next();
 			if (!support.hasAlias(alias)) {
-				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>("Error - no test found with alias '"+alias+"'", HttpStatus.NOT_FOUND);
 			}
 			testId = support.getTestIdForAlias(alias);
 		}
 
 		if (!support.hasTestId(testId)) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>("Error - no test found with test id '"+testId+"'", HttpStatus.NOT_FOUND);
 		}
 
 		TestModule test = support.getRunningTestById(testId);
 
 		if (test == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>("Error - no running test with test id '"+testId+"'", HttpStatus.NOT_FOUND);
 		}
 
 		try {
