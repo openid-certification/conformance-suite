@@ -13,6 +13,8 @@ import net.openid.conformance.plan.TestPlan;
 	testModules = {
 		ConsentApiTestModule.class,
 		ConsentsApiWideningPermissionsTestModule.class,
+		ConsentApiNegativeTests.class,
+		ConsentsApiPermissionGroupsTestModule.class,
 		ConsentsApiCrossClientTestModule.class,
 		ConsentsApiConsentStatusTestModule.class
 	})
