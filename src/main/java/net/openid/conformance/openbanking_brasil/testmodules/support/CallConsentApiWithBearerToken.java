@@ -132,6 +132,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 
 					env.putString("resource_endpoint_response", jsonString);
 					env.putObject("resource_endpoint_response_headers", responseHeaders);
+					env.putInteger("resource_endpoint_response_status", response.getStatusCodeValue());
 
 					logSuccess("Parsed consent endpoint response", args("body", jsonString, "headers", responseHeaders));
 
@@ -142,6 +143,8 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 			}
 		} catch (RestClientResponseException e) {
 			if(!ignoreResponseErrors) {
+				env.putInteger("resource_endpoint_response_status", e.getRawStatusCode());
+				logger.warn("Exception: ", e);
 				throw error("Error from the consent endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} else {
 				JsonObject responseDetails = new JsonObject();
