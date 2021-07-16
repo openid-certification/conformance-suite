@@ -40,17 +40,18 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 
+		runInBlock("Ensure we can call the account transactions API", () -> {
+			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+			preCallProtectedResource();
+		});
+
 		runInBlock("Ensure we cannot call the account balance API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
-		runInBlock("Ensure we cannot call the account transactions API", () -> {
-			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndStopOnFailure(EnsureResponseCodeWas403.class);
-		});
+
 
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);

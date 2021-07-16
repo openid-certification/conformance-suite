@@ -8,7 +8,7 @@ public class PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest extends A
 	@Override
 	public Environment evaluate(Environment env) {
 		String[] permissions = {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ",
-			"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ"};
+			"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}

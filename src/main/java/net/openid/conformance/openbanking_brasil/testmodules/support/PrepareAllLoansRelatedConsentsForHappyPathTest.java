@@ -18,7 +18,7 @@ public class PrepareAllLoansRelatedConsentsForHappyPathTest extends AbstractCond
 		String[] permissions = {"LOANS_READ",
 			"LOANS_SCHEDULED_INSTALMENTS_READ",
 			"LOANS_WARRANTIES_READ",
-			"LOANS_PAYMENTS_READ" };
+			"LOANS_PAYMENTS_READ", "RESOURCES_READ" };
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}
