@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -33,15 +34,18 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 				throw error("scope missing from client configuration");
 			}
 			List<String> scopes = Arrays.asList(scope.split(" "));
-			if (scopes.contains("accounts")) {
-				permissions = new String[] {"ACCOUNTS_READ"};
-			} else {
-				permissions = new String[] {"RESOURCES_READ"};
-			}
-
+			// This is believed to be the most minimal set of permissions that will allow a successful
+			// operation at the accounts endpoint. The Brazil user experience guidelines do not allow
+			// only ACCOUNTS_READ to be required.
+			permissions = new String[]{"ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "RESOURCES_READ"};
 		} else {
 			permissions = consentPermissions.split("\\W");
 		}
+
+		JsonObject e = new JsonObject();
+		e.add("requested_permissions", new Gson().toJsonTree(permissions));
+
+		env.putObject("brazil_consent", e);
 
 		OpenBankingBrasilConsentRequest consentRequest =
 			new OpenBankingBrasilConsentRequest(cpf, cnpj, permissions);

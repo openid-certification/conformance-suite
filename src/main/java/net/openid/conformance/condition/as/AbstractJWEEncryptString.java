@@ -78,6 +78,10 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 				throw error("Failed to parse " + destination + " jwks", e, args("jwks", jwksJsonObject));
 			}
 			recipientJWK = JWEUtil.selectAsymmetricKeyForEncryption(jwks, algorithm);
+			if(recipientJWK==null) {
+				throw error("A key suitable for encrypting the JWT was not found in the "+destination+" JWKS.",
+					args("algorithm", algorithm, "jwks", jwksJsonObject));
+			}
 		} else {
 			//symmetric key
 			try
@@ -86,9 +90,9 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 			} catch (KeyLengthException e) {
 				throw error("Failed to create symmetric encryption key", e, args("algorithm", algorithm));
 			}
-		}
-		if(recipientJWK==null) {
-			throw error("Failed to select a key", args("algorithm", algorithm));
+			if(recipientJWK==null) {
+				throw error("Failed to derive symmetric key", args("algorithm", algorithm));
+			}
 		}
 
 		// Encrypt with the recipient's public key

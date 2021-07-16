@@ -98,6 +98,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
         print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
         for moduledict in plan_modules:
             module=moduledict['testModule']
+            module_with_variants = get_string_name_for_module_with_variant(moduledict)
             if module in ignored_modules:
                 continue
             test_start_time = time.time()
@@ -105,11 +106,11 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
             module_info = {}
 
             try:
-                print('Running test module: {}'.format(module))
-                test_module_info = conformance.create_test_from_plan(plan_id, module)
+                print('Running test module: {}'.format(module_with_variants))
+                test_module_info = conformance.create_test_from_plan_with_variant(plan_id, module, moduledict.get('variant'))
                 module_id = test_module_info['id']
                 module_info['id'] = module_id
-                test_info[module] = module_info
+                test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
                 print('Created test module, new id: {}'.format(module_id))
                 print('{}log-detail.html?log={}'.format(api_url_base, module_id))
 
@@ -125,6 +126,9 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
                     if other_environment_vars_for_script:
                         for envvarname in other_environment_vars_for_script:
                             os.putenv(envvarname, other_environment_vars_for_script[envvarname])
+                    # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
+                    if moduledict.get('variant') != None:
+                        variantstr = json.dumps({**test_plan_config, **moduledict.get('variant')})
                     os.putenv('VARIANT', variantstr)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('ISSUER', oidcc_issuer_str)
@@ -134,7 +138,7 @@ def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc_rptes
 
             except Exception as e:
                 traceback.print_exc()
-                print('Exception: Test {} failed to run to completion: {}'.format(module, e))
+                print('Exception: Test {} failed to run to completion: {}'.format(module_with_variants, e))
             if module_id != '':
                 test_time_taken[module_id] = time.time() - test_start_time
                 module_info['info'] = conformance.get_module_info(module_id)
@@ -1059,14 +1063,6 @@ if __name__ == '__main__':
         if m in ["oidcc-client-test-request-uri-signed-none", "oidcc-client-test-request-uri-signed-rs256"]:
             # It seems these are not currently tested by the CI; see:
             # https://gitlab.com/openid/conformance-suite/-/issues/840
-            untested_test_modules.remove(m)
-            continue
-
-        if m in [
-            "fapi1-advanced-final-brazil-ensure-encryption-required",
-            "fapi1-advanced-final-brazil-dcr-happy-flow"
-        ]:
-            # Brazil specific tests; we don't have an automated test environment yet
             untested_test_modules.remove(m)
             continue
 

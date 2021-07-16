@@ -20,12 +20,12 @@ import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationT
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -33,6 +33,7 @@ import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenE
 import net.openid.conformance.condition.client.SetResponseTypeCodeIdTokenInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
+import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -170,4 +171,23 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 
 		eventLog.endBlock();
 	}
+
+
+	public void unregisterClient1() {
+		eventLog.startBlock("Unregister dynamically registered client");
+
+		// IF management interface, delete the client to clean up
+		skipIfMissing(new String[] {"client"},
+			new String[] {"registration_client_uri", "registration_access_token"},
+			Condition.ConditionResult.INFO,
+			UnregisterDynamicallyRegisteredClient.class);
+
+		eventLog.endBlock();
+	}
+
+	@Override
+	public void cleanup() {
+		unregisterClient1();
+	}
+
 }

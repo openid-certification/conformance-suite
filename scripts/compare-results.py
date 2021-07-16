@@ -173,6 +173,7 @@ differences=False
 for test_plan,modules in sorted(new_results.items()):
     for module,variants in sorted(modules.items()):
         for variant, log in sorted(variants.items()):
+            master_log = "N/A"
             try:
                 master_log = master_results[test_plan][module][variant]
                 del master_results[test_plan][module][variant]

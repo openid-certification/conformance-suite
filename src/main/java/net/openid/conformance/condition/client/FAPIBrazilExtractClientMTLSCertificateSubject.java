@@ -43,6 +43,8 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondi
 
 		// we are careful to get the subjectDN in RFC 4514 format here, that is what is required for
 		// tls_client_auth_subject_dn as per https://datatracker.ietf.org/doc/html/rfc8705#section-2.1.2
+		// although I believe technically X500Principal always outputs RFC2253, so some newer OIDs are
+		// output as numeric encodings instead of names (see unit test).
 		X500Name x500name = X500Name.getInstance(x500Principal.getEncoded());
 		String subjectDn = x500Principal.getName();
 
@@ -52,8 +54,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondi
 		RDN[] uid = x500name.getRDNs(BCStyle.UID);
 		String softwareId;
 		if (uid.length == 0) {
-			RDN cn = x500name.getRDNs(BCStyle.CN)[0];
-			softwareId = IETFUtils.valueToString(cn.getFirst().getValue());
+			throw error("DCR testing must be done using a BRCAC profile certificate where the subjectdn contains a UID");
 		} else {
 			// newer Brazilian style certificate as per
 			// https://github.com/OpenBanking-Brasil/specs-seguranca/blob/main/open-banking-brasil-certificate-standards-1_ID1-ptbr.md
