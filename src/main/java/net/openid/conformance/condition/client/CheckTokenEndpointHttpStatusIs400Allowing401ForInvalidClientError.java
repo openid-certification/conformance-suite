@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
 
-public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError extends AbstractCondition {
+public class CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
@@ -23,13 +23,7 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError e
 			throw error("Couldn't find error field");
 		}
 
-		if (error.equals("invalid_request")) {
-
-			if (httpStatus != HttpStatus.SC_BAD_REQUEST) {
-
-				throw error("Invalid http status for error invalid_request" , args("actual", httpStatus, "expected", HttpStatus.SC_BAD_REQUEST));
-			}
-		} else if (error.equals("invalid_client")) {
+		if (error.equals("invalid_client")) {
 
 			if (httpStatus != HttpStatus.SC_BAD_REQUEST &&
 				httpStatus != HttpStatus.SC_UNAUTHORIZED) {
@@ -38,7 +32,10 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError e
 			}
 		} else {
 
-			throw error("error is neither invalid_request nor invalid_client", args("httpstatus", httpStatus, "error", error));
+			if (httpStatus != HttpStatus.SC_BAD_REQUEST) {
+
+				throw error("Http status must be 400 for token endpoint errors other than invalid_client" , args("actual", httpStatus, "expected", HttpStatus.SC_BAD_REQUEST));
+			}
 		}
 
 		logSuccess("Token endpoint http status code was " + httpStatus + " for error '"+error+"'");
