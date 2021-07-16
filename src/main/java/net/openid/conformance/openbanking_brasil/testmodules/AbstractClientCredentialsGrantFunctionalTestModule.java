@@ -72,7 +72,6 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 
 	}
 
-
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 
 	}

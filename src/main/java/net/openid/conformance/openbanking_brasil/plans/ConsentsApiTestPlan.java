@@ -1,10 +1,7 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiUnhappyTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiCrossClientTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiWideningPermissionsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -16,7 +13,8 @@ import net.openid.conformance.plan.TestPlan;
 	testModules = {
 		ConsentApiTestModule.class,
 		ConsentsApiWideningPermissionsTestModule.class,
-		ConsentsApiCrossClientTestModule.class
+		ConsentsApiCrossClientTestModule.class,
+		ConsentsApiConsentStatusTestModule.class
 	})
 public class ConsentsApiTestPlan implements TestPlan {
 }
