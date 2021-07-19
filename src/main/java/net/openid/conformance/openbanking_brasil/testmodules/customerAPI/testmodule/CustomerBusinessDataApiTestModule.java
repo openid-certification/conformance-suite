@@ -1,11 +1,16 @@
-package net.openid.conformance.openbanking_brasil.testmodules;
+package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessFinancialRelations;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessIdentifications;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessQualifications;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
