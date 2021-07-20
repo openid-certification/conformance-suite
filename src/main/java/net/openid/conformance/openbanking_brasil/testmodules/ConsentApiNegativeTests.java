@@ -15,9 +15,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 @PublishTestModule(
-	testName = "consent-api-test-bad-permissions",
-	displayName = "Ensures request for invalid",
-	summary = "Ensures permissions allow you to call only the correct resources - When completed, please upload a screenshot of the permissions being requested by the bank",
+	testName = "consent-api-test-negative",
+	displayName = "Runs various negative tests",
+	summary = "Runs various negative tests",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -54,7 +54,7 @@ public class ConsentApiNegativeTests extends AbstractClientCredentialsGrantFunct
 
 		validateBadExpiration(dateTimeGreaterThanAYear(), "DateTime greater than 1 year from now");
 		validateBadExpiration(dateTimeInThePast(), "DateTime in the past");
-		validateBadExpiration("2021-13-32T10:00:00-05:00", "bad DateTime"); // not a dateTime		
+		validateBadExpiration("2021-13-32T10:00:00-05:00", "bad DateTime"); // not a dateTime
 	}
 
 	private void validateBadPermission(String[] permissions, String description) {
@@ -80,7 +80,7 @@ public class ConsentApiNegativeTests extends AbstractClientCredentialsGrantFunct
 			addExpirationToRequest(rfc3339ExpiryTime);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
-		});	
+		});
 	}
 
 	private void addExpirationToRequest(String rfc3339ExpiryTime) {
