@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support;
+package net.openid.conformance.openbanking_brasil.testmodules.customerAPI;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
@@ -12,5 +12,4 @@ public class PrepareToGetBusinessFinancialRelations extends AbstractCondition {
 		env.putString("protected_resource_url", url);
 		return env;
 	}
-
 }
