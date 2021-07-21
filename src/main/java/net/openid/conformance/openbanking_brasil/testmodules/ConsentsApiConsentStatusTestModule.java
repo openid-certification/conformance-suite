@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModule{
+public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
