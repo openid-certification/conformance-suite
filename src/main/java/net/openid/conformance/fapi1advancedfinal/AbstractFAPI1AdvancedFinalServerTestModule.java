@@ -254,13 +254,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		// Set up the client configuration
 		configureClient();
-
-		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		call(sequence(resourceConfiguration));
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
+		setupResourceEndpoint();
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -268,6 +262,15 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void setupResourceEndpoint() {
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+		call(sequence(resourceConfiguration));
+
+		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, ConditionResult.INFO);
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
