@@ -15,7 +15,8 @@ import net.openid.conformance.plan.TestPlan;
 		ConsentApiNegativeTests.class,
 		ConsentsApiPermissionGroupsTestModule.class,
 		ConsentsApiCrossClientTestModule.class,
-		ConsentsApiConsentStatusTestModule.class
+		ConsentsApiConsentStatusTestModule.class,
+		ConsentsApiConsentStatusIfDeclinedTestModule.class
 	})
 public class ConsentsApiTestPlan implements TestPlan {
 }
