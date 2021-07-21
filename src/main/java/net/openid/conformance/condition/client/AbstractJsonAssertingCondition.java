@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -82,6 +85,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertHasStringField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
+			if (field instanceof DatetimeField) {
+				assertPatternAndTimeRange(value, (DatetimeField) field);
+			}
 		} else if (field instanceof IntField) {
 			assertHasIntField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
@@ -369,6 +375,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			"on the %s API response", elementName, getApiName());
 	}
 
+	public String createFieldValueIsOlderThanLimit(String elementName) {
+		return String.format("Value from element %s is a date older then the required limit " +
+			"on the %s API response", elementName, getApiName());
+	}
+
+	public String createFieldValueIsLessThanMinimum(String elementName) {
+		return String.format("Value from element %s is less than the required minimum " +
+			"on the %s API response", elementName, getApiName());
+	}
+
 	public String createCoordinateIsNotWithinAllowedAreaMessage(String elementName) {
 		return String.format("The %s does not enter to coordinate area. " +
 			"It is not latitude or longitude", elementName, getApiName());
@@ -416,6 +432,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			}
 		}
 		return stringValue;
+	}
+
+	private void assertPatternAndTimeRange(String stringFieldValue, DatetimeField field) {
+		if (!field.getPattern().isEmpty()) {
+			assertRegexMatchesField(stringFieldValue, field.getPath(),
+				RegexMatch.regex(field.getPattern()));
+		}
+		if (field.getDaysOlderAccepted() > 0) {
+			assertDaysOlderAccepted(stringFieldValue, field.getPath(), field.getDaysOlderAccepted());
+		}
 	}
 
 	private void assertPatternAndMaxMinLength(String stringFieldValue, Field field) {
@@ -475,6 +501,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertMaxValue(String stringValue, String path, int maxValue) {
 		if (Integer.parseInt(stringValue) > maxValue) {
 			throw error(createFieldValueIsMoreThanMaximum(path));
+		}
+	}
+
+	private void assertDaysOlderAccepted(String stringValue, String path, int daysOlderAccepted) {
+		if (Instant.parse(stringValue).isAfter(Instant.now().plus(daysOlderAccepted, ChronoUnit.DAYS))) {
+			throw error(createFieldValueIsOlderThanLimit(path));
 		}
 	}
 

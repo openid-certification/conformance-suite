@@ -23,10 +23,12 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	}
 
 	@Test
-	@UseResurce("jsonResponses/consent/createConsentResponse/createConsentResponseWithMissingField.json")
-	public void validateStructureWithMissingNonMandatoryField() {
+	@UseResurce("jsonResponses/consent/createConsentResponse/createConsentResponse_missing_expirationDateTime.json")
+	public void validateStructureWithMissingExpirationDateTimeField() {
 		CreateNewConsentValidator condition = new CreateNewConsentValidator();
-		run(condition);
+		ConditionError error = runAndFail(condition);
+		String expected = condition.createElementNotFoundMessage("expirationDateTime");
+		assertThat(error.getMessage(), containsString(expected));
 	}
 
 	@Test
@@ -55,5 +57,13 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 		Assert.assertThat(error.getMessage(), StringContains.containsString(condition.createFieldValueNotMatchEnumerationMessage("permissions")));
 	}
 
+	@Test
+	@UseResurce("jsonResponses/consent/createConsentResponse/createConsentResponseTooLongExpiration.json")
+	public void validateStructureWithTooLongExpiration() {
+		CreateNewConsentValidator condition = new CreateNewConsentValidator();
+		ConditionError error = runAndFail(condition);
+		String expected = condition.createFieldValueIsOlderThanLimit("expirationDateTime");
+		Assert.assertThat(error.getMessage(), containsString(expected));
+	}
 
 }
