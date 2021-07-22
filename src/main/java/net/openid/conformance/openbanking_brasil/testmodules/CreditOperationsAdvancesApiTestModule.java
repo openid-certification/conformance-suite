@@ -29,7 +29,7 @@ public class CreditOperationsAdvancesApiTestModule extends AbstractOBBrasilFunct
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(PrepareAllCreditAdvancesRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 	}
 
 	@Override
