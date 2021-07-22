@@ -1,10 +1,15 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.PublishTestModule;
 
-public class PrepareAllCreditAdvancesRelatedConsentsForHappyPathTest extends AbstractCondition {
+public class PrepareAllCreditOperationsPermissionsForHappyPath  extends AbstractCondition {
 
 	@Override
 	@PostEnvironment(strings = "consent_permissions")

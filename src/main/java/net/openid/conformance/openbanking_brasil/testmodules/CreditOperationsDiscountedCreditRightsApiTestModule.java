@@ -4,12 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CreditDiscountedCreditRightsSelector;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllCreditDiscountedCreditRightsRelatedConsentsForHappyPathTest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingCreditDiscountedCreditRightsContract;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,7 +27,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(PrepareAllCreditDiscountedCreditRightsRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 	}
 
 	@Override
