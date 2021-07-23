@@ -3,14 +3,19 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
+import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
+import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "consent-api-status-declined-test",
-	displayName = "Validate that consents are rejected on decline",
-	summary = "Validate that consents are rejected on decline",
+	testName = "consent-api-expired-consent-test",
+	displayName = "Validate that consents can expire",
+	summary = "Validate that consents can expire",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -24,21 +29,22 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
+
 	@Override
 	protected void validateResponse() {
-		runInBlock("Validating get consent response", () -> {
-			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-			callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
-			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-			preCallProtectedResource("Fetch consent");
-			callAndStopOnFailure(EnsureConsentWasRejected.class);
-		});
+
 	}
 
-	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
-		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
+	protected void performPreAuthorizationSteps() {
+		call(new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication)
+			.replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class))
+		);
+		callAndContinueOnFailure(WaitFor2Seconds.class);
+		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
+
+
 
 	protected void onAuthorizationCallbackResponse() {
 
@@ -61,8 +67,6 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 		eventLog.startBlock(currentClientString() + "Validate response");
 		validateResponse();
 		eventLog.endBlock();
-
-		setResult(Result.PASSED);
 
 		fireTestFinished();
 	}
