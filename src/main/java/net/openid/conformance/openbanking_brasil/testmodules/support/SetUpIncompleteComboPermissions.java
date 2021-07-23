@@ -4,23 +4,23 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareAllCreditOperationsPermissionsForHappyPath  extends AbstractCondition {
+public class SetUpIncompleteComboPermissions extends AbstractCondition {
 
 	@Override
 	@PostEnvironment(strings = "consent_permissions")
 	public Environment evaluate(Environment env) {
-		String[] permissions = {"LOANS_READ", "LOANS_WARRANTIES_READ",
+		String[] permissions = {"ACCOUNTS_OVERDRAFT_LIMITS_READ",
+			"RESOURCES_READ", "LOANS_READ", "LOANS_WARRANTIES_READ",
 			"LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ",
 			"FINANCINGS_READ", "FINANCINGS_WARRANTIES_READ",
 			"FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ",
 			"UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ",
-			"UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ",
-			"INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ",
-			"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ",
-			"RESOURCES_READ"};
+			"UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ",
+			"UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "INVOICE_FINANCINGS_READ",
+			"INVOICE_FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ",
+			"INVOICE_FINANCINGS_PAYMENTS_READ", "RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
-		logSuccess("Set all permissions for credit operations", args("permissions", permissions));
+		logSuccess("Set incomplete permissions for credit operations and accounts", args("permissions", permissions));
 		return env;
 	}
-
 }
