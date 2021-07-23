@@ -26,6 +26,11 @@ public abstract class Field {
 		this.path = path;
 	}
 
+	public Field(boolean optional, String path) {
+		this.optional = optional;
+		this.path = path;
+	}
+
 	protected Field(boolean optional, String path, String pattern, int maxLength, int minLength, int maxItems, int minItems, int maxValue, Set<String> enums) {
 		this.optional = optional;
 		this.path = path;

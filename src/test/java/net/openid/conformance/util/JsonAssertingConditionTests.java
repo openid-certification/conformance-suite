@@ -1,6 +1,7 @@
 package net.openid.conformance.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Option;
@@ -258,7 +259,7 @@ public class JsonAssertingConditionTests {
 	@BeforeClass
 	public static void setup() {
 		Configuration.setDefaults(new Configuration.Defaults() {
-			private final JsonProvider jsonProvider = new GsonJsonProvider();
+			private final JsonProvider jsonProvider = new GsonJsonProvider(new GsonBuilder().serializeNulls().create());
 			private final MappingProvider mappingProvider = new GsonMappingProvider();
 
 			@Override

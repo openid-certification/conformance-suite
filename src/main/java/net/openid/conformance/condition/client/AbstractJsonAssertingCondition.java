@@ -1,7 +1,9 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.*;
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.ConditionError;
@@ -14,6 +16,7 @@ import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import springfox.documentation.spring.web.json.Json;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -78,7 +81,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	//need to think about better impl then the current one
 	protected void assertField(JsonObject jsonObject, Field field) {
-		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
+		if (field.isOptional() && (!ifExists(jsonObject, field.getPath()) || findByPath(jsonObject, field.getPath()).isJsonNull())) {
 			return;
 		}
 		if (field instanceof StringField || field instanceof DatetimeField) {
@@ -282,7 +285,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 		try {
 			logQuerying(elementName);
-			JsonElement element = JsonPath.read(jsonObject, path);
+			JsonElement element = JsonPath.parse(jsonObject).read(path);
 			logElementFound(elementName);
 			return element;
 		} catch (PathNotFoundException e) {
@@ -397,7 +400,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	protected void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
-		JsonArray array = (JsonArray) findByPath(body, pathToJsonArray);
+		JsonElement jsonElement = findByPath(body, pathToJsonArray);
+		JsonArray array = (JsonArray) jsonElement;
 		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
 	}
 
