@@ -56,21 +56,13 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
-		// as https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp is still a draft we only warn if the value is wrong,
-		// and do not require it to be present.
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
-
-//		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-//
-//		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
-//
-//		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
-//
-//		handleSuccessfulAuthorizationEndpointResponse();
 
 		eventLog.startBlock(currentClientString() + "Validate response");
 		validateResponse();
 		eventLog.endBlock();
+
+		setResult(Result.PASSED);
 
 		fireTestFinished();
 	}
