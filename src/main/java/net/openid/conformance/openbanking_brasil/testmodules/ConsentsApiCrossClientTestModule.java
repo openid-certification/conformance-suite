@@ -48,7 +48,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
-		runInBlock("Fetch with second client", () -> {
+		runInBlock("Attempt to fetch with second client", () -> {
 			switchToSecondClient();
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 				.replace(GetStaticClientConfiguration.class, condition(GetStaticClient2Configuration.class))
@@ -57,6 +57,14 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndStopOnFailure(IgnoreResponseError.class);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseFromConsentApiWas403.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearResponseFromEnvironment.class, Condition.ConditionResult.FAILURE);
+		});
+
+		runInBlock("Attempt to delete with second client", () -> {
+			callAndStopOnFailure(PrepareToDeleteConsent.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseFromConsentApiWas403.class, Condition.ConditionResult.FAILURE);
