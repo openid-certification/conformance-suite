@@ -27,7 +27,11 @@ public class ConsentApiNegativeTests extends AbstractClientCredentialsGrantFunct
 	@Override
 	protected void runTests() {
 
+		validateBadPermission(SetUpResourceReadOnlyPermissions.class, "Resource read only");
+		validateBadPermission(SetUpCustomerPersonalIdOnlyPermissions.class, "Customers personal identification permissions only");
+		validateBadPermission(SetUpIncompleteCreditCardPermissions.class, "incomplete credit card permission group");
 		validateBadPermission(SetUpIncompleteAccountPermissions.class, "incomplete account permission group");
+		validateBadPermission(SetUpSlightlyLessIncompleteAccountPermissions.class, "less incomplete account permission group");
 		validateBadPermission(SetUpIncompleteCreditOperationsPermissions.class, "incomplete Credit Operations Contract Data permission group");
 		validateBadPermission(SetUpIncompleteComboPermissions.class, "incomplete combination of Limits & Credit Operations Contract Data permission groups");
 		validateBadPermission(SetUpNonExistentPermissions.class,"non-existent permission group");
