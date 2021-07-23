@@ -19,7 +19,7 @@ public class JsonUtils {
 
 	public static void configureJsonPathForGson() {
 		Configuration.setDefaults(new Configuration.Defaults() {
-			private final JsonProvider jsonProvider = new GsonJsonProvider();
+			private final JsonProvider jsonProvider = new GsonJsonProvider(new GsonBuilder().serializeNulls().create());
 			private final MappingProvider mappingProvider = new GsonMappingProvider();
 
 			@Override
@@ -43,7 +43,9 @@ public class JsonUtils {
 		GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(Double.class, (JsonSerializer<Double>)
 			(src, typeOfSrc, context) -> new JsonPrimitive(new BigDecimal(src)));
-		return builder.create();
+		return builder
+			.serializeNulls()
+			.create();
 	}
 
 }

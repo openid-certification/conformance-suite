@@ -31,7 +31,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	private void assertInnerFieldsForData(JsonObject body) {
 		final Set<String> enumMaritalStatusCode = Set.of("SOLTEIRO", "CASADO",
 			"VIUVO", "SEPARADO_JUDICIALMENTE", "DIVORCIADO", "UNIAO_ESTAVEL", "OUTRO");
-		final Set<String> enumSex = Set.of("FEMININO", "MASCULINO", "OUTRO");
+		final Set<String> enumSex = Set.of("FEMININO", "MASCULINO", "OUTRO", "NAO_DISPONIVEL");
 
 		assertField(body,
 			new StringField
@@ -100,9 +100,11 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.setMaxLength(14)
 				.build());
 
-		assertField(body, new BooleanField
-			.Builder("hasBrazilianNationality")
-			.build());
+		assertField(body,
+			new BooleanField
+				.Builder("hasBrazilianNationality")
+				.setOptional()
+				.build());
 
 		assertDocuments(body);
 		assertOtherDocuments(body);
