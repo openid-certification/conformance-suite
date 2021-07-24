@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.common.AbstractInvalidateJwsSignature;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignIdTokenInvalid extends AbstractInvalidateJwsSignature {
+public class InvalidateIdTokenSignature extends AbstractInvalidateJwsSignature {
 
 	@Override
 	@PreEnvironment(strings = "id_token")
