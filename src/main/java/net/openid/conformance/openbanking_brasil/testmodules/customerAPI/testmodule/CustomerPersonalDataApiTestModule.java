@@ -6,9 +6,11 @@ import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTo
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.PrepareToGetPersonalFinancialRelationships;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalFinancialRelationships;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -55,6 +57,5 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(NaturalPersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
-
 	}
 }

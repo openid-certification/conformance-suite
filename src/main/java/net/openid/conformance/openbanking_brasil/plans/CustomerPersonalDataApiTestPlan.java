@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.CustomerPersonalDataApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.CustomerPersonalWrongPermissionsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -11,7 +12,8 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = PlanNames.CUSTOMER_PERSONAL_DATA_API_PLAN_NAME,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Personal Customer Data API",
 	testModules = {
-		CustomerPersonalDataApiTestModule.class
+		CustomerPersonalDataApiTestModule.class,
+		CustomerPersonalWrongPermissionsTestModule.class
 	})
 public class CustomerPersonalDataApiTestPlan implements TestPlan {
 }
