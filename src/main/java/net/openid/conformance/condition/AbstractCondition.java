@@ -611,10 +611,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return chain;
 	}
 
-	protected JsonObject convertResponseForEnvironment(ResponseEntity<String> response) {
+	protected JsonObject convertResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
 		JsonObject responseInfo = new JsonObject();
 		responseInfo.addProperty("status", response.getStatusCode().value());
-
+		responseInfo.addProperty("endpoint_name", endpointName); // for use in further logging
 		JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
 
 		responseInfo.add("headers", responseHeaders);
