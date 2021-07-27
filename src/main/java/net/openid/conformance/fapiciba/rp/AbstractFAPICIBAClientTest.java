@@ -113,7 +113,6 @@ import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRe
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
-import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
@@ -671,8 +670,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
-
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		if(isBrazil()) {

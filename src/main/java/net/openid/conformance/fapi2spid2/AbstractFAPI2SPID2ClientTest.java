@@ -180,7 +180,6 @@ import net.openid.conformance.condition.rs.RequireDpopAccessToken;
 import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
-import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
@@ -1000,8 +999,6 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		}
 
 		checkResourceEndpointRequest(false);
-
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
