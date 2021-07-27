@@ -15,7 +15,9 @@ public class CheckAuthorizationEndpointHasError extends AbstractCondition {
 			throw error("The authorization was expected to fail, but the server returned a valid response from the authorization endpoint", env.getObject("authorization_endpoint_response"));
 		}
 
-		logSuccess("Error from authorization endpoint, as expected", args("error", error));
+		String errorDescription = env.getString("authorization_endpoint_response", "error_description");
+
+		logSuccess("Error from authorization endpoint, as expected", args("error", error, "description", errorDescription));
 		return env;
 	}
 }
