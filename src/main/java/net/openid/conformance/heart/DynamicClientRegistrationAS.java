@@ -15,12 +15,13 @@ import net.openid.conformance.condition.client.EnsureCodeResponseTypeInClient;
 import net.openid.conformance.condition.client.EnsureDynamicRegistrationEndpointRequiresRedirectUri;
 import net.openid.conformance.condition.client.EnsureImplicitGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureTokenResponseTypeInClient;
+import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToAuthorizationCode;
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToImplicit;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
@@ -106,6 +107,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		// IF management interface, delete the client to clean up
 		skipIfMissing(null,
@@ -118,6 +120,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToAuthorizationCode.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		// IF management interface, delete the client to clean up
 		skipIfMissing(null,

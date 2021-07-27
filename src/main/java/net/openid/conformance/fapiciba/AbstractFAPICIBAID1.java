@@ -92,6 +92,7 @@ import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJso
 import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
+import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
@@ -109,8 +110,6 @@ import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
-import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
-import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -118,6 +117,8 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.TellUserToDoCIBAAuthentication;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateAtHash;
@@ -463,6 +464,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		// TODO: we currently do little verification of the dynamic registration response
 

@@ -20,25 +20,6 @@ public class CallDynamicRegistrationEndpoint extends AbstractCallDynamicRegistra
 
 	@Override
 	protected Environment onRegistrationEndpointResponse(Environment env, JsonObject client) {
-
-		env.putObject("client", client);
-
-		if (client.has("registration_client_uri") &&
-			client.has("registration_access_token")) {
-
-			String registrationClientUri = OIDFJSON.getString(client.get("registration_client_uri"));
-			String registrationAccessToken = OIDFJSON.getString(client.get("registration_access_token"));
-
-			if (!Strings.isNullOrEmpty(registrationClientUri) &&
-				!Strings.isNullOrEmpty(registrationAccessToken)) {
-				env.putString("registration_client_uri", registrationClientUri);
-				env.putString("registration_access_token", registrationAccessToken);
-
-				logSuccess("Extracted dynamic registration management credentials",
-					args("registration_client_uri", registrationClientUri,
-						"registration_access_token", registrationAccessToken));
-			}
-		}
 		return env;
 	}
 

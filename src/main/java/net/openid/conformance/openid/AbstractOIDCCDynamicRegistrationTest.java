@@ -9,12 +9,13 @@ import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrl
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
+import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForClientSecretJwt;
@@ -140,6 +141,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
 	}
