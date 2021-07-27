@@ -5,12 +5,8 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
-import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "consent-api-expired-consent-test",
@@ -30,11 +26,6 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
-
-	@Override
-	protected void validateResponse() {
-
-	}
 
 	protected void performPreAuthorizationSteps() {
 		call(new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication)
@@ -64,11 +55,15 @@ public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctio
 
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
 
-		eventLog.startBlock(currentClientString() + "Validate response");
-		validateResponse();
-		eventLog.endBlock();
+		setResult(Result.PASSED);
 
 		fireTestFinished();
+	}
+
+
+	@Override
+	protected void validateResponse() {
+
 	}
 
 }
