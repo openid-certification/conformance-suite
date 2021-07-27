@@ -15,7 +15,7 @@ public class ExtractDynamicRegistrationResponse extends AbstractCondition {
 	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		JsonObject client = (JsonObject) env.getElementFromObject("dynamic_registration_endpoint_response", "client");
+		JsonObject client = (JsonObject) env.getElementFromObject("dynamic_registration_endpoint_response", "body_json");
 
 		env.putObject("client", client);
 

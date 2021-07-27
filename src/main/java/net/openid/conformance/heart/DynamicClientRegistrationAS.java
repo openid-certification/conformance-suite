@@ -12,11 +12,13 @@ import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationReq
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureAuthorizationCodeGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureCodeResponseTypeInClient;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureDynamicRegistrationEndpointRequiresRedirectUri;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureImplicitGrantTypeInClient;
 import net.openid.conformance.condition.client.EnsureTokenResponseTypeInClient;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
+import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDynamicRegistrationRequestGrantTypeToAuthorizationCode;
@@ -107,6 +109,9 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		// IF management interface, delete the client to clean up
@@ -120,6 +125,9 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToAuthorizationCode.class);
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
+		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
 
 		// IF management interface, delete the client to clean up

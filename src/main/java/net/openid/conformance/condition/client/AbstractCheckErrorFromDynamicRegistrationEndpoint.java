@@ -14,7 +14,7 @@ public abstract class AbstractCheckErrorFromDynamicRegistrationEndpoint extends 
     @PreEnvironment(required = "dynamic_registration_endpoint_response")
     public Environment evaluate(Environment env) {
 
-        String error = env.getString("dynamic_registration_endpoint_response", "error");
+        String error = env.getString("dynamic_registration_endpoint_response", "body_json.error");
 
         if (Strings.isNullOrEmpty(error)) {
             throw error("'error' field not found in response from dynamic registration endpoint");
