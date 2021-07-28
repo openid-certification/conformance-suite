@@ -92,7 +92,7 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 
 	private void assertInnerFieldsProcurators(JsonObject data) {
 
-		Set<String> enumType = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_POSSUI");
+		Set<String> enumType = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_SE_APLICA");
 
 		assertField(data,
 			new StringField
