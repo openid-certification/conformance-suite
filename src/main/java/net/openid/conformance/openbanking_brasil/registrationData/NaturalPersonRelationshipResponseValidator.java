@@ -59,6 +59,14 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 				.setEnums(enumProductsServicesType)
 				.build());
 
+		assertField(data,
+			new StringField
+				.Builder("productsServicesTypeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(100)
+				.setOptional()
+				.build());
+
 		assertHasField(data, "procurators");
 
 		assertField(data,

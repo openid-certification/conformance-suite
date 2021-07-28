@@ -85,6 +85,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("maritalStatusAdditionalInfo")
 				.setMaxLength(50)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -103,7 +104,6 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(body,
 			new BooleanField
 				.Builder("hasBrazilianNationality")
-				.setOptional()
 				.build());
 
 		assertDocuments(body);
