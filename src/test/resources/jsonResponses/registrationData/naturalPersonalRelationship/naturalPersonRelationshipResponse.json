@@ -5,6 +5,7 @@
         "productsServicesType": [
             "SEGURO"
         ],
+        "productsServicesTypeAdditionalInfo": "type",
         "procurators": [
             {
                 "type": "PROCURADOR",
