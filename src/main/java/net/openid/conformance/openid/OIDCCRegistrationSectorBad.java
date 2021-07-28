@@ -5,11 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.AddSectorIdentifierUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddSubjectTypePairwiseToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpointExpectingError;
+import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateInvalidSectorRedirectUris;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.MediaType;
@@ -63,8 +65,11 @@ public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistration
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpointExpectingError.class, "OIDCR-5");
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "OIDCR-5");
 
+		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.WARNING, "OIDCR-3.3");
 	}
 

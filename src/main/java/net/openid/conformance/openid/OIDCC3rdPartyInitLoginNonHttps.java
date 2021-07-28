@@ -1,10 +1,12 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.AddInitiateLoginUriAsNonHttpsToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpointExpectingError;
+import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateInitiateLoginUri;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -32,8 +34,11 @@ public class OIDCC3rdPartyInitLoginNonHttps extends AbstractOIDCCServerTest {
 
 		createDynamicClientRegistrationRequest();
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpointExpectingError.class, "RFC6749-3.1.2");
+		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC6749-3.1.2");
 
+		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDCR-3.3");
 	}
 

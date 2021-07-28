@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-response-type-code-fails",
 	displayName = "FAPI1-Advanced-Final: ensure response_type code fails",
-	summary = "This test uses response_type=code in the authorization request, which (as a JARM response has not been requested) is not permitted in FAPI-RW - only the hybrid flow ('response_type=code id_token') is allowed. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response, or an error could be returned from the PAR endpoint.",
+	summary = "This test uses response_type=code in the authorization request, which (as a JARM response has not been requested) is not permitted in FAPI1-Advanced - only the hybrid flow ('response_type=code id_token') or JARM ('response_type=code&response_mode=jwt') is allowed. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response, or an error could be returned from the PAR endpoint.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
