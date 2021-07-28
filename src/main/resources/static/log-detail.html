@@ -629,44 +629,49 @@
 
                     // display the browser control data
                     if (data.browser) {
-                        $('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({
-                            browser: data.browser
-                        }));
-                        updateTestInfoStickiness(testId);
+                        var newBrowserJson = JSON.stringify(data.browser);
+                        var currentBrowserJson = jQuery.data(document.body, 'currentBrowserJson');
+                        if(currentBrowserJson != newBrowserJson) {
+                            jQuery.data(document.body, 'currentBrowserJson', newBrowserJson);
+                            $('#runningTestBrowser').html(FAPI_UI.logTemplates.BROWSER({
+                                browser: data.browser
+                            }));
+                            updateTestInfoStickiness(testId);
 
-                        $('#runningTestBrowser .visitBtn').click(function(evt) {
-                            evt.preventDefault();
-                            var url = $(this).data('url');
+                            $('#runningTestBrowser .visitBtn').click(function(evt) {
+                                evt.preventDefault();
+                                var url = $(this).data('url');
 
-                            FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
+                                FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
 
-                            var win = window.open(url, '_blank');
+                                var win = window.open(url, '_blank');
 
-                            if (win) {
-                                win.focus();
-                                $.ajax({
-                                    url: '/api/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
-                                    type: 'POST',
-                                    error: function(jqxhr, status, error) {
-                                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                            code: jqxhr.status,
-                                            error: error
-                                        });
-                                        // don't update anymore
-                                        stopReloader();
-                                    }
-                                }).then(function() {
-                                    return reload(testId);
-                                }).always(function() {
-                                    FAPI_UI.hideBusy();
-                                });
-                            } else {
-                                FAPI_UI.showError({
-                                    error: "Couldn't open the url: " + url
-                                });
-                            }
+                                if (win) {
+                                    win.focus();
+                                    $.ajax({
+                                        url: '/api/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url),
+                                        type: 'POST',
+                                        error: function(jqxhr, status, error) {
+                                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                                code: jqxhr.status,
+                                                error: error
+                                            });
+                                            // don't update anymore
+                                            stopReloader();
+                                        }
+                                    }).then(function() {
+                                        return reload(testId);
+                                    }).always(function() {
+                                        FAPI_UI.hideBusy();
+                                    });
+                                } else {
+                                    FAPI_UI.showError({
+                                        error: "Couldn't open the url: " + url
+                                    });
+                                }
 
-                        });
+                            });
+                        }
                     }
 
                     // if there's a final test error, display it
