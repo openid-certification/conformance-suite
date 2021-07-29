@@ -12,19 +12,16 @@ FAPI Conformance Suite, which is available at https://gitlab.com/openid/conforma
 Many operations are also shared, meaning those instructions will be interchangeable. 
 https://gitlab.com/openid/conformance-suite/wikis/home
 
-For user instructions for testing / certifying please see:
-https://openid.net/certification/instructions/ in the first instance.
-(A specific Open Banking Brasil guide is available https://gitlab.com/obb1/certification/-/wikis/Instructions-for-running-Conformance-tests)
+For user instructions for testing please see:
+https://gitlab.com/obb1/certification/-/wikis/Instructions-for-running-Conformance-tests)
+
+For user instructions for certification please see:
+https://gitlab.com/obb1/certification/-/wikis/Certification-Guide
 
 To get started as a developer or running the conformance suite locally, see:
+https://gitlab.com/obb1/certification/-/wikis/Running-the-conformance-suite-locally
 
-https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run
-(A specific Open Banking Brasil guide is available [INSERT LINK])
-
-For guidelines for submitting contributions, see:
-
-https://gitlab.com/openid/conformance-suite/wikis/Developers/Contributing
-(A specific Open Banking Brasil guide is available [INSERT LINK])
+Additional tips may be seen at https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run
 
 Open Banking Brasil would like to thank the follow people/organisations:
 
