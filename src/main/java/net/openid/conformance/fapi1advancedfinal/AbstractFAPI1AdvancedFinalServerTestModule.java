@@ -58,7 +58,8 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
-	"resource.brazilPaymentConsent"
+	"resource.brazilPaymentConsent",
+	"resource.brazilPixPayment"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -657,6 +658,16 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			String scope = env.getString("client", "scope");
+			if(scope != null && scope.contains("payments")) {
+				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
+				callAndContinueOnFailure(SetPlainJsonContentTypeHeaderForResourceEndpointRequest.class);
+				callAndContinueOnFailure(SetResourceMethodToPost.class);
+				callAndContinueOnFailure(AddPaymentRequestEntity.class);
+			}
+		}
+
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
@@ -741,7 +752,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-//		preAuthorizationSteps = () -> new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		preAuthorizationSteps = this::createOBBPreauthSteps;
 		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
@@ -751,11 +761,13 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
 		String scope = env.getString("client", "scope");
 		if(scope != null && scope.contains("payments")) {
+			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a paymetns endpoint");
 			steps.skip(SetConsentsScopeOnTokenEndpointRequest.class, "Consents are payment consents - do not need the consents scope");
 			steps.skip(FAPIBrazilAddExpirationToConsentRequest.class, "Consents are payment consents - cannot request an expiry date");
+			steps.skip(FAPIBrazilConsentEndpointResponseValidatePermissions.class, "Consents are payment consents - no need to check permissons");
 			steps.replace(FAPIBrazilCreateConsentRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class));
-			steps.insertBefore(CallTokenEndpoint.class,
-				sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyHeader.class)));
+			steps.insertBefore(CallConsentEndpointWithBearerToken.class,
+				sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
 		}
 		return steps;
 	}

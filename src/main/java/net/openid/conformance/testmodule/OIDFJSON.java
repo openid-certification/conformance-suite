@@ -93,7 +93,7 @@ public final class OIDFJSON {
 		if (!json.isJsonPrimitive() || (!json.getAsJsonPrimitive().isNumber() && !json.getAsJsonPrimitive().isString())) {
 			// I'm not 100% sure if bool/object conversions should be blocked; I suspect if we ever find a reason to
 			// allow them then it's fine to do so, it's just not a path the current code uses.
-			throw new UnexpectedJsonTypeException("forceConversionToNumber called on something that is neither a number nor a string: " + json);
+			throw new UnexpectedJsonTypeException("forceConversionToString called on something that is neither a number nor a string: " + json);
 		}
 
 		return json.getAsString();
