@@ -10,7 +10,10 @@ public class PrepareResourceRelatedConsentsForAccountsTest extends AbstractCondi
 	@PostEnvironment(strings = "consent_permissions")
 	public Environment evaluate(Environment env) {
 		String[] permissions = {"ACCOUNTS_READ",
-								"RESOURCES_READ"};
+			"ACCOUNTS_BALANCES_READ",
+			"ACCOUNTS_OVERDRAFT_LIMITS_READ",
+			"ACCOUNTS_TRANSACTIONS_READ",
+			"RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}

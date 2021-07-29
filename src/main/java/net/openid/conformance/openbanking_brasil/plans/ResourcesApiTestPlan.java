@@ -15,10 +15,7 @@ import net.openid.conformance.plan.TestPlan;
 //	displayName = "Functional tests for resources API (WIP)",
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Resources API",
 	testModules = {
-		ResourcesApiTestModule.class,
-		ResourcesApiTestModuleNoResources.class,
-		ResourcesApiTestModuleAccount.class,
-		ResourcesApiTestModuleCreditCard.class
+		ResourcesApiTestModule.class
 	})
 public class ResourcesApiTestPlan implements TestPlan {
 }
