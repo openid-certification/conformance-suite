@@ -61,7 +61,7 @@ public class FAPIBrazilCreatePaymentConsentRequest_UnitTest {
 
 		ConditionError ce = tryAndFail(env);
 
-		assertThat(ce.getMessage(), equalTo("FAPIBrazilCreatePaymentConsentRequest: A payment consent request JSON object is needed for this configuration"));
+		assertThat(ce.getMessage(), equalTo("FAPIBrazilCreatePaymentConsentRequest: As 'payments' is included in the 'scope' within the test configuration, a payment consent request JSON object must also be provided in the test configuration."));
 
 	}
 

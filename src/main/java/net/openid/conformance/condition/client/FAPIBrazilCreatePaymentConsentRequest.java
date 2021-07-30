@@ -15,7 +15,7 @@ public class FAPIBrazilCreatePaymentConsentRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonElement paymentConsent = env.getElementFromObject("resource", "brazilPaymentConsent");
 		if(paymentConsent == null) {
-			throw error("A payment consent request JSON object is needed for this configuration");
+			throw error("As 'payments' is included in the 'scope' within the test configuration, a payment consent request JSON object must also be provided in the test configuration.");
 		}
 		JsonObject paymentRequestObject = paymentConsent.getAsJsonObject();
 		validate(paymentRequestObject);
