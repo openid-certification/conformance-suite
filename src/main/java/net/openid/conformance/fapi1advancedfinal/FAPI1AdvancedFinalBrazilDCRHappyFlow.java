@@ -3,7 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-happy-flow",
+	testName = "fapi1-advanced-final-brazildcr-happy-flow",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR happy flow",
 	summary = "Obtain a software statement from the directory, register a new client and perform an authorization flow.",
 	profile = "FAPI1-Advanced-Final",
