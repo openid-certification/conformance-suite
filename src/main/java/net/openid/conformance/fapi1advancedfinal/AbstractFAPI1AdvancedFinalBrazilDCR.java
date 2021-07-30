@@ -151,7 +151,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 	}
 
 	protected void validateSsa() {
-		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class, "BrazilOBDCR-7.1-6");
+		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-6");
 	}
 
 	protected void callRegistrationEndpoint() {
