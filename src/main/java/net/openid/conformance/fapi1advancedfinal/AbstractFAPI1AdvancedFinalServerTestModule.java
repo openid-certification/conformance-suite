@@ -762,7 +762,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		String scope = env.getString("client", "scope");
 		if(scope != null && scope.contains("payments")) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a paymetns endpoint");
-			steps.skip(SetConsentsScopeOnTokenEndpointRequest.class, "Consents are payment consents - do not need the consents scope");
+			steps.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetPaymentsScopeOnTokenEndpointRequest.class));
 			steps.skip(FAPIBrazilAddExpirationToConsentRequest.class, "Consents are payment consents - cannot request an expiry date");
 			steps.skip(FAPIBrazilConsentEndpointResponseValidatePermissions.class, "Consents are payment consents - no need to check permissons");
 			steps.replace(FAPIBrazilCreateConsentRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class));
