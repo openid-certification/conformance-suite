@@ -7,117 +7,7 @@ import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddClientIdToRequestObject;
-import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddIatToRequestObject;
-import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.AddNbfToRequestObject;
-import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
-import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
-import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
-import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
-import net.openid.conformance.condition.client.CheckForAccessTokenValue;
-import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
-import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
-import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
-import net.openid.conformance.condition.client.CheckForRequestUriValue;
-import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
-import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
-import net.openid.conformance.condition.client.CheckIfPAREndpointResponseError;
-import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckServerKeysIsValid;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
-import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
-import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
-import net.openid.conformance.condition.client.CreateRandomNonceValue;
-import net.openid.conformance.condition.client.CreateRandomStateValue;
-import net.openid.conformance.condition.client.CreateRedirectUri;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
-import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
-import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
-import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
-import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
-import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractAtHash;
-import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromJARMResponse;
-import net.openid.conformance.condition.client.ExtractCHash;
-import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractJARMFromURLQuery;
-import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
-import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
-import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
-import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
-import net.openid.conformance.condition.client.GetStaticClient2Configuration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
-import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
-import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
-import net.openid.conformance.condition.client.RejectStateInUrlQueryForHybridFlow;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.condition.client.ValidateAtHash;
-import net.openid.conformance.condition.client.ValidateCHash;
-import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.condition.client.ValidateExpiresIn;
-import net.openid.conformance.condition.client.ValidateIdToken;
-import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstRequest;
-import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
-import net.openid.conformance.condition.client.ValidateIdTokenNonce;
-import net.openid.conformance.condition.client.ValidateIdTokenSignature;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
-import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
-import net.openid.conformance.condition.client.ValidateJARMResponse;
-import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
-import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
-import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateSHash;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.condition.client.ValidateSuccessfulHybridResponseFromAuthorizationEndpoint;
-import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
@@ -167,7 +57,9 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.consentUrl",
 	"resource.brazilCpf",
-	"resource.brazilCnpj"
+	"resource.brazilCnpj",
+	"resource.brazilPaymentConsent",
+	"resource.brazilPixPayment"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -187,8 +79,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
 	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
-
-
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -768,6 +658,16 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			String scope = env.getString("client", "scope");
+			if(scope != null && scope.contains("payments")) {
+				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
+				callAndContinueOnFailure(SetPlainJsonContentTypeHeaderForResourceEndpointRequest.class);
+				callAndContinueOnFailure(SetResourceMethodToPost.class);
+				callAndContinueOnFailure(AddPaymentRequestEntity.class);
+			}
+		}
+
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
@@ -852,9 +752,24 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		preAuthorizationSteps = () -> new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		preAuthorizationSteps = this::createOBBPreauthSteps;
 		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
+	}
+
+	protected ConditionSequence createOBBPreauthSteps() {
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		String scope = env.getString("client", "scope");
+		if(scope != null && scope.contains("payments")) {
+			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a paymetns endpoint");
+			steps.skip(SetConsentsScopeOnTokenEndpointRequest.class, "Consents are payment consents - do not need the consents scope");
+			steps.skip(FAPIBrazilAddExpirationToConsentRequest.class, "Consents are payment consents - cannot request an expiry date");
+			steps.skip(FAPIBrazilConsentEndpointResponseValidatePermissions.class, "Consents are payment consents - no need to check permissons");
+			steps.replace(FAPIBrazilCreateConsentRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class));
+			steps.insertBefore(CallConsentEndpointWithBearerToken.class,
+				sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
+		}
+		return steps;
 	}
 
 	protected void performPARRedirectWithRequestUri() {
