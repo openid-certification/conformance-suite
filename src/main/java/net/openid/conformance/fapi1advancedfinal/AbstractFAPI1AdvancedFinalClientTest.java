@@ -256,7 +256,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			exposePath("consents_endpoint", BRAZIL_CONSENTS_PATH);
+			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
 		} else {
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
@@ -376,13 +376,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
 		}
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if(BRAZIL_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId);
-			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path);
-			}
-		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
@@ -410,6 +403,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
 		}
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if(BRAZIL_CONSENTS_PATH.equals(path)) {
+				return brazilHandleNewConsentRequest(requestId);
+			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
+				return brazilHandleGetConsentRequest(requestId, path);
+			}
+		}
 
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -427,6 +427,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 	protected Object brazilHandleNewConsentRequest(String requestId) {
 		setStatus(Status.RUNNING);
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
 		//Requires method=POST
 		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
 
@@ -457,6 +462,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object brazilHandleGetConsentRequest(String requestId, String path) {
 		setStatus(Status.RUNNING);
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
 
 		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
 
