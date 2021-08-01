@@ -490,12 +490,16 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
-	protected void authenticateParEndpointRequest(String requestId) {
-		call(exec().mapKey("token_endpoint_request", requestId));
 
+	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+	}
+	protected void authenticateParEndpointRequest(String requestId) {
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		checkMtlsCertificate();
 		call(sequence(validateClientAuthenticationSteps));
 //TODO Due to historical reasons there is potential ambiguity regarding the
 //   appropriate audience value to use when employing JWT client assertion
@@ -582,11 +586,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
-
-		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+		checkMtlsCertificate();
 
 		call(sequence(validateClientAuthenticationSteps));
 
@@ -985,9 +985,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
-		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+		checkMtlsCertificate();
 
 		call(exec().unmapKey("token_endpoint_request"));
 
