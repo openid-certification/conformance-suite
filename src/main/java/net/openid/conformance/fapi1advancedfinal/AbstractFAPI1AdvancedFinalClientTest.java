@@ -43,6 +43,8 @@ import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
@@ -508,17 +510,14 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("token_endpoint_request", requestId));
 
 		checkMtlsCertificate();
-		call(sequence(validateClientAuthenticationSteps));
-//TODO Due to historical reasons there is potential ambiguity regarding the
-//   appropriate audience value to use when employing JWT client assertion
-//   based authentication (defined in Section 2.2 of [RFC7523] with
-//   "private_key_jwt" or "client_secret_jwt" authentication method names
-//   per Section 9 of [OIDC]).  To address that ambiguity the issuer
-//   identifier URL of the authorization server according to [RFC8414]
-//   SHOULD be used as the value of the audience.  In order to facilitate
-//   interoperability the authorization server MUST accept its issuer
-//   identifier, token endpoint URL, or pushed authorization request
-//   endpoint URL as values that identify it as an intended audience.
+
+		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
+				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2"))
+			);
+		} else {
+			call(sequence(validateClientAuthenticationSteps));
+		}
 		call(exec().unmapKey("token_endpoint_request"));
 	}
 
