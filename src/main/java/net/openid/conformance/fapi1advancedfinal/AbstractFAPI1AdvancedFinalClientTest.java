@@ -43,6 +43,8 @@ import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
@@ -256,7 +258,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			exposePath("consents_endpoint", BRAZIL_CONSENTS_PATH);
+			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
 		} else {
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
@@ -376,13 +378,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
 		}
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if(BRAZIL_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId);
-			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path);
-			}
-		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
@@ -410,6 +405,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
 		}
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if(BRAZIL_CONSENTS_PATH.equals(path)) {
+				return brazilHandleNewConsentRequest(requestId);
+			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
+				return brazilHandleGetConsentRequest(requestId, path);
+			}
+		}
 
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -427,6 +429,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 	protected Object brazilHandleNewConsentRequest(String requestId) {
 		setStatus(Status.RUNNING);
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
 		//Requires method=POST
 		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
 
@@ -457,6 +464,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object brazilHandleGetConsentRequest(String requestId, String path) {
 		setStatus(Status.RUNNING);
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
 
 		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
 
@@ -490,23 +500,24 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
-	protected void authenticateParEndpointRequest(String requestId) {
-		call(exec().mapKey("token_endpoint_request", requestId));
 
+	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
-		call(sequence(validateClientAuthenticationSteps));
-//TODO Due to historical reasons there is potential ambiguity regarding the
-//   appropriate audience value to use when employing JWT client assertion
-//   based authentication (defined in Section 2.2 of [RFC7523] with
-//   "private_key_jwt" or "client_secret_jwt" authentication method names
-//   per Section 9 of [OIDC]).  To address that ambiguity the issuer
-//   identifier URL of the authorization server according to [RFC8414]
-//   SHOULD be used as the value of the audience.  In order to facilitate
-//   interoperability the authorization server MUST accept its issuer
-//   identifier, token endpoint URL, or pushed authorization request
-//   endpoint URL as values that identify it as an intended audience.
+	}
+	protected void authenticateParEndpointRequest(String requestId) {
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		checkMtlsCertificate();
+
+		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
+				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2"))
+			);
+		} else {
+			call(sequence(validateClientAuthenticationSteps));
+		}
 		call(exec().unmapKey("token_endpoint_request"));
 	}
 
@@ -582,11 +593,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
-
-		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+		checkMtlsCertificate();
 
 		call(sequence(validateClientAuthenticationSteps));
 
@@ -985,9 +992,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
-		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+		checkMtlsCertificate();
 
 		call(exec().unmapKey("token_endpoint_request"));
 
