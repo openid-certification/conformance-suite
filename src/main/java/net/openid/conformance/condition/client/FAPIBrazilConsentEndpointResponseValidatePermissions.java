@@ -13,15 +13,15 @@ import java.util.Set;
 
 public class FAPIBrazilConsentEndpointResponseValidatePermissions extends AbstractCondition {
 
-	boolean jsonArraysContainSameEntries(JsonArray array1, JsonArray array2) {
+	boolean jsonArraysIsSubset(JsonArray supersetJson, JsonArray subsetJson) {
 
-		Set<String> array1Set = new HashSet<>();
-		array1.forEach(e -> array1Set.add(OIDFJSON.getString(e)));
+		Set<String> superset = new HashSet<>();
+		supersetJson.forEach(e -> superset.add(OIDFJSON.getString(e)));
 
-		Set<String> array2Set = new HashSet<>();
-		array2.forEach(e -> array2Set.add(OIDFJSON.getString(e)));
+		Set<String> subset = new HashSet<>();
+		subsetJson.forEach(e -> subset.add(OIDFJSON.getString(e)));
 
-		return array1Set.equals(array2Set);
+		return superset.containsAll(subset);
 	}
 
 	@Override
@@ -37,10 +37,13 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions extends Abstra
 			throw error(path+" in the consent response is not a JSON array", args("permissions", grantedPermissionsEl));
 		}
 		JsonArray grantedPermissions = (JsonArray) grantedPermissionsEl;
+		if (grantedPermissions.size() <= 0) {
+			throw error(path+" in the consent response is an empty array", args("permissions", grantedPermissionsEl));
+		}
 
 		JsonArray requestedPermissions = (JsonArray) env.getElementFromObject("brazil_consent", "requested_permissions");
 
-		if (!jsonArraysContainSameEntries(requestedPermissions,grantedPermissions)) {
+		if (!jsonArraysIsSubset(requestedPermissions,grantedPermissions)) {
 			throw error("Consent endpoint response contains different permissions than requested", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
 		}
 
