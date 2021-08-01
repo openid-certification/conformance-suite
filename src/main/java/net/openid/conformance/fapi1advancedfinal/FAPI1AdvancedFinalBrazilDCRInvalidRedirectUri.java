@@ -1,17 +1,17 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidSoftwareStatement;
+import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata;
+import net.openid.conformance.condition.client.CreateBadRedirectUri;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.InvalidateSoftwareStatementSignature;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-invalid-software-statement-signature",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR invalidate software statement signature",
-	summary = "Perform the DCR flow, but using a software statement where the signature has been invalidated - the server must reject the registration attempt.",
+	testName = "fapi1-advanced-final-brazil-dcr-invalid-redirect-uri",
+	displayName = "FAPI1-Advanced-Final: Brazil DCR Invalid Redirect URI",
+	summary = "Perform the DCR flow, but requesting a redirect uri not present in the software statement - the server must reject the registration attempt.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,16 +26,22 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
 	@Override
-	protected void getSsa() {
-		super.getSsa();
-		callAndStopOnFailure(InvalidateSoftwareStatementSignature.class);
+	protected void configureClient() {
+		callAndStopOnFailure(CreateBadRedirectUri.class);
+		exposeEnvString("redirect_uri");
+
+		super.configureClient();
 	}
 
 	@Override
 	protected void setupResourceEndpoint() {
+	}
+
+	@Override
+	protected void validateSsa() {
 	}
 
 	@Override
@@ -45,7 +51,7 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature extend
 		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidSoftwareStatement.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override

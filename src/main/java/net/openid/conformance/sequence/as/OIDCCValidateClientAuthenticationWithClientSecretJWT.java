@@ -20,7 +20,7 @@ public class OIDCCValidateClientAuthenticationWithClientSecretJWT extends Abstra
 		callAndContinueOnFailure(EnsureClientAssertionSignatureAlgorithmMatchesRegistered.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(ValidateClientAssertionSignatureWithHMACAlgorithm.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 		callAndContinueOnFailure(EnsureClientAssertionTypeIsJwt.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
-		callAndContinueOnFailure(ValidateClientAssertionClaims.class, Condition.ConditionResult.FAILURE, "RFC7523-3");
+		callAndContinueOnFailure(ValidateClientAssertionClaims.class, Condition.ConditionResult.FAILURE, "RFC7523-3", "OIDCC-9");
 
 	}
 }

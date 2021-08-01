@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SetConsentsScopeOnTokenEndpointRequest extends AbstractCondition {
+public class SetPaymentsScopeOnTokenEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_request_form_parameters")
@@ -16,9 +16,9 @@ public class SetConsentsScopeOnTokenEndpointRequest extends AbstractCondition {
 		JsonObject tokenEndpointRequest = env.getObject("token_endpoint_request_form_parameters");
 
 		// overwrite anything that's already there
-		tokenEndpointRequest.addProperty("scope", "consents");
+		tokenEndpointRequest.addProperty("scope", "payments");
 
-		logSuccess("Set scope parameter to 'consents'", tokenEndpointRequest);
+		logSuccess("Set scope parameter to 'payments'", tokenEndpointRequest);
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 

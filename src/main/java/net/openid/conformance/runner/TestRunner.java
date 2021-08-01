@@ -279,6 +279,9 @@ public class TestRunner implements DataUtils {
 
 		if (test == null) {
 			// return an error
+			if (!Strings.isNullOrEmpty(planId)) {
+				return new ResponseEntity<>(stringMap("error", "test module not found. The test module may have been renamed, if so recreating the test plan using the 'Edit Configuration' button may solve this."), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			return new ResponseEntity<>(stringMap("error", "test module not found"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
