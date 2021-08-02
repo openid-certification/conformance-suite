@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.ClientAuthType;
@@ -58,7 +58,7 @@ public class FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInTokenEndpointRe
 		 * - It must be a 'invalid_client' error
 		 */
 		validateErrorFromTokenEndpointResponse();
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "CIBA-13");
 
 		cleanupAfterBackchannelRequestShouldHaveFailed();

@@ -57,7 +57,7 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 				final String logoutEndpointUri = env.getString("client", "backchannel_logout_uri");
 				HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formParameters, null);
 				ResponseEntity<String> response = restTemplate.exchange(logoutEndpointUri, HttpMethod.POST, request, String.class);
-				JsonObject responseInfo = convertResponseForEnvironment(response);
+				JsonObject responseInfo = convertResponseForEnvironment("backchannel logout", response);
 
 				env.putObject("backchannel_logout_endpoint_response", responseInfo);
 

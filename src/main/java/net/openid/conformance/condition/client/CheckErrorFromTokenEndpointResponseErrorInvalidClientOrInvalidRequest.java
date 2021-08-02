@@ -8,30 +8,11 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest extends AbstractCondition {
-
-	private static final List<String> EXPECTED_VALUES = ImmutableList.of("invalid_request", "invalid_client");
+public class CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest extends AbstractCheckErrorFromTokenEndpointResponseError {
 
 	@Override
-	@PreEnvironment(required = "token_endpoint_response")
-	public Environment evaluate(Environment env) {
-
-		if (!env.containsObject("token_endpoint_response")) {
-			throw error("Couldn't find token endpoint response");
-		}
-
-		String error = env.getString("token_endpoint_response", "error");
-
-		if (Strings.isNullOrEmpty(error)) {
-			throw error("Couldn't find error field");
-		}
-
-		if (!EXPECTED_VALUES.contains(error)) {
-			throw error("'error' field has unexpected value", args("expected", EXPECTED_VALUES, "actual", error));
-		}
-
-		logSuccess("Token endpoint returned an expected error", args("expected", EXPECTED_VALUES, "actual", error));
-
-		return env;
+	protected String[] getExpectedError() {
+		return new String[]{"invalid_request", "invalid_client"};
 	}
+
 }

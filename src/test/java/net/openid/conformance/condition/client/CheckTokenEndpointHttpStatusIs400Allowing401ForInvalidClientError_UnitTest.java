@@ -13,7 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_UnitTest {
+public class CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -21,11 +21,11 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_U
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError cond;
+	private CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError();
+		cond = new CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -54,7 +54,7 @@ public class CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError_U
 	}
 
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseInvalidRequestObject() {
 		env.putInteger("token_endpoint_response_http_status", 400);
 		env.putObject("token_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());

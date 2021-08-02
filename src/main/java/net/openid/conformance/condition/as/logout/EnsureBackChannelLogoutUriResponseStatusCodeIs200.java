@@ -14,10 +14,10 @@ public class EnsureBackChannelLogoutUriResponseStatusCodeIs200 extends AbstractC
 		int statusCode = env.getInteger("backchannel_logout_endpoint_response", "status");
 
 		if(statusCode!=200) {
-			throw error("backchannel_logout_uri returned an unexpected response", args("http_status", statusCode));
+			throw error("backchannel_logout_uri returned an unexpected http status", args("http_status", statusCode));
 		}
 
-		logSuccess("backchannel_logout_uri returned a success response", args("http_status", statusCode));
+		logSuccess("backchannel_logout_uri returned the expected http status", args("http_status", statusCode));
 
 		return env;
 
