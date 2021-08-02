@@ -39,8 +39,9 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 
 				JsonElement jsonElement = null;
 
-				if (mtlsEndpointAliasesObj != null)
+				if (mtlsEndpointAliasesObj != null) {
 					jsonElement = mtlsEndpointAliasesObj.get(k);
+				}
 
 				if (jsonElement != null) {
 					env.putString(k, OIDFJSON.getString(jsonElement));

@@ -61,7 +61,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
 				ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
-				JsonObject responseInfo = convertResponseForEnvironment(response);
+				JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
 
 				env.putObject("discovery_endpoint_response", responseInfo);
 

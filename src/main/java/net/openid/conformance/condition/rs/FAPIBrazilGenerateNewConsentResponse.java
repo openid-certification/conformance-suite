@@ -40,6 +40,9 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		dataElement.addProperty("statusUpdateDateTime", creationDateTime);
 		JsonArray permissions = new JsonArray();
 		permissions.add("ACCOUNTS_READ");
+		permissions.add("ACCOUNTS_BALANCES_READ");
+		permissions.add("RESOURCES_READ");
+
 		dataElement.add("permissions", permissions);
 		dataElement.addProperty("expirationDateTime", expirationDateTime);
 

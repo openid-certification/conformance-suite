@@ -1,6 +1,6 @@
 package net.openid.conformance.fapirwid2;
 
-import net.openid.conformance.condition.as.SignIdTokenInvalid;
+import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -28,7 +28,7 @@ public class FAPIRWID2ClientTestInvalidSignature extends AbstractFAPIRWID2Client
 
 	protected void addCustomSignatureOfIdToken(){
 
-		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7-6");
+		callAndStopOnFailure(InvalidateIdTokenSignature.class, "OIDCC-3.1.3.7-6");
 
 	}
 

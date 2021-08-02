@@ -1,8 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
-import net.openid.conformance.condition.as.SignIdTokenInvalid;
+import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-signature",
@@ -28,7 +27,7 @@ public class FAPI1AdvancedFinalClientTestInvalidSignature extends AbstractFAPI1A
 
 	protected void addCustomSignatureOfIdToken(){
 
-		callAndStopOnFailure(SignIdTokenInvalid.class, "OIDCC-3.1.3.7-6");
+		callAndStopOnFailure(InvalidateIdTokenSignature.class, "OIDCC-3.1.3.7-6");
 
 	}
 

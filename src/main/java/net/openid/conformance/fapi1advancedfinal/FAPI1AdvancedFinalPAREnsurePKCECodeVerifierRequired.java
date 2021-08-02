@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEnd
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;

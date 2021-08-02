@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailu
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
@@ -138,7 +138,7 @@ public class FAPIRWID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPIRWID2Ser
 		@Override
 		public void evaluate() {
 			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatusForInvalidRequestOrInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		}
 	}

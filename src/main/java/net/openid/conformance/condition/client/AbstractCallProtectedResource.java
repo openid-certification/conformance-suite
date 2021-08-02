@@ -75,8 +75,8 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 	}
 
 	protected Object getBody(Environment env) {
-
-		return null;
+		String requestEntity = env.getString("resource_request_entity");
+		return requestEntity;
 	}
 
 	protected Environment callProtectedResource(Environment env) {
@@ -93,7 +93,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			}
 
-			if (method == HttpMethod.POST) {
+			if (method == HttpMethod.POST && headers.getContentType() == null) {
 				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
 				headers.setContentType(getMediaType(env));
 			}

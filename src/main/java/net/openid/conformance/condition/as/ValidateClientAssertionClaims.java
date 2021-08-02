@@ -43,20 +43,7 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 			throw error("Issuer mismatch", args("expected", clientId, "actual", env.getString("client_assertion", "claims.iss")));
 		}
 
-		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
-		if (aud == null) {
-			throw error("Missing aud");
-		}
-
-		if (aud.isJsonArray()) {
-			if (!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint))) {
-				throw error("aud not found", args("expected", tokenEndpoint, "actual", aud));
-			}
-		} else {
-			if (!tokenEndpoint.equals(OIDFJSON.getString(aud))) {
-				throw error("aud mismatch", args("expected", tokenEndpoint, "actual", aud));
-			}
-		}
+		validateAud(env);
 
 		JsonElement sub = env.getElementFromObject("client_assertion", "claims.sub");
 		if (sub == null) {
@@ -100,5 +87,23 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 
 		logSuccess("Client Assertion passed all validation checks");
 		return env;
+	}
+
+	protected void validateAud(Environment env) {
+		String tokenEndpoint = env.getString("server", "token_endpoint");
+		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
+		if (aud == null) {
+			throw error("Missing aud");
+		}
+
+		if (aud.isJsonArray()) {
+			if (!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint))) {
+				throw error("aud not found", args("expected", tokenEndpoint, "actual", aud));
+			}
+		} else {
+			if (!tokenEndpoint.equals(OIDFJSON.getString(aud))) {
+				throw error("aud mismatch", args("expected", tokenEndpoint, "actual", aud));
+			}
+		}
 	}
 }
