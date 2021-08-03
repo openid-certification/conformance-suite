@@ -54,7 +54,9 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateConsentWasNotFound.class);
+
+			callAndContinueOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
 		});
 
 	}

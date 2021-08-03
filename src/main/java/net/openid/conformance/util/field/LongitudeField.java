@@ -7,9 +7,9 @@ public class LongitudeField extends DoubleField {
 	private static final String DEFAULT_PATTERN = "^-?\\d{1,3}\\.\\d{1,8}$";
 	private static final int DEFAULT_MAX_LENGTH = 13;
 
-	private LongitudeField(boolean optional, String path, String pattern, int maxLength, int minLength,
+	private LongitudeField(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength,
 						  int maxItems, int minItems, int maxValue, Set<String> enums) {
-		super(optional, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
+		super(optional, nullable, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
 	}
 
 	public static class Builder extends FieldBuilder {
@@ -21,7 +21,7 @@ public class LongitudeField extends DoubleField {
 		}
 
 		public LongitudeField build() {
-			return new LongitudeField(this.optional, this.path, this.pattern, this.maxLength,
+			return new LongitudeField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);
 		}
 	}

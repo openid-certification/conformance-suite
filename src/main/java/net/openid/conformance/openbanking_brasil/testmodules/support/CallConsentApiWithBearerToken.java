@@ -47,6 +47,8 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 	@PostEnvironment(required = { "resource_endpoint_response_headers"}, strings = { "resource_endpoint_response" })
 	public Environment evaluate(Environment env) {
 
+		env.putString("resource_endpoint_response", "{}");
+
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
 			throw error("Access token not found");

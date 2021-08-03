@@ -23,9 +23,9 @@ public class DatetimeField extends Field {
 		this.daysOlderAccepted = daysOlderAccepted;
 	}
 
-	private DatetimeField(boolean optional, String path, String pattern, int maxLength, int minLength,
+	private DatetimeField(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength,
 						  int maxItems, int minItems, int maxValue, Set<String> enums, int daysOlderAccepted) {
-		super(optional, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
+		super(optional, nullable, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
 		this.daysOlderAccepted = daysOlderAccepted;
 	}
 
@@ -46,7 +46,7 @@ public class DatetimeField extends Field {
 		}
 
 		public DatetimeField build() {
-			return new DatetimeField(this.optional, this.path, this.pattern, this.maxLength,
+			return new DatetimeField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums, this.daysOlderAccepted);
 		}
 	}
