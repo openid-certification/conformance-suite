@@ -366,6 +366,8 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.setOptional()
 				.build());
 
-		assertGeographicCoordinates(body);
+		if (body.has("geographicCoordinates")) {
+			assertGeographicCoordinates(body);
+		}
 	}
 }

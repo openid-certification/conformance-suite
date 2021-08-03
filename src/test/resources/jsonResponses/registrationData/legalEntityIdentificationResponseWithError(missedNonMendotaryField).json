@@ -42,11 +42,7 @@
                         "country": "Brasil",
                         "additionalInfo": "Fundos",
                         "ibgeTownCode": "3550308",
-                        "countryCode": "BRA",
-                        "geographicCoordinates": {
-                            "latitude": "-89.8365180",
-                            "longitude": "-179.836519"
-                        }
+                        "countryCode": "BRA"
                     }
                 ],
                 "phones": [

@@ -106,6 +106,11 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.Builder("hasBrazilianNationality")
 				.build());
 
+
+		if (body.has("geographicCoordinates")) {
+			assertGeographicCoordinates(body);
+		}
+
 		assertDocuments(body);
 		assertOtherDocuments(body);
 		assertNationality(body);
