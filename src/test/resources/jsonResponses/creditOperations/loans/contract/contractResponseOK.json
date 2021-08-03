@@ -25,7 +25,7 @@
                 "calculation": "21/252",
                 "referentialRateIndexerType": "PRE_FIXADO",
                 "preFixedRate": 0.6,
-                "postFixedRate": 0.55,
+                "postFixedRate": null,
                 "additionalInfo": "Informações adicionais",
                 "referentialRateIndexerSubType": "TJLP",
                 "referentialRateIndexerAdditionalInfo": "Informações adicionais"

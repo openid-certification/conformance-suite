@@ -254,7 +254,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new DoubleField
 				.Builder("postFixedRate")
 				.setMaxLength(19)
-				.setOptional()
+				.setNullable()
 				.build());
 
 		assertField(body,

@@ -325,6 +325,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new DoubleField
 				.Builder("postFixedRate")
 				.setMaxLength(19)
+				.setNullable()
 				.build());
 
 		assertField(data,

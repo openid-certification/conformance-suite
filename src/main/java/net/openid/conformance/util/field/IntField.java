@@ -4,9 +4,9 @@ import java.util.Set;
 
 public class IntField extends Field {
 
-	private IntField(boolean optional, String path, String pattern, int maxLength, int minLength,
+	private IntField(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength,
 					 int maxItems, int minItems, int maxValue, Set<String> enums) {
-		super(optional, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
+		super(optional, nullable, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
 	}
 
 	public static class Builder extends FieldBuilder {
@@ -16,7 +16,7 @@ public class IntField extends Field {
 		}
 
 		public IntField build() {
-			return new IntField(this.optional, this.path, this.pattern, this.maxLength,
+			return new IntField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);
 		}
 	}

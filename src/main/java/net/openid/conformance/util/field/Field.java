@@ -10,6 +10,7 @@ import java.util.Set;
 public abstract class Field {
 
 	private boolean optional;
+	private boolean nullable;
 	private String path = "";
 	private String pattern = "";
 	private int maxLength;
@@ -26,13 +27,15 @@ public abstract class Field {
 		this.path = path;
 	}
 
-	public Field(boolean optional, String path) {
+	public Field(boolean optional, boolean nullable, String path) {
 		this.optional = optional;
+		this.nullable = nullable;
 		this.path = path;
 	}
 
-	protected Field(boolean optional, String path, String pattern, int maxLength, int minLength, int maxItems, int minItems, int maxValue, Set<String> enums) {
+	protected Field(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength, int maxItems, int minItems, int maxValue, Set<String> enums) {
 		this.optional = optional;
+		this.nullable = nullable;
 		this.path = path;
 		this.pattern = pattern;
 		this.maxLength = maxLength;
@@ -50,6 +53,10 @@ public abstract class Field {
 	public void setOptional(boolean optional) {
 		this.optional = optional;
 	}
+
+	public boolean isNullable() { return nullable; }
+
+	public void setNullable(boolean nullable) { this.nullable = nullable; }
 
 	public String getPath() {
 		return path;
@@ -117,6 +124,7 @@ public abstract class Field {
 
 	public abstract static class FieldBuilder {
 		protected boolean optional;
+		protected boolean nullable;
 		protected String path = "";
 		protected String pattern = "";
 		protected int maxLength;
@@ -132,6 +140,11 @@ public abstract class Field {
 
 		public FieldBuilder setOptional() {
 			this.optional = true;
+			return this;
+		}
+
+		public FieldBuilder setNullable() {
+			this.nullable = true;
 			return this;
 		}
 

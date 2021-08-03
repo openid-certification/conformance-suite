@@ -104,6 +104,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(body,
 			new BooleanField
 				.Builder("hasBrazilianNationality")
+				.setNullable()
 				.build());
 
 		assertDocuments(body);
