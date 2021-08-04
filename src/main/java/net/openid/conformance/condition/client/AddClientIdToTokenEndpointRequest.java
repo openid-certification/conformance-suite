@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.AbstractCondition;
@@ -14,17 +15,16 @@ public class AddClientIdToTokenEndpointRequest extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("token_endpoint_request_form_parameters")) {
-			throw error("Couldn't find request form");
-		}
-
 		JsonObject o = env.getObject("token_endpoint_request_form_parameters");
 
-		o.addProperty("client_id", env.getString("client", "client_id"));
+		String clientId = env.getString("client", "client_id");
+		if (Strings.isNullOrEmpty(clientId)) {
+			throw error("client_id is null or empty");
+		}
 
-		env.putObject("token_endpoint_request_form_parameters", o);
+		o.addProperty("client_id", clientId);
 
-		logSuccess(o);
+		log(o);
 
 		return env;
 
