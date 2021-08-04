@@ -1,10 +1,10 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support;
+package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareUrlForFetchingCreditAdvanceContractGuarantees  extends AbstractCondition {
+public class PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = {"contractId", "base_resource_url"})
