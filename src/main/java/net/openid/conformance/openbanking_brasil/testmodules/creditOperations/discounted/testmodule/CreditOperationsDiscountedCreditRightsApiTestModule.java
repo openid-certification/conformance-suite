@@ -20,6 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
+		"client.client_id",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
