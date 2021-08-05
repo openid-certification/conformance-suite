@@ -20,13 +20,14 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.KeyManager;
@@ -42,6 +43,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -57,6 +59,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -549,6 +552,20 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
+
+		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
+
+		// fix the StringHttpMessageConverter, but retaining other default converters, as we do use them,
+		// e.g. the map -> urlencoded-form body one
+		converters.stream()
+			.filter(converter -> converter instanceof StringHttpMessageConverter)
+			.forEach(converter -> {
+				StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
+				// the default StringHttpMessageConverter will convert to Latin1, so override it
+				stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+				// Stop StringHttpMessageConverter from adding a default Accept-Charset header
+				stringHttpMessageConverter.setWriteAcceptCharset(false);
+			});
 
 		return restTemplate;
 	}

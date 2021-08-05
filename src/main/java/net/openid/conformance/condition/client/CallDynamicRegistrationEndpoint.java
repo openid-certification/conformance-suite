@@ -15,7 +15,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -67,11 +66,6 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 			HttpEntity<?> request = new HttpEntity<>(requestObj.toString(), headers);
 
 			String jsonString = null;
-
-			// the default converter will convert to Latin1, so override it
-			StringHttpMessageConverter converter = new StringHttpMessageConverter(StandardCharsets.UTF_8);
-			converter.setWriteAcceptCharset(false);
-			restTemplate.setMessageConverters(Collections.singletonList(converter));
 
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(registrationEndpoint, HttpMethod.POST, request, String.class);
