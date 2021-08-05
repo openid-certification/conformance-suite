@@ -1051,10 +1051,6 @@ if __name__ == '__main__':
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['HEART']:
-            untested_test_modules.remove(m)
-            continue
-
         if re.match(r'(oidcc-session-management-.*)', m):
             # The browser automation currently doesn't seem to work for the iframes/js these tests use
             untested_test_modules.remove(m)
