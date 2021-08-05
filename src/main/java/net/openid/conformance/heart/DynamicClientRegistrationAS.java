@@ -33,6 +33,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.SetTLSTestHostFromConfig;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -108,11 +109,7 @@ public class DynamicClientRegistrationAS extends AbstractTestModule {
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(SetDynamicRegistrationRequestGrantTypeToImplicit.class);
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
 		// IF management interface, delete the client to clean up
 		skipIfMissing(null,

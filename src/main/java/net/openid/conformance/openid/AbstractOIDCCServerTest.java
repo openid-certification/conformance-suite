@@ -13,7 +13,6 @@ import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthentic
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
@@ -34,9 +33,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientAuthNone;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
@@ -46,7 +43,6 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizati
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
@@ -90,6 +86,7 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
@@ -471,11 +468,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		createDynamicClientRegistrationRequest();
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 	}
 
 	protected void completeClientConfiguration() {
