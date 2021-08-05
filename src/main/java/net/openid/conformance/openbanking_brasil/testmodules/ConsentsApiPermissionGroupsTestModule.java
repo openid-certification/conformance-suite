@@ -1,6 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import java.lang.reflect.Array; 
+import java.lang.reflect.Array;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "consent-api-test-permission-groups",
@@ -27,8 +28,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
+	private boolean passed = false;
+
 	@Override
 	protected void runTests() {
+		passed = false;
 
 		String[] personalRegistrationData = new String[] {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ","RESOURCES_READ"};
 		String[] personalAdditionalInfo = new String[] {"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "RESOURCES_READ"};
@@ -45,7 +49,7 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 
 		validatePermissions(personalRegistrationData, "Personal Registration Data");
 		validatePermissions(personalAdditionalInfo, "Personal Additional Information");
-		validatePermissions(businessRegistrationData, "Business Registration Data"); 
+		validatePermissions(businessRegistrationData, "Business Registration Data");
 		validatePermissions(businessAdditionalInfo, "Business Additional Information");
 		validatePermissions(balances, "Balances");
 		validatePermissions(limits, "Limits");
@@ -55,6 +59,11 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 		validatePermissions(creditCardInvoices, "Credit Card Invoices");
 		validatePermissions(creditOperationsContractData, "Credit Operations");
 		validatePermissions(combo, "Balances & Credit Card Limits");
+
+		//If all validates returned a 422
+		if (!passed) {
+			throw new TestFailureException(getId(), "All resources returned a 422 when at least one set of permissions should have passed");
+		}
 	}
 
 
@@ -67,7 +76,13 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(ValidateRequestedPermissionsAreNotWidened.class, Condition.ConditionResult.FAILURE);
+
+			if (env.getString("resource_endpoint_response").equals("{}")) {
+				passed = true;
+				callAndStopOnFailure(ValidateRequestedPermissionsAreNotWidened.class, Condition.ConditionResult.FAILURE);
+			} else {
+				callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
+			}
 
 		});
 	}
