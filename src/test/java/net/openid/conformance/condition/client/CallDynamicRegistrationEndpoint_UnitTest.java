@@ -33,7 +33,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private static JsonObject requestParameters = new JsonParser().parse("{"
-		+ "\"client_name\":\"UNIT-TEST client\","
+		+ "\"client_name\":\"UNIT-TEST client São Paulo\","
 		+ "\"grant_types\":[\"authorization_code\"],"
 		+ "\"redirect_uris\":[\"https://redirecturi.com/\"]"
 		+ "}").getAsJsonObject();
