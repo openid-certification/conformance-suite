@@ -77,7 +77,7 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
-			if (env.getString("resource_endpoint_response").equals("{}")) {
+			if (!env.getString("resource_endpoint_response").equals("{}")) {
 				passed = true;
 				callAndStopOnFailure(ValidateRequestedPermissionsAreNotWidened.class, Condition.ConditionResult.FAILURE);
 			} else {
