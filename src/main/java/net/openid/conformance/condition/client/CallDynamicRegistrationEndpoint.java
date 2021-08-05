@@ -65,35 +65,16 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 			HttpEntity<?> request = new HttpEntity<>(requestObj.toString(), headers);
 
-			String jsonString = null;
-
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(registrationEndpoint, HttpMethod.POST, request, String.class);
-				JsonObject responseInfo = convertResponseForEnvironment("dynamic registration", response);
 
-				jsonString = response.getBody();
-				if (Strings.isNullOrEmpty(jsonString)) {
-					throw error("Empty response from the registration endpoint");
-				}
+				JsonObject responseInfo = convertJsonResponseForEnvironment("dynamic registration", response);
 
-				log("Registration endpoint response", args("dynamic_registration_response", jsonString));
+				env.putObject("dynamic_registration_endpoint_response", responseInfo);
 
-				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Registration Endpoint did not return a JSON object");
-					}
+				log("Parsed registration endpoint response", responseInfo);
 
-					JsonObject client = jsonRoot.getAsJsonObject();
-
-					responseInfo.add("body_json", client);
-					log("Parsed registration endpoint response", responseInfo);
-
-					env.putObject("dynamic_registration_endpoint_response", responseInfo);
-					return env;
-				} catch (JsonParseException e) {
-					throw error("Response from dynamic registration endpoint does not appear to be a JSON object", e);
-				}
+				return env;
 
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling registration endpoint",

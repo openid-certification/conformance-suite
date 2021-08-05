@@ -4,7 +4,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -637,6 +639,33 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		responseInfo.add("headers", responseHeaders);
 
 		responseInfo.addProperty("body", response.getBody());
+		return responseInfo;
+	}
+
+	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
+		JsonObject responseInfo = convertResponseForEnvironment(endpointName, response);
+
+		String jsonString = response.getBody();
+		if (Strings.isNullOrEmpty(jsonString)) {
+			throw error("Empty response from the "+endpointName+" endpoint");
+		}
+
+		try {
+			JsonElement jsonRoot = new JsonParser().parse(jsonString);
+			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				throw error(endpointName + " endpoint did not return a JSON object.",
+					args("response", jsonString));
+			}
+
+			JsonObject bodyJson = jsonRoot.getAsJsonObject();
+
+			responseInfo.add("body_json", bodyJson);
+
+		} catch (JsonParseException e) {
+			throw error("Response from "+endpointName+" endpoint does not appear to be JSON.", e,
+				args("response", jsonString));
+		}
+
 		return responseInfo;
 	}
 }
