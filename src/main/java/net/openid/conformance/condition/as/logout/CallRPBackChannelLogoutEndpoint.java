@@ -29,8 +29,6 @@ import java.util.List;
 
 public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallRPBackChannelLogoutEndpoint.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "client" })
 	@PostEnvironment(required = "backchannel_logout_endpoint_response")
@@ -69,7 +67,6 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 				return handleResponseException(env, e);
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 		return env;

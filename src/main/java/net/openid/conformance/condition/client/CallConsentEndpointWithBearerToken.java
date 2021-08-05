@@ -34,8 +34,6 @@ import java.util.Collections;
 
 public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallConsentEndpointWithBearerToken.class);
-
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response" })
@@ -104,7 +102,6 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 		} catch (RestClientResponseException e) {
 			throw error("Error from the consent endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {
 			String msg = "Call to consent endpoint " + resourceEndpoint + " failed";

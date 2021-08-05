@@ -27,8 +27,6 @@ import java.util.Collections;
 
 public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(EnsureDynamicRegistrationEndpointRequiresRedirectUri.class);
-
 	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
 	public Environment evaluate(Environment env) {
@@ -77,7 +75,6 @@ public class EnsureDynamicRegistrationEndpointRequiresRedirectUri extends Abstra
 
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 	}

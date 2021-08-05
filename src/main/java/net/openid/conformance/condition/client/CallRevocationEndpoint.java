@@ -27,8 +27,6 @@ import java.util.Collections;
 
 public class CallRevocationEndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallRevocationEndpoint.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "revocation_endpoint_request_form_parameters" })
 	public Environment evaluate(Environment env) {
@@ -75,7 +73,6 @@ public class CallRevocationEndpoint extends AbstractCondition {
 			logSuccess("Called Revocation Endpoint", args("response", jsonString));
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-				logger.warn("Error creating HTTP Client", e);
 				throw error("Error creating HTTP Client", e);
 		}
 	}

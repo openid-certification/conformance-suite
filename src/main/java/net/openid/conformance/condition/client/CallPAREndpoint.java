@@ -38,8 +38,6 @@ public class CallPAREndpoint extends AbstractCondition {
 
 	public static final String HTTP_METHOD_KEY = "par_endpoint_http_method";
 
-	private static final Logger logger = LoggerFactory.getLogger(CallPAREndpoint.class);
-
 	@Override
 	@PreEnvironment(required = {"server", "pushed_authorization_request_form_parameters"})
 	@PostEnvironment(required = {"pushed_authorization_endpoint_response", "pushed_authorization_endpoint_response_headers"})
@@ -130,7 +128,6 @@ public class CallPAREndpoint extends AbstractCondition {
 				throw error(e);
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 	}

@@ -37,8 +37,6 @@ import java.util.Collections;
 
 public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpointAndReturnFullResponse.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "token_endpoint_response")
@@ -122,7 +120,6 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 
