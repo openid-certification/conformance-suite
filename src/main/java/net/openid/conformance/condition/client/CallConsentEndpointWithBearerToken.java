@@ -16,7 +16,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -72,12 +71,6 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			headers.set("Authorization", "Bearer " + accessToken);
-
-
-			// Stop RestTemplate from overwriting the Accept-Charset header
-			StringHttpMessageConverter converter = new StringHttpMessageConverter();
-			converter.setWriteAcceptCharset(false);
-			restTemplate.setMessageConverters(Collections.singletonList(converter));
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
