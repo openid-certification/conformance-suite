@@ -38,8 +38,6 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937820271/Account+and+Transaction+API+Specification+-+v3.1
 	private static final String ACCOUNT_REQUESTS_RESOURCE_V3 = "account-access-consents";
 
-	private static final Logger logger = LoggerFactory.getLogger(CallAccountRequestsEndpointWithBearerToken.class);
-
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "account_requests_endpoint_response" })
@@ -134,7 +132,6 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 		} catch (RestClientResponseException e) {
 			throw error("Error from the account requests endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {
 			String msg = "Call to account requests endpoint " + resourceEndpoint + " failed";

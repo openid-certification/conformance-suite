@@ -56,7 +56,6 @@ public class LogEntryHelper {
 		specLinks.put("RFC7523-", "https://tools.ietf.org/html/rfc7523#section-");
 		specLinks.put("RFC7591-", "https://tools.ietf.org/html/rfc7591#section-");
 		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
-		specLinks.put("HEART-OAuth2-", "http://openid.net/specs/openid-heart-oauth2-1_0-2017-05-31.html#rfc.section.");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");

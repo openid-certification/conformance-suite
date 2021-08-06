@@ -35,8 +35,6 @@ import java.util.Collections;
 
 public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "backchannel_authentication_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "backchannel_authentication_endpoint_response")
@@ -119,7 +117,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 

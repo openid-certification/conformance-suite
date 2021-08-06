@@ -75,7 +75,7 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 		JsonObject claims = new JsonObject();
 		JsonObject response = new JsonObject();
 		response.add("claims", claims);
-		env.putObject("heart_response",response);
+		env.putObject("jarm_response",response);
 		cond.execute(env);
 	}
 }
