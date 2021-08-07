@@ -7,8 +7,6 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,8 +29,6 @@ import static java.util.stream.Collectors.*;
 
 @Component
 public class VariantService {
-	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
-
 	private static final String SEARCH_PACKAGE = "net.openid";
 
 	private final Map<Class<?>, ParameterHolder<? extends Enum<?>>> variantParametersByClass;
@@ -359,9 +355,6 @@ public class VariantService {
 			if (list != null) {
 				// module list is defined by the result of the testModulesWithVariants() method
 				this.modulesWithVariant = convertModuleListEntry(planClass.getSimpleName(), list);
-
-				logger.info(list.toString());
-
 			} else {
 				// module list comes from annotation
 				this.modulesWithVariant = Arrays.stream(info.testModules())
