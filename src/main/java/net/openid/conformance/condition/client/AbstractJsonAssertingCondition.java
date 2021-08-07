@@ -1,9 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.*;
-import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.ConditionError;
@@ -16,13 +14,9 @@ import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import springfox.documentation.spring.web.json.Json;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -113,7 +107,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof DoubleField) {
 			assertHasDoubleField(jsonObject, field.getPath());
-			String value = getJsonValueAsString(jsonObject, field.getPath());
+			String value = getDoubleValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof StringArrayField) {
 			assertHasStringArrayField(jsonObject, field.getPath());
@@ -297,6 +291,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	protected JsonElement findDoubleByPath(JsonObject jsonObject, String path) {
+			logQuerying(path);
+			if (jsonObject.has(path)) {
+				JsonElement element = jsonObject.get(path);
+				logElementFound(path);
+				return element;
+			} else {
+				throw error(createElementNotFoundMessage(path), jsonObject);
+			}
+	}
+
 	private void logElementFound(String elementName) {
 		logSuccess(createElementFoundMessage(elementName));
 	}
@@ -438,6 +443,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			} catch (UnexpectedJsonTypeException ex) {
 				throw error(String.format("Path %s was not a string or number", path), jsonObject);
 			}
+		}
+		return stringValue;
+	}
+
+	private String getDoubleValueAsString(JsonObject jsonObject, String path) {
+		JsonElement actual = findDoubleByPath(jsonObject, path);
+		String stringValue = "";
+			try {
+				stringValue = String.valueOf(getNumber(actual));
+			} catch (UnexpectedJsonTypeException ex) {
+				throw error(String.format("Path %s was not a number", path), jsonObject);
 		}
 		return stringValue;
 	}
