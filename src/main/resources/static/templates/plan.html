@@ -42,6 +42,13 @@
                     </div>
                     <% } %>
 
+                    <% if (plan.certificationProfileName) { %>
+                    <div class="row">
+                        <div class="col-md-1">Certification profile:</div>
+                        <div class="col-md-11"><%- plan.certificationProfileName %></div>
+                    </div>
+                    <% } %>
+
                     <% if (plan.summary) { %>
                     <div class="row">
                         <div class="col-md-12">

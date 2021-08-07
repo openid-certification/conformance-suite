@@ -2,6 +2,10 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-test-plan",
@@ -96,4 +100,74 @@ import net.openid.conformance.plan.TestPlan;
 )
 public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 
+	public static String certificationProfileName(VariantSelection variant) {
+
+		String certProfile = null;
+
+		Map<String, String> v = variant.getVariant();
+		String profile = v.get("fapi_profile");
+		String clientAuth = v.get("client_auth_type");
+		String requestMethod = v.get("fapi_auth_request_method");
+		String responseMode = v.get("fapi_response_mode");
+		boolean par = requestMethod.equals("pushed");
+		boolean jarm = responseMode.equals("jarm");
+		boolean privateKey = clientAuth.equals("private_key_jwt");
+
+		switch (profile) {
+			case "plain_fapi":
+				certProfile = "FAPI";
+				break;
+			case "openbanking_uk":
+				certProfile = "UK-OB";
+				if (par || jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "consumerdataright_au":
+				certProfile = "AU-CDR";
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "openbanking_brazil":
+				certProfile = "BR-OB";
+				break;
+		}
+
+		certProfile += " Adv. OP w/";
+
+		switch (clientAuth) {
+			case "private_key_jwt":
+				certProfile += " Private Key";
+				break;
+			case "mtls":
+				certProfile += " MTLS";
+				break;
+		}
+		switch (requestMethod) {
+			case "by_value":
+				// nothing
+				break;
+			case "pushed":
+				certProfile += ", PAR";
+				break;
+		}
+		switch (responseMode) {
+			case "plain_response":
+				// nothing
+				break;
+			case "jarm":
+				certProfile += ", JARM";
+				break;
+		}
+
+
+		return certProfile;
+	}
 }

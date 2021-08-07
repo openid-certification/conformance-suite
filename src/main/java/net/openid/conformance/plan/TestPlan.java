@@ -52,6 +52,10 @@ public interface TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants()
 
+    To define a certification profile name (used in the certification submission) implement:
+
+	public static String certificationProfileName(VariantSelection variant) {
+
 	*/
 
 }

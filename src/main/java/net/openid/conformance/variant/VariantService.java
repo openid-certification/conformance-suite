@@ -406,6 +406,31 @@ public class VariantService {
 			return new ArrayList<>(fields);
 		}
 
+		public String certificationProfileForVariant(VariantSelection variantSelection) {
+			String certProfile = null;
+
+			try {
+				// Test plans can implement a static method to list modules with variants to run them with; as
+				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
+				// we have to call this via reflection:
+				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
+				Object result = m.invoke(null, variantSelection);
+				certProfile = (String) result;
+			} catch (NoSuchMethodException e) {
+				// class doesn't implement this so doesn't have any certification profiles
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
+			} catch (InvocationTargetException e) {
+				Throwable target = e.getTargetException();
+				if (target instanceof RuntimeException) {
+					throw (RuntimeException) target;
+				}
+				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
+			}
+
+			return certProfile;
+		}
+
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
 			List<Plan.Module> testModules = new ArrayList<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
