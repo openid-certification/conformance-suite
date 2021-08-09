@@ -79,6 +79,9 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
+				.setNullable()
+				.setMaxLength(20)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(informedIncome,
