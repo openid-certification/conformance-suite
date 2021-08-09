@@ -50,6 +50,14 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 				.setMaxLength(24)
 				.build());
 
+		assertField(body,
+			new StringField
+				.Builder("productsServicesTypeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(100)
+				.setOptional()
+				.build());
+
 		assertProcurators(body);
 		assertAccounts(body);
 	}

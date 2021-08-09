@@ -43,6 +43,7 @@ public class ResourcesResponseValidator extends AbstractJsonAssertingCondition {
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.setMaxLength(100)
 				.setMinLength(1)
+				.setOptional()
 				.build());
 
 		assertField(body,
