@@ -79,6 +79,9 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
+				.setNullable()
+				.setMaxLength(20)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(informedIncome,
@@ -103,6 +106,9 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 			new DoubleField
 				.Builder("amount")
 				.setMinLength(0)
+				.setMaxLength(20)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setNullable()
 				.build());
 
 		assertField(informedPatrimony,
@@ -116,6 +122,8 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 			new IntField
 				.Builder("year")
 				.setMaxLength(4)
+				.setNullable()
+				.setMaxValue(9999)
 				.build());
 	}
 }

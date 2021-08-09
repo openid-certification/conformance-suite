@@ -49,4 +49,11 @@ public class LegalEntityQualificationResponseValidatorTest extends AbstractJsonR
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("year")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/registrationData/legalEntityQualification/legalEntityQualificationResponseBigDouble.json")
+	public void validateStructureWithBigDouble() {
+		LegalEntityQualificationResponseValidator condition = new LegalEntityQualificationResponseValidator();
+		run(condition);
+	}
 }

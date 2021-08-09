@@ -107,6 +107,11 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.setNullable()
 				.build());
 
+
+		if (body.has("geographicCoordinates")) {
+			assertGeographicCoordinates(body);
+		}
+
 		assertDocuments(body);
 		assertOtherDocuments(body);
 		assertNationality(body);
