@@ -79,6 +79,10 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new DoubleField
 				.Builder("amount")
+				.setNullable()
+				.setMinLength(0)
+				.setMaxLength(20)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(data,
