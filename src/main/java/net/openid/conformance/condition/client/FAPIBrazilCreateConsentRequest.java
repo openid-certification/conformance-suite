@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -11,6 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
@@ -34,10 +36,8 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 				throw error("scope missing from client configuration");
 			}
 			List<String> scopes = Arrays.asList(scope.split(" "));
-			// This is believed to be the most minimal set of permissions that will allow a successful
-			// operation at the accounts endpoint. The Brazil user experience guidelines do not allow
-			// only ACCOUNTS_READ to be required.
-			permissions = new String[]{"ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "RESOURCES_READ"};
+
+			permissions = new String[]{"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_ADITTIONALINFO_READ", "ACCOUNTS_BALANCES_READ", "ACCOUNTS_OVERDRAFT_LIMITS_READ", "ACCOUNTS_READ", "ACCOUNTS_TRANSACTIONS_READ", "CREDIT_CARDS_ACCOUNTS_LIMITS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ", "CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ", "LOANS_READ", "LOANS_WARRANTIES_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "FINANCINGS_READ", "FINANCINGS_WARRANTIES_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "RESOURCES_READ"};
 		} else {
 			permissions = consentPermissions.split("\\W");
 		}
