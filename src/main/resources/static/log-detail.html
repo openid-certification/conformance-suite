@@ -623,9 +623,16 @@
                     }
 
                     // display the exported data
-                    $('#runningTestExport').html(FAPI_UI.logTemplates.EXPORTED({
-                        exported: data.exposed
-                    }));
+                    if(data.exposed) {
+                        var newExposedDataJson = JSON.stringify(data.exposed);
+                        var currentExposedDataJson = jQuery.data(document.body, 'currentExposedDataJson');
+                        if(currentExposedDataJson != newExposedDataJson) {
+                            jQuery.data(document.body, 'currentExposedDataJson', newExposedDataJson);
+                            $('#runningTestExport').html(FAPI_UI.logTemplates.EXPORTED({
+                                exported: data.exposed
+                            }));
+                        }
+                    }
 
                     // display the browser control data
                     if (data.browser) {
