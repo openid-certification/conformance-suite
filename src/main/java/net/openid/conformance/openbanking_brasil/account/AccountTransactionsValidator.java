@@ -65,7 +65,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("transactionName")
 				.setMaxLength(60)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
