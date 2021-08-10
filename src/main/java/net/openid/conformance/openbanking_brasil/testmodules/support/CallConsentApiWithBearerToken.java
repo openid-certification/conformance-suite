@@ -48,6 +48,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		env.putString("resource_endpoint_response", "{}");
+		env.removeObject("errored_response");
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
@@ -80,6 +81,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 		JsonObject requestObject = env.getObject("consent_endpoint_request");
 
 		Boolean expectBody = Optional.ofNullable(env.getBoolean("expect_response_body")).orElse(true);
+		Boolean optionalBody = Optional.ofNullable(env.getBoolean("optional_response_body")).orElse(true);
 		Boolean ignoreResponseErrors = Optional.ofNullable(env.getBoolean("ignore_response_errors")).orElse(false);
 
 
@@ -119,7 +121,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				}
 			}
 
-			if (Strings.isNullOrEmpty(jsonString)) {
+			if (Strings.isNullOrEmpty(jsonString) && !optionalBody) {
 				throw error("Empty/missing response from the consent endpoint");
 			} else {
 				log("Consent endpoint response", args("resource_endpoint_response", jsonString));
