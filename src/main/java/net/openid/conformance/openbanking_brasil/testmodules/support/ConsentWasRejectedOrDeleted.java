@@ -14,7 +14,7 @@ public class ConsentWasRejectedOrDeleted extends AbstractJsonAssertingCondition 
 			String consentId = env.getString("consent_id");
 			int statusCode = OIDFJSON.getInt(response.get("status_code"));
 			if(statusCode != 404) {
-				error("Was expecting a 404 response but it was actually " + statusCode);
+				throw error("Was expecting a 404 response but it was actually " + statusCode);
 			}
 			log("The consent was not found, as expected.", args("consentId", consentId));
 			return env;
