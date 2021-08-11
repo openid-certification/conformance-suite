@@ -74,7 +74,12 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.setMaxLength(14)
 				.build());
 
-		assertOptionalJsonArrays(body, "otherDocuments", this::assertOtherDocuments);
+
+		if (body.has("otherDocuments")) {
+			assertOptionalJsonArrays(body, "otherDocuments", this::assertOtherDocuments);
+		} else {
+			log("Optional field otherDocuments not present");
+		}
 
 		assertHasField(body, "parties");
 		assertJsonArrays(body, "parties", this::assertParties);
