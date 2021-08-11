@@ -80,8 +80,6 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
 
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
-
 		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
 
 		call(exec().endBlock());
