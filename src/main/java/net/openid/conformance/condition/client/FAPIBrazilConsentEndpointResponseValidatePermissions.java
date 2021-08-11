@@ -36,8 +36,19 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions extends Abstra
 		if (!grantedPermissionsEl.isJsonArray()) {
 			throw error(path+" in the consent response is not a JSON array", args("permissions", grantedPermissionsEl));
 		}
+		JsonArray grantedPermissions = (JsonArray) grantedPermissionsEl;
 
 		JsonArray requestedPermissions = (JsonArray) env.getElementFromObject("brazil_consent", "requested_permissions");
+
+		if (requestedPermissions.size() < grantedPermissions.size()) {
+			throw error("A greater number of permissions returned then requested", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
+		}
+
+		for (JsonElement element : grantedPermissions) {
+			if (!requestedPermissions.contains(element)) {
+				throw error("Unrequested permission returned", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
+			}
+		}
 
 		logSuccess("Consent endpoint response contains expected permissions", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
 
