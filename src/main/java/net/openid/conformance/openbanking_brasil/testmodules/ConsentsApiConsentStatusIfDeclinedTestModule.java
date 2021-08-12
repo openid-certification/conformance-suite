@@ -33,7 +33,7 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
 			preCallProtectedResource("Fetch consent");
 
-			callAndContinueOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
 		});
 	}
