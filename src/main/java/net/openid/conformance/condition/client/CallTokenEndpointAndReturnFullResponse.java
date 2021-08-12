@@ -95,7 +95,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling token endpoint",
-					e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleResponseException(env, e);
 			}
