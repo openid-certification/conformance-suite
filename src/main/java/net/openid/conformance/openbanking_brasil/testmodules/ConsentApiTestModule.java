@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "consent-api-test",
-	displayName = "Validate structure of all consent API resources",
+	displayName = "Validate the structure of all consent API resources",
 	summary = "Validates the structure of all consent API resources",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
