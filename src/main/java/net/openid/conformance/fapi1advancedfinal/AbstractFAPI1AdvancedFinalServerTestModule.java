@@ -70,6 +70,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected boolean jarm = false;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected boolean isPar = false;
+	protected boolean payments = false; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -659,12 +660,33 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			String scope = env.getString("client", "scope");
-			if(scope != null && scope.contains("payments")) {
+			if (payments) {
+				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
-				callAndContinueOnFailure(SetPlainJsonContentTypeHeaderForResourceEndpointRequest.class);
-				callAndContinueOnFailure(SetResourceMethodToPost.class);
-				callAndContinueOnFailure(AddPaymentRequestEntity.class);
+				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetResourceMethodToPost.class);
+				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
+
+				// we reuse the request object conditions to add various jwt claims; it would perhaps make sense to make
+				// these more generic.
+				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+
+				// aud (in the JWT request): the Resource Provider (eg the institution holding the account) must validate if the value of the aud field matches the endpoint being triggered;
+				callAndStopOnFailure(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
+
+				//iss (in the JWT request and in the JWT response): the receiver of the message shall validate if the value of the iss field matches the organisationId of the sender;
+				callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
+
+				//jti (in the JWT request and in the JWT response): the value of the jti field shall be filled with the UUID defined by the institution according to [RFC4122] version 4;
+				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+
+				//iat (in the JWT request and in the JWT response): the iat field shall be filled with the message generation time and according to the standard established in [RFC7519](https:// datatracker.ietf.org/doc/html/rfc7519#section-2) to the NumericDate format.
+				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+				call(exec().unmapKey("request_object_claims"));
+
+				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 			}
 		}
 
@@ -678,7 +700,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
-		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+		if (payments) {
+			callAndContinueOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		} else {
+			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+		}
 
 		eventLog.endBlock();
 	}
@@ -759,7 +786,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	protected ConditionSequence createOBBPreauthSteps() {
 		String scope = env.getString("client", "scope");
-		boolean payments = scope != null && scope.contains("payments");
+		payments = scope != null && scope.contains("payments");
 		if (payments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
