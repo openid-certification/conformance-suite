@@ -30,6 +30,10 @@
                       <% if (item.img) { %>
                         <span class="label result-review"><span class="glyphicon glyphicon-camera"></span> IMAGE</span>
                       <% } %>
+
+                        <% if (!item.result && !item.http && !item.upload && !item.img) { %>
+                        &nbsp;
+                        <% } %>
                     </div>
 
                     <div class="col-md-9">
@@ -57,6 +61,8 @@
                     <div class="col-md-1">
                         <% if (item.requirements) { %>
                             <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                        <% } else { %>
+                            &nbsp;
                         <% } %>
                     </div>
 

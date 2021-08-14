@@ -263,6 +263,8 @@
 
                                 // prettyprint any raw JSON values
                                 PR.prettyPrint();
+                            } else {
+                                $('.moreButtonContainer', el).append("&nbsp;");
                             }
 
                             // write down the "last" log entry we've seen so far so we don't have to re-fetch it at all; if it does happen we can ignore it
