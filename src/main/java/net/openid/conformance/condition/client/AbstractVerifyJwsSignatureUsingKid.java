@@ -18,6 +18,10 @@ public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJ
 
 	@Override
 	protected void verifyJwsSignature(String token, JsonObject publicJwks, String tokenName) {
+		verifyJwsSignature(token, publicJwks, tokenName, false);
+	}
+
+	protected void verifyJwsSignature(String token, JsonObject publicJwks, String tokenName, boolean kidRequired) {
 		try {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(token);
@@ -69,6 +73,9 @@ public abstract class AbstractVerifyJwsSignatureUsingKid extends AbstractVerifyJ
 				}
 			} else {
 				// if a kid isn't given
+				if (kidRequired) {
+					throw error("kid value in JWT header is missing/null/empty");
+				}
 				boolean validSignature = false;
 				for (JWK jwkKey : jwkSet.getKeys()) {
 

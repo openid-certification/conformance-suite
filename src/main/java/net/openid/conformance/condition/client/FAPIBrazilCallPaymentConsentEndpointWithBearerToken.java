@@ -31,7 +31,7 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "consent_endpoint_request_signed")
-	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response" })
+	@PostEnvironment(required = { "resource_endpoint_response_headers" }, strings = { "consent_endpoint_response_jwt" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -68,30 +68,19 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.POST, request, String.class);
 
-			String jsonString = response.getBody();
+			String responseBody = response.getBody();
 
-			if (Strings.isNullOrEmpty(jsonString)) {
+			if (Strings.isNullOrEmpty(responseBody)) {
 				throw error("Empty/missing response from the consent endpoint");
 			} else {
-				log("Consent endpoint response", args("consent_endpoint_response", jsonString));
+				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 
-				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Consent endpoint did not return a JSON object");
-					}
+				env.putString("consent_endpoint_response_jwt", responseBody);
+				env.putObject("resource_endpoint_response_headers", responseHeaders);
 
-					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
+				logSuccess("Consent endpoint response", args("body", responseBody, "headers", responseHeaders));
 
-					env.putObject("consent_endpoint_response", jsonRoot.getAsJsonObject());
-					env.putObject("resource_endpoint_response_headers", responseHeaders);
-
-					logSuccess("Parsed consent endpoint response", args("body", jsonString, "headers", responseHeaders));
-
-					return env;
-				} catch (JsonParseException e) {
-					throw error(e);
-				}
+				return env;
 			}
 		} catch (RestClientResponseException e) {
 			throw error("Error from the consent endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));

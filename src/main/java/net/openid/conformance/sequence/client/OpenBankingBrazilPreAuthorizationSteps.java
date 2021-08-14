@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClie
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import net.openid.conformance.condition.client.ExtractSignedJwtFromPaymentConsentResponse;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
@@ -29,6 +30,8 @@ import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentReque
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidatePaymentConsentResponseJwtClaims;
+import net.openid.conformance.condition.client.ValidatePaymentConsentSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -88,6 +91,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
 		if (payments) {
+			// as per https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/master/documentation/source/swagger/swagger_payments_apis.yaml
 			callAndStopOnFailure(CreateIdempotencyKey.class);
 			callAndStopOnFailure(AddIdempotencyKeyHeader.class);
 
@@ -117,6 +121,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
 
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
+
+			callAndStopOnFailure(ExtractSignedJwtFromPaymentConsentResponse.class, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(ValidatePaymentConsentSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(ValidatePaymentConsentResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		} else {
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 
