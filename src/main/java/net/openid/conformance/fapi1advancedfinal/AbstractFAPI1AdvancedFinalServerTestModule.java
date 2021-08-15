@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -30,6 +31,7 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -39,6 +41,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -785,9 +789,17 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileIdTokenValidationSteps = null;
 	}
 
-	protected ConditionSequence createOBBPreauthSteps() {
+	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("client", "scope");
-		payments = scope != null && scope.contains("payments");
+		if (Strings.isNullOrEmpty(scope)) {
+			throw new TestFailureException(getId(), "'scope' seems to be missing from client configuration");
+		}
+		List<String> scopes = Arrays.asList(scope.split(" "));
+		return scopes.contains(requiredScope);
+	}
+
+	protected ConditionSequence createOBBPreauthSteps() {
+		payments = scopeContains("payments");
 		if (payments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
