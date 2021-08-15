@@ -82,14 +82,14 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 				throw error("Response JWS 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
-				//throw error("Response JWS 'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
+				throw error("Response JWS 'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 
 		Long exp = env.getLong("consent_endpoint_response_jwt", "claims.exp");
 		if (exp != null) {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
-				//throw error("Response JWS expired", args("expiration", new Date(exp * 1000L), "now", now));
+				throw error("Response JWS expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
 		}
 
