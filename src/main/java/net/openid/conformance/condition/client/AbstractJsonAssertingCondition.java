@@ -75,14 +75,21 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	//need to think about better impl then the current one
 	protected void assertField(JsonObject jsonObject, Field field) {
-		if (field.isOptional() && !ifExists(jsonObject, field.getPath())) {
-			return;
+		if (!ifExists(jsonObject, field.getPath())) {
+			if (field.isOptional()){
+				return;
+			} else {
+				throw error(createElementNotFoundMessage(field.getPath()), jsonObject);
+			}
 		}
+
 		if (field.isNullable() && findByPath(jsonObject, field.getPath()).isJsonNull()) {
 			return;
 		}
 
-		if (field instanceof StringField || field instanceof DatetimeField) {
+		if (field instanceof ObjectField) {
+			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
+		} else if (field instanceof StringField || field instanceof DatetimeField) {
 			assertHasStringField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
