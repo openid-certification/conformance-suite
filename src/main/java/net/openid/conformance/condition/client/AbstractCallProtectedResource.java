@@ -123,6 +123,6 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders);
 
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		throw error("Unexpected error from the resource endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText()));
+		throw error("Unexpected error from the resource endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
 	}
 }

@@ -130,7 +130,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 				}
 			}
 		} catch (RestClientResponseException e) {
-			throw error("Error from the account requests endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			throw error("Error from the account requests endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {

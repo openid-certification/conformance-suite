@@ -101,7 +101,7 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 				return env;
 			}
 		} catch (RestClientResponseException e) {
-			throw error("Error from the software statement endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			throw error("Error from the software statement endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {

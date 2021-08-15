@@ -630,7 +630,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param result
 	 *            the result to set
 	 */
-	protected void setResult(Result result) {
+	private void setResult(Result result) {
 		this.result = result;
 		testInfo.updateTestResult(getId(), getResult());
 	}

@@ -16,7 +16,7 @@ public class SetPlainJsonContentTypeHeaderForResourceEndpointRequest extends Abs
 
 		requestHeaders.addProperty(HttpHeaders.CONTENT_TYPE, "application/json");
 
-		logSuccess("Set Accept header", args("Accept", requestHeaders.get("Accept")));
+		logSuccess("Set Content-Type header", args("content_type", requestHeaders.get(HttpHeaders.CONTENT_TYPE)));
 
 		return env;
 	}
