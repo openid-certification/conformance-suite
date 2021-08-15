@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -30,6 +31,7 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -39,6 +41,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -58,6 +62,7 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment"
 })
@@ -70,6 +75,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected boolean jarm = false;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected boolean isPar = false;
+	protected boolean payments = false; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -659,12 +665,33 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			String scope = env.getString("client", "scope");
-			if(scope != null && scope.contains("payments")) {
+			if (payments) {
+				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
-				callAndContinueOnFailure(SetPlainJsonContentTypeHeaderForResourceEndpointRequest.class);
-				callAndContinueOnFailure(SetResourceMethodToPost.class);
-				callAndContinueOnFailure(AddPaymentRequestEntity.class);
+				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetResourceMethodToPost.class);
+				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
+
+				// we reuse the request object conditions to add various jwt claims; it would perhaps make sense to make
+				// these more generic.
+				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+
+				// aud (in the JWT request): the Resource Provider (eg the institution holding the account) must validate if the value of the aud field matches the endpoint being triggered;
+				callAndStopOnFailure(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
+
+				//iss (in the JWT request and in the JWT response): the receiver of the message shall validate if the value of the iss field matches the organisationId of the sender;
+				callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
+
+				//jti (in the JWT request and in the JWT response): the value of the jti field shall be filled with the UUID defined by the institution according to [RFC4122] version 4;
+				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+
+				//iat (in the JWT request and in the JWT response): the iat field shall be filled with the message generation time and according to the standard established in [RFC7519](https:// datatracker.ietf.org/doc/html/rfc7519#section-2) to the NumericDate format.
+				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+				call(exec().unmapKey("request_object_claims"));
+
+				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 			}
 		}
 
@@ -678,7 +705,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
-		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+		if (payments) {
+			callAndContinueOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		} else {
+			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+		}
 
 		eventLog.endBlock();
 	}
@@ -757,18 +789,21 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileIdTokenValidationSteps = null;
 	}
 
-	protected ConditionSequence createOBBPreauthSteps() {
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("client", "scope");
-		if(scope != null && scope.contains("payments")) {
-			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
-			steps.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetPaymentsScopeOnTokenEndpointRequest.class));
-			steps.skip(FAPIBrazilAddExpirationToConsentRequest.class, "Consents are payment consents - cannot request an expiry date");
-			steps.skip(FAPIBrazilConsentEndpointResponseValidatePermissions.class, "Consents are payment consents - no need to check permissons");
-			steps.replace(FAPIBrazilCreateConsentRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class));
-			steps.insertBefore(CallConsentEndpointWithBearerToken.class,
-				sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
+		if (Strings.isNullOrEmpty(scope)) {
+			throw new TestFailureException(getId(), "'scope' seems to be missing from client configuration");
 		}
+		List<String> scopes = Arrays.asList(scope.split(" "));
+		return scopes.contains(requiredScope);
+	}
+
+	protected ConditionSequence createOBBPreauthSteps() {
+		payments = scopeContains("payments");
+		if (payments) {
+			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+		}
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, payments);
 		return steps;
 	}
 
