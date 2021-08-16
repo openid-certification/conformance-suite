@@ -274,6 +274,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	/*
 	 * Automatically log failures or warnings, depending on if this is an optional test
+	 *
+	 * Note that this does NOT cause the test result to move to warning/failure - it is better for a test condition
+	 * to throw error(). If there are a need to call logFailure directly (for example, making multiple checks in
+	 * a single condition) then the condition author must ensure it throws an error at the end if any checks have
+	 * failed.
 	 */
 
 	protected void logFailure(JsonObject in) {
