@@ -191,6 +191,23 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return this.testId;
 	}
 
+	/**
+	 * Get a string from the environment, throwing a condition error if missing/not a string
+	 */
+	protected String getStringFromEnvironment(Environment env, String key, String path) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(key+"."+path+" is missing", args("key", env.getObject(key)));
+		}
+
+		if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+			throw error(key+"."+path+" is not a string", args("value", value));
+		}
+
+		return OIDFJSON.getString(value);
+	}
+
 	/*
 	 * Logging utilities
 	 */
