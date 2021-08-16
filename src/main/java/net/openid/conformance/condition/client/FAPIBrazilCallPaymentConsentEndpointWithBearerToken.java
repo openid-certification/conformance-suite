@@ -31,7 +31,7 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "consent_endpoint_request_signed")
-	@PostEnvironment(required = { "resource_endpoint_response_headers" }, strings = { "consent_endpoint_response_jwt" })
+	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response_full" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -73,12 +73,15 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 			if (Strings.isNullOrEmpty(responseBody)) {
 				throw error("Empty/missing response from the consent endpoint");
 			} else {
-				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
+				// save full response
+				JsonObject responseInfo = convertResponseForEnvironment("payment consent", response);
+				env.putObject("consent_endpoint_response_full", responseInfo);
 
-				env.putString("consent_endpoint_response_jwt", responseBody);
+				// also save just headers, as at least CheckForFAPIInteractionIdInResourceResponse needs them
+				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 				env.putObject("resource_endpoint_response_headers", responseHeaders);
 
-				logSuccess("Consent endpoint response", args("body", responseBody, "headers", responseHeaders));
+				logSuccess("Consent endpoint response", responseInfo);
 
 				return env;
 			}

@@ -15,6 +15,9 @@ import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -123,6 +126,11 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
 
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
+
+			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
 
 			callAndStopOnFailure(ExtractSignedJwtFromPaymentConsentResponse.class, "BrazilOB-6.1");
 
