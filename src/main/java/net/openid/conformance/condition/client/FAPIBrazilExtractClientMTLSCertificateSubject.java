@@ -54,7 +54,8 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondi
 		RDN[] uid = x500name.getRDNs(BCStyle.UID);
 		String softwareId;
 		if (uid.length == 0) {
-			throw error("DCR testing must be done using a BRCAC profile certificate where the subjectdn contains a UID");
+			throw error("DCR testing must be done using a BRCAC profile certificate where the subjectdn contains a UID",
+				args("subjectdn", subjectDn));
 		} else {
 			// newer Brazilian style certificate as per
 			// https://github.com/OpenBanking-Brasil/specs-seguranca/blob/main/open-banking-brasil-certificate-standards-1_ID1-ptbr.md
