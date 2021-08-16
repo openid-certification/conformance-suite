@@ -27,6 +27,8 @@ import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseSigningAlg;
+import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseTyp;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -123,6 +125,10 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
 
 			callAndStopOnFailure(ExtractSignedJwtFromPaymentConsentResponse.class, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 			callAndContinueOnFailure(ValidatePaymentConsentSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
