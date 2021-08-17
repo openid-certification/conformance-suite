@@ -24,6 +24,8 @@ import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
@@ -44,6 +46,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		eventLog.startBlock("Obtain access token for directory and retrieve a software statement");
 
 		callAndStopOnFailure(ExtractDirectoryConfiguration.class);
+
+		callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+
+		callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");

@@ -14,6 +14,4 @@ public class CheckServerConfiguration extends AbstractCheckServerConfiguration {
 			"issuer");
 	}
 
-	@Override
-	protected void ensureUrl(Environment in, String path) {}
 }

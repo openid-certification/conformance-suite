@@ -12,6 +12,7 @@ import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -61,7 +62,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +76,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
 	private boolean logged = false;
+	private boolean throwRequired = false;
 
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		this.testId = testId;
@@ -124,6 +125,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (!logged) {
 				log.log(this.getMessage(),
 					args("msg", "Condition ran but did not log anything"));
+			}
+			if (throwRequired) {
+				throw error("Test logged a non-success result but did not throw an error");
 			}
 
 			// check the environment to make sure the condition did what it claimed to
@@ -187,13 +191,44 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return this.testId;
 	}
 
+	/**
+	 * Get a string from the environment, throwing a condition error if missing/not a string
+	 */
+	protected String getStringFromEnvironment(Environment env, String key, String path) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(key+"."+path+" is missing", args("key", env.getObject(key)));
+		}
+
+		if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+			throw error(key+"."+path+" is not a string", args("value", value));
+		}
+
+		return OIDFJSON.getString(value);
+	}
+
 	/*
 	 * Logging utilities
 	 */
 
+	private void checkLoggedResults(String result) {
+		if (!result.equals(ConditionResult.SUCCESS.toString()) &&
+		    !result.equals(ConditionResult.INFO.toString()) &&
+		    !result.equals(ConditionResult.REVIEW.toString())) {
+			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
+			// not be updated
+			throwRequired = true;
+		}
+	}
+
 	protected void log(JsonObject obj) {
 		log.log(getMessage(), obj);
 		logged = true;
+		if (obj.has("result")) {
+			String result = OIDFJSON.getString(obj.get("result"));
+			checkLoggedResults(result);
+		}
 	}
 
 	protected void log(String msg) {
@@ -204,6 +239,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	protected void log(Map<String, Object> map) {
 		log.log(getMessage(), map);
 		logged = true;
+		if (map.containsKey("result")) {
+			String result = map.get("result").toString();
+			checkLoggedResults(result);
+		}
 	}
 
 	protected void log(String msg, JsonObject in) {
@@ -274,6 +313,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	/*
 	 * Automatically log failures or warnings, depending on if this is an optional test
+	 *
+	 * Note that this does NOT cause the test result to move to warning/failure - it is better for a test condition
+	 * to throw error(). If there are a need to call logFailure directly (for example, making multiple checks in
+	 * a single condition) then the condition author must ensure it throws an error at the end if any checks have
+	 * failed.
 	 */
 
 	protected void logFailure(JsonObject in) {

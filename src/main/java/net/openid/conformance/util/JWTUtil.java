@@ -28,6 +28,7 @@ public class JWTUtil {
 	 * @throws ParseException
 	 */
 	public static JWT parseJWT(String jwtAsString) throws ParseException {
+		validateJwtContainsOnlyAllowedCharacters(jwtAsString);
 		JWT jwt = JWTParser.parse(jwtAsString);
 		return jwt;
 	}
@@ -106,7 +107,6 @@ public class JWTUtil {
 	 */
 	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject privateJwksWithEncKeys)
 		throws ParseException, JOSEException {
-		validateJwtContainsOnlyAllowedCharacters(jwtAsString);
 		JWT token = JWTUtil.parseJWT(jwtAsString);
 		if(token instanceof EncryptedJWT) {
 			EncryptedJWT encryptedJWT = (EncryptedJWT) token;

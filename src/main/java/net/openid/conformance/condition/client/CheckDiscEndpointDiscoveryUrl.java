@@ -26,29 +26,29 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonElement configUrl = env.getElementFromObject(environmentBaseObject, environmentVariable);
-		if ( configUrl == null ) {
-			logFailure("Unable to find Discovery URL", args("No discoveryUrl", env.getObject("config")));
-		} else  {
-			if (!configUrl.isJsonPrimitive()) {
-				throw error(errorMessageNotJsonPrimitive, args("Failure", configUrl));
-			} else {
-				try {
-					String discoveryUrl = OIDFJSON.getString(configUrl);
+		if (configUrl == null) {
+			throw error("Unable to find Discovery URL", args("No discoveryUrl", env.getObject("config")));
+		}
 
-					if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
-						throw error("discoveryUrl is missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
-					}
+		if (!configUrl.isJsonPrimitive()) {
+			throw error(errorMessageNotJsonPrimitive, args("Failure", configUrl));
+		} else {
+			try {
+				String discoveryUrl = OIDFJSON.getString(configUrl);
 
-					URL extractedUrl = new URL(discoveryUrl);
-					if ( !extractedUrl.getProtocol().equals(requiredProtocol)) {
-						throw error(errorMessageNotRequiredProtocol, args("actual", extractedUrl.getProtocol(), "expected",requiredProtocol));
-					}
-
-					logSuccess("discoveryUrl", args("actual",configUrl));
-
-				} catch (MalformedURLException invalidURL) {
-					throw error(errorMessageInvalidURL,args("Failure", configUrl));
+				if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
+					throw error("discoveryUrl is missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
 				}
+
+				URL extractedUrl = new URL(discoveryUrl);
+				if (!extractedUrl.getProtocol().equals(requiredProtocol)) {
+					throw error(errorMessageNotRequiredProtocol, args("actual", extractedUrl.getProtocol(), "expected", requiredProtocol));
+				}
+
+				logSuccess("discoveryUrl", args("actual", configUrl));
+
+			} catch (MalformedURLException invalidURL) {
+				throw error(errorMessageInvalidURL, args("Failure", configUrl));
 			}
 		}
 		return env;
