@@ -76,6 +76,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected boolean jarm = false;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected boolean isPar = false;
+	protected boolean isBrazil = false;
 	protected boolean payments = false; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
@@ -118,6 +119,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
+		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 

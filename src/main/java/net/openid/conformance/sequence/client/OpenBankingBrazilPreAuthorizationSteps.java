@@ -30,6 +30,7 @@ import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
+import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseTyp;
@@ -59,8 +60,6 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		@Override
 	public void evaluate() {
 		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain Brazil consent"));
-
-		callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 
 		/* create client credentials request */
 
