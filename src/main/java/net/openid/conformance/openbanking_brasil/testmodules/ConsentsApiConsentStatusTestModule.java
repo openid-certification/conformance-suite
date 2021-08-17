@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -29,7 +30,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 	}
 
 	@Override
