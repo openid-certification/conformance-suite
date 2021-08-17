@@ -1,10 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -13,6 +10,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -57,6 +56,15 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
+
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
 
 			HttpHeaders headers = headersFromJson(requestHeaders);
 

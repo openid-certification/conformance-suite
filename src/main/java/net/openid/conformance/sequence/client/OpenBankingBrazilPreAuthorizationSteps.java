@@ -47,14 +47,16 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 	private boolean secondClient;
 	private boolean payments;
+	private boolean stopAfterConsentEndpointCall;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments) {
+	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean stopAfterConsentEndpointCall) {
 		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 		this.payments = payments;
+		this.stopAfterConsentEndpointCall = stopAfterConsentEndpointCall;
 	}
 
 		@Override
@@ -130,6 +132,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
 
+			if (stopAfterConsentEndpointCall)
+				return;
+
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
@@ -159,6 +164,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 
 			callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
+			if (stopAfterConsentEndpointCall)
+				return;
 
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
 		}

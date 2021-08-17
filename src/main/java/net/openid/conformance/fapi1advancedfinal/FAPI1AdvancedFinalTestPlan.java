@@ -67,6 +67,7 @@ import net.openid.conformance.plan.TestPlan;
 
 		// OB Brazil specific tests
 		FAPI1AdvancedFinalBrazilEnsureEncryptionRequired.class,
+		FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails.class,
 
 		//PAR tests
 		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,
