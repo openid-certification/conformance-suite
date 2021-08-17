@@ -179,7 +179,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		if (jwks == null) {
 			throw error("Couldn't find JWKS in configuration");
 		} else if (!(jwks instanceof JsonObject)) {
-			throw error("Invalid JWKS (Json Web Key Set) in configuration - it must a JSON object that contains a 'keys' array.", args("jwks", jwks));
+			throw error("Invalid JWKS (Json Web Key Set) in configuration - it must be a JSON object that contains a 'keys' array.", args("jwks", jwks));
 		}
 
 		if (!jwks.getAsJsonObject().has("keys") || !jwks.getAsJsonObject().get("keys").isJsonArray()) {
