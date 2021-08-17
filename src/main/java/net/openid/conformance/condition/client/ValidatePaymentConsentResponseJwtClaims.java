@@ -17,7 +17,7 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = { "consent_endpoint_response_jwt", "server", "certificate_subject" } )
+	@PreEnvironment(required = { "config", "consent_endpoint_response_jwt", "server", "certificate_subject" } )
 	public Environment evaluate(Environment env) {
 		String ou = env.getString("certificate_subject", "ou");
 		if (Strings.isNullOrEmpty(ou)) {
@@ -26,7 +26,7 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 
 		String expectedIssuer = env.getString("config", "resource.brazilOrganizationId");
 		if (Strings.isNullOrEmpty(expectedIssuer)) {
-			throw error("Authorization server organization id missing from test configuration; this must be provided when 'scope' contains payments");
+			throw error("Resource server organization id missing from test configuration; this must be provided when 'scope' contains payments");
 		}
 		Instant now = Instant.now(); // to check timestamps
 

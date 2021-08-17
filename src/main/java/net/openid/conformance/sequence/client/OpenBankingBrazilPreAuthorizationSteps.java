@@ -16,7 +16,6 @@ import net.openid.conformance.condition.client.CreateEmptyResourceEndpointReques
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
@@ -25,13 +24,16 @@ import net.openid.conformance.condition.client.ExtractSignedJwtFromPaymentConsen
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
+import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseTyp;
+import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -57,6 +59,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		@Override
 	public void evaluate() {
 		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain Brazil consent"));
+
+		callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 
 		/* create client credentials request */
 
@@ -137,6 +141,15 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			// signature needs to be validated against the organisation jwks
+			callAndStopOnFailure(FAPIBrazilGetKeystoreJwksUri.class, Condition.ConditionResult.FAILURE);
+
+			call(exec().mapKey("server", "org_server"));
+			call(exec().mapKey("server_jwks", "org_server_jwks"));
+			callAndStopOnFailure(FetchServerKeys.class);
+			call(exec().unmapKey("server"));
+			call(exec().unmapKey("server_jwks"));
 
 			callAndContinueOnFailure(ValidatePaymentConsentSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 

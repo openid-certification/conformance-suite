@@ -64,7 +64,8 @@ import java.util.function.Supplier;
 	"resource.brazilCnpj",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment"
+	"resource.brazilPixPayment",
+	"directory.keystore"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
