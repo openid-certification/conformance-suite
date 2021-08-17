@@ -12,7 +12,7 @@ public class FAPIBrazilValidateConsentResponseTyp extends AbstractCondition {
 
 		String typ = env.getString("consent_endpoint_response_jwt", "header.typ");
 
-		if (typ.equals("PS256")) {
+		if (typ.equals("JWT")) {
 			logSuccess("Response header 'typ' is JWT", args("typ", typ));
 			return env;
 		}
