@@ -82,7 +82,9 @@
                             <% } %>
                         <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                         <% } %>
+                    <!--
                         <button class="btn btn-default btn-block" id="certificationOfConformanceTemplateBtn" title="Prepare/Download Certification of Conformance PDF Template"><span class="glyphicon glyphicon-download-alt"></span> Cert. of Conformance</button>
+                    -->
                         <button class="btn btn-default btn-block" id="certificationPackageBtn" title="Prepare certification submission package"><span class="glyphicon glyphicon-save-file"></span> Certification Package</button>
                     <% } %>
                     <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
