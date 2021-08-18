@@ -20,13 +20,14 @@ public class CallProtectedResourceWithBearerToken extends AbstractCallProtectedR
 	}
 
 	@Override
-	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
+	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
 		env.putObject("resource_endpoint_response_code", responseCode);
 		env.putString("resource_endpoint_response", responseBody);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
+		env.putObject("resource_endpoint_response_full", fullResponse);
 
-		logSuccess("Got a response from the resource endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
+		logSuccess("Got a response from the resource endpoint", fullResponse);
 		return env;
 	}
 }

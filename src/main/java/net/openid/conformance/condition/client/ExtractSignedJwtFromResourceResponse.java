@@ -9,10 +9,10 @@ import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
 
-public class ExtractSignedJwtFromPaymentConsentResponse extends AbstractExtractJWT {
+public class ExtractSignedJwtFromResourceResponse extends AbstractExtractJWT {
 
 	@Override
-	@PreEnvironment(required = "consent_endpoint_response_full")
+	@PreEnvironment(required = "endpoint_response")
 	@PostEnvironment(required = { "consent_endpoint_response" } )
 	public Environment evaluate(Environment env) {
 

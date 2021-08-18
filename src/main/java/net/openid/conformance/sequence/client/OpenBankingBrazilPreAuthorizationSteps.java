@@ -20,26 +20,24 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import net.openid.conformance.condition.client.ExtractSignedJwtFromPaymentConsentResponse;
+import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
-import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
-import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateConsentResponseTyp;
+import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
+import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
-import net.openid.conformance.condition.client.ValidatePaymentConsentResponseJwtClaims;
-import net.openid.conformance.condition.client.ValidatePaymentConsentSignature;
+import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
+import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -136,15 +134,16 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 				return;
 
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
+
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-			call(exec().unmapKey("endpoint_response"));
 
-			callAndStopOnFailure(ExtractSignedJwtFromPaymentConsentResponse.class, "BrazilOB-6.1");
+			callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
 
-			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
-			callAndContinueOnFailure(FAPIBrazilValidateConsentResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 			// signature needs to be validated against the organisation jwks
 			callAndStopOnFailure(FAPIBrazilGetKeystoreJwksUri.class, Condition.ConditionResult.FAILURE);
@@ -155,9 +154,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			call(exec().unmapKey("server"));
 			call(exec().unmapKey("server_jwks"));
 
-			callAndContinueOnFailure(ValidatePaymentConsentSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
-			callAndContinueOnFailure(ValidatePaymentConsentResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			call(exec().unmapKey("endpoint_response"));
+			call(exec().unmapKey("endpoint_response_jwt"));
 		} else {
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 

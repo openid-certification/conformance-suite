@@ -12,12 +12,12 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
-public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
+public class ValidateResourceResponseJwtClaims extends AbstractCondition {
 
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = { "config", "consent_endpoint_response_jwt", "server", "certificate_subject" } )
+	@PreEnvironment(required = { "config", "endpoint_response_jwt", "server", "certificate_subject" } )
 	public Environment evaluate(Environment env) {
 		String ou = env.getString("certificate_subject", "ou");
 		if (Strings.isNullOrEmpty(ou)) {
@@ -31,19 +31,19 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 		Instant now = Instant.now(); // to check timestamps
 
 		// iss (in the JWT request and in the JWT response): the receiver of the message shall validate if the value of the iss field matches the organisationId of the sender;
-		JsonElement iss = env.getElementFromObject("consent_endpoint_response_jwt", "claims.iss");
+		JsonElement iss = env.getElementFromObject("endpoint_response_jwt", "claims.iss");
 		if (iss == null) {
 			throw error("'iss' claim missing");
 		}
 
-		String actualIssuer = env.getString("consent_endpoint_response_jwt", "claims.iss");
+		String actualIssuer = env.getString("endpoint_response_jwt", "claims.iss");
 		if (!expectedIssuer.equals(actualIssuer)) {
 			throw error("Issuer does not match the authorization server's organisation id provided in the test configuration",
 				args("expected", expectedIssuer, "actual", actualIssuer));
 		}
 
 		// aud
-		JsonElement aud = env.getElementFromObject("consent_endpoint_response_jwt", "claims.aud");
+		JsonElement aud = env.getElementFromObject("endpoint_response_jwt", "claims.aud");
 		if (aud == null) {
 			throw error("'aud' claim missing");
 		}
@@ -59,7 +59,7 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 		}
 
 		// jti (in the JWT request and in the JWT response): the value of the jti field shall be filled with the UUID defined by the institution according to [RFC4122] version 4;¶
-		JsonElement jti = env.getElementFromObject("consent_endpoint_response_jwt", "claims.jti");
+		JsonElement jti = env.getElementFromObject("endpoint_response_jwt", "claims.jti");
 		if (jti == null) {
 			throw error("'jti' claim missing");
 		}
@@ -74,7 +74,7 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 			throw error("Invalid jti - not a UUID", args("jti", jtiStr));
 		}
 
-		Long iat = env.getLong("consent_endpoint_response_jwt", "claims.iat");
+		Long iat = env.getLong("endpoint_response_jwt", "claims.iat");
 		if (iat == null) {
 			throw error("'iat' claim missing");
 		} else {
@@ -86,21 +86,21 @@ public class ValidatePaymentConsentResponseJwtClaims extends AbstractCondition {
 			}
 		}
 
-		Long exp = env.getLong("consent_endpoint_response_jwt", "claims.exp");
+		Long exp = env.getLong("endpoint_response_jwt", "claims.exp");
 		if (exp != null) {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				throw error("Response JWS expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
 		}
 
-		Long nbf = env.getLong("consent_endpoint_response_jwt", "claims.nbf");
+		Long nbf = env.getLong("endpoint_response_jwt", "claims.nbf");
 		if (nbf != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
 				throw error("Response JWS has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
 
-		logSuccess("Payment consent endpoint response JWS iss, aud, exp, iat, auth_time, acr & nbf claims passed validation checks");
+		logSuccess("Resource endpoint response JWS iss, aud, exp, iat, auth_time, acr & nbf claims passed validation checks");
 		return env;
 
 	}
