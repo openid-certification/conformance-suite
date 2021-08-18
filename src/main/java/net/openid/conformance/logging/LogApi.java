@@ -412,7 +412,6 @@ public class LogApi {
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
 		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
-		@ApiParam(value = "Terms and conditions pdf") @RequestParam("termsAndConditionsPdf") MultipartFile termsAndConditionsPdf,
 		@ApiParam(value = "Signed certification of conformance pdf") @RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
 		@ApiParam(value = "Client data in zip format. Only required for RP tests") @RequestParam("clientSideData") MultipartFile clientSideData
 
@@ -424,7 +423,7 @@ public class LogApi {
 		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
 			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		}
-		return exportPlanAsZip(id, false, true, termsAndConditionsPdf, certificationOfConformancePdf, clientSideData);
+		return exportPlanAsZip(id, false, true, certificationOfConformancePdf, clientSideData);
 	}
 
 
@@ -438,12 +437,11 @@ public class LogApi {
 		HttpServletRequest httpRequest,
 		@ApiParam(value = "Id of plan") @PathVariable("id") String id,
 		@ApiParam(value = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
-		return exportPlanAsZip(id, publicOnly, false, null, null, null);
+		return exportPlanAsZip(id, publicOnly, false, null, null);
 	}
 
 
 	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean publicOnly, boolean addFolderForHtmlFiles,
-																	MultipartFile termsAndConditionsPdf,
 																	MultipartFile certificationOfConformancePdf,
 																	MultipartFile clientSideData) {
 
@@ -531,13 +529,6 @@ public class LogApi {
 
 					}
 
-					if(termsAndConditionsPdf!=null && termsAndConditionsPdf.getSize()>0) {
-						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-Terms-and-Conditions.pdf");
-						zipEntry.setSize(termsAndConditionsPdf.getSize());
-						archiveOutputStream.putArchiveEntry(zipEntry);
-						archiveOutputStream.write(termsAndConditionsPdf.getBytes());
-						archiveOutputStream.closeArchiveEntry();
-					}
 					if(certificationOfConformancePdf!=null && certificationOfConformancePdf.getSize()>0) {
 						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-of-Conformance.pdf");
 						zipEntry.setSize(certificationOfConformancePdf.getSize());
