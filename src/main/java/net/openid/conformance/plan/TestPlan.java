@@ -21,10 +21,10 @@ public interface TestPlan {
 	 * @see ModuleListEntry
 	 */
 	class Variant {
-		public final Class<? extends Enum<?>> variant;
+		public final Class<? extends Enum<?>> key;
 		public final String value;
-		public Variant(Class<? extends Enum<?>> variant, String value) {
-			this.variant = variant;
+		public Variant(Class<? extends Enum<?>> key, String value) {
+			this.key = key;
 			this.value = value;
 		}
 	}

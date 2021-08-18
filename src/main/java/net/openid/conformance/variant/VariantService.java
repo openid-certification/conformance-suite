@@ -313,8 +313,8 @@ public class VariantService {
 			return list.stream().flatMap(moduleListEntry -> {
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()
 					.map(variant -> {
-						ParameterHolder<?> p = parameter(variant.variant); // used to convert specific enum val into a wildcard one
-						return Map.entry(variant.variant, p.valueOf(variant.value));
+						ParameterHolder<?> p = parameter(variant.key); // used to convert specific enum val into a wildcard one
+						return Map.entry(variant.key, p.valueOf(variant.value));
 					})
 					.collect(toOrderedMap(Map.Entry::getKey, Map.Entry::getValue));
 

@@ -58,7 +58,7 @@ public class DisallowTLS11 extends AbstractCondition {
 			}
 		} catch (FAPITLSClient.ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
-			if (serverVersion == ProtocolVersion.TLSv11) {
+			if (serverVersion.equals(ProtocolVersion.TLSv11)) {
 				throw error("The server accepted a TLS 1.1 connection. This is not permitted by the specification.", args("host", tlsTestHost, "port", tlsTestPort));
 			} else {
 				throw error("Server used different TLS version than requested",
