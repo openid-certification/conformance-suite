@@ -2,6 +2,7 @@ package net.openid.conformance.runner;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.vdurmont.semver4j.Semver;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -224,6 +225,14 @@ public class TestRunner implements DataUtils {
 			if(testPlan.getImmutable()!=null && testPlan.getImmutable()) {
 				//the plan is immutable
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			}
+			Semver planVersion = new Semver(testPlan.getVersion());
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan") ||
+				testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			{
+				if (planVersion.isLowerThan("4.1.24")) {
+					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 			}
 			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
