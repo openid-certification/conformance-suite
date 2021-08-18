@@ -2,6 +2,10 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi-ciba-id1-test-plan",
@@ -72,5 +76,46 @@ import net.openid.conformance.plan.TestPlan;
 	}
 )
 public class FAPICIBAID1TestPlan implements TestPlan {
+	public static String certificationProfileName(VariantSelection variant) {
 
+		String certProfile = null;
+
+		Map<String, String> v = variant.getVariant();
+		String profile = v.get("fapi_profile");
+		String clientAuth = v.get("client_auth_type");
+		String cibaMode = v.get("ciba_mode");
+
+		switch (profile) {
+			case "plain_fapi":
+			case "openbanking_uk":
+				certProfile = "FAPI-CIBA";
+				break;
+			case "consumerdataright_au":
+			case "openbanking_brazil":
+			default:
+				return "";	//Not a profile
+		}
+
+		certProfile += " OP ";
+		switch (cibaMode) {
+			case "poll":
+				certProfile += " poll";
+				break;
+			case "ping":
+				certProfile += " Ping";
+				break;
+		}
+		certProfile += " w/ ";
+		switch (clientAuth) {
+			case "private_key_jwt":
+				certProfile += " Private Key";
+				break;
+			case "mtls":
+				certProfile += " MTLS";
+				break;
+		}
+
+
+		return certProfile;
+	}
 }

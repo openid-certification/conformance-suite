@@ -30,14 +30,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -106,7 +103,9 @@ public class TestPlanApi implements DataUtils {
 			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
 		}
 
-		planService.createTestPlan(id, planName, variant, config, description, testModules, holder.info.summary(), publish);
+		String certProfile = holder.certificationProfileForVariant(variant);
+
+		planService.createTestPlan(id, planName, variant, config, description, certProfile, testModules, holder.info.summary(), publish);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);
