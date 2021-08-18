@@ -130,8 +130,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
 
-			if (stopAfterConsentEndpointCall)
+			if (stopAfterConsentEndpointCall) {
 				return;
+			}
 
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
@@ -166,8 +167,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 
 			callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
-			if (stopAfterConsentEndpointCall)
+			if (stopAfterConsentEndpointCall) {
 				return;
+			}
 
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
 		}
