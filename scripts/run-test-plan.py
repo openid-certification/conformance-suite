@@ -1026,6 +1026,7 @@ if __name__ == '__main__':
     unused_expected_skips = list(filter(is_unused, expected_skips_list))
     if unused_expected_skips:
         print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
+        start_section("unused_expected_skips", "unused expected skips detail", True)
         for entry in unused_expected_skips:
             entry_invalid_json = {
                 'test-name': entry['test-name'],
@@ -1033,6 +1034,7 @@ if __name__ == '__main__':
                 'configuration-filename': entry['configuration-filename']
             }
             print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+        end_section("unused_expected_skips")
         failed = True
 
     if failed_plan_results:

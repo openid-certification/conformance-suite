@@ -105,8 +105,9 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();
 			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
+			JsonObject fullResponse = convertResponseForEnvironment("resource", response);
 
-			return handleClientResponse(env, responseCode, responseBody, responseHeaders);
+			return handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
 		} catch (RestClientResponseException e) {
 			return handleClientResponseException(env, e);
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
@@ -120,7 +121,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		}
 	}
 
-	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders);
+	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse);
 
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
 		throw error("Unexpected error from the resource endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText()));

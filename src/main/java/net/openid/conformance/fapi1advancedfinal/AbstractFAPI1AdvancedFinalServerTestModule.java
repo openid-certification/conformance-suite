@@ -64,7 +64,8 @@ import java.util.function.Supplier;
 	"resource.brazilCnpj",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment"
+	"resource.brazilPixPayment",
+	"directory.keystore"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -75,7 +76,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected boolean jarm = false;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected boolean isPar = false;
-	protected boolean payments = false; // whether using Brazil payments APIs
+	protected boolean isBrazil = false;
+	protected boolean brazilPayments = false; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -117,6 +119,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
+		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		if (isBrazil) {
+			brazilPayments = scopeContains("payments");
+		}
+
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -665,7 +672,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if (payments) {
+			if (brazilPayments) {
 				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
 				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
@@ -705,8 +712,30 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
-		if (payments) {
-			callAndContinueOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		if (brazilPayments) {
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+
+			callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
+
+			call(exec().mapKey("server", "org_server"));
+			call(exec().mapKey("server_jwks", "org_server_jwks"));
+			callAndStopOnFailure(FetchServerKeys.class);
+			call(exec().unmapKey("server"));
+			call(exec().unmapKey("server_jwks"));
+
+			callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+			call(exec().unmapKey("endpoint_response"));
 
 		} else {
 			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
@@ -790,7 +819,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected boolean scopeContains(String requiredScope) {
-		String scope = env.getString("client", "scope");
+		String scope = env.getString("config", "client.scope");
 		if (Strings.isNullOrEmpty(scope)) {
 			throw new TestFailureException(getId(), "'scope' seems to be missing from client configuration");
 		}
@@ -799,11 +828,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected ConditionSequence createOBBPreauthSteps() {
-		payments = scopeContains("payments");
-		if (payments) {
+		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, payments);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, false);
 		return steps;
 	}
 

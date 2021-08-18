@@ -1,11 +1,14 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
+import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -38,6 +41,18 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 		}
 	)
 public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		if (isBrazil) {
+			if (brazilPayments) {
+				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+			} else {
+				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.FAILURE);
+			}
+		}
+	}
 
 	protected void checkAccountRequestEndpointTLS() {
 		eventLog.startBlock("Accounts request endpoint TLS test");

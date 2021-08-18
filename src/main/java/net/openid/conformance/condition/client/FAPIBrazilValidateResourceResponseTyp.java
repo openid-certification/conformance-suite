@@ -4,15 +4,15 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPIBrazilValidateConsentResponseTyp extends AbstractCondition {
+public class FAPIBrazilValidateResourceResponseTyp extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"consent_endpoint_response_jwt"})
+	@PreEnvironment(required = {"endpoint_response_jwt"})
 	public Environment evaluate(Environment env) {
 
-		String typ = env.getString("consent_endpoint_response_jwt", "header.typ");
+		String typ = env.getString("endpoint_response_jwt", "header.typ");
 
-		if (typ.equals("PS256")) {
+		if (typ.equals("JWT")) {
 			logSuccess("Response header 'typ' is JWT", args("typ", typ));
 			return env;
 		}

@@ -19,6 +19,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					FAPI1AdvancedFinalBrazilDCRHappyFlow.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class
 				),

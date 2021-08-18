@@ -28,7 +28,7 @@ public class CallUserInfoEndpointWithBearerToken extends AbstractCallProtectedRe
 	}
 
 	@Override
-	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
+	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
 		env.putInteger("userinfo_endpoint_response_code", OIDFJSON.getInt(responseCode.get("code")));
 		env.putString("userinfo_endpoint_response", responseBody);

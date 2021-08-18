@@ -1,10 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -13,6 +10,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -31,7 +30,7 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "consent_endpoint_request_signed")
-	@PostEnvironment(required = { "resource_endpoint_response_headers" }, strings = { "consent_endpoint_response_jwt" })
+	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response_full" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -58,6 +57,15 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
+
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JWT));
@@ -73,12 +81,15 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 			if (Strings.isNullOrEmpty(responseBody)) {
 				throw error("Empty/missing response from the consent endpoint");
 			} else {
-				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
+				// save full response
+				JsonObject responseInfo = convertResponseForEnvironment("payment consent", response);
+				env.putObject("consent_endpoint_response_full", responseInfo);
 
-				env.putString("consent_endpoint_response_jwt", responseBody);
+				// also save just headers, as at least CheckForFAPIInteractionIdInResourceResponse needs them
+				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 				env.putObject("resource_endpoint_response_headers", responseHeaders);
 
-				logSuccess("Consent endpoint response", args("body", responseBody, "headers", responseHeaders));
+				logSuccess("Consent endpoint response", responseInfo);
 
 				return env;
 			}
