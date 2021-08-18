@@ -200,64 +200,85 @@
                 <form class="form-small" name="certificationOfConformanceForm" id="certificationOfConformanceForm" action="" method="post">
                     <div class="modal-body">
                         <div id="certificationOfConformanceFormErrors"></div>
-                        <div class="text-info">You will be able to edit the document after downloading, you don't need to fill all fields now.
+                        <div class="text-info">
+                            This page will help you prepare the PDF you will upload after pressing the 'Certification Package' button.
+                            Once you have generated the PDF you will need to sign it (electronic signatures are preferred).
+                            See <a href="https://openid.net/certification/instructions/" target="_blank">the submission instructions</a> for more information.
+                            <br>
+                            You will be able to edit the document after downloading, you don't need to fill all fields now.
                             This form is provided for your convenience only, and its use is optional.
                         </div>
                         <div>
-                            <div class="form-group">
-                                <label>
-                                    Name of Entity (“Implementer”) Making this Certification
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Required Information
+                                </h3>
+                                <div style="padding-left:1em;">
+
+                                    <div class="form-group">
+                                        <label>
+                                            Name of Entity (“Implementer”) Making this Certification
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Software or Service (&quot;Deployment&quot;) Name &amp; Version #
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            OpenID Conformance Profile
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Conformance Test Suite Software
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Test Date
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>
-                                    Software or Service (&quot;Deployment&quot;) Name &amp; Version #
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Optional Extra Information
+                                </h3>
+                                <div style="padding-left:1em;">
+                                    <div class="form-group">
+                                        <label>
+                                            URL at which people interested in using your implementation can learn about it and/or obtain it:
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            1-2 sentence description of the implementation
+                                        </label>
+                                        <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>
-                                    OpenID Conformance Profile
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    Conformance Test Suite Software
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    Test Date
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    URL at which people interested in using your implementation can learn about it and/or obtain it:
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    1-2 sentence description of the implementation
-                                </label>
-                                <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
-                                </label>
-                                <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
-                            </div>
+
                         </div>
                     </div>
                     <div class="modal-footer">
