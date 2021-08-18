@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.InvalidateConsentEndpointRequestSignature;
@@ -43,11 +41,10 @@ public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends Abst
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
-		payments = scopeContains("payments");
-		if (payments) {
+		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, payments, true);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, true);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));
