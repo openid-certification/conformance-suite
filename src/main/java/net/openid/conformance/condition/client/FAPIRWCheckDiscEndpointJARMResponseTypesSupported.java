@@ -9,7 +9,7 @@ public class FAPIRWCheckDiscEndpointJARMResponseTypesSupported extends AbstractV
 
 	private static final String environmentVariable = "response_types_supported";
 
-	private static final String[] SET_VALUES = new String[]{"code"};
+	private static final String[] SET_VALUES = {"code"};
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 

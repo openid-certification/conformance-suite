@@ -56,14 +56,18 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "e", "n");
 
-				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
+				if (checkPrivatePart) {
+					verifyPrivatePart(jwks, keyObject);
+				}
 			} else if ("EC".equals(kty)) {
 
 				checkMissingKey(keyObject, "x", "y");
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "x", "y");
 
-				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
+				if (checkPrivatePart) {
+					verifyPrivatePart(jwks, keyObject);
+				}
 			}
 			parseJWKWithNimbus(keyObject);
 		});

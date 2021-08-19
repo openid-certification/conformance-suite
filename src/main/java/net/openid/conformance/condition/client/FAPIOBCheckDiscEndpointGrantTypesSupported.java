@@ -9,7 +9,7 @@ public class FAPIOBCheckDiscEndpointGrantTypesSupported extends AbstractValidate
 
 	private static final String environmentVariable = "grant_types_supported";
 
-	private static final String[] SET_VALUES = new String[] { "authorization_code", "client_credentials" };
+	private static final String[] SET_VALUES = { "authorization_code", "client_credentials" };
 	private static final int minimumMatchesRequired = 2;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";

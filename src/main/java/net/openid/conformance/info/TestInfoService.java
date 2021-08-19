@@ -14,7 +14,7 @@ public interface TestInfoService {
 	 * @param variant All variants for this test module
 	 * @param variantFromPlanDefinition Any variants specified for this specific module in the plan definition
 	 */
-	void createTest(String id, String testName, VariantSelection variant, VariantSelection variantFromPlanDefinition, String url, JsonObject config, String alias, Instant started, String testPlanId, String Description, String summary, String publish);
+	void createTest(String id, String testName, VariantSelection variant, VariantSelection variantFromPlanDefinition, String url, JsonObject config, String alias, Instant started, String testPlanId, String description, String summary, String publish);
 
 	/**
 	 * Update the result of a test in the database

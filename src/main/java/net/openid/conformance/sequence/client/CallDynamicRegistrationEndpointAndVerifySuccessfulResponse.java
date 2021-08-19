@@ -11,9 +11,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class CallDynamicRegistrationEndpointAndVerifySuccessfulResponse extends AbstractConditionSequence {
 
-	public CallDynamicRegistrationEndpointAndVerifySuccessfulResponse() {
-	}
-
 	@Override
 	public void evaluate() {
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");

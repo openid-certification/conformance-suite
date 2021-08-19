@@ -9,7 +9,7 @@ public class FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported extends Ab
 
 	private static final String environmentVariable = "token_endpoint_auth_methods_supported";
 
-	private static final String[] SET_VALUES = new String[] { "private_key_jwt", "tls_client_auth" };
+	private static final String[] SET_VALUES = { "private_key_jwt", "tls_client_auth" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 

@@ -150,11 +150,11 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 
 			JWK generatedJWK = jwkGenerator.generate();
 			allGeneratedKeys.add(generatedJWK);
-			if (keyUse == KeyUse.ENCRYPTION) {
+			if (keyUse.equals(KeyUse.ENCRYPTION)) {
 				encryptionKeysToBeUsed.add(generatedJWK);
 			}
 
-			if(i==whichKeyToUse && (keyUse==KeyUse.SIGNATURE)) {
+			if(i==whichKeyToUse && (keyUse.equals(KeyUse.SIGNATURE))) {
 				signingKeyToBeUsed.add(generatedJWK);
 			}
 		}

@@ -9,7 +9,7 @@ public class FAPIBrazilCheckDiscEndpointScopesSupported extends AbstractValidate
 
 	private static final String environmentVariable = "scopes_supported";
 
-	private static final String[] SET_VALUES = new String[] { "openid", "consents", "resources" };
+	private static final String[] SET_VALUES = { "openid", "consents", "resources" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "The server does not support the required scopes";

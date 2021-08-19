@@ -1010,8 +1010,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
-		if (accountsEndpointProfileSteps != null)
+		if (accountsEndpointProfileSteps != null) {
 			call(sequence(accountsEndpointProfileSteps));
+		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 

@@ -39,15 +39,12 @@ public class ForceIdTokenToBeSignedWithRS256 extends AbstractCondition {
 
 			JWSAlgorithm alg = idToken.getHeader().getAlgorithm();
 
-			if (alg != JWSAlgorithm.PS256) {
+			if (!alg.equals(JWSAlgorithm.PS256)) {
 				logSuccess("Server key in the provided configuration uses alg " + alg + ", so this test can't be performed; continuing using a normal correctly signed id_token instead");
 				return env;
 			}
 
-			//Alternate header algorithm
-			if(alg == JWSAlgorithm.PS256){
-				alg = JWSAlgorithm.RS256;
-			}
+			alg = JWSAlgorithm.RS256;
 
 			//Rebuild new header with alternated algorithm
 			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, idToken.getHeader().getKeyID(), null, null);

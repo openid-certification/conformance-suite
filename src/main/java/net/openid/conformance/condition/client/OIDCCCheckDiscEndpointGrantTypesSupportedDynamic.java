@@ -10,7 +10,7 @@ public class OIDCCCheckDiscEndpointGrantTypesSupportedDynamic extends AbstractVa
 
 	private static final String environmentVariable = "grant_types_supported";
 
-	private static final String[] SET_VALUES = new String[] { "authorization_code", "implicit" };
+	private static final String[] SET_VALUES = { "authorization_code", "implicit" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "Servers certifying for the 'dynamic' certification profile are required to support the grant types 'authorization_code' and 'implicit'.";

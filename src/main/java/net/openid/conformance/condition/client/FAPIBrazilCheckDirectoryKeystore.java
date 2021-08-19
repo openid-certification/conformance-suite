@@ -11,7 +11,8 @@ public class FAPIBrazilCheckDirectoryKeystore extends AbstractCondition {
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
-		String keystore = getStringFromEnvironment(env, "config", "directory.keystore");
+		String keystore = getStringFromEnvironment(env, "config", "directory.keystore",
+			"Directory Keystore base in test configuration");
 
 		if (!keystore.equals(BRAZIL_DIRECTORY_KEYSTORE)) {
 			throw error("Testing for Brazil certification must be done using the Brazil directory. If you do not have access to the directory an example client is available in the conformance suite instructions.",

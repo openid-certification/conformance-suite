@@ -18,7 +18,7 @@ public class ExtractSignedJwtFromResourceResponse extends AbstractExtractJWT {
 
 		env.removeObject("consent_endpoint_response");
 
-		String consentEndpointJws = env.getString("consent_endpoint_response_full", "body");
+		String consentEndpointJws = env.getString("endpoint_response", "body");
 
 		try {
 			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(consentEndpointJws);

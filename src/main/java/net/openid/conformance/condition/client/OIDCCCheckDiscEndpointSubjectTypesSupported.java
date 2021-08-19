@@ -9,7 +9,7 @@ public class OIDCCCheckDiscEndpointSubjectTypesSupported extends AbstractValidat
 
 	private static final String environmentVariable = "subject_types_supported";
 
-	private static final String[] SET_VALUES = new String[] { "public", "pairwise" };
+	private static final String[] SET_VALUES = { "public", "pairwise" };
 	private static final int minimumMatchesRequired = 1;
 
 	private static final String errorMessageNotEnough = environmentVariable + " is required to contain at least one of public or pairwise";

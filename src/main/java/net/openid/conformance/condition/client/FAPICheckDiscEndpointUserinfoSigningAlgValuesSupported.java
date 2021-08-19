@@ -9,7 +9,7 @@ public class FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported extends Abst
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "PS256", "ES256" };
+	private static final String[] SET_VALUES = { "PS256", "ES256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 

@@ -194,15 +194,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/**
 	 * Get a string from the environment, throwing a condition error if missing/not a string
 	 */
-	protected String getStringFromEnvironment(Environment env, String key, String path) {
+	protected String getStringFromEnvironment(Environment env, String key, String path, String friendlyName) {
 		JsonElement value = env.getElementFromObject(key, path);
 
 		if (value == null) {
-			throw error(key+"."+path+" is missing", args("key", env.getObject(key)));
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
 		}
 
 		if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-			throw error(key+"."+path+" is not a string", args("value", value));
+			throw error(friendlyName+" is not a string", args("value", value));
 		}
 
 		return OIDFJSON.getString(value);
@@ -546,7 +546,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		}
 
-		TrustManager[] trustAllCerts = new TrustManager[] {
+		TrustManager[] trustAllCerts = {
 			new X509TrustManager() {
 
 				@Override

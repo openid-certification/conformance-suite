@@ -9,7 +9,7 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsRS25
 
 	private static final String ENVIRONMENT_VARIABLE = "request_object_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256" };
+	private static final String[] SET_VALUES = { "RS256" };
 
 	private static final String ERROR_MESSAGE_NOT_ENOUGH = "Discovery endpoint request_object_signing_alg_values_supported does not include RS256.";
 

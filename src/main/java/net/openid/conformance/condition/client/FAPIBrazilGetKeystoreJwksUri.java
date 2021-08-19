@@ -9,9 +9,10 @@ import net.openid.conformance.testmodule.Environment;
 public class FAPIBrazilGetKeystoreJwksUri extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"consent_endpoint_response_jwt"})
+	@PreEnvironment(required = {"config"})
 	public Environment evaluate(Environment env) {
-		String keystore = getStringFromEnvironment(env, "config", "directory.keystore");
+		String keystore = getStringFromEnvironment(env, "config", "directory.keystore",
+			"Directory Keystore base in test configuration");
 
 		String orgId = env.getString("config", "resource.brazilOrganizationId");
 		if (Strings.isNullOrEmpty(orgId)) {

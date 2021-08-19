@@ -1,4 +1,4 @@
-package net.openid.conformance.frontChannel;
+package net.openid.conformance.frontchannel;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CookieManager;

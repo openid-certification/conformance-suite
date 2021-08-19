@@ -33,6 +33,12 @@
 	</rule>
 
 	<rule ref="category/java/errorprone.xml">
+		<!-- AbstractCondition triggers this for not closing BasicHttpClientConnectionManager. It doesn't appear to
+		be vital to close it. -->
+		<exclude name="CloseResource"/>
+		<!-- We do this in a few places, some of which look very intentional. -->
+		<exclude name="ReturnEmptyCollectionRatherThanNull"/>
+
 		<!-- These are excluded just because the codebase, at the time PMD was added, raised a number of these
 		  warnings. No analysis has been done on whether they're good checks to exclude. -->
 		<exclude name="BeanMembersShouldSerialize"/>
@@ -48,12 +54,40 @@
 		<exclude name="NonStaticInitializer"/>
 	</rule>
 
+	<rule ref="category/java/codestyle.xml">
+		<!-- These are excluded mainly because the codebase, at the time this ruleset was added, raised a number of these
+		  warnings. No indepth analysis was done. -->
+		<exclude name="MethodArgumentCouldBeFinal"/>
+		<exclude name="LocalVariableCouldBeFinal"/>
+		<exclude name="LongVariable"/>
+		<exclude name="CommentDefaultAccessModifier"/>
+		<exclude name="ShortVariable"/>
+		<exclude name="ShortClassName"/>
+		<exclude name="OnlyOneReturn"/>
+		<exclude name="UnnecessaryLocalBeforeReturn"/>
+		<exclude name="PrematureDeclaration"/>
+		<exclude name="ShortMethodName"/>
+		<exclude name="UnnecessaryImport"/>
+		<exclude name="UnnecessaryAnnotationValueElement"/>
+		<exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
+		<exclude name="FieldNamingConventions"/>
+		<exclude name="LinguisticNaming"/>
+		<exclude name="UnnecessaryModifier"/>
+		<exclude name="FieldDeclarationsShouldBeAtStartOfClass"/>
+		<exclude name="UselessParentheses"/>
+		<exclude name="AtLeastOneConstructor"/>
+		<exclude name="ConfusingTernary"/>
+		<exclude name="LocalVariableNamingConventions"/>
+		<exclude name="CallSuperInConstructor"/>
+		<exclude name="ClassNamingConventions"/>
+		<exclude name="UseUnderscoresInNumericLiterals"/>
+	</rule>
+
 	<!--
 	   We should probably enable more rules one day
 	<rule ref="category/java/design.xml"></rule>
 	<rule ref="category/java/bestpractices.xml"></rule>
 	<rule ref="category/java/documentation.xml"></rule>
-	<rule ref="category/java/codestyle.xml"></rule>
 	<rule ref="category/java/performance.xml"></rule>
 	<rule ref="category/java/security.xml"></rule>
 	-->

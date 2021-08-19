@@ -26,7 +26,7 @@ public class ValidateIdTokenACRClaimAgainstRequest extends AbstractCondition {
 
 		JsonElement requestedAcrValue = env.getElementFromObject("authorization_endpoint_request", "claims.id_token.acr.value");
 		JsonElement requestedAcrValues = env.getElementFromObject("authorization_endpoint_request", "claims.id_token.acr.values");
-		ArrayList<String> requestedValues = new ArrayList<String>();
+		ArrayList<String> requestedValues = new ArrayList<>();
 		if (requestedAcrValues != null) {
 			for (JsonElement value : requestedAcrValues.getAsJsonArray()) {
 				String val = OIDFJSON.getString(value);

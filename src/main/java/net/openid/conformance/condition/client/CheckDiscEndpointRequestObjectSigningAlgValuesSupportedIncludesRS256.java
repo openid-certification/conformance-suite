@@ -9,7 +9,7 @@ public class CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS25
 
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256" };
+	private static final String[] SET_VALUES = { "RS256" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "The server does not support RS256; this is a 'should' in https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata - note that support for 'none' (unsigned request objects) is not required as use of this is discouraged in many circumstances, see https://gitlab.com/openid/conformance-suite/-/issues/826";

@@ -48,10 +48,10 @@ public class TestHelper {
 		this.exportedFrom = export.getExportedFrom();
 		this.exportedBy = export.getExportedBy();
 		this.suiteVersion = export.getExportedVersion();
-		if(export.getTestInfo() instanceof net.openid.conformance.info.TestInfo) {
-			this.testInfoObject = (net.openid.conformance.info.TestInfo) export.getTestInfo();
-		} else if(export.getTestInfo() instanceof net.openid.conformance.info.PublicTestInfo) {
-			this.publicTestInfo = (net.openid.conformance.info.PublicTestInfo)export.getTestInfo();
+		if(export.getTestInfo() instanceof TestInfo) {
+			this.testInfoObject = (TestInfo) export.getTestInfo();
+		} else if(export.getTestInfo() instanceof PublicTestInfo) {
+			this.publicTestInfo = (PublicTestInfo)export.getTestInfo();
 		} else if(export.getTestInfo() instanceof Document) {
 			this.testInfoDocument = (Document) ((Document) export.getTestInfo()).get("testInfo");
 		} else {

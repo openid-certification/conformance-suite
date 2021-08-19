@@ -49,7 +49,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 			if (brazilPayments) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 			} else {
-				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.WARNING);
 			}
 		}
 	}

@@ -9,7 +9,7 @@ public class FAPIAuCdrCheckDiscEndpointClaimsSupported extends AbstractValidateJ
 
 	private static final String environmentVariable = "claims_supported";
 
-	private static final String[] SET_VALUES = new String[] { "acr", "sharing_duration" };
+	private static final String[] SET_VALUES = { "acr", "sharing_duration" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";

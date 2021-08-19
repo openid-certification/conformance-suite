@@ -9,7 +9,7 @@ public class FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported extends
 
 	private static final String environmentVariable = "request_object_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "PS256", "ES256" };
+	private static final String[] SET_VALUES = { "PS256", "ES256" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 
