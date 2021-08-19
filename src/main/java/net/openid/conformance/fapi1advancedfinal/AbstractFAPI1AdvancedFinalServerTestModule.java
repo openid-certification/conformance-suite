@@ -714,6 +714,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		if (brazilPayments) {
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 
@@ -736,7 +737,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 			call(exec().unmapKey("endpoint_response"));
-
+			call(exec().unmapKey("endpoint_response_jwt"));
 		} else {
 			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 		}
