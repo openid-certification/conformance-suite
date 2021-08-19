@@ -38,7 +38,7 @@
         "configuration-filename": "authlete-fapi-brazil-*.json",
         "current-block": "",
         "condition": "FAPIBrazilMustTestUsingPayments",
-        "expected-result": "failure",
+        "expected-result": "warning",
         "comment": "The Authlete config we currently have is only good for accounts access"
     },
     {
@@ -47,7 +47,7 @@
         "configuration-filename": "authlete-fapi-brazil-dcr.json",
         "current-block": "",
         "condition": "FAPIBrazilMustTestUsingPayments",
-        "expected-result": "failure",
+        "expected-result": "warning",
         "comment": "The Authlete config we currently have is only good for accounts access"
     },
     {
