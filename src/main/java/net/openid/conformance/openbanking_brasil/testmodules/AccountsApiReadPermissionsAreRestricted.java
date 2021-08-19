@@ -37,6 +37,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountSelector.class);
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 

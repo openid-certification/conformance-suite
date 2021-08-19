@@ -28,6 +28,7 @@ public class AccountApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 	}
 
