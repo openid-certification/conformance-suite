@@ -9,7 +9,7 @@ public class FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedConta
 
 	private static final String environmentVariable = "request_object_encryption_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RSA-OAEP" };
+	private static final String[] SET_VALUES = { "RSA-OAEP" };
 
 	private static final String errorMessageNotEnough = "RSA-OAEP support is required but it is not listed in 'request_object_encryption_alg_values_supported'";
 

@@ -9,7 +9,7 @@ public class OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported extends Abs
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] {};
+	private static final String[] SET_VALUES = {};
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	// There are no required values in this case ("none" MAY be included), so the "not enough"

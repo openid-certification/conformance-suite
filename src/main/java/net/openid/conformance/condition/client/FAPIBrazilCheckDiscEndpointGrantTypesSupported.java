@@ -9,7 +9,7 @@ public class FAPIBrazilCheckDiscEndpointGrantTypesSupported extends AbstractVali
 
 	private static final String environmentVariable = "grant_types_supported";
 
-	private static final String[] SET_VALUES = new String[] { "authorization_code", "client_credentials", "refresh_token" };
+	private static final String[] SET_VALUES = { "authorization_code", "client_credentials", "refresh_token" };
 	private static final int minimumMatchesRequired = 3;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";

@@ -9,7 +9,7 @@ public class CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256 ext
 
 	private static final String environmentVariable = "userinfo_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256" };
+	private static final String[] SET_VALUES = { "RS256" };
 
 	private static final String errorMessageNotEnough = "RS256 is not listed in userinfo_signing_alg_values_supported";
 

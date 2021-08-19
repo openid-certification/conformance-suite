@@ -457,8 +457,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		call(sequence(addTokenEndpointAuthToRegistrationRequest));
 
-		if (additionalClientRegistrationSteps != null)
+		if (additionalClientRegistrationSteps != null) {
 			call(sequence(additionalClientRegistrationSteps));
+		}
 
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
@@ -520,8 +521,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performPreAuthorizationSteps() {
-		if (preAuthorizationSteps != null)
+		if (preAuthorizationSteps != null) {
 			call(sequence(preAuthorizationSteps));
+		}
 	}
 
 	/** Return which client is in use, for use in block identifiers */
@@ -715,8 +717,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
-		if (additionalProfileAuthorizationEndpointSetupSteps != null)
+		if (additionalProfileAuthorizationEndpointSetupSteps != null) {
 			call(sequence(additionalProfileAuthorizationEndpointSetupSteps));
+		}
 	}
 
 	protected void callTokenEndpointForCibaGrant() {
@@ -898,8 +901,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileIdTokenValidation() {
-		if (additionalProfileIdTokenValidationSteps != null)
+		if (additionalProfileIdTokenValidationSteps != null) {
 			call(sequence(additionalProfileIdTokenValidationSteps));
+		}
 	}
 
 	protected void callAutomatedEndpoint() {

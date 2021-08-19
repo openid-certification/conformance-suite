@@ -9,7 +9,7 @@ public class FAPIRWCheckDiscEndpointJARMResponseModesSupported extends AbstractV
 
 	private static final String environmentVariable = "response_modes_supported";
 
-	private static final String[] SET_VALUES = new String[]{"jwt"};
+	private static final String[] SET_VALUES = {"jwt"};
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 

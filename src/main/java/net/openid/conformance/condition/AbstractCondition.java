@@ -546,7 +546,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		}
 
-		TrustManager[] trustAllCerts = new TrustManager[] {
+		TrustManager[] trustAllCerts = {
 			new X509TrustManager() {
 
 				@Override

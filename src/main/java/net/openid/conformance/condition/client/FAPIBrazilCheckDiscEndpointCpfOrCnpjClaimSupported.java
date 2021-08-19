@@ -9,7 +9,7 @@ public class FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported extends Abstract
 
 	private static final String environmentVariable = "claims_supported";
 
-	private static final String[] SET_VALUES = new String[] { "cpf", "cnpj" };
+	private static final String[] SET_VALUES = { "cpf", "cnpj" };
 	private static final int minimumMatchesRequired = 1;
 
 	private static final String errorMessageNotEnough = "The server must support at least one of the 'cpf' or 'cnpj' claims.";

@@ -116,7 +116,7 @@ public class VariantService {
 		// Walk the class hierarchy and collect annotations - we do this because
 		// combining @Repeatable with @Inherited doesn't give all annotations (in general).
 
-		LinkedList<Class<?>> classes = new LinkedList<Class<?>>();
+		LinkedList<Class<?>> classes = new LinkedList<>();
 		for (Class<?> c = testClass; TestModule.class.isAssignableFrom(c); c = c.getSuperclass()) {
 			classes.addFirst(c);
 		}
@@ -442,8 +442,9 @@ public class VariantService {
 				}
 
 				Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> selectedVariant = typedVariant(new VariantSelection(selectedStringVariants), parametersByName);
-				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant))
+				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant)) {
 					return;
+				}
 
 				testModules.add(new Plan.Module(testPlanModuleWithVariant.module.info.testName(), testPlanModuleWithVariant.variantAsStrings()));
 			});
