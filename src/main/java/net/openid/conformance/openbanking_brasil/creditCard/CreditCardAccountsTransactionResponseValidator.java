@@ -65,7 +65,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		assertField(data,
 			new StringField
 				.Builder("transactionName")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(100)
 				.build());
 

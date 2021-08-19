@@ -32,6 +32,7 @@ build:
     - if: $CI_COMMIT_BRANCH == "master"
   stage: build
   script:
+    - set_app_version
     - mvn -B -Dpmd.skip clean package
   artifacts:
     paths:
@@ -43,6 +44,7 @@ dev_build:
    - if: $CI_COMMIT_BRANCH != "master"
   stage: build
   script:
+    - set_app_version
     - mvn -B -Dpmd.skip clean package
   artifacts:
     paths:
@@ -582,7 +584,24 @@ upload:
   function run_ciba_test_plan() {
       echo "Running automated tests against $CONFORMANCE_SERVER"
       ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
-    }
+  }
+
+  function set_app_version() {
+    echo "Set application version to GitLab $CI_PIPELINE_ID"
+
+    pwd 
+
+    ls -la
+
+    echo "Before"
+    cat src/main/resources/application.properties
+
+    sed -i "/fintechlabs.version=.*/ s/$/ build: $CI_PIPELINE_ID/" src/main/resources/application.properties
+
+    echo "After"
+    cat src/main/resources/application.properties
+
+  }
 
 before_script:
   - *auto_devops
