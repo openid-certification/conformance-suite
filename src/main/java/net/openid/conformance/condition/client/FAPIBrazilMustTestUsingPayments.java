@@ -8,7 +8,7 @@ public class FAPIBrazilMustTestUsingPayments extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		throw error("Brazil testing must be done using the payments API. Please specify payments in the scope and use the payments endpoints.");
+		throw error("Phase 3 testing for Brazil must be done using the payments API. Please specify payments in the scope and use the payments endpoints.");
 	}
 
 }
