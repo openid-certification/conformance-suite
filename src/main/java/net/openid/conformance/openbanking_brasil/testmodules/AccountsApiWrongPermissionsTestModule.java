@@ -34,6 +34,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 
 	@Override
 	protected void prepareCorrectConsents() {
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 	}
 
