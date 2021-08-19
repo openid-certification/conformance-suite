@@ -37,7 +37,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void validateResponse() {
-		callAndContinueOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 	}
 
 }
