@@ -12,7 +12,7 @@ public class EnsureResponseCodeWas403 extends AbstractCondition {
 		if(status != HttpStatus.FORBIDDEN.value()) {
 			throw error("Was expecting a 403 response");
 		} else {
-			logSuccess("403 response status, as expeted");
+			logSuccess("403 response status, as expected");
 		}
 		return env;
 	}
