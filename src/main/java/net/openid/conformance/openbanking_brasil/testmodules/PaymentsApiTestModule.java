@@ -1,8 +1,11 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -27,13 +30,14 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(AddPaymentScope.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-
+		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 	}
 
 }
