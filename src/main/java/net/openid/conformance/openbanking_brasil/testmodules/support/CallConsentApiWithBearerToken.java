@@ -103,7 +103,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 
 			HttpEntity<String> request;
 			if (method.equals("GET")) {
-				request = new HttpEntity<>("{}", headers);
+				request = new HttpEntity<>(null, headers);
 			} else {
 				request = new HttpEntity<>(requestObject.toString(), headers);
 			}
