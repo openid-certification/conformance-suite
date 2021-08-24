@@ -12,6 +12,7 @@ import net.openid.conformance.plan.TestPlan;
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant consents API",
 	testModules = {
 		ConsentApiTestModule.class,
+		ConsentApiBadScopeTestModule.class,
 		ConsentApiNegativeTests.class,
 		ConsentsApiPermissionGroupsTestModule.class,
 		ConsentsApiCrossClientTestModule.class,
