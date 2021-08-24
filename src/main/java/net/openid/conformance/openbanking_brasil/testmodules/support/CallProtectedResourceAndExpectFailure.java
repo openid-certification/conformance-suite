@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 
-public class CallProtetedResourceAndExpectFailure extends AbstractCallProtectedResourceWithBearerToken {
+public class CallProtectedResourceAndExpectFailure extends AbstractCallProtectedResourceWithBearerToken {
 
 	@Override
 	@PreEnvironment(required = "access_token", strings = "protected_resource_url")
