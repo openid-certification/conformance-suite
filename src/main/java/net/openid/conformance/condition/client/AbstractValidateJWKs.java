@@ -84,6 +84,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			//    The JWK x5c parameter MAY be used to provide X.509 representations of keys provided.
 			//    When used, the bare key values MUST still be present and MUST match those in the certificate
 			//Nimbusds performs this check besides other checks like missing properties etc while parsing
+			@SuppressWarnings("unused")
 
 			JWK jwk = JWK.parse(keyObject.toString());
 		} catch (ParseException ex) {

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
 
-public abstract class VariantConverters {
+public class VariantConverters {
 
 	private VariantConverters() {}
 
