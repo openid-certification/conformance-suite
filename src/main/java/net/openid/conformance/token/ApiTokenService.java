@@ -42,8 +42,9 @@ public class ApiTokenService implements ResourceServerTokenServices {
 	private TokenInfo checkToken(String accessToken) {
 
 		Map tokenInfoMap = tokenService.findToken(accessToken);
-		if (tokenInfoMap == null)
+		if (tokenInfoMap == null) {
 			return null;
+		}
 
 		JsonObject tokenInfoObj = (JsonObject) new Gson().toJsonTree(tokenInfoMap);
 

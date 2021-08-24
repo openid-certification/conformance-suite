@@ -15,6 +15,4 @@ public class CheckCIBAServerConfiguration extends AbstractCheckServerConfigurati
 			"issuer");
 	}
 
-	@Override
-	protected void ensureUrl(Environment in, String path) {}
 }

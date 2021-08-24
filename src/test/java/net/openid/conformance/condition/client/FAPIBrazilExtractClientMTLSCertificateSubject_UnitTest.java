@@ -155,6 +155,66 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 		assertThat(env.getString("certificate_subject", "brazil_software_id")).isEqualTo("be42d3a5-9861-4305-9deb-a22756ea7e82");
 	}
 
+	@Test
+	public void testEvaluate_newStyleCertNonAsciiNoError() {
+
+		// the subject dn here contains a non-ascii character
+		String nonasciicertnewstyle =
+			"MIIHBDCCBeygAwIBAgIUV/7salO4KWBvff6GBmiUV25KZtcwDQYJKoZIhvcNAQEL" +
+				"BQAwcTELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx" +
+				"FTATBgNVBAsTDE9wZW4gQmFua2luZzEtMCsGA1UEAxMkT3BlbiBCYW5raW5nIFNB" +
+				"TkRCT1ggSXNzdWluZyBDQSAtIEcxMB4XDTIxMDcyNjIxNDcwMFoXDTIyMDgyNTIx" +
+				"NDcwMFowggEYMQswCQYDVQQGEwJCUjELMAkGA1UECBMCU1AxEzARBgNVBAcMClPD" +
+				"o28gUGF1bG8xGzAZBgNVBAoTEk5VIFBBR0FNRU5UT1MgUy5BLjEtMCsGA1UECxMk" +
+				"OTI2ZTMwMzctYTY4NS01NTNjLWFmYTMtZjdjYjQ2ZmY4MDg0MRgwFgYDVQQDDA8q" +
+				"Lm51YmFuay5jb20uYnIxFzAVBgNVBAUTDjE4MjM2MTIwMDAwMTU4MR0wGwYDVQQP" +
+				"ExRQcml2YXRlIE9yZ2FuaXphdGlvbjETMBEGCysGAQQBgjc8AgEDEwJCUjE0MDIG" +
+				"CgmSJomT8ixkAQETJDgxMmI1NzdkLWEzNjQtNGRlNS1hOTBhLTVlZjRkNGVjYzI5" +
+				"YzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAO0KLoK+kLogejVZ1WRx" +
+				"aRQ6FGhlJWMEUtRrPn+9967YlcvNGwX8b7kX4PlVW1SKLnsF4UUrFSJPhfV3ugJu" +
+				"bemTf0Jb8v4J99FU0CMVt7GpW8eTJW+WsttSzBl/qKNT54UDg8v7W5ljKY6e1nhT" +
+				"DcpbmBi9kaxW7HM9htjjgPG1NgFalfnDxhzsgpCPjJK+21zGHy/g20J1VRj1ZwVe" +
+				"3C0nc1bL5+uGcJcYlZXQsUiU1JSE6SOYBljx9bW3On8Qb0y/4RzU5EFhF1PzxC95" +
+				"ncuDf2poVgNaj42EKy3RBGPoQe6yvOk1Y6g6PPkCqXiLZ88Tnuqf6JYPvBSgbGic" +
+				"av8CAwEAAaOCAukwggLlMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFHSZfMuyb+CV" +
+				"NIqRKAloODkY1hCVMB8GA1UdIwQYMBaAFIZ/WK0X9YK2TrQFs/uwzhFD30y+MEwG" +
+				"CCsGAQUFBwEBBEAwPjA8BggrBgEFBQcwAYYwaHR0cDovL29jc3Auc2FuZGJveC5w" +
+				"a2kub3BlbmJhbmtpbmdicmFzaWwub3JnLmJyMEsGA1UdHwREMEIwQKA+oDyGOmh0" +
+				"dHA6Ly9jcmwuc2FuZGJveC5wa2kub3BlbmJhbmtpbmdicmFzaWwub3JnLmJyL2lz" +
+				"c3Vlci5jcmwwMAYDVR0RBCkwJ4Ilc3RhZ2luZy1vcGVuYmFua2luZy5hcGkubnVi" +
+				"YW5rLmNvbS5icjAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwIw" +
+				"ggGhBgNVHSAEggGYMIIBlDCCAZAGCisGAQQBg7ovZAEwggGAMIIBNgYIKwYBBQUH" +
+				"AgIwggEoDIIBJFRoaXMgQ2VydGlmaWNhdGUgaXMgc29sZWx5IGZvciB1c2Ugd2l0" +
+				"aCBSYWlkaWFtIFNlcnZpY2VzIExpbWl0ZWQgYW5kIG90aGVyIHBhcnRpY2lwYXRp" +
+				"bmcgb3JnYW5pc2F0aW9ucyB1c2luZyBSYWlkaWFtIFNlcnZpY2VzIExpbWl0ZWRz" +
+				"IFRydXN0IEZyYW1ld29yayBTZXJ2aWNlcy4gSXRzIHJlY2VpcHQsIHBvc3Nlc3Np" +
+				"b24gb3IgdXNlIGNvbnN0aXR1dGVzIGFjY2VwdGFuY2Ugb2YgdGhlIFJhaWRpYW0g" +
+				"U2VydmljZXMgTHRkIENlcnRpY2ljYXRlIFBvbGljeSBhbmQgcmVsYXRlZCBkb2N1" +
+				"bWVudHMgdGhlcmVpbi4wRAYIKwYBBQUHAgEWOGh0dHA6Ly9jcHMuc2FuZGJveC5w" +
+				"a2kub3BlbmJhbmtpbmdicmFzaWwub3JnLmJyL3BvbGljaWVzMA0GCSqGSIb3DQEB" +
+				"CwUAA4IBAQBVjz/yo28Qu6hJjRg6lCJxd5NwsMvupl0ohOpWejNCWGCO/cPO1sGA" +
+				"ZPYyz0FxUC3Lz5DEW03sKQOOTv3H7HcjSXo5JXmIvIy8JE2pLRuhigLwoxOlbvVY" +
+				"jC8FasX1OmXq83Cy/JitGCS++vc6JXCO2KJrArw1S+PxnrG+gAERgBBcg3Nj/lH0" +
+				"xTWsRUtoWwhoK07mypQ/9769wQq3y48m2m307KUwtMmYMWh161DZ8QmD6qn+lXcH" +
+				"n54KdVk8vP6xud2MMY1COt+OY+EzC7bYMt+IvgCLadLrP0Q3TD0Ny10Oo3SaqDij" +
+				"+0KLn13iUIwuJajWqcce+fUC+7Nq11/9";
+
+		JsonObject config = new JsonParser().parse("{"
+			+ "\"cert\":\"" + nonasciicertnewstyle + "\""
+			+ "}").getAsJsonObject();
+
+		env.putObject("mutual_tls_authentication", config);
+
+		cond.execute(env);
+
+		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "cert");
+
+		// note that subjectdn includes a number of numeric oids - see comment in FAPIBrazilExtractClientMTLSCertificateSubject.java
+		assertThat(env.getString("certificate_subject", "subjectdn")).isEqualTo("UID=812b577d-a364-4de5-a90a-5ef4d4ecc29c,1.3.6.1.4.1.311.60.2.1.3=#13024252,2.5.4.15=#131450726976617465204f7267616e697a6174696f6e,2.5.4.5=#130e3138323336313230303030313538,CN=*.nubank.com.br,OU=926e3037-a685-553c-afa3-f7cb46ff8084,O=NU PAGAMENTOS S.A.,L=São Paulo,ST=SP,C=BR");
+		assertThat(env.getString("certificate_subject", "ou")).isEqualTo("926e3037-a685-553c-afa3-f7cb46ff8084");
+		assertThat(env.getString("certificate_subject", "brazil_software_id")).isEqualTo("812b577d-a364-4de5-a90a-5ef4d4ecc29c");
+	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 		cond.execute(env);

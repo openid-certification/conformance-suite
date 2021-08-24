@@ -380,8 +380,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
-		if (authorizationCodeGrantTypeProfileSteps != null)
+		if (authorizationCodeGrantTypeProfileSteps != null) {
 			call(sequence(authorizationCodeGrantTypeProfileSteps));
+		}
 
 		callAndStopOnFailure(SignIdToken.class);
 
@@ -468,8 +469,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 
-		if (authorizationEndpointProfileSteps != null)
+		if (authorizationEndpointProfileSteps != null) {
 			call(sequence(authorizationEndpointProfileSteps));
+		}
 
 		callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 
@@ -577,8 +579,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
-		if (accountsEndpointProfileSteps != null)
+		if (accountsEndpointProfileSteps != null) {
 			call(sequence(accountsEndpointProfileSteps));
+		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 

@@ -56,14 +56,18 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "e", "n");
 
-				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
+				if (checkPrivatePart) {
+					verifyPrivatePart(jwks, keyObject);
+				}
 			} else if ("EC".equals(kty)) {
 
 				checkMissingKey(keyObject, "x", "y");
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "x", "y");
 
-				if (checkPrivatePart) verifyPrivatePart(jwks, keyObject);
+				if (checkPrivatePart) {
+					verifyPrivatePart(jwks, keyObject);
+				}
 			}
 			parseJWKWithNimbus(keyObject);
 		});
@@ -177,13 +181,13 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 	private void checkValidStructureInJwks(JsonElement jwks) {
 		if (jwks == null) {
-			throw error("Couldn't find JWKs in configuration");
+			throw error("Couldn't find JWKS in configuration");
 		} else if (!(jwks instanceof JsonObject)) {
-			throw error("Invalid JWKs in configuration - not a JSON object", args("jwks", jwks));
+			throw error("Invalid JWKS (Json Web Key Set) in configuration - it must be a JSON object that contains a 'keys' array.", args("jwks", jwks));
 		}
 
 		if (!jwks.getAsJsonObject().has("keys") || !jwks.getAsJsonObject().get("keys").isJsonArray()) {
-			throw error("Keys array not found in JWKs", args("jwks", jwks));
+			throw error("Keys array not found in JWKS", args("jwks", jwks));
 		}
 	}
 

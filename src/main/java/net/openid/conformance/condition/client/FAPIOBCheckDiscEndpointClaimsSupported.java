@@ -9,7 +9,7 @@ public class FAPIOBCheckDiscEndpointClaimsSupported extends AbstractValidateJson
 
 	private static final String environmentVariable = "claims_supported";
 
-	private static final String[] SET_VALUES = new String[] { "acr", "openbanking_intent_id" };
+	private static final String[] SET_VALUES = { "acr", "openbanking_intent_id" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required claims.";

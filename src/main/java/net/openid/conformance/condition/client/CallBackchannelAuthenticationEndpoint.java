@@ -35,8 +35,6 @@ import java.util.Collections;
 
 public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallBackchannelAuthenticationEndpoint.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "backchannel_authentication_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "backchannel_authentication_endpoint_response")
@@ -88,7 +86,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 				jsonString = response.getBody();
 			} catch (RestClientResponseException e) {
-				throw error("Error from the backchannel authentication endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from the backchannel authentication endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				String msg = "Call to backchannel authentication endpoint " + bcAuthEndpoint + " failed";
 				if (e.getCause() != null) {
@@ -119,7 +117,6 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 

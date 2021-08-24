@@ -3,7 +3,6 @@ package net.openid.conformance.condition.common;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.openid.conformance.condition.as.EnsureClientCertificateCNMatchesClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -7,8 +7,6 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,8 +29,6 @@ import static java.util.stream.Collectors.*;
 
 @Component
 public class VariantService {
-	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
-
 	private static final String SEARCH_PACKAGE = "net.openid";
 
 	private final Map<Class<?>, ParameterHolder<? extends Enum<?>>> variantParametersByClass;
@@ -120,7 +116,7 @@ public class VariantService {
 		// Walk the class hierarchy and collect annotations - we do this because
 		// combining @Repeatable with @Inherited doesn't give all annotations (in general).
 
-		LinkedList<Class<?>> classes = new LinkedList<Class<?>>();
+		LinkedList<Class<?>> classes = new LinkedList<>();
 		for (Class<?> c = testClass; TestModule.class.isAssignableFrom(c); c = c.getSuperclass()) {
 			classes.addFirst(c);
 		}
@@ -317,8 +313,8 @@ public class VariantService {
 			return list.stream().flatMap(moduleListEntry -> {
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()
 					.map(variant -> {
-						ParameterHolder<?> p = parameter(variant.variant); // used to convert specific enum val into a wildcard one
-						return Map.entry(variant.variant, p.valueOf(variant.value));
+						ParameterHolder<?> p = parameter(variant.key); // used to convert specific enum val into a wildcard one
+						return Map.entry(variant.key, p.valueOf(variant.value));
 					})
 					.collect(toOrderedMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -359,9 +355,6 @@ public class VariantService {
 			if (list != null) {
 				// module list is defined by the result of the testModulesWithVariants() method
 				this.modulesWithVariant = convertModuleListEntry(planClass.getSimpleName(), list);
-
-				logger.info(list.toString());
-
 			} else {
 				// module list comes from annotation
 				this.modulesWithVariant = Arrays.stream(info.testModules())
@@ -406,6 +399,31 @@ public class VariantService {
 			return new ArrayList<>(fields);
 		}
 
+		public String certificationProfileForVariant(VariantSelection variantSelection) {
+			String certProfile = null;
+
+			try {
+				// Test plans can implement a static method to list modules with variants to run them with; as
+				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
+				// we have to call this via reflection:
+				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
+				Object result = m.invoke(null, variantSelection);
+				certProfile = (String) result;
+			} catch (NoSuchMethodException e) {
+				// class doesn't implement this so doesn't have any certification profiles
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
+			} catch (InvocationTargetException e) {
+				Throwable target = e.getTargetException();
+				if (target instanceof RuntimeException) {
+					throw (RuntimeException) target;
+				}
+				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
+			}
+
+			return certProfile;
+		}
+
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
 			List<Plan.Module> testModules = new ArrayList<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
@@ -424,8 +442,9 @@ public class VariantService {
 				}
 
 				Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> selectedVariant = typedVariant(new VariantSelection(selectedStringVariants), parametersByName);
-				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant))
+				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant)) {
 					return;
+				}
 
 				testModules.add(new Plan.Module(testPlanModuleWithVariant.module.info.testName(), testPlanModuleWithVariant.variantAsStrings()));
 			});

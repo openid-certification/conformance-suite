@@ -70,16 +70,17 @@ public class DBTestPlanService implements TestPlanService {
 		update.filterArray(updateCriteria);
 
 		var result = mongoTemplate.updateFirst(query, update, COLLECTION);
-		if (result.getModifiedCount() != 1)
+		if (result.getModifiedCount() != 1) {
 			throw new RuntimeException(String.format("failed to add module '%s'('%s') to test plan id '%s' - modifiedCount=%d",
-				testName, variant!=null?variant.toString():"variant=null", planId, result.getModifiedCount()));
+				testName, variant != null ? variant.toString() : "variant=null", planId, result.getModifiedCount()));
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, TestPlan)
 	 */
 	@Override
-	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<Plan.Module> testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String certificationProfileName, List<Plan.Module> testModules, String summary, String publish) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -91,6 +92,7 @@ public class DBTestPlanService implements TestPlanService {
 				Instant.now(),
 				owner,
 				description, // for the specific instance
+				certificationProfileName,
 				testModules,
 				version,
 				summary, // from the plan definition
@@ -226,8 +228,9 @@ public class DBTestPlanService implements TestPlanService {
 
 		UpdateResult result = mongoTemplate.updateFirst(query, update, COLLECTION);
 
-		if (result.getMatchedCount() == 0)
+		if (result.getMatchedCount() == 0) {
 			return false;
+		}
 
 		// We need to update all the latest test results (if possible) as well
 

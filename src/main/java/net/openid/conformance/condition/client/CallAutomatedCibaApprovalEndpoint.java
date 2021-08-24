@@ -60,7 +60,7 @@ public class CallAutomatedCibaApprovalEndpoint extends AbstractCondition {
 				jsonString = restTemplate.postForObject(url, request, String.class, uriVariables);
 				logSuccess("Successfully called "+configPath+" endpoint", args("response", jsonString));
 			} catch (RestClientResponseException e) {
-				throw error("Error from the "+configPath+" endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from the "+configPath+" endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				String msg = "Call to automated ciba approval endpoint " + configPath + " failed";
 				if (e.getCause() != null) {

@@ -4,15 +4,11 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
@@ -24,6 +20,7 @@ import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForC
 import net.openid.conformance.openid.AbstractOIDCCServerTest.ConfigureClientForMtls;
 import net.openid.conformance.openid.AbstractOIDCCServerTest.CreateAuthorizationRequestSteps;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
@@ -142,11 +139,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
 		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
 	}

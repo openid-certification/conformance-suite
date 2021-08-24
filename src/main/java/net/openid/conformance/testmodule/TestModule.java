@@ -1,7 +1,7 @@
 package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.frontChannel.BrowserControl;
+import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;

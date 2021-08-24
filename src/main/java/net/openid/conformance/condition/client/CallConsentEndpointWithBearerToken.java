@@ -16,7 +16,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -34,8 +33,6 @@ import java.util.Collections;
 
 
 public class CallConsentEndpointWithBearerToken extends AbstractCondition {
-
-	private static final Logger logger = LoggerFactory.getLogger(CallConsentEndpointWithBearerToken.class);
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" })
@@ -73,12 +70,6 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			headers.set("Authorization", "Bearer " + accessToken);
 
-
-			// Stop RestTemplate from overwriting the Accept-Charset header
-			StringHttpMessageConverter converter = new StringHttpMessageConverter();
-			converter.setWriteAcceptCharset(false);
-			restTemplate.setMessageConverters(Collections.singletonList(converter));
-
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
 			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.POST, request, String.class);
@@ -109,9 +100,8 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 				}
 			}
 		} catch (RestClientResponseException e) {
-			throw error("Error from the consent endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			throw error("Error from the consent endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {
 			String msg = "Call to consent endpoint " + resourceEndpoint + " failed";

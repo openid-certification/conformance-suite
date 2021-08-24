@@ -14,7 +14,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -73,11 +72,6 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8));
 			headers.set("Authorization", "Bearer " + accessToken);
 
-			// Stop RestTemplate from overwriting the Accept-Charset header
-			StringHttpMessageConverter converter = new StringHttpMessageConverter();
-			converter.setWriteAcceptCharset(false);
-			restTemplate.setMessageConverters(Collections.singletonList(converter));
-
 			HttpEntity<String> request = new HttpEntity<>(null, headers);
 
 			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.GET, request, String.class);
@@ -107,7 +101,7 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 				return env;
 			}
 		} catch (RestClientResponseException e) {
-			throw error("Error from the software statement endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			throw error("Error from the software statement endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		} catch (RestClientException e) {

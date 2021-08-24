@@ -10,7 +10,7 @@ public class EnsureServerConfigurationSupportsClientSecretBasic extends Abstract
 
 	private static final String environmentVariable = "token_endpoint_auth_methods_supported";
 
-	private static final String[] SET_VALUES = new String[] { "client_secret_basic" };
+	private static final String[] SET_VALUES = { "client_secret_basic" };
 
 	private static final String errorMessageNotEnough = "server discovery document contains token_endpoint_auth_methods_supported which does not contain client_secret_basic";
 

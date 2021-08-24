@@ -9,7 +9,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.condition.client.WaitFor5Seconds;
-import net.openid.conformance.frontChannel.BrowserControl;
+import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -630,7 +630,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param result
 	 *            the result to set
 	 */
-	protected void setResult(Result result) {
+	private void setResult(Result result) {
 		this.result = result;
 		testInfo.updateTestResult(getId(), getResult());
 	}
