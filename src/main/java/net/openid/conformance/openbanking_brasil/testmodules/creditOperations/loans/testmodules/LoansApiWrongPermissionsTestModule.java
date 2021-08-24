@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.lo
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.PrepareUrlForFetchingLoanContractWarrantiesResource;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.PrepareUrlForLoansRoot;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.ProvideIncorrectPermissionsForLoansApi;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddLoansScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
@@ -37,6 +38,7 @@ public class LoansApiWrongPermissionsTestModule extends AbstractPermissionsCheck
 	@Override
 	protected void prepareCorrectConsents() {
 		callAndStopOnFailure(AddOpenIdScope.class);
+		callAndStopOnFailure(AddLoansScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 	}
 

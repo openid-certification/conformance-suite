@@ -78,6 +78,8 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertField(body,
 			new DoubleField
 				.Builder("amount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setMaxLength(20)
 				.setMinLength(0)
 				.build());
 
@@ -133,7 +135,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("partieCheckDigit")
 				.setMaxLength(1)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 }

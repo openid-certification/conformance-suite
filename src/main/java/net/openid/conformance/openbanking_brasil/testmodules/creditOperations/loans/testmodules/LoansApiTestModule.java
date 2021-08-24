@@ -39,6 +39,7 @@ public class LoansApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddOpenIdScope.class);
+		callAndStopOnFailure(AddLoansScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 	}
 

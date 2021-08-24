@@ -32,6 +32,10 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 		assertField(data,
 			new DoubleField
 				.Builder("availableAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setMaxLength(20)
+				.setMinLength(0)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -44,6 +48,10 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 		assertField(data,
 			new DoubleField
 				.Builder("blockedAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setMinLength(20)
+				.setMinLength(0)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -56,6 +64,10 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 		assertField(data,
 			new DoubleField
 				.Builder("automaticallyInvestedAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setMaxLength(20)
+				.setMinLength(0)
+				.setNullable()
 				.build());
 
 		assertField(data,

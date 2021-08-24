@@ -58,7 +58,7 @@ public class AccountIdentificationResponseValidator extends AbstractJsonAssertin
 		assertField(data,
 			new StringField
 				.Builder("checkDigit")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(1)
 				.build());
 
