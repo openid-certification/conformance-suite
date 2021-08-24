@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -27,10 +28,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		return super.createOBBPreauthSteps().
+			replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class));
+	}
+
+	@Override
 	protected void performPreAuthorizationSteps() {
-		call(new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication)
-			.replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class))
-		);
+		super.performPreAuthorizationSteps();
 		callAndContinueOnFailure(WaitFor2Seconds.class);
 		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
