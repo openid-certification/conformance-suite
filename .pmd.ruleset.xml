@@ -97,7 +97,6 @@
 		<exclude name="UseTryWithResources"/>
 		<exclude name="DoubleBraceInitialization"/>
 		<exclude name="SwitchStmtsShouldHaveDefault"/>
-		<exclude name="UnusedPrivateField"/>
 		<!-- a potentially useful rule, but triggers loads of false positives as we have many real classes that have
 		 'Test' in their name, and isn't configurable enough -->
 		<exclude name="JUnit4TestShouldUseTestAnnotation"/>
