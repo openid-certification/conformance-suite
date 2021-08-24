@@ -42,8 +42,7 @@ public abstract class AbstractPermissionsCheckingFunctionalTestModule extends Ab
 
 		requestResourcesWithIncorrectPermissions();
 		forceReleaseLock();
-		setResult(Result.PASSED);
-		setStatus(Status.FINISHED);
+		fireTestFinished();
 
 	}
 

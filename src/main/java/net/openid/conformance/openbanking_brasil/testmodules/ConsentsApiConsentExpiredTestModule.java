@@ -55,8 +55,6 @@ public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctio
 
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
 
-		setResult(Result.PASSED);
-
 		fireTestFinished();
 	}
 

@@ -64,8 +64,6 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 		validateResponse();
 		eventLog.endBlock();
 
-		setResult(Result.PASSED);
-
 		fireTestFinished();
 	}
 
