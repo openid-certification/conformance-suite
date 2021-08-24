@@ -35,7 +35,7 @@ public class CallProtetedResourceAndExpectFailure extends AbstractCallProtectedR
 	}
 
 	@Override
-	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders) {
+	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
 		// RFC6750 §3.1 (referenced by FAPI-R §6.2.1 etc) only states that the resource server SHOULD respond with HTTP 4xx codes.
 		// We allow a JSON error response, but warn about the status code.
