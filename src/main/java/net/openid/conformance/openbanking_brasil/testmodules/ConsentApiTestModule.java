@@ -40,7 +40,6 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
-
 		runInBlock("Validating get consent response", () -> {
 			callAndStopOnFailure(ConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
