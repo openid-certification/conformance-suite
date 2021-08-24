@@ -40,6 +40,7 @@ public class OIDCCRpInitiatedLogoutBadIdTokenHint extends AbstractOIDCCRpInitiat
 		}
 	}
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		callAndStopOnFailure(GenerateFakeIdTokenClaims.class);
 		callAndStopOnFailure(SignFakeIdToken.class);

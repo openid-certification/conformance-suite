@@ -17,6 +17,7 @@ public class CallUserInfoEndpointWithBearerToken extends AbstractCallProtectedRe
 		return callProtectedResource(env);
 	}
 
+	@Override
 	protected String getUri(Environment env) {
 
 		String resourceUri = env.getString("server", "userinfo_endpoint");

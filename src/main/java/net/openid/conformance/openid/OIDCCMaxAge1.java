@@ -70,6 +70,7 @@ public class OIDCCMaxAge1 extends AbstractOIDCCServerTest {
 		}
 	}
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (firstTime) {
 			firstTime = false;

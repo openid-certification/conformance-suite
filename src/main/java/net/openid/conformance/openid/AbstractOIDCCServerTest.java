@@ -527,6 +527,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
 	}
 
+	@Override
 	protected void processCallback() {
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 

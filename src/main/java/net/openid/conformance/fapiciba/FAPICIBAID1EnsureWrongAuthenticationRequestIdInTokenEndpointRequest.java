@@ -68,6 +68,7 @@ public class FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest
 		cleanupAfterBackchannelRequestShouldHaveFailed();
 	}
 
+	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 		// we've already done the testing; we just approved the authentication so that we don't leave an
 		// in-progress authentication lying around that would sometime later send an 'expired' ping

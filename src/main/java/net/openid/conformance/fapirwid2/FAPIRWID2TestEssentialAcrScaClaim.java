@@ -42,6 +42,7 @@ import net.openid.conformance.variant.VariantSetup;
 public class FAPIRWID2TestEssentialAcrScaClaim extends AbstractFAPIRWID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@VariantSetup(parameter = FAPIRWOPProfile.class, value = "openbanking_uk")
+	@Override
 	public void setupOpenBankingUk() {
 		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;

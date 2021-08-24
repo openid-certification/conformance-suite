@@ -26,6 +26,7 @@ public class FAPIRWID2ClientTestInvalidSignature extends AbstractFAPIRWID2Client
 		//Do Nothing
 	}
 
+	@Override
 	protected void addCustomSignatureOfIdToken(){
 
 		callAndStopOnFailure(InvalidateIdTokenSignature.class, "OIDCC-3.1.3.7-6");

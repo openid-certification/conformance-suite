@@ -78,6 +78,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private boolean logged = false;
 	private boolean throwRequired = false;
 
+	@Override
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		this.testId = testId;
 		this.log = log;

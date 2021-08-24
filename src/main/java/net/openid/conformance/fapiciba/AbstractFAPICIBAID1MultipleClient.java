@@ -24,6 +24,7 @@ public abstract class AbstractFAPICIBAID1MultipleClient extends AbstractFAPICIBA
 	}
 
 	/** Return which client is in use, for use in block identifiers */
+	@Override
 	protected String currentClientString() {
 		if (isSecondClient()) {
 			return "Second client: ";

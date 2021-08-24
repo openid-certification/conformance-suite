@@ -580,6 +580,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 	}
 
+	@Override
 	protected void processCallback() {
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");

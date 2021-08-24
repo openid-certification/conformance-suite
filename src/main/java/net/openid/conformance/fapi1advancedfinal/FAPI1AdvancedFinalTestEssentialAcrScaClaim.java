@@ -42,6 +42,7 @@ import net.openid.conformance.variant.VariantSetup;
 public class FAPI1AdvancedFinalTestEssentialAcrScaClaim extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@Override
 	public void setupOpenBankingUk() {
 		super.setupOpenBankingUk();
 		profileAuthorizationEndpointSetupSteps = OpenBankingUkAuthorizationEndpointOverridingSetup.class;

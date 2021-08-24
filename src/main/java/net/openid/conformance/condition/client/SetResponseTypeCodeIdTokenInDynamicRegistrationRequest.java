@@ -9,6 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class SetResponseTypeCodeIdTokenInDynamicRegistrationRequest extends AbstractSetResponseTypeInDynamicRegistrationRequest {
 
+	@Override
 	protected String responseType() {
 		return "code id_token";
 	}

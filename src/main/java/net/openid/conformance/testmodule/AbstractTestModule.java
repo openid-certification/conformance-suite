@@ -868,6 +868,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	@Override
 	public void handleException(TestInterruptedException error, String source) {
 		logger.error(getId() + ": Caught an error in '"+source+"' while running the test, stopping the test: " + error.getMessage());
 
