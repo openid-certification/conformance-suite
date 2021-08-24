@@ -81,6 +81,7 @@
 		<exclude name="CallSuperInConstructor"/>
 		<exclude name="ClassNamingConventions"/>
 		<exclude name="UseUnderscoresInNumericLiterals"/>
+		<exclude name="PackageCase"/>
 	</rule>
 
 	<!--

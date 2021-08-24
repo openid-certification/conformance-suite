@@ -25,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.openid.conformance.testmodule.OIDFJSON.*;
+import static net.openid.conformance.testmodule.OIDFJSON.UnexpectedJsonTypeException;
 
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
@@ -230,7 +230,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertJsonField(JsonObject jsonObject, String path, String expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		String stringValue = getOrFail(() -> getString(actual));
+		String stringValue = getOrFail(() -> OIDFJSON.getString(actual));
 		if (!stringValue.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
 		}
@@ -245,7 +245,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertJsonField(JsonObject jsonObject, String path, String... expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		List<String> array = getOrFail(() -> getStringArray(actual));
+		List<String> array = getOrFail(() -> OIDFJSON.getStringArray(actual));
 		List<String> found = Arrays.stream(expected)
 			.filter(s -> !array.contains(s))
 			.collect(Collectors.toList());
@@ -256,7 +256,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertJsonField(JsonObject jsonObject, String path, Number expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		Number number = getOrFail(() -> getNumber(actual));
+		Number number = getOrFail(() -> OIDFJSON.getNumber(actual));
 		if (!number.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
 		}
@@ -264,7 +264,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertJsonField(JsonObject jsonObject, String path, Character expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		Character c = getOrFail(() -> getCharacter(actual));
+		Character c = getOrFail(() -> OIDFJSON.getCharacter(actual));
 		if (!c.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
 		}
@@ -272,7 +272,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void assertJsonField(JsonObject jsonObject, String path, boolean expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		Boolean bool = getOrFail(() -> getBoolean(actual));
+		Boolean bool = getOrFail(() -> OIDFJSON.getBoolean(actual));
 		if (!bool.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
 		}
@@ -320,7 +320,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertLatitude(JsonObject jsonObject, Field doubleField) {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
-			String rawValue = getString(found);
+			String rawValue = OIDFJSON.getString(found);
 			double latitude = Double.parseDouble(rawValue);
 			if (latitude > 90.0 || latitude < -90.0) {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
@@ -335,7 +335,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertLongitude(JsonObject jsonObject, Field doubleField) {
 		JsonElement found = findByPath(jsonObject, doubleField.getPath());
 		try {
-			String rawValue = getString(found);
+			String rawValue = OIDFJSON.getString(found);
 			double Longitude = Double.parseDouble(rawValue);
 			if (Longitude > 180.0 || Longitude < -180.0) {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
@@ -448,10 +448,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findByPath(jsonObject, path);
 		String stringValue = "";
 		try {
-			stringValue = getString(actual);
+			stringValue = OIDFJSON.getString(actual);
 		} catch (UnexpectedJsonTypeException e) {
 			try {
-				stringValue = String.valueOf(getNumber(actual));
+				stringValue = String.valueOf(OIDFJSON.getNumber(actual));
 			} catch (UnexpectedJsonTypeException ex) {
 				throw error(String.format("Path %s was not a string or number", path), jsonObject);
 			}
@@ -463,7 +463,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findDoubleByPath(jsonObject, path);
 		String stringValue = "";
 			try {
-				stringValue = String.valueOf(getNumber(actual));
+				stringValue = String.valueOf(OIDFJSON.getNumber(actual));
 			} catch (UnexpectedJsonTypeException ex) {
 				throw error(String.format("Path %s was not a number", path), jsonObject);
 		}

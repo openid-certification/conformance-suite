@@ -51,20 +51,8 @@ public class CallSimpleEndpoint extends AbstractCondition {
 			env.putObject("response", parsedResponse);
 			logSuccess("Reponse successfully obtained from API");
 
-		} catch (UnrecoverableKeyException e) {
+		} catch (UnrecoverableKeyException|KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		} catch (CertificateException exception) {
-			exception.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyStoreException e) {
-			e.printStackTrace();
-		} catch (IOException exception) {
-			exception.printStackTrace();
 		}
 		return env;
 	}
