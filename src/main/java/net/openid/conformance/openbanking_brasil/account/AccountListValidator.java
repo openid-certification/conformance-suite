@@ -35,7 +35,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-				.setPattern(".+")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 
@@ -76,7 +76,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("checkDigit")
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(1)
 				.build());
 
