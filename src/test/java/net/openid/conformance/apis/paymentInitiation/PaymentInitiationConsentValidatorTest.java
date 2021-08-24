@@ -56,4 +56,20 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("creationDateTime")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/consent/paymentInitiationConsentResponse(WrongExpirationTimeTooOld).json")
+	public void validateStructureWithExpirationOld() {
+		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldIsntInSecondsRange("expirationDateTime")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/consent/paymentInitiationConsentResponse(WrongExpirationTimeTooYoung).json")
+	public void validateStructureWithExpirationYoung() {
+		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldIsntInSecondsRange("expirationDateTime")));
+	}
 }

@@ -63,6 +63,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new DatetimeField
 				.Builder("expirationDateTime")
+				.setSecondsOlderThan(300, "creationDateTime")
 				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 

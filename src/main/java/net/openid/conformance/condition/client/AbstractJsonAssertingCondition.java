@@ -94,7 +94,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
 			if (field instanceof DatetimeField) {
-				assertPatternAndTimeRange(value, (DatetimeField) field);
+				assertPatternAndTimeRange(value, (DatetimeField) field, jsonObject);
 			}
 		} else if (field instanceof IntField) {
 			assertHasIntField(jsonObject, field.getPath());
@@ -399,6 +399,11 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			"on the %s API response", elementName, getApiName());
 	}
 
+	public String createFieldIsntInSecondsRange(String elementName) {
+		return String.format("Value from element %s is older or younger then the required limit " +
+			"on the %s API response", elementName, getApiName());
+	}
+
 	public String createFieldValueIsLessThanMinimum(String elementName) {
 		return String.format("Value from element %s is less than the required minimum " +
 			"on the %s API response", elementName, getApiName());
@@ -465,13 +470,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return stringValue;
 	}
 
-	private void assertPatternAndTimeRange(String stringFieldValue, DatetimeField field) {
+	private void assertPatternAndTimeRange(String stringFieldValue, DatetimeField field, JsonObject jsonObject) {
 		if (!field.getPattern().isEmpty()) {
 			assertRegexMatchesField(stringFieldValue, field.getPath(),
 				RegexMatch.regex(field.getPattern()));
 		}
 		if (field.getDaysOlderAccepted() > 0) {
 			assertDaysOlderAccepted(stringFieldValue, field.getPath(), field.getDaysOlderAccepted());
+		}
+		if (field.getSecondsOlderThanSeconds() > 0) {
+			assertSecondsComparison(field.getSecondsOlderThanSeconds(), field.getPath(), stringFieldValue, getJsonValueAsString(jsonObject, field.getSecondsOlderThanString()));
 		}
 	}
 
@@ -538,6 +546,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private void assertDaysOlderAccepted(String stringValue, String path, int daysOlderAccepted) {
 		if (Instant.parse(stringValue).isAfter(Instant.now().plus(daysOlderAccepted, ChronoUnit.DAYS))) {
 			throw error(createFieldValueIsOlderThanLimit(path));
+		}
+	}
+
+	private void assertSecondsComparison(int secondsOlder, String path, String currentValue, String valueComparedTo) {
+		System.out.println("Current value: " + currentValue);
+		System.out.println("Value to compare to: " + valueComparedTo);
+		System.out.println("Path: " + path);
+		System.out.println("Seconds older: " + secondsOlder);
+		System.out.println();
+		if (Instant.parse(currentValue).isAfter(Instant.parse(valueComparedTo).plus(secondsOlder+5, ChronoUnit.SECONDS)) || Instant.parse(currentValue).isBefore(Instant.parse(valueComparedTo).plus(secondsOlder, ChronoUnit.SECONDS))) {
+			throw error(createFieldIsntInSecondsRange(path));
 		}
 	}
 
