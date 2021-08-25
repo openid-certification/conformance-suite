@@ -41,7 +41,7 @@ public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrant
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 				.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetBadScopeOnTokenEndpointRequest.class))));
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
-			callAndStopOnFailure(EnsureResponseCodeWas403.class);
+			callAndStopOnFailure(EnsureResponseCodeWas400.class);
 		});
 
 
