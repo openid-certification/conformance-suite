@@ -135,7 +135,8 @@ public class TestExecutionManager {
 	/**
 	 * Run a finalisation task
 	 *
-	 * This is just like a normal task, except there can only ever be one of them.
+	 * This is just like a normal task, except there can only ever be one of them. It should only be used by
+	 * AbstractTestModule to run it's finalisation task from fireTestFinished().
 	 */
 	public synchronized void runFinalisationTaskInBackground(Callable<?> callable) {
 		if (!finalisationStarted) {
