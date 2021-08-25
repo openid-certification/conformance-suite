@@ -31,10 +31,6 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
 		String consentPermissions = env.getString("consent_permissions");
 		if (Strings.isNullOrEmpty(consentPermissions)) {
-			String scope = env.getString("client", "scope");
-			if (Strings.isNullOrEmpty(scope)) {
-				throw error("scope missing from client configuration");
-			}
 			// We previously used just:
 			//   "ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "RESOURCES_READ"
 			// however some banks don't support these, resulting in the tests failing.
