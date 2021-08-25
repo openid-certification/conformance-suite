@@ -15,6 +15,7 @@ public class StringArrayField extends Field {
 			super(path);
 		}
 
+		@Override
 		public StringArrayField build() {
 			return new StringArrayField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);

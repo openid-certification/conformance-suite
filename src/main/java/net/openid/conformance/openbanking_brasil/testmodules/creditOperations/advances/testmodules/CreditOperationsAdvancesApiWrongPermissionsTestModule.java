@@ -52,10 +52,12 @@ public class CreditOperationsAdvancesApiWrongPermissionsTestModule extends Abstr
 		preCallProtectedResource("Fetch Loans Payments");
 	}
 
+	@Override
 	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForAdvancesApi.class);
 	}
 
+	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the CreditOperation Advances root API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceRoot.class);

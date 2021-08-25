@@ -9,6 +9,7 @@ public class CheckConsentStatus extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = "consent_id")
 	public Environment evaluate(Environment env) {
+		@SuppressWarnings("unused")
 		String consentId = env.getString("consent_id");
 		return env;
 	}

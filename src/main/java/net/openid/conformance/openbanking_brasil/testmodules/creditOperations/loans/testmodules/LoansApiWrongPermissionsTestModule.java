@@ -55,10 +55,12 @@ public class LoansApiWrongPermissionsTestModule extends AbstractPermissionsCheck
 		preCallProtectedResource("Fetch Loans Payments");
 	}
 
+	@Override
 	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForLoansApi.class);
 	}
 
+	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the Loans root API", () -> {
 			callAndStopOnFailure(PrepareUrlForLoansRoot.class);

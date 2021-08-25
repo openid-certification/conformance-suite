@@ -14,6 +14,7 @@ public class BooleanField extends Field {
 			super(path);
 		}
 
+		@Override
 		public BooleanField build() {
 			return new BooleanField(this.optional, this.nullable, this.path);
 		}

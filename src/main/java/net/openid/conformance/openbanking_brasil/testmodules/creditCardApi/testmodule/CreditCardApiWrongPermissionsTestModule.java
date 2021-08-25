@@ -52,10 +52,12 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		preCallProtectedResource("Fetch CreditCard Bills Transaction");
 	}
 
+	@Override
 	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForCreditCardApi.class);
 	}
 
+	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		//TODO: need to check why CreditCardRoot not returning 403 on a mock bank
 		runInBlock("Ensure we cannot call the CreditCard Root API", () -> {

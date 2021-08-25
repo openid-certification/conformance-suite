@@ -43,6 +43,7 @@ public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctio
 
 
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);

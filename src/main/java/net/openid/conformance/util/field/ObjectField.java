@@ -24,6 +24,7 @@ public class ObjectField extends Field {
 			super(path);
 		}
 
+		@Override
 		public ObjectField build() {
 			return new ObjectField(this.optional, this.nullable, this.path, this.validator);
 		}

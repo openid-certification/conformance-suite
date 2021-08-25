@@ -51,6 +51,7 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 
 	}
 
+	@Override
 	protected void configureClient() {
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
@@ -66,6 +67,7 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 
 	}
 
+	@Override
 	protected void switchToSecondClient() {
 
 	}

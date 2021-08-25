@@ -36,6 +36,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
 	public static final String ROOT_PATH = "$.data";
 
+	@Override
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
@@ -249,7 +250,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		List<String> found = Arrays.stream(expected)
 			.filter(s -> !array.contains(s))
 			.collect(Collectors.toList());
-		if (found.size() != 0) {
+		if (found.size() != 0) { //NOPMD
 			throw error(String.format("Headers did not contain all of %s", String.join(" ", expected)), jsonObject);
 		}
 	}
@@ -550,11 +551,11 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	private void assertSecondsComparison(int secondsOlder, String path, String currentValue, String valueComparedTo) {
-		System.out.println("Current value: " + currentValue);
-		System.out.println("Value to compare to: " + valueComparedTo);
-		System.out.println("Path: " + path);
-		System.out.println("Seconds older: " + secondsOlder);
-		System.out.println();
+//		System.out.println("Current value: " + currentValue);
+//		System.out.println("Value to compare to: " + valueComparedTo);
+//		System.out.println("Path: " + path);
+//		System.out.println("Seconds older: " + secondsOlder);
+//		System.out.println();
 		if (Instant.parse(currentValue).isAfter(Instant.parse(valueComparedTo).plus(secondsOlder+5, ChronoUnit.SECONDS)) || Instant.parse(currentValue).isBefore(Instant.parse(valueComparedTo).plus(secondsOlder, ChronoUnit.SECONDS))) {
 			throw error(createFieldIsntInSecondsRange(path));
 		}

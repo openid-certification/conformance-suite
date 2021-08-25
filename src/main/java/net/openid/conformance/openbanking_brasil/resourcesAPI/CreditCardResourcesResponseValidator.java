@@ -37,8 +37,6 @@ public class CreditCardResourcesResponseValidator extends AbstractJsonAssertingC
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumType = Sets.newHashSet("CREDIT_CARD_ACCOUNT");
-
 		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 		assertField(body,
 			new StringField

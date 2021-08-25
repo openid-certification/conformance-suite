@@ -51,10 +51,12 @@ public class CreditOperationsDiscountedApiWrongPermissionsTestModule extends Abs
 		preCallProtectedResource("Discounted Credit Rights - Contract Instalments");
 	}
 
+	@Override
 	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForCreditCardApi.class);
 	}
 
+	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the Discounted Credit Rights root", () -> {
 			callAndStopOnFailure(PrepareUrlForDiscountedRoot.class);

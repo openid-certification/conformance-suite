@@ -42,6 +42,7 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
