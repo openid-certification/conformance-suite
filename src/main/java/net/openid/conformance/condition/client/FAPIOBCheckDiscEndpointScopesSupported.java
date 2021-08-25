@@ -9,7 +9,7 @@ public class FAPIOBCheckDiscEndpointScopesSupported extends AbstractValidateJson
 
 	private static final String environmentVariable = "scopes_supported";
 
-	private static final String[] SET_VALUES = new String[] { "openid", "accounts" };
+	private static final String[] SET_VALUES = { "openid", "accounts" };
 	private static final int minimumMatchesRequired = 2;
 
 	private static final String errorMessageNotEnough = "The server does not support enough of the required scopes";

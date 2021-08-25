@@ -9,7 +9,7 @@ public class OIDCCCheckDiscEndpointResponseTypesSupportedDynamic extends Abstrac
 
 	private static final String environmentVariable = "response_types_supported";
 
-	private static final String[] SET_VALUES = new String[]{"code", "id_token", "token id_token"}; // from OIDCD-3
+	private static final String[] SET_VALUES = {"code", "id_token", "token id_token"}; // from OIDCD-3
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "The server does not support all of the mandatory to implement response_types for dynamic OpenID Providers.";

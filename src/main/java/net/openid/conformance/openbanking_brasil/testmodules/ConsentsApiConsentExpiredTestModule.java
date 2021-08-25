@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -27,16 +28,22 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		return super.createOBBPreauthSteps().
+			replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class));
+	}
+
+	@Override
 	protected void performPreAuthorizationSteps() {
-		call(new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication)
-			.replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class))
-		);
+		super.performPreAuthorizationSteps();
 		callAndContinueOnFailure(WaitFor2Seconds.class);
 		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
 
 
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
@@ -45,17 +52,13 @@ public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctio
 
 		callAndStopOnFailure(CheckAuthorizationEndpointHasError.class);
 
-		if (jarm) {
-			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING);
-		} else {
-			callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING);
-		}
+		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+
+		callAndContinueOnFailure(EnsureAccessDeniedErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
-
-		setResult(Result.PASSED);
 
 		fireTestFinished();
 	}

@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.rs;
 
-import net.openid.conformance.condition.as.EnsureClientCertificateCNMatchesClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

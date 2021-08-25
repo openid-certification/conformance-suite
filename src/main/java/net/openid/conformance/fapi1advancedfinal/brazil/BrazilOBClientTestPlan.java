@@ -30,9 +30,12 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-brazil-client-test-plan",
@@ -45,6 +48,46 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.rptest
 )
 public class BrazilOBClientTestPlan implements TestPlan {
+	public static String certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "BR-OB Adv. RP w/";
+
+		Map<String, String> v = variant.getVariant();
+		String clientAuth = v.get("client_auth_type");
+		String responseMode = v.get("fapi_response_mode");
+		String jarmType = v.get("fapi_jarm_type");
+
+		switch (clientAuth) {
+			case "private_key_jwt":
+				certProfile += " Private Key";
+				break;
+			case "mtls":
+				certProfile += " MTLS";
+				break;
+		}
+
+		switch (responseMode) {
+			case "plain_response":
+				// nothing
+				break;
+			case "jarm":
+				certProfile += ", JARM";
+				switch(jarmType) {
+					case "oidc":
+						certProfile += " (OpenID Connect)";
+						break;
+					case "plain_oauth":
+						certProfile += " (OAuth)";
+						break;
+					default:
+						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
+							MethodHandles.lookup().lookupClass().getSimpleName(), jarmType));
+				}
+				break;
+		}
+		return certProfile;
+	}
+
 	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		List<Class<? extends TestModule>> byValueModules = List.of(
 			FAPI1AdvancedFinalClientTest.class,

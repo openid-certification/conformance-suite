@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 )
 public class OIDCCClient3rdPartyInitiatedLoginTest extends AbstractOIDCCClientTest {
 
+	@Override
 	protected void validateClientMetadata() {
 		callAndStopOnFailure(ValidateClientInitiateLoginUri.class,"OIDCR-2");
 

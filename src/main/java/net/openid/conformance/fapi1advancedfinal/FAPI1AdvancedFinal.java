@@ -1,11 +1,14 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
+import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -39,6 +42,18 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 	)
 public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient {
 
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		if (isBrazil) {
+			if (brazilPayments) {
+				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+			} else {
+				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.WARNING);
+			}
+		}
+	}
+
 	protected void checkAccountRequestEndpointTLS() {
 		eventLog.startBlock("Accounts request endpoint TLS test");
 		env.mapKey("tls", "accounts_request_endpoint_tls");
@@ -69,10 +84,23 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 			// CDR requires this header when the x-fapi-customer-ip-address header is present
 			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 		}
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		if (brazilPayments) {
+			// for non-payments the 'default' call includes ;charset=utf8 and we omit it here (for historical reasons)
+			// - for payments we don't include it by default and set it here
+			callAndStopOnFailure(SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest.class);
+			callAndStopOnFailure(SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest.class);
+		} else {
+			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		}
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		if (brazilPayments) {
+			validateBrazilPaymentInitiationSignedResponse();
+		}
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		if (brazilPayments) {
+			validateBrazilPaymentInitiationSignedResponse();
+		}
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 

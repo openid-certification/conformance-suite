@@ -65,9 +65,8 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					if (!CipherSuite.isSCSV(cipherId)) {
 						CIPHER_NAMES.put(cipherId, name);
 					}
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					// This is not expected to happen; but we'll log it just in case
-					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}

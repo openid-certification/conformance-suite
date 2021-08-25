@@ -15,6 +15,7 @@ public class StringField extends Field {
 			super(path);
 		}
 
+		@Override
 		public StringField build() {
 			return new StringField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);

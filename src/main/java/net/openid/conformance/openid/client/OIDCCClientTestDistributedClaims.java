@@ -45,6 +45,7 @@ public class OIDCCClientTestDistributedClaims extends AbstractOIDCCClientTest {
 		return false;
 	}
 
+	@Override
 	protected void configureUserInfo() {
 		callAndStopOnFailure(OIDCCLoadUserInfoWithDistributedClaims.class);
 	}

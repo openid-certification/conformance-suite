@@ -25,6 +25,7 @@ public class OIDCCRedirectUriQueryMismatch extends AbstractOIDCCServerTestExpect
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}
 
+	@Override
 	protected void configureDynamicClient() {
 
 		callAndStopOnFailure(AddQueryToRedirectUri.class);
@@ -33,6 +34,7 @@ public class OIDCCRedirectUriQueryMismatch extends AbstractOIDCCServerTestExpect
 		super.configureDynamicClient();
 	}
 
+	@Override
 	protected void createAuthorizationRequest() {
 		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(ReplaceRedirectUriQueryInAuthorizationRequest.class)));

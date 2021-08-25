@@ -70,6 +70,7 @@ public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1A
 		fireTestFinished();
 	}
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 		callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "RFC7636-4.4.1");
 		fireTestFinished();

@@ -37,8 +37,6 @@ public class AccountResourcesResponseValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumType = Sets.newHashSet("ACCOUNT");
-
 		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 		assertField(body,
 			new StringField

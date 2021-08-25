@@ -1,0 +1,17 @@
+package net.openid.conformance.condition.client;
+
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.common.AbstractInvalidateJwsSignature;
+import net.openid.conformance.testmodule.Environment;
+
+public class InvalidateConsentEndpointRequestSignature extends AbstractInvalidateJwsSignature {
+
+	@Override
+	@PreEnvironment(strings = "consent_endpoint_request_signed")
+	@PostEnvironment(strings = "consent_endpoint_request_signed")
+	public Environment evaluate(Environment env) {
+		return invalidateSignature(env, "consent_endpoint_request_signed");
+	}
+
+}

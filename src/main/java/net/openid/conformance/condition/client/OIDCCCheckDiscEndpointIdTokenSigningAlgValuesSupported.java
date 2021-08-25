@@ -9,7 +9,7 @@ public class OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported extends Abst
 
 	private static final String environmentVariable = "id_token_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "RS256" };
+	private static final String[] SET_VALUES = { "RS256" };
 	private static final int minimumMatchesRequired = SET_VALUES.length;
 
 	private static final String errorMessageNotEnough = "RS256 support is required, but the server does not list it in " + environmentVariable;

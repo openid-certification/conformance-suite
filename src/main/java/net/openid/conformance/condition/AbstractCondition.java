@@ -4,12 +4,15 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -20,13 +23,14 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.KeyManager;
@@ -42,6 +46,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -71,7 +76,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
 	private boolean logged = false;
+	private boolean throwRequired = false;
 
+	@Override
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
 		this.testId = testId;
 		this.log = log;
@@ -119,6 +126,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (!logged) {
 				log.log(this.getMessage(),
 					args("msg", "Condition ran but did not log anything"));
+			}
+			if (throwRequired) {
+				throw error("Test logged a non-success result but did not throw an error");
 			}
 
 			// check the environment to make sure the condition did what it claimed to
@@ -182,13 +192,44 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return this.testId;
 	}
 
+	/**
+	 * Get a string from the environment, throwing a condition error if missing/not a string
+	 */
+	protected String getStringFromEnvironment(Environment env, String key, String path, String friendlyName) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+			throw error(friendlyName+" is not a string", args("value", value));
+		}
+
+		return OIDFJSON.getString(value);
+	}
+
 	/*
 	 * Logging utilities
 	 */
 
+	private void checkLoggedResults(String result) {
+		if (!result.equals(ConditionResult.SUCCESS.toString()) &&
+		    !result.equals(ConditionResult.INFO.toString()) &&
+		    !result.equals(ConditionResult.REVIEW.toString())) {
+			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
+			// not be updated
+			throwRequired = true;
+		}
+	}
+
 	protected void log(JsonObject obj) {
 		log.log(getMessage(), obj);
 		logged = true;
+		if (obj.has("result")) {
+			String result = OIDFJSON.getString(obj.get("result"));
+			checkLoggedResults(result);
+		}
 	}
 
 	protected void log(String msg) {
@@ -199,6 +240,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	protected void log(Map<String, Object> map) {
 		log.log(getMessage(), map);
 		logged = true;
+		if (map.containsKey("result")) {
+			String result = map.get("result").toString();
+			checkLoggedResults(result);
+		}
 	}
 
 	protected void log(String msg, JsonObject in) {
@@ -269,6 +314,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	/*
 	 * Automatically log failures or warnings, depending on if this is an optional test
+	 *
+	 * Note that this does NOT cause the test result to move to warning/failure - it is better for a test condition
+	 * to throw error(). If there are a need to call logFailure directly (for example, making multiple checks in
+	 * a single condition) then the condition author must ensure it throws an error at the end if any checks have
+	 * failed.
 	 */
 
 	protected void logFailure(JsonObject in) {
@@ -497,7 +547,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		}
 
-		TrustManager[] trustAllCerts = new TrustManager[] {
+		TrustManager[] trustAllCerts = {
 			new X509TrustManager() {
 
 				@Override
@@ -549,6 +599,20 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
+
+		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
+
+		// fix the StringHttpMessageConverter, but retaining other default converters, as we do use them,
+		// e.g. the map -> urlencoded-form body one
+		converters.stream()
+			.filter(converter -> converter instanceof StringHttpMessageConverter)
+			.forEach(converter -> {
+				StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
+				// the default StringHttpMessageConverter will convert to Latin1, so override it
+				stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+				// Stop StringHttpMessageConverter from adding a default Accept-Charset header
+				stringHttpMessageConverter.setWriteAcceptCharset(false);
+			});
 
 		return restTemplate;
 	}
@@ -620,6 +684,33 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		responseInfo.add("headers", responseHeaders);
 
 		responseInfo.addProperty("body", response.getBody());
+		return responseInfo;
+	}
+
+	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
+		JsonObject responseInfo = convertResponseForEnvironment(endpointName, response);
+
+		String jsonString = response.getBody();
+		if (Strings.isNullOrEmpty(jsonString)) {
+			throw error("Empty response from the "+endpointName+" endpoint");
+		}
+
+		try {
+			JsonElement jsonRoot = new JsonParser().parse(jsonString);
+			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				throw error(endpointName + " endpoint did not return a JSON object.",
+					args("response", jsonString));
+			}
+
+			JsonObject bodyJson = jsonRoot.getAsJsonObject();
+
+			responseInfo.add("body_json", bodyJson);
+
+		} catch (JsonParseException e) {
+			throw error("Response from "+endpointName+" endpoint does not appear to be JSON.", e,
+				args("response", jsonString));
+		}
+
 		return responseInfo;
 	}
 }

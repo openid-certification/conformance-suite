@@ -15,6 +15,7 @@ public class IntField extends Field {
 			super(path);
 		}
 
+		@Override
 		public IntField build() {
 			return new IntField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);

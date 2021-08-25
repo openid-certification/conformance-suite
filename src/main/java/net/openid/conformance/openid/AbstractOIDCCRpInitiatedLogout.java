@@ -68,6 +68,7 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 	}
 
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		eventLog.startBlock("Redirect to end session endpoint & wait for response");
 		callAndStopOnFailure(CreateRandomEndSessionState.class, "OIDCRIL-2", "RFC6749A-A.5");

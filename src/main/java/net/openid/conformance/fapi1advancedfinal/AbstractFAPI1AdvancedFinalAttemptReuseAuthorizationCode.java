@@ -57,12 +57,14 @@ public abstract class AbstractFAPI1AdvancedFinalAttemptReuseAuthorizationCode ex
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
 		generateNewClientAssertionSteps = null;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;

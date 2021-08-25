@@ -71,16 +71,6 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
-	// Specifics for setting up a Static Client for Google
-	@Value("${oidc.google.clientid}")
-	private String googleClientId;
-
-	@Value("${oidc.google.secret}")
-	private String googleClientSecret;
-
-	@Value("${oidc.google.iss:https://accounts.google.com}")
-	private String googleIss;
-
 	// Static Client for gitlab
 	@Value("${oidc.gitlab.clientid}")
 	private String gitlabClientId;

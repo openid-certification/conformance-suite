@@ -42,6 +42,7 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
@@ -50,11 +51,9 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 
 		callAndStopOnFailure(CheckAuthorizationEndpointHasError.class);
 
-		if (jarm) {
-			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING);
-		} else {
-			callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING);
-		}
+		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+
+		callAndContinueOnFailure(EnsureAccessDeniedErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
@@ -63,8 +62,6 @@ public class ConsentsApiConsentStatusIfDeclinedTestModule extends AbstractOBBras
 		eventLog.startBlock(currentClientString() + "Validate response");
 		validateResponse();
 		eventLog.endBlock();
-
-		setResult(Result.PASSED);
 
 		fireTestFinished();
 	}

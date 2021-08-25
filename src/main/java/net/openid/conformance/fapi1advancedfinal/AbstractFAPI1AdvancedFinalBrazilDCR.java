@@ -12,22 +12,20 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
@@ -39,6 +37,7 @@ import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
 
 public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1AdvancedFinalServerTestModule {
@@ -47,6 +46,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		eventLog.startBlock("Obtain access token for directory and retrieve a software statement");
 
 		callAndStopOnFailure(ExtractDirectoryConfiguration.class);
+
+		callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+
+		callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");
@@ -155,12 +158,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 	}
 
 	protected void callRegistrationEndpoint() {
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-
-		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
 		// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);

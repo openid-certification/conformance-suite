@@ -56,6 +56,7 @@ public class OIDCCPromptLogin extends AbstractOIDCCServerTest {
 		}
 	}
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (firstTime) {
 			firstTime = false;

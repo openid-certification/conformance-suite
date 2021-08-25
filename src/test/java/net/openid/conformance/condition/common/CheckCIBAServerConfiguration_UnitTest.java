@@ -48,17 +48,17 @@ public class CheckCIBAServerConfiguration_UnitTest {
 		goodConfig = new JsonParser().parse("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/backauth\","
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutAuthorizationEndpoint = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutTokenEndpoint = new JsonParser().parse("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/backauth\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutIssuer = new JsonParser().parse("{"

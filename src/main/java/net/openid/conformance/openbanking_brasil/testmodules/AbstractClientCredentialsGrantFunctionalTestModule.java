@@ -61,8 +61,7 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 	public void start() {
 		setStatus(Status.RUNNING);
 		runTests();
-		setResult(Result.PASSED);
-		setStatus(Status.FINISHED);
+		fireTestFinished();
 	}
 
 	protected abstract void runTests();

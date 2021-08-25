@@ -33,6 +33,24 @@
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
     {
+        "test-name": "fapi1-advanced-final",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-*.json",
+        "current-block": "",
+        "condition": "FAPIBrazilMustTestUsingPayments",
+        "expected-result": "warning",
+        "comment": "The Authlete config we currently have is only good for accounts access"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "",
+        "condition": "FAPIBrazilMustTestUsingPayments",
+        "expected-result": "warning",
+        "comment": "The Authlete config we currently have is only good for accounts access"
+    },
+    {
         "test-name": "oidcc-codereuse-30seconds",
         "variant": "*",
         "configuration-filename": "authlete-*.json",

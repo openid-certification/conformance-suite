@@ -28,6 +28,8 @@ public class Plan {
 	private Map<String, String> owner;
 	@Indexed
 	private String description;
+	@SuppressWarnings("unused")
+	private String certificationProfileName;
 	private List<Module> modules;
 	private String version;
 	private String summary;
@@ -74,6 +76,7 @@ public class Plan {
 			Instant started,
 			Map<String, String> owner,
 			String description,
+			String certificationProfileName,
 			List<Module> testModules,
 			String version,
 			String summary,
@@ -86,6 +89,7 @@ public class Plan {
 		this.started = started.toString();
 		this.owner = owner;
 		this.description = description;
+		this.certificationProfileName = certificationProfileName;
 		this.modules = testModules;
 		this.version = version;
 		this.summary = summary;

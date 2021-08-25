@@ -39,15 +39,10 @@ import java.util.Collections;
  */
 public class CallTokenEndpoint extends AbstractCondition {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallTokenEndpoint.class);
-
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
-
-		String a = env.getString("token_endpoint");
-		String b = env.getString("server", "token_endpoint");
 
 		String tokenEndpoint = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
@@ -83,7 +78,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 				jsonString = restTemplate.postForObject(tokenEndpoint, request, String.class);
 			} catch (RestClientResponseException e) {
 
-				throw error("Error from the token endpoint", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from the token endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				String msg = "Call to token endpoint " + tokenEndpoint + " failed";
 				if (e.getCause() != null) {
@@ -114,7 +109,6 @@ public class CallTokenEndpoint extends AbstractCondition {
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			logger.warn("Error creating HTTP Client", e);
 			throw error("Error creating HTTP Client", e);
 		}
 

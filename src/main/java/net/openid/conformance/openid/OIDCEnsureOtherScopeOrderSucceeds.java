@@ -12,6 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OIDCEnsureOtherScopeOrderSucceeds extends OIDCCScopeEmail {
 
+	@Override
 	protected void createAuthorizationRequest() {
 		call(new CreateAuthorizationRequestSteps(formPost)
 			.then(condition(ReverseScopeOrderInAuthorizationEndpointRequest.class).requirement("RFC6749-3.3")));

@@ -18,6 +18,7 @@ public class OIDCCSignLogoutTokenWithWrongAlgorithm extends OIDCCSignLogoutToken
 		return super.evaluate(env);
 	}
 
+	@Override
 	protected String getAlg(Environment env) {
 		String signingAlg = env.getString("client", "id_token_signed_response_alg");
 		if(signingAlg==null || signingAlg.isEmpty()) {

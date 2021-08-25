@@ -29,6 +29,7 @@ public interface DataUtils {
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8 = new MediaType("application", "jwt",StandardCharsets.UTF_8);
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JOSE = new MediaType("application", "jose");
+	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT = new MediaType("application", "jwt");
 
 	/**
 	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.

@@ -98,4 +98,25 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions_UnitTest {
 		condition.execute(env);
 	}
 
+	// this is permitted; some banks may not support some permissions
+	@Test
+	public void grantedFewerThanRequested() {
+		String response = "{\"data\":{\"consentId\":\"urn:raidiambank:58fff674-fb3a-4e45-bd10-7153d71d176c\",\"creationDateTime\":\"2021-07-13T12:07:47Z\",\"status\":\"AWAITING_AUTHORISATION\",\"statusUpdateDateTime\":\"2021-07-13T12:07:47Z\",\"permissions\":[\"RESOURCES_READ\",\"ACCOUNTS_BALANCES_READ\",\"ACCOUNTS_READ\"],\"expirationDateTime\":\"2021-07-13T14:07:46Z\"},\"links\":{\"self\":\"/\"},\"meta\":{\"totalRecords\":1,\"totalPages\":1,\"requestDateTime\":\"2021-07-13T12:07:47Z\"}}\n";
+
+		JsonObject o = new JsonParser().parse(response).getAsJsonObject();
+
+		env.putObject("consent_endpoint_response", o);
+
+		JsonArray requestPerms = new JsonArray();
+		for (String s: new String[] { "RESOURCES_READ", "ACCOUNTS_BALANCES_READ", "ACCOUNTS_READ", "FLIBBLE" }) {
+			requestPerms.add(s);
+		}
+		JsonObject brazil = new JsonObject();
+		brazil.add("requested_permissions", requestPerms);
+
+		env.putObject("brazil_consent", brazil);
+
+		condition.execute(env);
+	}
+
 }

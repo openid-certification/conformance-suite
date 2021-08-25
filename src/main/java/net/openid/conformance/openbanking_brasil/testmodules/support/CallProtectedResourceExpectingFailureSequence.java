@@ -18,7 +18,7 @@ public class CallProtectedResourceExpectingFailureSequence extends AbstractCondi
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 
-		callAndStopOnFailure(CallProtetedResourceAndExpectFailure.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 

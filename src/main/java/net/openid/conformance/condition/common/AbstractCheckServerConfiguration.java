@@ -39,7 +39,7 @@ public abstract class AbstractCheckServerConfiguration extends AbstractCondition
 			@SuppressWarnings("unused")
 			URL url = new URL(string);
 		} catch (MalformedURLException e) {
-			throw error("Couldn't parse key as URL", e, args("required", path, "url", string));
+			throw error("Couldn't parse key as URL", e, args("key", path, "url", string));
 		}
 	}
 

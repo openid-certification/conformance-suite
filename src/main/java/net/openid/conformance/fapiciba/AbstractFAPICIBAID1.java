@@ -42,7 +42,6 @@ import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS2
 import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
@@ -77,10 +76,8 @@ import net.openid.conformance.condition.client.CreateEmptyResourceEndpointReques
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -95,7 +92,6 @@ import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenE
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -155,6 +151,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
@@ -460,17 +457,13 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		call(sequence(addTokenEndpointAuthToRegistrationRequest));
 
-		if (additionalClientRegistrationSteps != null)
+		if (additionalClientRegistrationSteps != null) {
 			call(sequence(additionalClientRegistrationSteps));
+		}
 
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
-
-		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE);
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
 		// TODO: we currently do little verification of the dynamic registration response
 
@@ -528,8 +521,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performPreAuthorizationSteps() {
-		if (preAuthorizationSteps != null)
+		if (preAuthorizationSteps != null) {
 			call(sequence(preAuthorizationSteps));
+		}
 	}
 
 	/** Return which client is in use, for use in block identifiers */
@@ -723,8 +717,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
-		if (additionalProfileAuthorizationEndpointSetupSteps != null)
+		if (additionalProfileAuthorizationEndpointSetupSteps != null) {
 			call(sequence(additionalProfileAuthorizationEndpointSetupSteps));
+		}
 	}
 
 	protected void callTokenEndpointForCibaGrant() {
@@ -906,8 +901,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileIdTokenValidation() {
-		if (additionalProfileIdTokenValidationSteps != null)
+		if (additionalProfileIdTokenValidationSteps != null) {
 			call(sequence(additionalProfileIdTokenValidationSteps));
+		}
 	}
 
 	protected void callAutomatedEndpoint() {

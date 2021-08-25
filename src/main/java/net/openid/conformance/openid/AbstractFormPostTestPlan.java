@@ -15,7 +15,7 @@ public class AbstractFormPostTestPlan implements TestPlan {
         for (ModuleListEntry e: normal) {
             List<Variant> variants = new ArrayList<>();
             for (Variant v: e.variant) {
-                if (v.variant == ResponseMode.class) {
+                if (v.key == ResponseMode.class) {
                     variants.add(new Variant(ResponseMode.class, "form_post"));
                     changedList = true;
                 } else {

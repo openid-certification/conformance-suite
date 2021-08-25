@@ -52,7 +52,6 @@ public class MoreConfigurableApiCallTest extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 		callAndStopOnFailure(ValidateHelloMessage.class, Condition.ConditionResult.FAILURE);
-		setResult(Result.PASSED);
-		setStatus(Status.FINISHED);
+		fireTestFinished();
 	}
 }

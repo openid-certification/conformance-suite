@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -32,15 +33,14 @@ import java.util.List;
 public abstract class AbstractSignJWT extends AbstractCondition {
 	public static final Base64URL ALG_NONE_HEADER = Base64URL.encode("{\"alg\":\"none\"}");
 
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks) {
+		return signJWT(env, claims, jwks, false);
+	}
 
 	/**
-	 * Expects only one JWK in jwks
-	 * @param env
-	 * @param claims
-	 * @param jwks
-	 * @return
+	 * Expects only one non-encryption JWK in jwks
 	 */
-	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks) {
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp) {
 
 		if (claims == null) {
 			throw error("Couldn't find claims");
@@ -92,7 +92,10 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 				throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", signingJwk.toJSONString()));
 			}
 
-			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), null, null, null, null, null, null, null, null, null, signingJwk.getKeyID(), null, null);
+			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()),
+				includeTyp ? JOSEObjectType.JWT : null,
+				null, null, null, null, null, null, null, null,
+				signingJwk.getKeyID(), null, null);
 
 			String jws = performSigning(header, claims, signer);
 

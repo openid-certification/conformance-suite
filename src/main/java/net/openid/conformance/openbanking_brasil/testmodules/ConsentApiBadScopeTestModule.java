@@ -29,7 +29,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 		"resource.brazilCpf"
 	}
 )
-public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrantFunctionalTestModule { 
+public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected void runTests() {
@@ -40,10 +40,10 @@ public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrant
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 				.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetBadScopeOnTokenEndpointRequest.class))));
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
 		});
-		
+
 
 	}
 }

@@ -632,6 +632,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		}
 	}
 
+	@Override
 	protected void processCallback() {
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");

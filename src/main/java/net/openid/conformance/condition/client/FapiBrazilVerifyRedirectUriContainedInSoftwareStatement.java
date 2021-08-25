@@ -30,7 +30,7 @@ public class FapiBrazilVerifyRedirectUriContainedInSoftwareStatement extends Abs
 		}
 
 		if (!redirectUrisArray.contains(new JsonPrimitive(redirectUri))) {
-			throw error("The redirect_uri required for the conformance suite is not present in the software statement, registration must not succeed.",
+			throw error("The redirect_uri required for the conformance suite is not present in the software statement, registration must not succeed. Note that when the software statement contains multiple urls they MUST be specified as an array of strings. A single string containing comma separated URLs is not permitted by the specification.",
 				args("required", redirectUri, "present", redirectUrisArray));
 		}
 

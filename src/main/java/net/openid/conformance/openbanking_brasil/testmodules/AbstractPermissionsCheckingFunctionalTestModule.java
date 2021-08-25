@@ -38,31 +38,11 @@ public abstract class AbstractPermissionsCheckingFunctionalTestModule extends Ab
 			return;
 		}
 
-		waitForBrowserToReturn();
-
 		requestResourcesWithIncorrectPermissions();
-		forceReleaseLock();
-		setResult(Result.PASSED);
-		setStatus(Status.FINISHED);
+
+		fireTestFinished();
 
 	}
-
-
-
-	protected void waitForBrowserToReturn() {
-
-		getTestExecutionManager().runFinalisationTaskInBackground(() -> {
-
-			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
-			while (browser.getWebRunners().size() > 0
-				&& Instant.now().isBefore(timeout)) {
-				Thread.sleep(100); // sleep before we check again
-			}
-
-			return "Done";
-		});
-	}
-
 
 	protected abstract void preFetchResources();
 	protected abstract void prepareCorrectConsents();

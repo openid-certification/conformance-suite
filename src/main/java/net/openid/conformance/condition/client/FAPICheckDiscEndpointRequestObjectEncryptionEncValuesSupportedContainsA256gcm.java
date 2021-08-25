@@ -9,7 +9,7 @@ public class FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedConta
 
 	private static final String environmentVariable = "request_object_encryption_enc_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "A256GCM" };
+	private static final String[] SET_VALUES = { "A256GCM" };
 
 	private static final String errorMessageNotEnough = "A256GCM support is required but it is not listed in 'request_object_encryption_enc_values_supported'";
 

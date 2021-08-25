@@ -32,6 +32,7 @@ public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAu
 		env.putString("error_callback_placeholder", env.getString("response_type_missing_error"));
 	}
 
+	@Override
 	protected void processCallback() {
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 

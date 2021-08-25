@@ -22,7 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
-		<pmdVersion>6.21.0</pmdVersion>
+		<pmdVersion>6.37.0</pmdVersion>
 	</properties>
 
 	<dependencies>
@@ -187,6 +187,18 @@
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.9.2</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.vdurmont</groupId>
+			<artifactId>semver4j</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.24</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -246,9 +258,10 @@
 					<rulesets>
 						<ruleset>.pmd.ruleset.xml</ruleset>
 					</rulesets>
+					<linkXRef>false</linkXRef>
 					<printFailingErrors>true</printFailingErrors>
 				</configuration>
-				<version>3.12.0</version>
+				<version>3.14.0</version>
 				<executions>
 					<execution>
 						<phase>test</phase>

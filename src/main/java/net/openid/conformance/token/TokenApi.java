@@ -50,14 +50,16 @@ public class TokenApi {
 	})
 	public ResponseEntity<Object> createToken(@ApiParam(value = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
 
-		if (authenticationFacade.isAdmin())
+		if (authenticationFacade.isAdmin()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 
 		JsonElement permanent = request.get("permanent");
 		boolean isPermanent = false;
 		try {
-			if (permanent != null && permanent.isJsonPrimitive())
+			if (permanent != null && permanent.isJsonPrimitive()) {
 				isPermanent = OIDFJSON.getBoolean(permanent);
+			}
 		} catch (ClassCastException e) {
 			// Not a boolean
 		}

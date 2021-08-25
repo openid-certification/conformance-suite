@@ -50,17 +50,17 @@ public class CheckServerConfiguration_UnitTest {
 		goodConfig = new JsonParser().parse("{"
 			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutAuthorizationEndpoint = new JsonParser().parse("{"
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutTokenEndpoint = new JsonParser().parse("{"
 			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","
-			+ "\"issuer\":\"ExampleApp\""
+			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
 		badConfigWithoutIssuer = new JsonParser().parse("{"

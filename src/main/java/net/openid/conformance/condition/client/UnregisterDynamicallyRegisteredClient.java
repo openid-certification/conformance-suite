@@ -56,7 +56,7 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 						args("code", response.getStatusCode()));
 				}
 			} catch (RestClientResponseException e) {
-				throw error("Error when calling registration_client_uri", e, args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error when calling registration_client_uri", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				String msg = "Call to registration client uri " + registrationClientUri + " failed";
 				if (e.getCause() != null) {

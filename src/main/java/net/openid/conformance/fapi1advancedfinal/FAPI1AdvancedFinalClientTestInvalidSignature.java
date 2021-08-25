@@ -25,6 +25,7 @@ public class FAPI1AdvancedFinalClientTestInvalidSignature extends AbstractFAPI1A
 		//Do Nothing
 	}
 
+	@Override
 	protected void addCustomSignatureOfIdToken(){
 
 		callAndStopOnFailure(InvalidateIdTokenSignature.class, "OIDCC-3.1.3.7-6");

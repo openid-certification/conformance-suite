@@ -35,13 +35,13 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
     public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
         if (path.equals(env.getString("request_uri", "path"))) {
-            return handleRequestUriRequest(requestParts);
+            return handleRequestUriRequest();
         }
         return super.handleHttp(path, req, res, session, requestParts);
 
     }
 
-    private Object handleRequestUriRequest(JsonObject requestParts) {
+    private Object handleRequestUriRequest() {
         String requestObject = env.getString("request_object");
 
         return ResponseEntity.ok()

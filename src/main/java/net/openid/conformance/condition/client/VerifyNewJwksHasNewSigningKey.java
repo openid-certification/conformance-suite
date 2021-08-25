@@ -42,7 +42,7 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 		Set<JsonObject> latestSigningPubKeys = getPubKeysWithKeyId(latestSigningKeys);
 		Set<JsonObject> keysOnlyInNew = new HashSet<>(latestSigningPubKeys);
 		keysOnlyInNew.removeAll(origSigningPubKeys);
-		if (keysOnlyInNew.size() == 0) {
+		if (keysOnlyInNew.isEmpty()) {
 			throw error("No new keys with 'use':'sig' (or no 'use') found",
 				args("original_signing_keys", originalSigningKeys, "latest_signing_keys", latestSigningKeys));
 		}

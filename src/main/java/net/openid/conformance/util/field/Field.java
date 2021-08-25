@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * The base class describes features of value that can contain key
  */
-public abstract class Field {
+public class Field {
 
 	private boolean optional;
 	private boolean nullable;

@@ -854,11 +854,23 @@
                                 </div>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Resource server organization id</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The organization id for the resource server, as recorded in the directory. Only required if 'scope' contains 'payments'."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.brazilOrganizationId"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">Payment consent request JSON</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JSON representation of a payment consent request. This will be used as the body of the request sent to the payment consent endpoint."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JSON representation of a payment consent request. This will be used as the body of the request sent to the payment consent endpoint. Only required if 'scope' contains 'payments'."></span>
                                             </div>
                                             <textarea class="form-control config-form-element" data-json-target="resource.brazilPaymentConsent"></textarea>
                                         </div>
@@ -870,7 +882,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JSON representation of a PIX payment request. This will be used as the body of the request sent to the payment initiation endpoint."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="JSON representation of a PIX payment request. This will be used as the body of the request sent to the payment initiation endpoint. Only required if 'scope' contains 'payments'."></span>
                                             </div>
                                             <textarea class="form-control config-form-element" data-json-target="resource.brazilPixPayment"></textarea>
                                         </div>
@@ -909,7 +921,7 @@
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-addon">
-                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client_id for this client on the OpenBanking Directory. This is used to obtain an access token to retrieve the software statement."></span>
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="client_id for this client on the OpenBanking Directory. This is used to obtain an access token, which is used to retrieve the software statement. The MTLS certificate provided for the client MUST be one that can be used to access the OpenBanking directory. An example client/configuration is linked to from the instructions (see link at top of this page)."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="directory.client_id"></input>
                                         </div>
@@ -924,6 +936,18 @@
                                                 <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Base URL for the OpenBanking Directory. e.g. for Brazil Directory sandbox use https://matls-api.sandbox.directory.openbankingbrasil.org.br/"></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="directory.apibase"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Directory keystore base</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Keystore URL for the OpenBanking Directory. e.g. for Brazil Directory sandbox use https://keystore.sandbox.directory.openbankingbrasil.org.br/"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="directory.keystore"></input>
                                         </div>
                                     </div>
                                 </div>

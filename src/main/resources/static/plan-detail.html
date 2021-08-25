@@ -169,7 +169,9 @@
                                         Certificado-de-conformidade-funcional.pdf
                                     </label>
                                     <input type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
-                                    <p class="help-block">Upload the signed certification of conformance file.</p>
+                                    <p class="help-block">Upload the signed certification of conformance file
+                                        (i.e as per the instructions, completed and signed by an authorized person).
+                                    </p>
                                 </fieldset>
                         </div>
                         <div class="form-group">
@@ -193,45 +195,149 @@
         </div>
     </div>
 
-	<!-- Rerun test confirmation modal -->
-	<div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h4 class="modal-title">Run test confirmation</h4>
-				</div>
-				<div class="modal-body">
-					Are you sure you want to rerun this test? It is owned by a different user.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Prepare certification of conformance pdf modal -->
+    <div class="modal fade" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="errorLabel">Prepare Certification of Conformance PDF</h4>
 
-	<!-- resident DOM -->
-	<div class="container-fluid">
-		<div id="planDetail">
-			<div class="header"></div>
-			<div class="content container-fluid">
-				<!-- main page is rendered here -->
-			</div>
-		</div>
-	</div>
+                </div>
+                <form class="form-small" name="certificationOfConformanceForm" id="certificationOfConformanceForm" action="" method="post">
+                    <div class="modal-body">
+                        <div id="certificationOfConformanceFormErrors"></div>
+                        <div class="text-info">
+                            This page will help you prepare the PDF you will upload after pressing the 'Certification Package' button.
+                            Once you have generated the PDF you will need to sign it (electronic signatures are preferred).
+                            See <a href="https://openid.net/certification/instructions/" target="_blank">the submission instructions</a> for more information.
+                            <br>
+                            You will be able to edit the document after downloading, you don't need to fill all fields now.
+                            This form is provided for your convenience only, and its use is optional.
+                        </div>
+                        <div>
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Required Information
+                                </h3>
+                                <div style="padding-left:1em;">
 
-	<script type="text/javascript">
+                                    <div class="form-group">
+                                        <label>
+                                            Name of Entity (“Implementer”) Making this Certification
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Software or Service (&quot;Deployment&quot;) Name &amp; Version #
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            OpenID Conformance Profile
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Conformance Test Suite Software
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Test Date
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Optional Extra Information
+                                </h3>
+                                <div style="padding-left:1em;">
+                                    <div class="form-group">
+                                        <label>
+                                            URL at which people interested in using your implementation can learn about it and/or obtain it:
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            1-2 sentence description of the implementation
+                                        </label>
+                                        <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
+                                    </div>
+                                </div>
+                            </div>
 
-	   function getPlan(planId, public) {
-		   return $.ajax({
-			   type: 'GET',
-			   url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
-			   data: {},
-			   success: function(data) {
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button id="certificationOfConformanceFormSubmitBtn" type="submit" class="btn btn-primary">Download as PDF</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rerun test confirmation modal -->
+    <div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Run test confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to rerun this test? It is owned by a different user.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- resident DOM -->
+    <div class="container-fluid">
+        <div id="planDetail">
+            <div class="header"></div>
+            <div class="content container-fluid">
+                <!-- main page is rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+       function getPlan(planId, public) {
+           return $.ajax({
+               type: 'GET',
+               url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
+               data: {},
+               success: function(data) {
                    $('#certificationPackageForm').attr('action','/api/plan/'+planId+'/certificationpackage');
 				   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant) }));
 
@@ -259,7 +365,16 @@
 					   $('#certificationPackageModal').modal('show');
 				   });
 
-				   $('[data-module]').click(function(evt) {
+                   $('#certificationOfConformanceTemplateBtn').click(function(evt) {
+                       evt.preventDefault();
+                       $('#certificationOfConformanceTemplateModal').modal('show');
+                   });
+                   $('#certificationOfConformanceForm').attr('action','/api/plan/'+planId+'/certificationofconformance');
+                   $('#certificationOfConformance_conformanceProfile').val(data.certificationProfileName);
+                   $('#certificationOfConformance_suiteSoftware').val('www.certification.openid.net version ' + data.version);
+                   $('#certificationOfConformance_testDate').val(data.started?data.started.substring(0,10):'');
+
+                   $('[data-module]').click(function(evt) {
                        evt.preventDefault();
 					   var testName = $(this).data('module');
 					   var variant = $(this).data('variant')

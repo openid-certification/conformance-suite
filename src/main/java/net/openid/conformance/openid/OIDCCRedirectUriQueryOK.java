@@ -15,6 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 public class OIDCCRedirectUriQueryOK extends AbstractOIDCCServerTest {
 
+	@Override
 	protected void configureDynamicClient() {
 
 		callAndStopOnFailure(AddQueryToRedirectUri.class);

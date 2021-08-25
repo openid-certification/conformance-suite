@@ -61,7 +61,7 @@ public abstract class AbstractVerifyScopesReturnedInClaims extends AbstractCondi
 			expectedScopeItems.addAll(scopeItems);
 		}
 
-		Set<String> missingItems = new HashSet<String>(expectedScopeItems);
+		Set<String> missingItems = new HashSet<>(expectedScopeItems);
 		missingItems.removeAll(claimsSet);
 
 		if (!claimsSet.containsAll(expectedScopeItems)) {

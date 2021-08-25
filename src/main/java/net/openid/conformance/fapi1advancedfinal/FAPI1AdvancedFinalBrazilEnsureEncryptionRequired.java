@@ -56,6 +56,7 @@ public class FAPI1AdvancedFinalBrazilEnsureEncryptionRequired extends AbstractFA
 		return super.makeCreateAuthorizationRequestObjectSteps().skip(FAPIBrazilEncryptRequestObject.class, "NOT encrypting request object");
 	}
 
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 		callAndContinueOnFailure(EnsureInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE,
 			"RFC6749-4.1.2.1", "BrazilOB-5.2.2-1", "BrazilOB-5.2.3-3");

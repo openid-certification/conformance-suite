@@ -3,8 +3,11 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
@@ -19,6 +22,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					FAPI1AdvancedFinalBrazilDCRHappyFlow.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class
 				),
@@ -26,5 +30,8 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 			)
 		);
 
+	}
+	public static String certificationProfileName(VariantSelection variant) {
+		return "BR-OB Adv. OP DCR";
 	}
 }

@@ -9,7 +9,7 @@ public class FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould extends Abstrac
 
 	private static final String environmentVariable = "acr_values_supported";
 
-	private static final String[] SET_VALUES = new String[] { "urn:brasil:openbanking:loa3" };
+	private static final String[] SET_VALUES = { "urn:brasil:openbanking:loa3" };
 	private static final int minimumMatchesRequired = 1;
 
 	private static final String errorMessageNotEnough = "The server does not list 'urn:brasil:openbanking:loa3' in 'acr_values_supported'.";

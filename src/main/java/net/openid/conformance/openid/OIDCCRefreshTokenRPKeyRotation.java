@@ -58,13 +58,13 @@ public class OIDCCRefreshTokenRPKeyRotation extends AbstractOIDCCServerTest {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		if (path.equals("jwks")) {
-			return handleJwksRequest(requestParts);
+			return handleJwksRequest();
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
 	}
 
-	private Object handleJwksRequest(JsonObject requestParts) {
+	private Object handleJwksRequest() {
 		return ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(env.getObject("client_public_jwks"));

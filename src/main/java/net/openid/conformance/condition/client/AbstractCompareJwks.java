@@ -13,7 +13,7 @@ import java.util.Set;
 
 public abstract class AbstractCompareJwks extends AbstractCondition {
     public Set<JsonObject> filterJsonArrayToSetContainingSigningKeys(JsonArray keys) {
-        Set<JsonObject> filtered = new HashSet<JsonObject>();
+        Set<JsonObject> filtered = new HashSet<>();
 
         keys.forEach(keyJsonElement -> {
             JsonObject keyObject = keyJsonElement.getAsJsonObject();

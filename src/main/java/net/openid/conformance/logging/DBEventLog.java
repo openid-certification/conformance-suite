@@ -21,6 +21,7 @@ public class DBEventLog implements EventLog {
 	public static final String COLLECTION = "EVENT_LOG";
 
 	@Autowired
+	@SuppressWarnings("unused")
 	private TestInfoService testInfoService;
 
 	@Autowired

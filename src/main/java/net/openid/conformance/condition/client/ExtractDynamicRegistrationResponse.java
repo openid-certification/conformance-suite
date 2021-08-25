@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -16,39 +17,19 @@ public class ExtractDynamicRegistrationResponse extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject client = (JsonObject) env.getElementFromObject("dynamic_registration_endpoint_response", "body_json");
+		if (client == null) {
+			throw error("No json response from dynamic registration endpoint");
+		}
 
 		env.putObject("client", client);
 
-		if (!client.has("registration_client_uri") &&
-			!client.has("registration_access_token")) {
-
-			log("Dynamic registration returned neither registration_client_uri nor registration_access_token");
-			return env;
+		JsonElement clientId = client.get("client_id");
+		if (clientId == null) {
+			throw error("no client id in dynamic registration response");
 		}
 
-		if (!client.has("registration_client_uri")) {
-			throw error("Dynamic registration returned registration_access_token but not registration_client_uri");
-		}
-		if (!client.has("registration_access_token")) {
-			throw error("Dynamic registration returned registration_client_uri but not registration_access_token");
-		}
-
-		String registrationClientUri = OIDFJSON.getString(client.get("registration_client_uri"));
-		String registrationAccessToken = OIDFJSON.getString(client.get("registration_access_token"));
-
-		if (Strings.isNullOrEmpty(registrationClientUri)) {
-			throw error("registration_client_uri must not be an empty string");
-		}
-		if (Strings.isNullOrEmpty(registrationAccessToken)) {
-			throw error("registration_access_token must not be an empty string");
-		}
-
-		env.putString("registration_client_uri", registrationClientUri);
-		env.putString("registration_access_token", registrationAccessToken);
-
-		logSuccess("Extracted dynamic registration management credentials",
-			args("registration_client_uri", registrationClientUri,
-				"registration_access_token", registrationAccessToken));
+		logSuccess("Extracted client from dynamic registration response",
+			args("client_id", clientId));
 
 		return env;
 	}

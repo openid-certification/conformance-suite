@@ -20,6 +20,7 @@ public class LatitudeField extends DoubleField {
 			setMaxLength(DEFAULT_MAX_LENGTH);
 		}
 
+		@Override
 		public LatitudeField build() {
 			return new LatitudeField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
 				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);

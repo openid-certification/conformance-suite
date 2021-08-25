@@ -16,6 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OIDCCRegistrationPolicyUri extends AbstractOIDCCDynamicRegistrationTest {
 
+	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(CreatePolicyUri.class);
 	}
@@ -31,6 +32,7 @@ public class OIDCCRegistrationPolicyUri extends AbstractOIDCCDynamicRegistration
 		callAndStopOnFailure(AddPolicyUriToDynamicRegistrationRequest.class);
 	}
 
+	@Override
 	protected void performAuthorizationFlow() {
 		// Redirect to the authorization endpoint to check the appearance of the login page.
 

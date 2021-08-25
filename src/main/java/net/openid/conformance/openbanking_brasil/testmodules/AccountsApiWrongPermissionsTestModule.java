@@ -54,10 +54,12 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 
 	}
 
+	@Override
 	protected void prepareIncorrectPermissions() {
 		callAndStopOnFailure(ProvideIncorrectPermissionsForAccountsApi.class);
 	}
 
+	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 
 		runInBlock("Ensure we cannot call the accounts root API", () -> {

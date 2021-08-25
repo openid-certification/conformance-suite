@@ -26,8 +26,8 @@
     </option>
     <option name="options">
       <map>
-        <entry key="Encoding" value="" />
-        <entry key="Target JDK" value="1.8" />
+        <entry key="Statistics URL" value="" />
+        <entry key="Target JDK" value="11" />
       </map>
     </option>
   </component>
