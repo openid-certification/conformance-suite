@@ -68,6 +68,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
+	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
 		super.performProfileAuthorizationEndpointSetup();
 
@@ -101,6 +102,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 	}
 
+	@Override
 	protected void modeSpecificAuthorizationEndpointRequest() {
 		if (testType == CIBAMode.PING && isSecondClient()) {
 			callAndStopOnFailure(CreateLongRandomClientNotificationToken.class, "CIBA-7.1", "RFC6750-2.1");
@@ -120,6 +122,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
+	@Override
 	protected void performPostAuthorizationFlow(boolean finishTest) {
 
 		if (!isSecondClient()) {
@@ -174,6 +177,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		}
 	}
 
+	@Override
 	protected void performProfileIdTokenValidation() {
 		super.performProfileIdTokenValidation();
 
@@ -185,6 +189,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 
 	}
 
+	@Override
 	protected void createAuthorizationRequest() {
 		super.createAuthorizationRequest();
 

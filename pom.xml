@@ -254,6 +254,7 @@
 					<rulesets>
 						<ruleset>.pmd.ruleset.xml</ruleset>
 					</rulesets>
+					<linkXRef>false</linkXRef>
 					<printFailingErrors>true</printFailingErrors>
 				</configuration>
 				<version>3.14.0</version>

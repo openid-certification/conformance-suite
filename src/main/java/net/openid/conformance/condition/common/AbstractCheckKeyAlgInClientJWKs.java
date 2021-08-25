@@ -22,7 +22,6 @@ public abstract class AbstractCheckKeyAlgInClientJWKs extends AbstractCondition 
             throw error("keys array not found in client JWKs");
         }
 
-        boolean found = false;
         for (JsonElement key : keys.getAsJsonArray()) {
             if (!key.isJsonObject()) {
                 throw error("invalid key in client JWKs", args("key", key));

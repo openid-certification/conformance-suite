@@ -43,14 +43,12 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSequence {
 
-	private boolean secondClient;
 	private boolean payments;
 	private boolean stopAfterConsentEndpointCall;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean stopAfterConsentEndpointCall) {
-		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 		this.payments = payments;

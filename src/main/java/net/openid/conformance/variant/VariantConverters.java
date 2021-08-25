@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
 
-public abstract class VariantConverters {
+public class VariantConverters {
 
 	private VariantConverters() {}
 
@@ -23,6 +23,7 @@ public abstract class VariantConverters {
 	enum DocumentToVariantSelectionConverter implements Converter<Document, VariantSelection> {
 		INSTANCE;
 
+		@Override
 		public VariantSelection convert(Document source) {
 			return new VariantSelection(
 					source.entrySet().stream()
@@ -34,6 +35,7 @@ public abstract class VariantConverters {
 	enum StringToVariantSelectionConverter implements Converter<String, VariantSelection> {
 		INSTANCE;
 
+		@Override
 		public VariantSelection convert(String source) {
 			return new VariantSelection(source);
 		}
@@ -43,6 +45,7 @@ public abstract class VariantConverters {
 		INSTANCE;
 
 		@SuppressWarnings("unchecked")
+		@Override
 		public Document convert(VariantSelection source) {
 			return new Document((Map<String, Object>) (Map<String, ?>) source.getVariant());
 		}

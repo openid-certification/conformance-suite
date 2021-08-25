@@ -36,6 +36,7 @@ public class CallUserInfoEndpointWithBearerTokenInBodyAllowingFailure extends Ca
 		return body;
 	}
 
+	@Override
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
 		int code = e.getRawStatusCode();
 		env.putInteger("userinfo_endpoint_response_code", code);

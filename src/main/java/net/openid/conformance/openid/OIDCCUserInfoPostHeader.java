@@ -14,6 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OIDCCUserInfoPostHeader extends AbstractOIDCCUserInfoTest {
 
+	@Override
 	protected void callUserInfoEndpoint() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.1");

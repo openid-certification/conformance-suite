@@ -38,6 +38,7 @@ public class HtmlExportRenderer {
 	 * Used in unit test
 	 * @param noAutoWiring
 	 */
+	@SuppressWarnings("unused")
 	public HtmlExportRenderer(boolean noAutoWiring) {
 		this();
 		ExportRenderingTemplateEngineBean bean = new ExportRenderingTemplateEngineBean();

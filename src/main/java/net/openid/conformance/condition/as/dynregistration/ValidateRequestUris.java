@@ -40,6 +40,7 @@ public class ValidateRequestUris extends AbstractClientValidationCondition
 			for(JsonElement element : requestUris) {
 				try {
 					String uriString = OIDFJSON.getString(element);
+					@SuppressWarnings("unused")
 					URI uri = new URI(uriString);
 				} catch (OIDFJSON.UnexpectedJsonTypeException unexpectedTypeEx) {
 					throw error("request_uris contains a value that is not encoded as a string",

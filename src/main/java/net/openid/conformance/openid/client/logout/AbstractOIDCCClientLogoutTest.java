@@ -92,6 +92,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 * It MUST NOT contain the space (" ") character. This value is opaque to the RP.
 	 * This is REQUIRED if session management is supported.
 	 */
+	@Override
 	protected void customizeAuthorizationEndpointResponseParams(){
 		callAndStopOnFailure(GenerateSessionState.class, "OIDCSM-3");
 		callAndStopOnFailure(AddSessionStateToAuthorizationEndpointResponseParams.class, "OIDCSM-3");

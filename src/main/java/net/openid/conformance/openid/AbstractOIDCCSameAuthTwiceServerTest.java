@@ -35,6 +35,7 @@ public abstract class AbstractOIDCCSameAuthTwiceServerTest extends AbstractOIDCC
 
 	protected abstract void createSecondAuthorizationRequest();
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (firstTime) {
 			firstTime = false;

@@ -53,7 +53,6 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		String certProfile = "BR-OB Adv. RP w/";
 
 		Map<String, String> v = variant.getVariant();
-		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
 		String responseMode = v.get("fapi_response_mode");
 		String jarmType = v.get("fapi_jarm_type");

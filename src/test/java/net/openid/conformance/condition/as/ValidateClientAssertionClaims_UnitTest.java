@@ -33,8 +33,6 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 	private String audience;
 
-	private JsonObject header;
-
 	private JsonObject claims;
 
 	private JsonObject server;
@@ -60,12 +58,6 @@ public class ValidateClientAssertionClaims_UnitTest {
 		server = new JsonParser().parse("{"
 			+ "\"issuer\":\"" + audience + "\","
 			+ "\"token_endpoint\":\"" + audience + "\""
-			+ "}").getAsJsonObject();
-
-		header = new JsonParser().parse("{"
-			+ "\"kid\":\"c1df0e7a-031c-4232-9314-8717d9bccdb4\","
-			+ "\"typ\":\"JWT\","
-			+ "\"alg\":\"PS256\""
 			+ "}").getAsJsonObject();
 
 		claims = new JsonParser().parse("{"

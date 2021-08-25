@@ -24,10 +24,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ResponseType.class, values = {"id_token"})
 public class OIDCCClientTestAggregatedClaims extends AbstractOIDCCClientTest {
+	@Override
 	protected void configureUserInfo() {
 		callAndStopOnFailure(OIDCCLoadUserInfoWithAggregatedClaims.class);
 	}
 
+	@Override
 	protected JsonObject prepareUserinfoResponse() {
 		JsonObject user = env.getObject("user_info");
 		env.putObject("user_info_endpoint_response", user);

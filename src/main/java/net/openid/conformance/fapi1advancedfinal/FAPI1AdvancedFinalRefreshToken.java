@@ -81,6 +81,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 	}
 
+	@Override
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 

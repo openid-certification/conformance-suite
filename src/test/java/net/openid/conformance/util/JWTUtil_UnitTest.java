@@ -142,7 +142,6 @@ public class JWTUtil_UnitTest {
 			assertNotNull(jsonObject.get("claims"));
 			assertEquals(new JsonPrimitive(1579726461), jsonObject.get("claims").getAsJsonObject().get("iat"));
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -238,7 +237,6 @@ public class JWTUtil_UnitTest {
 			assertNotNull(jsonObject);
 			assertNotNull(jsonObject.get("claims"));
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

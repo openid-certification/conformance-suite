@@ -19,7 +19,7 @@ public class ExpectBindingMessageCorrectDisplay extends AbstractCondition {
 
 		}
 
-		String placeholder = createBrowserInteractionPlaceholder("If the server does not return the invalid_binding_message error. It must authenticate successfully and the binding message being correctly displayed - upload a screenshot/photo of the binding message");
+		String unusedPlaceholder = createBrowserInteractionPlaceholder("If the server does not return the invalid_binding_message error. It must authenticate successfully and the binding message being correctly displayed - upload a screenshot/photo of the binding message");
 
 		return env;
 	}

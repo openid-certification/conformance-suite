@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 @Service
 public class DBImageService implements ImageService {
 
+	@SuppressWarnings("unused")
 	@Value("${fintechlabs.version}")
 	private String version;
 
