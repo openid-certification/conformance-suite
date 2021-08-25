@@ -52,6 +52,7 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
+			callAndStopOnFailure(SetResponseBodyOptional.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
 			callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
