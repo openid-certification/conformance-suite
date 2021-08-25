@@ -83,7 +83,7 @@ public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistration
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		if (path.equals("redirect_uris.json")) {
-			return handleRedirectUrisRequest(requestParts);
+			return handleRedirectUrisRequest();
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
@@ -94,7 +94,7 @@ public class OIDCCRegistrationSectorBad extends AbstractOIDCCDynamicRegistration
 		// Not used in this test
 	}
 
-	private Object handleRedirectUrisRequest(JsonObject requestParts) {
+	private Object handleRedirectUrisRequest() {
 		JsonArray value = env.getObject("sector_redirect_uris").get("value").getAsJsonArray();
 		return ResponseEntity.ok()
 				.contentType(MediaType.APPLICATION_JSON)

@@ -96,7 +96,6 @@ public class FAPI_RW_ID2_TestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
 		String requestMethod = v.get("fapi_auth_request_method");
-		String responseMode = v.get("fapi_response_mode");
 		boolean par = requestMethod.equals("pushed");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 

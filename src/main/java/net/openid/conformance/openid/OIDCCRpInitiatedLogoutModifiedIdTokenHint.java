@@ -29,6 +29,7 @@ public class OIDCCRpInitiatedLogoutModifiedIdTokenHint extends AbstractOIDCCRpIn
 		}
 	}
 
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		callAndStopOnFailure(ChangeIdTokenToAlgNone.class);
 		super.onPostAuthorizationFlowComplete();

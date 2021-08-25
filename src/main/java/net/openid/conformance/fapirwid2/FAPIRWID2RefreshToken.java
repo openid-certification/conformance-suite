@@ -76,6 +76,7 @@ public class FAPIRWID2RefreshToken extends AbstractFAPIRWID2MultipleClient {
 		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
 	}
 
+	@Override
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 

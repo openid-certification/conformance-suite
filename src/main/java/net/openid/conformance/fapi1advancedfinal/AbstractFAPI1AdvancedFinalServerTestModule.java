@@ -580,6 +580,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 	}
 
+	@Override
 	protected void processCallback() {
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
@@ -713,36 +714,40 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (brazilPayments) {
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-
-			callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
-
-			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-			// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
-
-			call(exec().mapKey("server", "org_server"));
-			call(exec().mapKey("server_jwks", "org_server_jwks"));
-			callAndStopOnFailure(FetchServerKeys.class);
-			call(exec().unmapKey("server"));
-			call(exec().unmapKey("server_jwks"));
-
-			callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-			callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-			call(exec().unmapKey("endpoint_response"));
-			call(exec().unmapKey("endpoint_response_jwt"));
+			validateBrazilPaymentInitiationSignedResponse();
 		} else {
 			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 		}
 
 		eventLog.endBlock();
+	}
+
+	protected void validateBrazilPaymentInitiationSignedResponse() {
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
+		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, ConditionResult.FAILURE);
+
+		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
+
+		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
+
+		call(exec().mapKey("server", "org_server"));
+		call(exec().mapKey("server_jwks", "org_server_jwks"));
+		callAndStopOnFailure(FetchServerKeys.class);
+		call(exec().unmapKey("server"));
+		call(exec().unmapKey("server_jwks"));
+
+		callAndContinueOnFailure(ValidateResourceResponseSignature.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		call(exec().unmapKey("endpoint_response"));
+		call(exec().unmapKey("endpoint_response_jwt"));
 	}
 
 	protected boolean isSecondClient() {

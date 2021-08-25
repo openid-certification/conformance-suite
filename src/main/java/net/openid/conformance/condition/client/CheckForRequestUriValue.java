@@ -20,6 +20,7 @@ public class CheckForRequestUriValue extends AbstractCondition {
 			throw error("request_uri is missing or empty in pushed authorization response");
 		}
 		try {
+			@SuppressWarnings("unused")
 			URI uri = new URI(requestUri);
 		} catch (URISyntaxException e) {
 			throw error("request_uri is malformed and does not seem to conform to RFC 2396: Uniform Resource Identifiers (URI): Generic Syntax");

@@ -28,6 +28,7 @@ public class Plan {
 	private Map<String, String> owner;
 	@Indexed
 	private String description;
+	@SuppressWarnings("unused")
 	private String certificationProfileName;
 	private List<Module> modules;
 	private String version;

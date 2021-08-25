@@ -22,6 +22,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	// used for the OAuth layer's issuer
 	@Value("${oauth.introspection_url}")
+	@SuppressWarnings("unused")
 	private String introspectionUrl;
 
 	// this gets set by the test runners and used later on

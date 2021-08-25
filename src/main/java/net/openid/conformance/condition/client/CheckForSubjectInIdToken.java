@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CheckForSubjectInIdToken extends AbstractCondition {
 
+	@Override
 	public Environment evaluate(Environment env) {
 
 		String sub = env.getString("id_token", "claims.sub");

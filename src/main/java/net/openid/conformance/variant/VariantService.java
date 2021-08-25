@@ -38,7 +38,7 @@ public class VariantService {
 
 	@Autowired
 	public VariantService(@Value("${fintechlabs.profiles.visible:#{null}}") List<String> profilesToSurface) {
-		this(testPlanHolder -> profilesToSurface == null || profilesToSurface.size() == 0 || profilesToSurface.contains(testPlanHolder.info.profile()));
+		this(testPlanHolder -> profilesToSurface == null || profilesToSurface.isEmpty() || profilesToSurface.contains(testPlanHolder.info.profile()));
 	}
 
 	public VariantService(Predicate<? super TestPlanHolder> byProfile) {

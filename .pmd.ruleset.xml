@@ -84,10 +84,27 @@
 		<exclude name="PackageCase"/>
 	</rule>
 
+	<rule ref="category/java/bestpractices.xml">
+		<exclude name="GuardLogStatement"/>
+		<exclude name="LiteralsFirstInComparisons"/>
+		<exclude name="ConstantsInInterface"/>
+		<exclude name="UnusedAssignment"/>
+		<exclude name="PreserveStackTrace"/>
+		<exclude name="ReplaceHashtableWithMap"/>
+		<exclude name="AvoidUsingHardCodedIP"/>
+		<exclude name="MethodReturnsInternalArray"/>
+		<exclude name="ReplaceVectorWithList"/>
+		<exclude name="AvoidReassigningParameters"/>
+		<exclude name="UseTryWithResources"/>
+		<exclude name="DoubleBraceInitialization"/>
+		<exclude name="SwitchStmtsShouldHaveDefault"/>
+		<!-- a potentially useful rule, but triggers loads of false positives as we have many real classes that have
+		 'Test' in their name, and isn't configurable enough -->
+		<exclude name="JUnit4TestShouldUseTestAnnotation"/>
+	</rule>
 	<!--
 	   We should probably enable more rules one day
 	<rule ref="category/java/design.xml"></rule>
-	<rule ref="category/java/bestpractices.xml"></rule>
 	<rule ref="category/java/documentation.xml"></rule>
 	<rule ref="category/java/performance.xml"></rule>
 	<rule ref="category/java/security.xml"></rule>

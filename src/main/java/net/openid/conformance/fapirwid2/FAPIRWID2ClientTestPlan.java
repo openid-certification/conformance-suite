@@ -40,11 +40,7 @@ public class FAPIRWID2ClientTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
-		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String requestMethod = v.get("fapi_auth_request_method");
-		String responseMode = v.get("fapi_response_mode");
-		boolean privateKey = clientAuth.equals("private_key_jwt");
 
 		//TODO we don't have UK or AU specific RP profile names.
 		String certProfile = "FAPI";

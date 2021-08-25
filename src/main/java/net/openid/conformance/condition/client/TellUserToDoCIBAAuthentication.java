@@ -5,6 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class TellUserToDoCIBAAuthentication extends AbstractCondition {
 
+	@Override
 	public Environment evaluate(Environment env) {
 
 		log("Please authenticate and authorize the request");

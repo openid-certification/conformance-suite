@@ -714,18 +714,21 @@ public class LogApi {
 			this.sig = sig;
 		}
 
+		@Override
 		public void write(int b)
 			throws IOException
 		{
 			write(new byte[]{(byte)b});
 		}
 
+		@Override
 		public void write(byte[] b)
 			throws IOException
 		{
 			write(b, 0, b.length);
 		}
 
+		@Override
 		public void write(byte[] b, int offset, int len)
 			throws IOException
 		{
@@ -738,12 +741,14 @@ public class LogApi {
 			}
 		}
 
+		@Override
 		public void flush()
 			throws IOException
 		{
 			target.flush();
 		}
 
+		@Override
 		public void close()
 			throws IOException
 		{

@@ -18,22 +18,30 @@ public class ValidateUserInfoStandardClaims extends AbstractCondition {
 	}
 
 	private static ElementValidator VALIDATE_STRING = new ElementValidator() {
+		@Override
 		public String getDescription() { return "a string"; }
+		@Override
 		public boolean isValid(JsonElement elt) { return elt.isJsonPrimitive() && elt.getAsJsonPrimitive().isString(); }
 	};
 
 	private static ElementValidator VALIDATE_BOOLEAN = new ElementValidator() {
+		@Override
 		public String getDescription() { return "a boolean"; }
+		@Override
 		public boolean isValid(JsonElement elt) { return elt.isJsonPrimitive() && elt.getAsJsonPrimitive().isBoolean(); }
 	};
 
 	private static ElementValidator VALIDATE_NUMBER = new ElementValidator() {
+		@Override
 		public String getDescription() { return "a number"; }
+		@Override
 		public boolean isValid(JsonElement elt) { return elt.isJsonPrimitive() && elt.getAsJsonPrimitive().isNumber(); }
 	};
 
 	private static ElementValidator VALIDATE_JSON_OBJECT = new ElementValidator() {
+		@Override
 		public String getDescription() { return "a JSON object"; }
+		@Override
 		public boolean isValid(JsonElement elt) { return elt.isJsonObject(); }
 	};
 
@@ -82,10 +90,12 @@ public class ValidateUserInfoStandardClaims extends AbstractCondition {
 			this.claims = claims;
 		}
 
+		@Override
 		public String getDescription() {
 			return "a valid object";
 		}
 
+		@Override
 		public boolean isValid(JsonElement elt) {
 			if (!elt.isJsonObject() || elt.getAsJsonObject().size() == 0) {
 				return false;

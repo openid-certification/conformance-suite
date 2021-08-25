@@ -50,12 +50,14 @@ public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAP
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
 		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;

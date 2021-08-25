@@ -21,6 +21,7 @@ public class OIDCCRedirectUriQueryAdded extends AbstractOIDCCServerTestExpecting
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}
 
+	@Override
 	protected void createAuthorizationRequest() {
 		call(new CreateAuthorizationRequestSteps(formPost)
 				.then(condition(AddQueryToRedirectUriInAuthorizationRequest.class)));

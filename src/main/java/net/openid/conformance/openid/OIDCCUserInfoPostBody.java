@@ -31,6 +31,7 @@ public class OIDCCUserInfoPostBody extends AbstractOIDCCUserInfoTest {
 		fireTestFinished();
 	}
 
+	@Override
 	protected void callUserInfoEndpoint() {
 		callAndStopOnFailure(CallUserInfoEndpointWithBearerTokenInBodyAllowingFailure.class, "OIDCC-5.3.1");
 	}
