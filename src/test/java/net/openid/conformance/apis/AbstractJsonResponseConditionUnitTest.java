@@ -62,6 +62,7 @@ public abstract class AbstractJsonResponseConditionUnitTest implements DataUtils
 			.serializeNulls()
 			.create();
 		environment.putString("resource_endpoint_response", gson.toJson(jsonObject));
+		environment.putObject("consent_endpoint_response", jsonObject);
 		environment.putObject("resource_endpoint_response_headers", mapToJsonObject(responseHeaders, false));
 	}
 
