@@ -155,12 +155,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		configureClient();
 		setupResourceEndpoint();
 
-		// Perform any custom configuration
-		onConfigure(config, baseUrl);
-
 		if (isBrazil) {
 			brazilPayments = scopeContains("payments");
 		}
+
+		// Perform any custom configuration
+		onConfigure(config, baseUrl);
 
 		setStatus(Status.CONFIGURED);
 
