@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiBadPaymentSignatureFails;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiFapiTesting;
 import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -23,6 +24,7 @@ public class PaymentsApiTestPlan implements TestPlan {
 				List.of(
 					PaymentsApiTestModule.class,
 					PaymentsConsentsApiTestModule.class,
+					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class
 				),
 				List.of(
