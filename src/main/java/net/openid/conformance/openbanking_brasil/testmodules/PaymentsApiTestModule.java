@@ -29,9 +29,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
+	protected void validateClientConfiguration() {
+		callAndStopOnFailure(AddPaymentScope.class);
+		super.validateClientConfiguration();
+	}
+
+	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-		callAndStopOnFailure(AddPaymentScope.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}
 
