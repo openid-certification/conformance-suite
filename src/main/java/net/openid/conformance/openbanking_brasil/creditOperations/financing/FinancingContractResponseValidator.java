@@ -251,6 +251,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new DoubleField
 				.Builder("feeRate")
 				.setMaxLength(19)
+				.setNullable()
 				.build());
 	}
 

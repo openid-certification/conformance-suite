@@ -51,7 +51,6 @@ public class ConsentApiNegativeTests extends AbstractClientCredentialsGrantFunct
 				condition(setupClass),
 				sequence(PostConsentWithBadRequestSequence.class)
 			));
-
 		});
 	}
 
