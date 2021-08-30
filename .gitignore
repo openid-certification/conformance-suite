@@ -87,3 +87,4 @@ fabric.properties
 ./package/.DS_Store
 
 ## End of JetBrains section
+/enum-checker.log

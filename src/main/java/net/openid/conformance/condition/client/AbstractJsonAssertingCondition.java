@@ -6,12 +6,14 @@ import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.tools.checkEnums.EnumChecker;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.*;
 import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -496,6 +498,11 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertMinLength(stringFieldValue, field.getPath(), field.getMinLength());
 		}
 		if (!field.getEnums().isEmpty()) {
+			String className = getClass().getSimpleName();
+			if ( StringUtils.isEmpty(className)) {
+				className = getClass().getName();
+			}
+			EnumChecker.getInstance().check(field, className);
 			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
 		}
 		if (field.getMaxValue() > 0) {
