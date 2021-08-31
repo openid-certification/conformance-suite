@@ -42,7 +42,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 			new StringField
 				.Builder("typeNumberOfInstalments")
 				.setEnums(typeNumberOfInstalments)
-				.setMaxLength(6)
+				.setMaxLength(15)
 				.build());
 
 		assertField(data,
@@ -55,7 +55,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 			new StringField
 				.Builder("typeContractRemaining")
 				.setEnums(typeContractRemaining)
-				.setMaxLength(6)
+				.setMaxLength(22)
 				.build());
 
 		assertField(data,

@@ -279,7 +279,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("feeChargeType")
-				.setMaxLength(10)
+				.setMaxLength(11)
 				.setEnums(contractFeeChargeTypes)
 				.build());
 
