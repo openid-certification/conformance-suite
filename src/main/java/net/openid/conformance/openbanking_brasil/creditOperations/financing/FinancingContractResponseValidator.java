@@ -228,7 +228,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("feeChargeType")
-				.setMaxLength(10)
+				.setMaxLength(11)
 				.setEnums(feeChargeType)
 				.build());
 
