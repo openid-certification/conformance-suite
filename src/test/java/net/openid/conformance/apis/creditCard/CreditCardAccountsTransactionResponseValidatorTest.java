@@ -49,4 +49,13 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("billId")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseNullPayeeMCC.json")
+	public void payeeMCCIsNullable() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		run(condition);
+	}
+
+
 }

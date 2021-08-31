@@ -179,6 +179,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		assertField(data,
 			new IntField
 				.Builder("payeeMCC")
+				.setNullable()
 				.setMaxLength(4).build());
 	}
 }
