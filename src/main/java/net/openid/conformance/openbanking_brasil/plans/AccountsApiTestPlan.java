@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AccountApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.AccountsApiReadPermissionsAreRestricted;
+import net.openid.conformance.openbanking_brasil.testmodules.AccountsApiUXScreenshots;
 import net.openid.conformance.openbanking_brasil.testmodules.AccountsApiWrongPermissionsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -23,7 +24,8 @@ public class AccountsApiTestPlan implements TestPlan {
 				List.of(
 					AccountApiTestModule.class,
 					AccountsApiWrongPermissionsTestModule.class,
-					AccountsApiReadPermissionsAreRestricted.class
+					AccountsApiReadPermissionsAreRestricted.class,
+					AccountsApiUXScreenshots.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
