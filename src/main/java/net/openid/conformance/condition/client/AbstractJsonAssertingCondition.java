@@ -76,6 +76,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	protected void assertCurrencyType(JsonObject jsonObject, Field field) {
+		assertHasStringField(jsonObject, field.getPath());
+		String value = getJsonValueAsString(jsonObject, field.getPath());
+		assertCurrencyNotNa(value, field);
+		assertField(jsonObject, field);
+	}
+
 	//need to think about better impl then the current one
 	protected void assertField(JsonObject jsonObject, Field field) {
 		if (!ifExists(jsonObject, field.getPath())) {
@@ -362,6 +369,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return String.format("Unable to find element %s on the %s API response", elementName, getApiName());
 	}
 
+	public String createCurrencyNotNaMessage(String elementName) {
+		return String.format("Value from element %s doesn't match the required pattern on the %s API response.\nThis is a known issue, please view this link for orientation on this issue: https://openbanking-brasil.github.io/areadesenvolvedor/#problemas-conhecidos-da-especificacao", elementName, getApiName());
+	}
+
 	public String createFieldValueNotMatchPatternMessage(String elementName) {
 		return String.format("Value from element %s doesn't match the required pattern on the %s API response",
 			elementName, getApiName());
@@ -507,6 +518,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 		if (field.getMaxValue() > 0) {
 			assertMaxValue(stringFieldValue, field.getPath(), field.getMaxValue());
+		}
+	}
+
+	private void assertCurrencyNotNa(String fieldValue, Field field){
+		if(fieldValue.equalsIgnoreCase("NA")){
+			throw error(createCurrencyNotNaMessage(field.getPath()));
 		}
 	}
 

@@ -70,7 +70,8 @@ public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondi
 				.setNullable()
 				.build());
 
-		assertField(data,
+		// Calls assert field too
+		assertCurrencyType(data,
 			new StringField
 				.Builder("automaticallyInvestedAmountCurrency")
 				.setPattern("^(\\w{3}){1}$")
