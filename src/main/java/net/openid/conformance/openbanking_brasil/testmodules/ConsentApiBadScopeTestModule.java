@@ -15,8 +15,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 @PublishTestModule(
 	testName = "consent-api-bad-scope-test",
-	displayName = "Validate that requests with bad scopes return HTTP 401",
-	summary = "Validate that requests with bad scopes return HTTP 401",
+	displayName = "Validate that requests with bad scopes return HTTP 400",
+	summary = "Validate that requests with bad scopes return HTTP 400",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -40,7 +40,7 @@ public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrant
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 				.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetBadScopeOnTokenEndpointRequest.class))));
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
 		});
 

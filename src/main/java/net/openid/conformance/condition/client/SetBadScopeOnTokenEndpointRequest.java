@@ -23,7 +23,7 @@ public class SetBadScopeOnTokenEndpointRequest extends AbstractCondition {
 
 		tokenEndpointRequest.addProperty("scope", "bad-scope");
 
-		logSuccess("Set scope parameter to 'consents'", tokenEndpointRequest);
+		logSuccess("Set scope parameter to 'bad-scope'", tokenEndpointRequest);
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 
