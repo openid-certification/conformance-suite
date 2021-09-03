@@ -83,8 +83,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertField(jsonObject, field);
 	}
 
-	//need to think about better impl then the current one
-	protected void assertField(JsonObject jsonObject, Field field) {
+	public void assertField(JsonObject jsonObject, Field field) {
 		if (!ifExists(jsonObject, field.getPath())) {
 			if (field.isOptional()){
 				return;
@@ -97,8 +96,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			return;
 		}
 
+
+
 		if (field instanceof ObjectField) {
 			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
+
+		} else if (field instanceof ObjectArrayField) {
+			JsonArray array = (JsonArray)  findByPath(jsonObject, field.getPath());
+			assertMinAndMaxItems(array.getAsJsonArray(), field);
+			array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
+
 		} else if (field instanceof StringField || field instanceof DatetimeField) {
 			assertHasStringField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
@@ -434,7 +441,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return apiName == null ? clazz.getSimpleName() : apiName.value();
 	}
 
-	protected void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
+	public void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
 		JsonElement jsonElement = findByPath(body, pathToJsonArray);
 		JsonArray array = (JsonArray) jsonElement;
 		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));

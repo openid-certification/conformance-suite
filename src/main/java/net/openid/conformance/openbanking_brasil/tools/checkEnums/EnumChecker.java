@@ -1,8 +1,6 @@
 package net.openid.conformance.openbanking_brasil.tools.checkEnums;
 
 import net.openid.conformance.util.field.Field;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +28,4 @@ public class EnumChecker {
 				validatorClassName,	field.getPath(), field.getMaxLength());
 		}
 	}
-
 }
-
-
-
