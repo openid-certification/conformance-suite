@@ -120,10 +120,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
-		if (isBrazil) {
-			brazilPayments = scopeContains("payments");
-		}
-
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -158,6 +154,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		// Set up the client configuration
 		configureClient();
 		setupResourceEndpoint();
+
+		if (isBrazil) {
+			brazilPayments = scopeContains("payments");
+		}
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);

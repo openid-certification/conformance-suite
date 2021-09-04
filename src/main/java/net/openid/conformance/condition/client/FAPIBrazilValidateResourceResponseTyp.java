@@ -12,6 +12,11 @@ public class FAPIBrazilValidateResourceResponseTyp extends AbstractCondition {
 
 		String typ = env.getString("endpoint_response_jwt", "header.typ");
 
+		if (typ == null) {
+			logSuccess("Response header 'typ' is missing from response JWT", args("typ", typ));
+			return env;
+		}
+
 		if (typ.equals("JWT")) {
 			logSuccess("Response header 'typ' is JWT", args("typ", typ));
 			return env;
