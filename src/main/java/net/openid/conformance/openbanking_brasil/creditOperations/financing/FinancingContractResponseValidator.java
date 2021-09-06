@@ -188,7 +188,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 
 	private void assertInnerFieldsContractedFinanceCharges(JsonObject data) {
 		Set<String> chargeType = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO",
-			"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO"," OUTROS");
+			"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO","OUTROS");
 
 		assertField(data,
 			new StringField
@@ -205,6 +205,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new DoubleField
 				.Builder("chargeRate")
+				.setOptional()
 				.setMaxLength(19)
 				.build());
 	}
