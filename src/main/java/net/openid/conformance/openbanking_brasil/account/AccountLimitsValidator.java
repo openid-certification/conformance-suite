@@ -26,7 +26,6 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 
 	private void assertInnerFields(JsonObject body) {
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
-
 		assertField(data,
 			new DoubleField
 				.Builder("overdraftContractedLimit")
@@ -36,7 +35,8 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 				.setNullable()
 				.build());
 
-		assertField(data,
+		// Calls assert field too
+		assertCurrencyType(data,
 			new StringField
 				.Builder("overdraftContractedLimitCurrency")
 				.setPattern("^(\\w{3}){1}$")
@@ -52,7 +52,8 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 				.setNullable()
 				.build());
 
-		assertField(data,
+		// Calls assert field too
+		assertCurrencyType(data,
 			new StringField
 				.Builder("overdraftUsedLimitCurrency")
 				.setPattern("^(\\w{3}){1}$")

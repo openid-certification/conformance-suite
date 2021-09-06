@@ -29,7 +29,7 @@ public class ConsentsApiTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					ConsentApiTestModule.class,
-					ConsentApiBadScopeTestModule.class,
+					//ConsentApiBadScopeTestModule.class,
 					ConsentApiNegativeTests.class,
 					ConsentsApiPermissionGroupsTestModule.class,
 					ConsentsApiCrossClientTestModule.class,
