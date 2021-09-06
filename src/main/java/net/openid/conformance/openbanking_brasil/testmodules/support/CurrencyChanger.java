@@ -21,8 +21,8 @@ public class CurrencyChanger extends AbstractCondition {
 			.getAsJsonObject("brazilPaymentConsent")
 			.getAsJsonObject("data")
 			.getAsJsonObject("payment")
-			.addProperty("currency", "ZAR");
-		logSuccess("Changed currency to ZAR successfully");
+			.addProperty("currency", "ZZZ");
+		logSuccess("Changed currency to ZZZ successfully");
 		return env;
 	}
 
