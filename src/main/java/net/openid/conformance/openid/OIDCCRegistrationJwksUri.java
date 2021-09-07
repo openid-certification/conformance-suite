@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GenerateRS256ClientJWKsWithKeyID;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
@@ -45,7 +46,7 @@ public class OIDCCRegistrationJwksUri extends AbstractOIDCCServerTest {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		if (path.equals("jwks")) {
+		if (path.equals("client1_jwks")) {
 			return handleJwksRequest();
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
@@ -53,8 +54,12 @@ public class OIDCCRegistrationJwksUri extends AbstractOIDCCServerTest {
 	}
 
 	private Object handleJwksRequest() {
+		JsonObject clientPublicJwks = env.getObject("client_public_jwks");
+		if (clientPublicJwks == null) {
+			throw new TestFailureException(getId(), "jwks endpoint called before key exists - please wait for test to initialise before calling client jwks endpoint");
+		}
 		return ResponseEntity.ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(env.getObject("client_public_jwks"));
+				.body(clientPublicJwks);
 	}
 }
