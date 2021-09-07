@@ -1,0 +1,155 @@
+{
+    "data": {
+        "brand": {
+            "name": "Organização A",
+            "companies": [
+                {
+                    "cnpjNumber": "50685362000135",
+                    "name": "Empresa A1",
+                    "urlComplementaryList": "https://empresadaorganizacaoa.com/complementarylist",
+                    "businessAccounts": [
+                        {
+                            "type": "CONTA_DEPOSITO_A_VISTA",
+                            "fees": {
+                                "services": [
+                                    {
+                                        "name": "Evento personalizado",
+                                        "code": "EVENTO_PERSONALIZADO",
+                                        "chargingTriggerInfo": "Cobrança devido a evento personalizado",
+                                        "prices": [
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            }
+                                        ],
+                                        "minimum": {
+                                            "value": "1350.00",
+                                            "currency": "BRL"
+                                        },
+                                        "maximum": {
+                                            "value": "8800.00",
+                                            "currency": "BRL"
+                                        }
+                                    }
+                                ]
+                            },
+                            "serviceBundles": [
+                                {
+                                    "name": "Conta de depósitos à vista Movimentação com cartão (sem cheque)",
+                                    "services": [
+                                        {
+                                            "code": "SAQUE_TERMINAL",
+                                            "chargingTriggerInfo": "Realização de pesquisa em serviços de proteção ao crédito, base de dados e informações cadastrais, e tratamento de dados e informações necessários ao início relacionamento decorrente da abertura de conta de depósitos à vista ou de poupança ou contratação de operação de crédito ou de arrendamento mercantil, não podendo ser cobrada cumulativamente\n",
+                                            "eventLimitQuantity": "2",
+                                            "freeEventQuantity": "1"
+                                        }
+                                    ],
+                                    "prices": [
+                                        {
+                                            "interval": "1_FAIXA",
+                                            "monthlyFee": "2000.00",
+                                            "currency": "BRL",
+                                            "customers": {
+                                                "rate": "0.1500"
+                                            }
+                                        },
+                                        {
+                                            "interval": "1_FAIXA",
+                                            "monthlyFee": "2000.00",
+                                            "currency": "BRL",
+                                            "customers": {
+                                                "rate": "0.1500"
+                                            }
+                                        },
+                                        {
+                                            "interval": "1_FAIXA",
+                                            "monthlyFee": "2000.00",
+                                            "currency": "BRL",
+                                            "customers": {
+                                                "rate": "0.1500"
+                                            }
+                                        },
+                                        {
+                                            "interval": "1_FAIXA",
+                                            "monthlyFee": "2000.00",
+                                            "currency": "BRL",
+                                            "customers": {
+                                                "rate": "0.1500"
+                                            }
+                                        }
+                                    ],
+                                    "minimum": {
+                                        "value": "1350.00",
+                                        "currency": "BRL"
+                                    },
+                                    "maximum": {
+                                        "value": "8800.00",
+                                        "currency": "BRL"
+                                    }
+                                }
+                            ],
+                            "openingClosingChannels": [
+
+                            ],
+                            "additionalInfo": "NA",
+                            "transactionMethods": [
+                                "MOVIMENTACAO_CARTAO"
+                            ],
+                            "termsConditions": {
+                                "minimumBalance": {
+                                    "value": "200.00",
+                                    "currency": "BRL"
+                                },
+                                "elegibilityCriteriaInfo": "https://example.com/mobile-banking",
+                                "closingProcessInfo": "https://example.com/mobile-banking"
+                            },
+                            "incomeRate": {
+                                "savingAccount": "Para depósitos até 03/05/2012 – remuneração trimestral de 1,5% + TR, sempre creditada no aniversário da conta; Para depósitos a partir de 04/05/2012 – 70% da Selic + TR quando a Selic for igual ou inferior a 8,5% ao ano e 1,5% + TR caso a Selic seja superior a 8,5%.",
+                                "prepaidPaymentAccount": "40% Rendimento a.m."
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/products-services/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/products-services/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/products-services/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}
