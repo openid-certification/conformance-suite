@@ -138,7 +138,11 @@ public class TestDispatcher implements DataUtils {
 			logIncomingHttpRequest(test, restOfPath, requestParts);
 
 			if (TestModule.Status.CREATED.equals(test.getStatus())) {
-				throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				if (path.endsWith("/client1_jwks")) {
+					// workaround for the issue seen in https://gitlab.com/openid/conformance-suite/-/issues/945
+				} else {
+					throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				}
 			}
 
 			try {
