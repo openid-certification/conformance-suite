@@ -14,26 +14,7 @@ import java.util.Set;
 
 /**
  * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
- * /consents
- * 201PaymentsConsentsConsentCreated
- * ResponsePaymentConsent
- *
- * /consents/{consentId}
- * 200PaymentsConsentsConsentIdRead
- * ResponsePaymentConsent
- * ResponsePaymentConsentData
- * required:
- * - consentId
- * - statusUpdateDateTime
- * - creationDateTime
- * - expirationDateTime
- * - status
- * - loggedUser
- * - creditor
- * - payment
- * optional
- * - businessEntity
- * - debtorAccount
+ * Version: v1.0.0-rc8.8
  */
 
 @ApiName("Payment Initiation Consent")

@@ -86,7 +86,6 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new ArrayField
 				.Builder("payments")
-				.setMinItems(1)
 				.build());
 
 		assertJsonArrays(data, "payments", this::assertInnerFieldsPayments);

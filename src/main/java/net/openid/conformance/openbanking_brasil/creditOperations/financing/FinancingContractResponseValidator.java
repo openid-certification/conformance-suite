@@ -14,8 +14,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Financiamentos  |Contrato
  * See https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos-contrato
+ * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_financings_apis.yaml
+ * Version: v1.0.0-rc8.8
  */
 @ApiName("Financing Contract")
 public class FinancingContractResponseValidator extends AbstractJsonAssertingCondition {
@@ -53,6 +54,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("productName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
@@ -66,7 +68,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("productSubType")
 				.setEnums(productSubType)
-				.setMaxLength(67)
+				.setMaxLength(37)
 				.build());
 
 		assertField(data,
@@ -120,17 +122,17 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 				.build());
 
 		assertField(data,
+			new StringField
+				.Builder("instalmentPeriodicityAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(50)
+				.build());
+
+		assertField(data,
 			new DatetimeField
 				.Builder("firstInstalmentDueDate")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.setMaxLength(10)
-				.build());
-
-		assertField(data,
-			new StringField
-				.Builder("currency")
-				.setMaxLength(3)
-				.setPattern("^(\\w{3}){1}$")
 				.build());
 
 		assertField(data,
@@ -170,7 +172,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new ArrayField
 				.Builder("contractedFinanceCharges")
-				.setMinItems(1)
 				.build());
 
 		assertJsonArrays(data, "contractedFinanceCharges", this::assertInnerFieldsContractedFinanceCharges);
@@ -180,7 +181,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new ArrayField
 				.Builder("contractedFees")
-				.setMinItems(1)
 				.build());
 
 		assertJsonArrays(data, "contractedFees", this::assertInnerFieldsContractedFees);
@@ -200,6 +200,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("chargeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
@@ -218,12 +219,14 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
@@ -314,6 +317,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("referentialRateIndexerAdditionalInfo")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -334,6 +338,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(1200)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 }

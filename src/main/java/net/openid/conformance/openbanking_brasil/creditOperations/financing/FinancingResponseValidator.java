@@ -14,6 +14,8 @@ import java.util.Set;
 /**
  * This is validator for API - Financiamentos - Financing
  * https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos
+ *
+ * * Version: v1.0.0-rc8.8
  */
 
 @ApiName("Financing")
@@ -41,7 +43,7 @@ public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 

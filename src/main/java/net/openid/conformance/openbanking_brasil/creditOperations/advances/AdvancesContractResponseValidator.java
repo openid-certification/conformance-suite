@@ -164,7 +164,6 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(element,
 			new ArrayField
 				.Builder("contractedFees")
-				.setMinItems(1)
 				.build());
 		assertJsonArrays(element, "contractedFees", this::assertInnerFieldsContractedFees);
 	}
@@ -173,7 +172,6 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(element,
 			new ArrayField
 				.Builder("contractedFinanceCharges")
-				.setMinItems(1)
 				.build());
 		assertJsonArrays(element, "contractedFinanceCharges", this::assertInnerFieldsCharges);
 	}

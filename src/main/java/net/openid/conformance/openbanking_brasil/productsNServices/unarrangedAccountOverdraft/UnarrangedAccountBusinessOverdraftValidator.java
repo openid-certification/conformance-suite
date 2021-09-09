@@ -18,68 +18,64 @@ import java.util.Set;
 /**
  * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_products_services_apis.yaml
  *
- *
- * URL: /personal-unarranged-account-overdraft
+ * URL: /business-unarranged-account-overdraft
  */
 
-@ApiName("ProductsNServices Unarranged Account Overdraft")
-public class UnarrangedAccountOverdraftValidator extends AbstractJsonAssertingCondition {
+@ApiName("ProductsNServices Unarranged Account Business Overdraft")
+public class UnarrangedAccountBusinessOverdraftValidator extends AbstractJsonAssertingCondition {
+
+	private static class Fields extends ProductsNServicesCommonFields {}
+	private final ProductsNServicesCommonValidatorParts parts;
+
+	public UnarrangedAccountBusinessOverdraftValidator() {
+		parts = new ProductsNServicesCommonValidatorParts(this);
+	}
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
+		assertHasField(body, ROOT_PATH);
+		assertJsonObject(body, ROOT_PATH,
+			(data) -> assertField(data,
+				new ObjectField.Builder("brand").setValidator(
+					(brand) -> {
+						assertField(brand, Fields.name().build());
+						assertField(brand,
+							new ObjectArrayField.Builder("companies")
+								.setMinItems(1)
+								.setValidator(this::assertCompanies)
+								.build());
+					}
+				).build())
+		);
 
-		assertField(body,
-			new ObjectField
-				.Builder(ROOT_PATH)
-				.setValidator(this::assertInnerFields)
-				.build());
 		return environment;
 	}
 
-	private void assertInnerFields(JsonObject body) {
-		assertField(body,
-			new ObjectField
-				.Builder("brand")
-				.setValidator(this::assertBrandFields)
-				.build());
-	}
-
-	private void assertBrandFields(JsonObject brand) {
-		assertField(brand, ProductsNServicesCommonFields.name().build());
-
-		assertField(brand,
-			new ObjectArrayField
-				.Builder("companies")
-				.setValidator(this::assertCompanies)
-				.build());
-	}
-
 	private void assertCompanies(JsonObject companies) {
-		assertField(companies, ProductsNServicesCommonFields.cnpjNumber().build());
-		assertField(companies, ProductsNServicesCommonFields.name().build());
-		assertField(companies, ProductsNServicesCommonFields.urlComplementaryList().build());
+		assertField(companies, Fields.cnpjNumber().build());
+		assertField(companies, Fields.name().build());
+		assertField(companies, Fields.urlComplementaryList().build());
 
 		assertField(companies,
 			new ObjectArrayField
-				.Builder("personalUnarrangedAccountOverdraft")
-				.setValidator(this::assertPersonalUnarrangedAccountOverdraft)
+				.Builder("businessUnarrangedAccountOverdraft")
+				.setValidator(this::assertBusinessUnarrangedAccountOverdraft)
 				.build());
 	}
 
-	private void assertPersonalUnarrangedAccountOverdraft(JsonObject personalUnarrangedAccountOverdraft) {
-		assertField(personalUnarrangedAccountOverdraft,
+	private void assertBusinessUnarrangedAccountOverdraft(JsonObject businessUnarrangedAccountOverdraft) {
+		assertField(businessUnarrangedAccountOverdraft,
 			new ObjectField
 				.Builder("fees")
 				.setValidator(this::assertInnerFees)
 				.build());
 
-		new ProductsNServicesCommonValidatorParts(this)
-			.applyAssertingForCommonRates(personalUnarrangedAccountOverdraft,
+		parts.applyAssertingForCommonRates(businessUnarrangedAccountOverdraft,
 				"interestRates", true);
 
-		assertField(personalUnarrangedAccountOverdraft,
+		assertField(businessUnarrangedAccountOverdraft,
 			new StringField
 				.Builder("termsConditions")
 				.setMaxLength(2000)
@@ -90,9 +86,10 @@ public class UnarrangedAccountOverdraftValidator extends AbstractJsonAssertingCo
 	private void assertInnerFees(JsonObject innerFees) {
 		assertField(innerFees,
 			new ObjectArrayField
-				.Builder("priorityServices")
+				.Builder("services")
 				.setValidator(this::assertServices)
 				.setMinItems(1)
+				.setMaxItems(31)
 				.build());
 	}
 
@@ -109,7 +106,7 @@ public class UnarrangedAccountOverdraftValidator extends AbstractJsonAssertingCo
 				.setEnums(Sets.newHashSet("ADIANT_DEPOSITANTE"))
 				.build());
 
-		assertField(innerServices, ProductsNServicesCommonFields.chargingTriggerInfo().build());
+		assertField(innerServices, Fields.chargingTriggerInfo().build());
 
 		new ProductsNServicesCommonValidatorParts(this).assertPrices(innerServices);
 		new ProductsNServicesCommonValidatorParts(this).applyAssertingForCommonMinimumAndMaximum(innerServices);
