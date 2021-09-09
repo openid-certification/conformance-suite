@@ -30,7 +30,7 @@ import net.openid.conformance.util.JWKUtil;
 import java.text.ParseException;
 import java.util.List;
 
-public abstract class AbstractSignJWT extends AbstractCondition {
+public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 	public static final Base64URL ALG_NONE_HEADER = Base64URL.encode("{\"alg\":\"none\"}");
 
 	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks) {
@@ -52,27 +52,7 @@ public abstract class AbstractSignJWT extends AbstractCondition {
 
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
-			int count = 0;
-			JWK signingJwk = null;
-
-			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-
-			for (JWK jwk : jwkSet.getKeys()) {
-				var use = jwk.getKeyUse();
-				if (use != null && !use.equals(KeyUse.SIGNATURE)) {
-					// skip any encryption keys
-					continue;
-				}
-				count++;
-				signingJwk = jwk;
-			}
-
-			if (count == 0) {
-				throw error("Did not find a key with 'use': 'sig' or no 'use' claim, no key available to sign jwt", args("jwks", jwks));
-			}
-			if (count > 1) {
-				throw error("Expected only one signing JWK in the set. Please ensure the signing key is the only one in the jwks, or that other keys have a 'use' other than 'sig'.", args("jwks", jwks));
-			}
+			JWK signingJwk = getSigningKey("signing", jwks);
 
 			JWSSigner signer = null;
 			if (signingJwk.getKeyType().equals(KeyType.RSA)) {

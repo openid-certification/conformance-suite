@@ -206,6 +206,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		unmapClient();
 
+		callAndContinueOnFailure(ValidateClientPrivateKeysAreDifferent.class, ConditionResult.FAILURE);
+
 		eventLog.endBlock();
 	}
 
