@@ -381,6 +381,17 @@
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">organization jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Organizations's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Only required if 'scope' contains 'payments'."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client.org_jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret_jwt_alg</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -663,6 +674,17 @@
                                                 <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS. The key must be different to that for the first client."></span>
                                             </div>
                                             <textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">organization jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Second client's organization's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Both clients can be from the same organization, in which case the same organization private key should be provided for both clients. Only required if 'scope' contains 'payments'."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client2.org_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>

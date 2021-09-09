@@ -36,6 +36,7 @@ import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidateOrganizationJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
 import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -123,6 +124,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
 
 			call(exec().unmapKey("request_object_claims"));
+
+			callAndStopOnFailure(ValidateOrganizationJWKsPrivatePart.class);
 
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
 
