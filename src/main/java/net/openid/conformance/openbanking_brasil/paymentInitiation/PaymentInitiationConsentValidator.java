@@ -39,10 +39,10 @@ import java.util.Set;
 @ApiName("Payment Initiation Consent")
 public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCondition {
 	@Override
-	@PreEnvironment(strings = "resource_endpoint_response")
+	@PreEnvironment(required = "consent_endpoint_response")
 	public Environment evaluate(Environment environment) {
 
-		JsonObject body = bodyFrom(environment);
+		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
 

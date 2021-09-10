@@ -14,7 +14,7 @@ public class SetApplicationJwtAcceptHeaderForResourceEndpointRequest extends Abs
 
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
-		requestHeaders.addProperty(HttpHeaders.ACCEPT, DATAUTILS_MEDIATYPE_APPLICATION_JWT.toString());
+		requestHeaders.addProperty(HttpHeaders.ACCEPT, "application/jwt, application/json");
 
 		logSuccess("Set Accept header", args("accept", requestHeaders.get(HttpHeaders.ACCEPT)));
 
