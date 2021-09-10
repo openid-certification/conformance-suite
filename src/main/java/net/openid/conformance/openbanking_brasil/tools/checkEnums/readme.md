@@ -17,7 +17,7 @@ The result will be in the _enum-checker.log_ in the root of the project
 
 Unique lines can be selected by the following command
 ```
-sort -u enum-checker.log
+sort -u enum-checker.log > enum-checker-sorted.txt
 ```
 
 ## Output line format

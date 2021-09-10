@@ -13,6 +13,8 @@ import java.util.Set;
 /**
  * This is validator for API - Pagamentos do Contrato - Contract Payments
  * https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos-pagamentos-do-contrato
+ *
+ * Version: v1.0.0-rc8.8
  */
 
 @ApiName("Financing Payments")
@@ -35,7 +37,7 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new IntField
 				.Builder("paidInstalments")
-				.setOptional() // as nullable
+				.setNullable()
 				.setMaxLength(3)
 				.build());
 
@@ -120,14 +122,14 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") // TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") // TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -151,7 +153,7 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("chargeAdditionalInfo")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
