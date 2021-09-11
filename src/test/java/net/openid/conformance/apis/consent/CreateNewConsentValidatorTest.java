@@ -66,4 +66,20 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 		Assert.assertThat(error.getMessage(), containsString(expected));
 	}
 
+	@Test
+	@UseResurce("jsonResponses/consent/createConsentResponse/createConsentResponseMissingLinks.json")
+	public void validateStructureWithMissingLinksObject() {
+		CreateNewConsentValidator condition = new CreateNewConsentValidator();
+		ConditionError error = runAndFail(condition);
+		String expected = condition.createElementNotFoundMessage("$.links");
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/consent/createConsentResponse/createConsentResponseMissingOptionalLinks.json")
+	public void validateStructureWithOptionalLinks() {
+		CreateNewConsentValidator condition = new CreateNewConsentValidator();
+		run(condition);
+	}
+
 }

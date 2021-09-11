@@ -8,6 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.Field;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -30,6 +31,12 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 				.setMinItems(1)
 				.build());
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
+		assertHasField(body, "$.links");
+		assertField(body, new StringField.Builder("$.links.self").setPattern("^(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.first").setOptional().setPattern("^(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.prev").setOptional().setPattern("^(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.next").setOptional().setPattern("^(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.last").setOptional().setPattern("^(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
 		return environment;
 	}
 
