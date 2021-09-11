@@ -65,4 +65,14 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 			containsString(condition.createFieldValueNotMatchEnumerationMessage(
 				"creditDebitType")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(Empty).json")
+	public void validateStructureWithEmptyList() {
+		AccountTransactionsValidator condition = new AccountTransactionsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createArrayIsLessThanMaxItemsMessage(
+				"data")));
+	}
 }

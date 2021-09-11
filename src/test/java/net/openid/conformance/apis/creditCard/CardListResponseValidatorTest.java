@@ -35,10 +35,12 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWrongRegexp.json")
-	public void validateStructureWithWrongRegexp() {
+	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseEmpty.json")
+	public void validateStructureWithEmptyResponse() {
 		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
+		assertThat(error.getMessage(),
+			containsString(condition.createArrayIsLessThanMaxItemsMessage(
+				"data")));
 	}
 }

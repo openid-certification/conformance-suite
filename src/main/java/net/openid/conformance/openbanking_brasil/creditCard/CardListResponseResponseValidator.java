@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -23,6 +24,10 @@ public class CardListResponseResponseValidator extends AbstractJsonAssertingCond
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
+		assertField(body,
+			new ArrayField.Builder("data")
+				.setMinItems(1)
+				.build());
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
 
 		return environment;

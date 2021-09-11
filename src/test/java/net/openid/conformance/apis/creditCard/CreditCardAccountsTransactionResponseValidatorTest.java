@@ -57,5 +57,15 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 		run(condition);
 	}
 
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseEmpty.json")
+	public void validateStructureEmpty() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createArrayIsLessThanMaxItemsMessage(
+				"data")));
+	}
+
 
 }

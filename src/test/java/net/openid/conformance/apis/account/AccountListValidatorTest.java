@@ -34,4 +34,17 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 
 	}
 
+	@Test
+	@UseResurce("jsonResponses/account/accountListResponse_empty.json")
+	public void validateStructureWithEmptyList() {
+
+		// Here we simply create an instance of our Condition class
+		AccountListValidator condition = new AccountListValidator();
+
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createArrayIsLessThanMaxItemsMessage(
+				"data")));
+	}
+
 }
