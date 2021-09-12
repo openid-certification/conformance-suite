@@ -11,12 +11,12 @@ import net.openid.conformance.testmodule.Environment;
 public class FAPIBrazilSignPaymentInitiationRequest extends AbstractSignJWT {
 
 	@Override
-	@PreEnvironment(required = { "resource_request_entity_claims", "client_jwks" })
+	@PreEnvironment(required = { "resource_request_entity_claims", "client" })
 	@PostEnvironment(strings = "resource_request_entity" )
 	public Environment evaluate(Environment env) {
 
 		JsonObject claims = env.getObject("resource_request_entity_claims");
-		JsonObject jwks = env.getObject("client_jwks");
+		JsonObject jwks = (JsonObject) env.getElementFromObject("client", "org_jwks");
 		return signJWT(env, claims, jwks, true); // typ explicitly required in Brazil spec
 	}
 

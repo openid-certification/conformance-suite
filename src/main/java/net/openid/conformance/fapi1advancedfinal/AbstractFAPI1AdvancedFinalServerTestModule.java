@@ -59,6 +59,8 @@ import java.util.function.Supplier;
 	"resource.cdrVersion"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"client2.org_jwks",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
@@ -203,6 +205,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		validateClientConfiguration();
 
 		unmapClient();
+
+		callAndContinueOnFailure(ValidateClientPrivateKeysAreDifferent.class, ConditionResult.FAILURE);
 
 		eventLog.endBlock();
 	}
