@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -38,7 +39,7 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 		env.putString("resource_endpoint_response", responseBody);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putObject("resource_endpoint_response_full", fullResponse);
-		env.putInteger("resource_endpoint_response_status", responseCode.get("code").getAsInt());
+		env.putInteger("resource_endpoint_response_status", OIDFJSON.getInt(responseCode.get("code")));
 
 		logSuccess("Got a response from the resource endpoint", fullResponse);
 		return env;
