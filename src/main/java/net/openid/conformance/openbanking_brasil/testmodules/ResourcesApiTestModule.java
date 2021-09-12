@@ -28,7 +28,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"resource.customerUrl"
 	}
 )
 public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
