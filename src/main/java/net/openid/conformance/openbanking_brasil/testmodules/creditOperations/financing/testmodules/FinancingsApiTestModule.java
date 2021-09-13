@@ -56,6 +56,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractResource.class);
 			preCallProtectedResource();
 			callAndStopOnFailure(FinancingContractResponseValidator.class);
+			callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-173","BCLOG-F02-175");
 		});
 
 		runInBlock("Validate financing contract warranties response", () -> {
@@ -74,6 +75,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractInstallmentsResource.class);
 			preCallProtectedResource();
 			callAndStopOnFailure(InvoiceFinancingContractInstallmentsResponseValidator.class);
+			callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-174","BCLOG-F02-176");
 		});
 
 	}
