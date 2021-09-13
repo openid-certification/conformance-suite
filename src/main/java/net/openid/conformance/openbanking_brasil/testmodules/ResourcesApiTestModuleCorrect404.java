@@ -23,8 +23,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
-		"resource.customerUrl"
+		"resource.resourceUrl"
 	}
 )
 public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
@@ -40,11 +39,7 @@ public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctional
 
 		String logMessage = String.format("Validate correct 404 api response");
 		runInBlock(logMessage, () -> {
-			callAndContinueOnFailure(EnsureResponseCodeWas404.class);
-
-			callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-			callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
+			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 		});
 	}
 }
