@@ -16,7 +16,6 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "protected_resource_url")
-	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		return callProtectedResource(env);
@@ -35,7 +34,6 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
-
 		env.putString("resource_endpoint_response", responseBody);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putObject("resource_endpoint_response_full", fullResponse);
