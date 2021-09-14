@@ -302,6 +302,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new DoubleField
 				.Builder("feeRate")
 				.setMaxLength(19)
+				.setNullable()
 				.build());
 	}
 
