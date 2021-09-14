@@ -9,10 +9,11 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+
 @PublishTestModule(
-	testName = "payments-api-test-bad-cnpj",
-	displayName = "Payments API unregistered CNPJ test module",
-	summary = "Payments API unregistered CNPJ test module",
+	testName = "payments-api-test-invalid-cnpj",
+	displayName = "Payments API invalid CNPJ test module",
+	summary = "Payments API invalid CNPJ test module",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -30,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.keystore"
 	}
 )
-public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void validateClientConfiguration() {
@@ -40,7 +41,7 @@ public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunct
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(ReplaceInitiatorCnpjWithUnknownValue.class);
+		callAndStopOnFailure(ReplaceInitiatorCnpjWithBadValue.class);
 
 	}
 
@@ -54,7 +55,7 @@ public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunct
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResponseCodeWas400Or401.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
 	}
 
