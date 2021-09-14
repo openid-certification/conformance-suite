@@ -153,6 +153,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 				.Builder("feeAmount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 }
