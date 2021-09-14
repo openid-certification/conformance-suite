@@ -63,6 +63,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 			new IntField
 				.Builder("contractRemainingNumber")
 				.setMaxLength(6)
+				.setNullable()
 				.build());
 
 		assertField(data,
