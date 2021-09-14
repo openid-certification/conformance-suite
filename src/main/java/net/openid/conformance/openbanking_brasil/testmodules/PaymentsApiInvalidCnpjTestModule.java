@@ -55,7 +55,8 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+		callAndStopOnFailure(EnsureResponseWasJwt.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
 	}
 
