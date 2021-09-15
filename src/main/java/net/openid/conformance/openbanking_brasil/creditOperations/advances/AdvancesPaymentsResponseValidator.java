@@ -133,6 +133,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new DoubleField
 				.Builder("feeAmount")
+				.setNullable()
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 	}
