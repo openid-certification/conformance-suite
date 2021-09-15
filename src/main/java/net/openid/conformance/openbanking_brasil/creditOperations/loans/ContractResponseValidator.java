@@ -327,6 +327,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DoubleField
 				.Builder("feeRate")
+				.setNullable()
 				.setMaxLength(19)
 				.build());
 	}

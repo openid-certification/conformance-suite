@@ -300,6 +300,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 			new DoubleField
 				.Builder("feeRate")
 				.setMaxLength(19)
+				.setNullable()
 				.build());
 	}
 
