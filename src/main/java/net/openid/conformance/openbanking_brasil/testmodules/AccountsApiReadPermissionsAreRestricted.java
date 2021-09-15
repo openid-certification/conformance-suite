@@ -31,13 +31,13 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(RequestAccountReadOnly.class);
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 	}
 
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountSelector.class);
-		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 
