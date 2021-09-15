@@ -136,7 +136,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 			new StringField
 				.Builder("chargeIdentificator")
 				.setMaxLength(50)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
