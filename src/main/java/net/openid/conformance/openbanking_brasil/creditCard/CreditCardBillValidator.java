@@ -137,7 +137,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 
 	private void assertInnerFieldsPayments(JsonObject data) {
 		Set<String> valueType = Sets.newHashSet("VALOR_PAGAMENTO_FATURA_PARCELADO",
-			"VALOR_PAGAMENTO_FATURA_REALIZADO", " OUTRO_VALOR_PAGO_FATURA");
+			"VALOR_PAGAMENTO_FATURA_REALIZADO", "OUTRO_VALOR_PAGO_FATURA");
 		Set<String> paymentMode = Sets.newHashSet("DEBITO_CONTA_CORRENTE",
 			"BOLETO_BANCARIO", "AVERBACAO_FOLHA", "PIX");
 
