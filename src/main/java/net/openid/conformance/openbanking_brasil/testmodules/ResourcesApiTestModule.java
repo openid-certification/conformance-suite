@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 
@@ -28,15 +29,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
-		"resource.customerUrl"
+		"resource.resourceUrl"
 	}
 )
 public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 	}
@@ -51,13 +50,9 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		} else {
-			callAndContinueOnFailure(EnsureResponseCodeWas404.class);
-			String logMessage = String.format("Call personal endpoint");
-			runInBlock(logMessage, () -> {
-				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-				callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
-			});
+			callAndStopOnFailure(EnsureResponseCodeWas404.class);
+			callAndStopOnFailure(CustomerDataResources404.class);
+			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
 		}
 
 

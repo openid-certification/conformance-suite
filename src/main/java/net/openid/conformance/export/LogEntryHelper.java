@@ -67,6 +67,7 @@ public class LogEntryHelper {
 		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
 		specLinks.put("PAR-", "https://tools.ietf.org/html/draft-ietf-oauth-par#section-");
 		specLinks.put("JAR-", "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-");
+		specLinks.put("BCLOG-F02-", "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();
