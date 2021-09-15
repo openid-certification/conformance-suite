@@ -38,6 +38,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
