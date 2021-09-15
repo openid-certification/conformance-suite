@@ -72,7 +72,6 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		runInBlock("Ensure we cannot call the account resource API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndStopOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
@@ -91,7 +90,6 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndStopOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
