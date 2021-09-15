@@ -46,6 +46,7 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Deleting consent", () -> {
