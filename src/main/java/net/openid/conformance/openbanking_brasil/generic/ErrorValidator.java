@@ -6,6 +6,11 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.Field;
+import net.openid.conformance.util.field.StringField;
+
+import java.util.function.Consumer;
 
 public class ErrorValidator extends AbstractJsonAssertingCondition {
 
@@ -15,62 +20,30 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 		Integer status = environment.getInteger("resource_endpoint_response_status");
 
-		assertBodyExists(body, status);
-		validateErrors(body);
-		validateStatus(body, status);
+		assertHasField(body, "$.errors");
+		assertOuterFields(body);
+		assertInnerFields(body, status);
 
 		return environment;
 	}
 
-	private void assertBodyExists(JsonObject body, Integer status){
-		if(body == null){
-			throw error("No body existing for the resource_endpoint_response");
-		} else if(body.keySet().isEmpty()) {
-			throw error("No keys for resource_endpoint_response: " + body);
-		} else {
-			logSuccess("Response body found successfully");
-		}
-
-		if(status == null){
-			throw error("No existing status, cannot verify error status");
-		} else {
-			logSuccess("Response status found");
-		}
+	private void assertOuterFields(JsonObject body) {
+		JsonObject errors = findByPath(body, "$").getAsJsonObject();
+		assertField(errors, new ArrayField
+			.Builder("errors")
+			.setMinItems(1)
+			.setMaxItems(13)
+			.build()
+		);
 	}
-
-	private void validateErrors(JsonObject body){
-		if(body.get("errors") != null){
-			if(body.get("errors").isJsonArray()){
-				logSuccess("Error response is compliant with the spec");
-			} else {
-				logFailure(body);
-				throw error("Error response is not compliant with the spec");
-			}
-		} else {
-			logFailure(body);
-			logFailure("Error needed but no errors found. Not spec compliant");
-		}
+	private void assertInnerFields(JsonObject body, Integer status) {
+		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
+		errors.forEach(error -> {
+			assertField(error.getAsJsonObject(),
+				new StringField
+					.Builder("code")
+					.setPattern("^" + status + "$")
+					.build());
+		});
 	}
-
-	private void validateStatus(JsonObject body, int status){
-		if(body.get("errors").isJsonArray()){
-			// This is disgusting, however getAsJsonArray is not allowed.
-			JsonArray errors = (JsonArray) body.get("errors");
-			errors.forEach(error -> {
-				JsonObject obj = OIDFJSON.toObject(error);
-				String code = OIDFJSON.getString(obj.get("code"));
-				if(Integer.parseInt(code) == status){
-					logSuccess("Error status code is matching");
-				} else {
-					logFailure("Error status code does not match");
-				}
-			});
-		} else {
-			throw error("Errors is not an array. This is not spec compliant");
-		}
-
-
-
-	}
-
 }

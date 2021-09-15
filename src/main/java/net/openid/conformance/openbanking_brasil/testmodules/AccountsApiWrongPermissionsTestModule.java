@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.*;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -71,6 +72,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		runInBlock("Ensure we cannot call the account resource API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
@@ -89,6 +91,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndStopOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
