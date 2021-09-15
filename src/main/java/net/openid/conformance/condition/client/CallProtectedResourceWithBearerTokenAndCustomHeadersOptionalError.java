@@ -44,6 +44,9 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 		logSuccess("Resource endpoint returned error", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 
+		JsonObject responseHeaders = mapToJsonObject(e.getResponseHeaders(), true);
+
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putInteger("resource_endpoint_response_status", e.getRawStatusCode());
 		env.putString("resource_endpoint_error_code", String.valueOf(e.getRawStatusCode()));
 
