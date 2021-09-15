@@ -1,0 +1,14 @@
+{
+    "errors":[
+        {
+            "code":"403",
+            "title":"Forbidden",
+            "detail":"O token tem escopo incorreto ou uma política de segurança foi violada"
+        }
+    ],
+    "meta":{
+        "totalRecords":1,
+        "totalPages":1,
+        "requestDateTime":"2021-09-14T13:18:52Z"
+    }
+}
