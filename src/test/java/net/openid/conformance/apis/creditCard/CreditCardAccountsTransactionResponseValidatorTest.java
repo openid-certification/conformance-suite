@@ -78,5 +78,11 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 				"$.links.self")));
 	}
 
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseMissingPrevLink.json")
+	public void validateStructureMissingPrevLink() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		run(condition);
+	}
 
 }
