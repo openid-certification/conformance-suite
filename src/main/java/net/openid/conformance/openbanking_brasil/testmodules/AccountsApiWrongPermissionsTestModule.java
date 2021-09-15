@@ -1,17 +1,8 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 
 @PublishTestModule(
 	testName = "account-api-wrong-permissions-test",
