@@ -38,7 +38,6 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
-		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
@@ -49,6 +48,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 			String logMessage = String.format("Validate resources api request");
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			});
 		} else {
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
