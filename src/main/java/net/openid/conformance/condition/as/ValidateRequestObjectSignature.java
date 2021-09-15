@@ -2,8 +2,10 @@ package net.openid.conformance.condition.as;
 
 import java.security.Key;
 import java.text.ParseException;
+import java.util.Base64;
 import java.util.List;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -61,6 +63,10 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
 			//TODO signature verification should be changed to use kids
 			List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
+			if(keys==null || keys.isEmpty()) {
+				throw error("Could not find any keys that can be used to verify this signature",
+					args("requestObject", requestObject, "clientJwks", clientJwks));
+			}
 			for (Key key : keys) {
 				JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 				JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
@@ -76,11 +82,17 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 				} else {
 					// failed to verify with this key, moving on
 					// not a failure yet as it might pass a different key
+					log("Failed to verify signature using key", args("key",key.toString(), "requestObject", requestObject));
 				}
 			}
 
 			// if we got here, it hasn't been verified by any key
-			throw error("Unable to verify request object signature based on client keys");
+			throw error("Unable to verify request object signature based on client keys",
+				args("jwt_header", jwt.getHeader().toString(),
+					"keys", new GsonBuilder().setPrettyPrinting().create().toJson(keys),
+					"clientJwks", clientJwks,
+					"requestObject", requestObject)
+				);
 
 		} catch (JOSEException | ParseException e) {
 			throw error("error validating request object signature", e);
