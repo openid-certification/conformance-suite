@@ -4,6 +4,7 @@ import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.GetLoansResponseValidator;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -49,6 +50,15 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansErrorResponse.json")
+	public void validateErrorResponse() {
+		ErrorValidator condition = new ErrorValidator();
+		environment.putInteger("resource_endpoint_response_status", 403);
+		run(condition);
+		environment.removeNativeValue("resource_endpoint_response_status");
 	}
 }
 

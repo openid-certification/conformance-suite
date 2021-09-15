@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.LoansContractSelector;
