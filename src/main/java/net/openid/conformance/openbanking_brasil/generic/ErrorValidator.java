@@ -7,32 +7,34 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.List;
-
-
 public class ErrorValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-		assertBodyExists(body);
+		Integer status = environment.getInteger("resource_endpoint_response_status");
 
+		assertBodyExists(body, status);
 		validateErrors(body);
-
-		int status = environment.getInteger("resource_endpoint_response_status");
 		validateStatus(body, status);
 
 		return environment;
 	}
 
-	private void assertBodyExists(JsonObject body){
+	private void assertBodyExists(JsonObject body, Integer status){
 		if(body == null){
 			throw error("No body existing for the resource_endpoint_response");
 		} else if(body.keySet().isEmpty()) {
 			throw error("No keys for resource_endpoint_response: " + body);
 		} else {
 			logSuccess("Response body found successfully");
+		}
+
+		if(status == null){
+			throw error("No existing status, cannot verify error status");
+		} else {
+			logSuccess("Response status found");
 		}
 	}
 
