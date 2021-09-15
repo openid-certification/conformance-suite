@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.*;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -50,6 +51,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		} else {
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 			callAndStopOnFailure(CustomerDataResources404.class);
 			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);

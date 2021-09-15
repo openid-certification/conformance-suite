@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -45,18 +46,21 @@ public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissi
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the  Customer Business Qualification", () -> {
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Customer Business Identifications", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Customer Business Financial-relations", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}
