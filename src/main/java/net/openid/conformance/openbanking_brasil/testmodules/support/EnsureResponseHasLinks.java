@@ -9,6 +9,8 @@ public class EnsureResponseHasLinks extends AbstractJsonAssertingCondition {
 
     @Override
 	public Environment evaluate(Environment environment) {
+
+		log("CHeck for navigation Links in the response body.");
 		
         JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
