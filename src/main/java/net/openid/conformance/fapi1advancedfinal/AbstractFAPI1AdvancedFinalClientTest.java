@@ -315,11 +315,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void switchToSecondClient() {
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
+		env.mapKey("client_public_jwks", "client_public_jwks2");
 	}
 
 	protected void unmapClient() {
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
+		env.unmapKey("client_public_jwks");
 	}
 
 	protected void validateClientJwks(boolean isSecondClient)
