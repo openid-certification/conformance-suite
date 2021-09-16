@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTo
 import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -55,6 +56,7 @@ public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunct
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(EnsureResponseWasJwt.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ErrorValidator.class);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
 	}
