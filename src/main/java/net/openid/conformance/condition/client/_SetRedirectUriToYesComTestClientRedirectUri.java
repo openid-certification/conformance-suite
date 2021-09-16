@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Creates a callback URL based on the base_url environment value
+ * FIXME ONLY FOR TESTING WITH YES.COM EXAMPLE CLIENT. REMOVE!!!
  */
 public class _SetRedirectUriToYesComTestClientRedirectUri extends AbstractCondition {
 
@@ -17,7 +17,7 @@ public class _SetRedirectUriToYesComTestClientRedirectUri extends AbstractCondit
 	public Environment evaluate(Environment in) {
 		in.putString("redirect_uri", "http://localhost:3000/yes/oidccb");
 
-		logSuccess("Set redirect URI",
+		logSuccess("Set redirect URI. ONLY FOR TESTING WITH YES.COM EXAMPLE CLIENT",
 			args("redirect_uri", "http://localhost:3000/yes/oidccb"));
 
 		return in;
