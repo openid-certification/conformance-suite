@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.di
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 @PublishTestModule(
 	testName = "discounted-credit-rights-api-test",
@@ -40,6 +41,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(InvoiceFinancingContractsResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(CreditDiscountedCreditRightsSelector.class);
 
@@ -54,6 +56,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 		callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments.class);
 		preCallProtectedResource("Discounted Credit Rights - Contract Payments");
 		callAndContinueOnFailure(InvoiceFinancingContractPaymentsResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
 		preCallProtectedResource("Discounted Credit Rights - Contract Instalments");

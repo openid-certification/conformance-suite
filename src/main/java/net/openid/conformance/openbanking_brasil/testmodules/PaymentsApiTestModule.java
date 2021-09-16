@@ -8,6 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentS
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 @PublishTestModule(
 	testName = "payments-api-test",
@@ -43,6 +44,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 	}
 
 }

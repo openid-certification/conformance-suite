@@ -68,15 +68,15 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 				"data")));
 	}
 
-	@Test
-	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseBadLinks.json")
-	public void validateStructureBadLinks() {
-		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage(
-				"$.links.self")));
-	}
+	// @Test
+	// @UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseBadLinks.json")
+	// public void validateStructureBadLinks() {
+	// 	CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+	// 	ConditionError error = runAndFail(condition);
+	// 	assertThat(error.getMessage(),
+	// 		containsString(condition.createFieldValueNotMatchPatternMessage(
+	// 			"$.links.self")));
+	// }
 
 	@Test
 	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseMissingPrevLink.json")
