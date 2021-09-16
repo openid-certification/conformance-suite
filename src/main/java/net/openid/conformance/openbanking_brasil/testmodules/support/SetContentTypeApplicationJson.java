@@ -14,7 +14,7 @@ public class SetContentTypeApplicationJson extends AbstractCondition {
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 		headers.addProperty("content-type", MediaType.APPLICATION_JSON_VALUE);
 
-		log("Call to consents API will be an HTTP DELETE. We do not expect a response body");
+		log("Setting header content-type to application/json");
 		return env;
 	}
 
