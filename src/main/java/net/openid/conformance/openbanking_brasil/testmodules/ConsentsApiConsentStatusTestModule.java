@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
@@ -49,6 +50,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 				callAndStopOnFailure(EnsureConsentWasAuthorised.class);
 			});
 		} else {
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 			String logMessage = String.format("Call personal endpoint");
 			runInBlock(logMessage, () -> {

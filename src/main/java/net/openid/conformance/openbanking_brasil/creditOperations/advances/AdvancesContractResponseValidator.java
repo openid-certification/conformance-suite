@@ -95,8 +95,10 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(data,
 			new DoubleField
 				.Builder("contractAmount")
+				.setNullable()
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setMaxLength(20)
 				.build());
 
 		assertField(data,
@@ -298,6 +300,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 			new DoubleField
 				.Builder("feeRate")
 				.setMaxLength(19)
+				.setNullable()
 				.build());
 	}
 

@@ -25,6 +25,12 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
+		assertHasField(body, "$.links");
+		assertField(body, new StringField.Builder("$.links.self").setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.first").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.prev").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.next").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.last").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
 		return environment;
 	}
 
@@ -137,7 +143,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 
 	private void assertInnerFieldsPayments(JsonObject data) {
 		Set<String> valueType = Sets.newHashSet("VALOR_PAGAMENTO_FATURA_PARCELADO",
-			"VALOR_PAGAMENTO_FATURA_REALIZADO", " OUTRO_VALOR_PAGO_FATURA");
+			"VALOR_PAGAMENTO_FATURA_REALIZADO", "OUTRO_VALOR_PAGO_FATURA");
 		Set<String> paymentMode = Sets.newHashSet("DEBITO_CONTA_CORRENTE",
 			"BOLETO_BANCARIO", "AVERBACAO_FOLHA", "PIX");
 

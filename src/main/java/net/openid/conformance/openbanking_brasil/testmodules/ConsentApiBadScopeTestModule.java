@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRe
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -41,6 +42,7 @@ public class ConsentApiBadScopeTestModule extends AbstractClientCredentialsGrant
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 				.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetBadScopeOnTokenEndpointRequest.class))));
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
 		});
 

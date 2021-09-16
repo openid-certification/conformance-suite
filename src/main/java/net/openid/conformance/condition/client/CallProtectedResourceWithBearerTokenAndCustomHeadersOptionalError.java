@@ -1,11 +1,6 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -16,7 +11,6 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "protected_resource_url")
-	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		return callProtectedResource(env);
@@ -35,7 +29,6 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
-
 		env.putString("resource_endpoint_response", responseBody);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putObject("resource_endpoint_response_full", fullResponse);
@@ -51,6 +44,9 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 		logSuccess("Resource endpoint returned error", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 
+		JsonObject responseHeaders = mapToJsonObject(e.getResponseHeaders(), true);
+
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putInteger("resource_endpoint_response_status", e.getRawStatusCode());
 		env.putString("resource_endpoint_error_code", String.valueOf(e.getRawStatusCode()));
 

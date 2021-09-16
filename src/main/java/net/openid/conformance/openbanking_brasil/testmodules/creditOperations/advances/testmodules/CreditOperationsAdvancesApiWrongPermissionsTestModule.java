@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.CreditAdvanceSelector;
@@ -62,30 +63,35 @@ public class CreditOperationsAdvancesApiWrongPermissionsTestModule extends Abstr
 		runInBlock("Ensure we cannot call the CreditOperation Advances root API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditOperation Advances Contracts API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContracts.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditOperation Advances warranties API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractGuarantees.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditOperation Advances payments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractPayments.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the  CreditOperation Advances instalments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractInstallments.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}

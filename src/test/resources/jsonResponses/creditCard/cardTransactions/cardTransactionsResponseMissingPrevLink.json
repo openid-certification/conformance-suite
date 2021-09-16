@@ -1,0 +1,38 @@
+{
+    "data": [
+        {
+            "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+            "identificationNumber": "4453",
+            "lineName": "CREDITO_A_VISTA",
+            "transactionName": "PGTO",
+            "billId": "MTU0OTU1NjI2NTk4OTRmc2ZhZDRmc2Q1NmZkM",
+            "creditDebitType": "DEBITO",
+            "transactionType": "CASHBACK",
+            "transactionalAdditionalInfo": "string",
+            "paymentType": "A_VISTA",
+            "feeType": "ANUIDADE",
+            "feeTypeAdditionalInfo": "string",
+            "otherCreditsType": "CREDITO_ROTATIVO",
+            "otherCreditsAdditionalInfo": "string",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 3,
+            "brazilianAmount": 100000.04,
+            "amount": 100000.04,
+            "currency": "BRL",
+            "transactionDate": "2021-05-21",
+            "billPostDate": "2021-05-21",
+            "payeeMCC": 5137
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -35,6 +36,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 	protected void runTests() {
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndStopOnFailure(AddConsentScope.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
@@ -59,6 +61,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndContinueOnFailure(EnsureResponseFromConsentApiWas403.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ClearResponseFromEnvironment.class, Condition.ConditionResult.FAILURE);
 		});

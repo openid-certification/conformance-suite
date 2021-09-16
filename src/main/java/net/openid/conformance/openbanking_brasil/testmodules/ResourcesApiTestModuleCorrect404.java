@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.plans.PrepareAllCustomerRelatedConsentsForResource404HappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -39,6 +40,7 @@ public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctional
 
 		String logMessage = String.format("Validate correct 404 api response");
 		runInBlock(logMessage, () -> {
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 		});
 	}

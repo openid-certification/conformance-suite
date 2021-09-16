@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.AccountIdentificationResponseValidator;
 import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -31,13 +32,13 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(RequestAccountReadOnly.class);
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 	}
 
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountSelector.class);
-		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 
@@ -49,6 +50,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 		runInBlock("Ensure we cannot call the account balance API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
@@ -57,6 +59,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
