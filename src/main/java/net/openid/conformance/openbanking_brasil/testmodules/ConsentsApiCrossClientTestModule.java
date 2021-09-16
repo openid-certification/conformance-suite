@@ -35,6 +35,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 	protected void runTests() {
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndStopOnFailure(AddConsentScope.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);

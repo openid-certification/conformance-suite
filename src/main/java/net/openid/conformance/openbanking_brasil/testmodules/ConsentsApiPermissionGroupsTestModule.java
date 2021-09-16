@@ -72,6 +72,7 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 		runInBlock(logMessage, () -> {
 
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			env.putString("consent_permissions", String.join(" ", permissions));
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
