@@ -36,6 +36,7 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndStopOnFailure(AddConsentScope.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
 		});
