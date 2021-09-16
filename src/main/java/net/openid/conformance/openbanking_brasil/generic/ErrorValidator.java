@@ -24,13 +24,17 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertOuterFields(JsonObject body) {
-		JsonObject errors = findByPath(body, "$").getAsJsonObject();
-		assertField(errors, new ArrayField
-			.Builder("errors")
-			.setMinItems(1)
-			.setMaxItems(13)
-			.build()
-		);
+		try {
+			JsonObject errors = findByPath(body, "$").getAsJsonObject();
+			assertField(errors, new ArrayField
+				.Builder("errors")
+				.setMinItems(1)
+				.setMaxItems(13)
+				.build()
+			);
+		} catch (IllegalStateException e){
+			throw error("Errors field is not a Json Array. This is not spec compliant.");
+		}
 	}
 	private void assertInnerFields(JsonObject body, Integer status) {
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
@@ -39,6 +43,21 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 				new StringField
 					.Builder("code")
 					.setPattern("^" + status + "$")
+					.setMaxLength(255)
+					.build());
+
+			assertField(error.getAsJsonObject(),
+				new StringField
+					.Builder("title")
+					.setPattern("[\\w\\W\\s]*")
+					.setMaxLength(255)
+					.build());
+
+			assertField(error.getAsJsonObject(),
+				new StringField
+					.Builder("detail")
+					.setPattern("[\\w\\W\\s]*")
+					.setMaxLength(255)
 					.build());
 		});
 	}

@@ -48,6 +48,7 @@ public class LoansApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 		runInBlock("Validate loans root response", () -> {
 			callAndStopOnFailure(GetLoansResponseValidator.class);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
 		});
 
 		runInBlock("Validate loans contract response", () -> {
@@ -55,6 +56,7 @@ public class LoansApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 			callAndStopOnFailure(PrepareUrlForFetchingLoanContractResource.class);
 			preCallProtectedResource();
 			callAndStopOnFailure(ContractResponseValidator.class);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
 		});
 
 		runInBlock("Validate loans contract warranties response", () -> {
