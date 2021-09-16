@@ -624,12 +624,17 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	/**
+	 * Setup a TCP connection to the given host/port
+	 *
 	 * @param targetHost The host that will be used to create the socket.
 	 * @param targetPort The port that will be used to create the socket.
 	 * @return a newly created socket using the system HTTP proxy if one is set.
 	 * @throws IOException thrown if there is an issue with the socket connection.
 	 */
 	protected Socket setupSocket(String targetHost, Integer targetPort) throws IOException {
+		// For most operations we rely on HttpClientBuilder useSystemProperties() method to support proxies, however
+		// as here we are creating the socket ourselves to perform TLS cipher/version tests, we need to explicitly
+		// process the proxy configuration keys.
 		String proxyHost = System.getProperty("https.proxyHost", "");
 		int proxyPort = Integer.parseInt(System.getProperty("https.proxyPort", "0"));
 		String noProxyStr = System.getProperty("https.noProxy", "");
