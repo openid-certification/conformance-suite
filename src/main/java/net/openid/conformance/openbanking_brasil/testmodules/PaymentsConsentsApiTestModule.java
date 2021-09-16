@@ -41,6 +41,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			call(sequence(SignedPaymentConsentSequence.class));
 
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validate payment initiation get consent", () -> {
@@ -50,6 +51,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }

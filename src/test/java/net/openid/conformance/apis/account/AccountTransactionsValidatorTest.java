@@ -75,14 +75,14 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 			containsString(condition.createArrayIsLessThanMaxItemsMessage(
 				"data")));
 	}
-	@Test
-	@UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(BadLinks).json")
-	public void validateStructureBadLinks() {
-		AccountTransactionsValidator condition = new AccountTransactionsValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage(
-				"$.links.self")));
-	}
+	// @Test
+	// @UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(BadLinks).json")
+	// public void validateStructureBadLinks() {
+	// 	AccountTransactionsValidator condition = new AccountTransactionsValidator();
+	// 	ConditionError error = runAndFail(condition);
+	// 	assertThat(error.getMessage(),
+	// 		containsString(condition.createFieldValueNotMatchPatternMessage(
+	// 			"$.links.self")));
+	// }
 
 }
