@@ -48,7 +48,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 			String logMessage = String.format("Validate resources api request");
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
-				callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(EnsureResponseHasLinks.class);
 			});
 		} else {
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
