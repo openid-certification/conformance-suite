@@ -10,7 +10,7 @@ public class PlanNames {
 	public static final String RESOURCES_API_PLAN_NAME = "F2 T0 Functional tests for resources API - based on Swagger version: 1.0.2";
 	public static final String CREDIT_OPERATIONS_ADVANCES_API_PLAN_NAME = "F2 T2 Functional tests for unarranged overdraft API - based on Swagger version: 1.0.4 (WIP)";
 	public static final String LOANS_API_PLAN_NAME = "F2 T2 Functional tests for loans API - based on Swagger version: 1.0.4";
-    public static final String FINANCINGS_API_NAME = "F2 T2 Functional tests for financings API - based on Swagger version: 1.0.4 (WIP)";
+    public static final String FINANCINGS_API_NAME = "F2 T2 Functional tests for financings API - based on Swagger version: 1.0.4";
 	public static final String CREDIT_OPERATIONS_DISCOUNTED_CREDIT_RIGHTS_API_PLAN_NAME = "F2 T2 Functional tests for discounted credit rights API - based on Swagger version: 1.0.4 (WIP)";
 	public static final String PAYMENTS_API_TEST_PLAN = "Functional tests for payments API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String PRODUCTS_N_SERVICES_API_TEST_PLAN  = "Functional tests for " +
