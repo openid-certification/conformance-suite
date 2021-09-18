@@ -98,6 +98,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
+import net.openid.conformance.condition.rs.CreateBrazilAccountsEndpointResponse;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
@@ -118,6 +119,7 @@ import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationC
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.AddPlainFAPIToServerConfiguration;
+import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
@@ -169,6 +171,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+	public static final String BRAZIL_ACCOUNTS_PATH = "accounts/v1/accounts";
 	public static final String BRAZIL_CONSENTS_PATH = "consents/v1/consents";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -255,11 +258,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			exposeMtlsPath("accounts_endpoint", BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
 		} else {
+			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
 
@@ -402,7 +406,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH)) {
+		} else if (path.equals(ACCOUNTS_PATH) || path.equals(BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
@@ -1053,6 +1057,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
 		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
+	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	public void setupOpenBankingBrazil() {
+		//authorizationCodeGrantTypeProfileSteps = null;
+		//authorizationEndpointProfileSteps = null;
+		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
 	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "by_value")
