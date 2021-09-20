@@ -10,8 +10,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Empréstimos | Empréstimos
- * https://openbanking-brasil.github.io/areadesenvolvedor/#emprestimos
+ * Api: swagger_loans_apis.yaml
+ * Api endpoint: /contracts
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Get Loans")
@@ -38,13 +39,14 @@ public class GetLoansResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("contractId")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.setMaxLength(100)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-				//.setPattern("\\w*\\W*")  TODO: Wrong Pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 
