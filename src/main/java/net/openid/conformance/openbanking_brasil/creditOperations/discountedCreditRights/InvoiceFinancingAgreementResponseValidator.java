@@ -13,10 +13,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Agreement
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-contrato
+ * Api: swagger_invoice_financings_apis.yaml
+ * Api endpoint: /contracts/{contractId}
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
  */
-
 @ApiName("Invoice Financing Agreement")
 public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -57,18 +58,21 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("productName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("productType")
 				.setEnums(productType)
+				.setMaxLength(32)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("productSubType")
 				.setEnums(contractProductSubTypes)
+				.setMaxLength(39)
 				.build());
 
 		assertField(body,
@@ -120,12 +124,14 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("instalmentPeriodicity")
 				.setEnums(contractInstalmentPeriodicity)
+				.setMaxLength(25)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("instalmentPeriodicityAdditionalInfo")
 				.setMaxLength(50)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -144,7 +150,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 		assertField(body,
 			new StringField
 				.Builder("amortizationScheduled")
-				.setMaxLength(24)
+				.setMaxLength(23)
 				.setEnums(contractAmortizationScheduled)
 				.build());
 
@@ -152,6 +158,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("amortizationScheduledAdditionalInfo")
 				.setMaxLength(50)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertInterestRate(body);
@@ -199,14 +206,14 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("taxType")
 				.setEnums(contractTaxTypes)
-				.setMaxLength(10)
+				.setMaxLength(7)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("interestRateType")
 				.setEnums(contractInterestRateTypes)
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.build());
 
 		assertField(body,
@@ -235,12 +242,14 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 				.Builder("referentialRateIndexerSubType")
 				.setEnums(contractReferentialRateIndexerSubTypes)
 				.setMaxLength(24)
+				.setOptional()
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("referentialRateIndexerAdditionalInfo")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -261,6 +270,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(1200)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -272,12 +282,14 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -324,6 +336,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 		assertField(body,
 			new StringField
 				.Builder("chargeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,

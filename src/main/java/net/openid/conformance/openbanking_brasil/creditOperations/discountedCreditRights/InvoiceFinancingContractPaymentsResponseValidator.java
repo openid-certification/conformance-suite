@@ -14,10 +14,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Direitos Creditórios Descontados - Pagamentos do Contrato
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-pagamentos-do-contrato
+ * Api: swagger_invoice_financings_apis.yaml
+ * Api endpoint: /contracts/{contractId}/payments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
  */
-
 @ApiName("Invoice Financing Contract Payments")
 public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -37,6 +38,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new IntField
 				.Builder("paidInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -59,6 +61,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new StringField
 				.Builder("paymentId")
 				.setMaxLength(100)
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -71,6 +74,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new StringField
 				.Builder("instalmentId")
 				.setMaxLength(100)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -123,7 +127,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new StringField
 				.Builder("chargeAdditionalInfo")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -131,6 +135,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 				.Builder("chargeAmount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 
@@ -139,14 +144,14 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
