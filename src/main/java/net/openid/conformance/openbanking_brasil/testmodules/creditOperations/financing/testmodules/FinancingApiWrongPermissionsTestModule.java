@@ -16,6 +16,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtect
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.condition.Condition;
 
 @PublishTestModule(
 	testName = "financing-api-wrong-permissions-test",
@@ -66,35 +67,35 @@ public class FinancingApiWrongPermissionsTestModule extends AbstractPermissionsC
 		runInBlock("Ensure we cannot call the Financing root API", () -> {
 			callAndStopOnFailure(PrepareUrlForFinancingRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Financing resource API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the financing contract warranties API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractWarrantiesResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the financing contract payments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractPaymentsResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the  financing contract instalments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractInstallmentsResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}

@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Provide
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.condition.Condition;
 
 @PublishTestModule(
 	testName = " Customer-Personal-api-wrong-permissions-test",
@@ -52,21 +53,21 @@ public class CustomerPersonalWrongPermissionsTestModule extends AbstractPermissi
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the  Customer Personal Qualification", () -> {
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Customer Personal Identifications", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Customer Personal Financial-relations", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}

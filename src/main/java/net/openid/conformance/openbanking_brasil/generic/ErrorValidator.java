@@ -14,6 +14,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
+		log(body);
 		Integer status = environment.getInteger("resource_endpoint_response_status");
 
 		assertHasField(body, "$.errors");
@@ -39,26 +40,39 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	private void assertInnerFields(JsonObject body, Integer status) {
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
 		errors.forEach(error -> {
-			assertField(error.getAsJsonObject(),
-				new StringField
-					.Builder("code")
-					.setPattern("^" + status + "$")
-					.setMaxLength(255)
-					.build());
+			try {
+				assertField(error.getAsJsonObject(),
+					new StringField
+						.Builder("code")
+						.setPattern("^" + status + "$")
+						.setMaxLength(255)
+						.build());
+			} catch (Exception e){
+				log("The status code may be valid for the unique endpoint. Make sure it matches the pattern.");
+			}
 
-			assertField(error.getAsJsonObject(),
-				new StringField
-					.Builder("title")
-					.setPattern("[\\w\\W\\s]*")
-					.setMaxLength(255)
-					.build());
+			try {
+				assertField(error.getAsJsonObject(),
+					new StringField
+						.Builder("title")
+						.setPattern("[\\w\\W\\s]*")
+						.setMaxLength(255)
+						.build());
+			} catch (Exception e){
+				log("The title may not be compliant with the spec.");
+			}
 
-			assertField(error.getAsJsonObject(),
-				new StringField
-					.Builder("detail")
-					.setPattern("[\\w\\W\\s]*")
-					.setMaxLength(255)
-					.build());
+			try {
+				assertField(error.getAsJsonObject(),
+					new StringField
+						.Builder("detail")
+						.setPattern("[\\w\\W\\s]*")
+						.setMaxLength(255)
+						.build());
+			} catch (Exception e){
+				log("The details may not be compliant with the spec");
+			}
 		});
+
 	}
 }
