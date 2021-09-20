@@ -11,9 +11,11 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * This is validator for Adiantamento a Depositantes - Pagamentos do Contrato | Contract Payments"
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#adiantamento-a-depositantes-pagamentos-do-contrato
- **/
+ * Api: swagger_unarranged_accounts_overdraft_apis.yaml
+ * Api endpoint: /contracts/{contractId}/payments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
+ */
 
 @ApiName("Advances Payments")
 public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCondition {
@@ -35,7 +37,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 		assertField(data,
 			new IntField
 				.Builder("paidInstalments")
-				.setOptional() // as nullable
+				.setNullable()
 				.setMaxLength(3)
 				.build());
 
@@ -120,14 +122,14 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") // TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") // TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -152,13 +154,14 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 			new StringField
 				.Builder("chargeAdditionalInfo")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*") TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new DoubleField
 				.Builder("chargeAmount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setNullable()
 				.build());
 	}
 }

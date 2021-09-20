@@ -12,9 +12,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for Adiantamento a Depositantes - Garantias do Contrato | Contract Guarantees"
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#adiantamento-a-depositantes-garantias-do-contrato
- **/
+ * Api: swagger_unarranged_accounts_overdraft_apis.yaml
+ * Api endpoint: /contracts/{contractId}/warranties
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
+ */
 
 @ApiName("Advances Guarantees")
 public class AdvancesGuaranteesResponseValidator extends AbstractJsonAssertingCondition {
@@ -31,7 +33,6 @@ public class AdvancesGuaranteesResponseValidator extends AbstractJsonAssertingCo
 	}
 
 	private void assertInnerFields(JsonObject body) {
-
 		Set<String> enumWarrantyType = Sets.newHashSet("SEM_TIPO_GARANTIA", "CESSAO_DIREITOS_CREDITORIOS", "CAUCAO", "PENHOR", "ALIENACAO_FIDUCIARIA",
 			"HIPOTECA", "OPERACOES_GARANTIDAS_PELO_GOVERNO", "OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS",
 			"GARANTIA_FIDEJUSSORIA", "BENS_ARRENDADOS", "GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES",
@@ -65,14 +66,14 @@ public class AdvancesGuaranteesResponseValidator extends AbstractJsonAssertingCo
 			new StringField
 				.Builder("warrantyType")
 				.setEnums(enumWarrantyType)
-				.setMaxLength(40)
+				.setMaxLength(37)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("warrantySubType")
 				.setEnums(enumWarrantySubType)
-				.setMaxLength(100)
+				.setMaxLength(96)
 				.build());
 
 		assertField(body,
