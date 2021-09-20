@@ -48,6 +48,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 						.build());
 			} catch (Exception e){
 				log("The status code may be valid for the unique endpoint. Make sure it matches the pattern.");
+				throw error(e.getMessage());
 			}
 
 			try {
@@ -59,6 +60,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 						.build());
 			} catch (Exception e){
 				log("The title may not be compliant with the spec.");
+				throw error(e.getMessage());
 			}
 
 			try {
@@ -70,6 +72,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 						.build());
 			} catch (Exception e){
 				log("The details may not be compliant with the spec");
+				throw error(e.getMessage());
 			}
 		});
 
