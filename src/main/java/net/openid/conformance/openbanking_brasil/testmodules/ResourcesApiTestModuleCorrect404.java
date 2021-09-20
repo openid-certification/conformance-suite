@@ -40,7 +40,7 @@ public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctional
 
 		String logMessage = String.format("Validate correct 404 api response");
 		runInBlock(logMessage, () -> {
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 		});
 	}

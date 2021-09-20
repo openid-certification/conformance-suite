@@ -50,7 +50,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 				callAndStopOnFailure(EnsureConsentWasAuthorised.class);
 			});
 		} else {
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 			String logMessage = String.format("Call personal endpoint");
 			runInBlock(logMessage, () -> {

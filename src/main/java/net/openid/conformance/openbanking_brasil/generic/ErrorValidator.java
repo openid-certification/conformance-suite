@@ -60,5 +60,6 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 					.setMaxLength(255)
 					.build());
 		});
+
 	}
 }
