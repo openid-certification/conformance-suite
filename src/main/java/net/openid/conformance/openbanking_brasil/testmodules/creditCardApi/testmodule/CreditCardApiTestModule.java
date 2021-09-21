@@ -39,7 +39,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 
 	@Override
 	protected void validateResponse() {
-		callAndContinueOnFailure(CardListResponseResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CardAccountsDataResponseResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		call(sequence(ValidateSelfEndpoint.class));
 

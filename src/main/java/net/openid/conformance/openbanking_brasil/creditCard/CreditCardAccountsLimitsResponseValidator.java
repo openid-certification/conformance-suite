@@ -13,10 +13,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Cartão de Crédito | Limites de cartão de crédito
- * https://openbanking-brasil.github.io/areadesenvolvedor/#limites-de-cartao-de-credito
+ * Api: swagger_credit_cards_apis.yaml
+ * Api endpoint: /accounts/{creditCardAccountId}/limits
+ * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
  */
-
 @ApiName("Credit Card Accounts Limits")
 public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -27,7 +27,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
@@ -39,12 +39,14 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new StringField
 				.Builder("creditLineLimitType")
+				.setMaxLength(34)
 				.setEnums(enumCreditLimitType)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("consolidationType")
+				.setMaxLength(11)
 				.setEnums(enumConsolidationType)
 				.build());
 
@@ -58,6 +60,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new StringField
 				.Builder("lineName")
+				.setMaxLength(28)
 				.setEnums(enumLineName)
 				.setOptional()
 				.build());
@@ -65,7 +68,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new StringField
 				.Builder("lineNameAdditionalInfo")
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -84,8 +87,10 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new DoubleField
 				.Builder("limitAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMaxLength(20)
 				.setMinLength(0)
+				.setNullable()
 				.build());
 
 
@@ -99,8 +104,10 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new DoubleField
 				.Builder("usedAmount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMaxLength(20)
 				.setMinLength(0)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -115,6 +122,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 				.Builder("availableAmount")
 				.setMaxLength(20)
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 }

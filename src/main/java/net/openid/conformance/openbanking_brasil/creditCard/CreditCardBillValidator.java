@@ -9,14 +9,16 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * This is validator for API - Cartão de Crédito | Fatura de Cartão de Crédito
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#fatura-de-cartao-de-credito">Fatura de Cartão de Crédito</a>
- **/
+ * Api: swagger_credit_cards_apis.yaml
+ * Api endpoint: /accounts/{creditCardAccountId}/bills
+ * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ */
 @ApiName("Credit Card Bill")
 public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 
@@ -25,7 +27,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
@@ -79,27 +81,19 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.Builder("isInstalment")
 				.build());
 
-		assertFinanceCharges(data);
-		assertPayments(data);
-	}
-
-	private void assertPayments(JsonObject data) {
 		assertField(data,
-			new ArrayField
-				.Builder("payments")
-				.build());
-
-		assertJsonArrays(data, "payments", this::assertInnerFieldsPayments);
-	}
-
-	private void assertFinanceCharges(JsonObject data) {
-		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("financeCharges")
+				.setValidator(this::assertInnerFieldsFinanceCharges)
 				.setMinItems(1)
 				.build());
 
-		assertJsonArrays(data, "financeCharges", this::assertInnerFieldsFinanceCharges);
+		assertField(data,
+			new ObjectArrayField
+				.Builder("payments")
+				.setValidator(this::assertInnerFieldsPayments)
+				.setMinItems(0)
+				.build());
 	}
 
 	private void assertInnerFieldsFinanceCharges(JsonObject data) {
@@ -109,6 +103,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 
 		assertField(data, new StringField
 			.Builder("type")
+			.setMaxLength(44)
 			.setEnums(enumType)
 			.build());
 
@@ -116,7 +111,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")//TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -126,6 +121,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setNullable()
 				.build());
 
 		assertField(data,

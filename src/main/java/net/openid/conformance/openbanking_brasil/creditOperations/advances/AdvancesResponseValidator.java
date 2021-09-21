@@ -7,14 +7,17 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * This is validator for API-Adiantamento a Depositantes - Advances to Depositors"
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#adiantamento-a-depositantes
- **/
+ * Api: swagger_unarranged_accounts_overdraft_apis.yaml
+ * Api endpoint: /contracts
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
+ */
 
 @ApiName("Advances")
 public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
@@ -23,16 +26,19 @@ public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
 
 		assertField(body,
-			new ArrayField
+			new ObjectArrayField
 				.Builder(ROOT_PATH)
+				.setValidator(this::assertInnerFields)
 				.setMinItems(1)
 				.build());
-
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+		assertHasField(body, "$.links");
+		assertField(body, new StringField.Builder("$.links.self").setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.first").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.prev").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.next").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
+		assertField(body, new StringField.Builder("$.links.last").setOptional().setPattern("^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$").build());
 		return environment;
 	}
 
@@ -44,13 +50,14 @@ public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("contractId")
 				.setMaxLength(100)
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("brandName")
 				.setMaxLength(80)
-				//.setPattern("\\w*\\W*") TODO wrong enum
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -64,6 +71,7 @@ public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("productType")
 				.setEnums(enumProductType)
+				.setMaxLength(27)
 				.build());
 
 		assertField(body,

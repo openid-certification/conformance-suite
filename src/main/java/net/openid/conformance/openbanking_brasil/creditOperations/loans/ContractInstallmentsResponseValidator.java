@@ -15,8 +15,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Empréstimos - Parcelas do Contrato
- * https://openbanking-brasil.github.io/areadesenvolvedor/#emprestimos-parcelas-do-contrato
+ * Api: swagger_loans_apis.yaml
+ * Api endpoint: /contracts/{contractId}/scheduled-instalments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Contract Installments")
@@ -49,6 +50,7 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 			new IntField
 				.Builder("totalNumberOfInstalments")
 				.setMaxLength(6)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -62,24 +64,28 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 			new IntField
 				.Builder("contractRemainingNumber")
 				.setMaxLength(6)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("paidInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("dueInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("pastDueInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertBalloonPayments(data);
@@ -89,7 +95,9 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 		assertField(data,
 			new ArrayField
 				.Builder("balloonPayments")
-				.setMinItems(0).build());
+				.setMinItems(0)
+				.setNullable()
+				.build());
 
 		assertJsonArrays(data, "balloonPayments", this::assertInnerFieldsBalloonPayments);
 	}
@@ -98,6 +106,7 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 		assertField(body,
 			new DatetimeField
 				.Builder("dueDate")
+				.setMaxLength(10)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.build());
 
@@ -111,7 +120,9 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 		assertField(body,
 			new DoubleField.
 				Builder("amount")
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 }
