@@ -83,7 +83,7 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 				passed = true;
 				callAndStopOnFailure(ValidateRequestedPermissionsAreNotWidened.class, Condition.ConditionResult.FAILURE);
 			} else {
-				callAndContinueOnFailure(ErrorValidator.class);
+				callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 				callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 			}
 

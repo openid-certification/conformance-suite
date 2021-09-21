@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.f
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractInstallmentsResponseValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractInstallmentsResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingGuaranteesResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingPaymentsResponseValidator;
@@ -78,7 +78,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		runInBlock("Validate financing contract instalments response", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractInstallmentsResource.class);
 			preCallProtectedResource();
-			callAndStopOnFailure(InvoiceFinancingContractInstallmentsResponseValidator.class);
+			callAndStopOnFailure(FinancingContractInstallmentsResponseValidator.class);
 			callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-174","BCLOG-F02-176");
 		});
 

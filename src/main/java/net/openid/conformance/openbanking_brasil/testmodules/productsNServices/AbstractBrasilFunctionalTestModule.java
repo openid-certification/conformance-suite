@@ -47,7 +47,7 @@ public abstract class AbstractBrasilFunctionalTestModule extends AbstractBlockLo
 
 	}
 
-	protected void preCallResource(String blockHeader) {
+	protected void preCallResource() {
 		callAndStopOnFailure(CallResource.class);
 
 	}

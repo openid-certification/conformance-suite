@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.ProductsNServicesCommonFields;
-import net.openid.conformance.openbanking_brasil.productsNServices.ProductsNServicesCommonValidatorParts;
+import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -15,27 +15,30 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_products_services_apis.yaml
- * /personal-accounts
+ * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
+ * Api endpoint: /personal-accounts
+ * Api version: 1.0.2
+ * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
+ *
  */
-
 @ApiName("ProductsNServices Personal Accounts")
 public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 
-	private final ProductsNServicesCommonValidatorParts parts;
+	private static class Fields extends CommonFields {}
+	private final CommonValidatorParts parts;
 
 	public PersonalAccountsValidator() {
-		parts = new ProductsNServicesCommonValidatorParts(this);
+		parts = new CommonValidatorParts(this);
 	}
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-
+		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-
+		logFinalStatus();
 		return environment;
 	}
 
@@ -48,7 +51,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertBrandFields(JsonObject brand) {
-		assertField(brand, ProductsNServicesCommonFields.name().build());
+		assertField(brand, Fields.name().build());
 
 		assertField(brand,
 			new ObjectArrayField
@@ -59,9 +62,9 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertCompanies(JsonObject companies) {
-		assertField(companies, ProductsNServicesCommonFields.cnpjNumber().build());
-		assertField(companies, ProductsNServicesCommonFields.name().build());
-		assertField(companies, ProductsNServicesCommonFields.urlComplementaryList().build());
+		assertField(companies, CommonFields.cnpjNumber().build());
+		assertField(companies, CommonFields.name().build());
+		assertField(companies, CommonFields.urlComplementaryList().build());
 
 		assertField(companies,
 			new ObjectArrayField
@@ -78,7 +81,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 		Set<String> OpeningClosingChannels = Sets.newHashSet("DEPENDENCIAS_PROPRIAS", "CORRESPONDENTES_BANCARIOS", "INTERNET_BANKING", "MOBILE_BANKING", "CENTRAL_TELEFONICA", "CHAT", "OUTROS");
 		Set<String> transactionMethods = Sets.newHashSet("MOVIMENTACAO_ELETRONICA", "MOVIMENTACAO_CHEQUE", "MOVIMENTACAO_CARTAO", "MOVIMENTACAO_PRESENCIAL");
 
-		assertField(personalAccounts, ProductsNServicesCommonFields.type(accountTypes).build());
+		assertField(personalAccounts, CommonFields.type(accountTypes).build());
 
 		assertField(personalAccounts,
 			new ObjectField
@@ -172,12 +175,12 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertMinimumBalance(JsonObject minimumBalance) {
-		assertField(minimumBalance, ProductsNServicesCommonFields.value().build());
-		assertField(minimumBalance, ProductsNServicesCommonFields.currency().build());
+		assertField(minimumBalance, CommonFields.value().build());
+		assertField(minimumBalance, CommonFields.currency().build());
 	}
 
 	private void assertInnerOtherServices(JsonObject otherServices) {
-		assertField(otherServices, ProductsNServicesCommonFields.name().setMaxLength(250).build());
+		assertField(otherServices, CommonFields.name().setMaxLength(250).build());
 
 		assertField(otherServices,
 			new StringField
@@ -186,14 +189,14 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 				.setPattern("[\\w\\W\\s]*")
 				.build());
 
-		assertField(otherServices, ProductsNServicesCommonFields.chargingTriggerInfo().build());
+		assertField(otherServices, CommonFields.chargingTriggerInfo().build());
 
 		parts.assertPrices(otherServices);
 		parts.applyAssertingForCommonMinimumAndMaximum(otherServices);
 	}
 
 	private void assertServiceBundles(JsonObject servicesBundles) {
-		assertField(servicesBundles, ProductsNServicesCommonFields.name().setMaxLength(250).build());
+		assertField(servicesBundles, CommonFields.name().setMaxLength(250).build());
 
 		assertField(servicesBundles,
 			new ObjectArrayField
@@ -214,7 +217,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 				.setPattern("[\\w\\W\\s]*")
 				.build());
 
-		assertField(services, ProductsNServicesCommonFields.chargingTriggerInfo().build());
+		assertField(services, CommonFields.chargingTriggerInfo().build());
 
 		assertField(services,
 			new StringField
@@ -296,7 +299,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 				.setEnums(codes)
 				.build());
 
-		assertField(priorityServices, ProductsNServicesCommonFields.chargingTriggerInfo().build());
+		assertField(priorityServices, CommonFields.chargingTriggerInfo().build());
 		parts.assertPrices(priorityServices);
 		parts.applyAssertingForCommonMinimumAndMaximum(priorityServices);
 	}

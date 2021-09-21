@@ -61,7 +61,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndContinueOnFailure(EnsureResponseFromConsentApiWas403.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ClearResponseFromEnvironment.class, Condition.ConditionResult.FAILURE);
 		});

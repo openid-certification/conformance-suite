@@ -13,6 +13,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.di
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.condition.Condition;
 
 @PublishTestModule(
 	testName = "discounted-credit-rights-wrong-permissions-test",
@@ -62,35 +63,35 @@ public class CreditOperationsDiscountedApiWrongPermissionsTestModule extends Abs
 		runInBlock("Ensure we cannot call the Discounted Credit Rights root", () -> {
 			callAndStopOnFailure(PrepareUrlForDiscountedRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Discounted Credit Rights - Contract", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContract.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Discounted Credit Rights - Contract Guarantees", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Discounted Credit Rights - Contract Payments", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Discounted Credit Rights - Contract Instalments", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}

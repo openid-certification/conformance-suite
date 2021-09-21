@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.ProductsNServicesCommonFields;
-import net.openid.conformance.openbanking_brasil.productsNServices.ProductsNServicesCommonValidatorParts;
+import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -16,24 +16,26 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_products_services_apis.yaml
+ * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
+ * Api endpoint: /business-invoice-financings
+ * Api version: 1.0.2
+ * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
  *
- * /business-invoice-financings
  */
-
 @ApiName("ProductsNServices Business Invoice Financings")
 public class BusinessInvoiceFinancingsValidator extends AbstractJsonAssertingCondition {
 
-	private static class Fields extends ProductsNServicesCommonFields {}
-	private final ProductsNServicesCommonValidatorParts parts;
+	private static class Fields extends CommonFields {}
+	private final CommonValidatorParts parts;
 
 	public BusinessInvoiceFinancingsValidator() {
-		parts = new ProductsNServicesCommonValidatorParts(this);
+		parts = new CommonValidatorParts(this);
 	}
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
+		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH,
@@ -49,7 +51,7 @@ public class BusinessInvoiceFinancingsValidator extends AbstractJsonAssertingCon
 					}
 				).build())
 		);
-
+		logFinalStatus();
 		return environment;
 	}
 
