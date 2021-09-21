@@ -11,11 +11,12 @@ import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
-
 /**
- * This is validator for API - Cartão de Crédito "Identificação de cartão de crédito"
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#saldos-da-conta
- **/
+ * Api: swagger_credit_cards_apis.yaml
+ * Api endpoint: /accounts/{creditCardAccountId}
+ * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ */
+
 @ApiName("Card Identification")
 public class CardIdentificationResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -25,7 +26,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertInnerFields(body);
-		
+
 		return environment;
 	}
 
@@ -37,7 +38,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 		assertField(data,
 			new StringField
 				.Builder("name")
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(50)
 				.build());
 

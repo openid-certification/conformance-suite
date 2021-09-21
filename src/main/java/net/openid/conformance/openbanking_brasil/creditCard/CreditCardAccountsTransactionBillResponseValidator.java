@@ -13,11 +13,11 @@ import java.util.Set;
 
 /**
  * Api: swagger_credit_cards_apis.yaml
- * Api endpoint: /accounts/{creditCardAccountId}/transactions
+ * Api endpoint: /accounts/{creditCardAccountId}/bills/{billId}/transactions
  * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
  */
 @ApiName("Credit Card Accounts Transaction")
-public class CreditCardAccountsTransactionResponseValidator extends AbstractJsonAssertingCondition {
+public class CreditCardAccountsTransactionBillResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -60,7 +60,6 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		assertField(data,
 			new StringField
 				.Builder("lineName")
-				.setMaxLength(28)
 				.setEnums(enumLineName)
 				.setOptional()
 				.build());

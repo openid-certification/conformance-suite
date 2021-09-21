@@ -12,12 +12,13 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Cartão de Crédito "Lista de cartões de crédito"
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#lista-de-cartoes-de-credito
- **/
+ * Api: swagger_credit_cards_apis.yaml
+ * Api endpoint: /accounts
+ * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ */
 
 @ApiName("Card List")
-public class CardListResponseResponseValidator extends AbstractJsonAssertingCondition {
+public class CardAccountsDataResponseResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -29,7 +30,7 @@ public class CardListResponseResponseValidator extends AbstractJsonAssertingCond
 				.setMinItems(1)
 				.build());
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
@@ -47,7 +48,7 @@ public class CardListResponseResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-			//	.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 
@@ -61,7 +62,7 @@ public class CardListResponseResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("name")
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(50)
 				.build());
 

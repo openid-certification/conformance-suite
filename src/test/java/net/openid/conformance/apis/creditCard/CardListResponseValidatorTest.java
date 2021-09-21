@@ -2,7 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.creditCard.CardListResponseResponseValidator;
+import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -14,14 +14,14 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 
 	@Test
 	public void validateStructure() {
-		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		run(condition);
 	}
 
 	@Test
 	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWithError.json")
 	public void validateStructureWithMissingField() {
-		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("productType")));
 	}
@@ -29,7 +29,7 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	@Test
 	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseWrongEnum.json")
 	public void validateStructureWithWrongEnum() {
-		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
 	}
@@ -37,7 +37,7 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	@Test
 	@UseResurce("jsonResponses/creditCard/cardList/cardListResponseEmpty.json")
 	public void validateStructureWithEmptyResponse() {
-		CardListResponseResponseValidator condition = new CardListResponseResponseValidator();
+		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
 			containsString(condition.createArrayIsLessThanMaxItemsMessage(
