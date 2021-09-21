@@ -40,6 +40,7 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
 		});
 
 		runInBlock("Validating get consent response", () -> {
@@ -48,6 +49,7 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
 		});
 
 		runInBlock("Deleting consent", () -> {

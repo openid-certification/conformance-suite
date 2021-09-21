@@ -45,6 +45,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 	}
 
 }

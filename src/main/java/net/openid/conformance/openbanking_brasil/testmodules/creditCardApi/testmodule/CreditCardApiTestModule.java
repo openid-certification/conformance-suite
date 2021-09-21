@@ -41,33 +41,39 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 	protected void validateResponse() {
 		callAndContinueOnFailure(CardListResponseResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(CardAccountSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Credit Card details");
 		callAndContinueOnFailure(CardIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardLimits.class);
 		preCallProtectedResource("Fetch card limits");
 		callAndContinueOnFailure(CreditCardAccountsLimitsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 		preCallProtectedResource("Fetch card transactions");
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		preCallProtectedResource("Fetch card bills");
 		callAndContinueOnFailure(CreditCardBillValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
 		preCallProtectedResource("Fetch Credit Card bill transationc");
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 	}
 
