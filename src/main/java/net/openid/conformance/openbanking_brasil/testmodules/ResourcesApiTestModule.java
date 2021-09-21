@@ -50,6 +50,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(EnsureResponseHasLinks.class);
+				call(sequence(ValidateSelfEndpoint.class));
 			});
 		} else {
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);

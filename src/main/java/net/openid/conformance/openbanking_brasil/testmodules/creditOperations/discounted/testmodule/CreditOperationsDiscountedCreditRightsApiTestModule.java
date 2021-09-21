@@ -42,6 +42,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 	protected void validateResponse() {
 		callAndContinueOnFailure(InvoiceFinancingContractsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(CreditDiscountedCreditRightsSelector.class);
 
@@ -57,6 +58,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 		preCallProtectedResource("Discounted Credit Rights - Contract Payments");
 		callAndContinueOnFailure(InvoiceFinancingContractPaymentsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
 		preCallProtectedResource("Discounted Credit Rights - Contract Instalments");

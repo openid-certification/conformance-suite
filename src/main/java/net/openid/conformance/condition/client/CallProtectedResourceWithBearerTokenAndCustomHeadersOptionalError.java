@@ -46,6 +46,9 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 		JsonObject responseHeaders = mapToJsonObject(e.getResponseHeaders(), true);
 
+		String response = e.getResponseBodyAsString();
+
+		env.putString("resource_endpoint_response", response);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putInteger("resource_endpoint_response_status", e.getRawStatusCode());
 		env.putString("resource_endpoint_error_code", String.valueOf(e.getRawStatusCode()));

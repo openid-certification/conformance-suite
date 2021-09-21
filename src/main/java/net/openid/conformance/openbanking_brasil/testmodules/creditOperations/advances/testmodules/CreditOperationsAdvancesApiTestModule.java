@@ -43,6 +43,7 @@ public class CreditOperationsAdvancesApiTestModule extends AbstractOBBrasilFunct
 	protected void validateResponse() {
 		callAndContinueOnFailure(AdvancesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(CreditAdvanceSelector.class);
 
