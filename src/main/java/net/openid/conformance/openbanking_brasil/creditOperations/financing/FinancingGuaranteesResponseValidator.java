@@ -12,11 +12,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Financiamentos  | Garantias do Contrato
- * https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos-garantias-do-contrato
- *
- *
- * Version: v1.0.0-rc8.8
+ * API: swagger_financings_apis.yaml
+ * URL: /contracts/{contractId}/warranties
+ * API git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Financing Guarantees")
@@ -65,14 +63,14 @@ public class FinancingGuaranteesResponseValidator extends AbstractJsonAssertingC
 			new StringField
 				.Builder("warrantyType")
 				.setEnums(enumWarrantyType)
-				.setMaxLength(40)
+				.setMaxLength(37)
 				.build());
 
 		assertField(element,
 			new StringField
 				.Builder("warrantySubType")
 				.setEnums(enumWarrantySubType)
-				.setMaxLength(100)
+				.setMaxLength(96)
 				.build());
 
 		assertField(element,

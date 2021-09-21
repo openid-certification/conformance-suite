@@ -5,7 +5,7 @@ import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
-public class ProductsNServicesCommonFields {
+public class CommonFields extends net.openid.conformance.openbanking_brasil.CommonFields {
 
 	public static Field.FieldBuilder consentId() {
 		return new StringField
@@ -54,13 +54,6 @@ public class ProductsNServicesCommonFields {
 			.Builder("chargingTriggerInfo")
 			.setPattern("[\\w\\W\\s]*")
 			.setMaxLength(2000);
-	}
-
-	public static Field.FieldBuilder currency() {
-		return new StringField
-			.Builder("currency")
-			.setPattern("^(\\w{3}){1}$")
-			.setMaxLength(3);
 	}
 
 	private static Field.FieldBuilder value(String value) {

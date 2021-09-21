@@ -9,14 +9,14 @@ import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
-public class ProductsNServicesCommonValidatorParts {
-	private static class Fields extends ProductsNServicesCommonFields {}
+public class CommonValidatorParts {
+	private static class Fields extends CommonFields {}
 
 	Set<String> intervals = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 	private final AbstractJsonAssertingCondition validator;
 
-	public ProductsNServicesCommonValidatorParts(AbstractJsonAssertingCondition validator) {
+	public CommonValidatorParts(AbstractJsonAssertingCondition validator) {
 		this.validator = validator;
 	}
 
