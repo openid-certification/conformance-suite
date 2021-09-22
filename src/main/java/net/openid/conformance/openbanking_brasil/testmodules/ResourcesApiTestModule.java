@@ -54,7 +54,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 				call(sequence(ValidateSelfEndpoint.class));
 			});
 		} else {
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas404.class);
 			callAndStopOnFailure(CustomerDataResources404.class);
 			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);

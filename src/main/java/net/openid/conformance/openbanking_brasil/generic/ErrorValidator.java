@@ -42,7 +42,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 			assertField(error.getAsJsonObject(),
 				new StringField
 					.Builder("code")
-					.setPattern("^" + status + "$")
+					.setPattern("[\\w\\W\\s]*")
 					.setMaxLength(255)
 					.build());
 
@@ -57,7 +57,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 				new StringField
 					.Builder("detail")
 					.setPattern("[\\w\\W\\s]*")
-					.setMaxLength(255)
+					.setMaxLength(2048)
 					.build());
 		});
 
