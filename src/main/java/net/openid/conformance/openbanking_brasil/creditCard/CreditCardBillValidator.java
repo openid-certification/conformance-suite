@@ -6,7 +6,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -17,7 +16,7 @@ import java.util.Set;
 /**
  * Api: swagger_credit_cards_apis.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/bills
- * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 @ApiName("Credit Card Bill")
 public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
@@ -142,6 +141,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("valueType")
 				.setEnums(valueType)
+				.setMaxLength(32)
 				.build());
 
 		assertField(data,
@@ -155,6 +155,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("paymentMode")
 				.setEnums(paymentMode)
+				.setMaxLength(21)
 				.build());
 
 		assertField(data,
