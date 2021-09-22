@@ -50,7 +50,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 		runInBlock("Ensure we cannot call the account balance API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
@@ -59,7 +59,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 

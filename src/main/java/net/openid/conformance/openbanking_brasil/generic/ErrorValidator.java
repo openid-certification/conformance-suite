@@ -14,11 +14,9 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-		Integer status = environment.getInteger("resource_endpoint_response_status");
-
 		assertHasField(body, "$.errors");
 		assertOuterFields(body);
-		assertInnerFields(body, status);
+		assertInnerFields(body);
 
 		return environment;
 	}
@@ -36,13 +34,13 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 			throw error("Errors field is not a Json Array. This is not spec compliant.");
 		}
 	}
-	private void assertInnerFields(JsonObject body, Integer status) {
+	private void assertInnerFields(JsonObject body) {
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
 		errors.forEach(error -> {
 			assertField(error.getAsJsonObject(),
 				new StringField
 					.Builder("code")
-					.setPattern("^" + status + "$")
+					.setPattern("[\\w\\W\\s]*")
 					.setMaxLength(255)
 					.build());
 
@@ -57,7 +55,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 				new StringField
 					.Builder("detail")
 					.setPattern("[\\w\\W\\s]*")
-					.setMaxLength(255)
+					.setMaxLength(2048)
 					.build());
 		});
 
