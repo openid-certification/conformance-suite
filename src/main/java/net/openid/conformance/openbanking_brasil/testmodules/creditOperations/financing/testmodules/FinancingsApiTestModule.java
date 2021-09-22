@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractInstallmentsResponseValidator;
@@ -50,6 +51,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		runInBlock("Validate financing root response", () -> {
 			callAndStopOnFailure(FinancingResponseValidator.class);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 
@@ -72,6 +74,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 			preCallProtectedResource();
 			callAndStopOnFailure(FinancingPaymentsResponseValidator.class);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 
