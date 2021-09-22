@@ -27,7 +27,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
