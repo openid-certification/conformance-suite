@@ -22,12 +22,12 @@ import java.util.Set;
 @ApiName("Payment Initiation Pix By PaymentId")
 public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAssertingCondition {
 	@Override
-	@PreEnvironment(required = "consent_endpoint_response")
+	@PreEnvironment(required = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = environment.getObject("consent_endpoint_response");
+		JsonObject body = environment.getObject("resource_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
