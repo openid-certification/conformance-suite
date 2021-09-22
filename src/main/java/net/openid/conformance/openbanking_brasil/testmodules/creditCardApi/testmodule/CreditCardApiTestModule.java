@@ -70,7 +70,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
-		preCallProtectedResource("Fetch Credit Card bill transationc");
+		preCallProtectedResource("Fetch Credit Card bill transaction");
 		callAndContinueOnFailure(InvoiceCreditCardTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		call(sequence(ValidateSelfEndpoint.class));
