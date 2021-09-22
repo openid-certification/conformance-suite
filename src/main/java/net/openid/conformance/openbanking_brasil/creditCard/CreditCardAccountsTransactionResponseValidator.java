@@ -10,12 +10,12 @@ import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
-
 /**
  * Api: swagger_credit_cards_apis.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/transactions
- * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
+
 @ApiName("Credit Card Accounts Transaction")
 public class CreditCardAccountsTransactionResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -26,7 +26,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertField(body,
-			new ArrayField.Builder("data")
+			new ArrayField.Builder(ROOT_PATH)
 				.setMinItems(1)
 				.build());
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
@@ -35,12 +35,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 	}
 
 	private void assertInnerFields(JsonObject data) {
-		Set<String> enumLineName = Sets.newHashSet("CREDITO_A_VISTA", "CREDITO_PARCELADO", "SAQUE_CREDITO_BRASIL", "SAQUE_CREDITO_EXTERIOR", "EMPRESTIMO_CARTAO_CONSIGNADO", "OUTROS");
 		Set<String> enumCreditDebitType = Sets.newHashSet("CREDITO", "DEBITO");
-		Set<String> enumTransactionType = Sets.newHashSet("PAGAMENTO", "TARIFA", "OPERACOES_CREDITO_CONTRATADAS_CARTAO", "ESTORNO", "CASHBACK", "OUTROS");
-		Set<String> enumPaymentType = Sets.newHashSet("A_VISTA", "A_PRAZO");
-		Set<String> enumFeeType = Sets.newHashSet("ANUIDADE", "SAQUE_CARTAO_BRASIL", "SAQUE_CARTAO_EXTERIOR", "AVALIACAO_EMERGENCIAL_CREDITO", "EMISSAO_SEGUNDA_VIA", "TARIFA_PAGAMENTO_CONTAS", "SMS", "OUTRA");
-		Set<String> enumCreditsType = Sets.newHashSet("CREDITO_ROTATIVO", "PARCELAMENTO_FATURA", "EMPRESTIMO", "OUTROS");
 
 		assertField(data,
 			new StringField
@@ -57,13 +52,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 				.setMaxLength(100)
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("lineName")
-				.setMaxLength(28)
-				.setEnums(enumLineName)
-				.setOptional()
-				.build());
+		assertField(data, CommonFields.lineName().build());
 
 		assertField(data,
 			new StringField
@@ -87,11 +76,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 				.setEnums(enumCreditDebitType)
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("transactionType")
-				.setEnums(enumTransactionType)
-				.build());
+		assertField(data, CommonFields.transactionType().build());
 
 		assertField(data,
 			new StringField
@@ -99,17 +84,9 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 				.setMaxLength(140)
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("paymentType")
-				.setEnums(enumPaymentType)
-				.build());
+		assertField(data, CommonFields.paymentType().build());
 
-		assertField(data,
-			new StringField
-				.Builder("feeType")
-				.setEnums(enumFeeType)
-				.build());
+		assertField(data, CommonFields.feeType().build());
 
 		assertField(data,
 			new StringField
@@ -117,11 +94,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 				.setMaxLength(140)
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("otherCreditsType")
-				.setEnums(enumCreditsType)
-				.build());
+		assertField(data, CommonFields.otherCreditsType().build());
 
 		assertField(data,
 			new StringField
@@ -169,14 +142,12 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		assertField(data,
 			new DatetimeField
 				.Builder("transactionDate")
-				.setMaxLength(20)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.build());
 
 		assertField(data,
 			new DatetimeField
 				.Builder("billPostDate")
-				.setMaxLength(20)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.build());
 

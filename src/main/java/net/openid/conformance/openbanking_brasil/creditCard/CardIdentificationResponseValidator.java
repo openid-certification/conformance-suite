@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * Api: swagger_credit_cards_apis.yaml
  * Api endpoint: /accounts/{creditCardAccountId}
- * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Card Identification")

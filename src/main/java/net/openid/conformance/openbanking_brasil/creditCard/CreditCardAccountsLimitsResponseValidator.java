@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api: swagger_credit_cards_apis.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/limits
- * Api git hash: 91e2ff8327cb35eb1ae571c7b2264e6173b34eeb
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 @ApiName("Credit Card Accounts Limits")
 public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAssertingCondition {
@@ -34,7 +34,6 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 	private void assertInnerFields(JsonObject data) {
 		Set<String> enumCreditLimitType = Sets.newHashSet("LIMITE_CREDITO_TOTAL", "LIMITE_CREDITO_MODALIDADE_OPERACAO");
 		Set<String> enumConsolidationType = Sets.newHashSet("CONSOLIDADO", "INDIVIDUAL");
-		Set<String> enumLineName = Sets.newHashSet("CREDITO_A_VISTA", "CREDITO_PARCELADO", "SAQUE_CREDITO_BRASIL", "SAQUE_CREDITO_EXTERIOR", "EMPRESTIMO_CARTAO_CONSIGNADO", "OUTROS");
 
 		assertField(data,
 			new StringField
@@ -57,13 +56,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("lineName")
-				.setMaxLength(28)
-				.setEnums(enumLineName)
-				.setOptional()
-				.build());
+		assertField(data, CommonFields.lineName().build());
 
 		assertField(data,
 			new StringField
