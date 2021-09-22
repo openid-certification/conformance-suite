@@ -15,8 +15,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Direitos Creditórios Descontados - Parcelas do Contrato  | Contract Installments
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-parcelas-do-contrato
+ * Api: swagger_invoice_financings_apis.yaml
+ * Api endpoint: /contracts/{contractId}/scheduled-instalments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
  */
 
 @ApiName("Invoice Financing Contract Installments")
@@ -49,6 +51,7 @@ public class InvoiceFinancingContractInstallmentsResponseValidator extends Abstr
 			new IntField
 				.Builder("totalNumberOfInstalments")
 				.setMaxLength(6)
+				.setNullable()
 				.build());
 
 		assertField(data,
@@ -62,24 +65,28 @@ public class InvoiceFinancingContractInstallmentsResponseValidator extends Abstr
 			new IntField
 				.Builder("contractRemainingNumber")
 				.setMaxLength(6)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("paidInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("dueInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new IntField
 				.Builder("pastDueInstalments")
 				.setMaxLength(3)
+				.setNullable()
 				.build());
 
 		assertBalloonPayments(data);
@@ -90,6 +97,7 @@ public class InvoiceFinancingContractInstallmentsResponseValidator extends Abstr
 			new ArrayField
 				.Builder("balloonPayments")
 				.setMinItems(0)
+				.setNullable()
 				.build());
 
 		assertJsonArrays(body, "balloonPayments", this::assertInnerFieldsBalloonPayments);
@@ -115,6 +123,7 @@ public class InvoiceFinancingContractInstallmentsResponseValidator extends Abstr
 				Builder("amount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 }

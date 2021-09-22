@@ -65,7 +65,7 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
 			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"data")));
+				"$.data")));
 	}
 
 	// @Test

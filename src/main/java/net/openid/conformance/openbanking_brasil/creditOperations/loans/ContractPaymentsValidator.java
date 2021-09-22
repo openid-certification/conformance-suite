@@ -15,9 +15,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Empréstimos| Pagamentos do Contrato
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#emprestimos-pagamentos-do-contrato">Empréstimos - Pagamentos do Contrato</a>
- **/
+ * Api: swagger_loans_apis.yaml
+ * Api endpoint: /contracts/{contractId}/payments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ */
 
 @ApiName("Contract Payments")
 public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
@@ -37,14 +38,14 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new IntField
 				.Builder("paidInstalments")
 				.setMaxLength(3)
-				.setOptional() //TODO: nullable as optional
+				.setNullable()
 				.build());
 
 		assertField(data,
 			new DoubleField
 				.Builder("contractOutstandingBalance")
 				.setMinLength(0)
-				.setOptional() //TODO: nullable as optional
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 			 	.build());
 
 		assertReleases(data);
@@ -74,7 +75,6 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 				.Builder("instalmentId")
 				.setMaxLength(100)
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9\\-]{0,99}$")
-				.setOptional()
 				.build());
 
 		assertField(body,
@@ -82,7 +82,6 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 				.Builder("paidDate")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.setMaxLength(10)
-				.setOptional()
 				.build());
 
 		assertField(body,
@@ -96,6 +95,7 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new DoubleField
 				.Builder("paidAmount")
 				.setMinLength(0)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertHasField(body, "overParcel");
@@ -127,14 +127,15 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("chargeAdditionalInfo")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new DoubleField
 				.Builder("chargeAmount")
 				.setMinLength(0)
-				.setOptional() //TODO: nullable as optional
+				.setNullable()
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 	}
 
@@ -143,21 +144,21 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
-				//.setPattern("\\w*\\W*")TODO: Wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new DoubleField
 				.Builder("feeAmount")
 				.setMinLength(0)
-				.setOptional() //TODO: nullable as optional
+				.setNullable()
 				.build());
 	}
 }

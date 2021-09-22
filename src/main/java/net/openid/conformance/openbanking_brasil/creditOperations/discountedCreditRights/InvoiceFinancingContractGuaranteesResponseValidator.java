@@ -12,10 +12,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Direitos Creditórios Descontados - Garantias do Contrato
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados-garantias-do-contrato
+ * Api: swagger_invoice_financings_apis.yaml
+ * Api endpoint: /contracts/{contractId}/warranties
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
  */
-
 @ApiName("Invoice Financing Contract Guarantees")
 public class InvoiceFinancingContractGuaranteesResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -57,14 +58,14 @@ public class InvoiceFinancingContractGuaranteesResponseValidator extends Abstrac
 			new StringField
 				.Builder("warrantyType")
 				.setEnums(enumWarrantyType)
-				.setMaxLength(40)
+				.setMaxLength(37)
 				.build());
 
 		assertField(element,
 			new StringField
 				.Builder("warrantySubType")
 				.setEnums(enumWarrantySubType)
-				.setMaxLength(100)
+				.setMaxLength(96)
 				.build());
 
 		assertField(element,
