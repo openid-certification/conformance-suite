@@ -786,7 +786,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ValidateRefreshToken.class);
 
 		issueAccessToken();
-
+		env.removeNativeValue("id_token");
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
