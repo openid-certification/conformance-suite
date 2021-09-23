@@ -72,7 +72,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getString(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a string", jsonObject);
+			throw error(String.format("Field at %s must be a string but %s was found", path, found.getClass().getSimpleName()), jsonObject);
 		}
 	}
 
@@ -372,7 +372,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	public String createElementFoundMessage(String elementName) {
-		return String.format("Successfully validated the %s element on the %s API response", elementName, getApiName());
+		return String.format("The %s element is present in the %s API response", elementName, getApiName());
 	}
 
 	public String createElementNotFoundMessage(String elementName) {
