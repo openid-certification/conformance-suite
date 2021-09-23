@@ -11,6 +11,8 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
+import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -38,11 +40,25 @@ import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClai
 import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
-import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestedScopeContainsConsents;
+import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
+import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
+import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
+import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
+import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
+import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
+import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
@@ -98,20 +114,34 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
-import net.openid.conformance.condition.rs.CreateBrazilAccountsEndpointResponse;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
+import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
+import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestJtiIsUUIDv4;
+import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate;
+import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromServerJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
+import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
+import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
+import net.openid.conformance.condition.rs.FailIfXIdempotencyKeyHeaderAlreadyExists;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
+import net.openid.conformance.condition.rs.ValidateXIdempotencyKeyHeader;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
@@ -136,6 +166,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
@@ -172,7 +203,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	public static final String BRAZIL_ACCOUNTS_PATH = "accounts/v1/accounts";
+	public static final String BRAZIL_PAYMENT_INITIATION_PATH = "payments/v1/pix/payments";
 	public static final String BRAZIL_CONSENTS_PATH = "consents/v1/consents";
+	public static final String BRAZIL_PAYMENTS_CONSENTS_PATH = "payments/v1/consents";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
@@ -232,6 +265,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
@@ -262,6 +296,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
+			exposeMtlsPath("payments_consents_endpoint", BRAZIL_PAYMENTS_CONSENTS_PATH);
+			exposeMtlsPath("payment_initiation_path", BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
@@ -413,12 +449,19 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		}
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			if(BRAZIL_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId);
+				return brazilHandleNewConsentRequest(requestId, false);
 			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path);
+				return brazilHandleGetConsentRequest(requestId, path, false);
+			}
+			if(BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
+				return brazilHandleNewConsentRequest(requestId, true);
+			} else if(path.startsWith(BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+				return brazilHandleGetConsentRequest(requestId, path, true);
+			}
+			if(BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
+				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
-
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
@@ -430,45 +473,89 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
 
 	}
-	protected Object brazilHandleNewConsentRequest(String requestId) {
-		setStatus(Status.RUNNING);
+	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
+		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
+		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class, Condition.ConditionResult.FAILURE,  "FAPI1-BASE-6.2.2-1");
+		if(useClientCredentialsAccessToken) {
+			callAndContinueOnFailure(RequireBearerClientCredentialsAccessToken.class, Condition.ConditionResult.FAILURE);
+		} else {
+			callAndContinueOnFailure(RequireBearerAccessToken.class, Condition.ConditionResult.FAILURE);
+		}
+		validateResourceEndpointHeaders();
+	}
 
+	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
+		setStatus(Status.RUNNING);
+		env.putBoolean("payments_consent_endpoint_called", isPayments);
 		call(exec().mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		//Requires method=POST
 		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
+		//Requires method=POST. defined in API docs
+		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class);
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+		checkResourceEndpointRequest(true);
 
-		validateResourceEndpointHeaders();
+		if(isPayments) {
+			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
+			callAndContinueOnFailure(FailIfXIdempotencyKeyHeaderAlreadyExists.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
+			//ensure aud equals endpoint url	"BrazilOB-6.1"
+			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			//ensure ISS equals TLS certificate organizational unit
+			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+			//ensure jti is uuid	"BrazilOB-6.1"
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
 
-		callAndStopOnFailure(FAPIBrazilExtractConsentRequest.class, "BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+			env.mapKey("parsed_client_request_jwt", "new_consent_request");
+			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+			env.unmapKey("parsed_client_request_jwt");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		} else {
+			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+		}
 
-		callAndStopOnFailure(FAPIBrazilGenerateNewConsentResponse.class, "BrazilOB-5.2.2.2");
-		JsonObject response = env.getObject("consent_response");
-		JsonObject headerJson = env.getObject("consent_response_headers");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
 
-		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+		ResponseEntity<Object> responseEntity = null;
+		if(isPayments) {
+			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
+			String signedConsentResponse = env.getString("signed_consent_response");
+			JsonObject headerJson = env.getObject("consent_response_headers");
+
+			HttpHeaders headers = headersFromJson(headerJson);
+			if(isPayments) {
+				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+			}
+			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+		} else {
+			callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+			JsonObject response = env.getObject("consent_response");
+			JsonObject headerJson = env.getObject("consent_response_headers");
+			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
+		}
+		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(response, headersFromJson(headerJson), HttpStatus.CREATED);
+		return responseEntity;
 	}
 
 
-
-	protected Object brazilHandleGetConsentRequest(String requestId, String path) {
+	protected Object brazilHandleGetConsentRequest(String requestId, String path, boolean isPayments) {
 		setStatus(Status.RUNNING);
 		call(exec().mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
@@ -476,27 +563,92 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-
-		validateResourceEndpointHeaders();
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		checkResourceEndpointRequest(true);
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
 		env.putString("requested_consent_id", requestedConsentId);
-		callAndStopOnFailure(FAPIBrazilGenerateGetConsentResponse.class, "BrazilOB-5.2.2.2");
 
-		JsonObject response = env.getObject("get_consent_response");
-		JsonObject headerJson = env.getObject("get_consent_response_headers");
+		ResponseEntity<Object> responseEntity = null;
+		if(isPayments) {
+			callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+			String signedConsentResponse = env.getString("signed_consent_response");
+			JsonObject headerJson = env.getObject("consent_response_headers");
 
-		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+			HttpHeaders headers = headersFromJson(headerJson);
+			if(isPayments) {
+				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+			}
+			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
+
+		} else {
+			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+			JsonObject response = env.getObject("consent_response");
+			JsonObject headerJson = env.getObject("consent_response_headers");
+			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
+		}
+
+		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(response, headersFromJson(headerJson), HttpStatus.OK);
+		return responseEntity;
+	}
+
+	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().startBlock("Payment initiation endpoint").mapKey("incoming_request", requestId));
+		//Requires method=POST. defined in API docs
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, Condition.ConditionResult.FAILURE);
+
+		checkResourceEndpointRequest(false);
+
+		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, Condition.ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+		env.mapKey("parsed_client_request_jwt", "payment_initiation_request");
+		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+		env.unmapKey("parsed_client_request_jwt");
+
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
+		//TODO validate idempotency key		"BrazilOB-6.1-3"
+		callAndContinueOnFailure(ValidateXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+
+		//ensure aud equals endpoint url	"BrazilOB-6.1"
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		//ensure ISS equals TLS certificate organizational unit
+		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+
+
+		ResponseEntity<Object> responseEntity = null;
+		callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+		callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+		String signedConsentResponse = env.getString("signed_payment_initiation_response");
+		JsonObject headerJson = env.getObject("payment_initiation_response_headers");
+
+		HttpHeaders headers = headersFromJson(headerJson);
+		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+		responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+
+		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		// at this point we can assume the test is fully done
+		fireTestFinished();
+
+		return responseEntity;
 	}
 
 	protected Object discoveryEndpoint() {
@@ -620,7 +772,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				// we're doing the client credentials grant for initial token access
 				return clientCredentialsGrantType(requestId);
 			} else if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(FAPIBrazilEnsureRequestedScopeContainsConsents.class);
+				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
 				return clientCredentialsGrantType(requestId);
 			}
 		} else if (grantType.equals("refresh_token")) {
@@ -817,6 +969,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
+			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
+			if(wasInitialConsentRequestToPaymentsEndpoint) {
+				callAndStopOnFailure(EnsureScopeContainsPayments.class);
+			} else {
+				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
+			}
 		} else {
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
@@ -1004,13 +1162,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		checkResourceEndpointRequest(false);
 
-		callAndStopOnFailure(RequireBearerAccessToken.class);
-
-		// TODO: should we clear the old headers?
-		validateResourceEndpointHeaders();
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
+			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
+			if(wasInitialConsentRequestToPaymentsEndpoint) {
+				throw new TestFailureException(getId(), BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
+			}
+		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 

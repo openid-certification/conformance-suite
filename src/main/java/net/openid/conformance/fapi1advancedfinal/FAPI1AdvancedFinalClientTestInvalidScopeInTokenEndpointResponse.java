@@ -24,6 +24,7 @@ import java.util.UUID;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 public class FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse extends AbstractFAPI1AdvancedFinalClientTest {

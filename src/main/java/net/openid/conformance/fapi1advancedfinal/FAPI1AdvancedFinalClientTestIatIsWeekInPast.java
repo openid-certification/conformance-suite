@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 
