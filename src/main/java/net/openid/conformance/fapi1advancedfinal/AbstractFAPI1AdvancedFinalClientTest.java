@@ -489,12 +489,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
 		setStatus(Status.RUNNING);
+		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
 		env.putBoolean("payments_consent_endpoint_called", isPayments);
 		call(exec().mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
 		//Requires method=POST. defined in API docs
 		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class);
 
@@ -557,11 +557,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object brazilHandleGetConsentRequest(String requestId, String path, boolean isPayments) {
 		setStatus(Status.RUNNING);
+		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
 		call(exec().mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
 
 		checkResourceEndpointRequest(true);
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
