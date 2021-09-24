@@ -59,7 +59,7 @@ public class FAPI1AdvancedFinalBrazilEnsureEncryptionRequired extends AbstractFA
 	@Override
 	protected void onAuthorizationCallbackResponse() {
 		callAndContinueOnFailure(EnsureInvalidRequestObjectOrAccessDeniedError.class, Condition.ConditionResult.FAILURE,
-			"RFC6749-4.1.2.1", "BrazilOB-5.2.2-1", "BrazilOB-5.2.3-3");
+			"RFC6749-4.1.2.1", "OIDCC-3.1.2.6", "BrazilOB-5.2.2-1", "BrazilOB-5.2.3-3");
 		fireTestFinished();
 	}
 
