@@ -10,8 +10,10 @@ public class ValidateSelfEndpoint extends AbstractConditionSequence {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public void evaluate() {
 		callAndStopOnFailure(SaveOldValues.class);
+		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToSelfEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
+		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
