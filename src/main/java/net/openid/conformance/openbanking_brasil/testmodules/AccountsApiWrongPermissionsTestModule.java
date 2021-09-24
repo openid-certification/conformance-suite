@@ -58,35 +58,35 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		runInBlock("Ensure we cannot call the accounts root API", () -> {
 			callAndStopOnFailure(PrepareUrlForAccountsRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the account resource API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the account balance API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the account transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the account limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
