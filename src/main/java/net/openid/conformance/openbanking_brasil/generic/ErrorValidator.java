@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.generic;
 
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
@@ -13,7 +14,16 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonObject body;
+		log(environment.toString());
+
+		if (Strings.isNullOrEmpty(	environment.getString("resource_endpoint_response"))
+								|| 	environment.getString("resource_endpoint_response").equals("{}")) {
+			body = environment.getObject("resource_endpoint_response");
+		} else {
+			body = bodyFrom(environment);
+		}
+
 		assertHasField(body, "$.errors");
 		assertOuterFields(body);
 		assertInnerFields(body);
