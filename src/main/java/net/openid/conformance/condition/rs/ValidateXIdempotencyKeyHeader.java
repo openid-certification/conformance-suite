@@ -16,15 +16,8 @@ public class ValidateXIdempotencyKeyHeader extends AbstractCondition {
 		if (Strings.isNullOrEmpty(header)) {
 			throw error("Couldn't find x-idempotency-key header in request");
 		} else {
-			String existingXIdempotencyKey = env.getString("idempotency_key");
-			if(existingXIdempotencyKey.equals(header)) {
-				logSuccess("Found an x-idempotency-key header", args("idempotency_key", header));
-				return env;
-			} else {
-				throw error("Invalid x-idempotency-key header value in request",
-					args("expected", existingXIdempotencyKey, "actual", header));
-			}
-
+			logSuccess("Found an x-idempotency-key header", args("idempotency_key", header));
+			return env;
 		}
 
 	}

@@ -53,6 +53,11 @@ also add aud, iss, iat, jti
 		meta.addProperty("requestDateTime", creationDateTime);
 		response.add("meta", meta);
 
+		response.addProperty("aud", env.getString("client_certificate_subject", "ou"));
+		response.addProperty("iat", Instant.now().getEpochSecond());
+		response.addProperty("jti", UUID.randomUUID().toString());
+		response.addProperty("iss", env.getString("rs_certificate_subject", "ou"));
+
 		env.putObject("payment_initiation_response", response);
 
 		String fapiInteractionId = env.getString("fapi_interaction_id");
