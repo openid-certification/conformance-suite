@@ -79,7 +79,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getString(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a string", jsonObject);
+			throw error(String.format("Field at %s must be a string but %s was found", path, found.getClass().getSimpleName()), jsonObject);
 		}
 	}
 
@@ -112,11 +112,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			}
 		}
 
-		if (field.isNullable() && findByPath(jsonObject, field.getPath()).isJsonNull()) {
+		JsonElement elementByPath = findByPath(jsonObject, field.getPath());
+		if (field.isNullable() && elementByPath.isJsonNull()) {
 			return;
 		}
 
-		if (findByPath(jsonObject, field.getPath()).isJsonNull()) {
+		if (elementByPath.isJsonNull()) {
 			//return;//TODO:: 1. return; - this is for passing ProductsNServicesApiTestModule;
 			throw error(createElementCantBeNullMessage(field.getPath()));
 		}
@@ -127,9 +128,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof ObjectArrayField) {
 			JsonArray array = null;
 			try {
-				array = (JsonArray)  findByPath(jsonObject, field.getPath());
+				array = (JsonArray)  elementByPath;
 			} catch (ClassCastException exception) {
-				logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) findByPath(jsonObject, field.getPath()));
+				logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) elementByPath);
 				return;
 			}
 			assertMinAndMaxItems(array.getAsJsonArray(), field);
@@ -164,11 +165,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof StringArrayField) {
 			assertHasStringArrayField(jsonObject, field.getPath());
-			JsonElement found = findByPath(jsonObject, field.getPath());
-			OIDFJSON.getStringArray(found).forEach(v -> assertPatternAndMaxMinLength(v, field));
-			assertMinAndMaxItems(found.getAsJsonArray(), field);
+			OIDFJSON.getStringArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v, field));
+			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		} else if (field instanceof ArrayField) {
-			JsonElement found = findByPath(jsonObject, field.getPath());
+			JsonElement found = elementByPath;
 			assertMinAndMaxItems(found.getAsJsonArray(), field);
 		}
 
@@ -423,7 +423,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	public String createElementFoundMessage(String elementName) {
-		return String.format("Successfully validated the %s element on the %s API response", elementName, getApiName());
+		return String.format("The %s element is present in the %s API response", elementName, getApiName());
 	}
 
 	public String createElementNotFoundMessage(String elementName) {

@@ -67,35 +67,35 @@ public class LoansApiWrongPermissionsTestModule extends AbstractPermissionsCheck
 		runInBlock("Ensure we cannot call the Loans root API", () -> {
 			callAndStopOnFailure(PrepareUrlForLoansRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Loans resource API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingLoanContractResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Loans contract warranties API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingLoanContractWarrantiesResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the Loans contract payments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingLoanContractPaymentsResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the  Loans contract instalments API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingLoanContractInstallmentsResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}
