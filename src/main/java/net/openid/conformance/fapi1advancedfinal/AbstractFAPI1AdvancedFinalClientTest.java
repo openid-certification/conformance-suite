@@ -41,6 +41,7 @@ import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigning
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
+import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
@@ -135,13 +136,11 @@ import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentR
 import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
-import net.openid.conformance.condition.rs.FailIfXIdempotencyKeyHeaderAlreadyExists;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
-import net.openid.conformance.condition.rs.ValidateXIdempotencyKeyHeader;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
@@ -258,7 +257,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
-		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
+			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
+			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
+			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
+		} else {
+			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		}
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
@@ -504,7 +511,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
-			callAndContinueOnFailure(FailIfXIdempotencyKeyHeaderAlreadyExists.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
 			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
@@ -619,8 +625,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		env.unmapKey("parsed_client_request_jwt");
 
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
-		//TODO validate idempotency key		"BrazilOB-6.1-3"
-		callAndContinueOnFailure(ValidateXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+
+		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 
 		//ensure aud equals endpoint url	"BrazilOB-6.1"
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
@@ -660,9 +666,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected void checkMtlsCertificate() {
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI1-ADV-5.2.2-5");
-		callAndStopOnFailure(EnsureClientCertificateMatches.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
+		//FIXME temporary comment out
+		//callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
@@ -814,11 +821,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	}
 
+	protected void validateRedirectUriForAuthorizationCodeGrantType() {
+		callAndStopOnFailure(ValidateRedirectUri.class);
+	}
+
 	protected Object authorizationCodeGrantType(String requestId) {
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-		callAndStopOnFailure(ValidateRedirectUri.class);
+		validateRedirectUriForAuthorizationCodeGrantType();
 
 		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
 			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
@@ -947,7 +958,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
-		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
+		validateRedirectUriInRequestObject();
+	}
+
+	protected void validateRedirectUriInRequestObject() {
+		callAndContinueOnFailure(EnsureMatchingRedirectUriInRequestObject.class, ConditionResult.FAILURE);
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
