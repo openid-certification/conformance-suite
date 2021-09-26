@@ -3,11 +3,9 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureRedirectUriInRequestObjectMatchesOneOfClientRedirectUris;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import net.openid.conformance.condition.as.FetchClientKeys;
-import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
@@ -16,6 +14,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureClien
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureJwksUriMatchesSoftwareJwksUri;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureRedirectUrisMatchSoftwareRedirectUris;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureRegistrationRequestDoesNotIncludeJwks;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureTlsClientAuthSubjectDnOnly;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAFromDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
@@ -43,6 +42,7 @@ import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTi
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
@@ -78,31 +78,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	protected void configureClients() {
 		//do nothing, the client needs to register first
 	}
-/*
-	//FIXME remove later. register must be over mtls
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		if(path.equals("register")) {
-			setStatus(Status.RUNNING);
 
-			String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
-
-			env.putObject(requestId, requestParts);
-
-			call(exec().mapKey("client_request", requestId));
-
-			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
-
-			call(exec().unmapKey("client_request"));
-
-			setStatus(Status.WAITING);
-
-			return handleRegistrationEndpointRequest(requestId);
-		} else {
-			return super.handleHttp(path, req, res, session, requestParts);
-		}
-	}
-*/
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		if(path.equals("register")) {
@@ -126,18 +102,39 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		}
 	}
 
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		if(path.equals("register")) {
+			setStatus(Status.RUNNING);
+			throw new TestFailureException(getId(), "As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server-2, " +
+				" dynamic client registration requests must be performed over a connection secured with " +
+				"mutual tls using certificates issued by Brazil ICP (production) or the Directory of Participants (sandbox)");
+		} else {
+			return super.handleHttp(path, req, res, session, requestParts);
+		}
+
+	}
+
 	protected Object handleRegistrationEndpointRequest(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
 
-		call(exec().mapKey("token_endpoint_request", requestId));
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
-		callAndContinueOnFailure(CheckForClientCertificate.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
-		//TODO shall reject dynamic client registration requests not performed over a connection secured with mutual tls
-		// using certificates issued by Brazil ICP (production) or the Directory of Participants (sandbox);
-		call(exec().unmapKey("token_endpoint_request"));
 
 		callAndStopOnFailure(OIDCCExtractDynamicRegistrationRequest.class);
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		//adding and removing a fake client object to env to make EnsureClientCertificateMatches
+		// (called in checkMtlsCertificate) work
+		JsonObject fakeClientObject = new JsonObject();
+		fakeClientObject.addProperty("certificate", env.getString("config", "client.certificate"));
+		env.putObject("client", fakeClientObject);
+		//always requiring the configured certificate for client authentication and
+		// not performing any additional verification
+		checkMtlsCertificate();
+		env.removeObject("client");
+		call(exec().unmapKey("token_endpoint_request"));
+
 		callAndStopOnFailure(FAPIBrazilExtractSSAFromDynamicRegistrationRequest.class);
 		callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
 		callAndStopOnFailure(FAPIBrazilValidateSSASignature.class);
@@ -189,6 +186,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		//BrazilOBDCR- 7.1-12 if supporting tls_client_auth client authentication mechanism as defined in RFC8705 shall
 		// only accept tls_client_auth_subject_dn as an indication of the certificate subject value as defined in clause 2.1.2 RFC8705;
+		callAndContinueOnFailure(FAPIBrazilEnsureTlsClientAuthSubjectDnOnly.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
 	}
 
 	protected void validateClientRegistrationMetadata(){

@@ -668,8 +668,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
-		//FIXME temporary comment out
-		//callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
