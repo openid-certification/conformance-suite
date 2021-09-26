@@ -18,8 +18,8 @@ import java.util.UUID;
 
 public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCondition {
 /*
-COPY data from request, add paymentId, consentId, creationDateTime, statusUpdateDateTime, status
-also add aud, iss, iat, jti
+COPY data from request as is.
+Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, aud, iss, iat, jti claims
  */
 	@Override
 	@PreEnvironment(strings = {"fapi_interaction_id", "consent_id"}, required = {"payment_initiation_request"})
