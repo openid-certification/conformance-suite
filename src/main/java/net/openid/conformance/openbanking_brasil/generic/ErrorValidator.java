@@ -14,14 +14,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body;
-
-		if (Strings.isNullOrEmpty(environment.getString("resource_endpoint_response"))) {
-			body = environment.getObject("resource_endpoint_response");
-		} else {
-			body = bodyFrom(environment);
-		}
-
+		JsonObject body = bodyFrom(environment);
 		assertHasField(body, "$.errors");
 		assertOuterFields(body);
 		assertInnerFields(body);
