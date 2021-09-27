@@ -72,4 +72,13 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldIsntInSecondsRange("expirationDateTime")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/consent/paymentInitiationConsentResponseNoDetails.json")
+	public void validateStructureWithMissingDetails() {
+		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("details")));
+	}
+
 }
