@@ -26,7 +26,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
@@ -79,6 +79,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setValidator(this::assertDebtorAccount)
 				.setOptional()
 				.build());
+
 	}
 
 	private void assertLoggedUser(JsonObject loggedUser) {
@@ -178,6 +179,50 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(19)
 				.setPattern("^((\\d{1,16}\\.\\d{2}))$")
 				.build());
+
+		assertField(payment,
+			new ObjectField
+				.Builder("details")
+				.setValidator(this::assertPaymentDetails)
+				.build());
+
+
+	}
+
+	private void assertPaymentDetails(JsonObject details) {
+
+		Set<String> localInstrumentEnum = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES");
+
+		assertField(details,
+			new StringField
+				.Builder("localInstrument")
+				.setEnums(localInstrumentEnum)
+				.setMaxLength(4)
+				.build());
+
+		assertField(details,
+			new StringField
+				.Builder("qrCode")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(512)
+				.setMinLength(1)
+				.setOptional()
+				.build());
+
+		assertField(details,
+			new StringField
+				.Builder("proxy")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(77)
+				.setMinLength(1)
+				.setOptional()
+				.build());
+
+		assertField(details,
+			new ObjectField
+				.Builder("creditorAccount")
+				.setValidator(this::assertPayemtCreditor)
+				.build());
 	}
 
 	private void assertDebtorAccount(JsonObject debtorAccount) {
@@ -214,4 +259,34 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(4)
 				.build());
 	}
+
+	private void assertPayemtCreditor(JsonObject creditor) {
+		Set<String> accountTypes = Sets.newHashSet("CACC", "SLRY", "SVGS", "TRAN");
+
+		assertField(creditor,
+			new StringField
+				.Builder("ispb")
+				.setPattern("^[0-9]{8}$")
+				.setMaxLength(8)
+				.setMinLength(8)
+				.build());
+
+		assertField(creditor,
+			new StringField
+				.Builder("issuer")
+				.setPattern("^\\d{4}$")
+				.setMaxLength(4)
+				.setOptional()
+				.build());
+
+		assertField(creditor,
+			new StringField
+				.Builder("accountType")
+				.setMaxLength(4)
+				.setMinLength(4)
+				.setEnums(accountTypes)
+				.build());
+
+	}
+
 }

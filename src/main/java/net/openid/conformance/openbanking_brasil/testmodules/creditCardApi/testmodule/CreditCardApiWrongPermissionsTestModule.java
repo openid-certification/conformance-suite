@@ -47,9 +47,9 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		preCallProtectedResource("Fetch CreditCard Limits");
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 		preCallProtectedResource("Fetch CreditCard Transactions");
-		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		preCallProtectedResource("Fetch CreditCard Bills");
+		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
 		preCallProtectedResource("Fetch CreditCard Bills Transaction");
 	}
