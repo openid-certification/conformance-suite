@@ -1,0 +1,162 @@
+package net.openid.conformance.condition.rs;
+
+import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
+import net.openid.conformance.testmodule.Environment;
+import org.apache.commons.lang3.RandomStringUtils;
+
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
+public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondition {
+/*
+{
+  "data": {
+    "consentId": "urn:bancoex:C1DD33123",
+    "creationDateTime": "2021-05-21T08:30:00Z",
+    "expirationDateTime": "2021-05-21T08:30:00Z",
+    "statusUpdateDateTime": "2021-05-21T08:30:00Z",
+    "status": "AWAITING_AUTHORISATION",
+    "loggedUser": {
+      "document": {
+        "identification": "11111111111",
+        "rel": "CPF"
+      }
+    },
+    "businessEntity": {
+      "document": {
+        "identification": "11111111111111",
+        "rel": "CNPJ"
+      }
+    },
+    "creditor": {
+      "personType": "PESSOA_NATURAL",
+      "cpfCnpj": "58764789000137",
+      "name": "Marco Antonio de Brito"
+    },
+    "payment": {
+      "type": "PIX",
+      "date": "2021-01-01",
+      "currency": "BRL",
+      "amount": "100000.12",
+      "details": {
+        "localInstrument": "DICT",
+        "qrCode": "00020104141234567890123426660014BR.GOV.BCB.PIX014466756C616E6F32303139406578616D706C652E636F6D27300012  \nBR.COM.OUTRO011001234567895204000053039865406123.455802BR5915NOMEDORECEBEDOR6008BRASILIA61087007490062  \n530515RP12345678-201950300017BR.GOV.BCB.BRCODE01051.0.080450014BR.GOV.BCB.PIX0123PADRAO.URL.PIX/0123AB  \nCD81390012BR.COM.OUTRO01190123.ABCD.3456.WXYZ6304EB76\n",
+        "proxy": "12345678901",
+        "creditorAccount": {
+          "ispb": "12345678",
+          "issuer": "1774",
+          "number": "1234567890",
+          "accountType": "CACC"
+        }
+      }
+    },
+    "debtorAccount": {
+      "ispb": "12345678",
+      "issuer": "1774",
+      "number": "1234567890",
+      "accountType": "CACC"
+    }
+  },
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/api/v1/resource"
+  },
+  "meta": {
+    "totalRecords": 1,
+    "totalPages": 1,
+    "requestDateTime": "2021-05-21T08:30:00Z"
+  }
+}
+ */
+	@Override
+	@PreEnvironment(strings = {"fapi_interaction_id"}, required = {"new_consent_request"})
+	@PostEnvironment(strings = {"consent_id"}, required = {"consent_response", "consent_response_headers"})
+	public Environment evaluate(Environment env) {
+
+		String consentId = "urn:conformance.oidf:" + RandomStringUtils.randomAlphanumeric(10);
+
+		env.putString("consent_id", consentId);
+		JsonObject consentResponse = new JsonObject();
+
+		JsonObject dataElement = new JsonObject();
+		Instant baseDateRough = Instant.now();
+		Instant baseDate = baseDateRough.minusNanos(baseDateRough.getNano());
+		String creationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
+		//TODO check plus-minus values or skip completely
+		String expirationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(2, ChronoUnit.HOURS));
+		String transactionFromDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.minus(5, ChronoUnit.MINUTES));
+		String transactionToDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(2, ChronoUnit.HOURS));
+
+		dataElement.addProperty("consentId", consentId);
+		dataElement.addProperty("creationDateTime", creationDateTime);
+		dataElement.addProperty("status", "AWAITING_AUTHORISATION");
+		dataElement.addProperty("statusUpdateDateTime", creationDateTime);
+		dataElement.addProperty("expirationDateTime", expirationDateTime);
+		dataElement.addProperty("transactionFromDateTime", transactionFromDateTime);
+		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
+
+		JsonObject links = new JsonObject();
+		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_PAYMENTS_CONSENTS_PATH);
+		dataElement.add("links", links);
+
+		JsonObject meta = new JsonObject();
+		meta.addProperty("totalRecords", 1);
+		meta.addProperty("totalPages", 1);
+		meta.addProperty("requestDateTime", creationDateTime);
+		dataElement.add("meta", meta);
+
+		//Copy the following from the request as is
+		//creditor, loggedUser, payment
+		//businessEntity, debtorAccount
+		JsonElement creditor = env.getElementFromObject("new_consent_request", "claims.data.creditor");
+		dataElement.add("creditor", creditor);
+
+		JsonElement loggedUser = env.getElementFromObject("new_consent_request", "claims.data.loggedUser");
+		dataElement.add("loggedUser", loggedUser);
+
+		JsonElement payment = env.getElementFromObject("new_consent_request", "claims.data.payment");
+		dataElement.add("payment", payment);
+
+		JsonElement businessEntity = env.getElementFromObject("new_consent_request", "claims.data.businessEntity");
+		if(businessEntity!=null) {
+			dataElement.add("businessEntity", businessEntity);
+		}
+		JsonElement debtorAccount = env.getElementFromObject("new_consent_request", "claims.data.debtorAccount");
+		if(debtorAccount!=null) {
+			dataElement.add("debtorAccount", debtorAccount);
+		}
+
+		consentResponse.add("data", dataElement);
+
+		consentResponse.addProperty("aud", env.getString("client_certificate_subject", "ou"));
+		consentResponse.addProperty("iat", Instant.now().getEpochSecond());
+		consentResponse.addProperty("jti", UUID.randomUUID().toString());
+		consentResponse.addProperty("iss", env.getString("rs_certificate_subject", "ou"));
+
+		env.putObject("consent_response", consentResponse);
+
+		String fapiInteractionId = env.getString("fapi_interaction_id");
+		if (Strings.isNullOrEmpty(fapiInteractionId)) {
+			throw error("Couldn't find FAPI Interaction ID");
+		}
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+
+		env.putObject("consent_response_headers", headers);
+
+		logSuccess("Created consent response", args("consentId", consentId, "consent_response", consentResponse, "headers", headers));
+
+		return env;
+
+	}
+
+}
