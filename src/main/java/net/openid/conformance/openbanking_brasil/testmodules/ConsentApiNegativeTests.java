@@ -47,6 +47,7 @@ public class ConsentApiNegativeTests extends AbstractClientCredentialsGrantFunct
 		String logMessage = String.format("Check for HTTP 400 response from consent api request for %s", description);
 		runInBlock(logMessage, () -> {
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
+			callAndStopOnFailure(AddConsentScope.class);
 			call(sequenceOf(
 				condition(setupClass),
 				sequence(PostConsentWithBadRequestSequence.class)
