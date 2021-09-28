@@ -273,7 +273,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
@@ -514,6 +513,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkResourceEndpointRequest(true);
 
 		if(isPayments) {
+			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
