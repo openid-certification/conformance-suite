@@ -80,4 +80,36 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 		String expected = "There should be a 'next' link.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/goodResponseWithoutMetadata.json")
+	public void validateStructureWithoutMetatdata() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/goodResponseWithSelfLinkOnly.json")
+	public void validateStructureWithSelfLinkOnly() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badResponseWithMissingTimeZone.json")
+	public void validateStructureWithMissingTimeZone() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "requestDateTime is not in valid RFC 3339 format.";
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badResponseWithDateTimeOffset.json")
+	public void validateStructureWithDateTimeOffset() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "requestDateTime is more than 20 characters in length.";
+		assertThat(error.getMessage(), containsString(expected));
+	}
 }

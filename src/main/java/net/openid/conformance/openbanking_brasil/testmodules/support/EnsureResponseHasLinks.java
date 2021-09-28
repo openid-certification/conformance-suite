@@ -11,11 +11,16 @@ public class EnsureResponseHasLinks extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 
 		JsonObject body = bodyFrom(environment);
+
+		if (!JsonHelper.ifExists(body, "$.data")) {
+			body = environment.getObject("consent_endpoint_response");
+		}
 		
 		assertHasField(body, ROOT_PATH);
 
-        log("Check for navigation Links in the response body.");		
-        assertHasField(body, "$.links");
+        log("Check for navigation Links in the response body.");
+		
+		assertHasField(body, "$.links");
 
 		log("Ensure that there is a link to self.");		
         assertHasField(body, "$.links.self");
@@ -29,5 +34,8 @@ public class EnsureResponseHasLinks extends AbstractJsonAssertingCondition {
 
         return environment;
 	}
+
+	
+
     
 }

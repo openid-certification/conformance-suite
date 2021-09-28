@@ -11,6 +11,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 import java.util.Set;
 
@@ -64,19 +65,10 @@ public class EmptyResourcesResponseValidator extends AbstractJsonAssertingCondit
 	}
 
 	private void assertFieldNotPresent(JsonObject jsonObject, Field field) {
-		if (!ifExists(jsonObject, field.getPath())) {
+		if (!JsonHelper.ifExists(jsonObject, field.getPath())) {
 			return;
 		} else {
 			throw error("Field " + field.getPath() + " was unexpectedly found in the response.");
-		}
-	}
-
-	private boolean ifExists(JsonObject jsonObject, String path) {
-		try {
-			JsonPath.read(jsonObject, path);
-			return true;
-		} catch (PathNotFoundException e) {
-			return false;
 		}
 	}
 }
