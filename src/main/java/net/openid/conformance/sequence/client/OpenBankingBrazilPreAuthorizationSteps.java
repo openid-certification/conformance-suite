@@ -40,6 +40,8 @@ import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims
 import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSequence {
 
@@ -55,8 +57,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		this.stopAfterConsentEndpointCall = stopAfterConsentEndpointCall;
 	}
 
-		@Override
+	@Override
 	public void evaluate() {
+
 		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain Brazil consent"));
 
 		/* create client credentials request */
@@ -170,6 +173,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			}
 
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
+
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		}
 
 		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);

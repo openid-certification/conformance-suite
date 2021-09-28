@@ -1,8 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -18,27 +16,64 @@ import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
+public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
+    
     @Override
-	@PreEnvironment(strings = "resource_endpoint_response")
-    public Environment evaluate(Environment env) {
+	public Environment evaluate(Environment env) {
 
         JsonObject apiResponse = bodyFrom(env);
+
+        if (!JsonHelper.ifExists(apiResponse, "$.data")) {
+			apiResponse = env.getObject("consent_endpoint_response");
+		}
+
+        log("Debug apiResponse:");
+		log(apiResponse);
+
         JsonElement dataElement = findByPath(apiResponse, "$.data");
-        int metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
-        int metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
-        //JsonElement metaRequestDateTime = findByPath(apiResponse, "$.data.meta.requestDateTime");
+        int metaTotalRecords = 1;
+        int metaTotalPages = 1; 
+        
+
+        if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
+            metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
+        }
+
+        if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
+            metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
+        }
+
+        if (JsonHelper.ifExists(apiResponse, "$.meta.requestDateTime")) {
+            String metaRequestDateTime = OIDFJSON.getString(findByPath(apiResponse, "$.meta.requestDateTime"));
+
+            // Check that we have a Timezone element to this datetime object and that it is not longer than 20 chars
+            if (metaRequestDateTime.length() > 20) {
+                throw error("requestDateTime is more than 20 characters in length.");
+            }
+
+            // Parse the dateTime as RFC3339 and check that we have the 'Z'
+            try {
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).parse(metaRequestDateTime);
+            } catch (ParseException e) {
+                throw error("requestDateTime is not in valid RFC 3339 format.");    
+            }
+
+        }
 
         String selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
         String nextLink = "";
         String prevLink = "";
 
-        if (ifExists(apiResponse, "$.links.next")) {
+        if (JsonHelper.ifExists(apiResponse, "$.links.next")) {
             nextLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.next"));
         } 
 
-        if (ifExists(apiResponse, "$.links.prev")) {
+        if (JsonHelper.ifExists(apiResponse, "$.links.prev")) {
             prevLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.prev"));
         }
 
@@ -133,13 +168,4 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		}
 		return queryParams;
     }
-
-    private boolean ifExists(JsonObject jsonObject, String path) {
-		try {
-			JsonPath.read(jsonObject, path);
-			return true;
-		} catch (PathNotFoundException e) {
-			return false;
-		}
-	}
 }
