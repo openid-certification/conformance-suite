@@ -77,6 +77,7 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 			env.putString("consent_permissions", String.join(" ", permissions));
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
+			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
 
 			if (!env.getString("resource_endpoint_response").equals("{}")) {
