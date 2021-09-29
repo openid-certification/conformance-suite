@@ -39,9 +39,8 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 		});
 
 		runInBlock("Validating get consent response", () -> {
@@ -49,9 +48,8 @@ public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunction
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 		});
 
 		runInBlock("Deleting consent", () -> {
