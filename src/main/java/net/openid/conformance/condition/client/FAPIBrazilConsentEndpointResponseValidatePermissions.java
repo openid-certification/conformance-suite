@@ -1,15 +1,14 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class FAPIBrazilConsentEndpointResponseValidatePermissions extends AbstractCondition {
 
@@ -47,9 +46,51 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions extends Abstra
 			throw error("Consent endpoint response contains different permissions than requested", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
 		}
 
+		if (!isValidResourceGroup(grantedPermissions)) {
+			throw error("Consent endpoint response not a valid permissions grouping");
+		}
+
 		logSuccess("Consent endpoint response contains expected permissions", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
 
 		return env;
+	}
+
+	private boolean isValidResourceGroup(JsonArray grantedPermissions) {
+		Gson gson = new Gson();
+		String[] personalRegistrationData = {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ","RESOURCES_READ"};
+		String[] personalAdditionalInfo = {"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "RESOURCES_READ"};
+		String[] businessRegistrationData = {"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "RESOURCES_READ"};
+		String[] businessAdditionalInfo = {"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ", "RESOURCES_READ"};
+		String[] balances = {"ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "RESOURCES_READ"};
+		String[] limits = {"ACCOUNTS_READ", "ACCOUNTS_OVERDRAFT_LIMITS_READ", "RESOURCES_READ"};
+		String[] extras = {"ACCOUNTS_READ", "ACCOUNTS_TRANSACTIONS_READ", "RESOURCES_READ"};
+		String[] creditCardLimits = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_LIMITS_READ", "RESOURCES_READ"};
+		String[] creditCardTransactions = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ", "RESOURCES_READ"};
+		String[] creditCardInvoices = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ", "RESOURCES_READ"};
+		String[] creditOperationsContractData = {"LOANS_READ", "LOANS_WARRANTIES_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "FINANCINGS_READ", "FINANCINGS_WARRANTIES_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "RESOURCES_READ"};
+		String[][] permissionGroups = {personalRegistrationData, personalAdditionalInfo, businessRegistrationData, businessAdditionalInfo, balances, limits, extras, creditCardLimits, creditCardTransactions, creditCardInvoices, creditOperationsContractData};
+
+		String[] grantedPermissionsArray = gson.fromJson(grantedPermissions, String[].class);
+		List<String> grantedPermissionsList = Arrays.asList(grantedPermissionsArray);
+		TreeSet<String> grantedPermissionsSet = new TreeSet<>();
+		grantedPermissionsSet.addAll(grantedPermissionsList);
+
+		TreeSet<String> permissionsInCompleteGroup = new TreeSet<>();
+		for (String[] permissionGroup : permissionGroups){
+			TreeSet<String> permGroup = new TreeSet<>();
+			permGroup.addAll(Arrays.asList(permissionGroup));
+
+			if(grantedPermissionsSet.equals(permGroup)){
+				return true;
+			}
+			if(grantedPermissionsSet.containsAll(permGroup)){
+				permissionsInCompleteGroup.addAll(permGroup);
+			}
+			if(permissionsInCompleteGroup.equals(grantedPermissionsSet)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
