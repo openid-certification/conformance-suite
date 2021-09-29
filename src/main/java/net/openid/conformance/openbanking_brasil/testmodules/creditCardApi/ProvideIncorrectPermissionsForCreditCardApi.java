@@ -9,11 +9,7 @@ public class ProvideIncorrectPermissionsForCreditCardApi extends AbstractConditi
 	@Override
 	@PostEnvironment(strings = "consent_permissions")
 	public Environment evaluate(Environment env) {
-		String[] permissions = {"ACCOUNTS_READ",
-			"ACCOUNTS_BALANCES_READ",
-			"RESOURCES_READ",
-			"ACCOUNTS_TRANSACTIONS_READ",
-			"ACCOUNTS_OVERDRAFT_LIMITS_READ"};
+		String[] permissions = {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ" , "RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		return env;
 	}
