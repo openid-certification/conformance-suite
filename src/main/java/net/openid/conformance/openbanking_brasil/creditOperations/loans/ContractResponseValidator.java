@@ -356,6 +356,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DoubleField
 				.Builder("chargeRate")
+				.setPattern("(-?\\d{1,19}(.?\\d{0,18}?))$")
 				.setMaxLength(19)
 				.setOptional()
 				.build());
