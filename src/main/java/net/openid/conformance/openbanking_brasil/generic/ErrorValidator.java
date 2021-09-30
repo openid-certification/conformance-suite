@@ -15,11 +15,13 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body;
 		if(environment.getString("resource_endpoint_response").equals("{}")) {
+			log(environment.getObject("errored_response"));
 			body = environment.getObject("errored_response");
+			assertHasField(body, "$.response_body.errors");
 		} else {
 			body = bodyFrom(environment);
+			assertHasField(body, "$.errors");
 		}
-		assertHasField(body, "$.errors");
 		assertOuterFields(body);
 		assertInnerFields(body);
 
