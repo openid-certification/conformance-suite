@@ -32,7 +32,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 
 	private JsonObject getBodyFromJwt(Environment environment) {
 		String response = environment.getString("resource_endpoint_response");
-		Base64.Decoder decoder = Base64.getDecoder();
+		Base64.Decoder decoder = Base64.getUrlDecoder();
 		String body = new String(decoder.decode(response.split("\\.")[1]));
 		Gson gson = JsonUtils.createBigDecimalAwareGson();
 		return gson.fromJson(body, JsonObject.class);
