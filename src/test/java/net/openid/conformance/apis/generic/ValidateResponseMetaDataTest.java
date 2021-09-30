@@ -41,7 +41,7 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 	public void validateStructureWithInvalidSelfLink() {
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
 		ConditionError error = runAndFail(condition);
-		String expected = "Invalid Self Link URI.";
+		String expected = "Invalid 'self' link URI.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -96,6 +96,22 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 	}
 
 	@Test
+	@UseResurce("jsonResponses/metaData/goodConsentResponseWithoutSelfOrMeta.json")
+	public void validateStructureWithoutSelfOrMeta() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badResponseWithoutSelfLink.json")
+	public void validateStructureWithoutSelfLink() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "There should be a 'self' link.";
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
 	@UseResurce("jsonResponses/metaData/badResponseWithMissingTimeZone.json")
 	public void validateStructureWithMissingTimeZone() {
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
@@ -110,6 +126,15 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
 		ConditionError error = runAndFail(condition);
 		String expected = "requestDateTime is more than 20 characters in length.";
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badPaymentConsentResponseWithoutSelf.json")
+	public void validatePaymentConsentStructureWithoutLinks() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "Payment consent requires a 'self' link.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

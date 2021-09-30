@@ -16,7 +16,6 @@ import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -65,9 +64,32 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
         }
 
-        String selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
+        Boolean isConsentRequest = false;
+        Boolean isPaymentConsent = false;
+        if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
+            isConsentRequest = true;
+            
+            if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
+                isPaymentConsent = true;
+            }
+        }
+        
+        String selfLink = "";
         String nextLink = "";
         String prevLink = "";
+
+        if (JsonHelper.ifExists(apiResponse, "$.links.self")) {
+            selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
+        } else {
+            //  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
+            if (isConsentRequest == false) {
+                throw error("There should be a 'self' link.");
+            } else {
+                if (isPaymentConsent) {
+                    throw error("Payment consent requires a 'self' link.");   
+                }
+            }
+        }
 
         if (JsonHelper.ifExists(apiResponse, "$.links.next")) {
             nextLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.next"));
@@ -104,7 +126,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             try {
                 selfLinkURI = new URI(selfLink);
             } catch (URISyntaxException e) {
-                throw error("Invalid Self Link URI.");
+                throw error("Invalid 'self' link URI.");
             }
 
             List<NameValuePair> selfLinkParamList = URLEncodedUtils.parse(selfLinkURI, StandardCharsets.UTF_8);

@@ -1,0 +1,14 @@
+{
+    "data": {
+        "consentId": "urn:mockbank:X1DF33123",
+        "creationDateTime": "2021-09-21T08:30:00Z",
+        "status": "AWAITING_AUTHORISATION",
+        "statusUpdateDateTime": "2021-09-21T08:30:00Z",
+        "permissions": [
+            "ACCOUNTS_READ",
+            "ACCOUNTS_OVERDRAFT_LIMITS_READ",
+            "RESOURCES_READ"
+        ],
+        "expirationDateTime": "2021-09-21T08:30:00Z"
+    }
+}
