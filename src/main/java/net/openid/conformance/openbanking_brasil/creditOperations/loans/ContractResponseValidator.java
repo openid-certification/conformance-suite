@@ -10,6 +10,7 @@ import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.StringField;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 /**
@@ -356,6 +357,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DoubleField
 				.Builder("chargeRate")
+				.setPattern("(-?\\d{1,3}(.?\\d{0,18}?))$")
 				.setMaxLength(19)
 				.setOptional()
 				.build());
