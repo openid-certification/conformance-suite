@@ -16,9 +16,12 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 
-		boolean jwt;
+		boolean jwt = false;
 		String contentTypeStr = environment.getString("resource_endpoint_response_headers", "content-type");
-		jwt = contentTypeStr.contains("application/jwt");
+		// just for tests
+		if(contentTypeStr != null) {
+			jwt = contentTypeStr.contains("application/jwt");
+		}
 		JsonObject body;
 
 		body = jwt ? getBodyFromJwt(environment) : getBodyFromJson(environment);
