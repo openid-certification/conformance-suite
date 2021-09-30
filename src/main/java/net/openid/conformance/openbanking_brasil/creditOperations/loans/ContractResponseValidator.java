@@ -10,7 +10,6 @@ import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.StringField;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
 /**
