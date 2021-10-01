@@ -194,7 +194,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 		Gson gson = JsonUtils.createBigDecimalAwareGson();
 		JsonObject errorObject = gson.fromJson(rawString, JsonObject.class);
 		//for debugging
-		log(errorObject.getAsJsonObject("errors"));
+		log("check error object exists and is the same as the response body:\n" + errorObject.getAsJsonObject("errors"));
 		return errorObject.getAsJsonArray("errors");
 	}
 

@@ -50,7 +50,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 				statusCode
 			);
 			// for debugging
-			log(environment.getInteger("resource_endpoint_response_status").toString());
+			log("Check status stored is same as response: " + environment.getInteger("resource_endpoint_response_status").toString());
 			return environment.getObject("errored_response");
 		} else {
 			return bodyFrom(environment);
