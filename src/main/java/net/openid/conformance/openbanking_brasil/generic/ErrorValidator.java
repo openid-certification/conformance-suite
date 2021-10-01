@@ -7,7 +7,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
-import org.openqa.selenium.json.Json;
 
 import java.util.Base64;
 
@@ -27,12 +26,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 
 		body = jwt ? getBodyFromJwt(environment) : getBodyFromJson(environment);
 
-		if(environment.getString("resource_endpoint_response").equals("{}")) {
-			assertHasField(body, "$.response_body.errors");
-		} else {
-			assertHasField(body, "$.errors");
-		}
-
+		assertHasField(body, "$.errors");
 		assertOuterFields(body);
 		assertInnerFields(body);
 
@@ -49,12 +43,17 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 
 	private JsonObject getBodyFromJson(Environment environment) {
 		if(environment.getString("resource_endpoint_response").equals("{}")) {
-			log(environment.getObject("errored_response"));
-			JsonObject body = environment.getObject("errored_response");
-			return body;
+			// for specific permission sets
+			int statusCode = environment.getInteger("status_code");
+			environment.putInteger(
+				"resource_endpoint_response_status",
+				statusCode
+			);
+			// for debugging
+			log("Check status stored is same as response: " + environment.getInteger("resource_endpoint_response_status").toString());
+			return environment.getObject("errored_response");
 		} else {
-			JsonObject body = bodyFrom(environment);
-			return body;
+			return bodyFrom(environment);
 		}
 	}
 
