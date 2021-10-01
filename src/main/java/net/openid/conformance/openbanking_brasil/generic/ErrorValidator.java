@@ -7,7 +7,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
-import org.openqa.selenium.json.Json;
 
 import java.util.Base64;
 
