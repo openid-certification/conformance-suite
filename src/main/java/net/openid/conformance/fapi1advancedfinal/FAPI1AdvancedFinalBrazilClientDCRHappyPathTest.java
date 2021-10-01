@@ -175,7 +175,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		}
 
 		//TODO how do you validate this during registration? registration request does not contain scopes?
-		//BrazilOBDCR- 7.1-9 shall require encrypted request objects as required by the Brasil Open Banking Security Profile;
+		//BrazilOBDCR- 7.1-9 shall shall validate that requested scopes are appropriate for the softwares authorized regulatory roles
 		//software_statement_roles -> "role": "DADOS",
 
 		//BrazilOBDCR- 7.1-10 should where possible validate client asserted metadata against metadata provided in the software_statement;

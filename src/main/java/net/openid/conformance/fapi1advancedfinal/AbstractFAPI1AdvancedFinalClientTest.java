@@ -159,6 +159,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -415,7 +416,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if (path.equals("authorize")) {
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
-			return tokenEndpoint(requestId);
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+					"using the token_endpoint found in mtls_endpoint_aliases.");
+			} else {
+				return tokenEndpoint(requestId);
+			}
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
@@ -469,7 +475,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 	}
 
 	protected void validateResourceEndpointHeaders() {
