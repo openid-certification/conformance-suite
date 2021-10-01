@@ -190,12 +190,12 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 
 	}
 
-	private JsonObject buildObjectFromString(String rawString){
+	private JsonArray buildObjectFromString(String rawString){
 		Gson gson = JsonUtils.createBigDecimalAwareGson();
 		JsonObject errorObject = gson.fromJson(rawString, JsonObject.class);
 		//for debugging
 		log(errorObject.getAsJsonObject("errors"));
-		return errorObject.getAsJsonObject("errors");
+		return errorObject.getAsJsonArray("errors");
 	}
 
 }
