@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as.dynregistration;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
@@ -15,6 +16,11 @@ public class FAPIBrazilValidateClientAuthenticationMethods extends AbstractCondi
 	public Environment evaluate(Environment env) {
 		//tls_client_auth, self_signed_tls_client_auth, private_key_jwt
 		String authMethod = env.getString("dynamic_registration_request", "token_endpoint_auth_method");
+		if(Strings.isNullOrEmpty(authMethod)) {
+			throw error("token_endpoint_auth_method is not set in dynamic registration request. " +
+				"The default value, client_secret_basic, is not allowed by Open Banking Brazil specifications " +
+				"so token_endpoint_auth_method must be set in registration request.");
+		}
 
 		Set<String> allowed = Set.of("tls_client_auth", "self_signed_tls_client_auth", "private_key_jwt");
 
