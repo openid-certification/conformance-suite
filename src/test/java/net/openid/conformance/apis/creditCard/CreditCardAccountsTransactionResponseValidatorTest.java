@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -57,5 +58,31 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 		run(condition);
 	}
 
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseEmpty.json")
+	public void validateStructureEmpty() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(),
+			containsString(condition.createArrayIsLessThanMaxItemsMessage(
+				"$.data")));
+	}
+
+	// @Test
+	// @UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseBadLinks.json")
+	// public void validateStructureBadLinks() {
+	// 	CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+	// 	ConditionError error = runAndFail(condition);
+	// 	assertThat(error.getMessage(),
+	// 		containsString(condition.createFieldValueNotMatchPatternMessage(
+	// 			"$.links.self")));
+	// }
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/cardTransactions/cardTransactionsResponseMissingPrevLink.json")
+	public void validateStructureMissingPrevLink() {
+		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
+		run(condition);
+	}
 
 }

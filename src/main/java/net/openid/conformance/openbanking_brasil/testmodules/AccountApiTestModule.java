@@ -43,8 +43,12 @@ public class AccountApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 		preCallProtectedResource("Fetch Account balance");
 		callAndContinueOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+		callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-172");
 		preCallProtectedResource("Fetch Account transactions");
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits");
 		callAndContinueOnFailure(AccountLimitsValidator.class, Condition.ConditionResult.FAILURE);

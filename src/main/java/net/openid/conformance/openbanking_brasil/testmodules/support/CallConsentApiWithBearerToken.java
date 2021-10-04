@@ -1,15 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openbanking.FAPIOBGetResourceEndpoint;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -60,6 +58,12 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 			throw error("HTTP method not found");
 		}
 
+		boolean expect_jwt = false;
+		String expect_jwt_string = env.getString("expect_jwt");
+		if (!Strings.isNullOrEmpty(method)) {
+			expect_jwt = Boolean.valueOf(expect_jwt_string);
+		}
+
 		log("Preparing to call endpoint with HTTP method " + method);
 
 		String tokenType = env.getString("access_token", "type");
@@ -90,11 +94,15 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
-			headers.set("Authorization", "Bearer " + accessToken);
+			String acceptType = env.getString("accept_type");
+			if (Strings.isNullOrEmpty(acceptType)) {
+				headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+			} else {
+				headers.set("accept", acceptType);
+			}
 
+			headers.set("Authorization", "Bearer " + accessToken);
 
 			// Stop RestTemplate from overwriting the Accept-Charset header
 			StringHttpMessageConverter converter = new StringHttpMessageConverter();
@@ -106,6 +114,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				request = new HttpEntity<>(null, headers);
 			} else {
 				request = new HttpEntity<>(requestObject.toString(), headers);
+				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			}
 
 			HttpMethod httpMethod = HttpMethod.resolve(method);
@@ -132,9 +141,13 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				log("Consent endpoint response", args("resource_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Consent endpoint did not return a JSON object");
+					if (!expect_jwt) {
+						JsonElement jsonRoot = new JsonParser().parse(jsonString);
+						if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+							throw error("Consent endpoint did not return a JSON object");
+						}
+					} else {
+						env.putString("consent_endpoint_response", jsonString);
 					}
 
 					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
@@ -160,6 +173,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				responseDetails.addProperty("status_code", e.getRawStatusCode());
 				responseDetails.addProperty("status_message", e.getStatusText());
 				responseDetails.add("response_headers", mapToJsonObject(e.getResponseHeaders(), false));
+				responseDetails.add("errors", buildObjectFromString(e.getResponseBodyAsString()));
 				env.putObject("errored_response", responseDetails);
 				return env;
 			}
@@ -174,6 +188,14 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 			throw error(msg, e);
 		}
 
+	}
+
+	private JsonArray buildObjectFromString(String rawString){
+		Gson gson = JsonUtils.createBigDecimalAwareGson();
+		JsonObject errorObject = gson.fromJson(rawString, JsonObject.class);
+		//for debugging
+		log("check error object exists and is the same as the response body:\n" + errorObject.getAsJsonArray("errors"));
+		return errorObject.getAsJsonArray("errors");
 	}
 
 }

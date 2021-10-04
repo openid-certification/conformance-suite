@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.ad
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.PrepareUrlForFetchingCreditAdvanceContractInstallments;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.PrepareUrlForFetchingCreditAdvanceContractPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.PrepareUrlForFetchingCreditAdvanceContracts;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -41,6 +42,9 @@ public class CreditOperationsAdvancesApiTestModule extends AbstractOBBrasilFunct
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(AdvancesResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(CreditAdvanceSelector.class);
 

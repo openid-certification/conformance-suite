@@ -45,7 +45,10 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 			throw error("Access token is not a bearer token", args("token_type", tokenType));
 		}
 
-		String resourceEndpoint = env.getString("config", "resource.consentUrl");
+		String resourceEndpoint = env.getString("consent_url");
+		if (Strings.isNullOrEmpty(resourceEndpoint)) {
+			resourceEndpoint = env.getString("config", "resource.consentUrl");
+		}
 		if (Strings.isNullOrEmpty(resourceEndpoint)) {
 			throw error("consent url missing from configuration");
 		}
@@ -74,7 +77,15 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject, headers);
 
-			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.POST, request, String.class);
+			HttpMethod method;
+			String http_method = env.getString("http_method");
+			if (!Strings.isNullOrEmpty(http_method) && env.getString("http_method").equals("GET")) {
+				method = HttpMethod.GET;
+			} else {
+				method = HttpMethod.POST;
+			}
+
+			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, method, request, String.class);
 
 			String responseBody = response.getBody();
 

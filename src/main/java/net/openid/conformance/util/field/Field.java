@@ -1,8 +1,11 @@
 package net.openid.conformance.util.field;
 
 
+import com.google.gson.JsonObject;
+
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * The base class describes features of value that can contain key
@@ -19,6 +22,7 @@ public class Field {
 	private int minItems;
 	private int maxValue;
 	private Set<String> enums = Collections.emptySet();
+	protected Consumer<JsonObject> validator;
 
 	public Field() {
 	}
@@ -33,6 +37,13 @@ public class Field {
 		this.path = path;
 	}
 
+	public Field(boolean optional, boolean nullable, String path, Consumer<JsonObject> validator) {
+		this.optional = optional;
+		this.nullable = nullable;
+		this.path = path;
+		this.validator = validator;
+	}
+
 	protected Field(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength, int maxItems, int minItems, int maxValue, Set<String> enums) {
 		this.optional = optional;
 		this.nullable = nullable;
@@ -44,6 +55,15 @@ public class Field {
 		this.minItems = minItems;
 		this.maxValue = maxValue;
 		this.enums = enums;
+	}
+
+	public Field(boolean optional, boolean nullable, String path, int maxItems, int minItems, Consumer<JsonObject> validator) {
+		this.optional = optional;
+		this.nullable = nullable;
+		this.path = path;
+		this.maxItems = maxItems;
+		this.minItems = minItems;
+		this.validator = validator;
 	}
 
 	public boolean isOptional() {
@@ -122,6 +142,8 @@ public class Field {
 		this.enums = enums;
 	}
 
+	public Consumer<JsonObject> getValidator() { return this.validator; }
+
 	public abstract static class FieldBuilder {
 		protected boolean optional;
 		protected boolean nullable;
@@ -133,6 +155,7 @@ public class Field {
 		protected int minItems;
 		protected int maxValue;
 		protected Set<String> enums = Collections.emptySet();
+		protected Consumer<JsonObject> validator;
 
 		public FieldBuilder(String path) {
 			this.path = path;
@@ -185,6 +208,11 @@ public class Field {
 
 		public FieldBuilder setEnums(Set<String> enums) {
 			this.enums = enums;
+			return this;
+		}
+
+		public FieldBuilder setValidator(Consumer<JsonObject> validator) {
+			this.validator = validator;
 			return this;
 		}
 

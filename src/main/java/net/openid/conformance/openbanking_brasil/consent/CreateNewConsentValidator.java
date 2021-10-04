@@ -1,4 +1,3 @@
-
 package net.openid.conformance.openbanking_brasil.consent;
 
 import com.google.common.collect.Sets;
@@ -26,7 +25,7 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-
+		
 		return environment;
 	}
 
@@ -49,6 +48,7 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DatetimeField
 				.Builder("creationDateTime")
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
@@ -60,6 +60,7 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DatetimeField
 				.Builder("statusUpdateDateTime")
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
@@ -72,18 +73,21 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 			new DatetimeField
 				.Builder("expirationDateTime")
 				.setDaysOlderAccepted(730)
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
 			new DatetimeField
 				.Builder("transactionFromDateTime")
 				.setOptional()
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
 			new DatetimeField
 				.Builder("transactionToDateTime")
 				.setOptional()
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 	}
 }

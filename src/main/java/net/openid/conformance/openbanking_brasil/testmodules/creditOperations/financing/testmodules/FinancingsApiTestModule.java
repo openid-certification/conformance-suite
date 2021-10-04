@@ -1,8 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractInstallmentsResponseValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractInstallmentsResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingGuaranteesResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingPaymentsResponseValidator;
@@ -49,6 +50,9 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 
 		runInBlock("Validate financing root response", () -> {
 			callAndStopOnFailure(FinancingResponseValidator.class);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
 		});
 
 		runInBlock("Validate financing contract response", () -> {
@@ -56,6 +60,7 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractResource.class);
 			preCallProtectedResource();
 			callAndStopOnFailure(FinancingContractResponseValidator.class);
+			callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-173","BCLOG-F02-175");
 		});
 
 		runInBlock("Validate financing contract warranties response", () -> {
@@ -68,12 +73,16 @@ public class FinancingsApiTestModule extends AbstractOBBrasilFunctionalTestModul
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractPaymentsResource.class);
 			preCallProtectedResource();
 			callAndStopOnFailure(FinancingPaymentsResponseValidator.class);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
 		});
 
 		runInBlock("Validate financing contract instalments response", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractInstallmentsResource.class);
 			preCallProtectedResource();
-			callAndStopOnFailure(InvoiceFinancingContractInstallmentsResponseValidator.class);
+			callAndStopOnFailure(FinancingContractInstallmentsResponseValidator.class);
+			callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-174","BCLOG-F02-176");
 		});
 
 	}

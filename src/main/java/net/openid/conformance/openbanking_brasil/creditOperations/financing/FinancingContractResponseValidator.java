@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
@@ -14,8 +15,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Financiamentos  |Contrato
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos-contrato
+ * API: swagger_financings_apis.yaml
+ * URL: /contracts/{contractId
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 @ApiName("Financing Contract")
 public class FinancingContractResponseValidator extends AbstractJsonAssertingCondition {
@@ -33,8 +35,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		Set<String> productSubType = Sets.newHashSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES", "AQUISICAO_BENS_OUTROS_BENS",
 			" MICROCREDITO", "CUSTEIO", "INVESTIMENTO", "INDUSTRIALIZACAO",
 			"COMERCIALIZACAO", "FINANCIAMENTO_HABITACIONAL_SFH", "FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
-		Set<String> instalmentPeriodicity = Sets.newHashSet("SEM_PERIODICIDADE_REGULAR", "SEMANAL", "QUINZENAL",
-			"MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "OUTROS");
+		Set<String> instalmentPeriodicity = Sets.newHashSet("SEM_PERIODICIDADE_REGULAR", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "OUTROS");
 		Set<String> amortizationScheduled = Sets.newHashSet("SAC", "PRICE", "SAM", "SEM_SISTEMA_AMORTIZACAO", "OUTROS");
 
 		assertField(data,
@@ -53,6 +54,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("productName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
@@ -66,26 +68,15 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("productSubType")
 				.setEnums(productSubType)
-				.setMaxLength(67)
+				.setMaxLength(37)
 				.build());
+
+		assertField(data, CommonFields.dataYYYYMMDD("contractDate").build());
+
+		assertField(data, CommonFields.dataYYYYMMDD("disbursementDate").setOptional().build());
 
 		assertField(data,
 			new DatetimeField
-				.Builder("contractDate")
-				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setMaxLength(10)
-				.build());
-
-		assertField(data,
-			new StringField
-				.Builder("disbursementDate")
-				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setMaxLength(10)
-				.setOptional()
-				.build());
-
-		assertField(data,
-			new StringField
 				.Builder("settlementDate")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
 				.setMaxLength(10)
@@ -94,44 +85,31 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new DoubleField
 				.Builder("contractAmount")
+				.setNullable()
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("currency")
-				.setMaxLength(3)
-				.setPattern("^(\\w{3}){1}$")
-				.build());
+		assertField(data, CommonFields.currency().build());
 
-		assertField(data,
-			new DatetimeField
-				.Builder("dueDate")
-				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setMaxLength(10)
-				.build());
+		assertField(data, CommonFields.dataYYYYMMDD("dueDate").build());
 
 		assertField(data,
 			new StringField
 				.Builder("instalmentPeriodicity")
 				.setEnums(instalmentPeriodicity)
-				.build());
-
-		assertField(data,
-			new DatetimeField
-				.Builder("firstInstalmentDueDate")
-				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setMaxLength(10)
+				.setMaxLength(25)
 				.build());
 
 		assertField(data,
 			new StringField
-				.Builder("currency")
-				.setMaxLength(3)
-				.setPattern("^(\\w{3}){1}$")
+				.Builder("instalmentPeriodicityAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(50)
 				.build());
+
+		assertField(data, CommonFields.dataYYYYMMDD("firstInstalmentDueDate").build());
 
 		assertField(data,
 			new DoubleField
@@ -143,7 +121,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("amortizationScheduled")
 				.setEnums(amortizationScheduled)
-				.setMaxLength(24)
+				.setMaxLength(23)
 				.build());
 
 		assertField(data,
@@ -170,7 +148,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new ArrayField
 				.Builder("contractedFinanceCharges")
-				.setMinItems(1)
 				.build());
 
 		assertJsonArrays(data, "contractedFinanceCharges", this::assertInnerFieldsContractedFinanceCharges);
@@ -180,7 +157,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new ArrayField
 				.Builder("contractedFees")
-				.setMinItems(1)
 				.build());
 
 		assertJsonArrays(data, "contractedFees", this::assertInnerFieldsContractedFees);
@@ -188,7 +164,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 
 	private void assertInnerFieldsContractedFinanceCharges(JsonObject data) {
 		Set<String> chargeType = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO",
-			"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO"," OUTROS");
+			"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO","OUTROS");
 
 		assertField(data,
 			new StringField
@@ -200,11 +176,13 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("chargeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
 			new DoubleField
 				.Builder("chargeRate")
+				.setOptional()
 				.setMaxLength(19)
 				.build());
 	}
@@ -217,12 +195,14 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(data,
@@ -242,6 +222,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new DoubleField
 				.Builder("feeAmount")
+				.setNullable()
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
 				.setMaxLength(20)
@@ -270,14 +251,14 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("taxType")
 				.setEnums(taxType)
-				.setMaxLength(10)
+				.setMaxLength(7)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("interestRateType")
 				.setEnums(interestRateType)
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.build());
 
 		assertField(data,
@@ -313,6 +294,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("referentialRateIndexerAdditionalInfo")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -333,6 +315,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(1200)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 }

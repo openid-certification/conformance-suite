@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleCorrect404;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -20,7 +21,8 @@ public class ResourcesApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					ResourcesApiTestModule.class
+					ResourcesApiTestModule.class,
+					ResourcesApiTestModuleCorrect404.class
 					//ResourcesApiTestModuleNoResources.class, // With the new resource groups, an empty resource request no longer makes any sense.
 					//ResourcesApiTestModuleAccount.class, // Not rquired for T0
 					//ResourcesApiTestModuleCreditCard.class // Not required for T0

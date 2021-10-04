@@ -463,7 +463,8 @@ var FAPI_UI = {
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-par#section-",
-			"JAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-"
+			"JAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-",
+			"BCLOG-F02-" : "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

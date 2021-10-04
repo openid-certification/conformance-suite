@@ -11,9 +11,10 @@ import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
-/**
- * This is validator for API - Financiamentos - Financing
- * https://openbanking-brasil.github.io/areadesenvolvedor/#financiamentos
+/*
+ * API: swagger_financings_apis.yaml
+ * URL: /contracts
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Financing")
@@ -25,6 +26,7 @@ public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
+
 		return environment;
 	}
 
@@ -41,7 +43,7 @@ public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("brandName")
-				//.setPattern("\\w*\\W*") //TODO wrong pattern
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(80)
 				.build());
 

@@ -19,6 +19,14 @@ public class ContractResponseValidatorTest extends AbstractJsonResponseCondition
 	}
 
 	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponseOK(FeeAmountNull).json")
+	public void validateStructureNullFee() {
+		ContractResponseValidator condition = new ContractResponseValidator();
+		run(condition);
+	}
+
+
+	@Test
 	@UseResurce("jsonResponses/creditOperations/loans/contract/contractResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		ContractResponseValidator condition = new ContractResponseValidator();

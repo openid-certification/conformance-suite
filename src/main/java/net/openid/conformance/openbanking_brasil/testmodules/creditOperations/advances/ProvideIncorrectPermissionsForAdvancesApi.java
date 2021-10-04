@@ -9,7 +9,7 @@ public class ProvideIncorrectPermissionsForAdvancesApi extends AbstractCondition
 	@Override
 	@PostEnvironment(strings = "consent_permissions")
 	public Environment evaluate(Environment env) {
-		String[] permissions = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ", "RESOURCES_READ"};
+		String[] permissions = {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "RESOURCES_READ"};
 		env.putString("consent_permissions", String.join(" ", permissions));
 		log("Requesting permissions which should not be usable for financing resources");
 		return env;

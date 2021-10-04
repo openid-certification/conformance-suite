@@ -3,7 +3,6 @@ package net.openid.conformance.apis.creditOperations.loans;
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.ContractPaymentsValidator;
-import net.openid.conformance.openbanking_brasil.creditOperations.loans.ContractResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 

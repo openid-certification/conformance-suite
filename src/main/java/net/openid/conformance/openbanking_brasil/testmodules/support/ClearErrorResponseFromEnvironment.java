@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ClearResponseFromEnvironment extends AbstractCondition {
+public class ClearErrorResponseFromEnvironment extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "errored_response")

@@ -26,7 +26,6 @@ public class ConsentDetailsIdentifiedByConsentIdValidator extends AbstractJsonAs
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-
 		return environment;
 	}
 
@@ -60,6 +59,7 @@ public class ConsentDetailsIdentifiedByConsentIdValidator extends AbstractJsonAs
 		assertField(body,
 			new DatetimeField
 				.Builder("statusUpdateDateTime")
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
@@ -71,18 +71,21 @@ public class ConsentDetailsIdentifiedByConsentIdValidator extends AbstractJsonAs
 		assertField(body,
 			new DatetimeField
 				.Builder("expirationDateTime")
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
 			new DatetimeField
 				.Builder("transactionFromDateTime")
 				.setOptional()
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 
 		assertField(body,
 			new DatetimeField
 				.Builder("transactionToDateTime")
 				.setOptional()
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
 				.build());
 	}
 

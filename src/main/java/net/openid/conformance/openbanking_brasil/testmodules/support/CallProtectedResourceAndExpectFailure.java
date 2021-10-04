@@ -78,6 +78,7 @@ public class CallProtectedResourceAndExpectFailure extends AbstractCallProtected
 		env.putString("resource_endpoint_response", response);
 		env.putInteger("resource_endpoint_response_status", status);
 		env.putString("resource_endpoint_response_status_text", statusText);
+		env.putObject("resource_endpoint_response_headers", mapToJsonObject(e.getResponseHeaders(), true));
 		logSuccess("Resource endpoint returned error", args("code", status, "status", statusText, "body", response));
 
 		return env;

@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
@@ -10,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureRespo
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllCreditCardRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingAccountResource;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.condition.Condition;
 
 @PublishTestModule(
 	testName = "CreditCard-Api-wrong-permissions-test",
@@ -45,9 +47,9 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		preCallProtectedResource("Fetch CreditCard Limits");
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 		preCallProtectedResource("Fetch CreditCard Transactions");
-		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		preCallProtectedResource("Fetch CreditCard Bills");
+		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
 		preCallProtectedResource("Fetch CreditCard Bills Transaction");
 	}
@@ -63,36 +65,42 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		runInBlock("Ensure we cannot call the CreditCard Root API", () -> {
 			callAndStopOnFailure(PrepareUrlForCreditCardRoot.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditCard Account API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditCard Bill API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditCard Bill Transaction API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the CreditCard Limits API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardLimits.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
 		runInBlock("Ensure we cannot call the  CreditCard Transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 	}

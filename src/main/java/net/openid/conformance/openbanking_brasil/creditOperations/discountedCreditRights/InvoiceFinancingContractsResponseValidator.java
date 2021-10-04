@@ -10,10 +10,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API Credit Operations/Discounted Credit Rights "
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#direitos-creditorios-descontados
- **/
-
+ * Api: swagger_invoice_financings_apis.yaml
+ * Api endpoint: /contracts
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
+ */
 @ApiName("Invoice Financing Contracts")
 public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAssertingCondition {
 
@@ -23,6 +24,7 @@ public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAsse
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
+		
 		return environment;
 	}
 
@@ -42,6 +44,7 @@ public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("brandName")
 				.setMaxLength(80)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -55,12 +58,13 @@ public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAsse
 			new StringField
 				.Builder("productType")
 				.setEnums(productType)
+				.setMaxLength(32)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("productSubType")
-				.setMaxLength(47)
+				.setMaxLength(39)
 				.setEnums(contractProductSubTypes)
 				.build());
 

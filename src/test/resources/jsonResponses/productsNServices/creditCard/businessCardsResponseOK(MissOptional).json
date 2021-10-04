@@ -1,0 +1,200 @@
+{
+    "data": {
+        "brand": {
+            "name": "Organização A",
+            "companies": [
+                {
+                    "cnpjNumber": "50685362000135",
+                    "name": "Empresa A1",
+                    "businessCreditCards": [
+                        {
+                            "name": "Cartão Vantagens",
+                            "identification": {
+                                "product": {
+                                    "type": "PLATINUM",
+                                    "additionalInfo": "NA"
+                                },
+                                "creditCard": {
+                                    "network": "MASTERCARD",
+                                    "additionalInfo": "NA"
+                                }
+                            },
+                            "rewardsProgram": {
+                                "hasRewardProgram": false,
+                                "rewardProgramInfo": "https://empresaa1.com/credit_cards_rewards"
+                            },
+                            "fees": {
+                                "services": [
+                                    {
+                                        "name": "ANUIDADE_CARTAO_BASICO_NACIONAL",
+                                        "code": "ANUIDADE_NACIONAL",
+                                        "chargingTriggerInfo": "Disponibilização de rede de estabelecimentos afiliados, instalada no País, para pagamentos de bens e serviços, cobrada no máximo uma vez a cada doze meses, admitido o parcelamento da cobrança",
+                                        "prices": [
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "value": "2000.00",
+                                                "currency": "BRL",
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            }
+                                        ],
+                                        "minimum": {
+                                            "value": "1350.00",
+                                            "currency": "BRL"
+                                        },
+                                        "maximum": {
+                                            "value": "8800.00",
+                                            "currency": "BRL"
+                                        }
+                                    }
+                                ]
+                            },
+                            "interest": {
+                                "rates": [
+                                    {
+                                        "referentialRateIndexer": "SEM_INDEXADOR_TAXA",
+                                        "rate": "0.15",
+                                        "applications": [
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            }
+                                        ],
+                                        "minimumRate": "0.0456",
+                                        "maximumRate": "0.6865"
+                                    }
+                                ],
+                                "instalmentRates": [
+                                    {
+                                        "referentialRateIndexer": "SEM_INDEXADOR_TAXA",
+                                        "rate": "0.15",
+                                        "applications": [
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            },
+                                            {
+                                                "interval": "1_FAIXA",
+                                                "indexer": {
+                                                    "rate": "0.8700"
+                                                },
+                                                "customers": {
+                                                    "rate": "0.1500"
+                                                }
+                                            }
+                                        ],
+                                        "minimumRate": "0.0456",
+                                        "maximumRate": "0.6865"
+                                    }
+                                ],
+                                "otherCredits": [
+                                    {
+                                        "code": "SAQUE_A_CREDITO",
+                                        "additionalInfo": "NA"
+                                    }
+                                ]
+                            },
+                            "termsConditions": {
+                                "minimumFeeRate": "0.25",
+                                "additionalInfo": "NA",
+                                "elegibilityCriteriaInfo": "https://empresaa1.com/creditcards_elegibility_criteria",
+                                "closingProcessInfo": "https://empresaa1.com/creditcards_closing_process"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/products-services/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/products-services/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/products-services/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}

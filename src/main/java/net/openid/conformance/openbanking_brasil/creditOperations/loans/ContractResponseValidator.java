@@ -13,8 +13,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Empréstimos | Contrato
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#emprestimos-contrato
+ * Api: swagger_loans_apis.yaml
+ * Api endpoint: /contracts/{contractId}
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Contract")
@@ -59,6 +60,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("productName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -101,7 +103,10 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DoubleField
 				.Builder("contractAmount")
+				.setNullable()
+				.setMaxLength(20)
 				.setMinLength(0)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(body,
@@ -122,12 +127,14 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("instalmentPeriodicity")
 				.setEnums(contractInstalmentPeriodicity)
+				.setMaxLength(25)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("instalmentPeriodicityAdditionalInfo")
 				.setMaxLength(50)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -146,7 +153,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("amortizationScheduled")
-				.setMaxLength(24)
+				.setMaxLength(23)
 				.setEnums(contractAmortizationScheduled)
 				.build());
 
@@ -154,6 +161,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("amortizationScheduledAdditionalInfo")
 				.setMaxLength(50)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -173,7 +181,6 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(element,
 			new ArrayField
 				.Builder("interestRates")
-				.setMinItems(1)
 				.build());
 		assertJsonArrays(element, "interestRates", this::assertInnerFieldsForInterestRate);
 	}
@@ -183,7 +190,6 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(element,
 			new ArrayField
 				.Builder("contractedFees")
-				.setMinItems(1)
 				.build());
 		assertJsonArrays(element, "contractedFees", this::assertInnerFieldsContractedFees);
 	}
@@ -193,7 +199,6 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(element,
 			new ArrayField
 				.Builder("contractedFinanceCharges")
-				.setMinItems(1)
 				.build());
 		assertJsonArrays(element, "contractedFinanceCharges", this::assertInnerFieldsCharges);
 	}
@@ -215,14 +220,14 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("taxType")
 				.setEnums(contractTaxTypes)
-				.setMaxLength(10)
+				.setMaxLength(7)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("interestRateType")
 				.setEnums(contractInterestRateTypes)
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.build());
 
 		assertField(body,
@@ -251,12 +256,14 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 				.Builder("referentialRateIndexerSubType")
 				.setEnums(contractReferentialRateIndexerSubTypes)
 				.setMaxLength(24)
+				.setOptional()
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("referentialRateIndexerAdditionalInfo")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -277,6 +284,7 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(1200)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 	}
 
@@ -288,12 +296,14 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("feeName")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("feeCode")
 				.setMaxLength(140)
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
@@ -313,12 +323,14 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new DoubleField
 				.Builder("feeAmount")
+				.setNullable()
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(body,
 			new DoubleField
 				.Builder("feeRate")
+				.setNullable()
 				.setMaxLength(19)
 				.build());
 	}
@@ -338,11 +350,13 @@ public class ContractResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("chargeAdditionalInfo")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,
 			new DoubleField
 				.Builder("chargeRate")
+				.setPattern("(-?\\d{1,19}(.?\\d{0,18}?))$")
 				.setMaxLength(19)
 				.setOptional()
 				.build());

@@ -37,12 +37,19 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
 	public static final String ROOT_PATH = "$.data";
+	private boolean logOnlyFailure;
+	private boolean dontStopOnFailure;
+	private int totalElements;
 
 	@Override
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
 		String entityString = environment.getString("resource_endpoint_response");
+		String statusString = environment.getEffectiveKey("doNotStopOnFailure");
+		if (statusString != null) {
+			this.dontStopOnFailure = Boolean.parseBoolean(statusString);
+		}
 		return GSON.fromJson(entityString, JsonObject.class);
 	}
 
@@ -72,7 +79,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getString(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a string", jsonObject);
+			throw error(String.format("Field at %s must be a string but %s was found", path, found.getClass().getSimpleName()), jsonObject);
 		}
 	}
 
@@ -83,8 +90,20 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		assertField(jsonObject, field);
 	}
 
-	//need to think about better impl then the current one
-	protected void assertField(JsonObject jsonObject, Field field) {
+	public void assertField(JsonObject jsonObject, Field field) {
+		if (dontStopOnFailure) {
+			try {
+				assertElement(jsonObject, field);
+			} catch (ConditionError error) {
+				logFailure(error.getMessage());
+			}
+		} else {
+			assertElement(jsonObject, field);
+		}
+	}
+
+
+	private void assertElement(JsonObject jsonObject, Field field) {
 		if (!ifExists(jsonObject, field.getPath())) {
 			if (field.isOptional()){
 				return;
@@ -93,12 +112,30 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			}
 		}
 
-		if (field.isNullable() && findByPath(jsonObject, field.getPath()).isJsonNull()) {
+		JsonElement elementByPath = findByPath(jsonObject, field.getPath());
+		if (field.isNullable() && elementByPath.isJsonNull()) {
 			return;
+		}
+
+		if (elementByPath.isJsonNull()) {
+			//return;//TODO:: 1. return; - this is for passing ProductsNServicesApiTestModule;
+			throw error(createElementCantBeNullMessage(field.getPath()));
 		}
 
 		if (field instanceof ObjectField) {
 			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
+
+		} else if (field instanceof ObjectArrayField) {
+			JsonArray array = null;
+			try {
+				array = (JsonArray)  elementByPath;
+			} catch (ClassCastException exception) {
+				logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) elementByPath);
+				return;
+			}
+			assertMinAndMaxItems(array.getAsJsonArray(), field);
+			array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
+
 		} else if (field instanceof StringField || field instanceof DatetimeField) {
 			assertHasStringField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
@@ -128,15 +165,14 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof StringArrayField) {
 			assertHasStringArrayField(jsonObject, field.getPath());
-			JsonElement found = findByPath(jsonObject, field.getPath());
-			OIDFJSON.getStringArray(found).forEach(v -> assertPatternAndMaxMinLength(v, field));
-			assertMinAndMaxItems(found.getAsJsonArray(), field);
+			OIDFJSON.getStringArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v, field));
+			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		} else if (field instanceof ArrayField) {
-			JsonElement found = findByPath(jsonObject, field.getPath());
+			JsonElement found = elementByPath;
 			assertMinAndMaxItems(found.getAsJsonArray(), field);
 		}
-	}
 
+	}
 	protected void assertGeographicCoordinates(JsonObject body) {
 		JsonObject geographicCoordinates = findByPath(body, "geographicCoordinates").getAsJsonObject();
 
@@ -233,6 +269,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	//@Deprecated Use assertField(JsonObject jsonObject, String path)
 	protected void assertJsonObject(JsonObject body, String pathToJsonObject, Consumer<JsonObject> consumer) {
 		JsonObject object = (JsonObject) findByPath(body, pathToJsonObject);
 		consumer.accept(object.getAsJsonObject());
@@ -302,6 +339,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			logQuerying(elementName);
 			JsonElement element = JsonPath.parse(jsonObject).read(path);
 			logElementFound(elementName);
+			totalElements++;
 			return element;
 		} catch (PathNotFoundException e) {
 			throw error(createElementNotFoundMessage(path), jsonObject);
@@ -319,12 +357,24 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			}
 	}
 
+	public void setLogOnlyFailure() {
+		log("Log Only Failure Mode is ON");
+		this.logOnlyFailure = true;
+	}
+
+	protected void logFinalStatus() {
+		logSuccess(createTotalElementsFoundMessage(totalElements));
+	}
 	private void logElementFound(String elementName) {
-		logSuccess(createElementFoundMessage(elementName));
+		if (!logOnlyFailure) {
+			logSuccess(createElementFoundMessage(elementName));
+		}
 	}
 
 	private void logQuerying(String elementName) {
-		log(createQueryMessage(elementName));
+		if (!logOnlyFailure) {
+			log(createQueryMessage(elementName));
+		}
 	}
 
 	private void assertLatitude(JsonObject jsonObject, Field doubleField) {
@@ -356,13 +406,24 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
 		}
 	}
-
+	public String createClassCastExpMessage(String elementName) {
+		return String.format("Class cast exception, expect JsonArray: %s on the %s API " +
+				"response",	elementName, getApiName());
+	}
 	public String createQueryMessage(String elementName) {
 		return String.format("Looking up %s on the %s API response", elementName, getApiName());
 	}
+	public String createTotalElementsFoundMessage(int totalElements) {
+		return String.format("Successfully validated %d elements on the %s API response",
+			totalElements, getApiName());
+	}
+
+	public String createElementCantBeNullMessage(String elementName) {
+		return String.format("Field %s cant be null on the %s API response", elementName, getApiName());
+	}
 
 	public String createElementFoundMessage(String elementName) {
-		return String.format("Successfully validated the %s element on the %s API response", elementName, getApiName());
+		return String.format("The %s element is present in the %s API response", elementName, getApiName());
 	}
 
 	public String createElementNotFoundMessage(String elementName) {
@@ -434,7 +495,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return apiName == null ? clazz.getSimpleName() : apiName.value();
 	}
 
-	protected void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
+	//@Deprecated Use assertField(JsonObject jsonObject, String path);
+	public void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
 		JsonElement jsonElement = findByPath(body, pathToJsonArray);
 		JsonArray array = (JsonArray) jsonElement;
 		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));

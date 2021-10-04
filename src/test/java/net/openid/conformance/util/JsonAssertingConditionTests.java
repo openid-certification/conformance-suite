@@ -93,7 +93,7 @@ public class JsonAssertingConditionTests {
 		Map<String, Object> args = captor.getValue();
 		String message = String.valueOf(args.get("msg"));
 
-		assertEquals("Successfully validated the nest.field element on the  API response", message);
+		assertEquals("The nest.field element is present in the  API response", message);
 
 	}
 

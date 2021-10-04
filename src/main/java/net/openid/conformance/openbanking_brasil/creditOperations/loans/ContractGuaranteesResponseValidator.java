@@ -12,8 +12,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Empréstimos | Garantias do contrato
- * https://openbanking-brasil.github.io/areadesenvolvedor/#emprestimos-garantias-do-contrato
+ * Api: swagger_loans_apis.yaml
+ * Api endpoint: /contracts/{contractId}/warranties
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Contract Guarantees")
@@ -29,7 +30,7 @@ public class ContractGuaranteesResponseValidator extends AbstractJsonAssertingCo
 	}
 
 	private void assertData(JsonObject element) {
-		Set<String> enumWarrantyType = Sets.newHashSet("SEM_TIPO_GARANTIA", "CESSAO_DIREITOS_CREDITORIOS", "CAUCAO", "PENHOR", "ALIENACAO_FIDUCIARIA, HIPOTECA",
+		Set<String> enumWarrantyType = Sets.newHashSet("SEM_TIPO_GARANTIA", "CESSAO_DIREITOS_CREDITORIOS", "CAUCAO", "PENHOR", "ALIENACAO_FIDUCIARIA", "HIPOTECA",
 			"OPERACOES_GARANTIDAS_PELO_GOVERNO", "OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS", "GARANTIA_FIDEJUSSORIA", "BENS_ARRENDADOS",
 			"GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES", "ACORDOS_COMPENSACAO");
 		Set<String> enumWarrantySubType = Sets.newHashSet("ACOES_DEBENTURES", "APLICACOES_FINANCEIRAS_RENDA_FIXA",
@@ -57,14 +58,14 @@ public class ContractGuaranteesResponseValidator extends AbstractJsonAssertingCo
 			new StringField
 				.Builder("warrantyType")
 				.setEnums(enumWarrantyType)
-				.setMaxLength(40)
+				.setMaxLength(37)
 				.build());
 
 		assertField(element,
 			new StringField
 				.Builder("warrantySubType")
 				.setEnums(enumWarrantySubType)
-				.setMaxLength(100)
+				.setMaxLength(96)
 				.build());
 
 		assertField(element,

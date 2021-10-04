@@ -12,23 +12,11 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
- * ResponsePixPaymentData
- * required:
- * - paymentId
- * - consentId
- * - creationDateTime
- * - statusUpdateDateTime
- * - status
- * - localInstrument
- * - payment
- * - creditorAccount
- * - cnpjInitiator
- * optional:
- * - endToEndId
- * - proxy
- * - rejectionReason
- * - remittanceInformation
+ * Doc https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
+ * Doc Version: v1.0.0-rc8.8
+ * Aip: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/f949adfdf9af49855ad6d6417d71dc5a8d11ae50/swagger/swagger_payments_apis.yaml
+ * Api Version: 1.0.1-rc1.0
+ * Api git hash: f949adfdf9af49855ad6d6417d71dc5a8d11ae50
  */
 
 @ApiName("Payment Initiation Pix By PaymentId")
@@ -106,6 +94,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 			new StringField
 				.Builder("status")
 				.setEnums(status)
+				.setMaxLength(4)
 				.build());
 
 		assertField(body,
@@ -125,6 +114,14 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 				.build());
 
 		assertJsonObject(body, "payment", this::assertPayment);
+
+		assertField(body,
+			new StringField
+				.Builder("transactionIdentification")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
+				.setMaxLength(25)
+				.setOptional()
+				.build());
 
 		assertField(body,
 			new StringField
