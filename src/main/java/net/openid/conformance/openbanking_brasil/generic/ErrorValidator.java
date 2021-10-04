@@ -4,6 +4,7 @@ import com.google.gson.*;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
@@ -44,14 +45,14 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	private JsonObject getBodyFromJson(Environment environment) {
 		if(environment.getString("resource_endpoint_response").equals("{}")) {
 			// for specific permission sets
-			int statusCode = environment.getInteger("status_code");
+			JsonObject response = environment.getObject("errored_response");
 			environment.putInteger(
 				"resource_endpoint_response_status",
-				statusCode
+				OIDFJSON.getInt(response.get("status_code"))
 			);
 			// for debugging
 			log("Check status stored is same as response: " + environment.getInteger("resource_endpoint_response_status").toString());
-			return environment.getObject("errored_response");
+			return response;
 		} else {
 			return bodyFrom(environment);
 		}
