@@ -41,7 +41,7 @@ public class AccountsApiPageSizeTestModule extends AbstractOBBrasilFunctionalTes
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 
 	}
 
