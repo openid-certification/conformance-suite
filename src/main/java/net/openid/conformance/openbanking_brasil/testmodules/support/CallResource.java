@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.productsNServices;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.client.AbstractCallProtectedResource;
 import net.openid.conformance.testmodule.Environment;

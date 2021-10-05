@@ -15,8 +15,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Operações de Crédito - Adiantamento a Depositantes  | Contract Installments
- * See https://openbanking-brasil.github.io/areadesenvolvedor/#adiantamento-a-depositantes-parcelas-do-contrato
+ * Api: swagger_unarranged_accounts_overdraft_apis.yaml
+ * Api endpoint: /contracts/{contractId}/scheduled-instalments
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
+ *
  */
 
 @ApiName("Advances Contract Installments")
@@ -95,6 +97,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 			new ArrayField
 				.Builder("balloonPayments")
 				.setMinItems(0)
+				.setNullable()
 				.build());
 
 		assertJsonArrays(body, "balloonPayments", this::assertInnerFieldsBalloonPayments);
@@ -120,6 +123,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 				Builder("amount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(0)
+				.setNullable()
 				.build());
 	}
 }

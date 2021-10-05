@@ -94,9 +94,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		if (dontStopOnFailure) {
 			try {
 				assertElement(jsonObject, field);
-			} catch (ConditionError error) {
-				logFailure(error.getMessage());
-			}
+			} catch (ConditionError ignored) {}
 		} else {
 			assertElement(jsonObject, field);
 		}
@@ -130,8 +128,12 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			try {
 				array = (JsonArray)  elementByPath;
 			} catch (ClassCastException exception) {
-				logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) elementByPath);
-				return;
+				if (dontStopOnFailure) {
+					logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) elementByPath);
+					return;
+				} else {
+					throw exception;
+				}
 			}
 			assertMinAndMaxItems(array.getAsJsonArray(), field);
 			array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
@@ -173,19 +175,23 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 
 	}
-	protected void assertGeographicCoordinates(JsonObject body) {
-		JsonObject geographicCoordinates = findByPath(body, "geographicCoordinates").getAsJsonObject();
 
-		assertField(geographicCoordinates,
-			new LatitudeField.Builder()
+	public void assertGeographicCoordinates(JsonObject body) {
+		assertField(body,
+			new ObjectField
+				.Builder("geographicCoordinates")
 				.setOptional()
+				.setValidator(geo -> {
+					assertField(geo,
+						new LatitudeField.Builder()
+							.setOptional()
+							.build());
+					assertField(geo,
+						new LongitudeField.Builder()
+							.setOptional()
+							.build());
+				})
 				.build());
-
-		assertField(geographicCoordinates,
-			new LongitudeField.Builder()
-				.setOptional()
-				.build());
-
 	}
 
 	protected void assertHasIntField(JsonObject jsonObject, String path) {
@@ -351,6 +357,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			if (jsonObject.has(path)) {
 				JsonElement element = jsonObject.get(path);
 				logElementFound(path);
+				totalElements++;
 				return element;
 			} else {
 				throw error(createElementNotFoundMessage(path), jsonObject);

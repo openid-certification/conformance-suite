@@ -13,10 +13,8 @@ import java.util.Set;
 
 /**
  * Doc https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
- * Doc Version: v1.0.0-rc8.8
- * Aip: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/f949adfdf9af49855ad6d6417d71dc5a8d11ae50/swagger/swagger_payments_apis.yaml
- * Api Version: 1.0.1-rc1.0
- * Api git hash: f949adfdf9af49855ad6d6417d71dc5a8d11ae50
+ * URL: /pix/payments/{paymentId}
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Payment Initiation Pix By PaymentId")
@@ -87,6 +85,15 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 				.Builder("proxy")
 				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(77)
+				.setOptional()
+				.build());
+
+		assertField(body,
+			new StringField
+				.Builder("ibgeTownCode")
+				.setMinLength(7)
+				.setMaxLength(7)
+				.setPattern("^\\d{7}$")
 				.setOptional()
 				.build());
 

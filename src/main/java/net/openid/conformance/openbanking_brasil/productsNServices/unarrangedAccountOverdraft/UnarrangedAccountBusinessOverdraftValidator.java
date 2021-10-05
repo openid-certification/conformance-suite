@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -16,7 +16,7 @@ import net.openid.conformance.util.field.StringField;
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
  * Api endpoint: /business-unarranged-account-overdraft
  * Api version: 1.0.2
- * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
+ * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
 @ApiName("ProductsNServices Unarranged Account Business Overdraft")

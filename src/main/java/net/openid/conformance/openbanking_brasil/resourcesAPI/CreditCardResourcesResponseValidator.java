@@ -15,9 +15,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Resources "Obtém a lista de recursos consentidos pelo cliente."
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#obtem-a-lista-de-recursos-consentidos-pelo-cliente">
- * Obtém a lista de recursos consentidos pelo cliente.</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_resources_apis.yaml
+ *  * URL: /resources
+ *  * Api git hash: 5b108df41040cc17f2b6c501368b046e10128732
  **/
 @ApiName("Resources")
 public class CreditCardResourcesResponseValidator extends AbstractJsonAssertingCondition {

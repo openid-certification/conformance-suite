@@ -14,9 +14,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Contas| Transações da contas
- * https://openbanking-brasil.github.io/areadesenvolvedor/#transacoes-da-conta
- */
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /accounts/{accountId}/transactions
+ *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
+ **/
 @ApiName("Account Transactions")
 public class AccountTransactionsValidator extends AbstractJsonAssertingCondition {
 
@@ -31,7 +32,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 				.setMinItems(1)
 				.build());
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
@@ -59,6 +60,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("completedAuthorisedPaymentType")
 				.setEnums(enumCompletedAuthorisedPaymentIndicator)
+				.setMaxLength(19)
 				.build());
 
 		assertField(body,
@@ -115,6 +117,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("partiePersonType")
 				.setEnums(enumPartiePersonType)
+				.setMaxLength(15)
 				.build());
 
 		assertField(body,

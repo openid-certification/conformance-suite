@@ -13,8 +13,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
- * Version: v1.0.0-rc8.8
+ * Doc https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
+ * URL: /consents/{consentId}
+ * Api git hash: 35bf08ce0287a76880add849532a9cf83d8ba558
  */
 
 @ApiName("Payment Initiation Consent")
@@ -49,6 +50,15 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.build());
 
 		assertField(body,
+			new StringField
+				.Builder("ibgeTownCode")
+				.setMinLength(7)
+				.setMaxLength(7)
+				.setPattern("^\\d{7}$")
+				.setOptional()
+				.build());
+
+		assertField(body,
 			new DatetimeField
 				.Builder("statusUpdateDateTime")
 				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
@@ -79,7 +89,6 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setValidator(this::assertDebtorAccount)
 				.setOptional()
 				.build());
-
 	}
 
 	private void assertLoggedUser(JsonObject loggedUser) {
@@ -181,22 +190,28 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.build());
 
 		assertField(payment,
-			new ObjectField
-				.Builder("details")
-				.setValidator(this::assertPaymentDetails)
+			new StringField
+				.Builder("ibgeTownCode")
+				.setMinLength(7)
+				.setMaxLength(7)
+				.setPattern("^\\d{7}$")
+				.setOptional()
 				.build());
 
-
+		assertField(payment,
+			new ObjectField
+				.Builder("details")
+				.setValidator(this::assertDetails)
+				.build());
 	}
 
-	private void assertPaymentDetails(JsonObject details) {
-
-		Set<String> localInstrumentEnum = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES");
+	private void assertDetails(JsonObject details) {
+		Set<String> localInstruments = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES", "INIC");
 
 		assertField(details,
 			new StringField
 				.Builder("localInstrument")
-				.setEnums(localInstrumentEnum)
+				.setEnums(localInstruments)
 				.setMaxLength(4)
 				.build());
 
@@ -205,8 +220,6 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.Builder("qrCode")
 				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(512)
-				.setMinLength(1)
-				.setOptional()
 				.build());
 
 		assertField(details,
@@ -214,14 +227,12 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.Builder("proxy")
 				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(77)
-				.setMinLength(1)
-				.setOptional()
 				.build());
 
 		assertField(details,
 			new ObjectField
 				.Builder("creditorAccount")
-				.setValidator(this::assertPayemtCreditor)
+				.setValidator(this::assertDebtorAccount)
 				.build());
 	}
 
@@ -259,34 +270,4 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(4)
 				.build());
 	}
-
-	private void assertPayemtCreditor(JsonObject creditor) {
-		Set<String> accountTypes = Sets.newHashSet("CACC", "SLRY", "SVGS", "TRAN");
-
-		assertField(creditor,
-			new StringField
-				.Builder("ispb")
-				.setPattern("^[0-9]{8}$")
-				.setMaxLength(8)
-				.setMinLength(8)
-				.build());
-
-		assertField(creditor,
-			new StringField
-				.Builder("issuer")
-				.setPattern("^\\d{4}$")
-				.setMaxLength(4)
-				.setOptional()
-				.build());
-
-		assertField(creditor,
-			new StringField
-				.Builder("accountType")
-				.setMaxLength(4)
-				.setMinLength(4)
-				.setEnums(accountTypes)
-				.build());
-
-	}
-
 }

@@ -14,12 +14,17 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Dados Cadastrais "Identificacao pessoa natural"
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-pessoa-natural">Identificacao pessoa natural</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /personal/financial-relations
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  **/
-
 @ApiName("Natural Person Relationship")
-public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAssertingCondition {
+public class PersonalRelationsResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ENUM_PRODUCTS_SERVICES_TYPE = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "CARTAO_CREDITO", "OPERACAO_CREDITO", "SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO", "CREDENCIAMENTO", "OUTROS");
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_SE_APLICA");
+	public static final Set<String> ENUM_TYPE1 = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
+	public static final Set<String> SUBTYPES = Sets.newHashSet("INDIVIDUAL", "CONJUNTA_SIMPLES", "CONJUNTA_SOLIDARIA", "SEM_SUB_TIPO_CONTA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -33,7 +38,6 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumProductsServicesType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "CARTAO_CREDITO", "OPERACAO_CREDITO", "SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO", "CREDENCIAMENTO", "OUTROS");
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 
 		assertField(data,
@@ -56,7 +60,7 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 				.setMaxItems(12)
 				.setMinItems(1)
 				.setMaxLength(24)
-				.setEnums(enumProductsServicesType)
+				.setEnums(ENUM_PRODUCTS_SERVICES_TYPE)
 				.build());
 
 		assertField(data,
@@ -92,13 +96,11 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 
 	private void assertInnerFieldsProcurators(JsonObject data) {
 
-		Set<String> enumType = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_SE_APLICA");
-
 		assertField(data,
 			new StringField
 				.Builder("type")
 				.setMaxLength(19)
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE)
 				.build());
 
 		assertField(data,
@@ -124,8 +126,6 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 	}
 
 	private void assertInnerFieldsAccounts(JsonObject data) {
-		Set<String> enumType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
-
 
 		assertField(data,
 			new StringField
@@ -159,7 +159,13 @@ public class NaturalPersonRelationshipResponseValidator extends AbstractJsonAsse
 		assertField(data,
 			new StringField
 				.Builder("type")
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE1)
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("subtype")
+				.setEnums(SUBTYPES)
 				.build());
 	}
 }

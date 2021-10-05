@@ -1,17 +1,17 @@
 {
     "data": {
-        "updateDateTime": "2020-07-21T08:30:00Z",
-        "startDate": "2020-07-21T08:30:00Z",
+        "updateDateTime": "2021-05-21T08:30:00Z",
+        "startDate": "2021-05-21T08:30:00Z",
         "productsServicesType": [
             "SEGURO"
         ],
-        "productsServicesTypeAdditionalInfo": "type",
+        "productsServicesTypeAdditionalInfo": "Informações adicionais do tipo de serviço.",
         "procurators": [
             {
-                "type": "NAO_SE_APLICA",
+                "type": "PROCURADOR",
                 "cpfNumber": "73677831148",
                 "civilName": "Elza Milena Stefany Teixeira",
-                "socialName": "Stefany Teixeirass"
+                "socialName": "Carlos"
             }
         ],
         "accounts": [
@@ -20,7 +20,8 @@
                 "branchCode": "6272",
                 "number": "24550245",
                 "checkDigit": "4",
-                "type": "CONTA_DEPOSITO_A_VISTA"
+                "type": "CONTA_DEPOSITO_A_VISTA",
+                "subtype": "INDIVIDUAL"
             }
         ]
     },

@@ -13,11 +13,20 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Consentimento| Criar novo pedido de consentimento
- * See https://openbanking-brasil.github.io/areadesenvolvedor/?java#criar-novo-pedido-de-consentimento
+ * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_consents_apis.yaml
+ * Api endpoint: /consents
+ * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  */
 @ApiName("Create New Consent")
 public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
+	private static final Set<String> STATUS_LIST = Sets.newHashSet("TRANSACAO_EFETIVADA", "AUTHORISED", "AWAITING_AUTHORISATION", "REJECTED");
+	private static final Set<String> PERMISSIONS_LIST = Sets.newHashSet("RESOURCES_READ", "ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "ACCOUNTS_TRANSACTIONS_READ", "ACCOUNTS_OVERDRAFT_LIMITS_READ",
+		"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ", "CREDIT_CARDS_ACCOUNTS_LIMITS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ",
+		"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_ADITTIONALINFO_READ",
+		"FINANCINGS_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_READ",
+		"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "LOANS_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "LOANS_WARRANTIES_READ",
+		"UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -25,19 +34,11 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> statusList = Sets.newHashSet("TRANSACAO_EFETIVADA", "AUTHORISED", "AWAITING_AUTHORISATION", "REJECTED");
-		Set<String> permissionsList = Sets.newHashSet("RESOURCES_READ", "ACCOUNTS_READ", "ACCOUNTS_BALANCES_READ", "ACCOUNTS_TRANSACTIONS_READ", "ACCOUNTS_OVERDRAFT_LIMITS_READ",
-			"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ", "CREDIT_CARDS_ACCOUNTS_LIMITS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ",
-			"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ", "CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ", "CUSTOMERS_BUSINESS_ADITTIONALINFO_READ",
-			"FINANCINGS_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_READ",
-			"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "LOANS_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "LOANS_WARRANTIES_READ",
-			"UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ");
-
 		assertField(body,
 			new StringField
 				.Builder("consentId")
@@ -54,7 +55,7 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("status")
-				.setEnums(statusList)
+				.setEnums(STATUS_LIST)
 				.build());
 
 		assertField(body,
@@ -66,7 +67,9 @@ public class CreateNewConsentValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringArrayField
 				.Builder("permissions")
-				.setEnums(permissionsList)
+				.setEnums(PERMISSIONS_LIST)
+				.setMinItems(1)
+				.setMaxItems(30)
 				.build());
 
 		assertField(body,

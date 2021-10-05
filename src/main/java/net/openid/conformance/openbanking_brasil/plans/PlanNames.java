@@ -15,4 +15,5 @@ public class PlanNames {
 	public static final String PAYMENTS_API_TEST_PLAN = "Functional tests for payments API - based on Swagger version: 1.0.1 (WIP)";
 	public static final String PRODUCTS_N_SERVICES_API_TEST_PLAN  = "Functional tests for " +
 		"ProductsNServices API - based on Swagger version: 1.0.0";
+	public static final String CHANNELS_API_TEST_PLAN  = "Functional tests for Channels API - based on Swagger version: 1.0.3 (WIP)";
 }

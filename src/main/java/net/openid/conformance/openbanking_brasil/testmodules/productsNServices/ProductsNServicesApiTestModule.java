@@ -15,6 +15,9 @@ import net.openid.conformance.openbanking_brasil.productsNServices.loans.Busines
 import net.openid.conformance.openbanking_brasil.productsNServices.loans.PersonalLoansValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.unarrangedAccountOverdraft.UnarrangedAccountBusinessOverdraftValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.unarrangedAccountOverdraft.UnarrangedAccountPersonalOverdraftValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -29,19 +32,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl"
 	}
 )
-public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTestModule {
+public class ProductsNServicesApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Personal Accounts response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-accounts");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-accounts");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalAccountsValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validate ProductsNServices Business Accounts response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-accounts");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-accounts");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessAccountsValidator.class, Condition.ConditionResult.FAILURE);
@@ -49,14 +52,14 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 
 		runInBlock("Validate ProductsNServices Personal Loans response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-loans");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-loans");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalLoansValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validate ProductsNServices Business Loans response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-loans");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-loans");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessLoansValidator.class, Condition.ConditionResult.FAILURE);
@@ -64,14 +67,14 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 
 		runInBlock("Validate ProductsNServices Personal Credit Cards response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-credit-cards");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-credit-cards");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalCreditCardValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validate ProductsNServices Business Credit Cards response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-credit-cards");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-credit-cards");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessCreditCardValidator.class, Condition.ConditionResult.FAILURE);
@@ -79,14 +82,14 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 
 		runInBlock("Validate ProductsNServices Personal Financings response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-financings");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-financings");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalFinancingsValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validate ProductsNServices Business Financings response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-financings");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-financings");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessFinancingsValidator.class, Condition.ConditionResult.FAILURE);
@@ -94,7 +97,7 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 
 		runInBlock("Validate ProductsNServices Personal Invoice Financings response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-invoice-financings");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-invoice-financings");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalInvoiceFinancingsValidator.class,
@@ -102,7 +105,7 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 		});
 
 		runInBlock("Validate ProductsNServices Business Invoice Financings response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-invoice-financings");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-invoice-financings");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessInvoiceFinancingsValidator.class,
@@ -112,7 +115,7 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 		runInBlock("Validate ProductsNServices Personal Unarranged Account Overdraft response",
 			() -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "personal-unarranged-account-overdraft");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-unarranged-account-overdraft");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(UnarrangedAccountPersonalOverdraftValidator.class,
@@ -121,7 +124,7 @@ public class ProductsNServicesApiTestModule extends AbstractBrasilFunctionalTest
 
 		runInBlock("Validate ProductsNServices Business Unarranged Account Overdraft response",
 			() -> {
-			callAndStopOnFailure(PrepareToGetProductsNServices.class, "business-unarranged-account-overdraft");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-unarranged-account-overdraft");
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(UnarrangedAccountBusinessOverdraftValidator.class,
