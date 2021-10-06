@@ -58,7 +58,7 @@ public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunct
 		callAndStopOnFailure(EnsureResponseWasJwt.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE);
 	}
 
 }

@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openbanking.FAPIOBGetResourceEndpoint;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -172,6 +173,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				responseDetails.addProperty("status_code", e.getRawStatusCode());
 				responseDetails.addProperty("status_message", e.getStatusText());
 				responseDetails.add("response_headers", mapToJsonObject(e.getResponseHeaders(), false));
+				responseDetails.add("errors", buildObjectFromString(e.getResponseBodyAsString()));
 				env.putObject("errored_response", responseDetails);
 				return env;
 			}
@@ -186,6 +188,14 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 			throw error(msg, e);
 		}
 
+	}
+
+	private JsonArray buildObjectFromString(String rawString){
+		Gson gson = JsonUtils.createBigDecimalAwareGson();
+		JsonObject errorObject = gson.fromJson(rawString, JsonObject.class);
+		//for debugging
+		log("check error object exists and is the same as the response body:\n" + errorObject.getAsJsonArray("errors"));
+		return errorObject.getAsJsonArray("errors");
 	}
 
 }
