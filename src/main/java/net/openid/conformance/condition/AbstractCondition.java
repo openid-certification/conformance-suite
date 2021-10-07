@@ -66,6 +66,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+
+
 
 public abstract class AbstractCondition implements Condition, DataUtils {
 
@@ -626,8 +632,21 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	protected Socket setupSocket(String targetHost, Integer targetPort) throws IOException {
 		String proxyHost = System.getProperty("https.proxyHost", "");
 		int proxyPort = Integer.parseInt(System.getProperty("https.proxyPort", "0"));
+		String noProxyStr = System.getProperty("https.noProxy", "");
+		boolean noProxyFlag = false;
+		Path targetPath = Path.of(targetHost);
+
+		for (String proxyExc : noProxyStr.split(",")) {
+			PathMatcher matcher =  FileSystems.getDefault().getPathMatcher("glob:" + proxyExc);
+
+			if (matcher.matches(targetPath)) {
+				noProxyFlag = true;
+				break;
+			}
+		}
+
 		Socket socket;
-		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
+		if (!noProxyFlag && Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
 
 			// see https://gitlab.com/openid/conformance-suite/merge_requests/218#note_74098367
 			log("Creating socket through system HTTPS proxy; this may cause incorrect test results", args(
