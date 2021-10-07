@@ -25,6 +25,22 @@ import java.util.Set;
 @ApiName("ProductsNServices PersonalCreditCard")
 public class PersonalCreditCardValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> TYPES = Sets.newHashSet("SAQUE_A_CREDITO", "PAGAMENTOS_CONTAS", "OUTROS");
+	public static final Set<String> CARD_TYPES = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS",
+		"DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
+	public static final Set<String> CARD_PRODUCT_TYPES = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL",
+		"GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL",
+		"ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX",
+		"PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "OUTROS");
+	public static final Set<String> NAMES = Sets.newHashSet("ANUIDADE_CARTAO_BASICO_NACIONAL",
+		"ANUIDADE_CARTAO_BASICO_INTERNACIONAL", "ANUIDADE_DIFERENCIADA",
+		"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_BRASIL",
+		"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_EXTERIOR",
+		"AVALIACAO_EMERGENCIAL_CREDITO", "FORNECIMENTO_SEGUNDA_VIA_FUNCAO_CREDITO",
+		"PAGAMENTO_CONTAS_UTILIZANDO_FUNCAO_CREDITO", "SMS");
+	public static final Set<String> CODES = Sets.newHashSet("ANUIDADE_NACIONAL", "ANUIDADE_INTERNACIONAL",
+		"ANUIDADE_DIFERENCIADA", "SAQUE_CARTAO_BRASIL", "SAQUE_CARTAO_EXTERIOR",
+		"AVALIACAO_EMERGENCIAL_CREDITO", "EMISSAO_SEGUNDA_VIA", "TARIFA_PAGAMENTO_CONTAS", "SMS");
 	private final CommonValidatorParts parts;
 
 	public PersonalCreditCardValidator() {
@@ -147,12 +163,11 @@ public class PersonalCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertOtherCredits(JsonObject otherCredits) {
-		Set<String> types = Sets.newHashSet("SAQUE_A_CREDITO", "PAGAMENTOS_CONTAS", "OUTROS");
 
 		assertField(otherCredits,
 			new StringField
 				.Builder("code")
-				.setEnums(types)
+				.setEnums(TYPES)
 				.build());
 
 		assertField(otherCredits,
@@ -203,13 +218,11 @@ public class PersonalCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertInterestCreditCard(JsonObject creditCard) {
-		Set<String> types = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS",
-			"DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
 
 		assertField(creditCard,
 			new StringField
 				.Builder("network")
-				.setEnums(types)
+				.setEnums(CARD_TYPES)
 				.build());
 
 		assertField(creditCard,
@@ -221,12 +234,8 @@ public class PersonalCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertInterestProduct(JsonObject product) {
-		Set<String> types = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL",
-			"GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL",
-			"ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX",
-			"PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "OUTROS");
 
-		assertField(product, CommonFields.type(types).build());
+		assertField(product, CommonFields.type(CARD_PRODUCT_TYPES).build());
 
 		assertField(product,
 			new StringField
@@ -237,25 +246,16 @@ public class PersonalCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertServices(JsonObject innerServices) {
-		Set<String> names = Sets.newHashSet("ANUIDADE_CARTAO_BASICO_NACIONAL",
-			"ANUIDADE_CARTAO_BASICO_INTERNACIONAL", "ANUIDADE_DIFERENCIADA",
-			"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_BRASIL",
-			"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_EXTERIOR",
-			"AVALIACAO_EMERGENCIAL_CREDITO", "FORNECIMENTO_SEGUNDA_VIA_FUNCAO_CREDITO",
-			"PAGAMENTO_CONTAS_UTILIZANDO_FUNCAO_CREDITO", "SMS");
-		Set<String> codes = Sets.newHashSet("ANUIDADE_NACIONAL", "ANUIDADE_INTERNACIONAL",
-			"ANUIDADE_DIFERENCIADA", "SAQUE_CARTAO_BRASIL", "SAQUE_CARTAO_EXTERIOR",
-			"AVALIACAO_EMERGENCIAL_CREDITO", "EMISSAO_SEGUNDA_VIA", "TARIFA_PAGAMENTO_CONTAS", "SMS");
 		assertField(innerServices,
 			new StringField
 				.Builder("name")
-				.setEnums(names)
+				.setEnums(NAMES)
 				.build());
 
 		assertField(innerServices,
 			new StringField
 				.Builder("code")
-				.setEnums(codes)
+				.setEnums(CODES)
 				.build());
 
 		assertField(innerServices, CommonFields.chargingTriggerInfo().build());

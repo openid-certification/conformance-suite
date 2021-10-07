@@ -21,6 +21,14 @@ import java.util.Set;
 @ApiName("Credit Card Bill")
 public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("JUROS_REMUNERATORIOS_ATRASO_PAGAMENTO_FATURA",
+		"MULTA_ATRASO_PAGAMENTO_FATURA", "JUROS_MORA_ATRASO_PAGAMENTO_FATURA",
+		"IOF", "SEM_ENCARGO", "OUTROS");
+	public static final Set<String> VALUE_TYPE = Sets.newHashSet("VALOR_PAGAMENTO_FATURA_PARCELADO",
+		"VALOR_PAGAMENTO_FATURA_REALIZADO", "OUTRO_VALOR_PAGO_FATURA");
+	public static final Set<String> PAYMENT_MODE = Sets.newHashSet("DEBITO_CONTA_CORRENTE",
+		"BOLETO_BANCARIO", "AVERBACAO_FOLHA", "PIX");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -96,14 +104,11 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInnerFieldsFinanceCharges(JsonObject data) {
-		Set<String> enumType = Sets.newHashSet("JUROS_REMUNERATORIOS_ATRASO_PAGAMENTO_FATURA",
-			"MULTA_ATRASO_PAGAMENTO_FATURA", "JUROS_MORA_ATRASO_PAGAMENTO_FATURA",
-			"IOF", "SEM_ENCARGO", "OUTROS");
 
 		assertField(data, new StringField
 			.Builder("type")
 			.setMaxLength(44)
-			.setEnums(enumType)
+			.setEnums(ENUM_TYPE)
 			.build());
 
 		assertField(data,
@@ -132,15 +137,11 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInnerFieldsPayments(JsonObject data) {
-		Set<String> valueType = Sets.newHashSet("VALOR_PAGAMENTO_FATURA_PARCELADO",
-			"VALOR_PAGAMENTO_FATURA_REALIZADO", "OUTRO_VALOR_PAGO_FATURA");
-		Set<String> paymentMode = Sets.newHashSet("DEBITO_CONTA_CORRENTE",
-			"BOLETO_BANCARIO", "AVERBACAO_FOLHA", "PIX");
 
 		assertField(data,
 			new StringField
 				.Builder("valueType")
-				.setEnums(valueType)
+				.setEnums(VALUE_TYPE)
 				.setMaxLength(32)
 				.build());
 
@@ -154,7 +155,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new StringField
 				.Builder("paymentMode")
-				.setEnums(paymentMode)
+				.setEnums(PAYMENT_MODE)
 				.setMaxLength(21)
 				.build());
 

@@ -20,6 +20,9 @@ import java.util.Set;
 @ApiName("Card Identification")
 public class CardIdentificationResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_PRODUCT_TYPE = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL", "GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL", "ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX", "PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "BASICO_NACIONAL", "BASICO_INTERNACIONAL", "NANQUIM", "GRAFITE", "MAIS", "OUTROS");
+	public static final Set<String> ENUM_CREDIT_CARD_NETWORK = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS", "DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -32,8 +35,6 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 
 	private void assertInnerFields(JsonObject body) {
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
-		Set<String> enumProductType = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL", "GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL", "ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX", "PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "BASICO_NACIONAL", "BASICO_INTERNACIONAL", "NANQUIM", "GRAFITE", "MAIS", "OUTROS");
-		Set<String> enumCreditCardNetwork = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS", "DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
 
 		assertField(data,
 			new StringField
@@ -45,7 +46,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 		assertField(data,
 			new StringField
 				.Builder("productType")
-				.setEnums(enumProductType)
+				.setEnums(ENUM_PRODUCT_TYPE)
 				.setMaxLength(26)
 				.build());
 
@@ -60,7 +61,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 		assertField(data,
 			new StringField
 				.Builder("creditCardNetwork")
-				.setEnums(enumCreditCardNetwork)
+				.setEnums(ENUM_CREDIT_CARD_NETWORK)
 				.setMaxLength(17)
 				.build());
 

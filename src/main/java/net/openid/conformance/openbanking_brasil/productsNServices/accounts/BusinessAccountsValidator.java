@@ -25,6 +25,11 @@ import java.util.Set;
 
 @ApiName("ProductsNServices Business Accounts")
 public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ACCOUNT_TYPES = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
+	public static final Set<String> OPENING_CLOSING_CHANNELS = Sets.newHashSet("DEPENDENCIAS_PROPRIAS", "CORRESPONDENTES_BANCARIOS", "INTERNET_BANKING", "MOBILE_BANKING", "CENTRAL_TELEFONICA", "CHAT", "OUTROS");
+	public static final Set<String> TRANSACTION_METHODS = Sets.newHashSet("MOVIMENTACAO_ELETRONICA", "MOVIMENTACAO_CHEQUE", "MOVIMENTACAO_CARTAO", "MOVIMENTACAO_PRESENCIAL");
+
 	private static class Fields extends CommonFields {}
 	private final CommonValidatorParts parts;
 
@@ -70,11 +75,8 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertBusinessAccounts(JsonObject businessAccounts) {
-		Set<String> accountTypes = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
-		Set<String> OpeningClosingChannels = Sets.newHashSet("DEPENDENCIAS_PROPRIAS", "CORRESPONDENTES_BANCARIOS", "INTERNET_BANKING", "MOBILE_BANKING", "CENTRAL_TELEFONICA", "CHAT", "OUTROS");
-		Set<String> transactionMethods = Sets.newHashSet("MOVIMENTACAO_ELETRONICA", "MOVIMENTACAO_CHEQUE", "MOVIMENTACAO_CARTAO", "MOVIMENTACAO_PRESENCIAL");
 
-		assertField(businessAccounts, Fields.type(accountTypes).build());
+		assertField(businessAccounts, Fields.type(ACCOUNT_TYPES).build());
 
 		assertField(businessAccounts,
 			new ObjectField.Builder("fees").setValidator(
@@ -99,7 +101,7 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 		assertField(businessAccounts,
 			new StringArrayField
 				.Builder("openingClosingChannels")
-				.setEnums(OpeningClosingChannels)
+				.setEnums(OPENING_CLOSING_CHANNELS)
 				.setMinItems(1)
 				.setMaxItems(7)
 				.build());
@@ -115,7 +117,7 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 		assertField(businessAccounts,
 			new StringArrayField
 				.Builder("transactionMethods")
-				.setEnums(transactionMethods)
+				.setEnums(TRANSACTION_METHODS)
 				.setMinItems(1)
 				.setMaxItems(4)
 				.build());

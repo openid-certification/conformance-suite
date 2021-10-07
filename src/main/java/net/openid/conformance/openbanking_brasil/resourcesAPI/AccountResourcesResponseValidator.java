@@ -22,6 +22,8 @@ import java.util.Set;
 @ApiName("Resources")
 public class AccountResourcesResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_STATUS = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -37,7 +39,6 @@ public class AccountResourcesResponseValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 		assertField(body,
 			new StringField
 				.Builder("resourceId")
@@ -56,7 +57,7 @@ public class AccountResourcesResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("status")
-				.setEnums(enumStatus)
+				.setEnums(ENUM_STATUS)
 				.build());
 	}
 }

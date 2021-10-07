@@ -20,6 +20,9 @@ import java.util.Set;
 @ApiName("Credit Card Accounts Limits")
 public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_CREDIT_LIMIT_TYPE = Sets.newHashSet("LIMITE_CREDITO_TOTAL", "LIMITE_CREDITO_MODALIDADE_OPERACAO");
+	public static final Set<String> ENUM_CONSOLIDATION_TYPE = Sets.newHashSet("CONSOLIDADO", "INDIVIDUAL");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -32,21 +35,19 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 	}
 
 	private void assertInnerFields(JsonObject data) {
-		Set<String> enumCreditLimitType = Sets.newHashSet("LIMITE_CREDITO_TOTAL", "LIMITE_CREDITO_MODALIDADE_OPERACAO");
-		Set<String> enumConsolidationType = Sets.newHashSet("CONSOLIDADO", "INDIVIDUAL");
 
 		assertField(data,
 			new StringField
 				.Builder("creditLineLimitType")
 				.setMaxLength(34)
-				.setEnums(enumCreditLimitType)
+				.setEnums(ENUM_CREDIT_LIMIT_TYPE)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("consolidationType")
 				.setMaxLength(11)
-				.setEnums(enumConsolidationType)
+				.setEnums(ENUM_CONSOLIDATION_TYPE)
 				.build());
 
 		assertField(data,

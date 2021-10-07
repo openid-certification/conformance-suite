@@ -12,6 +12,8 @@ import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
+import java.util.Set;
+
 /**
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
  * Api endpoint: /personal-unarranged-account-overdraft
@@ -22,6 +24,8 @@ import net.openid.conformance.util.field.StringField;
 @ApiName("ProductsNServices Unarranged Account Overdraft")
 public class UnarrangedAccountPersonalOverdraftValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> CONCESSAO_ADIANTAMENTO_DEPOSITANTE = Sets.newHashSet("CONCESSAO_ADIANTAMENTO_DEPOSITANTE");
+	public static final Set<String> ADIANT_DEPOSITANTE = Sets.newHashSet("ADIANT_DEPOSITANTE");
 	private final CommonValidatorParts parts;
 
 	public UnarrangedAccountPersonalOverdraftValidator() {
@@ -93,13 +97,13 @@ public class UnarrangedAccountPersonalOverdraftValidator extends AbstractJsonAss
 		assertField(innerServices,
 			new StringField
 				.Builder("name")
-				.setEnums(Sets.newHashSet("CONCESSAO_ADIANTAMENTO_DEPOSITANTE"))
+				.setEnums(CONCESSAO_ADIANTAMENTO_DEPOSITANTE)
 				.build());
 
 		assertField(innerServices,
 			new StringField
 				.Builder("code")
-				.setEnums(Sets.newHashSet("ADIANT_DEPOSITANTE"))
+				.setEnums(ADIANT_DEPOSITANTE)
 				.build());
 
 		assertField(innerServices, CommonFields.chargingTriggerInfo().build());

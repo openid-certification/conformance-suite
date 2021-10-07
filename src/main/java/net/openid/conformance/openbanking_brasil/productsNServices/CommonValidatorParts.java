@@ -11,9 +11,16 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 public class CommonValidatorParts {
+
+	public static final Set<String> RATE_INDEXERS = Sets.newHashSet("SEM_INDEXADOR_TAXA", "PRE_FIXADO",
+		"POS_FIXADO_TR_TBF", "POS_FIXADO_TJLP", "POS_FIXADO_LIBOR", "POS_FIXADO_TLP", "OUTRAS_TAXAS_POS_FIXADAS",
+		"FLUTUANTES_CDI", "FLUTUANTES_SELIC", "OUTRAS_TAXAS_FLUTUANTES", "INDICES_PRECOS_IGPM",
+		"INDICES_PRECOS_IPCA", "INDICES_PRECOS_IPCC", "OUTROS_INDICES_PRECO", "CREDITO_RURAL_TCR_PRE",
+		"CREDITO_RURAL_TCR_POS", "CREDITO_RURAL_TRFC_PRE", "CREDITO_RURAL_TRFC_POS", "OUTROS_INDEXADORES");
+
 	private static class Fields extends CommonFields {}
 
-	Set<String> intervals = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
+	private static final Set<String> intervals = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 	private final AbstractJsonAssertingCondition validator;
 
@@ -42,16 +49,11 @@ public class CommonValidatorParts {
 	}
 
 	private void assertInnerRates(JsonObject innerRates) {
-		Set<String> rateIndexers = Sets.newHashSet("SEM_INDEXADOR_TAXA", "PRE_FIXADO",
-			"POS_FIXADO_TR_TBF", "POS_FIXADO_TJLP", "POS_FIXADO_LIBOR", "POS_FIXADO_TLP", "OUTRAS_TAXAS_POS_FIXADAS",
-			"FLUTUANTES_CDI", "FLUTUANTES_SELIC", "OUTRAS_TAXAS_FLUTUANTES", "INDICES_PRECOS_IGPM",
-			"INDICES_PRECOS_IPCA", "INDICES_PRECOS_IPCC", "OUTROS_INDICES_PRECO", "CREDITO_RURAL_TCR_PRE",
-			"CREDITO_RURAL_TCR_POS", "CREDITO_RURAL_TRFC_PRE", "CREDITO_RURAL_TRFC_POS", "OUTROS_INDEXADORES");
 
 		validator.assertField(innerRates,
 			new StringField
 				.Builder("referentialRateIndexer")
-				.setEnums(rateIndexers)
+				.setEnums(RATE_INDEXERS)
 				.build());
 
 		validator.assertField(innerRates,

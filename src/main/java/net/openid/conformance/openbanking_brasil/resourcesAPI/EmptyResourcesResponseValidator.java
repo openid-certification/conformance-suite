@@ -23,6 +23,9 @@ import java.util.Set;
 @ApiName("Resources")
 public class EmptyResourcesResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("ACCOUNT", "CREDIT_CARD_ACCOUNT", "LOAN", "FINANCING", "UNARRANGED_ACCOUNT_OVERDRAFT", "INVOICE_FINANCING");
+	public static final Set<String> ENUM_STATUS = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -38,9 +41,7 @@ public class EmptyResourcesResponseValidator extends AbstractJsonAssertingCondit
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumType = Sets.newHashSet("ACCOUNT", "CREDIT_CARD_ACCOUNT", "LOAN", "FINANCING", "UNARRANGED_ACCOUNT_OVERDRAFT", "INVOICE_FINANCING");
 
-		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 		assertFieldNotPresent(body,
 			new StringField
 				.Builder("resourceId")
@@ -53,13 +54,13 @@ public class EmptyResourcesResponseValidator extends AbstractJsonAssertingCondit
 		assertFieldNotPresent(body,
 			new StringField
 				.Builder("type")
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE)
 				.build());
 
 		assertFieldNotPresent(body,
 			new StringField
 				.Builder("status")
-				.setEnums(enumStatus)
+				.setEnums(ENUM_STATUS)
 				.build());
 
 	}

@@ -20,6 +20,7 @@ import java.util.Set;
 @ApiName("Electronic Channels")
 public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> IDENTIFICATION_TYPES = Sets.newHashSet("INTERNET_BANKING", "MOBILE_BANKING", "SAC", "OUVIDORIA", "CHAT", "OUTROS");
 	private final ChannelsCommonParts parts;
 
 	public ElectronicChannelsValidator() {
@@ -74,12 +75,11 @@ public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertIdentification(JsonObject electronicChannels) {
-		Set<String> identificationTypes = Sets.newHashSet("INTERNET_BANKING", "MOBILE_BANKING", "SAC", "OUVIDORIA", "CHAT", "OUTROS");
 
 		assertField(electronicChannels,
 			new StringField
 				.Builder("type")
-				.setEnums(identificationTypes)
+				.setEnums(IDENTIFICATION_TYPES)
 				.build());
 
 		assertField(electronicChannels,

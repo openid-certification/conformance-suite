@@ -20,6 +20,9 @@ import java.util.Set;
 
 @ApiName("Branches Channels")
 public class BranchesChannelsValidator extends AbstractJsonAssertingCondition {
+	public static final Set<String> WEEKDAY_ENUM = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");
+	public static final Set<String> IDENTIFICATION_TYPES = Sets.newHashSet("AGENCIA", "POSTO_ATENDIMENTO", "POSTO_ATENDIMENTO_ELETRONICO", "UNIDADE_ADMINISTRATIVA_DESMEMBRADA");
+	public static final Set<String> PHONES_ENUM = Sets.newHashSet("FIXO", "MOVEL");
 	private final ChannelsCommonParts parts;
 
 	public BranchesChannelsValidator() {
@@ -110,12 +113,11 @@ public class BranchesChannelsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	public void assertStandards(JsonObject standards) {
-		Set<String> weekdayEnum = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");
 
 		assertField(standards,
 			new StringField
 				.Builder("weekday")
-				.setEnums(weekdayEnum)
+				.setEnums(WEEKDAY_ENUM)
 				.build());
 
 		assertField(standards,
@@ -134,12 +136,11 @@ public class BranchesChannelsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertIdentification(JsonObject identification) {
-		Set<String> identificationTypes = Sets.newHashSet("AGENCIA", "POSTO_ATENDIMENTO", "POSTO_ATENDIMENTO_ELETRONICO", "UNIDADE_ADMINISTRATIVA_DESMEMBRADA");
 
 		assertField(identification,
 			new StringField
 				.Builder("type")
-				.setEnums(identificationTypes)
+				.setEnums(IDENTIFICATION_TYPES)
 				.build());
 
 		assertField(identification,
@@ -181,12 +182,11 @@ public class BranchesChannelsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	public void assertPhones(JsonObject phones) {
-		Set<String> phonesEnum = Sets.newHashSet("FIXO", "MOVEL");
 
 		assertField(phones,
 			new StringField
 				.Builder("type")
-				.setEnums(phonesEnum)
+				.setEnums(PHONES_ENUM)
 				.build());
 
 		assertField(phones,

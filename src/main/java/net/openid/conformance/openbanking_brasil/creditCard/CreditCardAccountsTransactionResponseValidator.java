@@ -19,6 +19,8 @@ import java.util.Set;
 @ApiName("Credit Card Accounts Transaction")
 public class CreditCardAccountsTransactionResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_CREDIT_DEBIT_TYPE = Sets.newHashSet("CREDITO", "DEBITO");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -35,7 +37,6 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 	}
 
 	private void assertInnerFields(JsonObject data) {
-		Set<String> enumCreditDebitType = Sets.newHashSet("CREDITO", "DEBITO");
 
 		assertField(data,
 			new StringField
@@ -73,7 +74,7 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 			new StringField
 				.Builder("creditDebitType")
 				.setMaxLength(7)
-				.setEnums(enumCreditDebitType)
+				.setEnums(ENUM_CREDIT_DEBIT_TYPE)
 				.build());
 
 		assertField(data, CommonFields.transactionType().build());

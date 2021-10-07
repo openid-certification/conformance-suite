@@ -22,6 +22,7 @@ import java.util.Set;
 @ApiName("Banking Agents Channels")
 public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> IDENTIFICATION_TYPES = Sets.newHashSet("CENTRAL_TELEFONICA", "SAC", "OUVIDORIA", "OUTROS");
 	private final ChannelsCommonParts parts;
 
 	public PhoneChannelsValidator() {
@@ -75,12 +76,11 @@ public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertIdentification(JsonObject identification) {
-		Set<String> identificationTypes = Sets.newHashSet("CENTRAL_TELEFONICA", "SAC", "OUVIDORIA", "OUTROS");
 
 		assertField(identification,
 			new StringField
 				.Builder("type")
-				.setEnums(identificationTypes)
+				.setEnums(IDENTIFICATION_TYPES)
 				.build());
 
 		assertField(identification,

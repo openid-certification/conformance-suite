@@ -8,6 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -29,6 +30,9 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 	public static final Set<String> COUNTRY_SUB_DIVISIONS = Set.of("AC", "AL", "AP", "AM",
 		"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
 		"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
+	public static final Set<String> PARTIES_TYPE = Set.of("SOCIO", "ADMINISTRADOR");
+	public static final Set<String> DOCUMENT_TYPE = Set.of("CPF", "PASSAPORTE", "OUTRO_DOCUMENTO_VIAGEM", "CNPJ");
+	public static final Set<String> PHONE_TYPE = Set.of("FIXO", "MOVEL", "OUTRO");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -150,7 +154,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(Sets.newHashSet("SOCIO", "ADMINISTRADOR"))
+				.setEnums(PARTIES_TYPE)
 				.setMaxLength(13)
 				.build());
 
@@ -195,7 +199,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 		assertField(body,
 			new StringField
 				.Builder("documentType")
-				.setEnums(Sets.newHashSet("CPF", "PASSAPORTE", "OUTRO_DOCUMENTO_VIAGEM", "CNPJ"))
+				.setEnums(DOCUMENT_TYPE)
 				.build());
 
 		assertField(body,
@@ -276,7 +280,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 			new StringField
 				.Builder("type")
 				.setMaxLength(5)
-				.setEnums(Sets.newHashSet("FIXO", "MOVEL", "OUTRO"))
+				.setEnums(PHONE_TYPE)
 				.build());
 
 		assertField(body,

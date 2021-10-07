@@ -19,6 +19,8 @@ import java.util.Set;
 @ApiName("Financing Payments")
 public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_CHARGE_TYPE = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO", "JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO", "OUTROS");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -139,13 +141,12 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerFieldsCharges(JsonObject body) {
-		Set<String> enumChargeType = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO", "JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO", "OUTROS");
 
 		assertField(body,
 			new StringField
 				.Builder("chargeType")
 				.setMaxLength(31)
-				.setEnums(enumChargeType)
+				.setEnums(ENUM_CHARGE_TYPE)
 				.build());
 
 		assertField(body,

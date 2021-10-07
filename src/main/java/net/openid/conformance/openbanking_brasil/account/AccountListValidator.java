@@ -19,6 +19,8 @@ import java.util.Set;
 @ApiName("Accounts list")
 public class AccountListValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -35,8 +37,6 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInnerFields(JsonObject body) {
-
-		Set<String> enumType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
 
 		assertField(body,
 			new StringField
@@ -55,7 +55,7 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE)
 				.setMaxLength(24)
 				.build());
 

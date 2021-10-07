@@ -20,6 +20,13 @@ import java.util.Set;
 
 @ApiName("Payment Initiation Consent")
 public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> STATUS_LIST = Sets.newHashSet("AWAITING_AUTHORISATION", "AUTHORISED", "REJECTED", "CONSUMED");
+	public static final Set<String> PERSON_TYPES = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+	public static final Set<String> TYPES = Sets.newHashSet("PIX");
+	public static final Set<String> LOCAL_INSTRUMENTS = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES", "INIC");
+	public static final Set<String> ACCOUNT_TYPES = Sets.newHashSet("CACC", "SLRY", "SVGS", "TRAN");
+
 	@Override
 	@PreEnvironment(required = "consent_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -32,7 +39,6 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> statusList = Sets.newHashSet("AWAITING_AUTHORISATION", "AUTHORISED", "REJECTED", "CONSUMED");
 
 		assertField(body, CommonFields.consentId());
 
@@ -67,7 +73,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("status")
-				.setEnums(statusList)
+				.setEnums(STATUS_LIST)
 				.setMaxLength(22)
 				.build());
 
@@ -132,12 +138,11 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertCreditor(JsonObject creditor) {
-		Set<String> personTypes = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
 		assertField(creditor,
 			new StringField
 				.Builder("personType")
-				.setEnums(personTypes)
+				.setEnums(PERSON_TYPES)
 				.setMaxLength(15)
 				.build());
 
@@ -158,13 +163,12 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertPayment(JsonObject payment) {
-		Set<String> types = Sets.newHashSet("PIX");
 
 		assertField(payment,
 			new StringField
 				.Builder("type")
 				.setMaxLength(3)
-				.setEnums(types)
+				.setEnums(TYPES)
 				.build());
 
 		assertField(payment,
@@ -206,12 +210,11 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertDetails(JsonObject details) {
-		Set<String> localInstruments = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES", "INIC");
 
 		assertField(details,
 			new StringField
 				.Builder("localInstrument")
-				.setEnums(localInstruments)
+				.setEnums(LOCAL_INSTRUMENTS)
 				.setMaxLength(4)
 				.build());
 
@@ -237,7 +240,6 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertDebtorAccount(JsonObject debtorAccount) {
-		Set<String> accountTypes = Sets.newHashSet("CACC", "SLRY", "SVGS", "TRAN");
 
 		assertField(debtorAccount,
 			new StringField
@@ -266,7 +268,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 		assertField(debtorAccount,
 			new StringField
 				.Builder("accountType")
-				.setEnums(accountTypes)
+				.setEnums(ACCOUNT_TYPES)
 				.setMaxLength(4)
 				.build());
 	}

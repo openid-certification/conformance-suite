@@ -25,6 +25,14 @@ import java.util.Set;
 @ApiName("ProductsNServices Personal Invoice Financings")
 public class PersonalInvoiceFinancingsValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> TYPES = Sets.newHashSet("DESCONTO_DUPLICATAS", "DESCONTO_CHEQUES",
+		"ANTECIPACAO_FATURA_CARTAO_CREDITO", "OUTROS_DIREITOS_CREDITORIOS_DESCONTADOS",
+		"OUTROS_TITULOS_DESCONTADOS");
+	public static final Set<String> REQUIRED_WARRANTIES = Sets.newHashSet("CESSAO_DIREITOS_CREDITORIOS", "CAUCAO",
+		"PENHOR", "ALIENACAO_FIDUCIARIA", "HIPOTECA", "OPERACOES_GARANTIDAS_PELO_GOVERNO",
+		"OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS", "GARANTIA_FIDEJUSSORIA",
+		"BENS_ARRENDADOS", "GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES",
+		"ACORDOS_COMPENSACAO", "NAO_APLICAVEL");
 	private final CommonValidatorParts parts;
 
 	public PersonalInvoiceFinancingsValidator() {
@@ -69,16 +77,8 @@ public class PersonalInvoiceFinancingsValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertPersonalInvoiceFinancings(JsonObject personalInvoiceFinancings) {
-		Set<String> types = Sets.newHashSet("DESCONTO_DUPLICATAS", "DESCONTO_CHEQUES",
-			"ANTECIPACAO_FATURA_CARTAO_CREDITO", "OUTROS_DIREITOS_CREDITORIOS_DESCONTADOS",
-			"OUTROS_TITULOS_DESCONTADOS");
-		Set<String> requiredWarranties = Sets.newHashSet("CESSAO_DIREITOS_CREDITORIOS", "CAUCAO",
-			"PENHOR", "ALIENACAO_FIDUCIARIA", "HIPOTECA", "OPERACOES_GARANTIDAS_PELO_GOVERNO",
-			"OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS", "GARANTIA_FIDEJUSSORIA",
-			"BENS_ARRENDADOS", "GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES",
-			"ACORDOS_COMPENSACAO", "NAO_APLICAVEL");
 
-		assertField(personalInvoiceFinancings, CommonFields.type(types).build());
+		assertField(personalInvoiceFinancings, CommonFields.type(TYPES).build());
 
 		assertField(personalInvoiceFinancings,
 			new ObjectField
@@ -94,7 +94,7 @@ public class PersonalInvoiceFinancingsValidator extends AbstractJsonAssertingCon
 				.Builder("requiredWarranties")
 				.setMinItems(1)
 				.setMaxItems(14)
-				.setEnums(requiredWarranties)
+				.setEnums(REQUIRED_WARRANTIES)
 				.build());
 
 		assertField(personalInvoiceFinancings,

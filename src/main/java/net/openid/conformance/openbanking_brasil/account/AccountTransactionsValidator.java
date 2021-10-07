@@ -21,6 +21,17 @@ import java.util.Set;
 @ApiName("Account Transactions")
 public class AccountTransactionsValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_COMPLETED_AUTHORISED_PAYMENT_INDICATOR = Sets.newHashSet("TRANSACAO_EFETIVADA", "LANCAMENTO_FUTURO");
+	public static final Set<String> ENUM_TRANSACTION_TYPES = Sets.newHashSet(
+		"TED", "DOC", "PIX", "TRANSFERENCIA_MESMA_INSTITUICAO",
+		"BOLETO", "CONVENIO_ARRECADACAO", "PACOTE_TARIFA_SERVICOS",
+		"TARIFA_SERVICOS_AVULSOS", "FOLHA_PAGAMENTO", "DEPOSITO",
+		"SAQUE", "CARTAO", "ENCARGOS_JUROS_CHEQUE_ESPECIAL",
+		"RENDIMENTO_APLIC_FINANCEIRA", "PORTABILIDADE_SALARIO",
+		"RESGATE_APLIC_FINANCEIRA", "OPERACAO_CREDITO", "OUTROS");
+	public static final Set<String> ENUM_CREDIT_DEBIT_INDICATOR = Sets.newHashSet("CREDITO", "DEBITO");
+	public static final Set<String> ENUM_PARTIE_PERSON_TYPE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -37,16 +48,6 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumCompletedAuthorisedPaymentIndicator = Sets.newHashSet("TRANSACAO_EFETIVADA", "LANCAMENTO_FUTURO");
-		Set<String> enumCreditDebitIndicator = Sets.newHashSet("CREDITO", "DEBITO");
-		Set<String> enumTransactionTypes = Sets.newHashSet(
-			"TED", "DOC", "PIX", "TRANSFERENCIA_MESMA_INSTITUICAO",
-			"BOLETO", "CONVENIO_ARRECADACAO", "PACOTE_TARIFA_SERVICOS",
-			"TARIFA_SERVICOS_AVULSOS", "FOLHA_PAGAMENTO", "DEPOSITO",
-			"SAQUE", "CARTAO", "ENCARGOS_JUROS_CHEQUE_ESPECIAL",
-			"RENDIMENTO_APLIC_FINANCEIRA", "PORTABILIDADE_SALARIO",
-			"RESGATE_APLIC_FINANCEIRA", "OPERACAO_CREDITO", "OUTROS");
-		Set<String> enumPartiePersonType = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
 		assertField(body,
 			new StringField
@@ -59,7 +60,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertField(body,
 			new StringField
 				.Builder("completedAuthorisedPaymentType")
-				.setEnums(enumCompletedAuthorisedPaymentIndicator)
+				.setEnums(ENUM_COMPLETED_AUTHORISED_PAYMENT_INDICATOR)
 				.setMaxLength(19)
 				.build());
 
@@ -67,7 +68,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("creditDebitType")
 				.setMaxLength(7)
-				.setEnums(enumCreditDebitIndicator)
+				.setEnums(ENUM_CREDIT_DEBIT_INDICATOR)
 				.build());
 
 		assertField(body,
@@ -81,7 +82,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 			new StringField
 				.Builder("type")
 				.setMaxLength(31)
-				.setEnums(enumTransactionTypes)
+				.setEnums(ENUM_TRANSACTION_TYPES)
 				.build());
 
 		assertField(body,
@@ -116,7 +117,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertField(body,
 			new StringField
 				.Builder("partiePersonType")
-				.setEnums(enumPartiePersonType)
+				.setEnums(ENUM_PARTIE_PERSON_TYPE)
 				.setMaxLength(15)
 				.build());
 
