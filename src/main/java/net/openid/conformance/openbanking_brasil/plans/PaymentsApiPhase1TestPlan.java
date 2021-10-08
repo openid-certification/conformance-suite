@@ -13,7 +13,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Payments api phase 1 test",
 	profile = OBBProfile.OBB_PROFILE,
-	displayName = PlanNames.PAYMENTS_API_TEST_PLAN,
+	displayName = PlanNames.PAYMENTS_API_PHASE_1_TEST_PLAN,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API"
 )
 public class PaymentsApiPhase1TestPlan implements TestPlan {
