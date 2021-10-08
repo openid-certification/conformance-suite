@@ -1,17 +1,21 @@
 {
     "data": {
         "paymentId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+        "endToEndId": "E9040088820210128000800123873170",
         "consentId": "urn:bancoex:C1DD33123",
         "creationDateTime": "2020-07-21T08:30:00Z",
         "statusUpdateDateTime": "2020-07-21T08:30:00Z",
+        "proxy": "12345678901",
         "status": "PDNG",
-        "localInstrument": "DICT",
+        "rejectionReason": "USER_NOT_YET_ACTIVATED",
+        "localInstrument": "MANU",
         "cnpjInitiator": "50685362000135",
         "transactionIdentification": "",
         "payment": {
             "amount": "100000.12",
             "currency": "BRL"
         },
+        "remittanceInformation": "Pagamento da nota RSTO035-002.",
         "creditorAccount": {
             "ispb": "12345678",
             "issuer": "1774",

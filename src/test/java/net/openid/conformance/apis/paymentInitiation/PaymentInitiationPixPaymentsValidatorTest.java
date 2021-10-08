@@ -49,4 +49,49 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("ispb")));
 	}
 
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixMANUGood.json")
+	public void validateStructureMANUGood(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixDICTGood.json")
+	public void validateStructureDICTGood(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixINICGood.json")
+	public void validateStructureINICGood(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixMANUBad.json")
+	public void validateStructureMANUBad(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixDICTBad.json")
+	public void validateStructureDICTBad(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixINICBad.json")
+	public void validateStructureINICBad(){
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+	}
+
 }
