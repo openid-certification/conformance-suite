@@ -27,6 +27,7 @@ public class PaymentsApiTestPlan implements TestPlan {
 					PaymentsConsentsApiEnforceQRESTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
 					PaymentsConsentsApiEnforceDICTTestModule.class,
+					PaymentsConsentsReuseJtiTestModule.class,
 					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
