@@ -1,11 +1,9 @@
 package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
