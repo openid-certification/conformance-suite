@@ -1,11 +1,10 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class EmsureQRCodePresentInConfig extends AbstractCondition {
+public class SetProxyToRealPhoneNumber extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -14,10 +13,10 @@ public class EmsureQRCodePresentInConfig extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		JsonElement qrCode = obj.get("qrCode");
-		if(qrCode == null) {
-			throw error("Your payment consent config *must* contain a qrCode in the payment details");
-		}
+		obj.addProperty("proxy", "11 98693 5789");
+
+		logSuccess("Added phone number as proxy to payment consent");
+
 		return env;
 	}
 

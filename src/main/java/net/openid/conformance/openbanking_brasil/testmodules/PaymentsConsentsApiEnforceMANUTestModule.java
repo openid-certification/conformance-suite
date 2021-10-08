@@ -28,7 +28,7 @@ public class PaymentsConsentsApiEnforceMANUTestModule extends AbstractClientCred
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndContinueOnFailure(SelectMANUCodeLocalInstrument.class);
-		callAndStopOnFailure(EmsureQRCodePresentInConfig.class);
+		callAndStopOnFailure(EnsureQRCodePresentInConfig.class);
 	}
 
 	@Override
