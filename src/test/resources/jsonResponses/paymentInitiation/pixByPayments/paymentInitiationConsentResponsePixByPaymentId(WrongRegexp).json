@@ -10,6 +10,7 @@
         "status": "PDNG",
         "rejectionReason": "USER_NOT_YET_ACTIVATED",
         "localInstrument": "DICT",
+        "transactionIdentification": "",
         "payment": {
             "amount": "100000.12",
             "currency": "BRL"

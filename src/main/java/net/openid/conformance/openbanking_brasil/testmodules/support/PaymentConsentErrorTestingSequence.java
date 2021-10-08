@@ -23,7 +23,7 @@ public class PaymentConsentErrorTestingSequence extends AbstractConditionSequenc
 		callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
 		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-		callAndStopOnFailure(EnsureContentTypeJson.class);
+		callAndStopOnFailure(EnsureContentTypeApplicationJwt.class);
 	}
 
 }

@@ -9,22 +9,18 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Account api test",
+	testPlanName = "Payments api phase 2 test",
 	profile = OBBProfile.OBB_PROFILE,
-	displayName = PlanNames.ACCOUNT_API_NAME,
-	summary = "Structural and logical tests for OpenBanking Brasil-conformant Account API"
+	displayName = PlanNames.PAYMENTS_API_PHASE_2_TEST_PLAN,
+	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API including QR tests"
 )
-public class AccountsApiTestPlan implements TestPlan {
+public class PaymentsApiPhase2TestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					AccountApiTestModule.class,
-					AccountsApiWrongPermissionsTestModule.class,
-					AccountsApiReadPermissionsAreRestricted.class,
-					AccountsApiNegativeTestModule.class,
-					AccountsApiUXScreenshots.class,
-					AccountsApiPageSizeTestModule.class
+					PaymentsConsentsApiEnforceQRDNTestModule.class,
+					PaymentsConsentsApiEnforceQRESTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
