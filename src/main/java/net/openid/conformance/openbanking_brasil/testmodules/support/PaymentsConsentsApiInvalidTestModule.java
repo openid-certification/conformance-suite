@@ -53,8 +53,7 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(SetResponseStatus.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(EnsureResponseCodeWas422.class);
+			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
 
 		});
 	}
