@@ -35,24 +35,22 @@ public class PaymentsApiSignatureTest extends AbstractClientCredentialsGrantFunc
 
 	@Override
 	protected void runTests() {
-		runInBlock("Validate payment initiation consent", () -> {
 
-			int numOfGoodTests = new Random().nextInt(20) + 1;
+		int numOfGoodTests = new Random().nextInt(20) + 1;
 
-			eventLog.startBlock("Making a random number of good payment consent requests");
-			for(int i = 0; i < numOfGoodTests; i++){
-				callAndStopOnFailure(PrepareToPostConsentRequest.class);
-				callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-				call(sequence(SignedPaymentConsentSequence.class));
+		eventLog.startBlock("Making a random number of good payment consent requests");
+		for(int i = 0; i < numOfGoodTests; i++){
+			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
+			call(sequence(SignedPaymentConsentSequence.class));
 
-			}
+		}
 
-			eventLog.startBlock("Trying a badly signed payment consent request");
-			call(new SignedPaymentConsentSequence()
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs400.class))
-				.insertAfter(FAPIBrazilSignPaymentConsentRequest.class, condition(InvalidateConsentEndpointRequestSignature.class))
-			);
+		eventLog.startBlock("Trying a badly signed payment consent request");
+		call(new SignedPaymentConsentSequence()
+			.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs400.class))
+			.insertAfter(FAPIBrazilSignPaymentConsentRequest.class, condition(InvalidateConsentEndpointRequestSignature.class))
+		);
 
-		});
 	}
 }
