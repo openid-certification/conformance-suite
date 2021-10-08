@@ -6,6 +6,7 @@
         "creationDateTime": "2020-07-21T08:30:00Z",
         "statusUpdateDateTime": "2020-07-21T08:30:00Z",
         "proxy": "12345678901",
+        "ibgeTownCode": "5300108",
         "status": "PDNG",
         "rejectionReason": "USER_NOT_YET_ACTIVATED",
         "localInstrument": "DICT",
@@ -15,6 +16,7 @@
             "amount": "100000.12",
             "currency": "BRL"
         },
+        "transactionIdentification": "E00038166201907261559y6j6",
         "remittanceInformation": "Pagamento da nota RSTO035-002.",
         "creditorAccount": {
             "ispb": "12345678",

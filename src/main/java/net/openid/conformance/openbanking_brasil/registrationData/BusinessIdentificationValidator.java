@@ -8,14 +8,31 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This is validator for API-Dados Cadastrais | Identificacao pessoa jurídica
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-pessoa-juridica">Identificação Pessoa Jurídica </a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /business/identifications
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  **/
-@ApiName("Legal Identity")
-public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCondition {
+
+@ApiName("Business Identification")
+public class BusinessIdentificationValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> PERSON_TYPES = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+	public static final Set<String> AREA_CODES = Set.of("11", "12", "13", "14", "15", "16", "17",
+		"18", "19", "21", "22", "24", "27", "28", "31", "32", "33", "34", "35", "37", "38",
+		"41", "42", "43", "44", "45", "46", "47", "48", "49", "51", "53", "54", "55",
+		"61", "62", "63", "64", "65", "66", "67", "68", "69", "71", "73", "74", "75",
+		"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
+		"93", "94", "95", "96", "97", "98", "99", "NA");
+	public static final Set<String> COUNTRY_SUB_DIVISIONS = Set.of("AC", "AL", "AP", "AM",
+		"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
+		"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
+	public static final Set<String> PARTIES_TYPE = Set.of("SOCIO", "ADMINISTRADOR");
+	public static final Set<String> DOCUMENT_TYPE = Set.of("CPF", "PASSAPORTE", "OUTRO_DOCUMENTO_VIAGEM", "CNPJ");
+	public static final Set<String> PHONE_TYPE = Set.of("FIXO", "MOVEL", "OUTRO");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -66,7 +83,6 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.setMaxLength(14)
 				.build());
 
-		//TODO need to check impl. for array
 		assertField(body,
 			new StringArrayField
 				.Builder("companyCnpjNumber")
@@ -74,17 +90,26 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.setMaxLength(14)
 				.build());
 
+		assertField(body,
+			new ObjectArrayField
+				.Builder("otherDocuments")
+				.setValidator(this::assertOtherDocuments)
+				.setMinItems(1)
+				.setOptional()
+				.build());
 
-		if (body.has("otherDocuments")) {
-			assertOptionalJsonArrays(body, "otherDocuments", this::assertOtherDocuments);
-		} else {
-			log("Optional field otherDocuments not present");
-		}
+		assertField(body,
+			new ObjectArrayField
+				.Builder("parties")
+				.setValidator(this::assertParties)
+				.setMinItems(1)
+				.build());
 
-		assertHasField(body, "parties");
-		assertJsonArrays(body, "parties", this::assertParties);
-
-		assertContacts(body);
+		assertField(body,
+			new ObjectField
+				.Builder("contacts")
+				.setValidator(this::assertContacts)
+				.build());
 	}
 
 	private void assertOtherDocuments(JsonObject body) {
@@ -119,18 +144,18 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertParties(JsonObject body) {
-		Set<String> personTypes = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 
 		assertField(body,
 			new StringField
 				.Builder("personType")
-				.setEnums(personTypes)
+				.setEnums(PERSON_TYPES)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(Sets.newHashSet("SOCIO", "ADMINISTRADOR"))
+				.setEnums(PARTIES_TYPE)
+				.setMaxLength(13)
 				.build());
 
 		assertField(body,
@@ -174,7 +199,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertField(body,
 			new StringField
 				.Builder("documentType")
-				.setEnums(Sets.newHashSet("CPF", "PASSAPORTE", "OUTRO_DOCUMENTO_VIAGEM", "CNPJ"))
+				.setEnums(DOCUMENT_TYPE)
 				.build());
 
 		assertField(body,
@@ -215,15 +240,26 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertContacts(JsonObject body) {
-		JsonObject contacts = findByPath(body, "contacts").getAsJsonObject();
-		assertPostalAddresses(contacts);
-		assertPhones(contacts);
-		assertEmails(contacts);
-	}
+		assertField(body,
+			new ObjectArrayField
+				.Builder("postalAddresses")
+				.setValidator(this::assertInnerPostalAddresses)
+				.setMinItems(1)
+				.build());
 
-	private void assertEmails(JsonObject body) {
-		assertHasField(body, "emails");
-		assertJsonArrays(body, "emails", this::assertInnerEmails);
+		assertField(body,
+			new ObjectArrayField
+				.Builder("phones")
+				.setValidator(this::assertInnerPhones)
+				.setMinItems(1)
+				.build());
+
+		assertField(body,
+			new ObjectArrayField
+				.Builder("emails")
+				.setValidator(this::assertInnerEmails)
+				.setMinItems(1)
+				.build());
 	}
 
 	private void assertInnerEmails(JsonObject body) {
@@ -237,25 +273,14 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.build());
 	}
 
-	private void assertPhones(JsonObject body) {
-		assertHasField(body, "phones");
-		assertJsonArrays(body, "phones", this::assertInnerPhones);
-	}
-
 	private void assertInnerPhones(JsonObject body) {
-		final Set<String> areaCodes = Set.of("11", "12", "13", "14", "15", "16", "17",
-			"18", "19", "21", "22", "24", "27", "28", "31", "32", "33", "34", "35", "37", "38",
-			"41", "42", "43", "44", "45", "46", "47", "48", "49", "51", "53", "54", "55",
-			"61", "62", "63", "64", "65", "66", "67", "68", "69", "71", "73", "74", "75",
-			"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
-			"93", "94", "95", "96", "97", "98", "99", "NA");
 
 		assertField(body, new BooleanField.Builder("isMain").build());
 		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(5)
-				.setEnums(Sets.newHashSet("FIXO", "MOVEL", "OUTRO"))
+				.setEnums(PHONE_TYPE)
 				.build());
 
 		assertField(body,
@@ -277,7 +302,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("areaCode")
 				.setMaxLength(2)
-				.setEnums(areaCodes)
+				.setEnums(AREA_CODES)
 				.build());
 
 		assertField(body,
@@ -295,15 +320,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.build());
 	}
 
-	private void assertPostalAddresses(JsonObject body) {
-		assertHasField(body, "postalAddresses");
-		assertJsonArrays(body, "postalAddresses", this::assertInnerPostalAddresses);
-	}
-
 	private void assertInnerPostalAddresses(JsonObject body) {
-		final Set<String> countrySubDivisions = Set.of("AC", "AL", "AP", "AM",
-			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
-			"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
 
 		assertField(body, new BooleanField.Builder("isMain").build());
 
@@ -347,7 +364,7 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 		assertField(body,
 			new StringField
 				.Builder("countrySubDivision")
-				.setEnums(countrySubDivisions)
+				.setEnums(COUNTRY_SUB_DIVISIONS)
 				.build());
 
 		assertField(body,
@@ -371,8 +388,6 @@ public class LegalEntityIdentificationValidator extends AbstractJsonAssertingCon
 				.setOptional()
 				.build());
 
-		if (body.has("geographicCoordinates")) {
-			assertGeographicCoordinates(body);
-		}
+		assertGeographicCoordinates(body);
 	}
 }

@@ -12,11 +12,14 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Contas|Lista de contas
- * https://openbanking-brasil.github.io/areadesenvolvedor/#lista-de-contas
- */
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /accounts
+ *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
+ **/
 @ApiName("Accounts list")
 public class AccountListValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -35,8 +38,6 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 
 	private void assertInnerFields(JsonObject body) {
 
-		Set<String> enumType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
-
 		assertField(body,
 			new StringField
 				.Builder("brandName")
@@ -54,7 +55,8 @@ public class AccountListValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE)
+				.setMaxLength(24)
 				.build());
 
 		assertField(body,

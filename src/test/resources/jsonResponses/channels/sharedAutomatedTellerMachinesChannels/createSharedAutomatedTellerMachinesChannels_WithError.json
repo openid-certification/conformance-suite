@@ -1,0 +1,64 @@
+{
+    "data": {
+        "brand": {
+            "name": "Organização A",
+            "companies": [
+                {
+                    "name": "Empresa da Organização A",
+                    "urlComplementaryList": "https://empresadaorganizacaoa.com/complementarylist",
+                    "sharedAutomatedTellerMachines": [
+                        {
+                            "identification": {
+                                "ownerName": "João da Silva Santos"
+                            },
+                            "postalAddress": {
+                                "address": "Av Naburo Ykesaki, 1270",
+                                "additionalInfo": "Fundos",
+                                "districtName": "Centro",
+                                "townName": "Marília",
+                                "ibgeCode": "3515890",
+                                "countrySubDivision": "SP",
+                                "postCode": "17500001",
+                                "country": "Brasil",
+                                "countryCode": "BRA",
+                                "geographicCoordinates": {
+                                    "latitude": "-89.8365180",
+                                    "longitude": "-179.836519"
+                                }
+                            },
+                            "availability": {
+                                "standards": [
+                                    {
+                                        "weekday": "SEGUNDA_FEIRA",
+                                        "openingTime": "10:00:57Z",
+                                        "closingTime": "16:00:57Z"
+                                    }
+                                ],
+                                "exception": "Exceto feriados municipais, nacionais e estaduais",
+                                "isPublicAccessAllowed": false
+                            },
+                            "services": [
+                                {
+                                    "name": "OUTROS_PRODUTOS_SERVICOS",
+                                    "code": "OUTROS_PRODUTOS_SERVICOS",
+                                    "additionalInfo": "Serviços complementares de atendimento via terminais de autoatendimento."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}

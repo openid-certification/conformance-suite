@@ -43,19 +43,19 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	protected void validateResponse() {
 		runInBlock("Validating corporate relationship response", () ->{
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(CorporateRelationshipResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(BusinessRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(LegalEntityIdentificationValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(BusinessIdentificationValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(LegalEntityQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 	}

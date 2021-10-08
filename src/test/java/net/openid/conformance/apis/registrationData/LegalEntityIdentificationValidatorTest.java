@@ -2,8 +2,7 @@ package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.registrationData.LegalEntityIdentificationValidator;
-import net.openid.conformance.openbanking_brasil.registrationData.NaturalPersonalQualificationResponseValidator;
+import net.openid.conformance.openbanking_brasil.registrationData.BusinessIdentificationValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -15,30 +14,30 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponse.json")
 	public void validateStructure() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		run(condition);
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(missedMandatoryField).json")
 	public void validateStructureWithMissingField() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("email"); //$.data[0].contacts.emails[0].email
+		String expected = condition.createElementNotFoundMessage("updateDateTime");
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(missedNonMendotaryField).json")
 	public void validateStructureWithMissingNonMandatoryField() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		run(condition);
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(patterNotMatch).json")
 	public void validateStructurePatternNotMatch() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
 			containsString(condition.createFieldValueNotMatchPatternMessage("cnpjNumber")));
 	}
@@ -46,7 +45,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(excessMaxLength).json")
 	public void validateStructureExcessMaxLength() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
 			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("civilName")));
 	}
@@ -54,7 +53,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(enumNotMatch).json")
 	public void validateStructureEnumNotMatch() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
 			containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
 	}
@@ -62,7 +61,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	@Test
 	@UseResurce("jsonResponses/registrationData/legalEntityIdentificationResponseWithError(coordinateNotMatch).json")
 	public void validateStructureCoordinatesNotMatch() {
-		LegalEntityIdentificationValidator condition = new LegalEntityIdentificationValidator();
+		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
 			containsString(condition.createCoordinateIsNotWithinAllowedAreaMessage("latitude")));
 	}

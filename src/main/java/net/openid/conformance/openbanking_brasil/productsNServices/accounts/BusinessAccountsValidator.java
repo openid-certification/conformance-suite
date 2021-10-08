@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -19,12 +19,17 @@ import java.util.Set;
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
  * Api endpoint: /business-accounts
  * Api version: 1.0.2
- * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
+ * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
 
 @ApiName("ProductsNServices Business Accounts")
 public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ACCOUNT_TYPES = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
+	public static final Set<String> OPENING_CLOSING_CHANNELS = Sets.newHashSet("DEPENDENCIAS_PROPRIAS", "CORRESPONDENTES_BANCARIOS", "INTERNET_BANKING", "MOBILE_BANKING", "CENTRAL_TELEFONICA", "CHAT", "OUTROS");
+	public static final Set<String> TRANSACTION_METHODS = Sets.newHashSet("MOVIMENTACAO_ELETRONICA", "MOVIMENTACAO_CHEQUE", "MOVIMENTACAO_CARTAO", "MOVIMENTACAO_PRESENCIAL");
+
 	private static class Fields extends CommonFields {}
 	private final CommonValidatorParts parts;
 
@@ -70,11 +75,8 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertBusinessAccounts(JsonObject businessAccounts) {
-		Set<String> accountTypes = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
-		Set<String> OpeningClosingChannels = Sets.newHashSet("DEPENDENCIAS_PROPRIAS", "CORRESPONDENTES_BANCARIOS", "INTERNET_BANKING", "MOBILE_BANKING", "CENTRAL_TELEFONICA", "CHAT", "OUTROS");
-		Set<String> transactionMethods = Sets.newHashSet("MOVIMENTACAO_ELETRONICA", "MOVIMENTACAO_CHEQUE", "MOVIMENTACAO_CARTAO", "MOVIMENTACAO_PRESENCIAL");
 
-		assertField(businessAccounts, Fields.type(accountTypes).build());
+		assertField(businessAccounts, Fields.type(ACCOUNT_TYPES).build());
 
 		assertField(businessAccounts,
 			new ObjectField.Builder("fees").setValidator(
@@ -99,7 +101,7 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 		assertField(businessAccounts,
 			new StringArrayField
 				.Builder("openingClosingChannels")
-				.setEnums(OpeningClosingChannels)
+				.setEnums(OPENING_CLOSING_CHANNELS)
 				.setMinItems(1)
 				.setMaxItems(7)
 				.build());
@@ -115,7 +117,7 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 		assertField(businessAccounts,
 			new StringArrayField
 				.Builder("transactionMethods")
-				.setEnums(transactionMethods)
+				.setEnums(TRANSACTION_METHODS)
 				.setMinItems(1)
 				.setMaxItems(4)
 				.build());

@@ -13,12 +13,17 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Dados Cadastrais - Qualificação Pessoa Natural
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#qualificacao-pessoa-natural">Qualificação Pessoa Natural</a>
- */
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /personal/qualifications
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
+ **/
 
 @ApiName("Natural Personal Qualification")
-public class NaturalPersonalQualificationResponseValidator extends AbstractJsonAssertingCondition {
+public class PersonalQualificationResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> OCCUPATION_CODES = Sets.newHashSet("RECEITA_FEDERAL", "CBO", "OUTRO");
+	public static final Set<String> FREQUENCIES = Sets.newHashSet("DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL",
+		"TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_RENDA_INFORMADA", "OUTROS");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -34,7 +39,6 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 	}
 
 	private void assertData(JsonObject body) {
-		Set<String> occupationCodes = Sets.newHashSet("RECEITA_FEDERAL", "CBO", "OUTRO");
 		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
 
 		assertField(data,
@@ -53,7 +57,7 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 		assertField(data,
 			new StringField
 				.Builder("occupationCode")
-				.setEnums(occupationCodes)
+				.setEnums(OCCUPATION_CODES)
 				.build());
 
 		assertField(data,
@@ -65,14 +69,12 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 	}
 
 	private void assertInformedIncome(JsonObject body) {
-		Set<String> frequencies = Sets.newHashSet("DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL",
-			"TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_RENDA_INFORMADA", "OUTROS");
 
 		JsonObject informedIncome = findByPath(body, "$.data.informedIncome").getAsJsonObject();
 		assertField(informedIncome,
 			new StringField
 				.Builder("frequency")
-				.setEnums(frequencies)
+				.setEnums(FREQUENCIES)
 				.build());
 
 		assertField(informedIncome,
@@ -123,6 +125,7 @@ public class NaturalPersonalQualificationResponseValidator extends AbstractJsonA
 				.Builder("year")
 				.setMaxLength(4)
 				.setNullable()
+				.setOptional()
 				.setMaxValue(9999)
 				.build());
 	}

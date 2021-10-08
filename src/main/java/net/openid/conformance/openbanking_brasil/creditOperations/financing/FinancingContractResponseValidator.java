@@ -22,6 +22,26 @@ import java.util.Set;
 @ApiName("Financing Contract")
 public class FinancingContractResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> PRODUCT_TYPE = Sets.newHashSet("FINANCIAMENTOS", "FINANCIAMENTOS_RURAIS", "FINANCIAMENTOS_IMOBILIARIOS");
+	public static final Set<String> PRODUCT_SUB_TYPE = Sets.newHashSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES", "AQUISICAO_BENS_OUTROS_BENS",
+		" MICROCREDITO", "CUSTEIO", "INVESTIMENTO", "INDUSTRIALIZACAO",
+		"COMERCIALIZACAO", "FINANCIAMENTO_HABITACIONAL_SFH", "FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
+	public static final Set<String> INSTALMENT_PERIODICITY = Sets.newHashSet("SEM_PERIODICIDADE_REGULAR", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "OUTROS");
+	public static final Set<String> AMORTIZATION_SCHEDULED = Sets.newHashSet("SAC", "PRICE", "SAM", "SEM_SISTEMA_AMORTIZACAO", "OUTROS");
+	public static final Set<String> CHARGE_TYPE = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO",
+		"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO", "OUTROS");
+	public static final Set<String> FEE_CHARGE_TYPE = Sets.newHashSet("UNICA", "POR_PARCELA");
+	public static final Set<String> FEE_CHARGE = Sets.newHashSet("MINIMO", "MAXIMO", "FIXO", "PERCENTUAL");
+	public static final Set<String> TAX_TYPE = Sets.newHashSet("NOMINAL", "EFETIVA");
+	public static final Set<String> INTEREST_RATE_TYPE = Sets.newHashSet("SIMPLES", "COMPOSTO");
+	public static final Set<String> TAX_PERIODICITY = Sets.newHashSet("AM", "AA");
+	public static final Set<String> CALCULATIONS = Sets.newHashSet("21/252", "30/360", "30/365");
+	public static final Set<String> REFERENTIAL_RATE_INDEXER_TYPE = Sets.newHashSet("SEM_TIPO_INDEXADOR", "PRE_FIXADO",
+		"POS_FIXADO", "FLUTUANTES", "INDICES_PRECOS", "CREDITO_RURAL", "OUTROS_INDEXADORES");
+	public static final Set<String> REFERENTIAL_RATE_INDEXER_SUB_TYPE = Sets.newHashSet("SEM_SUB_TIPO_INDEXADOR", "PRE_FIXADO", "TR_TBF",
+		"TJLP", "LIBOR", "TLP", "OUTRAS_TAXAS_POS_FIXADAS", "CDI", "SELIC", "OUTRAS_TAXAS_FLUTUANTES", "IGPM", "IPCA", "IPCC",
+		"OUTROS_INDICES_PRECO", "TCR_PRE", "TCR_POS", "TRFC_PRE", "TRFC_POS", "OUTROS_INDEXADORES");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -31,12 +51,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerFields(JsonObject data) {
-		Set<String> productType = Sets.newHashSet("FINANCIAMENTOS", "FINANCIAMENTOS_RURAIS", "FINANCIAMENTOS_IMOBILIARIOS");
-		Set<String> productSubType = Sets.newHashSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES", "AQUISICAO_BENS_OUTROS_BENS",
-			" MICROCREDITO", "CUSTEIO", "INVESTIMENTO", "INDUSTRIALIZACAO",
-			"COMERCIALIZACAO", "FINANCIAMENTO_HABITACIONAL_SFH", "FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
-		Set<String> instalmentPeriodicity = Sets.newHashSet("SEM_PERIODICIDADE_REGULAR", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "OUTROS");
-		Set<String> amortizationScheduled = Sets.newHashSet("SAC", "PRICE", "SAM", "SEM_SISTEMA_AMORTIZACAO", "OUTROS");
 
 		assertField(data,
 			new StringField
@@ -60,14 +74,14 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("productType")
-				.setEnums(productType)
+				.setEnums(PRODUCT_TYPE)
 				.setMaxLength(27)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("productSubType")
-				.setEnums(productSubType)
+				.setEnums(PRODUCT_SUB_TYPE)
 				.setMaxLength(37)
 				.build());
 
@@ -98,7 +112,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("instalmentPeriodicity")
-				.setEnums(instalmentPeriodicity)
+				.setEnums(INSTALMENT_PERIODICITY)
 				.setMaxLength(25)
 				.build());
 
@@ -120,7 +134,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 		assertField(data,
 			new StringField
 				.Builder("amortizationScheduled")
-				.setEnums(amortizationScheduled)
+				.setEnums(AMORTIZATION_SCHEDULED)
 				.setMaxLength(23)
 				.build());
 
@@ -163,14 +177,12 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerFieldsContractedFinanceCharges(JsonObject data) {
-		Set<String> chargeType = Sets.newHashSet("JUROS_REMUNERATORIOS_POR_ATRASO", "MULTA_ATRASO_PAGAMENTO",
-			"JUROS_MORA_ATRASO", "IOF_CONTRATACAO", "IOF_POR_ATRASO", "SEM_ENCARGO","OUTROS");
 
 		assertField(data,
 			new StringField
 				.Builder("chargeType")
 				.setMaxLength(31)
-				.setEnums(chargeType)
+				.setEnums(CHARGE_TYPE)
 				.build());
 
 		assertField(data,
@@ -188,8 +200,6 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerFieldsContractedFees(JsonObject data) {
-		Set<String> feeChargeType = Sets.newHashSet("UNICA", "POR_PARCELA");
-		Set<String> feeCharge = Sets.newHashSet("MINIMO", "MAXIMO", "FIXO", "PERCENTUAL");
 
 		assertField(data,
 			new StringField
@@ -209,13 +219,13 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("feeChargeType")
 				.setMaxLength(11)
-				.setEnums(feeChargeType)
+				.setEnums(FEE_CHARGE_TYPE)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("feeCharge")
-				.setEnums(feeCharge)
+				.setEnums(FEE_CHARGE)
 				.setMaxLength(10)
 				.build());
 
@@ -237,27 +247,18 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 	}
 
 	private void assertInnerFieldsInterestRates(JsonObject data) {
-		Set<String> taxType = Sets.newHashSet("NOMINAL", "EFETIVA");
-		Set<String> interestRateType = Sets.newHashSet("SIMPLES", "COMPOSTO");
-		Set<String> taxPeriodicity = Sets.newHashSet("AM", "AA");
-		Set<String> calculations = Sets.newHashSet("21/252", "30/360", "30/365");
-		Set<String> referentialRateIndexerType = Sets.newHashSet("SEM_TIPO_INDEXADOR", "PRE_FIXADO",
-			"POS_FIXADO", "FLUTUANTES", "INDICES_PRECOS", "CREDITO_RURAL", "OUTROS_INDEXADORES");
-		Set<String> referentialRateIndexerSubType = Sets.newHashSet("SEM_SUB_TIPO_INDEXADOR", "PRE_FIXADO", "TR_TBF",
-			"TJLP", "LIBOR", "TLP", "OUTRAS_TAXAS_POS_FIXADAS", "CDI", "SELIC", "OUTRAS_TAXAS_FLUTUANTES", "IGPM", "IPCA", "IPCC",
-			"OUTROS_INDICES_PRECO", "TCR_PRE", "TCR_POS", "TRFC_PRE", "TRFC_POS", "OUTROS_INDEXADORES");
 
 		assertField(data,
 			new StringField
 				.Builder("taxType")
-				.setEnums(taxType)
+				.setEnums(TAX_TYPE)
 				.setMaxLength(7)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("interestRateType")
-				.setEnums(interestRateType)
+				.setEnums(INTEREST_RATE_TYPE)
 				.setMaxLength(8)
 				.build());
 
@@ -265,20 +266,20 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("taxPeriodicity")
 				.setMaxLength(2)
-				.setEnums(taxPeriodicity)
+				.setEnums(TAX_PERIODICITY)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("calculation")
 				.setMaxLength(6)
-				.setEnums(calculations)
+				.setEnums(CALCULATIONS)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("referentialRateIndexerType")
-				.setEnums(referentialRateIndexerType)
+				.setEnums(REFERENTIAL_RATE_INDEXER_TYPE)
 				.setMaxLength(18)
 				.build());
 
@@ -286,7 +287,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new StringField
 				.Builder("referentialRateIndexerSubType")
 				.setMaxLength(24)
-				.setEnums(referentialRateIndexerSubType)
+				.setEnums(REFERENTIAL_RATE_INDEXER_SUB_TYPE)
 				.setOptional()
 				.build());
 

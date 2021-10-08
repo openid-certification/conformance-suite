@@ -15,12 +15,14 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API - Resources "Obtém a lista de recursos consentidos pelo cliente."
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#obtem-a-lista-de-recursos-consentidos-pelo-cliente">
- * Obtém a lista de recursos consentidos pelo cliente.</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_resources_apis.yaml
+ *  * URL: /resources
+ *  * Api git hash: 5b108df41040cc17f2b6c501368b046e10128732
  **/
 @ApiName("Resources")
 public class CreditCardResourcesResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ENUM_STATUS = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -37,7 +39,6 @@ public class CreditCardResourcesResponseValidator extends AbstractJsonAssertingC
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumStatus = Sets.newHashSet("AVAILABLE", "UNAVAILABLE", "TEMPORARILY_UNAVAILABLE", "PENDING_AUTHORISATION");
 		assertField(body,
 			new StringField
 				.Builder("resourceId")
@@ -56,7 +57,7 @@ public class CreditCardResourcesResponseValidator extends AbstractJsonAssertingC
 		assertField(body,
 			new StringField
 				.Builder("status")
-				.setEnums(enumStatus)
+				.setEnums(ENUM_STATUS)
 				.build());
 
 	}

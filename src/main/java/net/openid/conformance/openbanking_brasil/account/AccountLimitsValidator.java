@@ -9,9 +9,10 @@ import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.StringField;
 
 /**
- * This validates Account Limits
- * https://openbanking-brasil.github.io/areadesenvolvedor/#limites-da-conta
- */
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /accounts/{accountId}/overdraft-limits
+ *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
+ **/
 @ApiName("Account Limits")
 public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 

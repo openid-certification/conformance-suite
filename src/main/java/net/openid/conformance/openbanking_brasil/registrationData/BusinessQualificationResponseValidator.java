@@ -11,12 +11,14 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * This is validator for API-Dados Cadastrais "Qualificação Pessoa Jurídica"
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#qualificacao-pessoa-juridica">Qualificação Pessoa Jurídica</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /business/qualifications
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  **/
+@ApiName("Business Qualification")
+public class BusinessQualificationResponseValidator extends AbstractJsonAssertingCondition {
 
-@ApiName("Legal Entity Qualification")
-public class LegalEntityQualificationResponseValidator extends AbstractJsonAssertingCondition {
+	public static final Set<String> ENUM_FREQUENCY = Sets.newHashSet("DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_FATURAMENTO_INFORMADO", "OUTROS");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -35,19 +37,16 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 			new DatetimeField
 				.Builder("updateDateTime")
 				.build());
-		assertHasField(data, "economicActivities");
 
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("economicActivities")
+				.setValidator(this::assertInnerFieldsEconomicActivities)
 				.setMinItems(1)
 				.build());
 
-		assertJsonArrays(data, "economicActivities", this::assertInnerFieldsEconomicActivities);
 		assertInformedRevenue(data);
 		assertInnerFieldsInformedPatrimony(data);
-		assertInnerFieldsInformedPatrimony(data);
-
 	}
 
 	private void assertInnerFieldsEconomicActivities(JsonObject body) {
@@ -67,13 +66,12 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 
 	private void assertInformedRevenue(JsonObject body) {
 		JsonObject data = findByPath(body, "informedRevenue").getAsJsonObject();
-		Set<String> enumFrequency = Sets.newHashSet("DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL", "SEM_FREQUENCIA_FATURAMENTO_INFORMADO", "OUTROS");
 		assertHasField(body, "informedRevenue");
 
 		assertField(data,
 			new StringField
 				.Builder("frequency")
-				.setEnums(enumFrequency)
+				.setEnums(ENUM_FREQUENCY)
 				.build());
 
 		assertField(data,
@@ -96,7 +94,6 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 			new StringField
 				.Builder("frequencyAdditionalInfo")
 				.setPattern("[\\w\\W\\s]*")
-				.setPattern(".+")
 				.setOptional()
 				.setMaxLength(100)
 				.build());
@@ -107,6 +104,7 @@ public class LegalEntityQualificationResponseValidator extends AbstractJsonAsser
 				.setOptional()
 				.setMaxLength(4)
 				.setMaxValue(9999)
+				.setNullable()
 				.build());
 	}
 
