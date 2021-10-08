@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.StringField;
 
@@ -33,7 +34,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 
 	private void assertInnerFields(JsonObject body) {
 		Set<String> status = Sets.newHashSet("PDNG", "PART", "ACSP", "ACSC", "ACCC", "RJCT");
-		Set<String> localInstruments = Sets.newHashSet("MANU", "DICT", "QRDN", "QRES");
+		Set<String> localInstruments = Sets.newHashSet("MANU", "DICT", "INIC", "QRDN", "QRES");
 		Set<String> rejectionReason = Sets.newHashSet("ABORTED_SETTLEMENT_TIMEOUT",
 			"ERROR_CREDITOR_AGENT", "TIMEOUT_DEBTOR_AGENT", "INVALID_CREDITOR_ACCOUNT_NUMBER",
 			"BLOCKED_ACCOUNT", "CLOSED_CREDITOR_ACCOUNT_NUMBER", "INVALID_CREDITOR_ACCOUNTTYPE",
@@ -115,13 +116,28 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 
 		assertJsonObject(body, "payment", this::assertPayment);
 
-		assertField(body,
-			new StringField
-				.Builder("transactionIdentification")
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
-				.setMaxLength(25)
-				.setOptional()
-				.build());
+		if (body.has("localInstrument") && OIDFJSON.getString(body.get("localInstrument")).equals("INIC")) {
+			assertField(body,
+				new StringField
+					.Builder("transactionIdentification")
+					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
+					.setMaxLength(25)
+					.build());
+		} else if (body.has("localInstrument") && (OIDFJSON.getString(body.get("localInstrument")).equals("MANU") || OIDFJSON.getString(body.get("localInstrument")).equals("DICT"))) {
+			assertField(body,
+				new StringField
+					.Builder("transactionIdentification")
+					.setMaxLength(0)
+					.build());
+		} else {
+			assertField(body,
+				new StringField
+					.Builder("transactionIdentification")
+					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
+					.setMaxLength(25)
+					.setOptional()
+					.build());
+		}
 
 		assertField(body,
 			new StringField
