@@ -115,7 +115,6 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 				.build());
 
 		assertJsonObject(body, "payment", this::assertPayment);
-
 		if (body.has("localInstrument") && OIDFJSON.getString(body.get("localInstrument")).equals("INIC")) {
 			assertField(body,
 				new StringField
@@ -127,6 +126,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 			assertField(body,
 				new StringField
 					.Builder("transactionIdentification")
+					.setPattern("^(?![\\s\\S])")
 					.setMaxLength(0)
 					.build());
 		} else {

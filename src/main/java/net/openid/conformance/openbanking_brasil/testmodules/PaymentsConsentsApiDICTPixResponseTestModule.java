@@ -38,7 +38,8 @@ public class PaymentsConsentsApiDICTPixResponseTestModule extends AbstractOBBras
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
 	}
 

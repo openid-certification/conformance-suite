@@ -38,7 +38,8 @@ public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBras
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		callAndContinueOnFailure(SelectINICCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectINICCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectINICCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
 	}
 

@@ -38,7 +38,8 @@ public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBras
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		callAndContinueOnFailure(SelectMANUCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectMANUCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectMANUCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
 	}
 
