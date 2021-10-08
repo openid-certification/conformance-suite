@@ -4,6 +4,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiFapiTesting;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsConsentsApiInvalidTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -29,8 +30,10 @@ public class PaymentsApiTestPlan implements TestPlan {
 					PaymentsConsentsApiEnforceDICTTestModule.class,
 					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class,
+					PaymentsApiSignatureTest.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
-					PaymentsApiInvalidCnpjTestModule.class
+					PaymentsApiInvalidCnpjTestModule.class,
+					PaymentsConsentsApiInvalidTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
