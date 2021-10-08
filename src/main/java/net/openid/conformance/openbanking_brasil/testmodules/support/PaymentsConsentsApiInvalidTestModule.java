@@ -4,7 +4,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -34,8 +33,10 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
+			eventLog.startBlock("Preparing a payment consent request");
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
+			eventLog.startBlock("Setting payment to be invalid");
 			callAndStopOnFailure(SetPaymentCurrency.class);
 			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 			callAndStopOnFailure(CreateIdempotencyKey.class);
@@ -48,10 +49,12 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
 			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
 			call(exec().unmapKey("request_object_claims"));
+			eventLog.startBlock("Make payment consent request");
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 			call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
+			eventLog.startBlock("Validate response");
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
 
