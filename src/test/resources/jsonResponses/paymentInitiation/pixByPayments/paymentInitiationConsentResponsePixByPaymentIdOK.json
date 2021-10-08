@@ -11,12 +11,11 @@
         "rejectionReason": "USER_NOT_YET_ACTIVATED",
         "localInstrument": "DICT",
         "cnpjInitiator": "50685362000135",
-        "transactionIdentification": "",
         "payment": {
             "amount": "100000.12",
             "currency": "BRL"
         },
-        "transactionIdentification": "E00038166201907261559y6j6",
+        "transactionIdentification": "",
         "remittanceInformation": "Pagamento da nota RSTO035-002.",
         "creditorAccount": {
             "ispb": "12345678",
