@@ -1,9 +1,9 @@
-package net.openid.conformance.openbanking_brasil.testmodules.productsNServices;
+package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractBlockLoggingTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.CallResource;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantParameters;
 	"resource.resourceUrl",
 	"resource.consentUrl"
 })
-public abstract class AbstractBrasilFunctionalTestModule extends AbstractBlockLoggingTestModule {
+public abstract class AbstractNoAuthFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
@@ -19,11 +19,28 @@ import java.util.Set;
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
  * Api endpoint: /business-credit-cards
  * Api version: 1.0.2
- * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
+ * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
 @ApiName("ProductsNServices BusinessCreditCard")
 public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> NAMES = Sets.newHashSet("ANUIDADE_CARTAO_BASICO_NACIONAL",
+		"ANUIDADE_CARTAO_BASICO_INTERNACIONAL", "ANUIDADE_DIFERENCIADA",
+		"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_BRASIL",
+		"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_EXTERIOR",
+		"AVALIACAO_EMERGENCIAL_CREDITO", "FORNECIMENTO_SEGUNDA_VIA_FUNCAO_CREDITO",
+		"PAGAMENTO_CONTAS_UTILIZANDO_FUNCAO_CREDITO", "SMS");
+	public static final Set<String> CODES = Sets.newHashSet("ANUIDADE_NACIONAL", "ANUIDADE_INTERNACIONAL",
+		"ANUIDADE_DIFERENCIADA", "SAQUE_CARTAO_BRASIL", "SAQUE_CARTAO_EXTERIOR",
+		"AVALIACAO_EMERGENCIAL_CREDITO", "EMISSAO_SEGUNDA_VIA", "TARIFA_PAGAMENTO_CONTAS", "SMS");
+	public static final Set<String> TYPES = Sets.newHashSet("SAQUE_A_CREDITO", "PAGAMENTOS_CONTAS", "OUTROS");
+	public static final Set<String> TYPES1 = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS",
+		"DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
+	public static final Set<String> TYPES2 = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL",
+		"GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL",
+		"ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX",
+		"PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "OUTROS");
 
 	private static class Fields extends CommonFields {}
 	private final CommonValidatorParts parts;
@@ -69,15 +86,6 @@ public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertBusinessCreditCards(JsonObject businessCreditCards) {
-		Set<String> names = Sets.newHashSet("ANUIDADE_CARTAO_BASICO_NACIONAL",
-			"ANUIDADE_CARTAO_BASICO_INTERNACIONAL", "ANUIDADE_DIFERENCIADA",
-			"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_BRASIL",
-			"UTILIZACAO_CANAIS_ATENDIMENTO_RETIRADA_ESPECIE_EXTERIOR",
-			"AVALIACAO_EMERGENCIAL_CREDITO", "FORNECIMENTO_SEGUNDA_VIA_FUNCAO_CREDITO",
-			"PAGAMENTO_CONTAS_UTILIZANDO_FUNCAO_CREDITO", "SMS");
-		Set<String> codes = Sets.newHashSet("ANUIDADE_NACIONAL", "ANUIDADE_INTERNACIONAL",
-			"ANUIDADE_DIFERENCIADA", "SAQUE_CARTAO_BRASIL", "SAQUE_CARTAO_EXTERIOR",
-			"AVALIACAO_EMERGENCIAL_CREDITO", "EMISSAO_SEGUNDA_VIA", "TARIFA_PAGAMENTO_CONTAS", "SMS");
 
 		assertField(businessCreditCards, Fields.name().setMaxLength(50).build());
 
@@ -111,8 +119,8 @@ public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition 
 					new ObjectArrayField.Builder("services")
 						.setMinItems(1).setMaxItems(9).setValidator(
 						services -> {
-							assertField(services, Fields.name().setEnums(names).build());
-							assertField(services, Fields.code().setEnums(codes).build());
+							assertField(services, Fields.name().setEnums(NAMES).build());
+							assertField(services, Fields.code().setEnums(CODES).build());
 							assertField(services, Fields.chargingTriggerInfo().build());
 							parts.assertPrices(services);
 							parts.applyAssertingForCommonMinimumAndMaximum(services);
@@ -130,8 +138,7 @@ public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition 
 						.setMinItems(1)
 						.setMaxItems(3)
 						.setValidator(otherCredits -> {
-							Set<String> types = Sets.newHashSet("SAQUE_A_CREDITO", "PAGAMENTOS_CONTAS", "OUTROS");
-							assertField(otherCredits, Fields.code().setEnums(types).build());
+							assertField(otherCredits, Fields.code().setEnums(TYPES).build());
 							assertField(otherCredits,
 								new StringField
 									.Builder("additionalInfo")
@@ -194,13 +201,11 @@ public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertInterestCreditCard(JsonObject creditCard) {
-		Set<String> types = Sets.newHashSet("VISA", "MASTERCARD", "AMERICAN_EXPRESS",
-			"DINERS_CLUB", "HIPERCARD", "BANDEIRA_PROPRIA", "CHEQUE_ELETRONICO", "ELO", "OUTRAS");
 
 		assertField(creditCard,
 			new StringField
 				.Builder("network")
-				.setEnums(types)
+				.setEnums(TYPES1)
 				.build());
 
 		assertField(creditCard,
@@ -212,12 +217,8 @@ public class BusinessCreditCardValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertInterestProduct(JsonObject product) {
-		Set<String> types = Sets.newHashSet("CLASSIC_NACIONAL", "CLASSIC_INTERNACIONAL",
-			"GOLD", "PLATINUM", "INFINITE", "ELECTRON", "STANDARD_NACIONAL", "STANDARD_INTERNACIONAL",
-			"ELETRONIC", "BLACK", "REDESHOP", "MAESTRO_MASTERCARD_MAESTRO", "GREEN", "BLUE", "BLUEBOX",
-			"PROFISSIONAL_LIBERAL", "CHEQUE_ELETRONICO", "CORPORATIVO", "EMPRESARIAL", "COMPRAS", "OUTROS");
 
-		assertField(product, Fields.type(types).build());
+		assertField(product, Fields.type(TYPES2).build());
 
 		assertField(product,
 			new StringField

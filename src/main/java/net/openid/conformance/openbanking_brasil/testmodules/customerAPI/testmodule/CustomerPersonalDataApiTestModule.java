@@ -43,19 +43,19 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 	protected void validateResponse() {
 		runInBlock("Validating personal financial relationship response", () -> {
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(NaturalPersonRelationshipResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(PersonalRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(NaturalPersonIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(PersonalIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(NaturalPersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }

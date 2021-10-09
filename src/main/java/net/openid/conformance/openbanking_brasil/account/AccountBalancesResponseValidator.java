@@ -9,10 +9,10 @@ import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.StringField;
 
 /**
- * This is validator for API - Contas - Saldos da conta
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#saldos-da-conta">Saldos da conta</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /accounts/{accountId}/balances
+ *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
  **/
-
 @ApiName("Account Balances")
 public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondition {
 

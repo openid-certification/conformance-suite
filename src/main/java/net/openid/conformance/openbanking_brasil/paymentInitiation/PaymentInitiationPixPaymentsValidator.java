@@ -14,14 +14,32 @@ import java.util.Set;
 
 /**
  * Doc https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_payments_apis.yaml
- * Doc Version: v1.0.0-rc8.8
- * Aip: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/f949adfdf9af49855ad6d6417d71dc5a8d11ae50/swagger/swagger_payments_apis.yaml
- * Api Version: 1.0.1-rc1.0
- * Api git hash: f949adfdf9af49855ad6d6417d71dc5a8d11ae50
+ * URL: /pix/payments/{paymentId}
+ * Api git hash: 127e9783733a0d53bde1239a0982644015abe4f1
  */
 
 @ApiName("Payment Initiation Pix By PaymentId")
 public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> STATUS = Sets.newHashSet("PDNG", "PART", "ACSP", "ACSC", "ACCC", "RJCT");
+	public static final Set<String> LOCAL_INSTRUMENTS = Sets.newHashSet("MANU", "DICT", "INIC", "QRDN", "QRES");
+	public static final Set<String> REJECTION_REASON = Sets.newHashSet("ABORTED_SETTLEMENT_TIMEOUT",
+		"ERROR_CREDITOR_AGENT", "TIMEOUT_DEBTOR_AGENT", "INVALID_CREDITOR_ACCOUNT_NUMBER",
+		"BLOCKED_ACCOUNT", "CLOSED_CREDITOR_ACCOUNT_NUMBER", "INVALID_CREDITOR_ACCOUNTTYPE",
+		"TRANSACTION_NOT_SUPPORTED", "NOT_ALLOWED_BOOK_TRANSFER", "FORBIDDEN_RETURN_PAYMENT",
+		"INCORRECT_AGENT", "ZERO_AMOUNT", "NOT_ALLOWED_AMOUNT", "INSUFFICIENT_FUNDS",
+		"WRONG_AMOUNT", "INVALID_AMOUNT", "INVALID_NUMBER_OF_TRANSACTIONS",
+		"INCONSISTENT_WITH_END_CUSTOMER", "INVALID_IDENTIFICATION_CODE",
+		"INVALID_CREDITOR_IDENTIFICATION_CODE", "CREDITOR_IDENTIFIER_INCORRECT",
+		"ELEMENT_CONTENT_FORMALLY_INCORRECT", "ORDER_REJECTED", "NOT_ALLOWED_PAYMENT",
+		"NOT_ALLOWED_ACCOUNT", "USER_NOT_YET_ACTIVATED", "INVALID_CREATION_DATE",
+		"INVALID_CUT_OFF_DATE", "SETTLEMENT_FAILED", "INVALID_PURPOSE", "INVALID_END_TO_END_ID",
+		"INVALID_DEBTOR_CLEARING_SYSTEM_MEMBER_IDENTIFIER",
+		"INVALID_CREDITOR_CLEARING_SYSTEM_MEMBER_IDENTIFIER", "REGULATORY_REASON",
+		"SPECIFIC_SERVICE_OFFERED_BY_CREDITOR_AGENT", "INVALID_BILL", "OPERATION_WINDOW",
+		"INCOMPATIBLE_DATE", "MISMATCH_AMOUNT", "OVER_LIMIT", "INVALID_CONSENT",
+		"DENIED_MULTIPLE_AUTHORISATIONS", "EXPIRED_MULTIPLE_AUTHORISATIONS", "EXPIRED_BILL");
+
 	@Override
 	@PreEnvironment(required = "consent_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -33,24 +51,6 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> status = Sets.newHashSet("PDNG", "PART", "ACSP", "ACSC", "ACCC", "RJCT");
-		Set<String> localInstruments = Sets.newHashSet("MANU", "DICT", "INIC", "QRDN", "QRES");
-		Set<String> rejectionReason = Sets.newHashSet("ABORTED_SETTLEMENT_TIMEOUT",
-			"ERROR_CREDITOR_AGENT", "TIMEOUT_DEBTOR_AGENT", "INVALID_CREDITOR_ACCOUNT_NUMBER",
-			"BLOCKED_ACCOUNT", "CLOSED_CREDITOR_ACCOUNT_NUMBER", "INVALID_CREDITOR_ACCOUNTTYPE",
-			"TRANSACTION_NOT_SUPPORTED", "NOT_ALLOWED_BOOK_TRANSFER", "FORBIDDEN_RETURN_PAYMENT",
-			"INCORRECT_AGENT", "ZERO_AMOUNT", "NOT_ALLOWED_AMOUNT", "INSUFFICIENT_FUNDS",
-			"WRONG_AMOUNT", "INVALID_AMOUNT", "INVALID_NUMBER_OF_TRANSACTIONS",
-			"INCONSISTENT_WITH_END_CUSTOMER", "INVALID_IDENTIFICATION_CODE",
-			"INVALID_CREDITOR_IDENTIFICATION_CODE", "CREDITOR_IDENTIFIER_INCORRECT",
-			"ELEMENT_CONTENT_FORMALLY_INCORRECT", "ORDER_REJECTED", "NOT_ALLOWED_PAYMENT",
-			"NOT_ALLOWED_ACCOUNT", "USER_NOT_YET_ACTIVATED", "INVALID_CREATION_DATE",
-			"INVALID_CUT_OFF_DATE", "SETTLEMENT_FAILED", "INVALID_PURPOSE", "INVALID_END_TO_END_ID",
-			"INVALID_DEBTOR_CLEARING_SYSTEM_MEMBER_IDENTIFIER",
-			"INVALID_CREDITOR_CLEARING_SYSTEM_MEMBER_IDENTIFIER", "REGULATORY_REASON",
-			"SPECIFIC_SERVICE_OFFERED_BY_CREDITOR_AGENT", "INVALID_BILL", "OPERATION_WINDOW",
-			"INCOMPATIBLE_DATE", "MISMATCH_AMOUNT", "OVER_LIMIT", "INVALID_CONSENT",
-			"DENIED_MULTIPLE_AUTHORISATIONS", "EXPIRED_MULTIPLE_AUTHORISATIONS", "EXPIRED_BILL");
 
 		assertField(body,
 			new StringField
@@ -93,8 +93,17 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 
 		assertField(body,
 			new StringField
+				.Builder("ibgeTownCode")
+				.setMinLength(7)
+				.setMaxLength(7)
+				.setPattern("^\\d{7}$")
+				.setOptional()
+				.build());
+
+		assertField(body,
+			new StringField
 				.Builder("status")
-				.setEnums(status)
+				.setEnums(STATUS)
 				.setMaxLength(4)
 				.build());
 
@@ -102,7 +111,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 			new StringField
 				.Builder("rejectionReason")
 				.setMaxLength(50)
-				.setEnums(rejectionReason)
+				.setEnums(REJECTION_REASON)
 				.setOptional()
 				.build());
 
@@ -110,7 +119,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 			new StringField
 				.Builder("localInstrument")
 				.setMaxLength(4)
-				.setEnums(localInstruments)
+				.setEnums(LOCAL_INSTRUMENTS)
 				.setOptional()
 				.build());
 

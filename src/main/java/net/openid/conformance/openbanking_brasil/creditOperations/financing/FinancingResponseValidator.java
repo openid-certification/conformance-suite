@@ -20,6 +20,9 @@ import java.util.Set;
 @ApiName("Financing")
 public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_PRODUCT_TYPE = Sets.newHashSet("FINANCIAMENTOS", "FINANCIAMENTOS_RURAIS", "FINANCIAMENTOS_IMOBILIARIOS");
+	public static final Set<String> ENUM_PRODUCT_SUB_TYPE = Sets.newHashSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES", "AQUISICAO_BENS_OUTROS_BENS", "MICROCREDITO", "CUSTEIO", "INVESTIMENTO", "INDUSTRIALIZACAO", "COMERCIALIZACAO", "FINANCIAMENTO_HABITACIONAL_SFH", "FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -31,8 +34,6 @@ public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumProductType = Sets.newHashSet("FINANCIAMENTOS", "FINANCIAMENTOS_RURAIS", "FINANCIAMENTOS_IMOBILIARIOS");
-		Set<String> enumProductSubType = Sets.newHashSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES", "AQUISICAO_BENS_OUTROS_BENS", "MICROCREDITO", "CUSTEIO", "INVESTIMENTO", "INDUSTRIALIZACAO", "COMERCIALIZACAO", "FINANCIAMENTO_HABITACIONAL_SFH", "FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
 
 		assertField(body,
 			new StringField
@@ -57,14 +58,14 @@ public class FinancingResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("productType")
-				.setEnums(enumProductType)
+				.setEnums(ENUM_PRODUCT_TYPE)
 				.setMaxLength(27)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("productSubType")
-				.setEnums(enumProductSubType)
+				.setEnums(ENUM_PRODUCT_SUB_TYPE)
 				.setMaxLength(37)
 				.build());
 

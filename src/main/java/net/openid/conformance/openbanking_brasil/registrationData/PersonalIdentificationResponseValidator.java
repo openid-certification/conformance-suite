@@ -6,18 +6,37 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * This is validator for API - Dados Cadastrais "Identificação Pessoa Natural"
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-pessoa-natural">Identificação Pessoa Natural</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /personal/identifications
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  **/
 
 @ApiName("Natural Person Identity")
-public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAssertingCondition {
+public class PersonalIdentificationResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ENUM_MARITAL_STATUS_CODE = Set.of("SOLTEIRO", "CASADO",
+		"VIUVO", "SEPARADO_JUDICIALMENTE", "DIVORCIADO", "UNIAO_ESTAVEL", "OUTRO");
+	public static final Set<String> ENUM_SEX = Set.of("FEMININO", "MASCULINO", "OUTRO", "NAO_DISPONIVEL");
+	public static final Set<String> ENUM_PERSONAL_OTHER_DOCUMENT_TYPES = Set.of("CNH", "RG", "NIF", "RNE",
+		"OUTROS", "SEM_OUTROS_DOCUMENTOS");
+	public static final Set<String> ENUM_COUNTRY_SUB_DIVISION = Set.of("AC", "AL", "AP", "AM",
+		"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
+		"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
+	public static final Set<String> ENUM_CUSTOMER_PHONE_TYPE = Set.of("FIXO", "MOVEL", "OUTRO");
+	public static final Set<String> ENUM_AREA_CODES = Set.of("11", "12", "13", "14", "15", "16", "17",
+		"18", "19", "21", "22", "24", "27", "28", "31", "32", "33", "34", "35", "37", "38",
+		"41", "42", "43", "44", "45", "46", "47", "48", "49", "51", "53", "54", "55",
+		"61", "62", "63", "64", "65", "66", "67", "68", "69", "71", "73", "74", "75",
+		"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
+		"93", "94", "95", "96", "97", "98", "99", "NA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -29,9 +48,6 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerFieldsForData(JsonObject body) {
-		final Set<String> enumMaritalStatusCode = Set.of("SOLTEIRO", "CASADO",
-			"VIUVO", "SEPARADO_JUDICIALMENTE", "DIVORCIADO", "UNIAO_ESTAVEL", "OUTRO");
-		final Set<String> enumSex = Set.of("FEMININO", "MASCULINO", "OUTRO", "NAO_DISPONIVEL");
 
 		assertField(body,
 			new StringField
@@ -77,7 +93,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(body,
 			new StringField
 				.Builder("maritalStatusCode")
-				.setEnums(enumMaritalStatusCode)
+				.setEnums(ENUM_MARITAL_STATUS_CODE)
 				.build());
 
 		assertField(body,
@@ -91,7 +107,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(body,
 			new StringField
 				.Builder("sex")
-				.setEnums(enumSex)
+				.setEnums(ENUM_SEX)
 				.build());
 
 		assertField(body,
@@ -107,43 +123,56 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.setNullable()
 				.build());
 
-
-		if (body.has("geographicCoordinates")) {
-			assertGeographicCoordinates(body);
-		}
-
 		assertDocuments(body);
-		assertOtherDocuments(body);
-		assertNationality(body);
+
+		assertField(body,
+			new ObjectArrayField
+				.Builder("otherDocuments")
+				.setValidator(this::assertInnerOtherDocuments)
+				.setMinItems(1)
+				.build());
+
+		assertField(body,
+			new ObjectArrayField
+				.Builder("nationality")
+				.setValidator(this::assertInnerNationalityFields)
+				.build());
+
 		assertFiliation(body);
-		assertContracts(body);
+
+		assertField(body,
+			new ObjectField
+				.Builder("contacts")
+				.setValidator(this::assertContracts)
+				.build());
 	}
 
 	private void assertContracts(JsonObject body) {
-		assertHasField(body, "contacts");
-		assertHasField(body, "contacts.postalAddresses");
-		assertJsonArrays(body, "contacts.postalAddresses", this::assertInnerPostalAddressesFields);
+		assertField(body,
+			new ObjectArrayField
+				.Builder("postalAddresses")
+				.setValidator(this::assertInnerPostalAddressesFields)
+				.setMinItems(1)
+				.build());
 
-		assertHasField(body, "contacts.phones");
-		assertJsonArrays(body, "contacts.phones", this::assertInnerPhonesFields);
+		assertField(body,
+			new ObjectArrayField
+				.Builder("phones")
+				.setValidator(this::assertInnerPhonesFields)
+				.setMinItems(1)
+				.build());
 
-		assertHasField(body, "contacts.emails");
-		assertJsonArrays(body, "contacts.emails", this::assertInnerEmailsFields);
+		assertField(body,
+			new ObjectArrayField
+				.Builder("emails")
+				.setValidator(this::assertInnerEmailsFields)
+				.setMinItems(1)
+				.build());
 	}
 
 	private void assertFiliation(JsonObject body) {
 		assertHasField(body, "filiation");
 		assertJsonArrays(body, "filiation", this::assertInnerFiliationFields);
-	}
-
-	private void assertNationality(JsonObject body) {
-		assertHasField(body, "nationality");
-		assertJsonArrays(body, "nationality", this::assertInnerNationalityFields);
-	}
-
-	private void assertOtherDocuments(JsonObject body) {
-		assertHasField(body, "otherDocuments");
-		assertJsonArrays(body, "otherDocuments", this::assertInnerOtherDocuments);
 	}
 
 	private void assertDocuments(JsonObject body) {
@@ -187,13 +216,11 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerOtherDocuments(JsonObject body) {
-		final Set<String> enumPersonalOtherDocumentTypes = Set.of("CNH", "RG", "NIF", "RNE",
-			"OUTROS", "SEM_OUTROS_DOCUMENTOS");
 
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(enumPersonalOtherDocumentTypes)
+				.setEnums(ENUM_PERSONAL_OTHER_DOCUMENT_TYPES)
 				.build());
 
 		assertField(body,
@@ -219,7 +246,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 
 		assertField(body,
 			new StringField
-				.Builder("checkDigit")
+				.Builder("additionalInfo")
 				.setOptional()
 				.setMaxLength(50)
 				.setPattern("[\\w\\W\\s]*")
@@ -316,9 +343,6 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 	}
 
 	private void assertInnerPostalAddressesFields(JsonObject body) {
-		final Set<String> enumCountrySubDivision =  Set.of("AC", "AL", "AP", "AM",
-			"BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
-			"RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "NA");
 
 		assertField(body, new BooleanField("isMain"));
 
@@ -362,7 +386,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 		assertField(body,
 			new StringField
 				.Builder("countrySubDivision")
-				.setEnums(enumCountrySubDivision)
+				.setEnums(ENUM_COUNTRY_SUB_DIVISION)
 				.build());
 
 		assertField(body,
@@ -386,24 +410,17 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 				.setMaxLength(3)
 				.build());
 
-		assertGeographicCoordinates(body);
+		 assertGeographicCoordinates(body);
 	}
 
 	private void assertInnerPhonesFields(JsonObject body) {
-		final Set<String> enumCustomerPhoneType = Set.of("FIXO", "MOVEL", "OUTRO");
-		final Set<String> enumAreaCodes = Set.of("11", "12", "13", "14", "15", "16", "17",
-			"18", "19", "21", "22", "24", "27", "28", "31", "32", "33", "34", "35", "37", "38",
-			"41", "42", "43", "44", "45", "46", "47", "48", "49", "51", "53", "54", "55",
-			"61", "62", "63", "64", "65", "66", "67", "68", "69", "71", "73", "74", "75",
-			"77", "79", "81", "82", "83", "84", "85", "86", "87", "88", "89", "91", "92",
-			"93", "94", "95", "96", "97", "98", "99", "NA");
 
 		assertField(body, new BooleanField.Builder("isMain").build());
 
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(enumCustomerPhoneType)
+				.setEnums(ENUM_CUSTOMER_PHONE_TYPE)
 				.setMaxLength(5)
 				.build());
 
@@ -426,7 +443,7 @@ public class NaturalPersonIdentificationResponseValidator extends AbstractJsonAs
 			new StringField
 				.Builder("areaCode")
 				.setMaxLength(2)
-				.setEnums(enumAreaCodes)
+				.setEnums(ENUM_AREA_CODES)
 				.build());
 
 		assertField(body,

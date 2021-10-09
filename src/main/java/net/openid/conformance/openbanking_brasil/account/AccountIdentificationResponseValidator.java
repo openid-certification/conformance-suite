@@ -11,12 +11,16 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Contas "Identificação da Conta"
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/#identificacao-da-conta">Identificação da Conta</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /accounts/{accountId}
+ *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
  **/
 
 @ApiName("Account Identification")
 public class AccountIdentificationResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
+	public static final Set<String> ENUM_SUB_TYPE = Sets.newHashSet("INDIVIDUAL", "CONJUNTA_SIMPLES", "CONJUNTA_SOLIDARIA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -30,8 +34,6 @@ public class AccountIdentificationResponseValidator extends AbstractJsonAssertin
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumType = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA");
-		Set<String> enumSubType = Sets.newHashSet("INDIVIDUAL", "CONJUNTA_SIMPLES", "CONJUNTA_SOLIDARIA");
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 
 		assertField(data,
@@ -65,13 +67,14 @@ public class AccountIdentificationResponseValidator extends AbstractJsonAssertin
 		assertField(data,
 			new StringField
 				.Builder("type")
-				.setEnums(enumType)
+				.setEnums(ENUM_TYPE)
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("subtype")
-				.setEnums(enumSubType)
+				.setEnums(ENUM_SUB_TYPE)
+				.setMaxLength(18)
 				.build());
 
 		assertField(data,

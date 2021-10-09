@@ -22,6 +22,9 @@ import java.util.Set;
 @ApiName("Advances")
 public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_PRODUCT_TYPE = Sets.newHashSet("ADIANTAMENTO_A_DEPOSITANTES");
+	public static final Set<String> ENUM_PRODUCT_SUB_TYPE = Sets.newHashSet("ADIANTAMENTO_A_DEPOSITANTES");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -43,8 +46,6 @@ public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInnerFields(JsonObject body) {
-		Set<String> enumProductType = Sets.newHashSet("ADIANTAMENTO_A_DEPOSITANTES");
-		Set<String> enumProductSubType = Sets.newHashSet("ADIANTAMENTO_A_DEPOSITANTES");
 
 		assertField(body,
 			new StringField
@@ -70,14 +71,14 @@ public class AdvancesResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("productType")
-				.setEnums(enumProductType)
+				.setEnums(ENUM_PRODUCT_TYPE)
 				.setMaxLength(27)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("productSubType")
-				.setEnums(enumProductSubType)
+				.setEnums(ENUM_PRODUCT_SUB_TYPE)
 				.build());
 
 		assertField(body,

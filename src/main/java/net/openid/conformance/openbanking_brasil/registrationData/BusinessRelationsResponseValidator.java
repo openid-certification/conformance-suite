@@ -14,12 +14,21 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * This is validator for API-Dados Cadastrais "Relacionamento Pessoa Jurídica"
- * See <a href="https://openbanking-brasil.github.io/areadesenvolvedor/?java#relacionamento-pessoa-natural">Relacionamento Pessoa Jurídica</a>
+ *  * API: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_accounts_apis.yaml
+ *  * URL: /business/financial-relations
+ *  * Api git hash: 152a9f02d94d612b26dbfffb594640f719e96f70
  **/
 
-@ApiName("Corporate Relationship")
-public class CorporateRelationshipResponseValidator extends AbstractJsonAssertingCondition {
+@ApiName("Business Financial-relations")
+public class BusinessRelationsResponseValidator extends AbstractJsonAssertingCondition {
+
+	public static final Set<String> PRODUCT_SERVICE_TYPES = Set.of("CONTA_DEPOSITO_A_VISTA",
+		"CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "CARTAO_CREDITO", "OPERACAO_CREDITO",
+		"SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO",
+		"CREDENCIAMENTO", "OUTROS");
+	public static final Set<String> TYPES = Set.of("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA",
+		"CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
+	public static final Set<String> TYPES1 = Set.of("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_POSSUI");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -33,10 +42,6 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	}
 
 	private void assertData(JsonObject body) {
-		final Set<String> productServiceTypes = Set.of("CONTA_DEPOSITO_A_VISTA",
-			"CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "CARTAO_CREDITO", "OPERACAO_CREDITO",
-			"SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO",
-			"CREDENCIAMENTO", "OUTROS");
 
 		assertField(body, new DatetimeField.Builder("updateDateTime").build());
 		assertField(body, new DatetimeField.Builder("startDate").build());
@@ -46,16 +51,8 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 				.Builder("productsServicesType")
 				.setMinItems(1)
 				.setMaxItems(12)
-				.setEnums(productServiceTypes)
+				.setEnums(PRODUCT_SERVICE_TYPES)
 				.setMaxLength(24)
-				.build());
-
-		assertField(body,
-			new StringField
-				.Builder("productsServicesTypeAdditionalInfo")
-				.setPattern("[\\w\\W\\s]*")
-				.setMaxLength(100)
-				.setOptional()
 				.build());
 
 		assertProcurators(body);
@@ -75,8 +72,6 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	}
 
 	private void assertInnerFieldsForAccounts(JsonObject body) {
-		final Set<String> types = Set.of("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA",
-			"CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
 
 		assertField(body,
 			new StringField
@@ -109,7 +104,7 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 		assertField(body,
 			new StringField
 				.Builder("type")
-				.setEnums(types)
+				.setEnums(TYPES)
 				.build());
 	}
 
@@ -126,13 +121,12 @@ public class CorporateRelationshipResponseValidator extends AbstractJsonAssertin
 	}
 
 	private void assertInnerFieldsForProcurators(JsonObject body) {
-		final Set<String> types = Set.of("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_POSSUI");
 
 		assertField(body,
 			new StringField
 				.Builder("type")
 				.setMaxLength(19)
-				.setEnums(types)
+				.setEnums(TYPES1)
 				.build());
 
 		assertField(body,

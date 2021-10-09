@@ -23,6 +23,9 @@ import java.util.Set;
 @ApiName("Contract Installments")
 public class ContractInstallmentsResponseValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> ENUM_TYPE_NUMBER_OF_INSTALMENTS = Sets.newHashSet("DIA", "SEMANA", "MES", "ANO", "SEM_PRAZO_TOTAL");
+	public static final Set<String> ENUM_TYPE_CONTRACT_REMAINING = Sets.newHashSet("DIA", "SEMANA", "MES", "ANO", "SEM_PRAZO_REMANESCENTE");
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -36,13 +39,11 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 
 	private void assertInnerFields(JsonObject body) {
 		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
-		Set<String> enumTypeNumberOfInstalments = Sets.newHashSet("DIA", "SEMANA", "MES", "ANO", "SEM_PRAZO_TOTAL");
-		Set<String> enumTypeContractRemaining = Sets.newHashSet("DIA", "SEMANA", "MES", "ANO", "SEM_PRAZO_REMANESCENTE");
 
 		assertField(data,
 			new StringField
 				.Builder("typeNumberOfInstalments")
-				.setEnums(enumTypeNumberOfInstalments)
+				.setEnums(ENUM_TYPE_NUMBER_OF_INSTALMENTS)
 				.setMaxLength(15)
 				.build());
 
@@ -56,7 +57,7 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 		assertField(data,
 			new StringField
 				.Builder("typeContractRemaining")
-				.setEnums(enumTypeContractRemaining)
+				.setEnums(ENUM_TYPE_CONTRACT_REMAINING)
 				.setMaxLength(22)
 				.build());
 

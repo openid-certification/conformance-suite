@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.productsNServices.CommonFields;
+import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -19,12 +19,24 @@ import java.util.Set;
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/91e2ff8327cb35eb1ae571c7b2264e6173b34eeb/swagger/swagger_products_services_apis.yaml
  * Api endpoint: /personal-loans
  * Api version: 1.0.2
- * Api git hash: 1ecdb0cc1e9dbe85f3dd1df8b870f2a4b927837d
+ * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
 @ApiName("ProductsNServices Personal Loans")
 public class PersonalLoansValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> TYPES = Sets.newHashSet("EMPRESTIMO_CREDITO_PESSOAL_CONSIGNADO", "EMPRESTIMO_CREDITO_PESSOAL_SEM_CONSIGNACAO", "EMPRESTIMO_HOME_EQUITY", "EMPRESTIMO_MICROCREDITO_PRODUTIVO_ORIENTADO", "EMPRESTIMO_CHEQUE_ESPECIAL", "EMPRESTIMO_CONTA_GARANTIDA");
+	public static final Set<String> REQUIRED_WARRANTIES = Sets.newHashSet("CESSAO_DIREITOS_CREDITORIOS", "CAUCAO",
+		"PENHOR", "ALIENACAO_FIDUCIARIA", "HIPOTECA", "OPERACOES_GARANTIDAS_PELO_GOVERNO", "OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS", "GARANTIA_FIDEJUSSORIA", "BENS_ARRENDADOS", "GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES", "ACORDOS_COMPENSACAO", "NAO_APLICAVEL"
+	);
+	public static final Set<String> RATE_INDEXERS = Sets.newHashSet("SEM_INDEXADOR_TAXA", "PRE_FIXADO",
+		"POS_FIXADO_TR_TBF", "POS_FIXADO_TJLP", "POS_FIXADO_LIBOR", "POS_FIXADO_TLP",
+		"OUTRAS_TAXAS_POS_FIXADAS", "FLUTUANTES_CDI", "FLUTUANTES_SELIC",
+		"OUTRAS_TAXAS_FLUTUANTES", "INDICES_PRECOS_IGPM", "INDICES_PRECOS_IPCA",
+		"INDICES_PRECOS_IPCC", "OUTROS_INDICES_PRECO", "CREDITO_RURAL_TCR_PRE",
+		"CREDITO_RURAL_TCR_POS", "CREDITO_RURAL_TRFC_PRE", "CREDITO_RURAL_TRFC_POS",
+		"OUTROS_INDEXADORES");
+	public static final Set<String> INTERVALS = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 	private final CommonValidatorParts parts;
 
 	public PersonalLoansValidator() {
@@ -68,12 +80,8 @@ public class PersonalLoansValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertPersonalLoans(JsonObject personalLoans) {
-		Set<String> types = Sets.newHashSet("EMPRESTIMO_CREDITO_PESSOAL_CONSIGNADO", "EMPRESTIMO_CREDITO_PESSOAL_SEM_CONSIGNACAO", "EMPRESTIMO_HOME_EQUITY", "EMPRESTIMO_MICROCREDITO_PRODUTIVO_ORIENTADO", "EMPRESTIMO_CHEQUE_ESPECIAL", "EMPRESTIMO_CONTA_GARANTIDA");
-		Set<String> requiredWarranties = Sets.newHashSet("CESSAO_DIREITOS_CREDITORIOS", "CAUCAO",
-			"PENHOR", "ALIENACAO_FIDUCIARIA", "HIPOTECA", "OPERACOES_GARANTIDAS_PELO_GOVERNO", "OUTRAS_GARANTIAS_NAO_FIDEJUSSORIAS", "SEGUROS_ASSEMELHADOS", "GARANTIA_FIDEJUSSORIA", "BENS_ARRENDADOS", "GARANTIAS_INTERNACIONAIS", "OPERACOES_GARANTIDAS_OUTRAS_ENTIDADES", "ACORDOS_COMPENSACAO", "NAO_APLICAVEL"
-		);
 
-		assertField(personalLoans, CommonFields.type(types).build());
+		assertField(personalLoans, CommonFields.type(TYPES).build());
 
 		assertField(personalLoans,
 			new ObjectField
@@ -94,7 +102,7 @@ public class PersonalLoansValidator extends AbstractJsonAssertingCondition {
 				.Builder("requiredWarranties")
 				.setMinItems(1)
 				.setMaxItems(14)
-				.setEnums(requiredWarranties)
+				.setEnums(REQUIRED_WARRANTIES)
 				.build());
 
 		assertField(personalLoans,
@@ -116,18 +124,11 @@ public class PersonalLoansValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertInterestRates(JsonObject interestRates) {
-		Set<String> rateIndexers = Sets.newHashSet("SEM_INDEXADOR_TAXA", "PRE_FIXADO",
-			"POS_FIXADO_TR_TBF", "POS_FIXADO_TJLP", "POS_FIXADO_LIBOR", "POS_FIXADO_TLP",
-			"OUTRAS_TAXAS_POS_FIXADAS", "FLUTUANTES_CDI", "FLUTUANTES_SELIC",
-			"OUTRAS_TAXAS_FLUTUANTES", "INDICES_PRECOS_IGPM", "INDICES_PRECOS_IPCA",
-			"INDICES_PRECOS_IPCC", "OUTROS_INDICES_PRECO", "CREDITO_RURAL_TCR_PRE",
-			"CREDITO_RURAL_TCR_POS", "CREDITO_RURAL_TRFC_PRE", "CREDITO_RURAL_TRFC_POS",
-			"OUTROS_INDEXADORES");
 
 		assertField(interestRates,
 			new StringField
 				.Builder("referentialRateIndexer")
-				.setEnums(rateIndexers)
+				.setEnums(RATE_INDEXERS)
 				.build());
 
 		assertField(interestRates,
@@ -161,12 +162,11 @@ public class PersonalLoansValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertApplications(JsonObject applications) {
-		Set<String> intervals = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 		assertField(applications,
 			new StringField
 				.Builder("interval")
-				.setEnums(intervals)
+				.setEnums(INTERVALS)
 				.build());
 
 
