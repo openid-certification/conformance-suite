@@ -45,20 +45,31 @@ class timestamp_filter:
 
 sys.stdout = timestamp_filter()
 
+# syntax is:
+# test_plan_name[variant=value][variant2=value2]:optional-run-only-module-named-test{optestplan}optestconfig
+# optestplan/config are only used when running the rp tests against the op tests
 def split_name_and_variant(test_plan):
+    module = None
+    op_test = None
+    op_config = None
+    if '{' in test_plan:
+        (test_plan, op_test) = test_plan.split("{", 1)
+        (op_test, op_config) = op_test.split("}", 1)
+    if ':' in test_plan:
+        (test_plan, module) = test_plan.split(":", 1)
     if '[' in test_plan:
         name = re.match(r'^[^\[]*', test_plan).group(0)
         vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
         variant = { v.group(1) : v.group(2) for v in vs }
-        return (name, variant)
+        return (name, variant, module, op_test, op_config)
     elif '(' in test_plan:
         #only for oidcc RP tests
         matches = re.match(r'(.*)\((.*)\)$', test_plan)
         name = matches.group(1)
         oidcc_configfile = matches.group(2)
-        return (name, oidcc_configfile)
+        return (name, oidcc_configfile, module, op_test, op_config)
     else:
-        return (test_plan, None)
+        return (test_plan, None, module, op_test, op_config)
 
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
@@ -184,7 +195,8 @@ def run_test_plan(test_plan, config_file, output_dir):
     start_section(test_plan, "Results", True)
     with open(config_file) as f:
         json_config = f.read()
-    (test_plan_name, variant) = split_name_and_variant(test_plan)
+    json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    (test_plan_name, variant, selected_module, op_plan, op_config) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
         return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
@@ -194,10 +206,17 @@ def run_test_plan(test_plan, config_file, output_dir):
         del variant['brazil_client_scope']
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
-    plan_modules = test_plan_info['modules']
+    if selected_module == None:
+        plan_modules = test_plan_info['modules']
+    else:
+        plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] == selected_module]
+    if len(plan_modules) == 0:
+        raise Exception("No modules to test in " + test_plan_name)
+
     test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
+    plan_results = []
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
@@ -229,7 +248,10 @@ def run_test_plan(test_plan, config_file, output_dir):
             if state == "WAITING":
                 # If it's a client test, we need to run the client.
                 # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
-                if re.match(r'fapi-rw-id2-client-.*', module) or \
+                if op_plan != None:
+                    # the 'client' is our own OP tests
+                    plan_results.extend(run_test_plan(op_plan, op_config, output_dir))
+                elif re.match(r'fapi-rw-id2-client-.*', module) or \
                     re.match(r'fapi1-advanced-final-client-.*', module):
                     print("FAPI client test: " + module + " " + json.dumps(variant))
                     if brazil_client_scope:
@@ -269,7 +291,7 @@ def run_test_plan(test_plan, config_file, output_dir):
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
     end_section(test_plan)
     print('\n\n')
-    return {
+    plan_results.append({
         'test_plan': test_plan,
         'config_file': config_file,
         'plan_id': plan_id,
@@ -277,7 +299,8 @@ def run_test_plan(test_plan, config_file, output_dir):
         'test_info': test_info,
         'test_time_taken': test_time_taken,
         'overall_time': overall_time
-    }
+    })
+    return plan_results
 
 
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
@@ -551,7 +574,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
 
     test_plan = plan_result['test_plan']
     config_filename = plan_result['config_file']
-    (test_plan_name, variant) = split_name_and_variant(test_plan)
+    (test_plan_name, variant, _, _, _) = split_name_and_variant(test_plan)
 
     def is_expected_for_this_test(obj):
         """
@@ -759,7 +782,7 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             print(failure('{} - {}: '.format(test_plan, config_filename)))
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
-            (test_plan_name, variant) = split_name_and_variant(test_plan)
+            (test_plan_name, variant, _, _, _) = split_name_and_variant(test_plan)
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))

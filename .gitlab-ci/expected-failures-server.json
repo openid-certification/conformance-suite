@@ -76,5 +76,52 @@
         "condition": "UserInfoEndpointWithAccessTokenInBodyNotSupported",
         "expected-result": "warning",
         "comment": "Authlete doesn't support POST with access token in body, which is not required"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts.json",
+        "current-block": "Use client_credentials grant to obtain Brazil consent",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "ValidateIdTokenACRClaimAgainstRequest",
+        "expected-result": "failure",
+        "comment": "RP tests currently don't return requested acr values"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ValidateIdTokenACRClaimAgainstRequest",
+        "expected-result": "failure",
+        "comment": "RP tests currently don't return requested acr values"
     }
 ]
