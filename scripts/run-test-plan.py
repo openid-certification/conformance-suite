@@ -189,7 +189,7 @@ def run_test_plan(test_plan, config_file, output_dir):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
         return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
     brazil_client_scope = ''
-    if 'brazil_client_scope' in variant.keys():
+    if variant != None and 'brazil_client_scope' in variant.keys():
         brazil_client_scope = variant['brazil_client_scope']
         del variant['brazil_client_scope']
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
