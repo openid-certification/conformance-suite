@@ -10,8 +10,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "payments-consents-api-bad-payment-type-test",
-	displayName = "Payments Consents API basic test module",
-	summary = "Payments Consents API basic test module",
+	displayName = "Payments Consents API bad payment type module",
+	summary = "Payments Consents API bad payment type module",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

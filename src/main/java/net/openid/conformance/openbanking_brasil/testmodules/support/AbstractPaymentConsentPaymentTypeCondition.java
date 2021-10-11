@@ -8,11 +8,13 @@ public abstract class AbstractPaymentConsentPaymentTypeCondition extends Abstrac
 
 	@Override
 	public final Environment evaluate(Environment env) {
+		log("Setting payment type to a BAD value");
 		JsonObject obj = env.getObject("resource");
 		obj = obj.getAsJsonObject("brazilPaymentConsent");
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj.addProperty("type", getPaymentType());
+		log(obj);
 		return env;
 	}
 
