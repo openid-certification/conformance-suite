@@ -7,9 +7,9 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-bad-payment-type-test",
-	displayName = "Payments Consents API bad payment type module",
-	summary = "Payments Consents API bad payment type module",
+	testName = "payments-api-consent-invalid-person-type",
+	displayName = "Payments API consent test with an invalid person type",
+	summary = "Payments Consents API with an invalid person type",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -22,7 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-public class PaymentsConsentsApiBadPaymentTypeTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
@@ -32,7 +32,7 @@ public class PaymentsConsentsApiBadPaymentTypeTestModule extends AbstractClientC
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
-			callAndStopOnFailure(SelectBADPaymentType.class);
+			callAndStopOnFailure(SelectInvalidPersonType.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 
