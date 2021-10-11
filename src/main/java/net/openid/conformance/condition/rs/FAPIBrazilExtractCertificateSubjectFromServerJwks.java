@@ -35,7 +35,9 @@ public class FAPIBrazilExtractCertificateSubjectFromServerJwks extends AbstractF
 					break;
 				} else {
 					throw error("Signing key must contain a x5c element (a json array) which contains the" +
-						" certificate as the first element", args("key", keyElement));
+						" certificate as the first element. You can use the server jwks from the example configuration provided at " +
+						" https://gitlab.com/openid/conformance-suite/-/wikis/Brazil-RP-Testing-Instructions-and-Example-Configuration.",
+						args("key", keyElement));
 				}
 			}
 		}

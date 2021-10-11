@@ -188,6 +188,10 @@ def run_test_plan(test_plan, config_file, output_dir):
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
         return run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
+    brazil_client_scope = ''
+    if variant != None and 'brazil_client_scope' in variant.keys():
+        brazil_client_scope = variant['brazil_client_scope']
+        del variant['brazil_client_scope']
     test_plan_info = conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     plan_modules = test_plan_info['modules']
@@ -228,6 +232,8 @@ def run_test_plan(test_plan, config_file, output_dir):
                 if re.match(r'fapi-rw-id2-client-.*', module) or \
                     re.match(r'fapi1-advanced-final-client-.*', module):
                     print("FAPI client test: " + module + " " + json.dumps(variant))
+                    if brazil_client_scope:
+                        os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
                     profile = variant['fapi_profile']
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
                     os.environ['FAPI_PROFILE'] = profile
