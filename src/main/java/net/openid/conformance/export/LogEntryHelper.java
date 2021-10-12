@@ -65,8 +65,8 @@ public class LogEntryHelper {
 		specLinks.put("OIDCRIL-", "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.");
 		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
 		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
-		specLinks.put("PAR-", "https://tools.ietf.org/html/draft-ietf-oauth-par#section-");
-		specLinks.put("JAR-", "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-");
+		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
+		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();

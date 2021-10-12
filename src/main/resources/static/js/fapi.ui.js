@@ -462,8 +462,8 @@ var FAPI_UI = {
 			"OIDCRIL-" : "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.",
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
-			"PAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-par#section-",
-			"JAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-"
+			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
+			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},
