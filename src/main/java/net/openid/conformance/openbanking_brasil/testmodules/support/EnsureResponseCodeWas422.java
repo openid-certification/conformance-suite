@@ -8,9 +8,13 @@ public class EnsureResponseCodeWas422 extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String statusAsString = env.getString("resource_endpoint_response_status");
-		if(statusAsString == null) {
-			throw error("Was expecting a response status but none was present");
+		try {
+			String statusAsString = env.getString("resource_endpoint_response_status");
+			if (statusAsString == null) {
+				throw error("Was expecting a response status but none was present");
+			}
+		} catch (Environment.UnexpectedTypeException ignored){
+			//this is to ignore
 		}
 		int status = env.getInteger("resource_endpoint_response_status");
 		if(status != HttpStatus.UNPROCESSABLE_ENTITY.value()) {
