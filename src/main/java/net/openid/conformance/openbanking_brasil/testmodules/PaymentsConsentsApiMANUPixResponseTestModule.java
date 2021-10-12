@@ -41,6 +41,8 @@ public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBras
 		callAndStopOnFailure(SelectMANUCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectMANUCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
+		callAndStopOnFailure(RemoveProxyFromConsentConfig.class);
+		callAndStopOnFailure(RemoveProxyFromPaymentConfig.class);
 	}
 
 	@Override
