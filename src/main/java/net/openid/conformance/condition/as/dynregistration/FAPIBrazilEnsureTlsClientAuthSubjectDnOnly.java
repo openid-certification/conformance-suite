@@ -16,7 +16,6 @@ public class FAPIBrazilEnsureTlsClientAuthSubjectDnOnly extends AbstractConditio
 
 	@Override
 	@PreEnvironment(required = { "dynamic_registration_request"})
-	@PostEnvironment(strings = "registered_tls_client_auth_subject_dn")
 	public Environment evaluate(Environment env) {
 		//tls_client_auth, self_signed_tls_client_auth, private_key_jwt
 		String authMethod = env.getString("dynamic_registration_request", "token_endpoint_auth_method");
