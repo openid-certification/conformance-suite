@@ -2,7 +2,7 @@
     "alias": "obbsb",
     "description": "Raidiam Brazil Mock Bank DCR Example PAYMENTS",
     "server": {
-        "discoveryUrl": "https://localhost.emobix.co.uk:8443/test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
     "client": {
         "scope": "openid payments",
@@ -47,8 +47,8 @@
         "key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCoSQmonqPmuF/Q\nKcnh1D5pXEujj2ojxJWxcmWkgjHCv2l55Knd5sBpHNhmGUbAjz6lXdPTN6druvi6\n9oY4YU73xZMaKhq/ewlmWwI+SKXs/gRGW0PrI1F9FQs6RJqLw/3y27SzvAVlFi50\ncknUjyUMpnz2FX4EF1WfhXdaAqZ1pqWZEFFCCCpX+DUlpntZmu6wWofPSzEgCzf4\nGSvU7hifn3Kv9fek3J1O5h/9lNT8DMLTqOZPfOEB62wnqPrU+DqoHKj/Z7k00EhZ\nDUcMqXncgnAgLdTCehZoWMlaSB7Yi3pOrQKHe3I5Dq3z+yYYucNpelU0RDU9h2AC\nyxOi8XhJAgMBAAECggEBAJWW1w8cdXVRz1mqy9oCYLgnYtUxVpgU1zu1BMUHNlR2\n8bt4l8a4p7DIA1Q+g7YHnxhAH1tRzXDl8tO+7/CODzQQXIKVitFK/UAPBh93VIcm\nBYbE+cq6ymT1n9VbxkUXI1YOFsLuD52b6g94yEg6NiTYmZvl3u6kD2iNq1pHoNBS\nsSGFIPcIELFq3R6MS97qHkDSCHv6OETZjQVvfWXftrHjjpfHZEoyJgApMk8DH32A\nYs1F59zFYdizUEUBYMbO/UfYaZ0iDMTyarcYvDlyw4m3v9Y17MJYDCFHwU+Px/bF\nneC+XlaGBrW7fpQtyTjMzQnHKJ9zD1XZ/TIMnGckj0ECgYEA1Nxjo3CCi80t0XPj\nZpwRy8fgkKSlu3FWc+ra8e6ikJWpif69ZTBPtboTZHPgUga+fmog6Wjemug4NfKd\n4Z1tJvECyk/Gd3oxg1c6Uad485NRaGn+GBWLM2fNOfG263vCi9qo0IVn6HXKLDud\n4LpjVA1YZ6LNf0N/9KiaAtsgVf8CgYEAymP8VGaKS9DE12JFHADd326ymEGgPPIy\nMPeIUiISUFiXwuLDc8sA/HQP5Egm6b/M0xUM2hXhASJlVrluNfAb5fvE7bVGF00U\nineUKCZWJ2HkI5BDjS4AeJTiB9FlJz2B5cbtxTdsNi6xMAVewkfz1Y/uzURIK7UV\nd9CNG82CAbcCgYBjg5F1hJETqN3l0Scb/pT3Tz+2f7MXubnwQXkQqD8KF14GrLiA\nySBK1m5ghSf3UT3XvegbFzMS+sPkvMOBCedQ0FY8nSUtEEx7mdki+Ye7YEEr7nmj\natcENmAk2dNprhda6OQJcIUOkZruKQT7Xkg3sHGHKf6mo7j7eaNe+HDaowKBgGz0\nULXbEd5owF83Dv9ZVBhhjpG62pmUxQJpb6DPqM5KM0D+NLxUb+54SMnbMd+qmoiU\nD3wkRSIIM0fxwWwWG96+oDBb4yTOIR297CuFH+JJp7ihhEwvlJ9Vfy04Q91RFmnt\norkF8iJlFoxEh9PNSm4Q8zzb4oJtFOaQhjaOdsuXAoGBAITXGjnzPjZwc4hPw2zm\nz+NinOokIfgp9ZC/TDI0ciS/S9ufUi7tyZQdOcoI5vfaRxromnAEsOh5w7akKpAc\n77PkBqfOFBSWNg7VGfuEfzcxHkFghOpqz/HLNwGfmwg26/RQby1vPrEdajwCHuB9\nhH4trXJ+siF/lb0Ux3id2h6m\n-----END PRIVATE KEY-----"
     },
     "resource": {
-        "resourceUrl": "https://localhost.emobix.co.uk:8443/test-mtls/a/oidf-fapi-rp-test/payments/v1/pix/payments",
-        "consentUrl": "https://localhost.emobix.co.uk:8443/test-mtls/a/oidf-fapi-rp-test/payments/v1/consents",
+        "resourceUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/payments/v1/pix/payments",
+        "consentUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/payments/v1/consents",
         "brazilCpf": "48847377765",
         "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
         "brazilPaymentConsent": {
