@@ -139,7 +139,9 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		consentResponse.addProperty("aud", env.getString("client_certificate_subject", "ou"));
 		consentResponse.addProperty("iat", Instant.now().getEpochSecond());
 		consentResponse.addProperty("jti", UUID.randomUUID().toString());
-		consentResponse.addProperty("iss", env.getString("rs_certificate_subject", "ou"));
+		// as this certificate is an organization level one, the uid contains the org it, we store the uid into the
+		// now confusingly named 'brazil_software_id'.
+		consentResponse.addProperty("iss", env.getString("rs_certificate_subject", "brazil_software_id"));
 
 		env.putObject("consent_response", consentResponse);
 

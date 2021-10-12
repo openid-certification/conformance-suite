@@ -15,7 +15,7 @@ public class FAPIBrazilRegisterClient extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("dynamic_registration_request");
 		client.remove("software_statement");
-		String randomStr = RFC6749AppendixASyntaxUtils.generateVSChar(15, 5, 5);
+		String randomStr = RFC6749AppendixASyntaxUtils.generateVSChar(20, 5, 0);
 		client.addProperty("client_id", "client_" + randomStr);
 		//Copy certificate from configuration
 		client.addProperty("certificate", env.getString("config", "client.certificate"));

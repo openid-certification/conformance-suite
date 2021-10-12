@@ -56,7 +56,9 @@ Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, a
 		response.addProperty("aud", env.getString("client_certificate_subject", "ou"));
 		response.addProperty("iat", Instant.now().getEpochSecond());
 		response.addProperty("jti", UUID.randomUUID().toString());
-		response.addProperty("iss", env.getString("rs_certificate_subject", "ou"));
+		// as this certificate is an organization level one, the uid contains the org it, we store the uid into the
+		// now confusingly named 'brazil_software_id'.
+		response.addProperty("iss", env.getString("rs_certificate_subject", "brazil_software_id"));
 
 		env.putObject("payment_initiation_response", response);
 
