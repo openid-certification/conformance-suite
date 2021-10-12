@@ -136,7 +136,7 @@
     {
         "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
         "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-*.json",
         "current-block": "Use client_credentials grant to obtain Brazil consent",
         "condition": "ExtractExpiresInFromTokenEndpointResponse",
         "expected-result": "warning",
@@ -145,7 +145,7 @@
     {
         "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
         "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-*.json",
         "current-block": "Verify token endpoint response",
         "condition": "ExtractExpiresInFromTokenEndpointResponse",
         "expected-result": "warning",
