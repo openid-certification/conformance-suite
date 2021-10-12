@@ -209,7 +209,7 @@ def run_test_plan(test_plan, config_file, output_dir):
     if selected_module == None:
         plan_modules = test_plan_info['modules']
     else:
-        plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] == selected_module]
+        plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) == selected_module]
     if len(plan_modules) == 0:
         raise Exception("No modules to test in " + test_plan_name)
 
