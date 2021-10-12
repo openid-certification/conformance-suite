@@ -1,5 +1,5 @@
 {
-    "alias": "oidf-fapi-op-test",
+    "alias": "obbsb",
     "description": "Raidiam Brazil Mock Bank Example (mtls client auth)",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
@@ -74,7 +74,7 @@
             "tasks": [
                 {
                     "task": "Verify Complete",
-                    "match": "https://*/test/a/oidf-fapi-op-test/callback*",
+                    "match": "https://*/test/a/obbsb/callback*",
                     "commands": [
                         [
                             "wait",
