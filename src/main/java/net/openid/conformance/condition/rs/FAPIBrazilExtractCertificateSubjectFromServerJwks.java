@@ -44,7 +44,7 @@ public class FAPIBrazilExtractCertificateSubjectFromServerJwks extends AbstractF
 
 		if (Strings.isNullOrEmpty(certString)) {
 			throw error("Couldn't find organization signing certificate in server jwks. Server jwks must contain the organization certificate. " +
-				"Please use the server jwks provided in example configration.");
+				"Please use the server jwks provided in example configuration.");
 		}
 
 		JsonObject certificateSubject = extractSubject(certString, "Server jwks must contain a BRCAC profile certificate where the subjectdn contains a UID");
