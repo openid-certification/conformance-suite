@@ -5,6 +5,8 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.ConsentHasExpiredInsteadOfBeenRejected;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -57,6 +59,9 @@ public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctio
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
 		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
+
+		callAndStopOnFailure(ConsentHasExpiredInsteadOfBeenRejected.class);
+		callAndStopOnFailure(ChuckWarning.class);
 
 		fireTestFinished();
 	}
