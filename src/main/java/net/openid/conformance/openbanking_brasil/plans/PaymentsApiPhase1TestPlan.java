@@ -5,6 +5,7 @@ import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiBa
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiFapiTesting;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsConsentsApiInvalidTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsConsumedConsentsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -24,6 +25,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 				List.of(
 					PaymentsApiTestModule.class,
 					PaymentsConsentsApiTestModule.class,
+					PaymentsConsumedConsentsTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
 					PaymentsConsentsApiMANUPixResponseTestModule.class,
 					PaymentsConsentsApiEnforceDICTTestModule.class,
