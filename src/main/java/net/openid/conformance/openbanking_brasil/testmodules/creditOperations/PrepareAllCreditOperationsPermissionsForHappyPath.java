@@ -21,14 +21,16 @@ public class PrepareAllCreditOperationsPermissionsForHappyPath  extends Abstract
 			"INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ",
 			"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ",
 			"RESOURCES_READ"};
+		/*
 		JsonObject consentPermission = env.getObject("consent_endpoint_request");
 		JsonArray permissionArray = new JsonArray();
 		for(String permission : permissions){
 			permissionArray.add(permission);
 		}
 		consentPermission.getAsJsonObject("data").add("permissions", permissionArray);
+		*/
 		env.putString("consent_permissions", String.join(" ", permissions));
-		log(consentPermission);
+		//log(consentPermission);
 		logSuccess("Set all permissions for credit operations", args("permissions", permissions));
 		return env;
 	}
