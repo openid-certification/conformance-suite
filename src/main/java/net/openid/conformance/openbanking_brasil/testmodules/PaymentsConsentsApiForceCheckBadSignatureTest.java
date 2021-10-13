@@ -11,7 +11,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 	import java.util.Random;
 
 @PublishTestModule(
-	testName = "payments-consents-bad-signature-force-test",
+	testName = "payments-consents-force-check-signature-test",
 	displayName = "Payments Consents API basic test module ",
 	summary = "Payments Consents API basic test module",
 	profile = OBBProfile.OBB_PROFILE,
@@ -26,7 +26,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 		"resource.brazilCpf"
 	}
 )
-public class PaymentsApiSignatureTest extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
