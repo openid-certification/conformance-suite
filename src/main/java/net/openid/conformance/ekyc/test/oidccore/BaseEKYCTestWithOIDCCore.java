@@ -4,21 +4,27 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.condition.client._SetRedirectUriToYesComTestClientRedirectUri;
-import net.openid.conformance.condition.client.ekyc.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.ekyc.AddUnverifiedClaimsToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.ekyc.ValidateVerifiedClaimsInIdToken;
-import net.openid.conformance.condition.client.ekyc.ValidateVerifiedClaimsResponseAgainstSchema;
-import net.openid.conformance.condition.client.ekyc.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.ekyc.ExtractVerifiedClaimsFromIdToken;
-import net.openid.conformance.condition.client.ekyc.ExtractVerifiedClaimsFromUserinfoResponse;
-import net.openid.conformance.condition.client.ekyc.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
-import net.openid.conformance.condition.client.ekyc.ValidateEvidenceSupportedInServerConfiguration;
-import net.openid.conformance.condition.client.ekyc.ValidateIdDocumentsSupportedInServerConfiguration;
-import net.openid.conformance.condition.client.ekyc.ValidateIdDocumentsVerificationMethodsSupportedInServerConfiguration;
-import net.openid.conformance.condition.client.ekyc.EnsureVerifiedClaimsSupportedParameterIsTrue;
-import net.openid.conformance.condition.client.ekyc.ValidateTrustFrameworksSupportedInServerConfiguration;
-import net.openid.conformance.condition.client.ekyc.ValidateVerifiedClaimsInUserinfoResponse;
+import net.openid.conformance.ekyc.condition.client.ValidateAttachmentsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDigestAlgorithmsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDocumentsMethodsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateElectronicRecordsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstOPMetadata;
+import net.openid.conformance.ekyc.condition.client._SetRedirectUriToYesComTestClientRedirectUri;
+import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest;
+import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
+import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
+import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromIdToken;
+import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromUserinfoResponse;
+import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateEvidenceSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDocumentsVerificationMethodsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupportedParameterIsTrue;
+import net.openid.conformance.ekyc.condition.client.ValidateTrustFrameworksSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
 import net.openid.conformance.openid.OIDCCServerTest;
 
 public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
@@ -29,49 +35,78 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 		validateEKYCSpecificServerConfiguration();
 	}
 	protected void validateEKYCSpecificServerConfiguration() {
-		//IA-8, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-8");
+		//IA-9, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-9");
 		//verified_claims_supported: Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension.
 		//Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension
 		//TODO I assumed this must always be true for eKYC tests. Please confirm
 		callAndContinueOnFailure(EnsureVerifiedClaimsSupportedParameterIsTrue.class, Condition.ConditionResult.FAILURE, "IA-8");
 
-		//TODO clarify validation requirements for the following. e.g are null values allowed, what are allowed/disallowed values etc
 		//trust_frameworks_supported: JSON array containing all supported trust frameworks.
 		validateTrustFrameworksSupportedInServerConfiguration();
 
 		//evidence_supported: JSON array containing all types of identity evidence the OP uses.
 		validateEvidenceSupportedInServerConfiguration();
 
-		//id_documents_supported: JSON array containing all identity documents utilized by the OP for identity verification.
-		validateIdDocumentsSupportedInServerConfiguration();
+		//documents_supported: JSON array containing all identity documents utilized by the OP for identity verification.
+		validateDocumentsSupportedInServerConfiguration();
 
-		//id_documents_verification_methods_supported: JSON array containing the ID document verification methods the OP supports as defined in Section 5.1.
-		validateIdDocumentsVerificationMethodsSupportedInServerConfiguration();
+		//documents_methods_supported: OPTIONAL. JSON array containing the validation & verification process the
+		// OP supports (see @!predefined_values).
+		validateDocumentsMethodsSupportedInServerConfiguration();
+
+		validateDocumentsValidationMethodsSupportedInServerConfiguration();
+
+		validateDocumentsVerificationMethodsSupportedInServerConfiguration();
+
+		validateElectronicRecordsSupportedInServerConfiguration();
 
 		//claims_in_verified_claims_supported: JSON array containing all claims supported within verified_claims.
 		validateClaimsInVerifiedClaimsSupported();
 
+		validateAttachmentsSupportedInServerConfiguration();
+
+		validateDigestAlgorithmsSupportedInServerConfiguration();
 	}
 
 	protected void validateTrustFrameworksSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8", "IA-5.1");
+		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	protected void validateEvidenceSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8", "IA-5.1");
+		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
-	protected void validateIdDocumentsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateIdDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8", "IA-5.1");
+	protected void validateDocumentsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
-	protected void validateIdDocumentsVerificationMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateIdDocumentsVerificationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8", "IA-5.1");
+	protected void validateDocumentsMethodsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDocumentsMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateDocumentsValidationMethodsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDocumentsValidationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateDocumentsVerificationMethodsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDocumentsVerificationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateElectronicRecordsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	protected void validateClaimsInVerifiedClaimsSupported() {
-		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
+		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateAttachmentsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateAttachmentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateDigestAlgorithmsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDigestAlgorithmsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	@Override
@@ -95,13 +130,25 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	@Override
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
-		callAndContinueOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
-		validateVerifiedClaimsResponse();
-		callAndContinueOnFailure(ValidateVerifiedClaimsInIdToken.class, Condition.ConditionResult.FAILURE, "IA-6");
-
+		processVerifiedClaimsInIdToken();
 	}
 
-	protected void validateVerifiedClaimsResponse() {
+	protected void processVerifiedClaimsInIdToken() {
+		callAndContinueOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
+		validateVerifiedClaimsResponseSchema();
+		ensureReturnedVerifiedClaimsMatchOPMetadata();
+		validateIdTokenVerifiedClaimsAgainstRequested();
+	}
+
+	protected void validateIdTokenVerifiedClaimsAgainstRequested() {
+		callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
+	}
+
+	protected void ensureReturnedVerifiedClaimsMatchOPMetadata() {
+		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+	}
+
+	protected void validateVerifiedClaimsResponseSchema() {
 		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstSchema.class, Condition.ConditionResult.FAILURE, "IA-6");
 	}
 
@@ -109,12 +156,20 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		callAndContinueOnFailure(ExtractVerifiedClaimsFromUserinfoResponse.class, Condition.ConditionResult.FAILURE, "IA-5");
-		validateVerifiedClaimsResponse();
-		callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoResponse.class, Condition.ConditionResult.FAILURE, "IA-6");
+		processVerifiedClaimsInUserinfo();
 		eventLog.endBlock();
 	}
 
+	protected void processVerifiedClaimsInUserinfo() {
+		callAndContinueOnFailure(ExtractVerifiedClaimsFromUserinfoResponse.class, Condition.ConditionResult.FAILURE, "IA-5");
+		validateVerifiedClaimsResponseSchema();
+		ensureReturnedVerifiedClaimsMatchOPMetadata();
+		validateUserinfoVerifiedClaimsAgainstRequested();
+	}
+
+	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
+		callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoResponseAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
+	}
 	protected void validateIdDocument() {
 		//5.1.1.1. id_document
 		//type: REQUIRED. Value MUST be set to "id_document".
