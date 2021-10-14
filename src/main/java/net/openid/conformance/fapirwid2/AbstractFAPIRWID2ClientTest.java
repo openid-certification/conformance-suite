@@ -50,6 +50,7 @@ import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponse
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
+import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
@@ -419,6 +420,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 
 		callAndStopOnFailure(ExtractRequestObject.class, "FAPI-RW-5.2.2-10");
+		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
