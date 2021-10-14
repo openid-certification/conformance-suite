@@ -1,6 +1,14 @@
 package net.openid.conformance.ekyc.plan;
 
 import net.openid.conformance.ekyc.test.oidccore.EKYCHappyPathTest;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimUnknownToTheOP;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimWithRandomValueMustBeOmitted;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimWithSpecialCharsUnknownToTheOP;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestEssentialClaimUnknownToTheOP;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestVerifiedClaimsOnlyInIdToken;
+import net.openid.conformance.ekyc.test.oidccore.EKYCRequestVerifiedClaimsOnlyInUserinfo;
+import net.openid.conformance.ekyc.test.oidccore.EKYCTestWithUserProvidedRequest;
+import net.openid.conformance.ekyc.test.oidccore.EKYCTooLongPurposeLeadsToInvalidRequestResponse;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -10,7 +18,17 @@ import net.openid.conformance.plan.TestPlan;
 	displayName = "eKYC using OpenID Connect core",
 	profile = TestPlan.ProfileNames.ekyctest,
 	testModules = {
-		EKYCHappyPathTest.class
+		EKYCHappyPathTest.class,
+		EKYCRequestClaimUnknownToTheOP.class,
+		EKYCRequestEssentialClaimUnknownToTheOP.class,
+		EKYCRequestClaimWithSpecialCharsUnknownToTheOP.class,
+		EKYCRequestClaimWithRandomValueMustBeOmitted.class,
+		EKYCTooLongPurposeLeadsToInvalidRequestResponse.class,
+		EKYCRequestVerifiedClaimsOnlyInIdToken.class,
+		EKYCRequestVerifiedClaimsOnlyInUserinfo.class,
+		EKYCTestWithUserProvidedRequest.class
+		//TODO how to test max_age? how can the following in Yes.com tests can be implemented?
+		// Test: Check if max_age is evaluated correctly. Note: max_age is chosen 1000 years in the future and should not limit the result. Expected result: All Claims are being delivered as listed in the request.
 	}
 )
 public class EKYCWithOIDCCoreTestPlan implements TestPlan {
