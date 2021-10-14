@@ -6,6 +6,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestMod
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class ResourcesApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+					PreFlightCertCheckModule.class,
 					ResourcesApiTestModule.class,
 					ResourcesApiTestModuleCorrect404.class
 					//ResourcesApiTestModuleNoResources.class, // With the new resource groups, an empty resource request no longer makes any sense.

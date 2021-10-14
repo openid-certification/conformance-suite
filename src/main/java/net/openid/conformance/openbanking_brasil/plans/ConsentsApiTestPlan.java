@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiBadScopeTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiNegativeTests;
@@ -23,11 +24,13 @@ import java.util.List;
 	displayName = PlanNames.CONSENTS_API_NAME,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant consents API"
 )
+
 public class ConsentsApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+					PreFlightCertCheckModule.class,
 					ConsentApiTestModule.class,
 					//ConsentApiBadScopeTestModule.class,
 					ConsentApiNegativeTests.class,
@@ -43,5 +46,4 @@ public class ConsentsApiTestPlan implements TestPlan {
 			)
 		);
 	}
-
 }
