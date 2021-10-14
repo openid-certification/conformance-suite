@@ -2,6 +2,7 @@
 
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+	import net.openid.conformance.condition.Condition;
 	import net.openid.conformance.condition.client.*;
 	import net.openid.conformance.openbanking_brasil.OBBProfile;
 	import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -47,10 +48,31 @@ public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClien
 		}
 
 		eventLog.startBlock("Trying a badly signed payment consent request");
-		call(new SignedPaymentConsentSequence()
-			.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs400.class))
-			.insertAfter(FAPIBrazilSignPaymentConsentRequest.class, condition(InvalidateConsentEndpointRequestSignature.class))
-		);
+		makeBadlySignedPaymentConsentRequest();
 
+	}
+
+	protected void makeBadlySignedPaymentConsentRequest(){
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateIdempotencyKey.class);
+		callAndStopOnFailure(AddIdempotencyKeyHeader.class);
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
+		call(exec().mapKey("request_object_claims", "consent_endpoint_request"));
+		callAndStopOnFailure(AddAudAsPaymentConsentUriToRequestObject.class, "BrazilOB-6.1");
+		callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
+		callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+		call(exec().unmapKey("request_object_claims"));
+		callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
+		callAndStopOnFailure(InvalidateConsentEndpointRequestSignature.class);
+		callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureConsentHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		call(exec().mapKey("server", "org_server"));
+		call(exec().mapKey("server_jwks", "org_server_jwks"));
+		callAndStopOnFailure(FetchServerKeys.class);
+		call(exec().unmapKey("server"));
+		call(exec().unmapKey("server_jwks"));
 	}
 }
