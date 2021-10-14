@@ -43,7 +43,7 @@ public class PaymentsConsentsApiEnforceQRESTestModule extends AbstractClientCred
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 
 			call(sequence(PaymentConsentErrorTestingSequence.class));
-			callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class);
+			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
 
 		});
 	}
