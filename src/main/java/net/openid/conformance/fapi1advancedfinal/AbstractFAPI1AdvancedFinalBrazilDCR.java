@@ -12,9 +12,13 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
+import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
+import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
+import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
@@ -161,11 +165,24 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+
 		// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
 		callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
 
 		eventLog.endBlock();
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		eventLog.startBlock("Call client configuration endpoint");
+
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+
+		super.onPostAuthorizationFlowComplete();
 	}
 
 	public void unregisterClient1() {
