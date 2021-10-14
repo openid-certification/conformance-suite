@@ -24,6 +24,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					PaymentsApiTestModule.class,
+					PaymentsApiNegativeTestModule.class,
 					PaymentsConsentsApiTestModule.class,
 					PaymentsConsumedConsentsTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
