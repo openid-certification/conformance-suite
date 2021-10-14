@@ -41,7 +41,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
 					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class,
-					PaymentsApiSignatureTest.class,
+					PaymentsConsentsApiForceCheckBadSignatureTest.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
 					PaymentsApiInvalidCnpjTestModule.class,
 					PaymentsConsentsApiInvalidTestModule.class
