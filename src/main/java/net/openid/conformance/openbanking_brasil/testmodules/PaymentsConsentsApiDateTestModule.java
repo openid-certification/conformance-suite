@@ -9,9 +9,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 
 @PublishTestModule(
-	testName = "payments-consents-api-bad-payment-date-test",
-	displayName = "Payments Consents API bad payment Date module",
-	summary = "Payments Consents API bad payment Date module",
+	testName = "payments-consents-api-payment-date-test",
+	displayName = "Payments Consents API payment Date module",
+	summary = "Payments Consents API payment Date module",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
