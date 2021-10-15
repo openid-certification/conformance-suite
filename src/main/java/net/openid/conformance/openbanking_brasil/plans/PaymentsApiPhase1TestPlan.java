@@ -39,6 +39,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsConsentsApiPhoneNumberProxyTestModule.class,
 					PaymentsConsentsApiIncorrectCPFProxyTestModule.class,
 					PaymentsConsentsApiBadPaymentTypeTestModule.class,
+					PaymentsConsentsApiDateTestModule.class,
 					PaymentsConsentsInvalidPersonTypeTestModule.class,
 					PaymentsConsentsReuseJtiTestModule.class,
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
@@ -47,8 +48,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsConsentsApiForceCheckBadSignatureTest.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
 					PaymentsApiInvalidCnpjTestModule.class,
-					PaymentsConsentsApiInvalidTestModule.class,
-					PaymentsConsentsApiPastDateTestModule.class
+					PaymentsConsentsApiInvalidTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
