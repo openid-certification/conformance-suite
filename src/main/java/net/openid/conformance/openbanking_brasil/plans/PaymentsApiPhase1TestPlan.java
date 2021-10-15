@@ -35,7 +35,8 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsConsentsApiEmailAddressProxyTestModule.class,
 					PaymentsConsentsApiPhoneNumberProxyTestModule.class,
 					PaymentsConsentsApiIncorrectCPFProxyTestModule.class,
-					PaymentsConsentsApiBadPaymentTypeTestModule.class,
+					PaymentsConsentsApiBadPaymentTypeTestModule.class,//THIS MINE
+					PaymentsConsentsApiBadDateTestModule.class,
 					PaymentsConsentsInvalidPersonTypeTestModule.class,
 					PaymentsConsentsReuseJtiTestModule.class,
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
