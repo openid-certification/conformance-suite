@@ -17,15 +17,16 @@ public class AddUserProvidedClaimsRequestToAuthorizationEndpointRequest extends 
 	@PreEnvironment(required = {"server", "config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		//TODO Making this a string as a workaround until we can figure out why object properties with null values get lost
 		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request");
-		String claimsStr = OIDFJSON.getString(userProvidedClaimsRequest);
-		JsonObject claims = new JsonParser().parse(claimsStr).getAsJsonObject();
+		if(userProvidedClaimsRequest==null){
+			throw error("User provided verified claims request is not set in configuration");
+		}
+		JsonObject claims = userProvidedClaimsRequest.getAsJsonObject();
 		JsonObject authzEndpointRequest = env.getObject("authorization_endpoint_request");
 		authzEndpointRequest.add("claims", claims);
 		logSuccess("Added user provided claims request to authorization request",
 			args("authorization_endpoint_request",
-				env.getObject("authorization_endpoint_request").toString()));
+				env.getObject("authorization_endpoint_request")));
 		return env;
 	}
 

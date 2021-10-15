@@ -27,31 +27,19 @@ public class EKYCTestWithUserProvidedRequest extends BaseEKYCTestWithOIDCCore {
 
 	@Override
 	protected void processVerifiedClaimsInIdToken() {
-		//TODO workaround until we figure out why object properties with null values get lost
-		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request");
-		String claimsStr = OIDFJSON.getString(userProvidedClaimsRequest);
-		JsonObject claims = new JsonParser().parse(claimsStr).getAsJsonObject();
-		if(claims.has("id_token")) {
-			JsonObject idToken = claims.get("id_token").getAsJsonObject();
-			if (idToken.has("verified_claims")) {
-				//otherwise there won't be anything to process and will throw an error
-				super.processVerifiedClaimsInIdToken();
-			}
+		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request.id_token.verified_claims");
+		if (userProvidedClaimsRequest!=null) {
+			//otherwise there won't be anything to process and will throw an error
+			super.processVerifiedClaimsInIdToken();
 		}
 	}
 
 	@Override
 	protected void processVerifiedClaimsInUserinfo() {
-		//TODO workaround until we figure out why object properties with null values get lost
-		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request");
-		String claimsStr = OIDFJSON.getString(userProvidedClaimsRequest);
-		JsonObject claims = new JsonParser().parse(claimsStr).getAsJsonObject();
-		if(claims.has("id_token")) {
-			JsonObject idToken = claims.get("id_token").getAsJsonObject();
-			if (idToken.has("verified_claims")) {
-				//otherwise there won't be anything to process and will throw an error
-				super.processVerifiedClaimsInUserinfo();
-			}
+		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request.userinfo.verified_claims");
+		if (userProvidedClaimsRequest!=null) {
+			//otherwise there won't be anything to process and will throw an error
+			super.processVerifiedClaimsInUserinfo();
 		}
 	}
 }

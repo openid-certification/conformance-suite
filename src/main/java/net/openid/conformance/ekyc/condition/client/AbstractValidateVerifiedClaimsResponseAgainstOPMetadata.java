@@ -3,40 +3,25 @@ package net.openid.conformance.ekyc.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
-public class ValidateVerifiedClaimsResponseAgainstOPMetadata extends AbstractCondition {
-	@Override
-	@PreEnvironment(required = {"verified_claims_response", "server"})
-	public Environment evaluate(Environment env) {
+public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata extends AbstractCondition {
+
+	protected Environment validate(Environment env, String location) {
 		JsonObject verifiedClaimsResponse = env.getObject("verified_claims_response");
 		JsonElement claimsElement = null;
-		String location = "";
-		//TODO I assumed id_token will be processed before userinfo so if we have userinfo then just process it
-		// otherwise process id_token
-		if(verifiedClaimsResponse.has("userinfo")) {
-			claimsElement = verifiedClaimsResponse.get("userinfo");
-			location = "userinfo";
-		} else {
-			claimsElement = verifiedClaimsResponse.get("id_token");
-			location = "id_token";
+
+		if(verifiedClaimsResponse.has(location)) {
+			claimsElement = verifiedClaimsResponse.get(location);
 		}
 		if(claimsElement==null) {
-			throw error("Could not find verified_claims");
+			throw error("Could not find verified_claims in " + location);
 		}
 		JsonObject opMetadata = env.getObject("server");
-		//we add the outer {"verified_claims":...} here
-		//trust_frameworks_supported
+
 		if(claimsElement.isJsonArray()) {
 			for(JsonElement element : claimsElement.getAsJsonArray()) {
 				validateVerifiedClaimsObject(element.getAsJsonObject(), opMetadata);
@@ -96,7 +81,12 @@ public class ValidateVerifiedClaimsResponseAgainstOPMetadata extends AbstractCon
 			// JSON array containing all identity document types utilized by the OP for identity verification.
 			if (evidenceSupported.contains(new JsonPrimitive("document")) || evidenceSupported.contains(new JsonPrimitive("id_document")))
 			{
-				JsonArray documentsSupported = opMetadata.get("documents_supported").getAsJsonArray();
+				JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
+				if(documentsSupportedElement==null) {
+					throw error("documents_supported is REQUIRED when evidence_supported contains document or id_document " +
+						"but documents_supported could not be found in OP metadata");
+				}
+				JsonArray documentsSupported = documentsSupportedElement.getAsJsonArray();
 				for (JsonElement evidenceElement : evidences)
 				{
 					JsonObject evidence = evidenceElement.getAsJsonObject();

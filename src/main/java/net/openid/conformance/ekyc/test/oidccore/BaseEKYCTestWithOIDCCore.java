@@ -9,7 +9,8 @@ import net.openid.conformance.ekyc.condition.client.ValidateDigestAlgorithmsSupp
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateElectronicRecordsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstOPMetadata;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstOPMetadata;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoAgainstOPMetadata;
 import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
@@ -134,7 +135,7 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	protected void processVerifiedClaimsInIdToken() {
 		callAndContinueOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
 		validateVerifiedClaimsResponseSchema();
-		ensureReturnedVerifiedClaimsMatchOPMetadata();
+		ensureReturnedVerifiedClaimsMatchOPMetadata(false);
 		validateIdTokenVerifiedClaimsAgainstRequested();
 	}
 
@@ -142,8 +143,12 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 		callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
 	}
 
-	protected void ensureReturnedVerifiedClaimsMatchOPMetadata() {
-		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+	protected void ensureReturnedVerifiedClaimsMatchOPMetadata(boolean isUserinfo) {
+		if(isUserinfo){
+			callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+		} else {
+			callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+		}
 	}
 
 	protected void validateVerifiedClaimsResponseSchema() {
@@ -161,7 +166,7 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	protected void processVerifiedClaimsInUserinfo() {
 		callAndContinueOnFailure(ExtractVerifiedClaimsFromUserinfoResponse.class, Condition.ConditionResult.FAILURE, "IA-5");
 		validateVerifiedClaimsResponseSchema();
-		ensureReturnedVerifiedClaimsMatchOPMetadata();
+		ensureReturnedVerifiedClaimsMatchOPMetadata(true);
 		validateUserinfoVerifiedClaimsAgainstRequested();
 	}
 
