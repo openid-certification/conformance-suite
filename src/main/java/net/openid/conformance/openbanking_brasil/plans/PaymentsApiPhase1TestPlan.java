@@ -44,7 +44,8 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsApiSignatureTest.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
 					PaymentsApiInvalidCnpjTestModule.class,
-					PaymentsConsentsApiInvalidTestModule.class
+					PaymentsConsentsApiInvalidTestModule.class,
+					PaymentsConsentsApiPastDateTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

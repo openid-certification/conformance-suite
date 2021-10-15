@@ -39,5 +39,4 @@ public class SignedPaymentConsentSequence extends AbstractConditionSequence {
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("endpoint_response_jwt"));
 	}
-
 }
