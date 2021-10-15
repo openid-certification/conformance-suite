@@ -27,6 +27,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PreFlightCertCheckModule.class,
 					PaymentsApiTestModule.class,
 					PaymentsApiNegativeTestModule.class,
+					PaymentApiNoDebtorProvidedTestModule.class,
 					PaymentsConsentsApiTestModule.class,
 					PaymentsConsumedConsentsTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
