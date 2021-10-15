@@ -1,6 +1,7 @@
 package net.openid.conformance.info;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
 import net.openid.conformance.variant.VariantSelection;
@@ -84,7 +85,7 @@ public class Plan {
 		this._id = id;
 		this.planName = planName;
 		this.variant = variant;
-		this.config = org.bson.Document.parse(new Gson().toJson(
+		this.config = org.bson.Document.parse(new GsonBuilder().serializeNulls().create().toJson(
 				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
 		this.started = started.toString();
 		this.owner = owner;
