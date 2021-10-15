@@ -10,9 +10,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-api-test",
-	displayName = "Payments API basic test module",
-	summary = "Payments API basic test module",
+	testName = "payments-api-test-no-debtor-account",
+	displayName = "Payments API test module to allow user to select debtor account",
+	summary = "Payments API test module to allow user to select debtor account",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,7 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void validateClientConfiguration() {
@@ -36,7 +36,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
+		callAndStopOnFailure(EnforceAbsenceOfDebtorAccount.class);
 		createPlaceholder();
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
@@ -45,7 +45,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(AskForScreenshotWithNoAccountSelection.class);
+		callAndStopOnFailure(AskForScreenshotWithAccountSelection.class);
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}
