@@ -5,6 +5,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.math.BigDecimal;
+
 public class SetIncorrectAmountInPayment extends AbstractCondition {
 
 	@Override
@@ -18,9 +20,10 @@ public class SetIncorrectAmountInPayment extends AbstractCondition {
 			.getAsJsonObject("payment")
 			.get("amount"));
 
-		double newAmount;
+		BigDecimal newAmount;
 		try {
-			newAmount = Double.parseDouble(consentAmount) + 100;
+			newAmount = new BigDecimal(consentAmount);
+			newAmount = newAmount.add(new BigDecimal(100));
 		} catch(Exception e){
 			logFailure(String.format(
 				"There was an error parsing an integer from the amount. This field may have been left empty." +
@@ -33,7 +36,7 @@ public class SetIncorrectAmountInPayment extends AbstractCondition {
 		paymentRequest
 			.getAsJsonObject("data")
 			.getAsJsonObject("payment")
-			.addProperty("amount", Double.toString(newAmount));
+			.addProperty("amount", newAmount.toString());
 
 		logSuccess("Successfully set the amount in the payment request to differ from the consent", paymentRequest);
 		return env;
