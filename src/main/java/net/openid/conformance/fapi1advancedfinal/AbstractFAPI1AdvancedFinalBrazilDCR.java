@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
+import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
@@ -166,6 +167,8 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1.1", "RFC7591-2", "RFC7591-3.2.1");
 
 		// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);

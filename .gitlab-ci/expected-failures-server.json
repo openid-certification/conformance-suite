@@ -150,5 +150,50 @@
         "condition": "ExtractExpiresInFromTokenEndpointResponse",
         "expected-result": "warning",
         "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow-variant",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow-variant",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow-variant-2",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow-variant-2",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
     }
 ]
