@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class SetConsentDataInPast extends AbstractCondition {
+public class SetConsentDateInPast extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		JsonObject obj = env.getObject("resource");

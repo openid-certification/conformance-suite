@@ -7,6 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class EnsurePaymentDateIsCorrect extends AbstractCondition{
 
@@ -22,7 +23,7 @@ public class EnsurePaymentDateIsCorrect extends AbstractCondition{
 
 		Date currentDate = new Date();
 		String strDateFormat = "yyyy-MM-dd";
-		SimpleDateFormat objSDF = new SimpleDateFormat(strDateFormat);
+		SimpleDateFormat objSDF = new SimpleDateFormat(strDateFormat, Locale.ROOT);
 		String updatedCurrentDateFormat = '"'  + objSDF.format(currentDate) + '"';
 
 		JsonElement o = new JsonParser().parse(updatedCurrentDateFormat);
