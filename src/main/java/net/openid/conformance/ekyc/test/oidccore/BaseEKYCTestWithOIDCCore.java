@@ -10,7 +10,6 @@ import net.openid.conformance.ekyc.condition.client.ValidateDocumentsMethodsSupp
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateElectronicRecordsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstOPMetadata;
-import net.openid.conformance.ekyc.condition.client._SetRedirectUriToYesComTestClientRedirectUri;
 import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
@@ -31,7 +30,6 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		callAndStopOnFailure(_SetRedirectUriToYesComTestClientRedirectUri.class);
 		validateEKYCSpecificServerConfiguration();
 	}
 	protected void validateEKYCSpecificServerConfiguration() {
