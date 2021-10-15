@@ -226,17 +226,28 @@ public class TestRunner implements DataUtils {
 				//the plan is immutable
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			}
-			/*
-			Disabled as "4.1.20 build: 359152407" as used on functional is not a valid semantic version
-			Semver planVersion = new Semver(testPlan.getVersion());
-			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan") ||
-				testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			
+			String planVersionBuild = testPlan.getVersion();
+			String[] planVersionParts = planVersionBuild.split(" ");
+			Semver planVersion = new Semver(planVersionParts[0]);
+			if (testPlan.getPlanName().equals("Consents api test") ||
+				testPlan.getPlanName().equals("Resources api test") ||
+				testPlan.getPlanName().equals("Account api test") ||
+				testPlan.getPlanName().equals("Credit card api test") ||
+				testPlan.getPlanName().equals("Unarranged overdraft api test") ||
+				testPlan.getPlanName().equals("Credit operations discounted credit rights api test") ||
+				testPlan.getPlanName().equals("Business Customer Data api test") ||
+				testPlan.getPlanName().equals("Personal Customer Data api test") ||
+				testPlan.getPlanName().equals("Financings api test") ||
+				testPlan.getPlanName().equals("Loans api test") ||
+				testPlan.getPlanName().equals("Payments api phase 1 test") ||
+				testPlan.getPlanName().equals("Payments api phase 2 test"))
 			{
-				if (planVersion.isLowerThan("4.1.24")) {
+				if (planVersion.isLowerThan("4.1.27")) {
 					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
-			 */
+			
 			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
 			if (variantFromApi == null) {
