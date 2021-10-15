@@ -25,6 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
@@ -37,6 +38,15 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 		callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 		eventLog.startBlock("Setting payment to be invalid");
 		callAndStopOnFailure(SetPaymentCurrency.class);
+		eventLog.startBlock("Attempting to make a consent ");
+		attemptConsentCreation();
+		eventLog.startBlock("Setting amount to max (1Mil BRL)");
+		callAndStopOnFailure(SetAmountToBeOverMaxAndCurrencyValid.class);
+		eventLog.startBlock("Attempting to make a consent ");
+		attemptConsentCreation();
+	}
+
+	protected void attemptConsentCreation() {
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(CreateIdempotencyKey.class);
 		callAndStopOnFailure(AddIdempotencyKeyHeader.class);
@@ -55,6 +65,6 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 		eventLog.startBlock("Validate response");
 		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
+		callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 	}
 }

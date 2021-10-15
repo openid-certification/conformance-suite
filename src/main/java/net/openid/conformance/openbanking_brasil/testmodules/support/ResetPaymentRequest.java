@@ -5,6 +5,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.math.BigDecimal;
+
 public class ResetPaymentRequest extends AbstractCondition {
 
 	@Override
@@ -12,8 +14,10 @@ public class ResetPaymentRequest extends AbstractCondition {
 		log("Resetting consent request");
 		JsonObject resource = env.getObject("resource");
 		JsonObject payment = resource.getAsJsonObject("brazilPixPayment").getAsJsonObject("data").getAsJsonObject("payment");
-		double amount = Double.parseDouble(OIDFJSON.getString(payment.get("amount"))) - 100;
-		payment.addProperty("amount", Double.toString(amount));
+		BigDecimal amount = new BigDecimal(OIDFJSON.getString(payment.get("amount")));
+		amount = amount.subtract(new BigDecimal(100));
+
+		payment.addProperty("amount", amount.toString());
 		logSuccess("Successfully reset payment request", payment);
 		if(env.getString("previous_currency") != null){
 			payment.addProperty("currency", env.getString("previous_currency"));
