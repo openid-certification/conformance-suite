@@ -1,0 +1,73 @@
+{
+    "alias": "test",
+    "description": "Payments",
+    "server": {
+        "discoveryUrl": "https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration"
+    },
+    "resource": {
+        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/pix/payments",
+        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
+        "brazilCpf": "48847377765",
+        "brazilPaymentConsent": {
+            "data": {
+                "loggedUser": {
+                    "document": {
+                        "identification": "76109277673",
+                        "rel": "CPF"
+                    }
+                },
+                "creditor": {
+                    "personType": "PESSOA_NATURAL",
+                    "cpfCnpj": "48847377765",
+                    "name": "Marco Antonio de Brito"
+                },
+                "payment": {
+                    "type": "PIX",
+                    "date": "2021-01-01",
+                    "currency": "BRL",
+                    "amount": "100000.12",
+                    "details": {
+                        "localInstrument": "DICT",
+                        "qrCode": "00020104141234567890123426660014BR.GOV.BCB.PIX014466756C616E6F32303139406578616D706C652E636F6D27300012  \nBR.COM.OUTRO011001234567895204000053039865406123.455802BR5915NOMEDORECEBEDOR6008BRASILIA61087007490062  \n530515RP12345678-201950300017BR.GOV.BCB.BRCODE01051.0.080450014BR.GOV.BCB.PIX0123PADRAO.URL.PIX/0123AB  \nCD81390012BR.COM.OUTRO01190123.ABCD.3456.WXYZ6304EB76\n",
+                        "proxy": "12345678901",
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "debtorAccount": {
+                    "ispb": "12345678",
+                    "issuer": "6272",
+                    "number": "94088392",
+                    "accountType": "CACC"
+                }
+            }
+        },
+        "brazilPixPayment": {
+            "data": {
+                "localInstrument": "DICT",
+                "payment": {
+                    "amount": "100000.12",
+                    "currency": "BRL"
+                },
+                "creditorAccount": {
+                    "ispb": "12345678",
+                    "issuer": "1774",
+                    "number": "1234567890",
+                    "accountType": "CACC"
+                },
+                "remittanceInformation": "Pagamento da nota XPTO035-002.",
+                "qrCode": "00020104141234567890123426660014BR.GOV.BCB.PIX014466756C616E6F32303139406578616D706C652E636F6D27300012  \nBR.COM.OUTRO011001234567895204000053039865406123.455802BR5915NOMEDORECEBEDOR6008BRASILIA61087007490062  \n530515RP12345678-201950300017BR.GOV.BCB.BRCODE01051.0.080450014BR.GOV.BCB.PIX0123PADRAO.URL.PIX/0123AB  \nCD81390012BR.COM.OUTRO01190123.ABCD.3456.WXYZ6304EB76\n",
+                "proxy": "12345678901",
+                "cnpjInitiator": "61820817000109"
+            }
+        },
+        "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+    },
+    "directory": {
+        "keystore": "https://keystore.sandbox.directory.openbankingbrasil.org.br/"
+    }
+}

@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -22,7 +23,14 @@ public class ConsentExpiryDateTimeGreaterThanAYear extends AbstractCondition {
 		JsonObject consentRequest = env.getObject("consent_endpoint_request");
 		JsonObject data = consentRequest.getAsJsonObject("data");
 
+		String[] permissionPair = {"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ","RESOURCES_READ"};
+		JsonArray goodPermissions = new JsonArray();
+		for(String permission : permissionPair){
+			goodPermissions.add(permission);
+		}
+
 		data.addProperty("expirationDateTime", rfc3339ExpiryTime);
+		data.add("permissions", goodPermissions);
 		logSuccess("Set expiry date to be more than a year away", args("expiry", rfc3339ExpiryTime));
 		return env;
 	}

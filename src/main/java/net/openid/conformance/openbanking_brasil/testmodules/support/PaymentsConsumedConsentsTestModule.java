@@ -45,6 +45,21 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}
 
+
+	@Override
+	protected void requestProtectedResource(){
+		// verify the access token against a protected resource
+		eventLog.startBlock("Making first valid request");
+		makeRequest(false);
+		eventLog.endBlock();
+		validateResponse();
+
+		eventLog.startBlock("Attempting a call with a consumed consent - should fail");
+		makeRequest(true);
+		eventLog.endBlock();
+
+	}
+
 	protected void makeRequest(boolean fail){
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		if (isSecondClient()) {
@@ -110,21 +125,6 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 			validateBrazilPaymentInitiationSignedResponse();
 		}
 	}
-
-	@Override
-	protected void requestProtectedResource(){
-		// verify the access token against a protected resource
-		eventLog.startBlock("Making first valid request");
-		makeRequest(false);
-		eventLog.endBlock();
-		validateResponse();
-
-		eventLog.startBlock("Attempting a call with a consumed consent - should fail");
-		makeRequest(true);
-		eventLog.endBlock();
-
-	}
-
 
 	@Override
 	protected void validateResponse() {

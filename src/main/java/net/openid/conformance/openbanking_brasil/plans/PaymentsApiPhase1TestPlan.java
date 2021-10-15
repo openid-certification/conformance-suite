@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsCon
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -23,8 +24,10 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+					PreFlightCertCheckModule.class,
 					PaymentsApiTestModule.class,
 					PaymentsApiNegativeTestModule.class,
+					PaymentApiNoDebtorProvidedTestModule.class,
 					PaymentsConsentsApiTestModule.class,
 					PaymentsConsumedConsentsTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
@@ -42,7 +45,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
 					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class,
-					PaymentsApiSignatureTest.class,
+					PaymentsConsentsApiForceCheckBadSignatureTest.class,
 					PaymentsApiUnregisteredCnpjTestModule.class,
 					PaymentsApiInvalidCnpjTestModule.class,
 					PaymentsConsentsApiInvalidTestModule.class

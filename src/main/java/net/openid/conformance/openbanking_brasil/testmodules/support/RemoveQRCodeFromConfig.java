@@ -8,12 +8,18 @@ public class RemoveQRCodeFromConfig extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = env.getObject("resource");
-		obj = obj.getAsJsonObject("brazilPaymentConsent");
+		JsonObject resource = env.getObject("resource");
+
+		JsonObject obj = resource.getAsJsonObject("brazilPaymentConsent");
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
 		obj.remove("qrCode");
+
+		resource.getAsJsonObject("brazilPixPayment")
+			.getAsJsonObject("data")
+			.remove("qrCode");
+
 		return env;
 	}
 
