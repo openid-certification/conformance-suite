@@ -34,7 +34,7 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("client", "registration_access_token");
+		String accessToken = env.getString( "registration_access_token");
 		if (Strings.isNullOrEmpty(accessToken)){
 			throw error("Couldn't find registration_access_token.");
 		}

@@ -23,6 +23,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
 					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2.class,
 					FAPI1AdvancedFinalBrazilDCRClientDeletion.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
 					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
 					FAPI1AdvancedFinalBrazilDCRNoMTLS.class,
