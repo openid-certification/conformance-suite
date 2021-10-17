@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazil-dcr-bad-mtls",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR bad MTLS",
-	summary = "Perform the DCR flow, but presenting a TLS client certificate that should not be trusted - the server must reject the registration attempt, either by refusing the TLS negotiation or returning a valid error response.",
+	summary = "Perform the DCR flow, but presenting a TLS client certificate that should not be trusted - the server must reject the registration attempt, either by refusing the TLS negotiation or returning a valid error response. The client configuration endpoint GET and DELETE methods are called with a bad TLS certificate and must be rejected.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -26,30 +26,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRBadMTLS extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI1AdvancedFinalBrazilDCRBadMTLS extends AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue {
 
 	@Override
-	protected void setupResourceEndpoint() {
-		// not needed as resource endpoint won't be called
+	protected void mapToWrongMTLS() {
+		env.mapKey("mutual_tls_authentication", "fake_mutual_tls_authentication");
 	}
 
 	@Override
 	protected void callRegistrationEndpoint() {
 		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
-
-		callAndStopOnFailure(CallDynamicRegistrationEndpointAllowingTLSFailure.class);
-
-		boolean sslError = env.getBoolean(CallDynamicRegistrationEndpointAllowingTLSFailure.RESPONSE_SSL_ERROR_KEY);
-		if (sslError) {
-			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
-			// is required, so there's no further checks to do
-		} else {
-			env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
-			// an error to be returned in this case doesn't really seem to be defined anywhere, so allow any error
-			callAndContinueOnFailure(CheckDynamicRegistrationEndpointReturnedError.class, Condition.ConditionResult.FAILURE);
-		}
+		super.callRegistrationEndpoint();
 	}
 
 	@Override

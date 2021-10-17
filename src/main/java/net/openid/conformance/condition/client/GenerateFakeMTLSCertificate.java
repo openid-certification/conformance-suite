@@ -49,7 +49,7 @@ public class GenerateFakeMTLSCertificate extends AbstractFAPIBrazilExtractCertif
 
 	@Override
 	@PreEnvironment(required = "mutual_tls_authentication")
-	@PostEnvironment(required = "mutual_tls_authentication")
+	@PostEnvironment(required = "fake_mutual_tls_authentication")
 	public Environment evaluate(Environment env) {
 		var extensionOidsNotToCopy = new HashSet<String>();
 
@@ -139,11 +139,11 @@ public class GenerateFakeMTLSCertificate extends AbstractFAPIBrazilExtractCertif
 
 		mtls.addProperty("key", Base64.getEncoder().encodeToString(kp.getPrivate().getEncoded()));
 
-		env.putObject("mutual_tls_authentication", mtls);
+		env.putObject("fake_mutual_tls_authentication", mtls);
 
 		// we could add a ca cert too perhaps
 
-		logSuccess("Generated our own client MTLS certificate based on the supplied one", args("mutual_tls_authentication", mtls));
+		logSuccess("Generated our own client MTLS certificate based on the supplied one", args("fake_mutual_tls_authentication", mtls));
 
 		return env;
 	}
