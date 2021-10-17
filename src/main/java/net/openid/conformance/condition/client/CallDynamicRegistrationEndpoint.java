@@ -92,19 +92,24 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 				return env;
 
+
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling registration endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				String msg = "Call to registration endpoint " + registrationEndpoint + " failed";
-				if (e.getCause() != null) {
-					msg += " - " +e.getCause().getMessage();
-				}
-				throw error(msg, e);
+				return handleResponseException(env, e);
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	Environment handleResponseException(Environment env, RestClientException e) {
+		String msg = "Call to registration endpoint failed";
+		if (e.getCause() != null) {
+			msg += " - " +e.getCause().getMessage();
+		}
+		throw error(msg, e);
 	}
 }
