@@ -212,5 +212,23 @@
         "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata",
         "expected-result": "failure",
         "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-bad-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-bad-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckDynamicRegistrationEndpointReturnedError",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
     }
 ]

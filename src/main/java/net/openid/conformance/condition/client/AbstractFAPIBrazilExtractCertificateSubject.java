@@ -22,14 +22,7 @@ import java.util.Base64;
 public abstract class AbstractFAPIBrazilExtractCertificateSubject extends AbstractCondition {
 
 	protected JsonObject extractSubject(String certString, String emptyUidErrorMessage) {
-		CertificateFactory certFactory = null;
-		try {
-			certFactory = CertificateFactory.getInstance("X.509", "BC");
-		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
-			throw error("Couldn't get CertificateFactory", e);
-		}
-
-		X509Certificate certificate = generateCertificateFromMTLSCert(certString, certFactory);
+		X509Certificate certificate = generateCertificateFromMTLSCert(certString);
 		X500Principal x500Principal = certificate.getSubjectX500Principal();
 
 		// we are careful to get the subjectDN in RFC 4514 format here, that is what is required for
@@ -60,7 +53,14 @@ public abstract class AbstractFAPIBrazilExtractCertificateSubject extends Abstra
 		return o;
 	}
 
-	private X509Certificate generateCertificateFromMTLSCert(String certString, CertificateFactory certFactory) {
+	protected X509Certificate generateCertificateFromMTLSCert(String certString) {
+		CertificateFactory certFactory = null;
+		try {
+			certFactory = CertificateFactory.getInstance("X.509", "BC");
+		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
+			throw error("Couldn't get CertificateFactory", e);
+		}
+
 		byte[] decodedCert;
 		try {
 			decodedCert = Base64.getDecoder().decode(certString);
