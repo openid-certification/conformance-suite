@@ -13,10 +13,14 @@ public abstract class AbstractEnsureHttpStatusCode extends AbstractCondition {
         String endpointName = env.getString("endpoint_response", "endpoint_name");
 
         if (statusCode!= getExpectedStatusCode()) {
-            throw error(endpointName + " endpoint returned an unexpected http status", args("http_status", statusCode));
+            throw error(endpointName + " endpoint returned an unexpected http status",
+				args("http_status", statusCode, "expected_status", getExpectedStatusCode()));
         }
 
-        logSuccess(endpointName + " endpoint returned the expected http status", args("http_status", statusCode));
+        logSuccess(endpointName + " endpoint returned the expected http status",
+			args(
+				"http_status", statusCode,
+				"expected_status", getExpectedStatusCode()));
 
         return env;
 
