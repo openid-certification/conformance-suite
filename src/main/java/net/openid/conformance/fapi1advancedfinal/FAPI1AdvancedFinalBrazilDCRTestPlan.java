@@ -25,6 +25,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
 					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
+					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))

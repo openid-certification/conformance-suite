@@ -32,6 +32,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -213,6 +214,23 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		}
 
 		return OIDFJSON.getString(value);
+	}
+
+	/**
+	 * Get a string from the environment, throwing a condition error if missing/not a string
+	 */
+	protected JsonObject getJsonObjectFromEnvironment(Environment env, String key, String path, String friendlyName) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		if (!value.isJsonObject()) {
+			throw error(friendlyName+" is not a JSON object", args("value", value));
+		}
+
+		return value.getAsJsonObject();
 	}
 
 	/*
