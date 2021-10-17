@@ -1,6 +1,6 @@
 {
     "alias": "obbsb",
-    "description": "Raidiam Brazil Mock Bank Example (mtls client auth)",
+    "description": "FAPI Brazil OP test config for running against RP tests - accounts",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
