@@ -143,7 +143,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 			callAndStopOnFailure(AddTlsClientAuthSubjectDnToDynamicRegistrationRequest.class);
 		}
 
-		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
+		addJwksToRequest();
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
 		if (jarm) {
 			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
@@ -156,6 +156,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		addSoftwareStatementToRegistrationRequest();
 
 		callRegistrationEndpoint();
+	}
+
+	protected void addJwksToRequest() {
+		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
 	}
 
 	protected void setupJwksUri() {
