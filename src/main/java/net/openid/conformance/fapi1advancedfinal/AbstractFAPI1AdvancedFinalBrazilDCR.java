@@ -126,8 +126,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
-		// the jwks is hosted on the directory, we must use the url in the software statement
-		callAndStopOnFailure(FAPIBrazilExtractJwksUriFromSoftwareStatement.class, "BrazilOBDCR-7.1-5");
+		setupJwksUri();
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
@@ -157,6 +156,11 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		addSoftwareStatementToRegistrationRequest();
 
 		callRegistrationEndpoint();
+	}
+
+	protected void setupJwksUri() {
+		// the jwks is hosted on the directory, we must use the url in the software statement
+		callAndStopOnFailure(FAPIBrazilExtractJwksUriFromSoftwareStatement.class, "BrazilOBDCR-7.1-5");
 	}
 
 	protected void validateSsa() {
