@@ -227,12 +227,21 @@ public class TestRunner implements DataUtils {
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			}
 			Semver planVersion = new Semver(testPlan.getVersion());
-			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan") ||
-				testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			boolean recreate = false;
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan"))
 			{
 				if (planVersion.isLowerThan("4.1.24")) {
-					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+					recreate = true;
 				}
+			}
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			{
+				if (planVersion.isLowerThan("4.1.30")) {
+					recreate=true;
+				}
+			}
+			if (recreate) {
+				return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();

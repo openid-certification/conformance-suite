@@ -21,7 +21,7 @@ public class ExtractDynamicRegistrationResponse extends AbstractCondition {
 			throw error("No json response from dynamic registration endpoint");
 		}
 
-		env.putObject("client", client);
+		env.putObject("client", client.deepCopy());
 
 		JsonElement clientId = client.get("client_id");
 		if (clientId == null) {

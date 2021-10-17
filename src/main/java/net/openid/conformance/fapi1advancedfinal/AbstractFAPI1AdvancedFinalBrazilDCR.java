@@ -12,9 +12,16 @@ import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamic
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
+import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
+import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
+import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes;
+import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
@@ -121,8 +128,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 
-		// the jwks is hosted on the directory, we must use the url in the software statement
-		callAndStopOnFailure(FAPIBrazilExtractJwksUriFromSoftwareStatement.class, "BrazilOBDCR-7.1-5");
+		setupJwksUri();
 
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
@@ -139,7 +145,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 			callAndStopOnFailure(AddTlsClientAuthSubjectDnToDynamicRegistrationRequest.class);
 		}
 
-		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
+		addJwksToRequest();
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
 		if (jarm) {
 			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
@@ -149,23 +155,59 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		validateSsa();
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 
-		callAndStopOnFailure(AddSoftwareStatementToDynamicRegistrationRequest.class);
+		addSoftwareStatementToRegistrationRequest();
 
 		callRegistrationEndpoint();
+	}
+
+	protected void addJwksToRequest() {
+		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class, "RFC7591-2", "BrazilOBDCR-7.1-5");
+	}
+
+	protected void setupJwksUri() {
+		// the jwks is hosted on the directory, we must use the url in the software statement
+		callAndStopOnFailure(FAPIBrazilExtractJwksUriFromSoftwareStatement.class, "BrazilOBDCR-7.1-5");
 	}
 
 	protected void validateSsa() {
 		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-6");
 	}
 
+	protected void addSoftwareStatementToRegistrationRequest() {
+		callAndStopOnFailure(AddSoftwareStatementToDynamicRegistrationRequest.class);
+	}
+
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1.1", "RFC7591-2", "RFC7591-3.2.1");
 
 		// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
 		callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
 
 		eventLog.endBlock();
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		eventLog.startBlock("Call client configuration endpoint");
+
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationCredentialsFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+
+		// we just deregistered the client, so prevent cleanup from trying to do so again
+		env.removeNativeValue("registration_client_uri");
+		env.removeNativeValue("registration_access_token");
+
+		super.onPostAuthorizationFlowComplete();
 	}
 
 	public void unregisterClient1() {

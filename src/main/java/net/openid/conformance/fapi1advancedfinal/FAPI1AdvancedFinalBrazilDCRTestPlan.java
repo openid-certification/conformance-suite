@@ -5,9 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
@@ -23,8 +21,17 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 				List.of(
 					FAPI1AdvancedFinalBrazilDCRHappyFlow.class,
 					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2.class,
+					FAPI1AdvancedFinalBrazilDCRClientDeletion.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class
+					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
+					FAPI1AdvancedFinalBrazilDCRNoMTLS.class,
+					FAPI1AdvancedFinalBrazilDCRBadMTLS.class,
+					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)
