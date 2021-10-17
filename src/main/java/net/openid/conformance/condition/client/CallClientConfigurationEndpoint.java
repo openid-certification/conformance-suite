@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -45,6 +47,14 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 		try {
 
 			RestTemplate restTemplate = createRestTemplate(env);
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
