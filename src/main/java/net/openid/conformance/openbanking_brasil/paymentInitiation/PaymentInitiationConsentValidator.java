@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
@@ -218,12 +219,14 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(4)
 				.build());
 
-		assertField(details,
-			new StringField
-				.Builder("qrCode")
-				.setPattern("[\\w\\W\\s]*")
-				.setMaxLength(512)
-				.build());
+		if(!OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("MANU")){
+			assertField(details,
+				new StringField
+					.Builder("qrCode")
+					.setPattern("[\\w\\W\\s]*")
+					.setMaxLength(512)
+					.build());
+		}
 
 		assertField(details,
 			new StringField
