@@ -12,7 +12,7 @@ public class RemoveProxyFromPaymentConfig extends AbstractCondition {
 		JsonObject obj = env.getObject("resource");
 		obj = obj.getAsJsonObject("brazilPixPayment");
 		obj = obj.getAsJsonObject("data");
-		obj.remove("proxy");
+		obj.addProperty("proxy", "");
 		log(obj);
 		return env;
 	}
