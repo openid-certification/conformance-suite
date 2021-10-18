@@ -7,6 +7,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Map;
+
 public class ModifyPixPaymentValue extends AbstractCondition {
 
 	@Override
@@ -17,11 +19,12 @@ public class ModifyPixPaymentValue extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		String currentAmount = OIDFJSON.getString(obj.get("amount"));
-		if(currentAmount.equals("20000,00")) {
-			obj.addProperty("amount", "21000.00");
-		} else {
-			obj.addProperty("amount", "20000.00");
-		}
+		String newAmount = (currentAmount.equals("20000.00") ? "21000.00" : "20000.00");
+		obj.addProperty("amount", newAmount);
+		logSuccess("In order to force request to be a new entity, the payment amount has been modified", Map.of(
+			"original amount", currentAmount,
+			"new amount", newAmount
+		));
 		return env;
 	}
 
