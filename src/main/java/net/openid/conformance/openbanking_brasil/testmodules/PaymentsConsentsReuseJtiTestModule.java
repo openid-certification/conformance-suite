@@ -54,7 +54,7 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 
 			call(new SignedPaymentConsentSequence()
 				.skip(AddJtiAsUuidToRequestObject.class, "Re-use previous jti")
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs400.class))
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureResponseCodeWas422.class))
 			);
 
 		});
