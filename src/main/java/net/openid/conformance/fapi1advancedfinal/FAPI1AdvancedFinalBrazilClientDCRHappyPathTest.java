@@ -2,10 +2,9 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.EnsureRedirectUriInRequestObjectMatchesOneOfClientRedirectUris;
-import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
 import net.openid.conformance.condition.as.FetchClientKeys;
+import net.openid.conformance.condition.as.GenerateRegistrationAccessToken;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
@@ -40,7 +39,11 @@ import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge
 import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
 import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
+import net.openid.conformance.condition.common.CreateRandomRegistrationClientUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -59,7 +62,10 @@ import javax.servlet.http.HttpSession;
 		"first perform OpenID discovery from the displayed discoveryUrl, and register the client. " +
 		"Then call the authorization endpoint (which will immediately redirect back), " +
 		"exchange the authorization code for an access token at the token endpoint and " +
-		"make a GET request to the accounts/payments endpoint displayed.",
+		"make a GET request to the accounts/payments endpoint displayed. Finally, the client must make " +
+		"a GET call to the RFC7592 Client Configuration Endpoint - it is vital that the client PERMANENTLY "+
+		"stores the registration_client_uri and registration_access_token so that future changes may be "+
+		"made to the configuration of the client.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
@@ -68,6 +74,7 @@ import javax.servlet.http.HttpSession;
 )
 
 public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI1AdvancedFinalClientTest {
+	boolean resourceEndpointCalled = false;
 
 	@Override
 	protected void addCustomValuesToIdToken(){
@@ -77,6 +84,12 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	@Override
 	protected void configureClients() {
 		//do nothing, the client needs to register first
+	}
+
+	@Override
+	protected void resourceEndpointCallComplete() {
+		resourceEndpointCalled = true;
+		setStatus(Status.WAITING);
 	}
 
 	@Override
@@ -97,6 +110,21 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 			setStatus(Status.WAITING);
 
 			return handleRegistrationEndpointRequest(requestId);
+		} else if (path.equals(env.getString("registration_client_uri", "path"))) {
+			if (OIDFJSON.getString(requestParts.get("method")).equals("DELETE")) {
+				// We ignore this to keep the OP tests against RP tests happy,
+				// fapi1-advanced-final-brazildcr-happy-flow calls DELETE as it's final step.
+				return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
+			}
+
+			setStatus(Status.RUNNING);
+
+			String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+			env.putObject(requestId, requestParts);
+
+			return handleRegistrationClientUriRequest(requestId);
+
 		} else {
 			return super.handleHttpMtls(path, req, res, session, requestParts);
 		}
@@ -114,6 +142,33 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
 
+	}
+
+	protected Object handleRegistrationClientUriRequest(String requestId) {
+		if (!resourceEndpointCalled) {
+			throw new TestFailureException(getId(), "Please call the accounts/payment endpoint before the Client Configuration Endpoint.");
+		}
+		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+
+		call(exec().unmapKey("client_request"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.1");
+		callAndContinueOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.1");
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		JsonObject clientInfo = env.getObject("client");
+
+		fireTestFinished();
+
+		return new ResponseEntity<Object>(clientInfo, HttpStatus.OK);
 	}
 
 	protected Object handleRegistrationEndpointRequest(String requestId) {
@@ -248,6 +303,8 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	}
 
 	protected JsonObject registerClient() {
+		callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
+		callAndStopOnFailure(CreateRandomRegistrationClientUri.class, "RFC7592A-B");
 		callAndStopOnFailure(FAPIBrazilRegisterClient.class);
 		JsonObject client = env.getObject("client");
 		return client;
