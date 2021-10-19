@@ -26,7 +26,7 @@ public class EnsurePaymentCodeIsCorrect extends AbstractCondition {
 		if(code.equalsIgnoreCase("PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO") || code.equalsIgnoreCase("VALOR_INCOMPATIVEL")){
 			logSuccess("Code is correct - payment divergent from consent");
 		} else {
-			logFailure("Code is incorrect - needs to be PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO");
+			logFailure("Code is incorrect - needs to be PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO or VALOR_INCOMPATIVEL");
 		}
 
 		return env;
