@@ -131,7 +131,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
 					.setMaxLength(25)
 					.build());
-		} else if (body.has("localInstrument") && (OIDFJSON.getString(body.get("localInstrument")).equals("MANU") || OIDFJSON.getString(body.get("localInstrument")).equals("DICT"))) {
+		} else if (body.has("localInstrument") && (OIDFJSON.getString(body.get("localInstrument")).equals("MANU"))) {
 			assertField(body,
 				new StringField
 					.Builder("transactionIdentification")
