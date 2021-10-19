@@ -16,7 +16,7 @@ public class EnsureQRCodePresentInConfig extends AbstractCondition {
 		obj = obj.getAsJsonObject("details");
 		JsonElement qrCode = obj.get("qrCode");
 		if(qrCode == null) {
-			throw error("Your payment consent config *must* contain a qrCode in the payment details");
+			throw error("Your payment consent config *must* contain a qrCode in the payment details - This is a test to make sure you reject MANU consents that contain a QR code, and it is therefore required.");
 		}
 		return env;
 	}

@@ -8,7 +8,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-manu-test",
+	testName = "payments-consents-api-manu-fail-test",
 	displayName = "Payments Consents API test module for manu local instrument",
 	summary = "Payments Consents API test module ensuring a qr code must be absent when the local instrument is MANU",
 	profile = OBBProfile.OBB_PROFILE,
