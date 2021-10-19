@@ -10,9 +10,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-manu-pix-response-test",
-	displayName = "Payments Consents API test module for manu local instrument pix response",
-	summary = "Payments Consents API test module ensuring that the pix response for manu local instrument is correct",
+	testName = "payments-api-manu-pix-response-test",
+	displayName = "Payments API test module for manu local instrument pix response",
+	summary = "Payments API test module ensuring that the pix response for manu local instrument is correct",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
