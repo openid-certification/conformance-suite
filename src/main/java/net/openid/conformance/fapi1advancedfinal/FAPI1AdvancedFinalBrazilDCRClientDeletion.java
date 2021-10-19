@@ -2,11 +2,20 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CallClientConfigurationEndpointAllowingTLSFailure;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
+import net.openid.conformance.condition.client.CheckForAccessTokenValue;
+import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
+import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
+import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClientExpectingFailure;
+import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -29,9 +38,28 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class FAPI1AdvancedFinalBrazilDCRClientDeletion extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
+	protected void performClientCredentialsGrant() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		if (brazilPayments) {
+			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
+		} else {
+			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+		}
+		call(sequence(addTokenEndpointClientAuthentication));
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+	}
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Verify that client_credentials grant can be used"));
+
+		performClientCredentialsGrant();
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
 
 		eventLog.startBlock("Deleting client then expecting GET / DELETE on configuration endpoint to fail");
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
@@ -46,6 +74,14 @@ public class FAPI1AdvancedFinalBrazilDCRClientDeletion extends AbstractFAPI1Adva
 		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+
+		call(exec().startBlock("Verify that client_credentials grant fails now client has been deleted"));
+
+		performClientCredentialsGrant();
+
+		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE);
 
 		// we already deregistered the client, so prevent cleanup from trying to do so again
 		env.removeNativeValue("registration_client_uri");
