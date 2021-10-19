@@ -127,6 +127,33 @@
     {
         "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
         "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json",
+        "current-block": "",
+        "condition": "FAPIBrazilMustTestUsingPayments",
+        "expected-result": "warning",
+        "comment": "This config uses accounts deliberately; the issue is only a warning"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-*.json",
+        "current-block": "Use client_credentials grant to obtain Brazil consent",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-*.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
         "configuration-filename": "authlete-fapi-brazil-dcr.json",
         "current-block": "Perform Dynamic Client Registration",
         "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
@@ -188,32 +215,6 @@
         "comment": "Authlete currently seems to not be checking this"
     },
     {
-        "test-name": "fapi1-advanced-final-brazil-dcr-no-redirect-uri",
-        "variant": {
-            "client_auth_type": "mtls",
-            "fapi_response_mode": "plain_response",
-            "fapi_auth_request_method": "by_value"
-        },
-        "configuration-filename": "authlete-fapi-brazil-dcr.json",
-        "current-block": "Perform Dynamic Client Registration",
-        "condition": "EnsureHttpStatusCodeIs400",
-        "expected-result": "failure",
-        "comment": "Authlete currently seems to not be checking this"
-    },
-    {
-        "test-name": "fapi1-advanced-final-brazil-dcr-no-redirect-uri",
-        "variant": {
-            "client_auth_type": "mtls",
-            "fapi_response_mode": "plain_response",
-            "fapi_auth_request_method": "by_value"
-        },
-        "configuration-filename": "authlete-fapi-brazil-dcr.json",
-        "current-block": "Perform Dynamic Client Registration",
-        "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata",
-        "expected-result": "failure",
-        "comment": "Authlete currently seems to not be checking this"
-    },
-    {
         "test-name": "fapi1-advanced-final-brazil-dcr-bad-mtls",
         "variant": "*",
         "configuration-filename": "authlete-fapi-brazil-dcr.json",
@@ -230,5 +231,113 @@
         "condition": "CheckDynamicRegistrationEndpointReturnedError",
         "expected-result": "failure",
         "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-client-delete",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-client-delete",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Deleting client then expecting GET / DELETE on configuration endpoint to fail",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure",
+        "comment": "Authlete seems to return wrong error code"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-client-delete",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Deleting client then expecting GET / DELETE on configuration endpoint to fail",
+        "condition": "UnregisterDynamicallyRegisteredClientExpectingFailure",
+        "expected-result": "failure",
+        "comment": "Authlete seems to return wrong error code"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-invalid-registration-access-token",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-invalid-registration-access-token",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Calling GET / DELETE on configuration endpoint with invalid access token",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure",
+        "comment": "Authlete seems to return wrong error code"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-invalid-registration-access-token",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Calling GET / DELETE on configuration endpoint with invalid access token",
+        "condition": "UnregisterDynamicallyRegisteredClientExpectingFailure",
+        "expected-result": "failure",
+        "comment": "Authlete seems to return wrong error code"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-no-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-no-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Call client configuration endpoint with no certificate",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-no-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Call client configuration endpoint with no certificate",
+        "condition": "CheckNoClientIdFromClientConfigurationEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-no-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Call client configuration endpoint with no certificate",
+        "condition": "UnregisterDynamicallyRegisteredClientExpectingFailure",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-no-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Call client configuration endpoint with no certificate",
+        "condition": "UnregisterDynamicallyRegisteredClient",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be checking this"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazil-dcr-bad-mtls",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "Authlete currently seems to not be returning 'scope'"
     }
 ]

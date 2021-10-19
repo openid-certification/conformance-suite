@@ -656,11 +656,14 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
 
 		call(exec().unmapKey("incoming_request").endBlock());
-
-		// at this point we can assume the test is fully done
-		fireTestFinished();
+		resourceEndpointCallComplete();
 
 		return responseEntity;
+	}
+
+	protected void resourceEndpointCallComplete() {
+		// at this point we can assume the test is fully done
+		fireTestFinished();
 	}
 
 	protected Object discoveryEndpoint() {
@@ -1208,7 +1211,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
 		// at this point we can assume the test is fully done
-		fireTestFinished();
+		resourceEndpointCallComplete();
 
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}

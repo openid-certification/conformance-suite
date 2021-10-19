@@ -12,7 +12,10 @@ public class RemoveRedirectUriFromDynamicClientRegistrationEndpointRequest exten
 	public Environment evaluate(Environment env) {
 		JsonObject req = env.getObject("dynamic_registration_request");
 
-		req.remove("redirect_uri");
+		req.remove("redirect_uris");
+
+		log("Removed redirect_uris from dynamic registration request",
+			args("dynamic_registration_request", req));
 
 		return env;
 	}
