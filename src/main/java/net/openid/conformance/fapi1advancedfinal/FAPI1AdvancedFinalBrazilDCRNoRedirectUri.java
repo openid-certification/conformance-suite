@@ -3,10 +3,9 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata;
-import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidSoftwareStatement;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.RemoveRedirectUriFromDynamicClientRegistrationEndpointRequest;
+import net.openid.conformance.condition.client.RemoveRedirectUrisFromDynamicClientRegistrationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -36,7 +35,7 @@ public class FAPI1AdvancedFinalBrazilDCRNoRedirectUri extends AbstractFAPI1Advan
 
 	@Override
 	protected void callRegistrationEndpoint() {
-		callAndStopOnFailure(RemoveRedirectUriFromDynamicClientRegistrationEndpointRequest.class, "BrazilOBDCR-7.1-6");
+		callAndStopOnFailure(RemoveRedirectUrisFromDynamicClientRegistrationEndpointRequest.class, "BrazilOBDCR-7.1-6");
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 
