@@ -137,6 +137,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 					.Builder("transactionIdentification")
 					.setPattern("^(?![\\s\\S])")
 					.setMaxLength(0)
+					.setOptional()
 					.build());
 		} else {
 			assertField(body,

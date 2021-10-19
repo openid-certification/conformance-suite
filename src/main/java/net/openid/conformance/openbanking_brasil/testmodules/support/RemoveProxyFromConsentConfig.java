@@ -14,7 +14,8 @@ public class RemoveProxyFromConsentConfig extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		obj.addProperty("proxy", "");
+		//obj.addProperty("proxy", "");
+		obj.remove("proxy");
 		logSuccess("set proxy in consent to be unpopulated");
 		return env;
 	}
