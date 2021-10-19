@@ -47,7 +47,6 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsApiFapiTesting.class,
 					PaymentsApiBadPaymentSignatureFails.class,
 					PaymentsConsentsApiForceCheckBadSignatureTest.class,
-					PaymentsApiUnregisteredCnpjTestModule.class,
 					PaymentsApiInvalidCnpjTestModule.class,
 					PaymentsConsentsApiInvalidTestModule.class
 				),
