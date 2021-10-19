@@ -23,10 +23,10 @@ public class EnsurePaymentCodeIsCorrect extends AbstractCondition {
 		JsonObject error = errors.get(0).getAsJsonObject();
 		String code = OIDFJSON.getString(error.get("code"));
 
-		if(code.equalsIgnoreCase("PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO")){
+		if(code.equalsIgnoreCase("PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO") || code.equalsIgnoreCase("VALOR_INCOMPATIVEL")){
 			logSuccess("Code is correct - payment divergent from consent");
 		} else {
-			logFailure("Code is incorrect - needs to be PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO");
+			logFailure("Code is incorrect - needs to be PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO or VALOR_INCOMPATIVEL");
 		}
 
 		return env;
