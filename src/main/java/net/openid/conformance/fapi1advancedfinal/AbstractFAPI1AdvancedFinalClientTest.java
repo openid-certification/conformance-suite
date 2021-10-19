@@ -63,6 +63,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentReque
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
+import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
@@ -697,6 +698,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void extractParEndpointRequest() {
 		callAndStopOnFailure(ExtractRequestObjectFromPAREndpointRequest.class, "PAR-2.1");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
+		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
 
 	protected Object parEndpoint(String requestId) {
@@ -897,6 +899,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
 			}
 		}
+
+		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);

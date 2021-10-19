@@ -50,6 +50,7 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -600,6 +601,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "OIDCC-2");
+		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
+			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.2", "OIDC-10.2.1");
 	}
 
 	protected void performAuthorizationCodeValidation() {

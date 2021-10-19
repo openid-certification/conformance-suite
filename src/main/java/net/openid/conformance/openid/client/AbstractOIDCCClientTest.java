@@ -66,6 +66,7 @@ import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedT
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToTlsClientAuthOnly;
 import net.openid.conformance.condition.as.SignUserInfoResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
+import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -989,6 +990,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if(clientRequestType == ClientRequestType.REQUEST_OBJECT || clientRequestType == ClientRequestType.REQUEST_URI) {
 			validateRequestObject();
 			callAndStopOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+			skipIfElementMissing("authorization_request_object", "jwe_header", Condition.ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class,
 										Condition.ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
 		}
