@@ -55,6 +55,12 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	}
 
 	@Override
+	protected void validateAuthorizationEndpointRequestParameters() {
+		super.validateAuthorizationEndpointRequestParameters();
+		callAndStopOnFailure(GenerateSessionState.class, "OIDCSM-3");
+	}
+
+	@Override
 	protected void addCustomValuesToIdToken() {
 		super.addCustomValuesToIdToken();
 		callAndStopOnFailure(AddSidToIdTokenClaims.class, "OIDCFCL-3");
@@ -94,7 +100,6 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 	 */
 	@Override
 	protected void customizeAuthorizationEndpointResponseParams(){
-		callAndStopOnFailure(GenerateSessionState.class, "OIDCSM-3");
 		callAndStopOnFailure(AddSessionStateToAuthorizationEndpointResponseParams.class, "OIDCSM-3");
 	}
 
