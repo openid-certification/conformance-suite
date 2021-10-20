@@ -28,7 +28,7 @@ public class CheckRedirectUrisFromClientConfigurationEndpoint extends AbstractCo
 		}
 		String actual = OIDFJSON.getString(el);
 		if (!actual.equals(expectedRedirect)) {
-			throw error("redirect uri in client configuration response does not match requested redirect uri.",
+			throw error("redirect uri in client configuration response does not match expected redirect uri.",
 				args("expected", expectedRedirect, "actual", redirectUris));
 		}
 

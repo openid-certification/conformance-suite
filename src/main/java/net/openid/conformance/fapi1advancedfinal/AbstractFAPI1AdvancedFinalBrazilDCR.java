@@ -194,8 +194,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		eventLog.startBlock("Call client configuration endpoint");
+		eventLog.startBlock("Retrieve client configuration");
 
+		// make sure we do a GET
+		env.removeObject("registration_client_endpoint_request_body");
 		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
 		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
