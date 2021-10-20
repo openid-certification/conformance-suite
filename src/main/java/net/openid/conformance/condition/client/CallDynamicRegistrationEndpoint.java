@@ -1,10 +1,6 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -97,7 +93,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 				throw error("RestClientResponseException occurred whilst calling registration endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				return handleResponseException(env, e);
+				return handleClientException(env, e);
 			}
 
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
@@ -105,7 +101,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 		}
 	}
 
-	Environment handleResponseException(Environment env, RestClientException e) {
+	Environment handleClientException(Environment env, RestClientException e) {
 		String msg = "Call to registration endpoint failed";
 		if (e.getCause() != null) {
 			msg += " - " +e.getCause().getMessage();
