@@ -18,7 +18,7 @@ public class InjectRealCreditorAccount extends AbstractCondition {
 		obj.addProperty("issuer", "0390");
 		obj.addProperty("number", "128841");
 		obj.addProperty("accountType", "CACC");
-
+		obj.addProperty("ispb", "07237373");
 		logSuccess("Added real, working creditor account details to payment consent");
 
 		return env;
