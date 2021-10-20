@@ -31,6 +31,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRUpdateClientConfig.class,
 					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
 					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
