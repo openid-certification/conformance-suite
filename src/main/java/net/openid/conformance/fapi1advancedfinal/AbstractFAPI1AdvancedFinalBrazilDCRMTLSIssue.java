@@ -60,7 +60,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
         } else {
             call(exec().mapKey("endpoint_response", "registration_client_endpoint_response"));
 
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE);
+            callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "RFC7592-2.1");
             callAndContinueOnFailure(CheckNoClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE);
 
             call(exec().unmapKey("endpoint_response"));
