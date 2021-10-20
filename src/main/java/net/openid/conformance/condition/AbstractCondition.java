@@ -233,6 +233,20 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return value.getAsJsonObject();
 	}
 
+	protected JsonArray getJsonArrayFromEnvironment(Environment env, String key, String path, String friendlyName) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		if (!value.isJsonArray()) {
+			throw error(friendlyName+" is not a JSON array", args("value", value));
+		}
+
+		return value.getAsJsonArray();
+	}
+
 	/*
 	 * Logging utilities
 	 */

@@ -236,7 +236,7 @@ public class TestRunner implements DataUtils {
 			}
 			if (testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
 			{
-				if (planVersion.isLowerThan("4.1.30")) {
+				if (planVersion.isLowerThan("4.1.32")) {
 					recreate=true;
 				}
 			}

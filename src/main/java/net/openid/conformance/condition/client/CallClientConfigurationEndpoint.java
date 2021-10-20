@@ -60,9 +60,20 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.set("Authorization", String.join(" ", "Bearer", accessToken));
 
-			HttpEntity<?> request = new HttpEntity<>(headers);
+			HttpMethod httpMethod = HttpMethod.GET;
+			HttpEntity<?> request;
+
+			JsonObject requestBody = env.getObject("registration_client_endpoint_request_body");
+			if (requestBody != null) {
+				httpMethod = HttpMethod.PUT;
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				request = new HttpEntity<>(requestBody.toString(), headers);
+			} else {
+				request = new HttpEntity<>(headers);
+			}
+
 			try {
-				ResponseEntity<String> response = restTemplate.exchange(registrationClientUri, HttpMethod.GET, request, String.class);
+				ResponseEntity<String> response = restTemplate.exchange(registrationClientUri, httpMethod, request, String.class);
 				JsonObject responseInfo = convertJsonResponseForEnvironment("registration_client_uri", response);
 
 				env.putObject("registration_client_endpoint_response", responseInfo);

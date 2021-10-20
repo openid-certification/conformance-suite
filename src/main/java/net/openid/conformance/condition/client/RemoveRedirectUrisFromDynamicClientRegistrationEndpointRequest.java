@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class RemoveRedirectUriFromDynamicClientRegistrationEndpointRequest extends AbstractCondition {
+public class RemoveRedirectUrisFromDynamicClientRegistrationEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"dynamic_registration_request"})

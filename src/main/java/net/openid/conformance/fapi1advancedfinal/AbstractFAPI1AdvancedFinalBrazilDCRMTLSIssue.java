@@ -34,10 +34,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
             // is required, so there's no further checks to do
         } else {
             env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-            callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
+            callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+            callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
             // an error to be returned in this case doesn't really seem to be defined anywhere, so allow any error
-            callAndContinueOnFailure(CheckDynamicRegistrationEndpointReturnedError.class, Condition.ConditionResult.FAILURE);
+            callAndContinueOnFailure(CheckDynamicRegistrationEndpointReturnedError.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
         }
 
         env.unmapKey("mutual_tls_authentication");
@@ -60,7 +60,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
         } else {
             call(exec().mapKey("endpoint_response", "registration_client_endpoint_response"));
 
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE);
+            callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "RFC7592-2.1");
             callAndContinueOnFailure(CheckNoClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE);
 
             call(exec().unmapKey("endpoint_response"));

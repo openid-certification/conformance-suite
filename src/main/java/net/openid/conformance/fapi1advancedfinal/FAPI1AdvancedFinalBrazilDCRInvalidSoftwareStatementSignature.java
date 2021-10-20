@@ -43,9 +43,9 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature extend
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class);
 
 		env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidSoftwareStatement.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidSoftwareStatement.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
 	}
 
 	@Override

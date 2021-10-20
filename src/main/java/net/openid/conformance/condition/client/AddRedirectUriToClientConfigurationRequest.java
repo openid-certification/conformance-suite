@@ -8,14 +8,14 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddRedirectUriToDynamicRegistrationRequest extends AbstractCondition {
+public class AddRedirectUriToClientConfigurationRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "dynamic_registration_request", strings = "redirect_uri")
-	@PostEnvironment(required = "dynamic_registration_request")
+	@PreEnvironment(required = "registration_client_endpoint_request_body", strings = "redirect_uri")
+	@PostEnvironment(required = "registration_client_endpoint_request_body")
 	public Environment evaluate(Environment env) {
 
-		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
+		JsonObject clientConfigRequest = env.getObject("registration_client_endpoint_request_body");
 
 		String redirectUri = env.getString("redirect_uri");
 		if (Strings.isNullOrEmpty(redirectUri)) {
@@ -24,11 +24,9 @@ public class AddRedirectUriToDynamicRegistrationRequest extends AbstractConditio
 
 		JsonArray redirectUris = new JsonArray();
 		redirectUris.add(redirectUri);
-		dynamicRegistrationRequest.add("redirect_uris", redirectUris);
+		clientConfigRequest.add("redirect_uris", redirectUris);
 
-		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
-
-		log("Added redirect_uris array to dynamic registration request", args("dynamic_registration_request", dynamicRegistrationRequest));
+		log("Added redirect_uris array to client configuration endpoint request", args("registration_client_endpoint_request", clientConfigRequest));
 
 		return env;
 	}
