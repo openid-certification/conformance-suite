@@ -39,8 +39,4 @@ public class FAPI1AdvancedFinalBrazilDCRBadMTLS extends AbstractFAPI1AdvancedFin
 		super.callRegistrationEndpoint();
 	}
 
-	@Override
-	public void start() {
-		fireTestFinished();
-	}
 }
