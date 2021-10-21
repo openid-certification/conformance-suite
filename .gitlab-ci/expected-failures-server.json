@@ -339,5 +339,126 @@
         "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
         "expected-result": "failure",
         "comment": "Authlete currently seems to not be returning 'scope'"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Retrieve client configuration",
+        "condition": "CheckRedirectUrisFromClientConfigurationEndpoint",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-bad-jwks-uri",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-bad-jwks-uri",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change jwks uri to non-directory hosted one",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Try to change redirect uri using bad MTLS certificate",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Try to change redirect uri using bad MTLS certificate",
+        "condition": "CheckNoClientIdFromClientConfigurationEndpoint",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Try to change redirect uri using no MTLS certificate",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Try to change redirect uri using no MTLS certificate",
+        "condition": "CheckNoClientIdFromClientConfigurationEndpoint",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Calling PUT on configuration endpoint with invalid access token",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Calling PUT on configuration endpoint with no software statement assertion expecting failure",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure"
+    },
+
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Calling PUT on configuration endpoint with software statement assertion with bad signature expecting failure",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Retrieve client configuration",
+        "condition": "CheckRedirectUrisFromClientConfigurationEndpoint",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change jwks to one passed by value",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change jwks to one passed by value",
+        "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata",
+        "expected-result": "failure"
     }
 ]
