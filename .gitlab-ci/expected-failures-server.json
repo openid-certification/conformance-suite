@@ -219,7 +219,7 @@
         "variant": "*",
         "configuration-filename": "authlete-fapi-brazil-dcr.json",
         "current-block": "Perform Dynamic Client Registration",
-        "condition": "EnsureHttpStatusCodeIs400",
+        "condition": "EnsureHttpStatusCodeIs400or401",
         "expected-result": "failure",
         "comment": "Authlete currently seems to not be checking this"
     },
@@ -365,6 +365,14 @@
         "expected-result": "failure"
     },
     {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-bad-jwks-uri",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change jwks uri to non-directory hosted one",
+        "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata",
+        "expected-result": "failure"
+    },
+    {
         "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
         "variant": "*",
         "configuration-filename": "authlete-fapi-brazil-dcr.json",
@@ -460,5 +468,44 @@
         "current-block": "Make PUT request to client configuration endpoint to change jwks to one passed by value",
         "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata",
         "expected-result": "failure"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-redirect-uri",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Perform Dynamic Client Registration",
+        "condition": "CheckScopesFromDynamicRegistrationEndpointContainRequiredScopes",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-redirect-uri",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change redirect uri to one not in software statement",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config-invalid-redirect-uri",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi-brazil-dcr.json",
+        "current-block": "Make PUT request to client configuration endpoint to change redirect uri to one not in software statement",
+        "condition": "CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata",
+        "expected-result": "failure",
+        "comment": "**CHANGE ME** explain why this failure occurs"
     }
 ]
