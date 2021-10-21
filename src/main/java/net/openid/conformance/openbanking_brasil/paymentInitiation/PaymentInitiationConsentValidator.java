@@ -85,6 +85,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.Builder("businessEntity")
 				.setValidator(this::assertBusinessEntity)
 				.setOptional()
+				.setNullable()
 				.build());
 
 		assertJsonObject(body, "creditor", this::assertCreditor);
