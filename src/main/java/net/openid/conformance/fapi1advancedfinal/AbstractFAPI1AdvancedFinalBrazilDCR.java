@@ -63,6 +63,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");
 		env.mapKey("client", "directory_client");
+		env.mapKey("access_token", "directory_access_token");
 		env.mapKey("discovery_endpoint_response", "directory_discovery_endpoint_response");
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
@@ -80,7 +81,6 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-		// map access token too?
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
@@ -89,6 +89,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		env.unmapKey("client");
 		env.unmapKey("discovery_endpoint_response");
 		env.unmapKey("config");
+		env.unmapKey("access_token");
 
 		// restore MTLS aliases to the values for the server being tested
 		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");

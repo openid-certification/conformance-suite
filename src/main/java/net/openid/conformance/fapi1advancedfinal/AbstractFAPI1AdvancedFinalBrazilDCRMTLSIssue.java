@@ -1,15 +1,12 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpointAllowingTLSFailure;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpointAllowingTLSFailure;
 import net.openid.conformance.condition.client.CheckDynamicRegistrationEndpointReturnedError;
 import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClientExpectingFailure;
@@ -35,7 +32,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
         } else {
             env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
             callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+            callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
             // an error to be returned in this case doesn't really seem to be defined anywhere, so allow any error
             callAndContinueOnFailure(CheckDynamicRegistrationEndpointReturnedError.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
         }
