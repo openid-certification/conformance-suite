@@ -8,7 +8,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-proxy-fake-email-proxy-test",
 	displayName = "Payments API test module ensuring email address is incorrect",
-	summary = "Payments API test module ensuring email address is incorrect",
+	summary = "Payments API test module ensuring email address is incorrect" +
+		"Flow:" +
+		"Makes a bad DICT payment flow with an incorrect email - expects a 422." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: Debtor account must be present in the config. We manually set the local instrument to DICT, add a creditor account, add an fake email address.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
