@@ -25,28 +25,28 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 
 		JsonObject server = env.getObject("server");
 
-		JsonElement mtlsEndpointAliases = env.getElementFromObject("server", "mtls_endpoint_aliases");
-		JsonObject mtlsEndpointAliasesObj = null;
+		JsonElement mtlsEndpointAliasesEl = env.getElementFromObject("server", "mtls_endpoint_aliases");
+		JsonObject mtlsEndpointAliases = null;
 
-		Set<String> keys = new HashSet<>();
-		keys.addAll(server.keySet());
-		if (mtlsEndpointAliases != null) {
-			if (!mtlsEndpointAliases.isJsonObject()) {
+		Set<String> allKeys = new HashSet<>();
+		allKeys.addAll(server.keySet());
+		if (mtlsEndpointAliasesEl != null) {
+			if (!mtlsEndpointAliasesEl.isJsonObject()) {
 				throw error("mtls_endpoint_aliases in the server configuration is not a JSON object", args("server", server));
 			}
 
-			mtlsEndpointAliasesObj = (JsonObject) mtlsEndpointAliases;
-			keys.addAll(mtlsEndpointAliasesObj.keySet());
+			mtlsEndpointAliases = (JsonObject) mtlsEndpointAliasesEl;
+			allKeys.addAll(mtlsEndpointAliases.keySet());
 		}
 
-		for (String k : keys) {
+		for (String k : allKeys) {
 
 			if (k.endsWith("_endpoint")) {
 
 				JsonElement jsonElement = null;
 
-				if (mtlsEndpointAliasesObj != null) {
-					jsonElement = mtlsEndpointAliasesObj.get(k);
+				if (mtlsEndpointAliases != null) {
+					jsonElement = mtlsEndpointAliases.get(k);
 				}
 
 				if (jsonElement != null) {
@@ -59,6 +59,26 @@ public class AddMTLSEndpointAliasesToEnvironment extends AbstractCondition {
 		}
 
 		logSuccess("Added mtls_endpoint_aliases to environment");
+
+		if (mtlsEndpointAliases != null) {
+			if (mtlsEndpointAliases.has("authorization_endpoint")) {
+				throw error("authorization_endpoint is incorrectly listed in mtls_endpoint_aliases - as per RFC8705 section 5 only endpoints the client makes a direct call are listed here.", mtlsEndpointAliases);
+			}
+
+			for (String k : mtlsEndpointAliases.keySet()) {
+				if (!k.endsWith("_endpoint")) {
+					throw error("unexpected value '" + k + "' found in mtls_endpoint_aliases. Only endpoints the client makes a direct call are listed here", mtlsEndpointAliases);
+				}
+
+			}
+			Set<String> keysOnlyInMtlsEndpointAliases = new HashSet<>();
+			keysOnlyInMtlsEndpointAliases.addAll(mtlsEndpointAliases.keySet());
+			keysOnlyInMtlsEndpointAliases.removeAll(server.keySet());
+			if (!keysOnlyInMtlsEndpointAliases.isEmpty()) {
+				throw error("Some endpoints are found only in mtls_endpoint_aliases. Endpoints should only be present in mtls_endpoint_aliases if an endpoint has versions that both do and do not require mtls.",
+					args("mtls_endpoint_aliases", mtlsEndpointAliases, "only_in_mtls", keysOnlyInMtlsEndpointAliases));
+			}
+		}
 
 		return env;
 	}
