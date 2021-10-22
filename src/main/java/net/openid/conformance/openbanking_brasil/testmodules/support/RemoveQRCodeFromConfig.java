@@ -19,7 +19,7 @@ public class RemoveQRCodeFromConfig extends AbstractCondition {
 		logSuccess("Removed QR code from consent:", resource.getAsJsonObject("brazilPaymentConsent"));
 
 		obj = resource.getAsJsonObject("brazilPixPayment");
-		obj.getAsJsonObject("data");
+		obj = obj.getAsJsonObject("data");
 		obj.remove("qrCode");
 
 		logSuccess("Removed QR code from payment:", resource.getAsJsonObject("brazilPixPayment"));

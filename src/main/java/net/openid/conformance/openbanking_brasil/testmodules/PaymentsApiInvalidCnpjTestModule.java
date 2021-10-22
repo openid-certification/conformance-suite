@@ -14,7 +14,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-test-invalid-cnpj",
 	displayName = "Payments API invalid CNPJ test module",
-	summary = "Payments API invalid CNPJ test module",
+	summary = "Payments API invalid CNPJ test module" +
+		"Flow:" +
+		"Makes a bad consent flow with an invalid cnpj value - expects 422." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: We manually set the cnpj initiator value for consent to a bad value.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

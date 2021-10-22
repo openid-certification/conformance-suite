@@ -12,7 +12,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-test-no-debtor-account",
 	displayName = "Payments API test module to allow user to select debtor account",
-	summary = "Payments API test module to allow user to select debtor account",
+	summary = "This test checks a user is asked to select a debtor account when not provided in the request." +
+		"Flow:" +
+		"Makes a good payment flow - expects success. Screenshot should be provided proving the user had to select a debtor account." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: Debtor account must NOT be present",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

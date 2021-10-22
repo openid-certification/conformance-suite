@@ -11,7 +11,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-invalid-test",
 	displayName = "Payments Consents API invalid test module",
-	summary = "Payments Consents API invalid test module",
+	summary = "Payments Consents API invalid test module" +
+		"Flow:" +
+		"Makes a series of bad consent flows with set of bad values - expects 422 for each." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually set the values for payment currency and the payment amount.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

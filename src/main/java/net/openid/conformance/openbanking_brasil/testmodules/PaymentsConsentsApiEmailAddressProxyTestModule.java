@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
+import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -12,7 +13,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-proxy-email-proxy-test",
 	displayName = "Payments Consents API test module ensuring email address is a valid proxy",
-	summary = "Payments Consents API test module ensuring email address is a valid proxy",
+	summary = "Payments Consents API test module ensuring email address is a valid proxy" +
+		"Flow:" +
+		"Makes a good payment consent flow - expects success." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually set the local instrument for consent DICT for this test. We manually add a real creditor account for this test. We manually set the proxy field for this test.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -50,7 +56,9 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			call(new ValidateSelfEndpoint()
+				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
+				));
 		});
 	}
 }
