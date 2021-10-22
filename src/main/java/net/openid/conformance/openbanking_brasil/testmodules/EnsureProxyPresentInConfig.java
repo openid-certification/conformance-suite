@@ -17,12 +17,21 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 		JsonElement proxy = obj.get("proxy");
 		if (proxy == null) {
 			logSuccess("Proxy not found, adding one");
-			obj.addProperty("qrCode",
-				"147459b2-60ad-4503-8ca9-c673cbe6044d");
-			logSuccess("details: ", obj);
+			obj.addProperty("proxy", "147459b2-60ad-4503-8ca9-c673cbe6044d");
+			logSuccess("Payment: ",
+				env.getObject("resource")
+					.getAsJsonObject("brazilPaymentConsent")
+					.getAsJsonObject("data")
+					.getAsJsonObject("payment")
+			);
 		} else {
 			logSuccess("Proxy found.");
-			logSuccess("details: ", obj);
+			logSuccess("Payment: ",
+				env.getObject("resource")
+					.getAsJsonObject("brazilPaymentConsent")
+					.getAsJsonObject("data")
+					.getAsJsonObject("payment")
+			);
 		}
 		return env;
 	}

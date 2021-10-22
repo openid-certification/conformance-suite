@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
+import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -51,8 +52,17 @@ public class PaymentsConsentsApiEnforceMANUTestModule extends AbstractClientCred
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 
 			call(sequence(PaymentConsentErrorTestingSequence.class));
-			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
+			callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class);
+		});
 
+		runInBlock("Checking consent is rejected if MANU has a proxy in the payload.", () -> {
+			callAndStopOnFailure(RemoveQRCodeFromConfig.class);
+			callAndStopOnFailure(EnsureProxyPresentInConfig.class);
+			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
+
+			call(sequence(PaymentConsentErrorTestingSequence.class));
+			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
 		});
 	}
 
