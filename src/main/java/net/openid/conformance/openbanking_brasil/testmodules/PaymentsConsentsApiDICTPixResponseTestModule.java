@@ -40,6 +40,7 @@ public class PaymentsConsentsApiDICTPixResponseTestModule extends AbstractOBBras
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
 	}
 
