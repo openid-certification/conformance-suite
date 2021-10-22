@@ -12,7 +12,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-test",
 	displayName = "Payments Consents API basic test module",
-	summary = "Payments Consents API basic test module",
+	summary = "This test checks the payments consent flow." +
+		"Flow:" +
+		"Makes a good payment consent flow." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

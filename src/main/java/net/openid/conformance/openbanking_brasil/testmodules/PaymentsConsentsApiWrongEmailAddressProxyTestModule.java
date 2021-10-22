@@ -10,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-proxy-fake-email-proxy-test",
 	displayName = "Payments Consents API test module ensuring email address is incorrect",
-	summary = "Payments Consents API test module ensuring email address is incorrect",
+	summary = "Payments Consents API test module ensuring email address is incorrect" +
+		"Flow:" +
+		"Makes a bad payment consent flow - expects a 422 error." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: We manually set the local instrument for consent to DICT for this test. We manually change the proxy field to a fake email. We manually add a creditor account.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -11,8 +11,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "payments-api-manu-pix-response-test",
-	displayName = "Payments API test module for manu local instrument pix response",
-	summary = "Payments API test module ensuring that the pix response for manu local instrument is correct",
+	displayName = "Payments API test module for MANU local instrument pix response",
+	summary = "Payments API test module ensuring that the pix response for MANU local instrument is correct" +
+		"Flow:" +
+		"Makes a good payment flow with a local instrument of MANU - expects success." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: Proxy field must be present in both payment and consent so we can remove it. We manually set the local instrument for both consent and payment to MANU for this test.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

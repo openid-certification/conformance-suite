@@ -12,7 +12,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-dict-pix-response-test",
 	displayName = "Payments API test module for dict local instrument pix response",
-	summary = "Payments API test module ensuring that the pix response for dict local instrument is correct",
+	summary = "Payments API test module ensuring that the pix response for dict local instrument is correct" +
+		"Flow:" +
+		"Makes a good payment flow with a local instrument of DICT - expects success." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: We manually set the local instrument for both consent and payment to DICT for this test.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

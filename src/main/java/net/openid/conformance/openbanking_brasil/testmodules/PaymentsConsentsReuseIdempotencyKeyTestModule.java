@@ -11,7 +11,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-idempotency-test",
 	displayName = "Payments API test module for re-using idempotency keys",
-	summary = "Payments API test module for re-using idempotency keys",
+	summary = "Payments API test module for re-using idempotency keys" +
+		"Flow:" +
+		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused idempotency key - expects 422." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

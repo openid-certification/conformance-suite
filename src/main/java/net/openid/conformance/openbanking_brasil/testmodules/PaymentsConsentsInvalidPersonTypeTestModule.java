@@ -10,7 +10,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-consent-invalid-person-type",
 	displayName = "Payments API consent test with an invalid person type",
-	summary = "Payments Consents API with an invalid person type",
+	summary = "Payments Consents API with an invalid person type" +
+		"Flow:" +
+		"Makes a bad consent flow with an invalid person type value - expects 422." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually set the person type to an invalid value.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -13,7 +13,15 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 @PublishTestModule(
 	testName = "payments-api-negative-tests",
 	displayName = "Payments API basic negative test modules",
-	summary = "Payments API basic negative test modules",
+	summary = "This test is a basic negative test that checks scenarios where the consent obtained and the payment created mismatch." +
+		"Flow:" +
+		"Makes a payment with currency not matching the consent - expects a 422." +
+		"Makes a payment with payment amount not matching the consent - expects a 422." +
+		"Makes a good payment flow - expects success." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: The test changes the provided payment data to bad values throughout the test",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
