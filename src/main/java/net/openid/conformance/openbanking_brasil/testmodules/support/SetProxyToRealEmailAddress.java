@@ -13,7 +13,7 @@ public class SetProxyToRealEmailAddress extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		obj.addProperty("proxy", "erickdominz@gmail.com");
+		obj.addProperty("proxy", "cliente-000000@pix.bcb.gov.br");
 
 		logSuccess("Added email address as proxy to payment consent");
 
