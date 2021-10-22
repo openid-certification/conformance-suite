@@ -229,12 +229,14 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 					.build());
 		}
 
-		assertField(details,
-			new StringField
-				.Builder("proxy")
-				.setPattern("[\\w\\W\\s]*")
-				.setMaxLength(77)
-				.build());
+		if(!OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("MANU") && !OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("DICT")) {
+			assertField(details,
+				new StringField
+					.Builder("proxy")
+					.setPattern("[\\w\\W\\s]*")
+					.setMaxLength(77)
+					.build());
+		}
 
 		assertField(details,
 			new ObjectField
