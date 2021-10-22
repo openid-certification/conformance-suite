@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"Required:" +
 		"Consent url pointing at the consent endpoint." +
 		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
-		"Config: Debtor account must NOT be present",
+		"Config: Debtor account is removed from the config by the test",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
