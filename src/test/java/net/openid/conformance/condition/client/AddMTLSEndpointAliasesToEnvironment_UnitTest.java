@@ -45,7 +45,8 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 			+ "\"mtls_endpoint_aliases\": {"
 			+ 		"\"token_endpoint\": \"https://mtls.example.com/token\","
 			+ 		"\"revocation_endpoint\": \"https://mtls.example.com/revo\","
-			+ 		"\"introspection_endpoint\": \"https://mtls.example.com/introspect\""
+			+ 		"\"introspection_endpoint\": \"https://mtls.example.com/introspect\","
+			+ 		"\"only_in_mtsaliases_endpoint\": \"https://mtls.example.com/onlyinmtlsaliases\""
 			+ "}}").getAsJsonObject();
 
 		env.putObject("server", server);
@@ -55,6 +56,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 		assertThat(env.getString("server", "mtls_endpoint_aliases.token_endpoint")).isEqualTo(env.getString("token_endpoint"));
 		assertThat(env.getString("server", "mtls_endpoint_aliases.revocation_endpoint")).isEqualTo(env.getString("revocation_endpoint"));
 		assertThat(env.getString("server", "mtls_endpoint_aliases.introspection_endpoint")).isEqualTo(env.getString("introspection_endpoint"));
+		assertThat(env.getString("server", "mtls_endpoint_aliases.only_in_mtsaliases_endpoint")).isEqualTo(env.getString("only_in_mtsaliases_endpoint"));
 		assertThat(env.getString("server", "userinfo_endpoint")).isEqualTo(env.getString("userinfo_endpoint"));
 
 	}
