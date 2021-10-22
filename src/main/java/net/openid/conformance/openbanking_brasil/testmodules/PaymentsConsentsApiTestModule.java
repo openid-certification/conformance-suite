@@ -2,6 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -47,7 +49,9 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			call(new ValidateSelfEndpoint()
+				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
+				));
 		});
 
 		runInBlock("Validate payment initiation get consent", () -> {
@@ -60,7 +64,9 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndStopOnFailure(CloneConsentResponseToResourceResponse.class);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			call(new ValidateSelfEndpoint()
+				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
+				));
 		});
 	}
 }
