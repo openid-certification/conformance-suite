@@ -16,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"Required:" +
 		"Consent url pointing at the consent endpoint." +
 		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
-		"Config: QR code will be populated by the tests. Local Instrument is set to DICT",
+		"Config: QR code  and proxy will be populated by the tests. Local Instrument is set to DICT",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,6 +35,7 @@ public class PaymentsConsentsApiEnforceDICTTestModule extends AbstractClientCred
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(EnsureQRCodePresentInConfig.class);
+		callAndStopOnFailure(EnsureProxyPresentInConfig.class);
 	}
 
 	@Override
