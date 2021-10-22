@@ -13,7 +13,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-proxy-email-proxy-test",
 	displayName = "Payments Consents API test module ensuring email address is a valid proxy",
-	summary = "Payments Consents API test module ensuring email address is a valid proxy",
+	summary = "Payments Consents API test module ensuring email address is a valid proxy" +
+		"Flow:" +
+		"Makes a good payment consent flow - expects success." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually set the local instrument for consent DICT for this test. We manually add a real creditor account for this test. We manually set the proxy field for this test.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

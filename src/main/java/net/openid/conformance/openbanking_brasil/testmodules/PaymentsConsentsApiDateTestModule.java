@@ -11,7 +11,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-payment-date-test",
 	displayName = "Payments Consents API payment Date module",
-	summary = "Payments Consents API payment Date module",
+	summary = "Payments Consents API payment Date module" +
+		"Flow:" +
+		"Makes a good consent flow with a good date value - expects 201. Then makes a bad consent flow with a bad date value - expects 422" +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually play around with the date value for this test",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

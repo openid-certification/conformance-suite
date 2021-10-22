@@ -14,7 +14,13 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 @PublishTestModule(
 	testName = "payments-api-consumed-consent-test",
 	displayName = "Payments API basic consumed consent test module",
-	summary = "Payments API basic test module",
+	summary = "This test checks a consent is consumed upon use and fails when the same consent is reused" +
+		"Flow:" +
+		"Makes a good payment flow - expects success." +
+		"Attempts to reuse the same consent for a second payment - expects a 422" +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -14,7 +14,11 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 @PublishTestModule(
 	testName = "payments-consents-force-check-signature-test",
 	displayName = "Payments Consents API basic test module ",
-	summary = "Payments Consents API basic test module",
+	summary = "Payments Consents API basic test module" +
+		"Flow:" +
+		"Makes a random number of good consent flows - all should succeed. Makes a bad consent flow with a malformed jwt - expects 400." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

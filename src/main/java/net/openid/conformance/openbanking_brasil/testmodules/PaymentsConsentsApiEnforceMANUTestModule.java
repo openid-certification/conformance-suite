@@ -10,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-manu-fail-test",
 	displayName = "Payments Consents API test module for manu local instrument",
-	summary = "Payments Consents API test module ensuring a qr code must be absent when the local instrument is MANU",
+	summary = "Payments Consents API test module ensuring a qr code must be absent when the local instrument is MANU" +
+		"Flow:" +
+		"Makes a payment flow. Expects a 422 due to a present QR code." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
+		"Config: QR code will be provided by the test config. Proxy field must be present in both the consents and payment config so we can remove it",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -10,7 +10,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-bad-payment-type-test",
 	displayName = "Payments Consents API bad payment type module",
-	summary = "Payments Consents API bad payment type module",
+	summary = "Payments Consents API bad payment type module" +
+		"Flow:" +
+		"Makes a bad consent flow with an incorrect payment type value - expects 422." +
+		"Required:" +
+		"Consent url pointing at the consent endpoint." +
+		"Config: We manually set the payment type for consent to BAD for this test.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
