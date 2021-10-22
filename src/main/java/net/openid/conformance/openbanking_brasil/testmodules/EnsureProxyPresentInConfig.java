@@ -17,7 +17,7 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 		JsonElement proxy = obj.get("proxy");
 		if (proxy == null) {
 			logSuccess("Proxy not found, adding one");
-			obj.addProperty("proxy", "12345678901");
+			obj.addProperty("proxy", "cliente-000000@pix.bcb.gov.br");
 			logSuccess("Payment: ",
 				env.getObject("resource")
 					.getAsJsonObject("brazilPaymentConsent")
