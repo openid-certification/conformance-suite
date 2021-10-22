@@ -42,7 +42,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractClien
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
-		callAndContinueOnFailure(InjectRealCreditorAccount.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);
 	}
 

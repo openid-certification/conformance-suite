@@ -26,7 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-public class PaymentsConsentsApiIncorrectCPFProxyTestModule2 extends AbstractOBBrasilFunctionalTestModule {
+public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void validateClientConfiguration() {
@@ -38,8 +38,11 @@ public class PaymentsConsentsApiIncorrectCPFProxyTestModule2 extends AbstractOBB
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
-		callAndContinueOnFailure(InjectRealCreditorAccount.class);
-		callAndContinueOnFailure(InjectCorrectButUnknownCpf.class);
+		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+		callAndContinueOnFailure(InjectCorrectButUnknownCpfOnPaymentConsent.class);
+		callAndContinueOnFailure(InjectCorrectButUnknownCpfOnPayment.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}
