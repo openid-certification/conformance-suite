@@ -2,12 +2,13 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 
 public class EnsurePaymentDateIsCorrect extends AbstractCondition{
 
@@ -20,21 +21,15 @@ public class EnsurePaymentDateIsCorrect extends AbstractCondition{
 		obj = obj.getAsJsonObject("payment");
 
 		JsonElement enteredDate = obj.get("date");
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Fortaleza"));
+		log(currentDate.toString());
 
-		Date currentDate = new Date();
-		String strDateFormat = "yyyy-MM-dd";
-		SimpleDateFormat objSDF = new SimpleDateFormat(strDateFormat, Locale.ROOT);
-		String updatedCurrentDateFormat = '"'  + objSDF.format(currentDate) + '"';
-
-		JsonElement o = new JsonParser().parse(updatedCurrentDateFormat);
-
-		if (o.equals(enteredDate)){
+		if (currentDate.equals(LocalDate.parse(OIDFJSON.forceConversionToString(enteredDate)))){
 			logSuccess("Date is correct");
 		}else{
-			logFailure("Date is incorrect - needs to be today, today is " + o + " and the date submitted is " + enteredDate);
+			logFailure("Date is incorrect - needs to be today, today is " + currentDate + " and the date submitted is " + enteredDate);
 		}
 
 		return env;
 	}
-
 }
