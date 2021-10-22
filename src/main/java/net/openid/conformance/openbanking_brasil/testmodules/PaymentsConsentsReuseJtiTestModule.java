@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
+import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -45,7 +46,9 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+			call(new ValidateSelfEndpoint()
+				.replace(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class)
+			));
 		});
 
 		runInBlock("Create a payment consent re-using jti", () -> {
