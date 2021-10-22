@@ -32,8 +32,11 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
-		callAndContinueOnFailure(InjectRealCreditorAccount.class);
-		callAndContinueOnFailure(SetProxyToFakeEmailAddress.class);
+		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPaymentConsent.class);
+		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPayment.class);
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
