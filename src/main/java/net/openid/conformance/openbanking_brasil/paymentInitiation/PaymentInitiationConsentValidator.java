@@ -229,7 +229,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 					.build());
 		}
 
-		if(!OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("MANU") && !OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("DICT")) {
+		if(!OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("MANU")) {
 			assertField(details,
 				new StringField
 					.Builder("proxy")
