@@ -12,6 +12,12 @@ public class CallDynamicRegistrationEndpointAllowingTLSFailure extends CallDynam
 	public static final String RESPONSE_SSL_ERROR_KEY = "dynamic_registration_endpoint_response_ssl_error";
 
 	@Override
+	protected boolean allowJsonParseFailure() {
+		// as a special case, we allow a html error as TLS failures may be handled by an inflexible TLS terminator
+		return true;
+	}
+
+	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
 	public Environment evaluate(Environment env) {
 		env.putBoolean(RESPONSE_SSL_ERROR_KEY, false);

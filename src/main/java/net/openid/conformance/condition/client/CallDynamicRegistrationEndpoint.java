@@ -28,6 +28,10 @@ import java.util.Collections;
 
 public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
+	protected boolean allowJsonParseFailure() {
+		return false;
+	}
+
 	@Override
 	@PreEnvironment(required = {"server", "dynamic_registration_request"})
 	@PostEnvironment(required = "dynamic_registration_endpoint_response")
@@ -80,7 +84,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(registrationEndpoint, HttpMethod.POST, request, String.class);
 
-				JsonObject responseInfo = convertJsonResponseForEnvironment("dynamic registration", response);
+				JsonObject responseInfo = convertJsonResponseForEnvironment("dynamic registration", response, allowJsonParseFailure());
 
 				env.putObject("dynamic_registration_endpoint_response", responseInfo);
 

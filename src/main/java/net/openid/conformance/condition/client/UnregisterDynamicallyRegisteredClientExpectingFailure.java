@@ -63,8 +63,8 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 			HttpEntity<?> request = new HttpEntity<>(headers);
 			try {
 				ResponseEntity<?> response = restTemplate.exchange(registrationClientUri, HttpMethod.DELETE, request, String.class);
-				if (response.getStatusCode() != HttpStatus.UNAUTHORIZED) {
-					throw error("registration_client_uri when called with an issue returned a http status code other than 401 Unauthorized",
+				if (response.getStatusCode() != HttpStatus.UNAUTHORIZED && response.getStatusCode() != HttpStatus.BAD_REQUEST) {
+					throw error("registration_client_uri when called with an issue returned a http status code other than 400 Bad Request / 401 Unauthorized",
 						args("code", response.getStatusCode()));
 				}
 			} catch (RestClientResponseException e) {
@@ -85,7 +85,7 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 			throw error("Error creating HTTP Client", e);
 		}
 
-		logSuccess("registration_client_uri returned 401 unauthorized when called with a TLS issue");
+		logSuccess("registration_client_uri returned 400 bad request or 401 unauthorized when called with a TLS issue");
 		return env;
 	}
 }

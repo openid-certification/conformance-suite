@@ -12,6 +12,12 @@ public class CallClientConfigurationEndpointAllowingTLSFailure extends CallClien
 	public static final String RESPONSE_SSL_ERROR_KEY = "client_configuration_endpoint_response_ssl_error";
 
 	@Override
+	protected boolean allowJsonParseFailure() {
+		// as a special case, we allow a html error as TLS failures may be handled by an inflexible TLS terminator
+		return true;
+	}
+
+	@Override
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 		env.putBoolean(RESPONSE_SSL_ERROR_KEY, false);
