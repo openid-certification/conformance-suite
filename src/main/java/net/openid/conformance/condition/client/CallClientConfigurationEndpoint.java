@@ -29,6 +29,10 @@ import java.util.Collections;
 
 public class CallClientConfigurationEndpoint extends AbstractCondition {
 
+	protected boolean allowJsonParseFailure() {
+		return false;
+	}
+
 	@Override
 	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "registration_client_endpoint_response")
@@ -74,7 +78,7 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(registrationClientUri, httpMethod, request, String.class);
-				JsonObject responseInfo = convertJsonResponseForEnvironment("registration_client_uri", response);
+				JsonObject responseInfo = convertJsonResponseForEnvironment("registration_client_uri", response, allowJsonParseFailure());
 
 				env.putObject("registration_client_endpoint_response", responseInfo);
 

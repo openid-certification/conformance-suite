@@ -253,8 +253,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	private void checkLoggedResults(String result) {
 		if (!result.equals(ConditionResult.SUCCESS.toString()) &&
-		    !result.equals(ConditionResult.INFO.toString()) &&
-		    !result.equals(ConditionResult.REVIEW.toString())) {
+			!result.equals(ConditionResult.INFO.toString()) &&
+			!result.equals(ConditionResult.REVIEW.toString())) {
 			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
 			// not be updated
 			throwRequired = true;
@@ -744,6 +744,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
+		return convertJsonResponseForEnvironment(endpointName, response, false);
+	}
+
+	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response, boolean allowParseFailure) {
 		JsonObject responseInfo = convertResponseForEnvironment(endpointName, response);
 
 		String jsonString = response.getBody();
@@ -754,6 +758,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		try {
 			JsonElement jsonRoot = new JsonParser().parse(jsonString);
 			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				if (allowParseFailure) {
+					return responseInfo;
+				}
+
 				throw error(endpointName + " endpoint did not return a JSON object.",
 					args("response", jsonString));
 			}
@@ -763,6 +771,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			responseInfo.add("body_json", bodyJson);
 
 		} catch (JsonParseException e) {
+			if (allowParseFailure) {
+				return responseInfo;
+			}
 			throw error("Response from "+endpointName+" endpoint does not appear to be JSON.", e,
 				args("response", jsonString));
 		}
