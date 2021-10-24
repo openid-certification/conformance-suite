@@ -1,0 +1,29 @@
+{
+    "AuthorisationServerId": "string",
+    "OrganisationId": "string",
+    "AutoRegistrationSupported": true,
+    "ApiResources": [
+        {
+            "ApiResourceId": "string",
+            "ApiFamilyType": "string",
+            "ApiVersion": 0,
+            "ApiCertificationUri": "string",
+            "ApiDiscoveryEndpoints": [
+                {
+                    "ApiDiscoveryId": "string",
+                    "ApiEndpoint": "string"
+                }
+            ]
+        }
+    ],
+    "CustomerFriendlyDescription": "string",
+    "CustomerFriendlyLogoUri": "string",
+    "CustomerFriendlyName": "string",
+    "DeveloperPortalUri": "string",
+    "TermsOfServiceUri": "string",
+    "NotificationWebhook": "string",
+    "NotificationWebhookStatus": "Pending",
+    "OpenIDDiscoveryDocument": "string",
+    "PayloadSigningCertLocationUri": "string",
+    "ParentAuthorisationServerId": "string"
+}

@@ -1,0 +1,12 @@
+{
+    "ApiResourceId": "string",
+    "ApiFamilyType": "string",
+    "ApiVersion": 0,
+    "ApiCertificationUri": "string",
+    "ApiDiscoveryEndpoints": [
+        {
+            "ApiDiscoveryId": "string",
+            "ApiEndpoint": "string"
+        }
+    ]
+}

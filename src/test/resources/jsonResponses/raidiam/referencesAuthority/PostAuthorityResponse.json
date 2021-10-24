@@ -1,0 +1,8 @@
+{
+    "AuthorityId": "string",
+    "AuthorityName": "string",
+    "AuthorityCode": "string",
+    "AuthorityUri": "string",
+    "AuthorityCountry": "string",
+    "Status": "Active"
+}

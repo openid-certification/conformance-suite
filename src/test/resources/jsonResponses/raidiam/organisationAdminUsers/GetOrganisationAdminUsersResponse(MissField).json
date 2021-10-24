@@ -1,0 +1,14 @@
+[
+    {
+        "Status": "Active",
+        "UserEmail": "string",
+        "DomainRoleDetails": [
+            {
+                "AuthorisationDomainName": "string",
+
+                "ContactRole": "PTC",
+                "System": "Directory"
+            }
+        ]
+    }
+]

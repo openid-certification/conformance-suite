@@ -1,0 +1,7 @@
+{
+    "OrganisationAuthorisationId": "string",
+    "OrganisationAuthorityClaimId": "string",
+    "Status": "Active",
+    "MemberState": "string"
+}
+

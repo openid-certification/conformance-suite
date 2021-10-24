@@ -1,0 +1,60 @@
+{
+    "totalPages": 0,
+    "totalSize": 0,
+    "pageable": {
+        "number": 0,
+        "sort": {
+            "sorted": true,
+            "orderBy": [
+                {
+                    "property": "createdAt",
+                    "direction": "ASC",
+                    "ignoreCase": true,
+                    "ascending": true
+                }
+            ]
+        },
+        "size": 0,
+        "offset": 0,
+        "sorted": true
+    },
+    "numberOfElements": 0,
+    "size": 0,
+    "content": [
+        {
+            "TermsAndConditionsItem": {
+                "TnCId": 0,
+                "Name": "string",
+                "Type": "Participant",
+                "Content": "string",
+                "Status": "Active",
+                "ExternalSigningService": {
+                    "ExternalSigningServiceName": "DocuSign",
+                    "ExternalSigningServiceSignerTemplateConfig": {
+                        "Signer1TemplateId": "string",
+                        "Signer1Version": 0,
+                        "Signer2TemplateId": "string",
+                        "Signer2Version": 0,
+                        "Signer3TemplateId": "string",
+                        "Signer3Version": 0,
+                        "Signer4TemplateId": "string",
+                        "Signer4Version": 0,
+                        "Signer5TemplateId": "string",
+                        "Signer5Version": 0,
+                        "Signer6TemplateId": "string",
+                        "Signer6Version": 0
+                    },
+                    "ExternalSigningServiceSubject": "string",
+                    "ExternalSigningServiceEmailSubject": "string"
+                }
+            },
+            "InititatedDate": "string",
+            "ExternalSigningServiceEnvelopeId": "string",
+            "ExternalSigningServiceEnvelopeStatus": "completed",
+            "ExternalSigningServiceEnvelopePasscode": "string"
+        }
+    ],
+    "offset": 0,
+    "empty": true,
+    "pageNumber": 0
+}

@@ -1,0 +1,8 @@
+{
+    "OrganisationAuthorityDomainClaimId": "string",
+    "AuthorisationDomainName": "string",
+    "AuthorityId": "string",
+    "AuthorityName": "string",
+    "RegistrationId": "string",
+    "Status": "Active"
+}
