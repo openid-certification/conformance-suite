@@ -12,17 +12,14 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		log(env.toString());
-
-		JsonObject obj;
-		try {
-			obj = env.getObject("resource");
-			if(obj == null){
-				throw new NullPointerException("No resource Object");
-			}
-		} catch(NullPointerException e) {
+		JsonObject obj = env.getObject("resource");
+		if(obj == null){
 			obj = env.getObject("config");
 			obj = obj.getAsJsonObject("resource");
+		}
+		if(obj == null){
+			logFailure("Cannot find resource object.");
+			return env;
 		}
 		obj = obj.getAsJsonObject("brazilPaymentConsent");
 		obj = obj.getAsJsonObject("data");
