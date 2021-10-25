@@ -36,6 +36,8 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);

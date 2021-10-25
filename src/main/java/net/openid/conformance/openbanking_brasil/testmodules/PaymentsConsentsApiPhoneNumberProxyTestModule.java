@@ -41,6 +41,8 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractClien
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);

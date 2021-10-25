@@ -41,6 +41,8 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
 		createPlaceholder();
 

@@ -33,6 +33,8 @@ public class PaymentsConsentsApiEnforceDICTTestModule extends AbstractClientCred
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(EnsureQRCodePresentInConfig.class);
 		callAndStopOnFailure(EnsureProxyPresentInConfig.class);

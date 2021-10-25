@@ -38,6 +38,8 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
+			eventLog.startBlock("Setting date to today");
+			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(SelectInvalidPersonType.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);

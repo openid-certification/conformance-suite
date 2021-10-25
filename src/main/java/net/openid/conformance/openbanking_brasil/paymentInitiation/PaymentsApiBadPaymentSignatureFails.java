@@ -4,6 +4,7 @@ import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilEnsureB
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsCorrect;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -27,6 +28,8 @@ public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazi
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddOpenIdScope.class);
 		callAndStopOnFailure(AddPaymentScope.class);
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsCorrect.class);
 
 		super.validateClientConfiguration();
 	}

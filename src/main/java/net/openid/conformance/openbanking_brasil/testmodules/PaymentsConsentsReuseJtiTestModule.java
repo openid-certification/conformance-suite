@@ -42,6 +42,8 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 	@Override
 	protected void runTests() {
 		runInBlock("Create a payment consent", () -> {
+			eventLog.startBlock("Setting date to today");
+			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 

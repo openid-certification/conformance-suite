@@ -45,6 +45,8 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		eventLog.startBlock("Prepping consent request");
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		eventLog.startBlock("Set resource URL");

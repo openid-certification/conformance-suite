@@ -38,6 +38,8 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 
 	@Override
 	protected void runTests() {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		eventLog.startBlock("Preparing a payment consent request");
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
