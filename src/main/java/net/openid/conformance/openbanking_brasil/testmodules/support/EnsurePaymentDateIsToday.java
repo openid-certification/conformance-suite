@@ -12,6 +12,8 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
+		log(env.toString());
+
 		JsonObject obj;
 		try {
 			obj = env.getObject("resource");

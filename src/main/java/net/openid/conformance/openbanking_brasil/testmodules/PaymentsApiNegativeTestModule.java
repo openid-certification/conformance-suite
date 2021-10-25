@@ -7,7 +7,6 @@ import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderFo
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
@@ -77,37 +76,6 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		eventLog.startBlock("Resetting payment request");
 		callAndStopOnFailure(ResetPaymentRequest.class);
 		eventLog.endBlock();
-
-		eventLog.startBlock("Making new access token");
-		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-
-		// call the token endpoint and complete the flow
-		eventLog.startBlock("here");
-		call(createOBBPreauthSteps());
-		eventLog.startBlock("there");
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-
-		createAuthorizationRequest();
-
-		createAuthorizationRequestObject();
-
-		if (isPar) {
-			eventLog.startBlock("1");
-			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
-			addClientAuthenticationToPAREndpointRequest();
-			performParAuthorizationRequestFlow();
-		} else {
-			eventLog.startBlock("2");
-			buildRedirect();
-			performRedirect();
-			setStatus(Status.RUNNING);
-		}
-
-		eventLog.startBlock("everywhere");
-
-		eventLog.startBlock(currentClientString() + "Call token endpoint");
 
 		eventLog.startBlock("Making a new consent, setting the amount on payment request to differ from our consent request");
 		makeConsent();
