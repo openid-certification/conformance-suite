@@ -10,12 +10,15 @@ import java.util.Map;
  * Static implementation of server info utility methods.
  */
 public class ServerInfoTemplate {
+
 	@Value("${fintechlabs.version}")
 	private String version;
 	@Value("${fintechlabs.show_external_ip_address}")
 	private Boolean showExternalIpAddress;
 
-	private static final String URI = "https://api.ipify.org/";
+	@Value("${fintechlabs.external_ip_service_uri}")
+	private String ipAddressServiceUri;
+
 	private static final Map<String, String> SERVER_INFO = new HashMap<>();
 
 	public Map<String, String> getServerInfo(){
@@ -33,7 +36,7 @@ public class ServerInfoTemplate {
 	private String callServiceToGetExternalIpAddress() {
 		if (showExternalIpAddress) {
 			RestTemplate restTemplate = new RestTemplate();
-			return restTemplate.getForObject(URI, String.class);
+			return restTemplate.getForObject(ipAddressServiceUri, String.class);
 		}
 		return null;
     }
