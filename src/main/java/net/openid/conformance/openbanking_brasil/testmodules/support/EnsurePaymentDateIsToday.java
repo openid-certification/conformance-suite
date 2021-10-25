@@ -11,7 +11,17 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = env.getObject("resource");
+
+		JsonObject obj;
+		try {
+			obj = env.getObject("resource");
+			if(obj == null){
+				throw new NullPointerException("No resource Object");
+			}
+		} catch(NullPointerException e) {
+			obj = env.getObject("config");
+			obj = obj.getAsJsonObject("resource");
+		}
 		obj = obj.getAsJsonObject("brazilPaymentConsent");
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
@@ -21,15 +31,6 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 		log("Setting date in consent config to current date: " + currentDate);
 		obj.addProperty("date", currentDate.toString());
 		logSuccess("Successfully added current date to consent config", obj);
-
-		obj = env.getObject("resource");
-		obj = obj.getAsJsonObject("brazilPixPayment");
-		obj = obj.getAsJsonObject("data");
-		obj = obj.getAsJsonObject("payment");
-
-		log("Setting date in payment config to current date: " + currentDate);
-		obj.addProperty("date", currentDate.toString());
-		logSuccess("Successfully added current date to payment config", obj);
 
 		return env;
 	}
