@@ -38,6 +38,8 @@ public class PaymentsConsentsApiDateTestModule extends AbstractClientCredentials
 
 	@Override
 	protected void runTests() {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		eventLog.startBlock("Ensure the payment date is correct before beginning");
 		callAndStopOnFailure(EnsurePaymentDateIsCorrect.class);
 		eventLog.startBlock("Prepare to post the consent request");

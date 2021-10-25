@@ -42,6 +42,8 @@ public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBras
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(SelectMANUCodeLocalInstrument.class);

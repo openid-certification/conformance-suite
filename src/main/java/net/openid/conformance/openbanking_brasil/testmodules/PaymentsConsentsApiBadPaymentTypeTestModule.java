@@ -38,6 +38,7 @@ public class PaymentsConsentsApiBadPaymentTypeTestModule extends AbstractClientC
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
+			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(SelectBADPaymentType.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);

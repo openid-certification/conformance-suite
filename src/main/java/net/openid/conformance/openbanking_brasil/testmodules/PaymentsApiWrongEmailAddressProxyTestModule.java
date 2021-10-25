@@ -36,6 +36,8 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);

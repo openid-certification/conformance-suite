@@ -41,6 +41,9 @@ public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClien
 	@Override
 	protected void runTests() {
 
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+
 		int numOfGoodTests = new Random().nextInt(20) + 1;
 
 		eventLog.startBlock("Making a random number of good payment consent requests");

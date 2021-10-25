@@ -5,6 +5,7 @@ import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinal;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsCorrect;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -40,6 +41,8 @@ public class PaymentsApiFapiTesting extends FAPI1AdvancedFinal {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsCorrect.class);
 		super.onConfigure(config, baseUrl);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}

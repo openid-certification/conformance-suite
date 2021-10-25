@@ -41,6 +41,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
+			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 

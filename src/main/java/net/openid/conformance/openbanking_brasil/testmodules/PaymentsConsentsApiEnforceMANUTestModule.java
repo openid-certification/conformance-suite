@@ -35,6 +35,8 @@ public class PaymentsConsentsApiEnforceMANUTestModule extends AbstractClientCred
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectMANUCodeLocalInstrument.class);
 		callAndStopOnFailure(EnsureQRCodePresentInConfig.class);
 		callAndStopOnFailure(RemoveProxyFromConsentConfig.class);
