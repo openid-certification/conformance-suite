@@ -4,21 +4,19 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public abstract class AbstractPaymentLocalInstrumentCondtion extends AbstractCondition {
+public abstract class AbstractPaymentTransactionIdentificationCondition extends AbstractCondition {
 
 	@Override
 	public final Environment evaluate(Environment env) {
-		log("Setting local instrument to a new value");
+		log("Setting transaction identification to a new value");
 		JsonObject obj = env.getObject("resource");
-		obj = obj.getAsJsonObject("brazilPaymentConsent");
+		obj = obj.getAsJsonObject("brazilPixPayment");
 		obj = obj.getAsJsonObject("data");
-		obj = obj.getAsJsonObject("payment");
-		obj = obj.getAsJsonObject("details");
-		obj.addProperty("localInstrument", getLocalInstrument());
+		obj.addProperty("transactionIdentification", getTransactionIdentification());
 		log(obj);
 		return env;
 	}
 
-	protected abstract String getLocalInstrument();
+	protected abstract String getTransactionIdentification();
 
 }
