@@ -165,7 +165,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		}
 
 		if(fail) {
-			callAndContinueOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
 			eventLog.startBlock("Validating response, expecting 422 jwt with code: CONSENTIMENTO_INVALIDO");
 			callAndContinueOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureCodeIsInvalidConsent.class);
