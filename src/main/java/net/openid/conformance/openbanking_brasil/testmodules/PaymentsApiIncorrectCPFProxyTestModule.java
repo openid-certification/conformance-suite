@@ -81,7 +81,7 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResourceResponseCodeWas201Or422.class);
+		callAndStopOnFailure(EnsureResourceResponseCodeWas422.class);
 	}
 
 }

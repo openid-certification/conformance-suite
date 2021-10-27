@@ -83,7 +83,7 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResourceResponseCodeWas201Or422.class);
+		callAndStopOnFailure(EnsureResourceResponseCodeWas422.class);
 	}
 
 }
