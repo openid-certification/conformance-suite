@@ -220,7 +220,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(4)
 				.build());
 
-		if(!OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("MANU") && !OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("DICT")){
+		if(OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("QRES") || OIDFJSON.getString(details.get("localInstrument")).equalsIgnoreCase("QRDN")){
 			assertField(details,
 				new StringField
 					.Builder("qrCode")

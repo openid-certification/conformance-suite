@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public class EnsurePaymentDateIsToday extends AbstractCondition {
@@ -25,7 +26,7 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 
-		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Fortaleza"));
+		LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
 
 		log("Setting date in consent config to current date: " + currentDate);
 		obj.addProperty("date", currentDate.toString());
