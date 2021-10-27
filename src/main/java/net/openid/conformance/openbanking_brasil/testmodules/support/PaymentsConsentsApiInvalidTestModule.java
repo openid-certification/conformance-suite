@@ -47,10 +47,6 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 		callAndStopOnFailure(SetPaymentCurrency.class);
 		eventLog.startBlock("Attempting to make a consent ");
 		attemptConsentCreation();
-		eventLog.startBlock("Setting amount to max (1Mil BRL)");
-		callAndStopOnFailure(SetAmountToBeOverMaxAndCurrencyValid.class);
-		eventLog.startBlock("Attempting to make a consent ");
-		attemptConsentCreation();
 	}
 
 	protected void attemptConsentCreation() {
