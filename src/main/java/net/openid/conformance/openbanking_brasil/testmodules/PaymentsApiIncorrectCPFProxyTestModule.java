@@ -42,6 +42,17 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 	}
 
 	@Override
+	protected void requestProtectedResource() {
+		if(!validationStarted) {
+			validationStarted = true;
+			call(sequence(CallPixPaymentsEndpointSequence.class));
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
+	}
+
+	@Override
 	protected void performPreAuthorizationSteps() {
 		super.performPreAuthorizationSteps();
 		if(env.getString("proceed_with_test") == null) {
