@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -33,6 +34,21 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
 	}
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+		OpenBankingBrazilPreAuthorizationErrorAgnosticSteps steps = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication);
+		return steps;
+	}
+
+	@Override
+	protected void performPreAuthorizationSteps() {
+		super.performPreAuthorizationSteps();
+		if(env.getString("proceed_with_test") == null) {
+			eventLog.log(getName(), "Consent call failed early - test finished");
+			fireTestFinished();
+		}
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -51,7 +67,7 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+		callAndStopOnFailure(EnsureResourceResponseCodeWas422.class);
 	}
 
 }
