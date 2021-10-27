@@ -7,7 +7,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdSc
 
 public abstract class AbstractFunctionalTestModule extends AbstractFAPI1AdvancedFinalServerTestModule {
 
-	private boolean validationStarted = false;
+	protected boolean validationStarted = false;
 
 	@Override
 	protected void requestProtectedResource() {

@@ -52,6 +52,17 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 	}
 
 	@Override
+	protected void requestProtectedResource() {
+		if(!validationStarted) {
+			validationStarted = true;
+			call(sequence(CallPixPaymentsEndpointSequence.class));
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
+	}
+
+	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
