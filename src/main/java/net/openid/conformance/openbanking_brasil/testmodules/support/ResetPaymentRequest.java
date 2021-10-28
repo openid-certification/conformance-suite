@@ -14,14 +14,16 @@ public class ResetPaymentRequest extends AbstractCondition {
 		log("Resetting consent request");
 		JsonObject resource = env.getObject("resource");
 		JsonObject payment = resource.getAsJsonObject("brazilPixPayment").getAsJsonObject("data").getAsJsonObject("payment");
-		BigDecimal amount = new BigDecimal(OIDFJSON.getString(payment.get("amount")));
-		amount = amount.subtract(new BigDecimal(100));
 
-		payment.addProperty("amount", amount.toString());
-		logSuccess("Successfully reset payment request", payment);
 		if(env.getString("previous_currency") != null){
 			payment.addProperty("currency", env.getString("previous_currency"));
+			logSuccess("Successfully reset currency of payment request", payment);
 		}
+		if(env.getString("previous_amount") != null){
+			payment.addProperty("amount", env.getString("previous_amount"));
+			logSuccess("Successfully reset amount of payment request", payment);
+		}
+		logSuccess("Successfully reset payment payload.", payment);
 		return env;
 	}
 }

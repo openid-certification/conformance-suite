@@ -42,6 +42,7 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealEmailAddress.class);
 	}
 
