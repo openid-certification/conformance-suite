@@ -18,7 +18,7 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 
 		if (proxy == null) {
 			logSuccess("Proxy not found, adding one");
-			obj.addProperty("proxy", "cliente-000000@pix.bcb.gov.br");
+			obj.addProperty("proxy", "cliente-a00001@pix.bcb.gov.br");
 			logSuccess("Payment: ",
 				env.getObject("resource")
 					.getAsJsonObject("brazilPaymentConsent")
@@ -28,10 +28,10 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 
 			log("Updating creditor account for new proxy value in config");
 			JsonObject creditorAccount = new JsonObject();
-			creditorAccount.addProperty("number", "22917383379");
+			creditorAccount.addProperty("number", "12345678");
 			creditorAccount.addProperty("accountType", "CACC");
-			creditorAccount.addProperty("ispb", "99999060");
-			creditorAccount.addProperty("issuer", "0024");
+			creditorAccount.addProperty("ispb", "99999004");
+			creditorAccount.addProperty("issuer", "0001");
 
 			obj.add("creditorAccount", creditorAccount);
 			logSuccess("Added creditorAccount: ", obj);
@@ -39,7 +39,7 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 			log("Updating creditor for new proxy value in config");
 			JsonObject creditor = new JsonObject();
 			creditor.addProperty("personType", "PESSOA_NATURAL");
-			creditor.addProperty("cpfCnpj", "11122233300");
+			creditor.addProperty("cpfCnpj", "99991111140");
 			creditor.addProperty("name", "Joao Silva");
 
 			obj = env.getObject("resource").getAsJsonObject("brazilPaymentConsent").getAsJsonObject("data");
@@ -53,7 +53,7 @@ public class EnsureProxyPresentInConfig extends AbstractCondition {
 			obj = obj.getAsJsonObject("brazilPixPayment");
 			obj = obj.getAsJsonObject("data");
 			obj.add("creditorAccount", creditorAccount);
-			obj.addProperty("proxy", "cliente-000000@pix.bcb.gov.br");
+			obj.addProperty("proxy", "cliente-a00001@pix.bcb.gov.br");
 			logSuccess("Updated payment config: ", obj);
 		}
 
