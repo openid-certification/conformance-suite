@@ -83,10 +83,6 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		performAuthorizationFlow();
 	}
 
-	protected void buildRedirect() {
-		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
-	}
-
 	@Override
 	protected void requestProtectedResource() {
 

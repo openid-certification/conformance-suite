@@ -9,6 +9,7 @@ public class StoreScope extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String endpoint = env.getString("client", "scope");
 		env.putString("starting_scope", endpoint);
+		logSuccess("Successfully set the scope to default " + endpoint);
 		return env;
 	}
 }
