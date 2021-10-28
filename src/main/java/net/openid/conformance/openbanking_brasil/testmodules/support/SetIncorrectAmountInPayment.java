@@ -20,6 +20,9 @@ public class SetIncorrectAmountInPayment extends AbstractCondition {
 			.getAsJsonObject("payment")
 			.get("amount"));
 
+		env.putString("previous_amount", consentAmount);
+		log("Previous amount: " + env.getString("previous_amount"));
+
 		BigDecimal newAmount;
 		try {
 			newAmount = new BigDecimal(consentAmount);
