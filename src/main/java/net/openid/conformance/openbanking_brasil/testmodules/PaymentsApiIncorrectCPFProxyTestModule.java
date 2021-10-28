@@ -1,6 +1,8 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -39,6 +41,18 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		OpenBankingBrazilPreAuthorizationErrorAgnosticSteps steps = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication);
 		return steps;
+	}
+
+	@Override
+	protected void requestProtectedResource() {
+		if(!validationStarted) {
+			validationStarted = true;
+			call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
+				condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class)));
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
 	}
 
 	@Override

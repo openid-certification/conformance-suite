@@ -46,6 +46,7 @@ public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBras
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+		callAndContinueOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(AddTransactionIdentification.class);
 		callAndStopOnFailure(SelectINICCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectINICCodePixLocalInstrument.class);
