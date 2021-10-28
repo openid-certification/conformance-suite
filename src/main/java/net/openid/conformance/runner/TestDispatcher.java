@@ -278,7 +278,7 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	protected MultiValueMap<String, String> convertQueryStringParamsToMap(String queryString) {
-		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset());
+		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 		for (NameValuePair pair : parameters) {

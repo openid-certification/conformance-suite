@@ -25,7 +25,7 @@ public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 
 			String hash = implicit_hash.substring(1); // strip off the leading # character
 
-			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset());
+			List<NameValuePair> parameters = URLEncodedUtils.parse(hash, Charset.defaultCharset(), '&');
 
 			log("Extracted response from URL fragment", args("parameters", parameters));
 
