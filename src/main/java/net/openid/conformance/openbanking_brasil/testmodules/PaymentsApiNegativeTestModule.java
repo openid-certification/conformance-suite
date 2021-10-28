@@ -37,6 +37,9 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 )
 public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	private boolean finalAuth = false;
+	private boolean secondTest = false;
+
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
@@ -49,65 +52,36 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		eventLog.startBlock("Validating consent and payment request are the same");
 		callAndStopOnFailure(ValidatePaymentAndConsentHaveSameProperties.class);
-
 		eventLog.startBlock("Preparing consent request, setting payment request to incorrect currency type");
-		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(SetIncorrectCurrencyPayment.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-		eventLog.startBlock("Beginning error validation");
-		callAndContinueOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsurePaymentCodeIsCorrect.class, Condition.ConditionResult.FAILURE);
+
+	}
+
+	protected void fireSecondTest() {
+		eventLog.startBlock("Resetting payment config");
+		callAndStopOnFailure(ResetPaymentRequest.class);
+		eventLog.startBlock("Setting amount to be incorrect");
+		callAndStopOnFailure(SetIncorrectAmountInPayment.class);
+		secondTest = true;
+		performAuthorizationFlow();
+	}
+	protected void fireThirdTest() {
+		eventLog.startBlock("Resetting payment config");
+		callAndStopOnFailure(ResetPaymentRequest.class);
+		finalAuth = true;
+		performAuthorizationFlow();
 	}
 
 	@Override
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
-		eventLog.startBlock("Making request to payments with a currency differing to the consent requested - expecting failure");
-		makeRequest(true);
-		eventLog.endBlock();
-		validateResponse();
-
-		eventLog.startBlock("Resetting payment request");
-		callAndStopOnFailure(ResetPaymentRequest.class);
-		eventLog.endBlock();
-
-		eventLog.startBlock("Making a new consent, setting the amount on payment request to differ from our consent request");
-		makeConsent();
-		callAndStopOnFailure(SetIncorrectAmountInPayment.class);
-		eventLog.endBlock();
-
-		eventLog.startBlock("Making request to payments with an amount differing to the consent requested - expecting failure");
-		makeRequest(true);
-		eventLog.endBlock();
-		validateResponse();
-
-		eventLog.startBlock("Resetting payment request");
-		callAndStopOnFailure(ResetPaymentRequest.class);
-		eventLog.endBlock();
-
-		eventLog.startBlock("Running a good consent and payment request api - expected to pass");
-		makeRequest(false);
-		callAndContinueOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE);
-		eventLog.endBlock();
-
-		eventLog.startBlock("Setting currency of payment to be different to the consent request");
-		makeConsent();
-		eventLog.endBlock();
-	}
-
-	protected void makeConsent(){
-		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-		callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-		call(sequence(SignedPaymentConsentSequence.class));
-	}
-
-	protected void makeRequest(boolean fail){
+		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
@@ -119,6 +93,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		} else {
 			// these are optional; only add them for the first client
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
+
 			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 				// CDR requires this header when the x-fapi-customer-ip-address header is present
@@ -126,6 +101,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 			}
 
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 		}
 
@@ -163,12 +139,66 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 			}
 		}
-
-		if(fail) {
+		if(!finalAuth) {
 			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndStopOnFailure(EnsureResponseCodeWas422.class);
+			callAndStopOnFailure(EnsureResponseWasJwt.class);
+			callAndContinueOnFailure(EnsurePaymentCodeIsCorrect.class, Condition.ConditionResult.FAILURE);
 		} else {
 			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+			callAndContinueOnFailure(EnsureResponseCodeWas201.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(EnsureResponseWasJwt.class);
+		}
+
+
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		}
+		eventLog.endBlock();
+		if(!secondTest) {
+			fireSecondTest();
+		} else if(!finalAuth){
+			fireThirdTest();
 		}
 	}
 
+	@Override
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+
+		if (!jarm) {
+			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
+
+			// save the id_token returned from the authorization endpoint
+			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
+			performIdTokenValidation();
+
+			callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+
+			skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+
+			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
+
+		performPostAuthorizationFlow(finalAuth);
+	}
+
+	protected void performPostAuthorizationFlow(boolean finalAuth) {
+		eventLog.startBlock(currentClientString() + "Call token endpoint");
+
+		// call the token endpoint and complete the flow
+		createAuthorizationCodeRequest();
+		requestAuthorizationCode();
+		requestProtectedResource();
+		if(finalAuth) {
+			onPostAuthorizationFlowComplete();
+		}
+	}
 }
