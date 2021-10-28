@@ -45,6 +45,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractClien
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);
 	}
 
