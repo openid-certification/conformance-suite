@@ -37,8 +37,8 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 )
 public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTestModule {
 
-	boolean finalAuth = false;
-	boolean secondTest = false;
+	private boolean finalAuth = false;
+	private boolean secondTest = false;
 
 	@Override
 	protected void validateClientConfiguration() {
