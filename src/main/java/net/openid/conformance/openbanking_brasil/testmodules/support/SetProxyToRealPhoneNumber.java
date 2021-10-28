@@ -13,7 +13,7 @@ public class SetProxyToRealPhoneNumber extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		obj.addProperty("proxy", "+5561900000000");
+		obj.addProperty("proxy", "+5561990010001");
 
 		logSuccess("Added phone number as proxy to payment consent");
 
