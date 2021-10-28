@@ -11,8 +11,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "payments-consents-json-accept-header-jwt-returned-test",
-	displayName = "Payments Consents API test module which sends an accept header of JSON and excepts a JWT",
-	summary = "Payments Consents API test module which sends an accept header of JSON and excepts a JWT" +
+	displayName = "Payments Consents API test module which sends an accept header of JSON and expects a JWT",
+	summary = "Payments Consents API test module which sends an accept header of JSON and expects status a JWT" +
 		"Flow:" +
 		"Makes a good consent flow - expects success. Calls the self endpoint with a JSON accept header and ensures a JWT is still returned." +
 		"Required:" +
