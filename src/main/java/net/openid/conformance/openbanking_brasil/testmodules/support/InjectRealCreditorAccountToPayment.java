@@ -13,10 +13,10 @@ public class InjectRealCreditorAccountToPayment extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("creditorAccount");
 
-		obj.addProperty("issuer", "0024");
-		obj.addProperty("number", "22917383379");
+		obj.addProperty("issuer", "0001");
+		obj.addProperty("number", "12345678");
 		obj.addProperty("accountType", "CACC");
-		obj.addProperty("ispb", "99999060");
+		obj.addProperty("ispb", "99999004");
 		logSuccess("Added real, working creditor account details to payment");
 
 		return env;
