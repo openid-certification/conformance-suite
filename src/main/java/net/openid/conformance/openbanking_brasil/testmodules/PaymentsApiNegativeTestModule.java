@@ -52,6 +52,8 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		eventLog.startBlock("Validating consent and payment request are the same");
 		callAndStopOnFailure(ValidatePaymentAndConsentHaveSameProperties.class);
+		eventLog.startBlock("Storing authorisation endpoint");
+		callAndStopOnFailure(StoreScope.class);
 		eventLog.startBlock("Preparing consent request, setting payment request to incorrect currency type");
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(SetIncorrectCurrencyPayment.class);
@@ -67,14 +69,22 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		callAndStopOnFailure(ResetPaymentRequest.class);
 		eventLog.startBlock("Setting amount to be incorrect");
 		callAndStopOnFailure(SetIncorrectAmountInPayment.class);
+		eventLog.startBlock("Resetting authorisation endpoint");
+		callAndStopOnFailure(SetScope.class);
 		secondTest = true;
 		performAuthorizationFlow();
 	}
 	protected void fireThirdTest() {
 		eventLog.startBlock("Resetting payment config");
 		callAndStopOnFailure(ResetPaymentRequest.class);
+		eventLog.startBlock("Resetting authorisation endpoint");
+		callAndStopOnFailure(SetScope.class);
 		finalAuth = true;
 		performAuthorizationFlow();
+	}
+
+	protected void buildRedirect() {
+		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
 	@Override
