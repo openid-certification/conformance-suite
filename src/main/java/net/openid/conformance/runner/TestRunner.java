@@ -249,6 +249,13 @@ public class TestRunner implements DataUtils {
 			}
 
 			boolean recreate = false;
+			if (testPlan.getPlanName().equals("Payments api phase 1 test")) {
+				if (planVersion.isLowerThan("4.1.36")) {
+					recreate = true;
+					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+
 			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan"))
 			{
 				if (planVersion.isLowerThan("4.1.24")) {
@@ -337,6 +344,14 @@ public class TestRunner implements DataUtils {
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
 
 			alias = OIDFJSON.getString(config.get("alias"));
+
+			if (testName.equals("payments-api-dcr-test-unauthorized-client")) {
+				// This test uses a hardcoded client that needs a particular redirect url
+				alias = "raidiam-client-accounts-only";
+			}
+			else if (testName.equals("payments-api-dcr-happyflow")) {
+				alias = "raidiam-client-payments-only";
+			}
 
 			// create an alias for the test
 			if (!createTestAlias(alias, id)) {
