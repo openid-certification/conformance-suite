@@ -138,7 +138,11 @@ public class TestDispatcher implements DataUtils {
 			logIncomingHttpRequest(test, restOfPath, requestParts);
 
 			if (TestModule.Status.CREATED.equals(test.getStatus())) {
-				throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				if (path.endsWith("/client1_jwks")) {
+					// workaround for the issue seen in https://gitlab.com/openid/conformance-suite/-/issues/945
+				} else {
+					throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
+				}
 			}
 
 			try {
@@ -274,7 +278,7 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	protected MultiValueMap<String, String> convertQueryStringParamsToMap(String queryString) {
-		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset());
+		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 		for (NameValuePair pair : parameters) {

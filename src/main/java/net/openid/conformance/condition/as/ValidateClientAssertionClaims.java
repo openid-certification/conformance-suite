@@ -9,7 +9,9 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ValidateClientAssertionClaims extends AbstractCondition {
 
@@ -91,18 +93,27 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 
 	protected void validateAud(Environment env) {
 		String tokenEndpoint = env.getString("server", "token_endpoint");
+		String mtlsTokenEndpoint = env.getString("server", "mtls_endpoint_aliases.token_endpoint");
 		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
 		if (aud == null) {
 			throw error("Missing aud");
 		}
 
+		List<String> tokenEndpoints = new ArrayList<>(List.of(tokenEndpoint));
+		if (mtlsTokenEndpoint != null) {
+			tokenEndpoints.add(mtlsTokenEndpoint);
+		}
+
 		if (aud.isJsonArray()) {
-			if (!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint))) {
-				throw error("aud not found", args("expected", tokenEndpoint, "actual", aud));
+			if (!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint)) &&
+				!aud.getAsJsonArray().contains(new JsonPrimitive(mtlsTokenEndpoint))) {
+				throw error("aud not found", args("expected", tokenEndpoints, "actual", aud));
 			}
 		} else {
-			if (!tokenEndpoint.equals(OIDFJSON.getString(aud))) {
-				throw error("aud mismatch", args("expected", tokenEndpoint, "actual", aud));
+			String audStr = OIDFJSON.getString(aud);
+			if (!audStr.equals(tokenEndpoint) &&
+				!audStr.equals(mtlsTokenEndpoint)) {
+				throw error("aud mismatch", args("expected", tokenEndpoints, "actual", aud));
 			}
 		}
 	}

@@ -19,7 +19,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondition {
+public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractFAPIBrazilExtractCertificateSubject {
 
 	@Override
 	@PreEnvironment(required = "mutual_tls_authentication")
@@ -31,64 +31,13 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject extends AbstractCondi
 			throw error("Couldn't find TLS client certificate for MTLS");
 		}
 
-		CertificateFactory certFactory = null;
-		try {
-			certFactory = CertificateFactory.getInstance("X.509", "BC");
-		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
-			throw error("Couldn't get CertificateFactory", e);
-		}
+		JsonObject certificateSubject = extractSubject(certString, "DCR testing must be done using a BRCAC profile certificate where the subjectdn contains a UID");
 
-		X509Certificate certificate = generateCertificateFromMTLSCert(certString, certFactory);
-		X500Principal x500Principal = certificate.getSubjectX500Principal();
+		env.putObject("certificate_subject", certificateSubject);
 
-		// we are careful to get the subjectDN in RFC 4514 format here, that is what is required for
-		// tls_client_auth_subject_dn as per https://datatracker.ietf.org/doc/html/rfc8705#section-2.1.2
-		// although I believe technically X500Principal always outputs RFC2253, so some newer OIDs are
-		// output as numeric encodings instead of names (see unit test).
-		X500Name x500name = X500Name.getInstance(x500Principal.getEncoded());
-		String subjectDn = x500Principal.getName();
-
-		RDN ou = x500name.getRDNs(BCStyle.OU)[0];
-		String ouAsString = IETFUtils.valueToString(ou.getFirst().getValue());
-
-		RDN[] uid = x500name.getRDNs(BCStyle.UID);
-		String softwareId;
-		if (uid.length == 0) {
-			throw error("DCR testing must be done using a BRCAC profile certificate where the subjectdn contains a UID",
-				args("subjectdn", subjectDn));
-		} else {
-			// newer Brazilian style certificate as per
-			// https://github.com/OpenBanking-Brasil/specs-seguranca/blob/main/open-banking-brasil-certificate-standards-1_ID1-ptbr.md
-			softwareId = IETFUtils.valueToString(uid[0].getFirst().getValue());
-		}
-
-		JsonObject o = new JsonObject();
-		o.addProperty("subjectdn", subjectDn);
-		o.addProperty("ou", ouAsString);
-		o.addProperty("brazil_software_id", softwareId);
-
-		env.putObject("certificate_subject", o);
-
-		logSuccess("Extracted subject from MTLS certificate", o);
+		logSuccess("Extracted subject from MTLS certificate", certificateSubject);
 
 		return env;
-	}
-
-	private X509Certificate generateCertificateFromMTLSCert(String certString, CertificateFactory certFactory) {
-		byte[] decodedCert;
-		try {
-			decodedCert = Base64.getDecoder().decode(certString);
-		} catch (IllegalArgumentException e) {
-			throw error("base64 decode of cert failed", e, args("cert", certString));
-		}
-
-		X509Certificate certificate;
-		try {
-			certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decodedCert));
-		} catch (CertificateException | IllegalArgumentException e) {
-			throw error("Calling generateCertificate on cert failed", e, args("cert", certString));
-		}
-		return certificate;
 	}
 
 }

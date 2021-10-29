@@ -32,6 +32,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -66,6 +67,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+
+
 
 public abstract class AbstractCondition implements Condition, DataUtils {
 
@@ -209,14 +216,45 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return OIDFJSON.getString(value);
 	}
 
+	/**
+	 * Get a string from the environment, throwing a condition error if missing/not a string
+	 */
+	protected JsonObject getJsonObjectFromEnvironment(Environment env, String key, String path, String friendlyName) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		if (!value.isJsonObject()) {
+			throw error(friendlyName+" is not a JSON object", args("value", value));
+		}
+
+		return value.getAsJsonObject();
+	}
+
+	protected JsonArray getJsonArrayFromEnvironment(Environment env, String key, String path, String friendlyName) {
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		if (!value.isJsonArray()) {
+			throw error(friendlyName+" is not a JSON array", args("value", value));
+		}
+
+		return value.getAsJsonArray();
+	}
+
 	/*
 	 * Logging utilities
 	 */
 
 	private void checkLoggedResults(String result) {
 		if (!result.equals(ConditionResult.SUCCESS.toString()) &&
-		    !result.equals(ConditionResult.INFO.toString()) &&
-		    !result.equals(ConditionResult.REVIEW.toString())) {
+			!result.equals(ConditionResult.INFO.toString()) &&
+			!result.equals(ConditionResult.REVIEW.toString())) {
 			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
 			// not be updated
 			throwRequired = true;
@@ -618,16 +656,34 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	/**
+	 * Setup a TCP connection to the given host/port
+	 *
 	 * @param targetHost The host that will be used to create the socket.
 	 * @param targetPort The port that will be used to create the socket.
 	 * @return a newly created socket using the system HTTP proxy if one is set.
 	 * @throws IOException thrown if there is an issue with the socket connection.
 	 */
 	protected Socket setupSocket(String targetHost, Integer targetPort) throws IOException {
+		// For most operations we rely on HttpClientBuilder useSystemProperties() method to support proxies, however
+		// as here we are creating the socket ourselves to perform TLS cipher/version tests, we need to explicitly
+		// process the proxy configuration keys.
 		String proxyHost = System.getProperty("https.proxyHost", "");
 		int proxyPort = Integer.parseInt(System.getProperty("https.proxyPort", "0"));
+		String noProxyStr = System.getProperty("https.noProxy", "");
+		boolean noProxyFlag = false;
+		Path targetPath = Path.of(targetHost);
+
+		for (String proxyExc : noProxyStr.split(",")) {
+			PathMatcher matcher =  FileSystems.getDefault().getPathMatcher("glob:" + proxyExc);
+
+			if (matcher.matches(targetPath)) {
+				noProxyFlag = true;
+				break;
+			}
+		}
+
 		Socket socket;
-		if (!Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
+		if (!noProxyFlag && Strings.isNullOrEmpty(proxyHost) && proxyPort != 0) {
 
 			// see https://gitlab.com/openid/conformance-suite/merge_requests/218#note_74098367
 			log("Creating socket through system HTTPS proxy; this may cause incorrect test results", args(
@@ -688,6 +744,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
+		return convertJsonResponseForEnvironment(endpointName, response, false);
+	}
+
+	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response, boolean allowParseFailure) {
 		JsonObject responseInfo = convertResponseForEnvironment(endpointName, response);
 
 		String jsonString = response.getBody();
@@ -698,6 +758,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		try {
 			JsonElement jsonRoot = new JsonParser().parse(jsonString);
 			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				if (allowParseFailure) {
+					return responseInfo;
+				}
+
 				throw error(endpointName + " endpoint did not return a JSON object.",
 					args("response", jsonString));
 			}
@@ -707,6 +771,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			responseInfo.add("body_json", bodyJson);
 
 		} catch (JsonParseException e) {
+			if (allowParseFailure) {
+				return responseInfo;
+			}
 			throw error("Response from "+endpointName+" endpoint does not appear to be JSON.", e,
 				args("response", jsonString));
 		}

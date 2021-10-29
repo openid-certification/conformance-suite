@@ -5,8 +5,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +62,7 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 				throw error("RestClientResponseException occurred whilst calling logout endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				return handleResponseException(env, e);
+				return handleClientException(env, e);
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
@@ -72,7 +70,7 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 		return env;
 	}
 
-	protected Environment handleResponseException(Environment env, RestClientException e) {
+	protected Environment handleClientException(Environment env, RestClientException e) {
 		throw error("RestClientException happened whilst calling logout endpoint", ex(e));
 	}
 

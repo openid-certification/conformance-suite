@@ -32,8 +32,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-// BouncyCastle 1.58 (our current version) deprecates X509V3CertificateGenerator in favor
-// of org.bouncycastle.cert.X509v3CertificateBuilder, but that class is not found.
+// BouncyCastle has deprecated X509V3CertificateGenerator in favor of org.bouncycastle.cert.X509v3CertificateBuilder
 @SuppressWarnings("deprecation")
 public class GenerateMTLSCertificateFromJWKs extends AbstractCondition {
 

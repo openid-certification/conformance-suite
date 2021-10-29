@@ -32,16 +32,16 @@ import java.util.Collections;
 public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "access_token", "config", "certificate_subject" })
+	@PreEnvironment(required = { "directory_access_token", "config", "certificate_subject" })
 	@PostEnvironment(required = {  "software_statement_assertion" })
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("access_token", "value");
+		String accessToken = env.getString("directory_access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
 			throw error("Access token not found");
 		}
 
-		String tokenType = env.getString("access_token", "type");
+		String tokenType = env.getString("directory_access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
 			throw error("Token type not found");
 		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
