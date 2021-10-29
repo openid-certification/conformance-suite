@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.StringField;
 
 public class EnsureResponseHasLinksForConsents extends AbstractJsonAssertingCondition {
@@ -14,8 +15,14 @@ public class EnsureResponseHasLinksForConsents extends AbstractJsonAssertingCond
 		assertHasField(body, ROOT_PATH);
 
 		log("Check for navigation Links in the response body.");
+		String consentUrl = OIDFJSON.getString(environment.getObject("resource").get("consentUrl"));
+		boolean phase1or2 = consentUrl.contains("consents/v1/consents");
 
-		body.remove("links");
+		// Ensure links for p3 consents
+		if(!phase1or2){
+			assertHasField(body, "$.links");
+		}
+
 		if (JsonHelper.ifExists(body, "$.links")) {
 
 			log("Ensure that there is a link to self.");
