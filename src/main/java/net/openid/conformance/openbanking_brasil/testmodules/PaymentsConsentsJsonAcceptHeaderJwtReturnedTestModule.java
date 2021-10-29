@@ -3,7 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -11,11 +10,11 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-jti-reuse-test",
-	displayName = "Payments Consents API test module which attempts to reuse a jti",
-	summary = "Payments Consents API test module which attempts to reuse a jti" +
+	testName = "payments-consents-json-accept-header-jwt-returned-test",
+	displayName = "Payments Consents API test module which sends an accept header of JSON and expects a JWT",
+	summary = "Payments Consents API test module which sends an accept header of JSON and expects status a JWT" +
 		"Flow:" +
-		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused jti - expects 422." +
+		"Makes a good consent flow - expects success. Calls the self endpoint with a JSON accept header and ensures a JWT is still returned." +
 		"Required:" +
 		"Consent url pointing at the consent endpoint.",
 	profile = OBBProfile.OBB_PROFILE,
@@ -30,7 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
@@ -50,26 +49,8 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-			call(new ValidateSelfEndpoint()
-				.replace(
-					CallProtectedResourceWithBearerToken.class,
-					condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
-				));
-			});
-
-		runInBlock("Create a payment consent re-using jti", () -> {
-			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-
-			call(new SignedPaymentConsentSequence()
-				.skip(AddJtiAsUuidToRequestObject.class, "Re-use previous jti")
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class))
-			);
-
+			call(sequence(ValidateSelfEndpoint.class));
+			callAndContinueOnFailure(EnsureResponseWasJwt.class);
 		});
-
-
 	}
-
 }
