@@ -21,6 +21,7 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeaders extends CallPr
 	protected HttpHeaders getHeaders(Environment env) {
 
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+		log("Using request headers: " + requestHeaders);
 		HttpHeaders headers = headersFromJson(requestHeaders);
 
 		headers.set("Authorization", "Bearer " + getAccessToken(env));
