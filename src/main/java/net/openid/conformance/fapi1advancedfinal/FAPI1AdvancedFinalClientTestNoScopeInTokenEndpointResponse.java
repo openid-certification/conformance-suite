@@ -24,6 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 public class FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse extends AbstractFAPI1AdvancedFinalClientTest {

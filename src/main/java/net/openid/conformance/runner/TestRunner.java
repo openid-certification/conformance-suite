@@ -226,7 +226,7 @@ public class TestRunner implements DataUtils {
 				//the plan is immutable
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			}
-			
+
 			String planVersionBuild = testPlan.getVersion();
 			String[] planVersionParts = planVersionBuild.split(" ");
 			Semver planVersion = new Semver(planVersionParts[0]);
@@ -247,7 +247,30 @@ public class TestRunner implements DataUtils {
 					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
-			
+
+			boolean recreate = false;
+			if (testPlan.getPlanName().equals("Payments api phase 1 test")) {
+				if (planVersion.isLowerThan("4.1.36")) {
+					recreate = true;
+					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan"))
+			{
+				if (planVersion.isLowerThan("4.1.24")) {
+					recreate = true;
+				}
+			}
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			{
+				if (planVersion.isLowerThan("4.1.32")) {
+					recreate=true;
+				}
+			}
+			if (recreate) {
+				return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			// if the test is part of a plan, the final variant may come from both any variants defined in the plan itself (which always take priority) combined with any selected by the user
 			Map<String, String> variantsMap = new HashMap<>();
 			if (variantFromApi == null) {
@@ -321,6 +344,14 @@ public class TestRunner implements DataUtils {
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
 
 			alias = OIDFJSON.getString(config.get("alias"));
+
+			if (testName.equals("payments-api-dcr-test-unauthorized-client")) {
+				// This test uses a hardcoded client that needs a particular redirect url
+				alias = "raidiam-client-accounts-only";
+			}
+			else if (testName.equals("payments-api-dcr-happyflow")) {
+				alias = "raidiam-client-payments-only";
+			}
 
 			// create an alias for the test
 			if (!createTestAlias(alias, id)) {

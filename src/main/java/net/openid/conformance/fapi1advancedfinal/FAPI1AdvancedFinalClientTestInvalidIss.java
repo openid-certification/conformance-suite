@@ -16,6 +16,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 

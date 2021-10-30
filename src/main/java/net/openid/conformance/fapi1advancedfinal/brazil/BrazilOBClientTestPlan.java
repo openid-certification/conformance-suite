@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal.brazil;
 
 
+import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilClientDCRHappyPathTest;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientRefreshTokenTest;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTest;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestEncryptedIdToken;
@@ -112,7 +113,8 @@ public class BrazilOBClientTestPlan implements TestPlan {
 			FAPI1AdvancedFinalClientTestValidAudAsArray.class,
 			FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
 			FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
-			FAPI1AdvancedFinalClientRefreshTokenTest.class
+			FAPI1AdvancedFinalClientRefreshTokenTest.class,
+			FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class
 		);
 		List<Class<? extends TestModule>> parModules = new LinkedList<>();
 		parModules.addAll(byValueModules);

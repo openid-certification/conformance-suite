@@ -12,7 +12,7 @@ public class CreateAuthorizationCode extends AbstractCondition {
 	@PostEnvironment(strings = "authorization_code")
 	public Environment evaluate(Environment env) {
 
-		String code = RandomStringUtils.randomAlphanumeric(10);
+		String code = RandomStringUtils.randomAlphanumeric(32);
 
 		env.putString("authorization_code", code);
 

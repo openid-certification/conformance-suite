@@ -51,6 +51,12 @@ public class FAPI1AdvancedFinalPARAttemptReuseRequestUri extends AbstractFAPI1Ad
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		if (secondAttempt) {
+			// the server does not implement the 'should'. When we get here we have verified the successful response
+			// when reusing the request_uri and have already logged a warning, so the test can now end
+			fireTestFinished();
+			return;
+		}
 		eventLog.startBlock("Attempting reuse of request_uri and testing if Authorization server returns error in callback");
 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 		secondAttempt = true;

@@ -67,7 +67,7 @@ public class TestPlanApi implements DataUtils {
 		VariantService.TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(Map.of("error", "No plan with name: "+planName+""), HttpStatus.NOT_FOUND);
 		}
 
 		String description = null;

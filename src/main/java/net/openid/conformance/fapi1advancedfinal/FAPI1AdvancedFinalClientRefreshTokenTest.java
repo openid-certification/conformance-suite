@@ -28,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk"})
@@ -72,5 +73,23 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
 		}
 		return super.accountsEndpoint(requestId);
+	}
+
+	@Override
+	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
+		if(!issuedAccessTokenViaRefreshTokenGrant) {
+			setStatus(Status.RUNNING);
+
+			call(exec().startBlock("Payment initiation endpoint (always rejected)"));
+			callAndStopOnFailure(LogAccessTokenAlwaysRejectedToForceARefreshGrant.class);
+			JsonObject wwwAuthHeader = new JsonObject();
+			wwwAuthHeader.addProperty("WWW-Authenticate",
+				"Bearer realm=\"conformancesuite\", " +
+					"error=\"invalid_token\", " +
+					"error_description=\"Invalid access token. This test requires you to obtain a new access token using the refresh_token\"");
+			setStatus(Status.WAITING);
+			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
+		}
+		return super.brazilHandleNewPaymentInitiationRequest(requestId);
 	}
 }

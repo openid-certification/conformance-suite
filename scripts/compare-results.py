@@ -42,11 +42,11 @@ def read_zipped_results():
         print("Reading results from "+results_zip_filename)
         zip_name = os.path.splitext(results_zip_filename)[0]
         try:
-            module_and_variant, plan_id, _, _, _ = zip_name.rsplit("-",4)
+            plan_and_variant, plan_id, _, _, _ = zip_name.rsplit("-",4)
         except:
             print("Results zip '"+zip_name+"' it not in the format <testplan>-<variants>-<planid>-dd-mmm-yyyy.zip")
             sys.exit(1)
-        # print("Test: "+module_and_variant)
+        # print("Test: "+plan_and_variant)
         with zipfile.ZipFile(results_zip_filename, "r") as zip_ref:
             files = zip_ref.namelist()
             files = fnmatch.filter(files, "*.json")
@@ -56,7 +56,7 @@ def read_zipped_results():
                 test_info = test_result['testInfo']
                 # print(test_info['testName'], test_info['testId'], test_info['variant'])
                 frozen_variant = frozenset(sorted(test_info['variant'].items()))
-                results.setdefault(module_and_variant, {}).setdefault(test_info['testName'], {})[
+                results.setdefault(plan_and_variant + ":" + test_info['description'], {}).setdefault(test_info['testName'], {})[
                     frozen_variant] = test_result
     return results
 

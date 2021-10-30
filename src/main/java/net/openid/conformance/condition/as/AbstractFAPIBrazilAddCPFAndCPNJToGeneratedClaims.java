@@ -66,25 +66,27 @@ public abstract class AbstractFAPIBrazilAddCPFAndCPNJToGeneratedClaims extends A
 			String cnpjFromConsentRequest = env.getString("consent_request_cnpj");
 			String cnpjValue = null;
 			if(cnpj.has("essential") && OIDFJSON.getBoolean(cnpj.get("essential"))) {
-				if(cnpj.has("value")) {
-					cnpjValue = OIDFJSON.getString(cnpj.get("value"));
-				} else if(cnpj.has("values") && cnpj.get("values").isJsonArray()) {
-					JsonArray values = cnpj.get("values").getAsJsonArray();
-					if(values.contains(new JsonPrimitive(cnpjFromConsentRequest))) {
-						cnpjValue = cnpjFromConsentRequest;
+				if(cnpjFromConsentRequest!=null) {
+					if (cnpj.has("value")) {
+						cnpjValue = OIDFJSON.getString(cnpj.get("value"));
+					} else if (cnpj.has("values") && cnpj.get("values").isJsonArray()) {
+						JsonArray values = cnpj.get("values").getAsJsonArray();
+						if (values.contains(new JsonPrimitive(cnpjFromConsentRequest))) {
+							cnpjValue = cnpjFromConsentRequest;
+						} else {
+							throw error("Requested cnpj claim values does not contain the cnpj value from the consent request",
+								args("requested_cnpj_values", values, "cnpj_in_consent_request", cnpjFromConsentRequest));
+						}
 					} else {
-						throw error("Requested cnpj claim values does not contain the cnpj value from the consent request",
-							args("requested_cnpj_values", values, "cnpj_in_consent_request", cnpjFromConsentRequest));
+						//use the value from consent request
+						cnpjValue = cnpjFromConsentRequest;
 					}
-				} else {
-					//use the value from consent request
-					cnpjValue = cnpjFromConsentRequest;
-				}
-				if(cnpjFromConsentRequest!=null && !cnpjFromConsentRequest.equals(cnpjValue)) {
-					throw error("Requested cnpj claim value does not match the cnpj value from the consent request",
-						args("requested_cnpj_value", cnpjValue, "cnpj_in_consent_request", cnpjFromConsentRequest));
-				} else {
-					idTokenClaimsInEnv.addProperty("cnpj", cnpjValue);
+					if(!cnpjFromConsentRequest.equals(cnpjValue)) {
+						throw error("Requested cnpj claim value does not match the cnpj value from the consent request",
+							args("requested_cnpj_value", cnpjValue, "cnpj_in_consent_request", cnpjFromConsentRequest));
+					} else {
+						idTokenClaimsInEnv.addProperty("cnpj", cnpjValue);
+					}
 				}
 			}
 		}

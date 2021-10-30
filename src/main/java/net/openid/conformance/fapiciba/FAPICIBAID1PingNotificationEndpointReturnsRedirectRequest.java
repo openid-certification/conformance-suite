@@ -83,7 +83,11 @@ public class FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest extends A
 
 		if (path.equals("invalid-ciba-notification-endpoint")) {
 
+			setStatus(Status.RUNNING);
+
 			callAndContinueOnFailure(ServerCalledInvalidNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+
+			setStatus(Status.WAITING);
 
 			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 		} else {
