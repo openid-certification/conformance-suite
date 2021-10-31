@@ -51,23 +51,11 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
 		//Make same request again with same idempotency key but with same payload - Expects a 200 or 201
 		callPixSamePayload();
-		//Make request using same idempotency key but older than 24hrs - Expect 422 Response
-		callPixWrongIAT();
 		//Make request again but using different ISS and expect a 403 response
 		callPixWrongIss();
 		//Makes request using same idempotency key but using a different payload - Expects a 422
 		callAndStopOnFailure(ModifyPixPaymentValue.class);
 		callPix();
-	}
-
-	public void callPixWrongIAT() {
-		callPixFirstBlock();
-
-		callAndStopOnFailure(InjectWrongIAT.class);
-
-		callPixSecondBlock();
-
-		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 	}
 
 	public void callPix() {
