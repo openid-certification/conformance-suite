@@ -49,12 +49,62 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+		//Make same request again with same idempotency key but with same payload - Expects a 200 or 201
+		callPixSamePayload();
+		//Make request using same idempotency key but older than 24hrs - Expect 422 Response
+		callPixWrongIAT();
+		//Make request again but using different ISS and expect a 403 response
+		callPixWrongIss();
+		//Makes request using same idempotency key but using a different payload - Expects a 422
 		callAndStopOnFailure(ModifyPixPaymentValue.class);
 		callPix();
 	}
 
+	public void callPixWrongIAT() {
+		callPixFirstBlock();
+
+		callAndStopOnFailure(InjectWrongIAT.class);
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+	}
+
 	public void callPix() {
 
+		callPixFirstBlock();
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+	}
+
+	public void callPixSamePayload() {
+
+		callPixFirstBlock();
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas201or200.class);
+	}
+
+	public void callPixWrongIss(){
+		callPixFirstBlock();
+
+		callAndStopOnFailure(InjectWrongISSToJWT.class);
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas403.class);
+	}
+
+	private void callPixFirstBlock(){
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
@@ -78,15 +128,13 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
 
 		callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+	}
 
-		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-
+	private void callPixSecondBlock(){
 		call(exec().unmapKey("request_object_claims"));
 
 		callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-
-		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 	}
 }
