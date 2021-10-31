@@ -10,8 +10,6 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
@@ -101,7 +99,7 @@ public class CallPAREndpoint extends AbstractCondition {
 				throw error("RestClientResponseException occurred whilst calling pushed authorization request endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				return handleResponseException(env, e);
+				return handleClientException(env, e);
 			}
 
 			if (!httpMethod.equals(HttpMethod.POST)) {
@@ -136,7 +134,7 @@ public class CallPAREndpoint extends AbstractCondition {
 		//do nothing by default
 	}
 
-	protected Environment handleResponseException(Environment env, RestClientException e) {
+	protected Environment handleClientException(Environment env, RestClientException e) {
 		String msg = "Call to pushed authorization request endpoint failed";
 		if (e.getCause() != null) {
 			msg += " - " + e.getCause().getMessage();

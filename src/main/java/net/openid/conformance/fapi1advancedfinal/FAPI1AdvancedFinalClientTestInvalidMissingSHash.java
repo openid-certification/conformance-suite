@@ -19,6 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
+		"directory.keystore"
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})

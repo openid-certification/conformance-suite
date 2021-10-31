@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
@@ -59,12 +60,6 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 		}
 		JWEAlgorithm algorithm = JWEAlgorithm.parse(alg);
 
-		JWEObject jweObject = new JWEObject(
-			new JWEHeader.Builder(algorithm, encryptionMethod)
-				.contentType("JWT") // required to indicate nested JWT
-				.build(),
-			new Payload(stringToBeEncrypted));
-
 		JWK recipientJWK = null;
 		if(JWEAlgorithm.Family.ASYMMETRIC.contains(algorithm)) {
 			//asymmetric key
@@ -102,6 +97,15 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 		} catch (JOSEException e) {
 			throw error("Failed to create jwk encrypter", e);
 		}
+
+		JWEHeader.Builder jweHeaderBuilder = new JWEHeader.Builder(algorithm, encryptionMethod)
+			.contentType("JWT"); // required to indicate nested JWT
+		if(!Strings.isNullOrEmpty(recipientJWK.getKeyID())) {
+			jweHeaderBuilder.keyID(recipientJWK.getKeyID());
+		}
+		JWEObject jweObject = new JWEObject(
+				jweHeaderBuilder.build(),
+				new Payload(stringToBeEncrypted));
 		try {
 			jweObject.encrypt(jweEncrypter);
 		} catch (JOSEException e) {

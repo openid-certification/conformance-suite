@@ -32,10 +32,12 @@ public class ValidateClientAssertionClaims_UnitTest {
 	private String clientId;
 
 	private String audience;
+	private String audienceMtls;
 
 	private JsonObject claims;
 
 	private JsonObject server;
+	private JsonObject serverMtls;
 
 	private ValidateClientAssertionClaims cond;
 
@@ -51,13 +53,22 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 		clientId = "test-client-id-346334adgdsfgdfg3425";
 
-		audience = "https://localhost:8443/test-mtls/a/fintech-clienttest/token";
+		audience = "https://localhost:8443/test/a/fintech-clienttest/token";
+		audienceMtls = "https://localhost:8443/test-mtls/a/fintech-clienttest/token";
 
 		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
 		server = new JsonParser().parse("{"
 			+ "\"issuer\":\"" + audience + "\","
 			+ "\"token_endpoint\":\"" + audience + "\""
+			+ "}").getAsJsonObject();
+
+		serverMtls = new JsonParser().parse("{"
+			+ "\"issuer\":\"" + audience + "\","
+			+ "\"token_endpoint\":\"" + audience + "\","
+			+ "\"mtls_endpoint_aliases\": {"
+			+ "  \"token_endpoint\": \"" + audienceMtls + "\""
+			+ "}"
 			+ "}").getAsJsonObject();
 
 		claims = new JsonParser().parse("{"
@@ -96,6 +107,39 @@ public class ValidateClientAssertionClaims_UnitTest {
 		verify(env, atLeastOnce()).getLong("client_assertion", "claims.exp");
 		verify(env, atLeastOnce()).getLong("client_assertion", "claims.iat");
 
+	}
+
+	@Test
+	public void testEvaluate_noErrorMtls() {
+
+		env.putObject("client", client);
+		env.putObject("server", serverMtls);
+		claims.addProperty("aud", audience);
+		addClientAssertion(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_noErrorMtlsAud() {
+
+		env.putObject("client", client);
+		env.putObject("server", serverMtls);
+		claims.addProperty("aud", audienceMtls);
+		addClientAssertion(env, claims);
+
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorMtls() {
+
+		env.putObject("client", client);
+		env.putObject("server", serverMtls);
+		claims.addProperty("aud", "invalid");
+		addClientAssertion(env, claims);
+
+		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)

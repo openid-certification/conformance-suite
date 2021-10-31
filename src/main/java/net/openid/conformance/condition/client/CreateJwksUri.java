@@ -25,7 +25,7 @@ public class CreateJwksUri extends AbstractCondition {
 		}
 
 		// calculate the redirect URI based on our given base URL
-		String jwksUri = baseUrl + "/jwks";
+		String jwksUri = baseUrl + "/client1_jwks";
 		env.putString("jwks_uri", jwksUri);
 
 		logSuccess("Created JWKs URI",

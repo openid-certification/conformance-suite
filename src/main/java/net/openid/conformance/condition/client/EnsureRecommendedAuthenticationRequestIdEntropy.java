@@ -22,10 +22,10 @@ public class EnsureRecommendedAuthenticationRequestIdEntropy extends AbstractEns
 		double entropy = bitsPerCharacter * (double) authRequestId.length();
 
 		if (entropy > recommendedEntropy) {
-			logSuccess("Calculated entropy", args("recommended", recommendedEntropy, "actual", entropy));
+			logSuccess("Calculated entropy", args("value", authRequestId, "recommended", recommendedEntropy, "actual", entropy));
 			return env;
 		} else {
-			throw error("Entropy not met recommended", args("recommended", recommendedEntropy, "actual", entropy));
+			throw error("Entropy not met recommended", args("value", authRequestId, "recommended", recommendedEntropy, "actual", entropy));
 		}
 	}
 }

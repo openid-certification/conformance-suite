@@ -5,14 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -97,7 +94,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				throw error("RestClientResponseException occurred whilst calling token endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				return handleResponseException(env, e);
+				return handleClientException(env, e);
 			}
 
 			if (Strings.isNullOrEmpty(jsonString)) {
@@ -129,7 +126,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 		throw error("Error parsing token endpoint response body as JSON", e);
 	}
 
-	protected Environment handleResponseException(Environment env, RestClientException e) {
+	protected Environment handleClientException(Environment env, RestClientException e) {
 		String msg = "Call to token endpoint failed";
 		if (e.getCause() != null) {
 			msg += " - " + e.getCause().getMessage();
