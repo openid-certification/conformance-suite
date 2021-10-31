@@ -79,7 +79,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 		// 11 checks to be done:
 		// 0s, 30s, ..., 600s
 		int totalChecks;
-		int checkCount = 1;
+		int checkCount = 10;
 		boolean pass = false;
 
 		for(totalChecks = 0; totalChecks <= checkCount; totalChecks++){
