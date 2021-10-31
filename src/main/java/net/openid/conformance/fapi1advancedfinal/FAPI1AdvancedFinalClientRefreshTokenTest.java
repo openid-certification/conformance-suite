@@ -18,7 +18,8 @@ import org.springframework.http.ResponseEntity;
 		"exchange the authorization code for an access token at the token endpoint " +
 		"and make a GET request to the accounts endpoint displayed." +
 		" This call will always return a 401 error," +
-		" the client must call the token endpoint again using refresh_token grant type to obtain a new access token" +
+		" the client must call the token endpoint again using refresh_token grant type twice (the" +
+		" first call will return a new refresh token) to obtain a new access token" +
 		" and call the accounts endpoint again with the new access token obtained using the refresh_token.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
@@ -33,7 +34,7 @@ import org.springframework.http.ResponseEntity;
 )
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk"})
 public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1AdvancedFinalClientTest {
-	private boolean issuedAccessTokenViaRefreshTokenGrant = false;
+	private int numberOfTimesRefreshTokenUsed = 0;
 
 	@Override
 	protected void addCustomValuesToIdToken(){
@@ -53,13 +54,13 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 	@Override
 	protected Object refreshTokenGrantType(String requestId) {
 		Object superResult = super.refreshTokenGrantType(requestId);
-		issuedAccessTokenViaRefreshTokenGrant = true;
+		numberOfTimesRefreshTokenUsed += 1;
 		return superResult;
 	}
 
 	@Override
 	protected Object accountsEndpoint(String requestId) {
-		if(!issuedAccessTokenViaRefreshTokenGrant) {
+		if(numberOfTimesRefreshTokenUsed < 2) {
 			setStatus(Status.RUNNING);
 
 			call(exec().startBlock("Accounts endpoint (always rejected)"));
@@ -68,7 +69,7 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 			wwwAuthHeader.addProperty("WWW-Authenticate",
 				"Bearer realm=\"conformancesuite\", " +
 					"error=\"invalid_token\", " +
-					"error_description=\"Invalid access token. This test requires you to obtain a new access token using the refresh_token\"");
+					"error_description=\"Invalid access token. This test requires you to obtain a new access token twice using the refresh_token\"");
 			setStatus(Status.WAITING);
 			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
 		}
@@ -77,7 +78,7 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 
 	@Override
 	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
-		if(!issuedAccessTokenViaRefreshTokenGrant) {
+		if(numberOfTimesRefreshTokenUsed < 2) {
 			setStatus(Status.RUNNING);
 
 			call(exec().startBlock("Payment initiation endpoint (always rejected)"));
@@ -86,7 +87,7 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 			wwwAuthHeader.addProperty("WWW-Authenticate",
 				"Bearer realm=\"conformancesuite\", " +
 					"error=\"invalid_token\", " +
-					"error_description=\"Invalid access token. This test requires you to obtain a new access token using the refresh_token\"");
+					"error_description=\"Invalid access token. This test requires you to obtain a new access token twice using the refresh_token\"");
 			setStatus(Status.WAITING);
 			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
 		}
