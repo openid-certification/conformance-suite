@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
@@ -89,7 +90,9 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 		callPixSecondBlock();
 
-		callAndStopOnFailure(EnsureResponseCodeWas403.class);
+		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class);
+
+		callAndStopOnFailure(EnsurePaymentConsentResponseWas403.class);
 	}
 
 	private void callPixFirstBlock(){
@@ -125,4 +128,5 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 	}
+
 }

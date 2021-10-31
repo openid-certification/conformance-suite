@@ -11,18 +11,26 @@ import java.util.Map;
 
 public class EnsureResponseCodeWas201or200 extends AbstractCondition {
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response_full")
+//	@PreEnvironment(required = "endpoint_response")
 	public Environment evaluate(Environment env) {
-		JsonObject response = env.getObject("resource_endpoint_response_full");
-		Integer status = (Integer) OIDFJSON.getNumber(response.get("status"));
-		if(status != HttpStatus.OK.value() || status != HttpStatus.CREATED.value()) {
-			log("Response status was not 201 or 422 as expected", Map.of("status", status));
-			throw error("Was expecting a 201 or 422 response");
-		} else if (status == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
-			logSuccess("422 response status, as expected");
-		} else {
-			logSuccess("201 response status, as expected");
+		int statusCode = env.getInteger("resource_endpoint_response_status");
+//		String endpointName = env.getString("endpoint_response", "endpoint_name");
+
+		if(statusCode == org.apache.http.HttpStatus.SC_OK) {
+			logSuccess("endpoint returned an http status of 200 - ending test now", args("http_status", statusCode));
 		}
+
+		if(statusCode == org.apache.http.HttpStatus.SC_CREATED) {
+			logSuccess("endpoint returned an http status of 2301 - proceeding with test now", args("http_status", statusCode));
+			env.putString("proceed_with_test", "proceed");
+		}
+
+		if (statusCode != org.apache.http.HttpStatus.SC_CREATED && statusCode != org.apache.http.HttpStatus.SC_UNPROCESSABLE_ENTITY) {
+			throw error("endpoint returned an unexpected http status - either 201 or 200 accepted", args("http_status", statusCode));
+		}
+
+		logSuccess("endpoint returned the expected http status", args("http_status", statusCode));
+
 		return env;
 	}
 }
