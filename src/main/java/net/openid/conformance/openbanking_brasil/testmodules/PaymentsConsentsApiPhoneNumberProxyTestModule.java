@@ -2,16 +2,14 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-proxy-phone-number-proxy-test",
+	testName = "payments-api-proxy-phone-number-proxy-test",
 	displayName = "Payments Consents API test module ensuring phone number is a valid proxy",
 	summary = "Payments Consents API test module ensuring phone number is a valid proxy" +
 		"Flow:" +
@@ -32,37 +30,86 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
-	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
-		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
+	protected void validateClientConfiguration() {
+		callAndStopOnFailure(AddPaymentScope.class);
+		super.validateClientConfiguration();
 	}
 
 	@Override
-	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	protected void onConfigure(JsonObject config, String baseUrl) {
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
+
+		// Setting consent to DICT / proxy to real phone number
+		eventLog.startBlock("Setting payment consent payload to use real phone number + DICT");
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);
+
+		// Setting payment to DICT / proxy to real phone number
+		eventLog.startBlock("Setting payment payload to use real phone number + DICT");
+		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+
+		callAndStopOnFailure(PrepareToPostConsentRequest.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}
 
 	@Override
-	protected void runTests() {
-		runInBlock("Validate payment initiation consent", () -> {
-			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
+	protected void validateResponse() {
+		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		call(new ValidateSelfEndpoint()
+			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+				condition(AddJWTAcceptHeader.class),
+				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+			)));
+		ensurePaymentIsAcceptedOrRejected();
 
-			call(sequence(SignedPaymentConsentSequence.class));
+	}
 
-			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(new ValidateSelfEndpoint()
-				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
-				));
-		});
+	protected void ensurePaymentIsAcceptedOrRejected() {
+		eventLog.startBlock("Ensuring payment is either accepted or rejected: 5 minute time limit");
+
+		// 11 checks to be done:
+		// 0s, 30s, ..., 600s
+		int totalChecks;
+		int checkCount = 1;
+		boolean pass = false;
+
+		for(totalChecks = 0; totalChecks <= checkCount; totalChecks++){
+			pollPayment();
+			callAndStopOnFailure(CheckPaymentStatus.class);
+			if(Boolean.TRUE.equals(env.getBoolean("paymentStatusCorrect"))){
+				callAndStopOnFailure(SuccessfulPaymentUpdate.class);
+				pass = true;
+				break;
+			} else {
+				callAndStopOnFailure(FailedPaymentUpdate.class);
+			}
+			callAndStopOnFailure(WaitFor30Seconds.class);
+			callAndStopOnFailure(LoadOldValues.class);
+		}
+
+		if(!pass){
+			callAndStopOnFailure(FailedToUpdatePaymentInFiveMinutes.class);
+		}
+	}
+
+	protected void pollPayment() {
+		call(new ValidateSelfEndpoint()
+			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+				condition(AddJWTAcceptHeader.class),
+				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+			))
+			.skip(
+				LoadOldValues.class, "skipping load old values - first check"
+			)
+		);
 	}
 }
