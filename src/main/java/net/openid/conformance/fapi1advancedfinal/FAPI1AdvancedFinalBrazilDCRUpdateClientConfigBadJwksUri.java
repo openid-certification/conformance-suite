@@ -1,29 +1,15 @@
 package net.openid.conformance.fapi1advancedfinal;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddRedirectUriQuerySuffix;
-import net.openid.conformance.condition.client.AddRedirectUriToClientConfigurationRequest;
 import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CallClientConfigurationEndpointAllowingTLSFailure;
-import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
-import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
 import net.openid.conformance.condition.client.CreateJwksUri;
-import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
-import net.openid.conformance.condition.client.GenerateFakeMTLSCertificate;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
