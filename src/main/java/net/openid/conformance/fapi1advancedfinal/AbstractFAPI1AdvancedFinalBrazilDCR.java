@@ -14,7 +14,8 @@ import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynami
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
-import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -204,7 +205,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationCredentialsFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+
+		eventLog.startBlock("Delete client");
 
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 

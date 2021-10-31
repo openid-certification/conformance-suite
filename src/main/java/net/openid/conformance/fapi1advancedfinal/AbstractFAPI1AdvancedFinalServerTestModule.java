@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.*;
@@ -837,9 +838,14 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		return scopes.contains(requiredScope);
 	}
 
+	protected void updatePaymentConsent() {
+		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
+	}
+
 	protected ConditionSequence createOBBPreauthSteps() {
 		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+			updatePaymentConsent();
 		}
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, false);
 		return steps;
