@@ -54,6 +54,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 		eventLog.startBlock("Setting payment payload to use real phone number + DICT");
 		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);

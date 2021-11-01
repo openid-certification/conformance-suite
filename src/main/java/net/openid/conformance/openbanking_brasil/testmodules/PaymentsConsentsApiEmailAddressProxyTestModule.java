@@ -46,6 +46,7 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealEmailAddress.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 	}
 
 	@Override

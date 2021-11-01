@@ -76,6 +76,7 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
+		callAndContinueOnFailure(RemoveTransactionIdentification.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPaymentConsent.class);
