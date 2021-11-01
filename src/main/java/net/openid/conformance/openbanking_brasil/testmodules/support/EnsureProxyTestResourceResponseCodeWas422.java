@@ -18,9 +18,11 @@ public class EnsureProxyTestResourceResponseCodeWas422 extends AbstractCondition
 				log("Response status was not 422 as expected", Map.of("status", status));
 				throw error("Was expecting a 422 response");
 			} else {
+				env.putBoolean("proxy_payment_422", true);
 				logSuccess("422 response status, as expected");
 			}
 		} else {
+			env.putBoolean("proxy_payment_422", false);
 			logSuccess("201 returned - ignoring check");
 		}
 		return env;
