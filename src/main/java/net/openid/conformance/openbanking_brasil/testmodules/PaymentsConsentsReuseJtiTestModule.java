@@ -66,6 +66,11 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 				.skip(AddJtiAsUuidToRequestObject.class, "Re-use previous jti")
 				.replace(EnsureContentTypeApplicationJwt.class, condition(EnsureResourceResponseReturnedJsonContentType.class))
 				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsurePaymentConsentResponseWas403.class))
+				.skip(ExtractSignedJwtFromResourceResponse.class, "403 Response JSON")
+				.skip(FAPIBrazilValidateResourceResponseSigningAlg.class, "403 Response JSON")
+				.skip(FAPIBrazilValidateResourceResponseTyp.class, "403 Response JSON")
+				.skip(ValidateResourceResponseSignature.class, "403 Response JSON")
+				.skip(ValidateResourceResponseJwtClaims.class, "403 Response JSON")
 			);
 
 		});
