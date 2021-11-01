@@ -6,20 +6,19 @@ import net.openid.conformance.condition.client.AddScopeOpenIdPaymentsToClientCon
 import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidScope;
 import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
-import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointDoesContainPayments;
+import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointDoesNotContainPayments;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
@@ -61,7 +60,7 @@ public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractFAPI1Adv
 
 	@Override
 	protected void validateDcrResponseScope() {
-		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoesContainPayments.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoesNotContainPayments.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
@@ -77,9 +76,10 @@ public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractFAPI1Adv
 		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationCredentialsFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 
-		eventLog.startBlock("Calling PUT on configuration endpoint to try and add payments scope, expecting failure");
+		eventLog.startBlock("Calling PUT on configuration endpoint to try and add payments scope, expecting a successful response with the scope not including payments");
 		// get a new SSA (there is already one, but they may be single use?)
 		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
@@ -87,9 +87,14 @@ public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractFAPI1Adv
 		callAndStopOnFailure(AddScopeOpenIdPaymentsToClientConfigurationRequest.class);
 		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
 
-		env.mapKey("endpoint_response", "registration_client_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2", "RFC7592-2.2");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		env.mapKey("dynamic_registration_endpoint_response", "registration_client_endpoint_response");
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoesNotContainPayments.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 
 		eventLog.startBlock("Try using client credentials grant to obtain an access token with scope=payments, expecting failure");
