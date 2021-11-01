@@ -11,8 +11,8 @@ public class PaymentsProxyCheckForInvalidStatus extends AbstractJsonAssertingCon
 		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
 
 		if (checkStatus) {
-			boolean consent_rejected = env.getBoolean("consent_rejected");
-			if (!consent_rejected) {
+			boolean consentRejected = env.getBoolean("consent_rejected");
+			if (!consentRejected) {
 				throw error("Payment status in an invalid state, exiting");
 			}
 		}
