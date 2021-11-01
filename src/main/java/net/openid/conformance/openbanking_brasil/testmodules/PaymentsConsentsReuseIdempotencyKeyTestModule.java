@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
@@ -48,13 +49,57 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
-		callAndStopOnFailure(ModifyPixPaymentValue.class);
+		eventLog.startBlock("Making first PIX request");
 		callPix();
+		//Make same request again with same idempotency key but with same payload - Expects a 200 or 201
+		eventLog.startBlock("Making identical PIX request");
+		callPix();
+		//Make request again but using different ISS and expect a 403 response
+		eventLog.startBlock("Making PIX request with incorrect ISS");
+		callPixWrongIss();
+		//Makes request using same idempotency key but using a different payload - Expects a 422
+		eventLog.startBlock("Making PIX request with with same idempotency key but different payload");
+		callAndStopOnFailure(ModifyPixPaymentValue.class);
+		callPixChangedPayload();
+	}
+
+	public void callPixChangedPayload() {
+
+		callPixFirstBlock();
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 	}
 
 	public void callPix() {
 
+		callPixFirstBlock();
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResponseCodeWas201or200.class);
+	}
+
+	public void callPixWrongIss(){
+		callPixFirstBlock();
+
+		callAndStopOnFailure(InjectWrongISSToJWT.class);
+
+		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+		callPixSecondBlock();
+
+		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class);
+
+		callAndStopOnFailure(EnsurePaymentConsentResponseWas403.class);
+	}
+
+	private void callPixFirstBlock(){
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
@@ -78,15 +123,14 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
 
 		callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+	}
 
-		callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-
+	private void callPixSecondBlock(){
 		call(exec().unmapKey("request_object_claims"));
 
 		callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-
-		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 	}
+
 }
