@@ -14,7 +14,8 @@ import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynami
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
-import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -199,16 +200,15 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		eventLog.startBlock("Retrieve client configuration");
+		eventLog.startBlock("Retrieve client configuration (twice)");
 
-		// make sure we do a GET
-		env.removeObject("registration_client_endpoint_request_body");
-		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
-		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
-		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
-		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationCredentialsFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		getClientDetails();
+
+		// a second call; if the client registration token was rotated this checks the new token works
+		// (and also matches the requirements of the RP DCR test so we can run RP tests against OP tests)
+		getClientDetails();
+
+		eventLog.startBlock("Delete client");
 
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 
@@ -217,6 +217,17 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		env.removeNativeValue("registration_access_token");
 
 		super.onPostAuthorizationFlowComplete();
+	}
+
+	protected void getClientDetails() {
+		env.removeObject("registration_client_endpoint_request_body"); // so a 'GET' is made
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 	}
 
 	public void unregisterClient1() {

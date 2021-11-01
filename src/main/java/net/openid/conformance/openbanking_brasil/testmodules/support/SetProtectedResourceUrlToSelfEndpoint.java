@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -16,8 +17,14 @@ public class SetProtectedResourceUrlToSelfEndpoint extends AbstractCondition {
 	@PostEnvironment(strings = "protected_resource_url")
 	public Environment evaluate(Environment env) {
 
-		String entityString = env.getString("resource_endpoint_response");
-		JsonObject body = GSON.fromJson(entityString, JsonObject.class);
+		String entityString;
+		JsonObject body;
+		try {
+			entityString = env.getString("resource_endpoint_response");
+			body = GSON.fromJson(entityString, JsonObject.class);
+		} catch (JsonSyntaxException e) {
+			body = env.getObject("resource_endpoint_response");
+		}
 
 		JsonObject links = body.getAsJsonObject("links");
 

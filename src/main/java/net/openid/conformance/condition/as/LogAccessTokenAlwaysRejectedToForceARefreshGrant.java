@@ -9,7 +9,7 @@ public class LogAccessTokenAlwaysRejectedToForceARefreshGrant extends AbstractCo
 
 	@Override
 	public Environment evaluate(Environment env) {
-		logSuccess("This call will be always rejected. The client must obtain a new access token using the refresh_token");
+		logSuccess("This call will be always rejected. The client must obtain a new access token twice using the refresh_token");
 		return env;
 
 	}
