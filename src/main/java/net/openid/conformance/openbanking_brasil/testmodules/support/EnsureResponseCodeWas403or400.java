@@ -15,7 +15,7 @@ public class EnsureResponseCodeWas403or400 extends AbstractCondition {
 		} else if (status == HttpStatus.FORBIDDEN.value()){
 			env.putString("warning_message", "Participant returned a 403 this is accepted behaviour in the specs but awaiting clarification if this is correct");
 		} else {
-			throw error("Was expecting either a 403 or a 401 response");
+			throw error("Was expecting either a 403 or a 400 response");
 		}
 		return env;
 	}
