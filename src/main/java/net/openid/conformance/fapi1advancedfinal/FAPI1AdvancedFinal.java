@@ -2,13 +2,18 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
+import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
+import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -77,8 +82,25 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.5-1");
 	}
 
+	protected void updateResourceRequest() {
+		if (brazilPayments) {
+			// we use the idempotency header to allow us to make a request more than once; however it is required
+			// that a new jwt is sent in each retry, so update jti/iat & resign
+			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+			call(exec().unmapKey("request_object_claims"));
+			callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+
+		}
+	}
+
 	protected void verifyAccessTokenWithResourceEndpoint() {
+		updateResourceRequest();
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-4");
+
+
+		updateResourceRequest();
 		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			// CDR requires this header when the x-fapi-customer-ip-address header is present
@@ -96,11 +118,14 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
+
+		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
+
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
