@@ -96,7 +96,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class);
 
-		callAndStopOnFailure(EnsurePaymentConsentResponseWas403.class);
+		callAndContinueOnFailure(EnsureResponseCodeWas403.class, Condition.ConditionResult.FAILURE);
 	}
 
 	private void callPixFirstBlock(){
