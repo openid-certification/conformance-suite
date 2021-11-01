@@ -14,7 +14,7 @@ public class InjectRealCreditorAccountToPaymentConsent extends AbstractCondition
 
 		JsonObject creditor = obj.getAsJsonObject("creditor");
 		creditor.addProperty("name", "Joao Silva");
-		creditor.addProperty("cpfCnpj", "99991111140");
+		creditor.addProperty("cpfCnpj", "11112222235");
 		creditor.addProperty("personType", "PESSOA_NATURAL");
 
 		obj = obj.getAsJsonObject("payment");
