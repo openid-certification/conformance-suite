@@ -121,14 +121,18 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractOBBrasilFunc
 			callAndStopOnFailure(PaymentsProxyCheckForRejectedStatus.class);
 			callAndStopOnFailure(PaymentsProxyCheckForInvalidStatus.class);
 
+			if (env.getBoolean("consent_rejected")) {
+				keepPolling = false;
+			}
+
 			if (count >= 8) {
 				keepPolling = false;
+				callAndStopOnFailure(TestTimedOut.class);
+				callAndStopOnFailure(ChuckWarning.class, Condition.ConditionResult.FAILURE);
 			} else {
 				count++;
 			}
 		}
-		callAndStopOnFailure(TestTimedOut.class);
-		callAndStopOnFailure(ChuckWarning.class, Condition.ConditionResult.FAILURE);
 	}
 
 }
