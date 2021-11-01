@@ -1,10 +1,11 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -57,8 +58,11 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
-			call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class)));
+			call(new CallPixPaymentsEndpointSequence()
+				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
+					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
+				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check")
+			);
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();
 			eventLog.endBlock();
@@ -72,6 +76,7 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
+		callAndContinueOnFailure(RemoveTransactionIdentification.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPaymentConsent.class);
@@ -83,7 +88,61 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractOBBrasi
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResourceResponseCodeWas422.class);
+		callAndStopOnFailure(ProxyTestCheckForPass.class);
+		callAndStopOnFailure(EnsureProxyTestResourceResponseCodeWas422.class);
+
+		if (!env.getBoolean("proxy_payment_422")) {
+			int count = 1;
+			boolean keepPolling = true;
+			while (keepPolling) {
+				callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(WaitFor30Seconds.class);
+				call(new ValidateSelfEndpoint()
+					.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+						condition(AddJWTAcceptHeader.class),
+						condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+					))
+					.skip(SaveOldValues.class, "Not saving old values")
+					.skip(LoadOldValues.class, "Not loading old values")
+				);
+				callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(EnsureMatchingFAPIInteractionId.class);
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
+				callAndStopOnFailure(EnsureContentTypeApplicationJwt.class);
+				callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class);
+				callAndStopOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class);
+				callAndStopOnFailure(FAPIBrazilValidateResourceResponseTyp.class);
+				call(exec().mapKey("server", "org_server"));
+				call(exec().mapKey("server_jwks", "org_server_jwks"));
+				callAndStopOnFailure(FetchServerKeys.class);
+				call(exec().unmapKey("server"));
+				call(exec().unmapKey("server_jwks"));
+				callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				call(exec().unmapKey("endpoint_response"));
+				call(exec().unmapKey("endpoint_response_jwt"));
+
+				callAndContinueOnFailure(CheckPollStatus.class);
+				callAndStopOnFailure(PaymentsProxyCheckForRejectedStatus.class);
+				callAndStopOnFailure(PaymentsProxyCheckForInvalidStatus.class);
+
+				if (env.getBoolean("payment_proxy_check_for_reject")) {
+					if (env.getBoolean("consent_rejected")) {
+						keepPolling = false;
+					}
+				}
+
+				if (count >= 8) {
+					keepPolling = false;
+					callAndStopOnFailure(TestTimedOut.class);
+					callAndStopOnFailure(ChuckWarning.class, Condition.ConditionResult.FAILURE);
+				} else {
+					count++;
+				}
+			}
+		}
 	}
 
 }

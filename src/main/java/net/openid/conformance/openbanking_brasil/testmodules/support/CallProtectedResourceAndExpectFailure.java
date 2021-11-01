@@ -12,6 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
+import springfox.documentation.spring.web.json.Json;
 
 public class CallProtectedResourceAndExpectFailure extends AbstractCallProtectedResourceWithBearerToken {
 
@@ -75,9 +76,16 @@ public class CallProtectedResourceAndExpectFailure extends AbstractCallProtected
 		int status = e.getRawStatusCode();
 		String statusText = e.getStatusText();
 
+		JsonObject fullResponse = new JsonObject();
+		fullResponse.add("headers", mapToJsonObject(e.getResponseHeaders(), true));
+		fullResponse.addProperty("body", response);
+		fullResponse.addProperty("status", status);
+		fullResponse.addProperty("endpoint_name", "resource");
+
 		env.putString("resource_endpoint_response", response);
 		env.putInteger("resource_endpoint_response_status", status);
 		env.putString("resource_endpoint_response_status_text", statusText);
+		env.putObject("resource_endpoint_response_full", fullResponse);
 		env.putObject("resource_endpoint_response_headers", mapToJsonObject(e.getResponseHeaders(), true));
 		logSuccess("Resource endpoint returned error", args("code", status, "status", statusText, "body", response));
 

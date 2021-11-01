@@ -384,7 +384,24 @@ public class BrowserControl implements DataUtils {
 						"result", Condition.ConditionResult.INFO
 					));
 
-					driver.findElement(getSelector(elementType, target)).click();
+					try {
+						driver.findElement(getSelector(elementType, target)).click();
+					} catch (NoSuchElementException e) {
+						String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
+						if (optional != null && optional.equals("optional")) {
+							eventLog.log("WebRunner", args(
+								"msg", "Element not found, skipping as 'click' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"result", Condition.ConditionResult.INFO
+							));
+						} else {
+							throw e;
+						}
+					}
 
 					logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 				} else if (commandString.equalsIgnoreCase("text")) {

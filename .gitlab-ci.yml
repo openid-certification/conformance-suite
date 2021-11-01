@@ -246,7 +246,7 @@ upload:
 #.deployment_test: &deployment_test
 #  stage: test
 #  interruptible: true
-#  image: python:alpine
+#  image: python:3.9-alpine3.14
 #  only:
 #    refs:
 #      - branches
@@ -273,6 +273,12 @@ upload:
 #  script:
 #    - set_up_for_running_test_plan
 #    - run_ciba_test_plan
+#
+#brazil_test:
+#  <<: *deployment_test
+#  script:
+#    - set_up_for_running_test_plan
+#    - run_brazil_test_plan
 #
 #local_test:
 #  stage: test
@@ -582,14 +588,19 @@ upload:
   }
 
   function run_ciba_test_plan() {
-      echo "Running automated tests against $CONFORMANCE_SERVER"
-      ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
+  }
+
+  function run_brazil_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/scripts/test-configs-brazil/run-raidiam.sh
   }
 
   function set_app_version() {
     echo "Set application version to GitLab $CI_PIPELINE_ID"
 
-    pwd 
+    pwd
 
     ls -la
 

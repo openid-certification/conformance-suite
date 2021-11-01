@@ -7,7 +7,8 @@ import net.openid.conformance.condition.client.AddRedirectUriToClientConfigurati
 import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpointAllowingTLSFailure;
-import net.openid.conformance.condition.client.CheckClientConfigurationCredentialsFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
@@ -66,7 +67,8 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
 		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationCredentialsFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 
 	}
 
