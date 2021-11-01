@@ -49,17 +49,21 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+		eventLog.startBlock("Making first PIX request");
+		callPix();
 		//Make same request again with same idempotency key but with same payload - Expects a 200 or 201
-		callPixSamePayload();
+		eventLog.startBlock("Making identical PIX request");
+		callPix();
 		//Make request again but using different ISS and expect a 403 response
+		eventLog.startBlock("Making PIX request with incorrect ISS");
 		callPixWrongIss();
 		//Makes request using same idempotency key but using a different payload - Expects a 422
+		eventLog.startBlock("Making PIX request with with same idempotency key but different payload");
 		callAndStopOnFailure(ModifyPixPaymentValue.class);
-		callPix();
+		callPixChangedPayload();
 	}
 
-	public void callPix() {
+	public void callPixChangedPayload() {
 
 		callPixFirstBlock();
 
@@ -70,7 +74,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 	}
 
-	public void callPixSamePayload() {
+	public void callPix() {
 
 		callPixFirstBlock();
 
