@@ -15,6 +15,9 @@ public class PaymentsProxyCheckForRejectedStatus extends AbstractJsonAssertingCo
 
 		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
 
+		log(""+checkStatus);
+		log(status);
+		log(""+status.equals("RJCT"));
 		if (checkStatus) {
 			if (status.equals("RJCT")) {
 				env.putBoolean("consent_rejected", true);
