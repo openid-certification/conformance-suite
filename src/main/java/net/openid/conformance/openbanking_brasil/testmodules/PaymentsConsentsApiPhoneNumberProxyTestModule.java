@@ -47,6 +47,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 		// Setting consent to DICT / proxy to real phone number
 		eventLog.startBlock("Setting payment consent payload to use real phone number + DICT");
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
+		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);
 
