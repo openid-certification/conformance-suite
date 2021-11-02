@@ -9,7 +9,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "Payments API test module ensuring unknown CPF is rejected",
 	summary = "Payments API test module ensuring unknown CPF is rejected" +
 		"Flow:" +
-		"Makes a bad DICT payment flow with an unknown CPF value - expects a 422." +
+		"Makes a bad DICT payment flow with an unknown CPF value - expects a 422 at either the consent or payment initiation." +
+		" stage, or a 201 and status of PNDG at payment initiaton with a subsequent state of RJCT" +
 		"Required:" +
 		"Consent url pointing at the consent endpoint." +
 		"Config: Debtor account must be present in the config. We manually set the local instrument to DICT, add a creditor account, add an unknown cpf value.",
