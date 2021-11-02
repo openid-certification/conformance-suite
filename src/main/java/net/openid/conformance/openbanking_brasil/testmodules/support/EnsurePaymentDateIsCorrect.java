@@ -21,7 +21,7 @@ public class EnsurePaymentDateIsCorrect extends AbstractCondition{
 		obj = obj.getAsJsonObject("payment");
 
 		JsonElement enteredDate = obj.get("date");
-		LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		log(currentDate.toString());
 
 		if (currentDate.equals(LocalDate.parse(OIDFJSON.forceConversionToString(enteredDate)))){
