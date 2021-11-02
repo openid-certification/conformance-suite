@@ -62,6 +62,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 			boolean keepPolling = true;
 			while (keepPolling) {
 				callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(WaitFor30Seconds.class);
 				call(new ValidateSelfEndpoint()
 					.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(

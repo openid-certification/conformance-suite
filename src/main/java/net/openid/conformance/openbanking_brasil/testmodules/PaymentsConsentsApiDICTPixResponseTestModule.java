@@ -57,6 +57,7 @@ public class PaymentsConsentsApiDICTPixResponseTestModule extends AbstractOBBras
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		call(new ValidateSelfEndpoint()
 			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
