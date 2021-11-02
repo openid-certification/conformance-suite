@@ -84,11 +84,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
 
 		eventLog.startBlock("Deregister client");
 
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
-
-		// we just deregistered the client, so prevent cleanup from trying to do so again
-		env.removeNativeValue("registration_client_uri");
-		env.removeNativeValue("registration_access_token");
+		deleteClient();
 
 		fireTestFinished();
 	}
