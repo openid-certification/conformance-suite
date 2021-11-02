@@ -5,6 +5,8 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Map;
+
 public class PaymentsProxyCheckForRejectedStatus extends AbstractJsonAssertingCondition {
 
 	@Override
@@ -15,9 +17,7 @@ public class PaymentsProxyCheckForRejectedStatus extends AbstractJsonAssertingCo
 
 		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
 
-		log(""+checkStatus);
-		log(status);
-		log(""+status.equals("RJCT"));
+		log(checkStatus ? "Configured to check status" : "Not configured to check status", Map.of("status", status));
 		if (checkStatus) {
 			if (status.equals("RJCT")) {
 				env.putBoolean("consent_rejected", true);
