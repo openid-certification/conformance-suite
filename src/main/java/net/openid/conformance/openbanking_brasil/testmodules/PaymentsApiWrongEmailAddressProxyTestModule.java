@@ -9,7 +9,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "Payments API test module ensuring email address is incorrect",
 	summary = "Payments API test module ensuring email address is incorrect" +
 		"Flow:" +
-		"Makes a bad DICT payment flow with an incorrect email - expects a 422." +
+		"Makes a bad DICT payment flow with an incorrect email - expects a 422 at either consent or payment" +
+		" initiation stage, or a 201 with a PNDG status at the payment initiation stage but a subsequent status of RJCT" +
 		"Required:" +
 		"Consent url pointing at the consent endpoint." +
 		"Config: Debtor account must be present in the config. We manually set the local instrument to DICT, add a creditor account, add an fake email address.",
