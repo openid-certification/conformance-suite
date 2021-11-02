@@ -60,7 +60,7 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureSelfLinkEndsInConsentId.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(new ValidateSelfEndpoint()
 				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
