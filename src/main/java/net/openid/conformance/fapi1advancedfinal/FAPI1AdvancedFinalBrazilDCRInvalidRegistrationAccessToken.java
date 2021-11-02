@@ -49,11 +49,8 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken extends A
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 
 		env.putString("registration_access_token", accessToken);
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 
-		// we already deregistered the client, so prevent cleanup from trying to do so again
-		env.removeNativeValue("registration_client_uri");
-		env.removeNativeValue("registration_access_token");
+		deleteClient();
 
 		fireTestFinished();
 	}

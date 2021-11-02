@@ -318,25 +318,27 @@ makeLocalProviderTests() {
 }
 
 if [ "$#" -eq 0 ]; then
+    echo "Run all tests"
+    makeServerTest
+    makeCIBATest
+    makeClientTest
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run all tests"
-    makeServerTest
-    makeCIBATest
-    makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
+    echo "Run client tests"
+    makeClientTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-client.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run client tests"
-    makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
+    echo "Run server tests"
+    makeServerTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -344,26 +346,24 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules server-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run server tests"
-    makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
+    echo "Run ciba tests"
+    makeCIBATest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ciba.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run ciba tests"
-    makeCIBATest
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
+    echo "Run local provider tests"
+    makeLocalProviderTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
-    echo "Run local provider tests"
-    makeLocalProviderTests
 else
     echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests]"
     exit 1

@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.ArrayList;
 import java.util.Set;
 
-public class CheckScopesFromDynamicRegistrationEndpointDoesContainPayments extends AbstractCondition {
+public class CheckScopesFromDynamicRegistrationEndpointDoesNotContainPayments extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_endpoint_response")
