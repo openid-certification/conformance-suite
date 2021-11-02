@@ -17,7 +17,7 @@ public class EnsureSelfLinkEndsInConsentId extends AbstractCondition {
 		Map<String, Object> data = Map.of("consentId", consentId,
 			"self", selfLink);
 		if(!selfLink.endsWith(consentId)) {
-			throw error("The self link from the payment response did not have a consent ID on it",
+			throw error("The self link from the payment consent response did not have a consent ID on it",
 				data);
 		}
 		logSuccess("Self link ended with consent ID as expected", data);
