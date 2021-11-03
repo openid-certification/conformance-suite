@@ -1,15 +1,39 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
+import net.openid.conformance.fapi1advancedfinal.PaymentsApiDcrTestModuleAttemptClientTakeover;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentsApiFapiTesting;
-import net.openid.conformance.openbanking_brasil.testmodules.*;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentApiNoDebtorProvidedTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiDcrHappyFlowTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiDcrTestModuleUnauthorizedClient;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiIncorrectCPFProxyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiInvalidCnpjTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiNegativeTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiRealEmailAddressWrongCreditorProxyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsApiWrongEmailAddressProxyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiBadPaymentTypeTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiDICTPixResponseTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiDateTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiEmailAddressProxyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiEnforceDICTTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiEnforceMANUTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiForceCheckBadSignatureTest;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiINICPixResponseTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiMANUPixResponseTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiPhoneNumberProxyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsInvalidPersonTypeTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsReuseIdempotencyKeyTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsConsentsReuseJtiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsConsentsApiInvalidTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsConsumedConsentsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -50,6 +74,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsApiFapiTesting.class,
 					PaymentsApiDcrHappyFlowTestModule.class,
 					PaymentsApiDcrTestModuleUnauthorizedClient.class,
+					PaymentsApiDcrTestModuleAttemptClientTakeover.class,
 					PaymentsApiBadPaymentSignatureFails.class,
 					PaymentsConsentsApiForceCheckBadSignatureTest.class,
 					PaymentsApiInvalidCnpjTestModule.class,
