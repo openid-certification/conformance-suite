@@ -44,7 +44,7 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);

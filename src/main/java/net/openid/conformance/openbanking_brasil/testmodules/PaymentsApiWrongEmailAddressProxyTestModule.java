@@ -36,7 +36,7 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractDictVer
 		callAndContinueOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(RemoveTransactionIdentification.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPaymentConsent.class);
 		callAndContinueOnFailure(SetProxyToFakeEmailAddressOnPayment.class);
