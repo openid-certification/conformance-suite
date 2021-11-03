@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "Payments Consents API test module which attempts to reuse a jti",
 	summary = "Payments Consents API test module which attempts to reuse a jti" +
 		"Flow:" +
-		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused jti - expects 422." +
+		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused jti - expects 403." +
 		"Required:" +
 		"Consent url pointing at the consent endpoint.",
 	profile = OBBProfile.OBB_PROFILE,
