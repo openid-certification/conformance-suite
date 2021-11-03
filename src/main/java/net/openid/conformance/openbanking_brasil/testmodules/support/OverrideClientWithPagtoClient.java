@@ -79,6 +79,11 @@ public class OverrideClientWithPagtoClient extends AbstractOverrideClient {
 	}
 
 	@Override
+	String clientJwks() {
+		return orgJwks;
+	}
+
+	@Override
 	String role() {
 		return "PAGTO";
 	}
