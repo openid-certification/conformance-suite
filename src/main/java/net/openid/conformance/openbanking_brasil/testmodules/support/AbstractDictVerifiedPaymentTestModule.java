@@ -23,6 +23,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		env.putBoolean("consent_rejected", false);
 		configureDictInfo();
 	}
 
