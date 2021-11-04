@@ -7,7 +7,7 @@ public class PaymentsProxyCheckForInvalidStatus extends AbstractJsonAssertingCon
 
 	@Override
 	public Environment evaluate(Environment env) {
-
+		
 		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
 
 		if (checkStatus) {
