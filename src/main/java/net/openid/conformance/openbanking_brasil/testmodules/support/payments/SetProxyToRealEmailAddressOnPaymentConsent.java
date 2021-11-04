@@ -9,7 +9,7 @@ public class SetProxyToRealEmailAddressOnPaymentConsent extends AbstractConditio
 	@Override
 	public Environment evaluate(Environment env) {
 		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
-		obj.addProperty("proxy", "cliente-000001@pix.bcb.gov.br");
+		obj.addProperty("proxy", "cliente-a00001@pix.bcb.gov.br");
 
 		logSuccess("Added correct email address as proxy to payment consent");
 
