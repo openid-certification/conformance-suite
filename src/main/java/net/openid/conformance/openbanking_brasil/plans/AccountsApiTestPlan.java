@@ -11,7 +11,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Account api test",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	displayName = PlanNames.ACCOUNT_API_NAME,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Account API"
 )

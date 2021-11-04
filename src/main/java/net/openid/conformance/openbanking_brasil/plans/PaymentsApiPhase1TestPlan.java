@@ -15,7 +15,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Payments api phase 1 test",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFIlE_PHASE3,
 	displayName = PlanNames.PAYMENTS_API_PHASE_1_TEST_PLAN,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API"
 )

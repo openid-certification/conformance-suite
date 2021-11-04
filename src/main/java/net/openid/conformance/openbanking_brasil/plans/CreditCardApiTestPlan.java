@@ -12,7 +12,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Credit card api test",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	displayName = PlanNames.CREDIT_CARDS_API_PLAN_NAME,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Credit Cards API"
 )
