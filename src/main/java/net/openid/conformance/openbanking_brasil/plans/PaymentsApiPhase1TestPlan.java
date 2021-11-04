@@ -50,6 +50,7 @@ public class PaymentsApiPhase1TestPlan implements TestPlan {
 					PaymentsApiFapiTesting.class,
 					PaymentsApiDcrHappyFlowTestModule.class,
 					PaymentsApiDcrTestModuleUnauthorizedClient.class,
+					PaymentsApiDcrTestModuleAttemptClientTakeover.class,
 					PaymentsApiBadPaymentSignatureFails.class,
 					PaymentsConsentsApiForceCheckBadSignatureTest.class,
 					PaymentsApiInvalidCnpjTestModule.class,
