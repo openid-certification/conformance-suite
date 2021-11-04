@@ -11,7 +11,7 @@ public class SetProxyToRealEmailAddressOnPayment extends AbstractCondition {
 		JsonObject obj = env.getObject("resource");
 		obj = obj.getAsJsonObject("brazilPixPayment");
 		obj = obj.getAsJsonObject("data");
-		obj.addProperty("proxy", "cliente-000001@pix.bcb.gov.br");
+		obj.addProperty("proxy", "cliente-a00001@pix.bcb.gov.br");
 
 		logSuccess("Added real email address as proxy to payment");
 
