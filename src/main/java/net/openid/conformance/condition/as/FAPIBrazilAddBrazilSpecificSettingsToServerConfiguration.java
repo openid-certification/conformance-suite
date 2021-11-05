@@ -30,12 +30,14 @@ public class FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration extends Ab
 			JsonArray claimsSupported = new JsonArray();
 			claimsSupported.add("cpf");
 			claimsSupported.add("cnpj");
+			claimsSupported.add("acr");
 			server.add("claims_supported", claimsSupported);
 		}
 
 		{
 			JsonArray acrValuesSupported = new JsonArray();
 			acrValuesSupported.add("urn:brasil:openbanking:loa2");
+			acrValuesSupported.add("urn:brasil:openbanking:loa3");
 			server.add("acr_values_supported", acrValuesSupported);
 		}
 
@@ -50,8 +52,19 @@ public class FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration extends Ab
 			algs.add("PS256");
 			server.add("request_object_signing_alg_values_supported", algs);
 		}
-
-
+		{
+			JsonArray scopes = new JsonArray();
+			scopes.add("openid");
+			scopes.add("phone");
+			scopes.add("profile");
+			scopes.add("email");
+			scopes.add("address");
+			scopes.add("offline_access");
+			scopes.add("consents");
+			scopes.add("resources");
+			scopes.add("payments");
+			server.add("scopes_supported", scopes);
+		}
 		log("Added open banking Brazil specific server settings", args("server", server));
 		return env;
 	}

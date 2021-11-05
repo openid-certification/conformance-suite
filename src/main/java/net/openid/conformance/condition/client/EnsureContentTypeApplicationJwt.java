@@ -9,6 +9,8 @@ public class EnsureContentTypeApplicationJwt extends AbstractCheckEndpointConten
 	@PreEnvironment(required = "endpoint_response")
 	public Environment evaluate(Environment env) {
 
+		log(env.getObject("endpoint_response"));
+
 		env = checkContentType(env, "endpoint_response", "headers.", "application/jwt");
 
 		return env;

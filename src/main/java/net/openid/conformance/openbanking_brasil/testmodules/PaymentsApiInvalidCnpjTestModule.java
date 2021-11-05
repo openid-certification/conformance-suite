@@ -2,9 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
-import net.openid.conformance.condition.client.SetResourceMethodToPost;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -58,7 +56,11 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 	protected void requestProtectedResource() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class)));
+		call(new CallPixPaymentsEndpointSequence()
+			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class))
+			.skip(EnsureHttpStatusCodeIs201.class, "Expecting error here")
+			.skip(ExtractSignedJwtFromResourceResponse.class, "Signed jwt will be decoded elsewhere")
+		);
 		validateResponse();
 	}
 

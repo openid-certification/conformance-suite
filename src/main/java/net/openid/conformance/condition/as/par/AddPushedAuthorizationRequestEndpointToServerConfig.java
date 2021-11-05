@@ -19,6 +19,12 @@ public class AddPushedAuthorizationRequestEndpointToServerConfig extends Abstrac
 
 		String tokenEndpoint = OIDFJSON.getString(server.get("token_endpoint"));
 		String parEndpoint = tokenEndpoint.replaceFirst("(token)$", "par");
+		if(server.has("mtls_endpoint_aliases")) {
+			JsonObject mtlsAliases = server.get("mtls_endpoint_aliases").getAsJsonObject();
+			String mtlsTokenEndpoint = OIDFJSON.getString(mtlsAliases.get("token_endpoint"));
+			String mtlsParEndpoint = mtlsTokenEndpoint.replaceFirst("(token)$", "par");
+			mtlsAliases.addProperty("pushed_authorization_request_endpoint", mtlsParEndpoint);
+		}
 		server.addProperty("pushed_authorization_request_endpoint", parEndpoint);
 
 		log("Added pushed_authorization_request_endpoint to server configuration", args("endpoint", parEndpoint));

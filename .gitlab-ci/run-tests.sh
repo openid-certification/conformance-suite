@@ -27,6 +27,9 @@ export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
 export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
 export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
 export BRAZIL_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/consents/v1/consents'
+export BRAZIL_PAYMENTS_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/payments/v1/consents'
+export BRAZIL_ACCOUNTS_ENDPOINT='test-mtls/a/fintech-clienttest/accounts/v1/accounts'
+export BRAZIL_PAYMENT_INIT_ENDPOINT='test-mtls/a/fintech-clienttest/payments/v1/pix/payments'
 
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
@@ -36,9 +39,16 @@ makeClientTest() {
     . node-client-setup.sh
     . node-core-client-setup.sh
 
+    #BRAZIL (note brazil_client_scope is not a variant but is used to pass scopes to tests. brazil_client_scope values use - instead of space)
+    #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc][brazil_client_scope=openid-payments] automated-brazil-client-test.json"
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_jarm_type=oidc][brazil_client_scope=openid-payments] automated-brazil-client-test-payments.json"
+
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc][brazil_client_scope=openid-accounts] automated-brazil-client-test.json"
+    #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_jarm_type=oidc][brazil_client_scope=openid-accounts] automated-brazil-client-test.json"
+
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_jarm_type=plain_oauth][brazil_client_scope=accounts] automated-brazil-client-test.json"
+
     # client FAPI1-ADVANCED
-    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-brazil-client-test.json"
-    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-brazil-client-test.json"
     #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=jarm][fapi_jarm_type=plain_oauth] automated-brazil-client-test-no-openid-scope.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc] automated-ob-client-test.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_auth_request_method=pushed][fapi_response_mode=jarm][fapi_jarm_type=oidc] automated-ob-client-test.json"
@@ -197,6 +207,27 @@ makeServerTest() {
     #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-mtls-jarm.json"
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=jarm][fapi_auth_request_method=pushed] authlete-fapi-rw-id2-privatekey-jarm.json"
 
+    # OP tests run against RP tests
+    # MTLS
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_jarm_type=oidc][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    # private_key_jwt
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    # PAR
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    # JARM
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_jarm_type=oidc][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    # Brazil
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=mtls][fapi_jarm_type=oidc][fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil][fapi_response_mode=plain_response]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-accounts.json"
+
+    # Brazil DCR (mtls)
+    TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=mtls][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-accounts.json"
+    # Brazil DCR (mtls+PAR)
+    TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=mtls][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=pushed][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-accounts.json"
+    # Brazil DCR accounts (private_key_jwt)
+    TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-accounts.json"
+    # Brazil DCR payments (private_key_jwt)
+    TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-payments-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json"
+
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=private_key_jwt] authlete-fapi-r-private-key.json"
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=client_secret_jwt] authlete-fapi-r-client-secret.json"
@@ -287,25 +318,27 @@ makeLocalProviderTests() {
 }
 
 if [ "$#" -eq 0 ]; then
+    echo "Run all tests"
+    makeServerTest
+    makeCIBATest
+    makeClientTest
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run all tests"
-    makeServerTest
-    makeCIBATest
-    makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
+    echo "Run client tests"
+    makeClientTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-client.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run client tests"
-    makeClientTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
+    echo "Run server tests"
+    makeServerTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -313,26 +346,24 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules server-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run server tests"
-    makeServerTest
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
+    echo "Run ciba tests"
+    makeCIBATest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ciba.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-    echo "Run ciba tests"
-    makeCIBATest
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
+    echo "Run local provider tests"
+    makeLocalProviderTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
-    echo "Run local provider tests"
-    makeLocalProviderTests
 else
     echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests]"
     exit 1

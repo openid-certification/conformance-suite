@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.*;
@@ -59,6 +60,8 @@ import java.util.function.Supplier;
 	"resource.cdrVersion"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"client2.org_jwks",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
@@ -204,6 +207,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		validateClientConfiguration();
 
 		unmapClient();
+
+		callAndContinueOnFailure(ValidateClientPrivateKeysAreDifferent.class, ConditionResult.FAILURE);
 
 		eventLog.endBlock();
 	}
@@ -706,7 +711,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
@@ -834,9 +839,14 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		return scopes.contains(requiredScope);
 	}
 
+	protected void updatePaymentConsent() {
+		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
+	}
+
 	protected ConditionSequence createOBBPreauthSteps() {
 		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+			updatePaymentConsent();
 		}
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, false);
 		return steps;

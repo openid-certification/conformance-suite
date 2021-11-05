@@ -48,11 +48,19 @@ public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError e
 
 		String response = e.getResponseBodyAsString();
 
+		JsonObject responseFull = new JsonObject();
+		responseFull.addProperty("status", e.getRawStatusCode());
+		responseFull.addProperty("endpoint_name", "resource");
+		responseFull.add("headers", mapToJsonObject(e.getResponseHeaders(), true));
+		responseFull.addProperty("body", response);
+
 		env.putString("resource_endpoint_response", response);
 		env.putObject("resource_endpoint_response_headers", responseHeaders);
 		env.putInteger("resource_endpoint_response_status", e.getRawStatusCode());
 		env.putString("resource_endpoint_error_code", String.valueOf(e.getRawStatusCode()));
+		env.putObject("resource_endpoint_response_full", responseFull);
 
+		logSuccess("Got an error response from the resource endpoint", responseFull);
 		return env;
 	}
 }

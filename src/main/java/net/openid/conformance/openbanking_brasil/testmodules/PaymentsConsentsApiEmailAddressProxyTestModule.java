@@ -43,9 +43,11 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndContinueOnFailure(SetProxyToRealEmailAddress.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 	}
 
 	@Override
@@ -58,6 +60,7 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureSelfLinkEndsInConsentId.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(new ValidateSelfEndpoint()
 				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)

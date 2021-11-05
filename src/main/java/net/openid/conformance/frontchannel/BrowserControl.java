@@ -5,12 +5,14 @@ import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.DefaultPageCreator;
 import com.gargoylesoftware.htmlunit.HttpWebConnection;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebConsole;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.WebWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.javascript.JavaScriptErrorListener;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
@@ -37,6 +39,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.PatternMatchUtils;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -380,7 +384,24 @@ public class BrowserControl implements DataUtils {
 						"result", Condition.ConditionResult.INFO
 					));
 
-					driver.findElement(getSelector(elementType, target)).click();
+					try {
+						driver.findElement(getSelector(elementType, target)).click();
+					} catch (NoSuchElementException e) {
+						String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
+						if (optional != null && optional.equals("optional")) {
+							eventLog.log("WebRunner", args(
+								"msg", "Element not found, skipping as 'click' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"result", Condition.ConditionResult.INFO
+							));
+						} else {
+							throw e;
+						}
+					}
 
 					logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 				} else if (commandString.equalsIgnoreCase("text")) {
@@ -698,6 +719,49 @@ public class BrowserControl implements DataUtils {
 			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
+
+			// Selenium / HtmlUnit's javascript engine barfs at a lot of modern
+			// javascript. However asking it to ignore the errors and carry on seems
+			// to result in a surprising amount of eventual success.
+			client.getOptions().setThrowExceptionOnScriptError(false);
+
+			client.setJavaScriptErrorListener(new JavaScriptErrorListener() {
+
+				@Override
+				public void scriptException(HtmlPage page, ScriptException scriptException) {
+					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
+				}
+
+				@Override
+				public void timeoutError(HtmlPage page, long allowedTime, long executionTime) {
+					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
+						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
+
+				}
+
+				@Override
+				public void malformedScriptURL(HtmlPage page, String url, MalformedURLException malformedURLException) {
+					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
+				}
+
+				@Override
+				public void loadScriptError(HtmlPage page, URL scriptUrl, Exception exception) {
+					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
+				}
+
+				@Override
+				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
+					final StringBuilder msg = new StringBuilder()
+						.append("warning: message=[").append(message)
+						.append("] sourceName=[").append(sourceName)
+						.append("] line=[").append(line)
+						.append("] lineSource=[").append(lineSource)
+						.append("] lineOffset=[").append(lineOffset)
+						.append("]");
+
+					eventLog.log("BROWSER", args("msg", msg.toString()));
+				}
+			});
 
 			if (verboseLogging) {
 				client.setWebConnection(new LoggingHttpWebConnection(client));

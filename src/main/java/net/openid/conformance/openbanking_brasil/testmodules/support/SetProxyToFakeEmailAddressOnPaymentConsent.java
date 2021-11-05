@@ -8,11 +8,7 @@ public class SetProxyToFakeEmailAddressOnPaymentConsent extends AbstractConditio
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = env.getObject("resource");
-		obj = obj.getAsJsonObject("brazilPaymentConsent");
-		obj = obj.getAsJsonObject("data");
-		obj = obj.getAsJsonObject("payment");
-		obj = obj.getAsJsonObject("details");
+		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
 		obj.addProperty("proxy", "fakeperson@example.com");
 
 		logSuccess("Added non-existent email address as proxy to payment consent");

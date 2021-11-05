@@ -14,34 +14,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class ReverseScopeOrderInAuthorizationEndpointRequest extends AbstractCondition {
+public class ReverseScopeOrderInAuthorizationEndpointRequest extends AbstractReverseScopeOrder {
+	public static final String envKey = "authorization_endpoint_request";
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request" )
-	@PostEnvironment(required = "authorization_endpoint_request")
+	@PreEnvironment(required = envKey)
+	@PostEnvironment(required = envKey)
 	public Environment evaluate(Environment env) {
 
-		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
-
-		JsonElement jsonScope = authorizationEndpointRequest.get("scope");
-		if (jsonScope == null || jsonScope.equals(new JsonPrimitive(""))) {
-			throw error("no scope found");
-		}
-		String scope = OIDFJSON.getString(jsonScope);
-
-		List<String> scopes = Arrays.asList(scope.split(" "));
-		if (scopes.size() < 2) {
-			throw error("'scope' in the configuration must contain more than one scope to run this test");
-		}
-
-		Collections.reverse(scopes);
-
-		String newScope = String.join(" ", scopes);
-
-		authorizationEndpointRequest.addProperty("scope", newScope);
-
-		log("Reversed order of scopes in authorization endpoint request",
-			args("original", scope, "reversed", newScope));
+		reverseScope(env, envKey);
 
 		return env;
 

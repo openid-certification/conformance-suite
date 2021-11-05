@@ -61,7 +61,9 @@ public class PreFlightCertCheckModule extends AbstractClientCredentialsGrantFunc
 
         runInBlock("Pre-flight Get an SSA", () -> {
 
-            callAndStopOnFailure(SetDirectoryInfo.class);
+			env.mapKey("access_token", "directory_access_token");
+
+			callAndStopOnFailure(SetDirectoryInfo.class);
             callAndStopOnFailure(ExtractDirectoryConfiguration.class);
 
 		    callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
@@ -86,7 +88,6 @@ public class PreFlightCertCheckModule extends AbstractClientCredentialsGrantFunc
 
             callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-            // map access token too?
             callAndStopOnFailure(CheckForAccessTokenValue.class);
 
             callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
@@ -101,6 +102,8 @@ public class PreFlightCertCheckModule extends AbstractClientCredentialsGrantFunc
             // use access token to get ssa
             // https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
             callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
-        });
-    }    
+
+			env.unmapKey("access_token");
+		});
+    }
 }

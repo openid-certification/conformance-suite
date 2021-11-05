@@ -26,7 +26,7 @@ public class EnsurePaymentDateIsToday extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 
-		LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 
 		log("Setting date in consent config to current date: " + currentDate);
 		obj.addProperty("date", currentDate.toString());

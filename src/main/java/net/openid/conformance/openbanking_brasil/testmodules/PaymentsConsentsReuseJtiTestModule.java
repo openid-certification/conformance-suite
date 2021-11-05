@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "Payments Consents API test module which attempts to reuse a jti",
 	summary = "Payments Consents API test module which attempts to reuse a jti" +
 		"Flow:" +
-		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused jti - expects 422." +
+		"Makes a good consent flow - expects success. Makes a bad consent flow with a reused jti - expects 403." +
 		"Required:" +
 		"Consent url pointing at the consent endpoint.",
 	profile = OBBProfile.OBB_PROFILE,
@@ -64,7 +64,13 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 
 			call(new SignedPaymentConsentSequence()
 				.skip(AddJtiAsUuidToRequestObject.class, "Re-use previous jti")
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class))
+				.replace(EnsureContentTypeApplicationJwt.class, condition(EnsureResourceResponseReturnedJsonContentType.class))
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsurePaymentConsentResponseWas403.class))
+				.skip(ExtractSignedJwtFromResourceResponse.class, "403 Response JSON")
+				.skip(FAPIBrazilValidateResourceResponseSigningAlg.class, "403 Response JSON")
+				.skip(FAPIBrazilValidateResourceResponseTyp.class, "403 Response JSON")
+				.skip(ValidateResourceResponseSignature.class, "403 Response JSON")
+				.skip(ValidateResourceResponseJwtClaims.class, "403 Response JSON")
 			);
 
 		});

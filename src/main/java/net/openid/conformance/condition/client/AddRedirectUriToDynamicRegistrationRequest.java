@@ -15,10 +15,6 @@ public class AddRedirectUriToDynamicRegistrationRequest extends AbstractConditio
 	@PostEnvironment(required = "dynamic_registration_request")
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("dynamic_registration_request")) {
-			throw error("No dynamic registration request found");
-		}
-
 		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
 
 		String redirectUri = env.getString("redirect_uri");

@@ -1,7 +1,7 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -16,13 +16,15 @@ public class StoreOriginalClient2Configuration extends AbstractCondition {
 
 		JsonElement dynamicClientRegistrationTemplate = in.getElementFromObject("config", "client2");
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
-			throw error("Definition for client not present in supplied configuration");
+			// we don't actually need anything; if no client_name is given we'll pick one
+			in.putObject("original_client_config", new JsonObject());
+			log("No client details on configuration, created an empty original_client_config object.");
 		} else {
 			// we've got a client object, put it in the environment
 			in.putObject("original_client_config", dynamicClientRegistrationTemplate.getAsJsonObject());
 
-			log("Found a original_client_config object", dynamicClientRegistrationTemplate.getAsJsonObject());
-			return in;
+			log("Created original_client_config object from the client configuration.", dynamicClientRegistrationTemplate.getAsJsonObject());
 		}
+		return in;
 	}
 }

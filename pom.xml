@@ -141,6 +141,10 @@
 			<artifactId>bctls-jdk15on</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 		</dependency>
@@ -242,7 +246,8 @@
 						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
-						<arg>-Werror</arg>
+						<arg>--add-exports</arg>
+						<arg>java.base/sun.security.x509=ALL-UNNAMED</arg>
 					</compilerArgs>
 				</configuration>
 			</plugin>
@@ -372,6 +377,11 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bctls-jdk15on</artifactId>
+				<version>1.64</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk15on</artifactId>
 				<version>1.64</version>
 			</dependency>
 			<dependency>

@@ -55,6 +55,8 @@ public class LogEntryHelper {
 		specLinks.put("RFC7519-", "https://tools.ietf.org/html/rfc7519#section-");
 		specLinks.put("RFC7523-", "https://tools.ietf.org/html/rfc7523#section-");
 		specLinks.put("RFC7591-", "https://tools.ietf.org/html/rfc7591#section-");
+		specLinks.put("RFC7592-", "https://tools.ietf.org/html/rfc7592#section-");
+		specLinks.put("RFC7592A-", "https://tools.ietf.org/html/rfc7592#appendix-");
 		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
@@ -65,8 +67,8 @@ public class LogEntryHelper {
 		specLinks.put("OIDCRIL-", "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.");
 		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
 		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
-		specLinks.put("PAR-", "https://tools.ietf.org/html/draft-ietf-oauth-par#section-");
-		specLinks.put("JAR-", "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-");
+		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
+		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("BCLOG-F02-", "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#");
 	}
 	private Document logEntry;

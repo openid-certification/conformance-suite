@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
 public class SetProxyToRealPhoneNumber extends AbstractCondition {
@@ -13,9 +14,14 @@ public class SetProxyToRealPhoneNumber extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		obj.addProperty("proxy", "+5561990010001");
+		obj.addProperty("proxy", DictHomologKeys.PROXY_PHONE_NUMBER);
 
-		logSuccess("Added phone number as proxy to payment consent");
+		obj = env.getObject("resource");
+		obj = obj.getAsJsonObject("brazilPixPayment");
+		obj = obj.getAsJsonObject("data");
+		obj.addProperty("proxy", DictHomologKeys.PROXY_PHONE_NUMBER);
+
+		logSuccess("Added phone number as proxy to payment consent and payment payload");
 
 		return env;
 	}
