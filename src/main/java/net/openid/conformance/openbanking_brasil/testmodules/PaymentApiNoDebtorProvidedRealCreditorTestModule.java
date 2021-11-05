@@ -49,6 +49,7 @@ public class PaymentApiNoDebtorProvidedRealCreditorTestModule extends AbstractOB
 		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPaymentConsent.class);

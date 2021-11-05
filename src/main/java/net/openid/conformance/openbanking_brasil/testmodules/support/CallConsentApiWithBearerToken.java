@@ -173,6 +173,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				responseDetails.addProperty("status_code", e.getRawStatusCode());
 				responseDetails.addProperty("status_message", e.getStatusText());
 				responseDetails.add("response_headers", mapToJsonObject(e.getResponseHeaders(), false));
+				env.putObject("resource_endpoint_response_headers", mapToJsonObject(e.getResponseHeaders(), false));
 				responseDetails.add("errors", buildObjectFromString(e.getResponseBodyAsString()));
 				env.putObject("errored_response", responseDetails);
 				return env;
