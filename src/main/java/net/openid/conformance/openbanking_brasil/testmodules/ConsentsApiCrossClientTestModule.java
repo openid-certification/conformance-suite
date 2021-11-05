@@ -76,6 +76,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 			switchToFirstClient();
 			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
 			callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
