@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
 public class InjectRealCreditorAccountToPayment extends AbstractCondition {
@@ -13,10 +14,10 @@ public class InjectRealCreditorAccountToPayment extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("creditorAccount");
 
-		obj.addProperty("issuer", "0001");
-		obj.addProperty("number", "12345678");
-		obj.addProperty("accountType", "CACC");
-		obj.addProperty("ispb", "99999004");
+		obj.addProperty("issuer", DictHomologKeys.PROXY_EMAIL_BRANCH_NUMBER);
+		obj.addProperty("number", DictHomologKeys.PROXY_EMAIL_ACCOUNT_NUMBER);
+		obj.addProperty("accountType", DictHomologKeys.PROXY_EMAIL_ACCOUNT_TYPE);
+		obj.addProperty("ispb", DictHomologKeys.PROXY_EMAIL_ISPB);
 		logSuccess("Added real, working creditor account details to payment");
 
 		return env;

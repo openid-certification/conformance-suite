@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
 public class SetProxyToRealEmailAddress extends AbstractCondition {
@@ -13,7 +14,7 @@ public class SetProxyToRealEmailAddress extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj = obj.getAsJsonObject("details");
-		obj.addProperty("proxy", "cliente-a00001@pix.bcb.gov.br");
+		obj.addProperty("proxy", DictHomologKeys.PROXY_EMAIL);
 
 		logSuccess("Added email address as proxy to payment consent");
 
