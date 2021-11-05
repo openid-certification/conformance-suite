@@ -4,8 +4,6 @@ public class OverrideClientWithPagtoClientThatHasClientSpecificJwks extends Abst
 	// "OrganisationId":"39f08c6a-579e-4cbb-9f83-49708902d908",
 	// "SoftwareStatementId":"5c116654-c1b2-4c87-a1b2-102043b79b0a",
 
-	// NB no org key for this client yet
-
 	@Override
 	String clientCert() {
 		return "-----BEGIN CERTIFICATE-----\n" +
@@ -80,6 +78,27 @@ public class OverrideClientWithPagtoClientThatHasClientSpecificJwks extends Abst
 			"sIE4aPNA7tRcQ4sISzeWeHYWHEVSmNIWpoDRuDLuT0l+2IiegqBKRdv3e5D8Fh5A\n" +
 			"ugwIV0uL3vZLisDniRpkeuTQ\n" +
 			"-----END PRIVATE KEY-----\n";
+	}
+
+	@Override
+	String orgJwks() {
+		return "{\n" +
+			"  \"keys\": [\n" +
+			"    {\n" +
+			"      \"kty\": \"RSA\",\n" +
+			"      \"alg\": \"PS256\",\n" +
+			"      \"kid\": \"zBOcUM3PQ6tc74R_4dNdZbuUOrqJJRfbu9OlzBV8TSY\",\n" +
+			"      \"n\": \"ikHmLu-GUggwBhLf-69QIaeHXLfpX1ErMop9YDG0QvsMxnpyF0hVw3_AHCuXAGvy_q_8vr6b8IJmUM_lDgrVAr7nBjGWE8rTddKD9N19Ojk8fJLWbiKzS7vABcXf0sJJIcl1DqLfVWeM0vdmMqodTMrRiBL5ZDkdNSqRAh1FkLo1vdu0rYrD1prKdk5DClvGr0XKO5zUEO-2KSzwTH_ycZ-wV9uEvyVYD_Z6YYxmttEsHNxPsxvvCYx_hHwgaV_WKROM8X5-b4Gj9tH3COm_MQ1iccaRf5B39blKDmTIn7_7ZCv4Q6ERsjT0gjlNZAa-BekWk3FvoEnSrDoAW3JU2Q\",\n" +
+			"      \"e\": \"AQAB\",\n" +
+			"      \"d\": \"ApDwD-QgEwg2CfrSNPafTwyavCtpYGdI3Q6J1AiqzvPKxtP8J6H5qOAHZbkfu6Ev-K8KtX34tilZcvu02u1JCwdrkXzHS2qVllzYAv9pxQmjGDB_3I9LfXxIjLg27A9xR42uHPLZddlERCCAQVr7zGfW-pwC4dZsjBwpkQeQObwwFDT7IcVhottaO2JncwFI4EdrfafEnUO0-lzHWoENlThUS0NYYrBt3YS67lHh3fOsfDkAboy0gWfc0dLtyF0UlSJGJDzTBLBIoImJA7_QWdOVoUjbkkPvmsbJyyM4wN8yUJVNyWlAewUBNg2fiJ-aYY3vO2jh2lwXjcNibeM77Q\",\n" +
+			"      \"p\": \"wQo3XydDKZutZ_aBQWWVis93yd7kzSXntrQwq0jSBr2UgUItkW5x15SBd0Cuoe0hIMZ2P5MFRSxpWnSCTGdKaL3llMRKLDK5hCnxFkbQQYoyOIEvuEO5X1D39YICRX73QAl9u3dhq2QkdeWFOQsLfMWhau3AoPE322fYqPvBCs0\",\n" +
+			"      \"q\": \"t1mkgh9z1b0T_ALDKulrvv3I5MtdAF6gMWPidgaXwImsVhZDllKC8hX_gHF99IaUS4w-HUSXT0HrhRhyblmOZbWj8PLT_A3AdsFtWGBqLc63OGsldivujd_c3hQJcWCq4NOLRt83KX8n7eCpktTOE5EiGMP0V8vlfZW72UWhyj0\",\n" +
+			"      \"dp\": \"MHrrWxdWM73oN-LdpVnoy5q9H9K9rZPmdKkeS_YW4SB9ilTfctXE-3pNZXC2Ku6N0lhlXCQFP9EeiFwYWS3bryB55vnBEwaONtX9uTWBmeQmJrCzFljT1k9UZrEG9wMi_08i55Dc05lr2rwQ0Dmo4eYUWvFo3kKWX6Dd9dp8KcU\",\n" +
+			"      \"dq\": \"c3FN02BaXsmeO57Bo9M0tBy20Nf6xrDNzEtH22hrRB9rEwkRpSRurl6LcSQEWmIiHS9ALM1zN8QZtsOdyT06G3AyuRMrxhgihqNjZbHPKOhvFGbiP3WJzmqVdn7HM0vaS5TmrMj-wnH9ghliq8CxwEAxZ8Z5oo4PAPO2QydEp0E\",\n" +
+			"      \"qi\": \"K1Nu3RrzuMmUtJlF2ESQcfwQdSXBlkPc8Epr0OCWUa48d3V0iObMPVxtUFLNXOYoiKSSbOHqgUo1w5eCypGQpWRlUZmwaFDpFHFhxxfH8vdnMQl8WQvEBwAqMT2hTaMxmo5BkStUjupix5lxSTdgz0NjGBvUfnMC3FXdo2u1bnM\"\n" +
+			"    }\n" +
+			"  ]\n" +
+			"}";
 	}
 
 	@Override
