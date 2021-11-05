@@ -221,5 +221,259 @@
                 }
             ]
         }
-    ]
+    ],
+    "override": {
+        "payments-api-proxy-real-email-invalid-credior-proxy-test": {
+            "resource": {
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
+                "brazilCpf": "48847377765",
+                "brazilPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "10422.00",
+                            "details": {
+                                "localInstrument": "DICT",
+                                "proxy": "12345678901",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "brazilPixPayment": {
+                    "data": {
+                        "localInstrument": "DICT",
+                        "payment": {
+                            "amount": "100000.12",
+                            "currency": "BRL"
+                        },
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        },
+                        "cnpjInitiator": "60545350000165",
+                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
+                        "proxy": "12345678901"
+                    }
+                },
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+            }
+        },
+        "payments-api-proxy-test-incorrect-cpf": {
+            "resource": {
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
+                "brazilCpf": "48847377765",
+                "brazilPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "10422.00",
+                            "details": {
+                                "localInstrument": "DICT",
+                                "proxy": "12345678901",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "brazilPixPayment": {
+                    "data": {
+                        "localInstrument": "DICT",
+                        "payment": {
+                            "amount": "100000.12",
+                            "currency": "BRL"
+                        },
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        },
+                        "cnpjInitiator": "60545350000165",
+                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
+                        "proxy": "12345678901"
+                    }
+                },
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+            }
+        },
+        "payments-api-proxy-phone-number-proxy-test": {
+            "resource": {
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
+                "brazilCpf": "48847377765",
+                "brazilPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "1333.00",
+                            "details": {
+                                "localInstrument": "DICT",
+                                "proxy": "12345678901",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "brazilPixPayment": {
+                    "data": {
+                        "localInstrument": "DICT",
+                        "payment": {
+                            "amount": "1333.00",
+                            "currency": "BRL"
+                        },
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        },
+                        "cnpjInitiator": "60545350000165",
+                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
+                        "proxy": "12345678901"
+                    }
+                },
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+            }
+        },
+        "payments-api-proxy-fake-email-proxy-test": {
+            "resource": {
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
+                "brazilCpf": "48847377765",
+                "brazilPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "10422.00",
+                            "details": {
+                                "localInstrument": "DICT",
+                                "proxy": "12345678901",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "brazilPixPayment": {
+                    "data": {
+                        "localInstrument": "DICT",
+                        "payment": {
+                            "amount": "100000.12",
+                            "currency": "BRL"
+                        },
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        },
+                        "cnpjInitiator": "60545350000165",
+                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
+                        "proxy": "12345678901"
+                    }
+                },
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+            }
+        }
+    }
 }
