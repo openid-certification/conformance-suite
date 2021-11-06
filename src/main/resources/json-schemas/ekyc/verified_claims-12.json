@@ -552,7 +552,7 @@
       "type": "object",
       "properties": {},
       "additionalProperties": {
-        "$ref": "verified_claims_request-12.json#definitions/verified_claims_def"
+        "$ref": "verified_claims_request-12.json#/definitions/verified_claims_def"
       }
     },
     "aggregated_claims": {
