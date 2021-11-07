@@ -15,7 +15,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "ekyc-test-plan-oidccore",
-	displayName = "eKYC using OpenID Connect core",
+	displayName = "OpenID for IDA using OpenID Connect Core",
 	profile = TestPlan.ProfileNames.ekyctest,
 	testModules = {
 		EKYCHappyPathTest.class,
