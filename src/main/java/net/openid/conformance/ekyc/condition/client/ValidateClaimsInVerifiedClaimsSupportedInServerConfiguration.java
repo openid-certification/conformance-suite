@@ -17,7 +17,7 @@ public class ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration extend
 		if(!jsonElement.isJsonArray()) {
 			throw error("claims_in_verified_claims_supported must be a json array", args("actual", jsonElement));
 		}
-		//TODO I'm assuming that it makes sense to require at least one entry, otherwise eKYC tests would be pointless
+		//it makes sense to require at least one entry, otherwise eKYC tests would be pointless
 		if(jsonElement.getAsJsonArray().size()<1) {
 			throw error("At least one claim is required in claims_in_verified_claims_supported for eKYC tests to work as expected");
 		}

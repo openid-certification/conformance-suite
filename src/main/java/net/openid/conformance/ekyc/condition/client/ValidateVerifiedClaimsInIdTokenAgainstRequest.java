@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateVerifiedClaimsInIdTokenAgainstRequest extends AbstractValidateVerifiedClaims {
+public class ValidateVerifiedClaimsInIdTokenAgainstRequest extends AbstractValidateVerifiedClaimsAgainstRequest {
 
 	@Override
 	@PreEnvironment(required = {"server", "authorization_endpoint_request", "verified_claims_response"})
