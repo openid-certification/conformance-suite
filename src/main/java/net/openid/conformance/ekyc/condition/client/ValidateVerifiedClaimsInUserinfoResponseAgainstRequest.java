@@ -1,11 +1,10 @@
 package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonElement;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest extends AbstractValidateVerifiedClaims {
+public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest extends AbstractValidateVerifiedClaimsAgainstRequest {
 
 	@Override
 	@PreEnvironment(required = {"server", "authorization_endpoint_request", "verified_claims_response"})

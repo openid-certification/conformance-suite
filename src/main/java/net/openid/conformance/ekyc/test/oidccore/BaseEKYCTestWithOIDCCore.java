@@ -38,8 +38,8 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-9");
 		//verified_claims_supported: Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension.
 		//Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension
-		//TODO I assumed this must always be true for eKYC tests. Please confirm
-		callAndContinueOnFailure(EnsureVerifiedClaimsSupportedParameterIsTrue.class, Condition.ConditionResult.FAILURE, "IA-8");
+		//this must be true for eKYC tests
+		callAndContinueOnFailure(EnsureVerifiedClaimsSupportedParameterIsTrue.class, Condition.ConditionResult.FAILURE, "IA-9");
 
 		//trust_frameworks_supported: JSON array containing all supported trust frameworks.
 		validateTrustFrameworksSupportedInServerConfiguration();
