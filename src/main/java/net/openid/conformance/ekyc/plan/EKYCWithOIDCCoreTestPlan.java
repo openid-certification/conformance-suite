@@ -7,6 +7,8 @@ import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimWithSpecialChar
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestEssentialClaimUnknownToTheOP;
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestVerifiedClaimsOnlyInIdToken;
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestVerifiedClaimsOnlyInUserinfo;
+import net.openid.conformance.ekyc.test.oidccore.EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata;
+import net.openid.conformance.ekyc.test.oidccore.EKYCTestUserinfoDefaults;
 import net.openid.conformance.ekyc.test.oidccore.EKYCTestWithUserProvidedRequest;
 import net.openid.conformance.ekyc.test.oidccore.EKYCTooLongPurposeLeadsToInvalidRequestResponse;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -26,7 +28,9 @@ import net.openid.conformance.plan.TestPlan;
 		EKYCTooLongPurposeLeadsToInvalidRequestResponse.class,
 		EKYCRequestVerifiedClaimsOnlyInIdToken.class,
 		EKYCRequestVerifiedClaimsOnlyInUserinfo.class,
-		EKYCTestWithUserProvidedRequest.class
+		EKYCTestWithUserProvidedRequest.class,
+		EKYCTestUserinfoDefaults.class,
+		EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata.class
 		//TODO how to test max_age? how can the following in Yes.com tests can be implemented?
 		// Test: Check if max_age is evaluated correctly. Note: max_age is chosen 1000 years in the future and should not limit the result. Expected result: All Claims are being delivered as listed in the request.
 	}

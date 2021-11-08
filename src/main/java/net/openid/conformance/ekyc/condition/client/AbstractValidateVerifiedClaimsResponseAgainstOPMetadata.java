@@ -107,7 +107,15 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 			JsonObject evidence = evidenceElement.getAsJsonObject();
 			if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
 				evidence.get("type").equals(new JsonPrimitive("document"))) {
-				JsonObject documentObject = evidence.get("document").getAsJsonObject();
+				JsonObject documentObject = null;
+				if(evidence.has("document")) {
+					documentObject = evidence.get("document").getAsJsonObject();
+				} else if(evidence.has("id_document")) {
+					documentObject = evidence.get("id_document").getAsJsonObject();
+				}
+				if(documentObject==null) {
+					throw error("Evidence does not contain document or id_document", args("evidence", evidenceElement));
+				}
 				JsonElement documentType = documentObject.get("type");
 
 				if(documentsSupportedElement==null) {

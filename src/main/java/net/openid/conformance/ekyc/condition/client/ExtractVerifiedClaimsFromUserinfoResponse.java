@@ -36,6 +36,7 @@ public class ExtractVerifiedClaimsFromUserinfoResponse extends AbstractCondition
 			envHolder.add("userinfo", verifiedClaimsElement);
 			return env;
 		}
-		throw error("userinfo response does not contain verified_claims");
+		log("userinfo response does not contain verified_claims");
+		return env;
 	}
 }
