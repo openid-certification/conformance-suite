@@ -184,11 +184,11 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 							}
 						}
 					} else if(requestedEvidence.get("attachments").isJsonNull()) {
-						//anything works
+						//TODO when attachments is json null, must the response contain attachments or is it optional? Likewise for "essential" case above
 					}
 				}
 				//"type" specific checks
-				String evidenceType = OIDFJSON.getString(requestedEvidence.get("type"));
+				String evidenceType = OIDFJSON.getString(requestedEvidence.get("type").getAsJsonObject().get("value"));
 				switch (evidenceType) {
 					case "document":
 						compareDocumentType(requestedEvidence, returnedObject);
