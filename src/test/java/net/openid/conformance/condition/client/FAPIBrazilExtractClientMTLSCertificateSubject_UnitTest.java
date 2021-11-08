@@ -151,6 +151,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 
 		// note that subjectdn includes a number of numeric oids - see comment in FAPIBrazilExtractClientMTLSCertificateSubject.java
 		assertThat(env.getString("certificate_subject", "subjectdn")).isEqualTo("1.3.6.1.4.1.311.60.2.1.3=#13024252,2.5.4.15=#131450726976617465204f7267616e697a6174696f6e,UID=be42d3a5-9861-4305-9deb-a22756ea7e82,2.5.4.5=#130d31333335333233363030313839,CN=Whatever,OU=74e929d9-33b6-4d85-8ba7-c146c867a817,O=Open Banking Brasil,L=BOTAFOGO,ST=BOTAFOGO / RIO DE JANEIRO\\, RJ,C=BR");
+		assertThat(env.getString("certificate_subject", "subjectdn_with_shortnames")).isEqualTo("jurisdictionCountryName=BR,businessCategory=Private Organization,UID=be42d3a5-9861-4305-9deb-a22756ea7e82,serialNumber=1335323600189,CN=Whatever,OU=74e929d9-33b6-4d85-8ba7-c146c867a817,O=Open Banking Brasil,L=BOTAFOGO,ST=BOTAFOGO / RIO DE JANEIRO\\, RJ,C=BR");
 		assertThat(env.getString("certificate_subject", "ou")).isEqualTo("74e929d9-33b6-4d85-8ba7-c146c867a817");
 		assertThat(env.getString("certificate_subject", "brazil_software_id")).isEqualTo("be42d3a5-9861-4305-9deb-a22756ea7e82");
 	}
@@ -211,6 +212,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 
 		// note that subjectdn includes a number of numeric oids - see comment in FAPIBrazilExtractClientMTLSCertificateSubject.java
 		assertThat(env.getString("certificate_subject", "subjectdn")).isEqualTo("UID=812b577d-a364-4de5-a90a-5ef4d4ecc29c,1.3.6.1.4.1.311.60.2.1.3=#13024252,2.5.4.15=#131450726976617465204f7267616e697a6174696f6e,2.5.4.5=#130e3138323336313230303030313538,CN=*.nubank.com.br,OU=926e3037-a685-553c-afa3-f7cb46ff8084,O=NU PAGAMENTOS S.A.,L=São Paulo,ST=SP,C=BR");
+		assertThat(env.getString("certificate_subject", "subjectdn_with_shortnames")).isEqualTo("UID=812b577d-a364-4de5-a90a-5ef4d4ecc29c,jurisdictionCountryName=BR,businessCategory=Private Organization,serialNumber=18236120000158,CN=*.nubank.com.br,OU=926e3037-a685-553c-afa3-f7cb46ff8084,O=NU PAGAMENTOS S.A.,L=São Paulo,ST=SP,C=BR");
 		assertThat(env.getString("certificate_subject", "ou")).isEqualTo("926e3037-a685-553c-afa3-f7cb46ff8084");
 		assertThat(env.getString("certificate_subject", "brazil_software_id")).isEqualTo("812b577d-a364-4de5-a90a-5ef4d4ecc29c");
 	}

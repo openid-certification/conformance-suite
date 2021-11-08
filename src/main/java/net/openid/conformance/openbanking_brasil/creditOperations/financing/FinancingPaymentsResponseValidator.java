@@ -161,6 +161,7 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 			new DoubleField
 				.Builder("chargeAmount")
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setNullable()
 				.build());
 	}
 }
