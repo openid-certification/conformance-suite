@@ -68,6 +68,7 @@ public class ConsentsApiCrossClientTestModule extends AbstractClientCredentialsG
 		runInBlock("Attempt to delete with second client", () -> {
 			callAndStopOnFailure(PrepareToDeleteConsent.class);
 			callAndStopOnFailure(IgnoreResponseError.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseFromConsentApiWas403.class, Condition.ConditionResult.FAILURE);
 		});
