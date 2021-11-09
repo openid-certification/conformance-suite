@@ -1,12 +1,13 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiDcrHappyFlowTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleCorrect404;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -24,7 +25,8 @@ public class ResourcesApiTestPlan implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					ResourcesApiTestModule.class,
-					ResourcesApiTestModuleCorrect404.class
+					ResourcesApiTestModuleCorrect404.class,
+					ResourcesApiDcrHappyFlowTestModule.class
 					//ResourcesApiTestModuleNoResources.class, // With the new resource groups, an empty resource request no longer makes any sense.
 					//ResourcesApiTestModuleAccount.class, // Not rquired for T0
 					//ResourcesApiTestModuleCreditCard.class // Not required for T0
