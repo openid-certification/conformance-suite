@@ -13,12 +13,7 @@ import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
 import net.openid.conformance.export.TestHelper;
-import net.openid.conformance.info.Plan;
-import net.openid.conformance.info.PublicPlan;
-import net.openid.conformance.info.PublicTestInfo;
-import net.openid.conformance.info.TestInfo;
-import net.openid.conformance.info.TestInfoRepository;
-import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.info.*;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -27,44 +22,42 @@ import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.util.CloseableIterator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Controller
 @RequestMapping(value = "/api")
 public class LogApi {
+
+	private static final Logger LOG = LoggerFactory.getLogger(LogApi.class);
 
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
@@ -91,6 +84,72 @@ public class LogApi {
 
 	@Autowired
 	private TestPlanService planService;
+
+	@GetMapping(value = "/log/logs.csv", produces = "text/csv")
+	@ApiOperation(value = "Export test logs as CSV")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Exported successfully")
+	})
+	public ResponseEntity<StreamingResponseBody> csvLogs() {
+		String username = authenticationFacade.getDisplayName();
+		LOG.info("CSV download requested by {}", username);
+		if (!authenticationFacade.isAdmin()) {
+			LOG.info("{} is not an admin - not returning CSV digest", username);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		LOG.info("{} is an admin - returning CSV digest", username);
+		Instant startDate = Instant.now().minus(10, DAYS);
+
+		String start = startDate.toString();
+		Query query = new Query();
+		query.addCriteria(Criteria.where("started").gte(start));
+		String[] toExclude = { "variant", "version", "summary" };
+		Arrays.stream(toExclude)
+			.forEach(fieldName -> query.fields().exclude(fieldName));
+		long expected = mongoTemplate.count(query, TestInfo.class);
+		LOG.info("Should fetch {} records", expected);
+		CloseableIterator<TestInfo> stream = mongoTemplate.stream(query, TestInfo.class);
+
+		StreamingResponseBody streamingResponseBody = outputStream -> {
+			PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
+			writer.println("id, owner, sub, status, result, testName, started, discoveryUrl");
+			int i = 0;
+			while(stream.hasNext()) {
+				i++;
+				TestInfo info = stream.next();
+				writer.print(info.getId());
+				writer.print(",");
+				writer.print(info.getOwner().get("iss"));
+				writer.print(",");
+				writer.print(info.getOwner().get("sub"));
+				writer.print(",");
+				writer.print(info.getStatus().toString());
+				writer.print(",");
+				writer.print(info.getResult());
+				writer.print(",");
+				writer.print(info.getTestName());
+				writer.print(",");
+				writer.print(info.getStarted());
+				writer.print(",");
+				Document config = info.getConfig();
+				Document server = (Document) config.get("server");
+				if(server != null) {
+					String discoveryUrl = (String) server.get("discoveryUrl");
+					writer.println(discoveryUrl);
+				} else {
+					writer.println("N/A");
+				}
+				if(i % 500 == 0) {
+					LOG.info("Processed {} records", i);
+				}
+			}
+			writer.flush();
+			writer.close();
+			LOG.info("Returning CSV digest for {} records", i);
+		};
+
+		return ResponseEntity.ok(streamingResponseBody);
+	}
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get all test logs with paging", notes = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
@@ -121,6 +180,9 @@ public class LogApi {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
 	}
+
+
+
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get test log of given testId")
@@ -288,6 +350,7 @@ public class LogApi {
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
+
 
 	protected void addFilesToZip(ZipArchiveOutputStream archiveOutputStream, String jsonFileName, String sigFileName, TestExportInfo export) throws Exception {
 

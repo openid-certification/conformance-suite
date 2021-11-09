@@ -1,7 +1,5 @@
 package net.openid.conformance.logging;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,8 +8,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.junit.Assert.*;
 @RunWith(MockitoJUnitRunner.class)
 public class LogApi_UnitTest {
 
@@ -827,4 +823,5 @@ public class LogApi_UnitTest {
 			}
 		}
 	}
+
 }
