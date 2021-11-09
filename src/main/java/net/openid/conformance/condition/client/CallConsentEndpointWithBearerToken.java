@@ -8,18 +8,16 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.openbanking.FAPIOBGetResourceEndpoint;
 import net.openid.conformance.testmodule.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +34,7 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" })
-	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response" })
+	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response", "consent_endpoint_response_full" })
 	public Environment evaluate(Environment env) {
 
 		String accessToken = env.getString("access_token", "value");
@@ -63,6 +61,15 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+				@Override
+				public boolean hasError(ClientHttpResponse response) throws IOException {
+					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+					// status code meaning the rest of our code can handle http status codes how it likes
+					return false;
+				}
+			});
+
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
 			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
@@ -73,6 +80,9 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
 
 			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.POST, request, String.class);
+
+			JsonObject fullObject = convertJsonResponseForEnvironment("consent", response);
+			env.putObject("consent_endpoint_response_full", fullObject);
 
 			String jsonString = response.getBody();
 

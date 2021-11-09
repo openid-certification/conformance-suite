@@ -252,7 +252,12 @@ public class TestRunner implements DataUtils {
 			if (testPlan.getPlanName().equals("Payments api phase 1 test")) {
 				if (planVersion.isLowerThan("4.1.39")) {
 					recreate = true;
-					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+
+			if (testPlan.getPlanName().equals("Resources api test")) {
+				if (planVersion.isLowerThan("4.1.40")) {
+					recreate = true;
 				}
 			}
 
@@ -345,13 +350,19 @@ public class TestRunner implements DataUtils {
 
 			alias = OIDFJSON.getString(config.get("alias"));
 
-			if (testName.equals("payments-api-dcr-test-unauthorized-client")) {
-				// This test uses a hardcoded client that needs a particular redirect url
+			List<String> needsAccountAlias = List.of(
+				"payments-api-dcr-test-unauthorized-client",
+				"resources-api-dcr-happyflow",
+				"resources-api-dcr-test-attempt-client-takeover",
+				"resources-api-dcr-subjectdn");
+			if (needsAccountAlias.contains(testName)) {
+				// These tests use a hardcoded client that needs a particular redirect url
 				alias = "raidiam-client-accounts-only";
 			}
 			else if (testName.equals("payments-api-dcr-happyflow") ||
 				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
-				testName.equals("payments-api-dcr-subjectdn")) {
+				testName.equals("payments-api-dcr-subjectdn") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client")) {
 				alias = "raidiam-client-payments-only";
 			}
 

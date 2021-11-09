@@ -74,7 +74,6 @@ public abstract class AbstractOverrideClient extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject client = (JsonObject) env.getElementFromObject("config", "client");
-		client.addProperty("scope", "openid payments");
 		client.add("jwks", new JsonParser().parse(clientJwks()).getAsJsonObject());
 		client.add("org_jwks", new JsonParser().parse(orgJwks()).getAsJsonObject());
 
