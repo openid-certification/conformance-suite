@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiDcrHappyFlowTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiDcrTestModuleUnauthorizedClient;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ResourcesApiTestModuleCorrect404;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -26,7 +27,8 @@ public class ResourcesApiTestPlan implements TestPlan {
 					PreFlightCertCheckModule.class,
 					ResourcesApiTestModule.class,
 					ResourcesApiTestModuleCorrect404.class,
-					ResourcesApiDcrHappyFlowTestModule.class
+					ResourcesApiDcrHappyFlowTestModule.class,
+					ResourcesApiDcrTestModuleUnauthorizedClient.class
 					//ResourcesApiTestModuleNoResources.class, // With the new resource groups, an empty resource request no longer makes any sense.
 					//ResourcesApiTestModuleAccount.class, // Not rquired for T0
 					//ResourcesApiTestModuleCreditCard.class // Not required for T0

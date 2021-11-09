@@ -354,7 +354,8 @@ public class TestRunner implements DataUtils {
 			}
 			else if (testName.equals("payments-api-dcr-happyflow") ||
 				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
-				testName.equals("payments-api-dcr-subjectdn")) {
+				testName.equals("payments-api-dcr-subjectdn") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client")) {
 				alias = "raidiam-client-payments-only";
 			}
 
