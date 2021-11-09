@@ -3,7 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
-import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnWithBrazilShortnameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -34,6 +33,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClientThatHasClientSpecificJwks;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -61,6 +61,7 @@ public class PaymentsApiDcrSubjectDn extends AbstractFAPI1AdvancedFinalBrazilDCR
 		brazilPayments = true;
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		super.configureClient();
@@ -83,6 +84,7 @@ public class PaymentsApiDcrSubjectDn extends AbstractFAPI1AdvancedFinalBrazilDCR
 		env.mapKey("config", "altconfig");
 		env.mapKey("mutual_tls_authentication", "altmtls");
 		callAndStopOnFailure(OverrideClientWithPagtoClientThatHasClientSpecificJwks.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		call(exec().mapKey("request_object_claims", "consent_endpoint_request"));

@@ -1,6 +1,5 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddOpenIdPaymentsScopeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddScopeOpenIdPaymentsToClientConfigurationRequest;
@@ -24,7 +23,6 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
-import net.openid.conformance.condition.client.CreateJwksUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -40,6 +38,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -71,6 +70,7 @@ public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractFAPI1Adv
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithDadosClient.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 
 		if (!didRegistrationWithScopePayments) {

@@ -19,9 +19,9 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClientThatHasClientSpecificJwks;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -48,6 +48,7 @@ public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractFAPI1
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
 	}
@@ -75,6 +76,7 @@ public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractFAPI1
 		env.mapKey("config", "altconfig");
 		env.mapKey("mutual_tls_authentication", "altmtls");
 		callAndStopOnFailure(OverrideClientWithPagtoClientThatHasClientSpecificJwks.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		// https://github.com/OpenBanking-Brasil/specs-seguranca/issues/199

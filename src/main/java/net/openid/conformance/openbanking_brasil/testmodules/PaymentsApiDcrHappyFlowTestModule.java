@@ -21,6 +21,7 @@ public class PaymentsApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFina
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		callAndStopOnFailure(OverrideCNPJ.class);
 		super.configureClient();
