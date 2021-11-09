@@ -353,7 +353,8 @@ public class TestRunner implements DataUtils {
 			List<String> needsAccountAlias = List.of(
 				"payments-api-dcr-test-unauthorized-client",
 				"resources-api-dcr-happyflow",
-				"resources-api-dcr-test-attempt-client-takeover");
+				"resources-api-dcr-test-attempt-client-takeover",
+				"resources-api-dcr-subjectdn");
 			if (needsAccountAlias.contains(testName)) {
 				// These tests use a hardcoded client that needs a particular redirect url
 				alias = "raidiam-client-accounts-only";
