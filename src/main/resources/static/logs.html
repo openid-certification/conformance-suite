@@ -37,15 +37,18 @@
 
 <body>
 
-	<div class="pageHeader container-fluid">
+<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
 				<a href="index.html"><img src="/images/ob_brasil.svg"></a>
 			</div>
 			<div id="userInfoHolder" class="col-md-4 text-right"></div>
+            <div id="csvButtonHolder" class="col-md-12 text-right">
+            </div>
 		</div>
 	</div>
 	<div class="clearfix"></div>
+
 
 	<!-- resident DOM -->
 	<div class="container-fluid">
@@ -59,7 +62,6 @@
 					<tbody>
 					</tbody>
 				</table>
-
 			</div>
 		</div>
 	</div>
@@ -142,7 +144,11 @@
 			FAPI_UI.loadLogListTemplates()
 			.then(function() {
 				return FAPI_UI.getUserInfo();
-			}).then(function() {
+			}).
+            then(function() {
+                return FAPI_UI.getCsvDigestButton();
+            }).
+            then(function() {
 				return loadAvailableLogs(public);
 			}).always(function() {
 				FAPI_UI.hideBusy();
