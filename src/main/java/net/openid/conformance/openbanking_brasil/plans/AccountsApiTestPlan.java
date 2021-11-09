@@ -13,7 +13,7 @@ import java.util.List;
 	testPlanName = "Account api test",
 	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	displayName = PlanNames.ACCOUNT_API_NAME,
-	summary = "Structural and logical tests for OpenBanking Brasil-conformant Account API"
+	summary = "Structural and logical tests for OpenBanking Brasil-conformant Account API."
 )
 public class AccountsApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
@@ -26,7 +26,8 @@ public class AccountsApiTestPlan implements TestPlan {
 					AccountsApiReadPermissionsAreRestricted.class,
 					AccountsApiNegativeTestModule.class,
 					AccountsApiUXScreenshots.class,
-					AccountsApiPageSizeTestModule.class
+					AccountsApiPageSizeTestModule.class,
+					AccountsApiPageSizeTooLargeTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
