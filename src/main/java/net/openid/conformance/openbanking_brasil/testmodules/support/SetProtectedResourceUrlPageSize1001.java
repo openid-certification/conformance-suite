@@ -8,22 +8,17 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 
-public class SetProtectedResourceUrlPageSize1001ToSelfEndpoint extends AbstractCondition {
+public class SetProtectedResourceUrlPageSize1001 extends AbstractCondition {
 
-	private static Gson GSON = JsonUtils.createBigDecimalAwareGson();
+	//private static Gson GSON = JsonUtils.createBigDecimalAwareGson();
 
 	@Override
 	@PostEnvironment(strings = "protected_resource_url")
 	public Environment evaluate(Environment env) {
 
-		String entityString = env.getString("resource_endpoint_response");
-		JsonObject body = GSON.fromJson(entityString, JsonObject.class);
+		String resourceUrl = env.getString("protected_resource_url");
+		env.putString("protected_resource_url", resourceUrl.concat("?page-size=1001"));
 
-		JsonObject links = body.getAsJsonObject("links");
-
-		env.putString("protected_resource_url", OIDFJSON.getString(links.get("self")).concat("?page-size=1001"));
-
-		log("Saving old environment values");
 		return env;
 	}
 }
