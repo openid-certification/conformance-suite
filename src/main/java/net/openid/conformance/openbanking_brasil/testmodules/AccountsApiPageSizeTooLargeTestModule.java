@@ -34,7 +34,7 @@ public class AccountsApiPageSizeTooLargeTestModule extends AbstractOBBrasilFunct
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
-		callAndStopOnFailure(SetProtectedResourceUrlPageSize1001ToSelfEndpoint.class);
+		callAndStopOnFailure(SetProtectedResourceUrlPageSize1001.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
