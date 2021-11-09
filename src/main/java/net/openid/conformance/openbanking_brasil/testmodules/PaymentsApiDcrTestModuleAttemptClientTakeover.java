@@ -27,8 +27,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "payments-api-dcr-test-attempt-client-takeover",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR attempt to take over client",
-	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server then, using valid keys/SSA/etc from a different valid client, attempt to take over the original client.",
+	displayName = "Payments API DCR test: attempt to take over client",
+	summary = "Obtain a software statement from the Brazil directory (using a client hardcoded into the test suite), register a new client on the target authorization server then, using valid keys/SSA/etc from a different valid client, attempt to take over the original client. Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
