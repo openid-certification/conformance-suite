@@ -65,9 +65,11 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndStopOnFailure(CloneConsentResponseToResourceResponse.class);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			eventLog.startBlock("Validating self endpoint, ensuring response is 200 and response is correct");
 			call(new ValidateSelfEndpoint()
-				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
-				));
+				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class))
+				.insertAfter(EnsureResponseCodeWas200.class, condition(PaymentInitiationConsentValidator.class))
+			);
 		});
 	}
 }
