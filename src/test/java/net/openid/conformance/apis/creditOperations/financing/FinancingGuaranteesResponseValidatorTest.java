@@ -27,11 +27,10 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(WrongRegexp).json")
+	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(NoTrailingZero).json")
 	public void validateStructureWithWrongRegexp() {
 		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("warrantyAmount")));
+		run(condition);
 	}
 
 	@Test
