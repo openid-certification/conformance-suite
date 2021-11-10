@@ -88,7 +88,7 @@ public class AccountTransactionsValidator extends AbstractJsonAssertingCondition
 		assertField(body,
 			new DoubleField
 				.Builder("amount")
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.build());

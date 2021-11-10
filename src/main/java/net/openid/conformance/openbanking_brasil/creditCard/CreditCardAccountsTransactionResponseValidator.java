@@ -121,14 +121,14 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 			new DoubleField
 				.Builder("brazilianAmount")
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setNullable()
 				.build());
 
 		assertField(data,
 			new DoubleField
 				.Builder("amount")
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setNullable()
 				.build());

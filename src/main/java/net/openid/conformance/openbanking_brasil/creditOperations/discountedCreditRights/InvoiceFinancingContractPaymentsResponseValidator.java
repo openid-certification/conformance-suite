@@ -44,7 +44,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 		assertField(data,
 			new DoubleField
 				.Builder("contractOutstandingBalance")
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.build());
 
@@ -95,7 +95,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new DoubleField
 				.Builder("paidAmount")
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertHasField(body, "overParcel");
@@ -133,7 +133,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 		assertField(body,
 			new DoubleField
 				.Builder("chargeAmount")
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.setNullable()
 				.build());
@@ -158,7 +158,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 			new DoubleField
 				.Builder("feeAmount")
 				.setNullable()
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.setNullable()
 				.build());

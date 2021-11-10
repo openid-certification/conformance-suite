@@ -58,7 +58,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.Builder("billTotalAmount")
 				.setMaxLength(20)
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertField(data,
@@ -73,7 +73,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.Builder("billMinimumAmount")
 				.setMaxLength(19)
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertField(data,
@@ -124,7 +124,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.Builder("amount")
 				.setMaxLength(20)
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setNullable()
 				.build());
 
@@ -164,7 +164,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 				.Builder("amount")
 				.setMaxLength(20)
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertField(data,

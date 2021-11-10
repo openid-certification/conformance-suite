@@ -121,7 +121,7 @@ public class ContractInstallmentsResponseValidator extends AbstractJsonAsserting
 		assertField(body,
 			new DoubleField.
 				Builder("amount")
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.setNullable()
 				.build());

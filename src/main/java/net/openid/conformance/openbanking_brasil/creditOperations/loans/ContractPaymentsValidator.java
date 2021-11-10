@@ -45,7 +45,7 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new DoubleField
 				.Builder("contractOutstandingBalance")
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 			 	.build());
 
 		assertReleases(data);
@@ -95,7 +95,7 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 			new DoubleField
 				.Builder("paidAmount")
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertHasField(body, "overParcel");
@@ -135,7 +135,7 @@ public class ContractPaymentsValidator extends AbstractJsonAssertingCondition {
 				.Builder("chargeAmount")
 				.setMinLength(0)
 				.setNullable()
-				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 	}
 

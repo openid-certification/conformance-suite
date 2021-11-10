@@ -40,4 +40,12 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantyType")));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(BadDouble).json")
+	public void validateStructureWithBadDouble() {
+		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString("Field at warrantyAmount was not a double"));
+	}
 }
