@@ -1,0 +1,9 @@
+{
+    "AuthorisationDomainUserId": "string",
+    "Email": "string",
+    "AuthorisationDomain": "string",
+    "AuthorisationDomainRole": "string",
+    "Status": "Active",
+    "ContactRole": "PTC",
+    "System": "Directory"
+}

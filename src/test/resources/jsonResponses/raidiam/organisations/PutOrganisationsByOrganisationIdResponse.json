@@ -1,0 +1,23 @@
+{
+    "OrganisationId": "string",
+    "Status": "Active",
+    "OrganisationName": "string",
+    "CreatedOn": "string",
+    "LegalEntityName": "string",
+    "CountryOfRegistration": "string",
+    "CompanyRegister": "string",
+    "Tags": [
+        "string"
+    ],
+    "Size": "string",
+    "RegistrationNumber": "string",
+    "RegistrationId": "string",
+    "RegisteredName": "string",
+    "AddressLine1": "string",
+    "AddressLine2": "string",
+    "City": "string",
+    "Postcode": "string",
+    "Country": "string",
+    "ParentOrganisationReference": "string",
+    "RequiresParticipantTermsAndConditionsSigning": true
+}

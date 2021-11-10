@@ -1,0 +1,6 @@
+{
+    "AuthorisationDomainName": "string",
+    "AuthorisationDomainRoleName": "string",
+    "AuthorisationDomainRoleDescription": "string",
+    "Status": "Active"
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "OrganisationId": "string",
+        "Status": "Active",
+        "RegistrationNumber": "string",
+        "RegisteredName": "string",
+        "ParentOrganisationReference": "string",
+        "OrgDomainClaims": [
+            {
+                "AuthorisationDomainName": "string",
+                "Status": "Active"
+            }
+        ],
+        "OrgDomainRoleClaims": [
+            {
+                "AuthorisationDomainName": "string",
+                "AuthorisationDomainRoleName": "string",
+                "Status": "Active"
+            }
+        ]
+    }
+]

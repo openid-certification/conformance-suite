@@ -1,0 +1,80 @@
+{
+    "SuperUser": true,
+    "SystemUser": true,
+    "BasicInformation": {
+        "UserEmail": "string",
+        "Status": "Active"
+    },
+    "OrgAccessDetails": {
+        "additionalProp1": {
+            "OrgRegistrationNumber": "string",
+            "OrgAdmin": true,
+            "DomainRoleDetails": [
+                {
+                    "AuthorisationDomainName": "string",
+                    "AuthorisationDomainRoleName": "string",
+                    "Status": "Active",
+                    "ContactRole": "PTC",
+                    "System": "Directory"
+                }
+            ]
+        },
+        "additionalProp2": {
+            "OrgRegistrationNumber": "string",
+            "OrgAdmin": true,
+            "DomainRoleDetails": [
+                {
+                    "AuthorisationDomainName": "string",
+                    "AuthorisationDomainRoleName": "string",
+                    "Status": "Active",
+                    "ContactRole": "PTC",
+                    "System": "Directory"
+                }
+            ]
+        },
+        "additionalProp3": {
+            "OrgRegistrationNumber": "string",
+            "OrgAdmin": true,
+            "DomainRoleDetails": [
+                {
+                    "AuthorisationDomainName": "string",
+                    "AuthorisationDomainRoleName": "string",
+                    "Status": "Active",
+                    "ContactRole": "PTC",
+                    "System": "Directory"
+                }
+            ]
+        }
+    },
+    "DirectoryTermsAndConditionsDetails": {
+        "RequiresSigning": true,
+        "Updated": true,
+        "TermsAndConditionsItem": {
+            "TnCId": 0,
+            "Name": "string",
+            "Type": "Participant",
+            "Content": "string",
+            "Status": "Active",
+            "ExternalSigningService": {
+                "ExternalSigningServiceName": "DocuSign",
+                "ExternalSigningServiceSignerTemplateConfig": {
+                    "Signer1TemplateId": "string",
+                    "Signer1Version": 0,
+                    "Signer2TemplateId": "string",
+                    "Signer2Version": 0,
+                    "Signer3TemplateId": "string",
+                    "Signer3Version": 0,
+                    "Signer4TemplateId": "string",
+                    "Signer4Version": 0,
+                    "Signer5TemplateId": "string",
+                    "Signer5Version": 0,
+                    "Signer6TemplateId": "string",
+                    "Signer6Version": 0
+                },
+                "ExternalSigningServiceSubject": "string",
+                "ExternalSigningServiceEmailSubject": "string"
+            }
+        }
+    }
+}
+
