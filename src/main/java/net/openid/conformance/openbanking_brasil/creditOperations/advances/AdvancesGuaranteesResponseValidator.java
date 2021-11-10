@@ -79,7 +79,7 @@ public class AdvancesGuaranteesResponseValidator extends AbstractJsonAssertingCo
 		assertField(body,
 			new DoubleField
 				.Builder("warrantyAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 	}
 }

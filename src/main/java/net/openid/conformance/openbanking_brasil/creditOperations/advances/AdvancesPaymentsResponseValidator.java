@@ -46,7 +46,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 		assertField(data,
 			new DoubleField
 				.Builder("contractOutstandingBalance")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertReleases(data);
@@ -96,7 +96,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new DoubleField
 				.Builder("paidAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertHasField(body, "overParcel");
@@ -138,7 +138,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 			new DoubleField
 				.Builder("feeAmount")
 				.setNullable()
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 	}
 
@@ -161,7 +161,7 @@ public class AdvancesPaymentsResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new DoubleField
 				.Builder("chargeAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.setNullable()
 				.build());
 	}

@@ -80,7 +80,7 @@ public class BusinessQualificationResponseValidator extends AbstractJsonAssertin
 				.setNullable()
 				.setMinLength(0)
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertField(data,
@@ -118,7 +118,7 @@ public class BusinessQualificationResponseValidator extends AbstractJsonAssertin
 				.setNullable()
 				.setMinLength(0)
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertField(data,

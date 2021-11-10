@@ -83,7 +83,7 @@ public class PersonalQualificationResponseValidator extends AbstractJsonAssertin
 				.setMinLength(0)
 				.setNullable()
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertField(informedIncome,
@@ -109,7 +109,7 @@ public class PersonalQualificationResponseValidator extends AbstractJsonAssertin
 				.Builder("amount")
 				.setMinLength(0)
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.setNullable()
 				.build());
 

@@ -102,7 +102,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 				.setNullable()
 				.setMaxLength(20)
 				.setMinLength(0)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.build());
 
 		assertField(data, CommonFields.currency().build());
@@ -233,7 +233,7 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 			new DoubleField
 				.Builder("feeAmount")
 				.setNullable()
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}\\.{0,1}\\d{0,4}$")
 				.setMinLength(0)
 				.setMaxLength(20)
 				.build());
