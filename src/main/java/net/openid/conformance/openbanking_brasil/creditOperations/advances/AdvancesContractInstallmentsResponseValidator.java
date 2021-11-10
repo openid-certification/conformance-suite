@@ -122,7 +122,7 @@ public class AdvancesContractInstallmentsResponseValidator extends AbstractJsonA
 		assertField(body,
 			new DoubleField.
 				Builder("amount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.setNullable()
 				.build());

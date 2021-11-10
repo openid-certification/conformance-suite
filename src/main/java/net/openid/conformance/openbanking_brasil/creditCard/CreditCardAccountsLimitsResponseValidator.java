@@ -81,7 +81,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new DoubleField
 				.Builder("limitAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setNullable()
@@ -98,7 +98,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 		assertField(data,
 			new DoubleField
 				.Builder("usedAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setNullable()

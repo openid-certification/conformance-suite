@@ -103,7 +103,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 				.setNullable()
 				.setMinLength(0)
 				.setMaxLength(20)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.build());
 
 		assertField(body,
@@ -309,7 +309,7 @@ public class InvoiceFinancingAgreementResponseValidator extends AbstractJsonAsse
 		assertField(body,
 			new DoubleField
 				.Builder("feeAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setNullable()
 				.build());
 

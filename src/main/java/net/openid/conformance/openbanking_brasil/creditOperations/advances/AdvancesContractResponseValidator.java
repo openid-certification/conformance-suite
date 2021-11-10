@@ -99,7 +99,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 			new DoubleField
 				.Builder("contractAmount")
 				.setNullable()
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMinLength(0)
 				.setMaxLength(20)
 				.build());
@@ -303,7 +303,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new DoubleField
 				.Builder("feeAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setNullable()
 				.build());
 
