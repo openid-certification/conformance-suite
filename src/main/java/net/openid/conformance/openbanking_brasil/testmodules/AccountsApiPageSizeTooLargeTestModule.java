@@ -37,7 +37,7 @@ public class AccountsApiPageSizeTooLargeTestModule extends AbstractOBBrasilFunct
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1001.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 
