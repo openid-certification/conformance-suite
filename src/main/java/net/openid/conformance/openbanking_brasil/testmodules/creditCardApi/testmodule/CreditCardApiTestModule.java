@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.Prepa
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardBills;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardLimits;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardTransactions;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.AddScopesForFinancingsApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -35,6 +36,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(AddCreditCardScopes.class);
 	}
 
 	@Override
