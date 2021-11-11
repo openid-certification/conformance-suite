@@ -18,8 +18,14 @@ public class OverrideCNPJ extends AbstractCondition {
 			return env;
 		}
 
-		obj = obj.getAsJsonObject("brazilPixPayment");
-		obj.addProperty("cnpjInitiator", "02872369000110");
+		JsonObject pixObj = obj.getAsJsonObject("brazilPixPayment");
+		String value = "02872369000110";
+		String key = "cnpjInitiator";
+		JsonObject dataObj = pixObj.getAsJsonObject("data");
+		dataObj.addProperty(key, value);
+
+		log("'" + key + "' in payment initiation body set to '"+value+"'",
+			args("pix_body", pixObj));
 
 		return env;
 	}
