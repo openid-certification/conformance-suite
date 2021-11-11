@@ -88,17 +88,7 @@ public class Application {
 
 	@Bean
 	public TomcatServletWebServerFactory servletContainer() {
-
 		TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
-
-		Connector ajpConnector = new Connector("AJP/1.3");
-		// ajpConnector.setProtocol("AJP/1.3");
-		ajpConnector.setPort(9090);
-		ajpConnector.setSecure(false);
-		ajpConnector.setAllowTrace(false);
-		ajpConnector.setScheme("http");
-		tomcat.addAdditionalTomcatConnectors(ajpConnector);
-
 		return tomcat;
 	}
 
