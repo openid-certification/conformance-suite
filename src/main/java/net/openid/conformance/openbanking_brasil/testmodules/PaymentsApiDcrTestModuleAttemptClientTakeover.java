@@ -1,24 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
-import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
-import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
-import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClientThatHasClientSpecificJwks;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
@@ -49,6 +31,7 @@ public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractDcrTe
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
 		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
+		callAndStopOnFailure(OverrideCNPJ.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
 	}
