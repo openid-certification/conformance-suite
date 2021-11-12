@@ -35,7 +35,9 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
+		
+		preCallProtectedResource("Prepare to Fetch Account Transactions");
+		callAndStopOnFailure(AccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
@@ -43,6 +45,8 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 
+
+		preCallProtectedResource("Prepare to Fetch page 2 of Account Tansactions");
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToNextEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
