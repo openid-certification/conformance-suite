@@ -60,7 +60,8 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions extends Abstra
 		}
 
 		if (!isValidResourceGroup(grantedPermissions)) {
-			throw error("Consent endpoint response not a valid permissions grouping");
+			log("Consent endpoint response is not a complete grouping. This is acceptable if the Bank does not support all of the resources in the Credit Operations consent group", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
+			throw error("Consent endpoint response is not a complete grouping");
 		}
 
 		logSuccess("Consent endpoint response contains expected permissions", args("granted", grantedPermissionsEl, "requested", requestedPermissions));
