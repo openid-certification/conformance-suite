@@ -32,6 +32,7 @@ import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRe
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClientThatHasClientSpecificJwks;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
@@ -54,6 +55,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractFAPI1AdvancedFinal
             brazilPayments = true;
             callAndStopOnFailure(EnsurePaymentDateIsToday.class);
             callAndStopOnFailure(OverrideClientWithPagtoClient.class);
+            callAndStopOnFailure(OverrideCNPJ.class);
             callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
         } else {
             callAndStopOnFailure(OverrideClientWithDadosClient.class);
