@@ -3,7 +3,6 @@ COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL https://web.conformance.directory.openbankingbrasil.org.br
 ENV JAVA_EXTRA_ARGS=
 EXPOSE 8080
-EXPOSE 9090
 ENTRYPOINT java \
   -D"fintechlabs.base_url=${BASE_URL}" \
   -D"spring.data.mongodb.uri=mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/test_suite" \
