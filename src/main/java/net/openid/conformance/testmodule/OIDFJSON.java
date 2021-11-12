@@ -5,6 +5,10 @@ import com.google.gson.JsonElement;
 /**
  * Wrappers around the GSON getAsXXXX methods
  *
+ * These should generally not be called directly from TestConditions (although there are a lot of historical uses)
+ * as the errors they end up providing to the user are at best unhelpful - instead use AbstractCondition's
+ * getStringFromEnvironment and similar.
+ *
  * The 'getAs' methods automatically coerce types, for example if 'getAsNumber' finds a string, it will automatically
  * convert it to a number. This is not desirable behaviour when we're trying to write a conformance suite that
  * checks if the returned values are actually the correct type (for example it's pretty wrong to return 'expires_in'
