@@ -1,0 +1,108 @@
+{
+    "data": {
+        "availability": {
+            "uptime": {
+                "generalUptimeRate": "string",
+                "endpoints": {
+                    "url": "string",
+                    "uptimeRate": "string"
+                }
+            },
+            "downtime": {
+                "generalDowntime": 0,
+                "scheduledOutage": 0,
+                "endpoints": {
+                    "url": "string",
+                    "partialDowntime": 0
+                }
+            }
+        },
+        "invocations": {
+            "unauthenticated": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "highPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "mediumPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "unattended": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            }
+        },
+        "averageResponse": {
+            "unauthenticated": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "highPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "mediumPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "unattended": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            }
+        },
+        "averageTps": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "peakTps": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "errors": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "rejections": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/admin/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/admin/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/admin/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}

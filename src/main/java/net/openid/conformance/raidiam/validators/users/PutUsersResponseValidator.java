@@ -10,6 +10,6 @@ import net.openid.conformance.logging.ApiName;
  *
  */
 
-@ApiName("Raidiam Directory  Put Users")
+@ApiName("Raidiam Directory Put Users")
 public class PutUsersResponseValidator extends GetUsersResponseValidator {
 }

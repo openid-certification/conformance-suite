@@ -2,6 +2,7 @@ package net.openid.conformance.raidiam.validators.organisationAdminUsers;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
@@ -13,6 +14,7 @@ import net.openid.conformance.util.field.ObjectArrayField;
  * Api git hash: ****
  *
  */
+@ApiName("Raidiam Directory GET Organisation Admin Users")
 public class GetOrganisationAdminUsersValidator extends AbstractJsonAssertingCondition {
 
 	private final CommonParts parts;

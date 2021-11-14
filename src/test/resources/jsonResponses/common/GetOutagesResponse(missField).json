@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "outageTime": "2020-07-21T08:30:00Z",
+            "isPartial": false,
+            "explanation": "Atualização do API Gateway"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}

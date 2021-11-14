@@ -75,7 +75,7 @@ public class GetOrganisationsExportSnapshotByOrganisationIdValidator extends Get
 		assertField(snapshot,
 			new ObjectArrayField
 				.Builder("OrganisationCertificates")
-				.setValidator(this::assertCertificates)
+				.setValidator(parts::assertCertificates)
 				.setOptional()
 				.build());
 

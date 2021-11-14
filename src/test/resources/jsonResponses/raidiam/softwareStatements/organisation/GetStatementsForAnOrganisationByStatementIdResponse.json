@@ -1,0 +1,22 @@
+{
+    "Status": "Active",
+    "ClientId": "string",
+    "ClientName": "string",
+    "Description": "string",
+    "Environment": "string",
+    "OrganisationId": "string",
+    "SoftwareStatementId": "string",
+    "Mode": "Live",
+    "RtsClientCreated": true,
+    "OnBehalfOf": "string",
+    "PolicyUri": "string",
+    "ClientUri": "string",
+    "LogoUri": "string",
+    "RedirectUri": [
+        "string"
+    ],
+    "TermsOfServiceUri": "string",
+    "Version": 0,
+    "Locked": true,
+    "AdditionalSoftwareMetadata": "string"
+}
