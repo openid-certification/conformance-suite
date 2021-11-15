@@ -101,6 +101,19 @@ public final class OIDFJSON {
 		return strings;
 	}
 
+	public static List<Integer> getIntArray(JsonElement json) {
+		if (!json.isJsonArray()) {
+			throw new UnexpectedJsonTypeException("getInt called on something that is not an array: " + json);
+		}
+		JsonArray array = json.getAsJsonArray();
+		Iterator<JsonElement> iterator = array.iterator();
+		List<Integer> ints = new ArrayList<>();
+		while(iterator.hasNext()) {
+			ints.add(getInt(iterator.next()));
+		}
+		return ints;
+	}
+
 	public static boolean getBoolean(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isBoolean()) {
 			throw new UnexpectedJsonTypeException("getBoolean called on something that is not a boolean: " + json);

@@ -26,6 +26,7 @@ public class CommonParts {
 	private static final Set<String> CONTRACT_TYPES = Sets.newHashSet("Business", "Technical",
 		"Billing", "Incident", "Security");
 	private static final Set<String> WEBHOOK_STATUS = Sets.newHashSet("Confirmed", "Pending", "Deactivated");
+	private static final Set<String> MODE = Sets.newHashSet("Live", "Test");
 
 	public CommonParts(AbstractJsonAssertingCondition validator) {
 		this.validator = validator;
@@ -201,6 +202,45 @@ public class CommonParts {
 				})
 				.setOptional()
 				.build());
+	}
+
+	public void assertAuthority(JsonObject body) {
+		validator.assertField(body,
+			new StringField
+				.Builder("AuthorityId")
+				.setMinLength(1)
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(body,
+			new StringField
+				.Builder("AuthorityName")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(body,
+			new StringField
+				.Builder("AuthorityCode")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(body,
+			new StringField
+				.Builder("AuthorityUri")
+				.setOptional()
+				.build());
+
+		validator.assertField(body,
+			new StringField
+				.Builder("AuthorityCountry")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(body, CommonFields.getStatus());
 	}
 
 	public void organisationDomainUsersContent(JsonObject content) {
@@ -951,6 +991,291 @@ public class CommonParts {
 							.setOptional()
 							.build());
 				})
+				.setOptional()
+				.build());
+	}
+
+	public void assertSoftwareDetails(JsonObject softwareDetails) {
+		validator.assertField(softwareDetails, CommonFields.getStatus());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("ClientId")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("ClientName")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("Description")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("Environment")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails, CommonFields.getOrganisationId());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("SoftwareStatementId")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("Mode")
+				.setMaxLength(8)
+				.setEnums(MODE)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new BooleanField
+				.Builder("RtsClientCreated")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("OnBehalfOf")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("PolicyUri")
+				.setMaxLength(255)
+				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("ClientUri")
+				.setMaxLength(255)
+				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("LogoUri")
+				.setMaxLength(255)
+				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringArrayField
+				.Builder("RedirectUri")
+				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("TermsOfServiceUri")
+				.setMaxLength(255)
+				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new IntField
+				.Builder("Version")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new BooleanField
+				.Builder("Locked")
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareDetails,
+			new StringField
+				.Builder("AdditionalSoftwareMetadata")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+	}
+
+	public void assertSoftwareAuthorityClaims(JsonObject authorityClaims) {
+		validator.assertField(authorityClaims,
+			new StringField
+				.Builder("SoftwareStatementId")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(authorityClaims,
+			new StringField
+				.Builder("SoftwareAuthorityClaimId")
+				.setMaxLength(40)
+				.setMinLength(1)
+				.setOptional()
+				.build());
+
+		validator.assertField(authorityClaims, CommonFields.getStatus());
+
+		validator.assertField(authorityClaims,
+			new StringField
+				.Builder("AuthorisationDomain")
+				.setMaxLength(30)
+				.setOptional()
+				.build());
+
+		validator.assertField(authorityClaims,
+			new StringField
+				.Builder("Role")
+				.setMaxLength(10)
+				.setOptional()
+				.build());
+	}
+
+	public void assertCertificates(JsonObject softwareCertificates) {
+		validator.assertField(softwareCertificates, CommonFields.getOrganisationId());
+
+		validator.assertField(softwareCertificates,
+			new StringArrayField
+				.Builder("SoftwareStatementIds")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("ClientName")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("Status")
+				.setMaxLength(40)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("ValidFromDateTime")
+				.setMaxLength(30)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("ExpiryDateTime")
+				.setMaxLength(30)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("e")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("keyType")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("kid")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("kty")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("n")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("use")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringArrayField
+				.Builder("x5c")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("x5t")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("x5thashS256")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("x5u")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("SignedCertPath")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("JwkPath")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		validator.assertField(softwareCertificates,
+			new StringField
+				.Builder("OrgJwkPath")
+				.setMaxLength(255)
 				.setOptional()
 				.build());
 	}

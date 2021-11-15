@@ -1,0 +1,9 @@
+[
+    {
+        "SoftwareStatementId": "string",
+        "SoftwareAuthorityClaimId": "string",
+        "Status": "Active",
+        "AuthorisationDomain": "string",
+        "Role": "string"
+    }
+]

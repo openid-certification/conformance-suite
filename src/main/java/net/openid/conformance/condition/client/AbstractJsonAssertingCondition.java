@@ -169,6 +169,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertHasStringArrayField(jsonObject, field.getPath());
 			OIDFJSON.getStringArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v, field));
 			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
+		} else if (field instanceof IntArrayField) {
+			assertHasIntArrayField(jsonObject, field.getPath());
 		} else if (field instanceof ArrayField) {
 			JsonElement found = elementByPath;
 			assertMinAndMaxItems(found.getAsJsonArray(), field);
@@ -245,6 +247,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			OIDFJSON.getStringArray(found);
 		} catch (UnexpectedJsonTypeException u) {
 			throw error("Field at " + path + " was not an array of strings", jsonObject);
+		}
+	}
+
+	protected void assertHasIntArrayField(JsonObject jsonObject, String path) {
+		JsonElement found = findByPath(jsonObject, path);
+		try {
+			OIDFJSON.getIntArray(found);
+		} catch (UnexpectedJsonTypeException u) {
+			throw error("Field at " + path + " was not an array of Integers", jsonObject);
 		}
 	}
 

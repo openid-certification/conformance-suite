@@ -15,13 +15,19 @@ import net.openid.conformance.util.field.ObjectArrayField;
 @ApiName("Raidiam Directory GET References - Authority")
 public class GetAuthorityValidator extends PostAuthorityValidator {
 
+	private final CommonParts parts;
+
+	public GetAuthorityValidator() {
+		parts = new CommonParts(this);
+	}
+
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("data")
-				.setValidator(this::assertAuthority)
+				.setValidator(parts::assertAuthority)
 				.setOptional()
 				.build());
 

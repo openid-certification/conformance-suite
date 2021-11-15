@@ -1,0 +1,26 @@
+{
+    "data": {
+        "status": [
+            {
+                "code": "OK",
+                "detectionTime": "2020-07-21T08:30:00Z",
+                "expectedResolutionTime": "2020-07-21T08:30:00Z",
+                "updateTime": "2020-01-02T01:00:00Z",
+                "unavailableEndpoints": [
+                    "https://api.banco.com.br/open-banking/channels/v1/electronic-channels"
+                ]
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "first": "https://api.banco.com.br/open-banking/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.banco.com.br/open-banking/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}

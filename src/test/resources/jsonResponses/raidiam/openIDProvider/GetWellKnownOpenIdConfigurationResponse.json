@@ -1,0 +1,77 @@
+{
+    "acr_values_supported": [
+        "string"
+    ],
+    "authorization_endpoint": "string",
+    "claims_parameter_supported": true,
+    "claims_supported": [
+        "string"
+    ],
+    "code_challenge_methods_supported": [
+        "string"
+    ],
+    "end_session_endpoint": "string",
+    "check_session_endpoint": "string",
+    "grant_types_supported": [
+        "string"
+    ],
+    "id_token_signing_alg_values_supported": [
+        "string"
+    ],
+    "issuer": "string",
+    "jwks_uri": "string",
+    "registration_endpoint": "string",
+    "request_object_signing_alg_values_supported": "string",
+    "request_parameter_supported": true,
+    "request_uri_parameter_supported": true,
+    "require_request_uri_registration": true,
+    "pushed_authorization_request_endpoint": [
+        "string"
+    ],
+    "response_modes_supported": [
+        "string"
+    ],
+    "response_types_supported": [
+        "string"
+    ],
+    "scopes_supported": [
+        "string"
+    ],
+    "subject_types_supported": [
+        "string"
+    ],
+    "token_endpoint_auth_methods_supported": [
+        "string"
+    ],
+    "token_endpoint_auth_signing_alg_values_supported": [
+        "string"
+    ],
+    "token_endpoint": "string",
+    "userinfo_endpoint": "string",
+    "userinfo_signing_alg_values_supported": [
+        "string"
+    ],
+    "authorization_signing_alg_values_supported": [
+        "string"
+    ],
+    "introspection_endpoint": "string",
+    "introspection_endpoint_auth_methods_supported": [
+        "string"
+    ],
+    "introspection_endpoint_auth_signing_alg_values_supported": [
+        "string"
+    ],
+    "revocation_endpoint": "string",
+    "revocation_endpoint_auth_methods_supported": [
+        "string"
+    ],
+    "revocation_endpoint_auth_signing_alg_values_supported": [
+        "string"
+    ],
+    "frontchannel_logout_supported": true,
+    "frontchannel_logout_session_supported": true,
+    "tls_client_certificate_bound_access_tokens": true,
+    "claim_types_supported": [
+        "string"
+    ]
+}

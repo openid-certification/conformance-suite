@@ -1,0 +1,42 @@
+{
+    "application_type": "web",
+    "grant_types": [
+        "string"
+    ],
+    "id_token_signed_response_alg": "string",
+    "require_auth_time": true,
+    "subject_type": "string",
+    "response_types": [
+        "string"
+    ],
+    "post_logout_redirect_uris": [
+        "string"
+    ],
+    "tls_client_certificate_bound_access_token": true,
+    "token_endpoint_auth_method": "string",
+    "introspection_endpoint_auth_method": "string",
+    "revocation_endpoint_auth_method": "string",
+    "client_id_issued_at": 0,
+    "client_id": "string",
+    "jwks_uri": "string",
+    "registration_client_uri": "string",
+    "registration_access_token": "string",
+    "redirect_uris": [
+        "string"
+    ],
+    "organisation_id": "string",
+    "organisation_name": "string",
+    "organisation_number": "string",
+    "software_roles": [
+        "string"
+    ],
+    "software_description": "string",
+    "request_object_signing_alg": "string",
+    "require_signed_request_object": true,
+    "require_pushed_authorization_requests": true,
+    "authorization_signed_response_alg": "string",
+    "backchannel_user_code_parameter": true,
+    "client_secret_expires_at": 0,
+    "client_secret": "string",
+    "scope": "string"
+}

@@ -1,0 +1,11 @@
+{
+    "active": true,
+    "client_id": "string",
+    "exp": "string",
+    "iat": "string",
+    "iss": "string",
+    "jti": "string",
+    "scope": "string",
+    "token_type": "string",
+    "sub": "string"
+}

@@ -3,6 +3,7 @@ package net.openid.conformance.raidiam.validators.users;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -17,6 +18,7 @@ import java.util.Set;
  * Api git hash: ****
  *
  */
+@ApiName("Raidiam Directory Post Users History")
 public class GetUsersHistoryResponseValidator extends AbstractJsonAssertingCondition {
 
 	private final CommonParts parts;
