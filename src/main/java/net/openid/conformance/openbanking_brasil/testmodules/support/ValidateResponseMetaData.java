@@ -207,7 +207,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 				}
 			}
 		} else {
-    		throw error("Your self link does not contain a consents URL: " + selfLink);
+    		throw error("Invalid 'self' link URI. URI: " + selfLink);
 		}
 	}
 }
