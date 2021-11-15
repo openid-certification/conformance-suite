@@ -12,6 +12,6 @@
         "expirationDateTime": "2021-09-21T08:30:00Z"
     },
     "links": {
-        "self": "https://api.mockbank.com.br/open-banking/api/v1/resource1"
+        "self": "https://api.mockbank.com.br/open-banking/consents/v1/consents/urn:mockbank:X1DF33123"
     }
 }
