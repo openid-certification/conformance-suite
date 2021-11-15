@@ -135,7 +135,7 @@ public class TestDispatcher implements DataUtils {
 			}
 
 			Object response;
-			logIncomingHttpRequest(test, restOfPath, requestParts);
+			logIncomingHttpRequest(test, path, requestParts);
 
 			if (TestModule.Status.CREATED.equals(test.getStatus())) {
 				if (path.endsWith("/client1_jwks")) {
