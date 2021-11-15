@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.ad
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.PrepareUrlForFetchingCreditAdvanceRoot;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.ProvideIncorrectPermissionsForAdvancesApi;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.ProvideIncorrectPermissionsForLoansApi;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddUnarrangedOverdraftScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -39,6 +40,7 @@ public class CreditOperationsAdvancesApiWrongPermissionsTestModule extends Abstr
 	@Override
 	protected void prepareCorrectConsents() {
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
+		callAndStopOnFailure(AddUnarrangedOverdraftScope.class);
 	}
 
 	@Override
