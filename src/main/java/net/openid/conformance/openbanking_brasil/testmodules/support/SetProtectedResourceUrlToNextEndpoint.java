@@ -28,6 +28,12 @@ public class SetProtectedResourceUrlToNextEndpoint extends AbstractCondition {
 
 		JsonObject links = body.getAsJsonObject("links");
 
+		log("Ensure that there is a link to next.");
+		if (!JsonHelper.ifExists(body, "$.links.next")) {
+			log("'Next' link not found in the response.");
+			throw error("'Next' link not found in the response.");
+		}
+		
 		env.putString("protected_resource_url", OIDFJSON.getString(links.get("next")));
 
 		return env;

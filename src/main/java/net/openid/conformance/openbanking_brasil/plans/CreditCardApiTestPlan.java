@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiWrongPermissionsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiMaxPageSizePagingTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,7 +24,8 @@ public class CreditCardApiTestPlan implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					CreditCardApiTestModule.class,
-					CreditCardApiWrongPermissionsTestModule.class
+					CreditCardApiWrongPermissionsTestModule.class,
+					CreditCardApiMaxPageSizePagingTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
