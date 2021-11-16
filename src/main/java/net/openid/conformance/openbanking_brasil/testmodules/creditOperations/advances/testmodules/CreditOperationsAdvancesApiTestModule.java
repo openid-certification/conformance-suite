@@ -13,6 +13,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.ad
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.PrepareUrlForFetchingCreditAdvanceContracts;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddUnarrangedOverdraftScope;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -37,6 +38,7 @@ public class CreditOperationsAdvancesApiTestModule extends AbstractOBBrasilFunct
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
+		callAndStopOnFailure(AddUnarrangedOverdraftScope.class);
 	}
 
 	@Override
