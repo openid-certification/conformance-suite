@@ -66,10 +66,11 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		eventLog.startBlock("Checking the self endpoint - Expecting 200, validating response");
 		call(new ValidateSelfEndpoint()
-			.insertAfter(EnsureResponseCodeWas200.class, sequenceOf(
-				condition(PaymentFetchPixPaymentsValidator.class)
+			.insertAfter(
+				EnsureResponseCodeWas200.class, sequenceOf(
+					condition(EnsureResponseWasJwt.class),
+					condition(PaymentFetchPixPaymentsValidator.class)
 			))
-			.insertAfter(EnsureResponseCodeWas200.class, condition(EnsureResponseWasJwt.class))
 			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
 				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
