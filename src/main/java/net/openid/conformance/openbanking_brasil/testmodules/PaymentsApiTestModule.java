@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -65,8 +66,10 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		eventLog.startBlock("Checking the self endpoint - Expecting 200, validating response");
 		call(new ValidateSelfEndpoint()
-			.insertAfter(EnsureResponseCodeWas200.class, sequenceOf(
-				condition(PaymentInitiationPixPaymentsValidator.class)
+			.insertAfter(
+				EnsureResponseCodeWas200.class, sequenceOf(
+					condition(EnsureResponseWasJwt.class),
+					condition(PaymentFetchPixPaymentsValidator.class)
 			))
 			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
