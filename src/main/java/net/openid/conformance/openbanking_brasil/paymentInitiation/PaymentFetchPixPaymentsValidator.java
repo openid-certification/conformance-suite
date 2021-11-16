@@ -8,8 +8,11 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.StringField;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -45,8 +48,25 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 		JsonObject body = environment.getObject("resource_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
-
+		assertMetaFields(body.getAsJsonObject("meta"));
 		return environment;
+	}
+
+	private void assertMetaFields(JsonObject meta) {
+		assertField(meta,
+			new DatetimeField
+				.Builder("requestDateTime")
+				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
+				.setMaxLength(20)
+				.build());
+		assertField(meta,
+			new IntField
+				.Builder("totalRecords")
+				.build());
+		assertField(meta,
+			new IntField
+				.Builder("totalPages")
+				.build());
 	}
 
 	private void assertInnerFields(JsonObject body) {
