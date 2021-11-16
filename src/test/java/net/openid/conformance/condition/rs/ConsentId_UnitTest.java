@@ -24,7 +24,6 @@ public class ConsentId_UnitTest {
 		String consentId = envOut.getString("consent_id");
 
 		assertTrue(consentId.startsWith("urn:conformance:oidf:"));
-		assertEquals(31, consentId.length());
 	}
 
 	@Test
