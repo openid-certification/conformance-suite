@@ -66,13 +66,18 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
         Boolean isConsentRequest = false;
         Boolean isPaymentConsent = false;
+        Boolean isPayment = false;
         if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
             isConsentRequest = true;
-
-            if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
-                isPaymentConsent = true;
-            }
         }
+
+		if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
+			isPaymentConsent = true;
+		}
+
+		if (JsonHelper.ifExists(apiResponse, "$.data.paymentId")) {
+			isPayment = true;
+		}
 
         String selfLink = "";
         String nextLink = "";
@@ -81,7 +86,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
         if (JsonHelper.ifExists(apiResponse, "$.links.self")) {
             selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
             log("Validating self link: " + selfLink);
-            if(isConsentRequest) {
+            if(isConsentRequest && !isPaymentConsent && !isPayment) {
 				validateSelfLink(selfLink, OIDFJSON.getString(apiResponse.getAsJsonObject("data").get("consentId")));
 			}
         } else {
@@ -197,6 +202,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
     private void validateSelfLink(String selfLink, String consentIdField){
     	final String consent_regex = "consents/v1/consents/";
+    	final String consent_payment_regex = "payments/v1/consents";
     	if(selfLink.contains(consent_regex)){
 			String consentID = selfLink.split(consent_regex)[1];
 			if(consentID.isBlank() || consentID.isEmpty()){
@@ -206,7 +212,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 					logSuccess("Consent ID in self link matches the consent ID in the returned object");
 				}
 			}
-		} else {
+		} else if(!selfLink.contains(consent_payment_regex)){
     		throw error("Invalid 'self' link URI. URI: " + selfLink);
 		}
 	}
