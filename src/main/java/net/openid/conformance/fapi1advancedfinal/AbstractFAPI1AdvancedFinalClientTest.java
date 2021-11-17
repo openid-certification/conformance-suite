@@ -266,6 +266,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
 			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
 		} else {
+			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
+			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		}
 
@@ -684,7 +686,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 	protected void authenticateParEndpointRequest(String requestId) {
