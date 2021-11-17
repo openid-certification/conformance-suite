@@ -690,7 +690,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
+			// required to bind the issued access token to.)
+			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
+			checkMtlsCertificate();
+		}
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
