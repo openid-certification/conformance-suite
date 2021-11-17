@@ -858,7 +858,22 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	protected void performParAuthorizationRequestFlow() {
 
+		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
+		// there's no need to pass mtls auth when using private_key_jwt (except in some of the banking
+		// profiles that explicitly require TLS client certs for all endpoints).
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			getVariant(FAPI1FinalOPProfile.class) != FAPI1FinalOPProfile.PLAIN_FAPI;
+		JsonObject mtls = null;
+		if (!mtlsRequired) {
+			mtls = env.getObject("mutual_tls_authentication");
+			env.removeObject("mutual_tls_authentication");
+		}
+
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
+
+		if (!mtlsRequired) {
+			env.putObject("mutual_tls_authentication", mtls);
+		}
 
 		processParResponse();
 	}

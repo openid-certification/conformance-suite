@@ -66,9 +66,21 @@ public class CallPAREndpoint extends AbstractCondition {
 				HttpMethod.POST : HttpMethod.valueOf(env.getString(HTTP_METHOD_KEY));
 
 			try {
-				final String parEndpointUri = env.getString("pushed_authorization_request_endpoint") != null ?
-					env.getString("pushed_authorization_request_endpoint") :
-					env.getString("server", "pushed_authorization_request_endpoint");
+				String parEndpointUri = null;
+				if (env.containsObject("mutual_tls_authentication")) {
+					// the MTLS aliased endpoint if we have MTLS authentication available.
+					// This is to cater for private_key_jwt (where we should not use the alias) and mtls client auth
+					// (where we should); it assumes the caller only supplies mutual_tls_authentication for the calls
+					// it is required for.
+					// I think here we could just call env.getString("server", "mtls_endpoint_aliases.pushed_authorization_request_endpoint");
+					// but https://gitlab.com/openid/conformance-suite/-/issues/914 is open to reconsider the overall
+					// mechanism.
+					parEndpointUri = env.getString("pushed_authorization_request_endpoint");
+				}
+
+				if (parEndpointUri == null) {
+					parEndpointUri = env.getString("server", "pushed_authorization_request_endpoint");
+				}
 				if (Strings.isNullOrEmpty(parEndpointUri)) {
 					throw error("Couldn't find pushed_authorization_request_endpoint in server discovery document. This endpoint is required as you have selected to test pushed authorization requests.");
 				}
