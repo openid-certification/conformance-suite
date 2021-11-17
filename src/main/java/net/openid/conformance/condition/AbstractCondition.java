@@ -32,7 +32,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-import springfox.documentation.spring.web.json.Json;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -67,7 +66,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -82,8 +80,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private TestInstanceEventLog log;
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
-	private boolean logged = false;
-	private boolean throwRequired = false;
+	private int logged = 0;
+	private int errorsLogged = 0;
 
 	@Override
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
@@ -130,11 +128,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 			// evaluate the condition and assign its results back to our environment
 			env = evaluate(env);
-			if (!logged) {
+			if (logged == 0) {
 				log.log(this.getMessage(),
 					args("msg", "Condition ran but did not log anything"));
 			}
-			if (throwRequired) {
+			if (errorsLogged > 0) {
 				throw error("Test logged a non-success result but did not throw an error");
 			}
 
@@ -251,37 +249,74 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	 * Logging utilities
 	 */
 
-	private void checkLoggedResults(String result) {
-		if (!result.equals(ConditionResult.SUCCESS.toString()) &&
+	/**
+	 * Do some common processing/checks on log messages
+	 *
+	 * @param result ConditionResult string (or null if none)
+	 * @return true if this message should not be logged
+	 */
+	private boolean reachedLoggingLimits(String result) {
+		final int errorLimit = 50;
+		final int logSoftLimit = 1000; // we stop logging here
+		final int logHardLimit = 10000; // we abort execution here
+		if (result != null &&
+			!result.equals(ConditionResult.SUCCESS.toString()) &&
 			!result.equals(ConditionResult.INFO.toString()) &&
 			!result.equals(ConditionResult.REVIEW.toString())) {
 			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
 			// not be updated
-			throwRequired = true;
+			errorsLogged++;
+			if (errorsLogged > errorLimit) {
+				// we don't call throw error() or logFailure etc to avoid ending up in an infinite loop
+				String msg = "This condition has logged over "+errorLimit+" errors and has been aborted.";
+				log.log(getMessage(), args("msg", msg, "result", conditionResultOnFailure));
+				throw new ConditionError(testId, getMessage() + ": " + msg);
+			}
 		}
+		logged++;
+		if (logged >= logSoftLimit) {
+			if (logged == logSoftLimit) {
+				log.log(getMessage(), "This condition has logged over "+logSoftLimit+" log entries. Further entries will be suppressed.");
+			}
+			if (logged >= logHardLimit) {
+				// we don't call throw error() or logFailure etc to avoid ending up in an infinite loop
+				String msg = "This condition attempted to log over "+logHardLimit+" log entries and has been aborted.";
+				log.log(getMessage(), args("msg", msg, "result", conditionResultOnFailure));
+				throw new ConditionError(testId, getMessage() + ": " + msg);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	protected void log(JsonObject obj) {
-		log.log(getMessage(), obj);
-		logged = true;
+		String result = null;
 		if (obj.has("result")) {
-			String result = OIDFJSON.getString(obj.get("result"));
-			checkLoggedResults(result);
+			result = OIDFJSON.getString(obj.get("result"));
 		}
+		if (reachedLoggingLimits(result)) {
+			return;
+		}
+		log.log(getMessage(), obj);
 	}
 
 	protected void log(String msg) {
+		if (reachedLoggingLimits(null)) {
+			return;
+		}
 		log.log(getMessage(), msg);
-		logged = true;
 	}
 
 	protected void log(Map<String, Object> map) {
-		log.log(getMessage(), map);
-		logged = true;
+		String result = null;
 		if (map.containsKey("result")) {
-			String result = map.get("result").toString();
-			checkLoggedResults(result);
+			result = map.get("result").toString();
 		}
+		if (reachedLoggingLimits(result)) {
+			return;
+		}
+
+		log.log(getMessage(), map);
 	}
 
 	protected void log(String msg, JsonObject in) {
