@@ -429,6 +429,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
+			}
+			if (clientAuthType == ClientAuthType.MTLS) {
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
