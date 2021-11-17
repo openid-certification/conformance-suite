@@ -38,12 +38,15 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		
 		preCallProtectedResource("Prepare to Fetch Account Transactions");
 		callAndStopOnFailure(AccountSelector.class);
-		callAndStopOnFailure(SetProtectedResourceUrlPageSize1000.class);
+		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
+		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Account Tansactions");
@@ -54,6 +57,9 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
+		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 
 	}
 
