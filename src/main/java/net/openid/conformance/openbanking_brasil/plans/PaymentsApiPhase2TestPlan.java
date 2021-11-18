@@ -23,6 +23,11 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 					PreFlightCertCheckModule.class,
 					PaymentsConsentsApiEnforceQRDNTestModule.class,
 					PaymentsConsentsApiEnforceQRESTestModule.class,
+					PaymentsConsentsApiEnforceQRESNWithEmailAddressTestModule.class,
+					PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule.class,
+					PaymentsConsentsApiEnforceQRESWrongAmountTestModule.class,
+					PaymentsConsentsApiEnforceQRESWrongProxyTestModule.class,
+					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class,
 					PaymentsApiUnregisteredCnpjTestModule.class
 				),
 				List.of(
