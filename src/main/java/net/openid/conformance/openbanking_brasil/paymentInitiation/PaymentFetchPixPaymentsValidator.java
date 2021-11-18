@@ -48,6 +48,7 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 		JsonObject body = environment.getObject("resource_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
+		assertHasField(body, "$.meta");
 		assertMetaFields(body.getAsJsonObject("meta"));
 		return environment;
 	}

@@ -68,6 +68,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			eventLog.startBlock("Validating self endpoint, ensuring response is 200 and response is correct");
 			call(new ValidateSelfEndpoint()
 				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class))
+				.insertBefore(EnsureResponseCodeWas200.class, condition(EnsureResponseWasJwt.class))
 				.insertAfter(EnsureResponseCodeWas200.class, condition(PaymentInitiationConsentValidator.class))
 			);
 		});

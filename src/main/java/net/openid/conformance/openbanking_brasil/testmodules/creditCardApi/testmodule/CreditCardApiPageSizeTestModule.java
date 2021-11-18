@@ -1,17 +1,16 @@
-package net.openid.conformance.openbanking_brasil.testmodules;
+package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.account.*;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "account-api-page-size-test",
-	displayName = "Validate structure of all accounts API resources",
-	summary = "Validates the structure of all account API resources",
+	testName = "credit-card-api-page-size-test",
+	displayName = "Validate that we can request credit card accounts with a page-size specified",
+	summary = "Validate that we can request credit card accounts with a page-size specified",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -25,12 +24,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class AccountsApiPageSizeTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class CreditCardApiPageSizeTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddAccountScope.class);
-		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(AddCreditCardScopes.class);
 	}
 
 	@Override
@@ -42,9 +41,8 @@ public class AccountsApiPageSizeTestModule extends AbstractOBBrasilFunctionalTes
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
-		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureResponseHasLinks.class);
+		callAndStopOnFailure(ValidateResponseMetaData.class);
 
 	}
 
