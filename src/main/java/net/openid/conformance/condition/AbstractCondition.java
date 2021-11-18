@@ -82,6 +82,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private ConditionResult conditionResultOnFailure;
 	private int logged = 0;
 	private int errorsLogged = 0;
+	private boolean loggedSoftLimitMsg = false;
 
 	@Override
 	public void setProperties(String testId, TestInstanceEventLog log, ConditionResult conditionResultOnFailure, String... requirements) {
@@ -133,6 +134,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 					args("msg", "Condition ran but did not log anything"));
 			}
 			if (errorsLogged > 0) {
+				// the condition has logged a warning/failure so must throw an error, otherwise the test result will
+				// not be updated
 				throw error("Test logged a non-success result but did not throw an error");
 			}
 
@@ -259,12 +262,13 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		final int errorLimit = 50;
 		final int logSoftLimit = 1000; // we stop logging here
 		final int logHardLimit = 10000; // we abort execution here
+
+		logged++;
+
 		if (result != null &&
 			!result.equals(ConditionResult.SUCCESS.toString()) &&
 			!result.equals(ConditionResult.INFO.toString()) &&
 			!result.equals(ConditionResult.REVIEW.toString())) {
-			// the condition has logged a warning/failure so must throw an error, otherwise the test result will
-			// not be updated
 			errorsLogged++;
 			if (errorsLogged > errorLimit) {
 				// we don't call throw error() or logFailure etc to avoid ending up in an infinite loop
@@ -272,11 +276,13 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				log.log(getMessage(), args("msg", msg, "result", conditionResultOnFailure));
 				throw new ConditionError(testId, getMessage() + ": " + msg);
 			}
+			// we log upto 50 errors/warnings, even if it would mean exceeding the logSoft/HardLimit
+			return false;
 		}
-		logged++;
 		if (logged >= logSoftLimit) {
-			if (logged == logSoftLimit) {
+			if (!loggedSoftLimitMsg) {
 				log.log(getMessage(), "This condition has logged over "+logSoftLimit+" log entries. Further entries will be suppressed.");
+				loggedSoftLimitMsg = true;
 			}
 			if (logged >= logHardLimit) {
 				// we don't call throw error() or logFailure etc to avoid ending up in an infinite loop
