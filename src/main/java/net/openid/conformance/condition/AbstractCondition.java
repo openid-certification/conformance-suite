@@ -261,7 +261,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private boolean reachedLoggingLimits(String result) {
 		final int errorLimit = 50;
 		final int logSoftLimit = 1000; // we stop logging here
-		final int logHardLimit = 10000; // we abort execution here
+		final int logHardLimit = 150000; // we abort execution here
 
 		logged++;
 
