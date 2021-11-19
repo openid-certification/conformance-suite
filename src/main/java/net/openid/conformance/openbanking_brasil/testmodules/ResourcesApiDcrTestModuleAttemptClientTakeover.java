@@ -13,14 +13,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
 		"resource.resourceUrl"
 	}
 )
