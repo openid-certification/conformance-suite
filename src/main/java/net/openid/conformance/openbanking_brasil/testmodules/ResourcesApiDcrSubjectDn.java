@@ -3,6 +3,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -16,6 +18,13 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" }) // only applicable for mtls client auth
+// hide various config values from the FAPI base module we don't need
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"resource.brazilOrganizationId",
+	"resource.brazilPaymentConsent",
+	"resource.brazilPixPayment",
+})
 public class ResourcesApiDcrSubjectDn extends AbstractApiDcrSubjectDn {
 
 	@Override
