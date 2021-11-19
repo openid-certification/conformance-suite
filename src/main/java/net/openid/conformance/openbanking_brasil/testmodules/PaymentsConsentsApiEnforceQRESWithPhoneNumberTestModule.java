@@ -10,8 +10,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.Se
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-api-qrdn-good-phone-number-proxy-test",
-	displayName = "Payments Consents API test module for qrdn local instrument with phone number",
+	testName = "payments-api-qres-good-phone-number-proxy-test",
+	displayName = "Payments Consents API test module for QRES local instrument with phone number",
 	summary = "Payments Consents API test module using a qr code with a phone number in it",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
