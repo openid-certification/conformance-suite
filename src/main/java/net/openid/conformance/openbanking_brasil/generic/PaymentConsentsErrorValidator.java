@@ -3,14 +3,12 @@ package net.openid.conformance.openbanking_brasil.generic;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.StringField;
-import springfox.documentation.spring.web.json.Json;
 
 import java.util.Base64;
 
@@ -45,9 +43,18 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 	}
 
 	private JsonObject getBodyFromJson(Environment environment) {
-		String body = OIDFJSON.getString(environment.getObject("consent_endpoint_response_full").get("body"));
-		JsonParser parser = new JsonParser();
-		return parser.parse(body).getAsJsonObject();
+		String body = "";
+		try {
+			body = OIDFJSON.getString(environment.getObject("consent_endpoint_response_full").get("body"));
+		} catch(OIDFJSON.UnexpectedJsonTypeException exception){
+			try {
+				return environment.getObject("consent_endpoint_response_full").getAsJsonObject("body");
+			} catch(Exception e){
+				logFailure("Failed to parse response body, got exception: " + e.getMessage());
+			}
+		}
+		Gson gson = JsonUtils.createBigDecimalAwareGson();
+		return gson.fromJson(body, JsonObject.class);
 	}
 
 	private void assertOuterFields(JsonObject body) {
