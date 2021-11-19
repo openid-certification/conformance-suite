@@ -5,7 +5,12 @@ import net.openid.conformance.condition.client.AddRedirectUriQuerySuffix;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client2.org_jwks"
+})
 public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
