@@ -93,8 +93,9 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				call(exec().unmapKey("endpoint_response_jwt"));
 
 				callAndContinueOnFailure(CheckPollStatus.class);
-				callAndStopOnFailure(PaymentsProxyCheckForRejectedStatus.class);
-				callAndStopOnFailure(PaymentsProxyCheckForInvalidStatus.class);
+				call(statusValidationSequence());
+//				callAndStopOnFailure(PaymentsProxyCheckForRejectedStatus.class);
+//				callAndStopOnFailure(PaymentsProxyCheckForInvalidStatus.class);
 
 				if (env.getBoolean("payment_proxy_check_for_reject")) {
 					if (env.getBoolean("consent_rejected")) {
@@ -111,6 +112,12 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				}
 			}
 		}
+	}
+
+	protected ConditionSequence statusValidationSequence() {
+		return sequenceOf(
+			condition(PaymentsProxyCheckForRejectedStatus.class),
+			condition(PaymentsProxyCheckForInvalidStatus.class));
 	}
 
 }
