@@ -5,6 +5,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 	import net.openid.conformance.condition.Condition;
 	import net.openid.conformance.condition.client.*;
 	import net.openid.conformance.openbanking_brasil.OBBProfile;
+	import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
+	import net.openid.conformance.openbanking_brasil.generic.PaymentConsentsErrorValidator;
 	import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 	import net.openid.conformance.sequence.ConditionSequence;
 	import net.openid.conformance.testmodule.PublishTestModule;
@@ -76,6 +78,7 @@ public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClien
 		callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureConsentHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndStopOnFailure(PaymentConsentsErrorValidator.class);
 		call(exec().mapKey("server", "org_server"));
 		call(exec().mapKey("server_jwks", "org_server_jwks"));
 		callAndStopOnFailure(FetchServerKeys.class);
