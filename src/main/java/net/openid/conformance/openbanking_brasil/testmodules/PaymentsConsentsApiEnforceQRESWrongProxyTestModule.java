@@ -8,9 +8,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-api-qrdn-mismatched-proxy-test",
-	displayName = "Payments Consents API test module for QRDN local instrument with mismatched proxy",
-	summary = "Payments Consents API test module using a qr code with an email address in it which is different from the proxy",
+	testName = "payments-api-qres-mismatched-proxy-test",
+	displayName = "Payments Consents API test module for QRES local instrument with mismatched proxy",
+	summary = "Payments Consents API test module using a qres code with an email address in it which is different from the proxy",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

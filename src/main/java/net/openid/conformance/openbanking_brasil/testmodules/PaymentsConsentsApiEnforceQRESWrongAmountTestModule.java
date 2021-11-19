@@ -8,7 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-api-qrdn-wrong-amount-proxy-test",
+	testName = "payments-api-qres-wrong-amount-proxy-test",
 	displayName = "Payments Consents API test module for QRES local instrument with divergent amount",
 	summary = "Payments Consents API test module using a qr code with an amount in it which differs to the consent and payment initiation",
 	profile = OBBProfile.OBB_PROFILE,
