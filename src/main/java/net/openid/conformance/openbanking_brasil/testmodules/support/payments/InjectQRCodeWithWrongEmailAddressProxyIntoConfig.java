@@ -10,7 +10,7 @@ public class InjectQRCodeWithWrongEmailAddressProxyIntoConfig extends AbstractCo
 	public Environment evaluate(Environment env) {
 		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
 
-		obj.addProperty("qrCode", QrCodeKeys.QRES_WRONG_EMAIL);
+		obj.addProperty("qrCode", QrCodeKeys.QRES_PHONE_NUMBER);
 
 		logSuccess("Added qr code to payment consent");
 
