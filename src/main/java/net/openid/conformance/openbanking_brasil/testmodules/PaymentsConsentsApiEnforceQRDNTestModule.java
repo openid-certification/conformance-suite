@@ -8,8 +8,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-qrdn-test",
-	displayName = "Payments Consents API test module for qrdn local instrument",
+	testName = "payments-consents-api-qrdn-code-enforcement-test",
+	displayName = "Payments Consents API test module to enforce qrdn local instrument",
 	summary = "Payments Consents API test module ensuring a qr code is mandatory when the local instrument is QRDN",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
