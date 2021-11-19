@@ -1,6 +1,5 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
@@ -17,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ResourcesApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
 	@Override
 	protected void configureClient() {
@@ -26,5 +25,5 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFin
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
 	}
-	
+
 }

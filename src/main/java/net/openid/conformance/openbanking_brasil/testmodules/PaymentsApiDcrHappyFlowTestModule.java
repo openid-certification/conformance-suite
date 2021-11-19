@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -16,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class PaymentsApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
 	@Override
 	protected void configureClient() {

@@ -18,9 +18,8 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 
-public abstract class AbstractDcrTestModuleAttemptClientTakeover extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public abstract class AbstractDcrTestModuleAttemptClientTakeover extends AbstractApiDcrTestModule {
     protected abstract void switchToAlternateClient();
 
 	@Override

@@ -30,7 +30,6 @@ import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
@@ -43,7 +42,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirector
 
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
 
-public abstract class AbstractApiDcrSubjectDn extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
     boolean useBrazilShortNames = true;
     boolean registrationFailed = false;
 
