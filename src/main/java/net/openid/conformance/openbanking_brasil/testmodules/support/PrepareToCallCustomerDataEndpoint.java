@@ -12,7 +12,8 @@ public class PrepareToCallCustomerDataEndpoint extends AbstractCondition {
 		if (Strings.isNullOrEmpty(url)) {
 			throw error("Path resource.customerUrl not available in the config");
 		}
-		String protectedUrl = String.format("%s/%s", url, "personal/financial-relations");
+
+		String protectedUrl = String.format("%s/%s", url, "financial-relations");
 		env.putString("protected_resource_url", protectedUrl);
 		return env;
 	}
