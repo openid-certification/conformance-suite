@@ -24,6 +24,11 @@ public class UrlLimitedOAuth2AuthenticationProcessingFilter extends OAuth2Authen
 
 		final HttpServletRequest request = (HttpServletRequest) req;
 
+		if (!request.getScheme().equals("https")) {
+			// It's important that the reverse proxy settings are correct - if we receive a request that appears to be http here, then, e.g., we will send the user to the http version of the login page when they logout.
+			throw new RuntimeException("A non-https request has been received by the conformance suite. The external interface should always use https; if https is in use then there may be a problem with the reverse-proxy apache in front of the suite not setting the X-Forwarded-Proto (etc) http headers correctly.");
+		}
+
 		if (matcher.matches(request)) {
 			super.doFilter(req, res, chain);
 		} else {

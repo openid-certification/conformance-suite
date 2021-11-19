@@ -4,7 +4,6 @@ ENV BASE_URL https://localhost:8443
 ENV MONGODB_HOST mongodb
 ENV JAVA_EXTRA_ARGS=
 EXPOSE 8080
-EXPOSE 9090
 ENTRYPOINT java \
   -D"fintechlabs.base_url=${BASE_URL}" \
   -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
