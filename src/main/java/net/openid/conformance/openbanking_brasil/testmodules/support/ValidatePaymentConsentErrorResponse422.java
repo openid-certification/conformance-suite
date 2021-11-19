@@ -41,10 +41,11 @@ public class ValidatePaymentConsentErrorResponse422 extends AbstractJsonAssertin
 
 		log("Decoded Jwt: ", decodedJwt);
 		assertOuterFields(claims);
-		assertHasField(claims, "meta");
 		assertErrorFields(claims);
-		assertMetaFields(claims);
-		assertRequestDateTime(claims);
+		if(JsonHelper.ifExists(claims, "meta")){
+			assertMetaFields(claims);
+			assertRequestDateTime(claims);
+		}
 
 		return env;
 	}
