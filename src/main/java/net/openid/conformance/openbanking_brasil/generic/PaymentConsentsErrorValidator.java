@@ -4,13 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.StringField;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Locale;
 
 public class PaymentConsentsErrorValidator extends AbstractJsonAssertingCondition {
 
@@ -30,6 +35,11 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 		assertHasField(body, "$.errors");
 		assertOuterFields(body);
 		assertInnerFields(body);
+
+		if(JsonHelper.ifExists(body, "meta")){
+			assertMetaFields(body);
+			assertRequestDateTime(body);
+		}
 
 		return environment;
 	}
@@ -95,6 +105,38 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 					.setMaxLength(2048)
 					.build());
 		});
+	}
+	private void assertMetaFields(JsonObject body){
+		JsonObject meta = body.getAsJsonObject("meta");
+		assertField(meta, new StringField
+			.Builder("requestDateTime")
+			.build()
+		);
+		assertField(meta, new IntField
+			.Builder("totalRecords")
+			.setMinItems(0)
+			.build()
+		);
+		assertField(meta, new IntField
+			.Builder("totalPages")
+			.setMinItems(1)
+			.build()
+		);
+	}
 
+	private void assertRequestDateTime(JsonObject claims){
+		String requestDateTime = OIDFJSON.getString(claims.getAsJsonObject("meta").get("requestDateTime"));
+
+		// Check that we have a Timezone element to this datetime object and that it is not longer than 20 chars
+		if (requestDateTime.length() > 20) {
+			throw error("requestDateTime is more than 20 characters in length.");
+		}
+
+		// Parse the dateTime as RFC3339 and check that we have the 'Z'
+		try {
+			new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).parse(requestDateTime);
+		} catch (ParseException e) {
+			throw error("requestDateTime is not in valid RFC 3339 format.");
+		}
 	}
 }
