@@ -8,8 +8,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-qres-test",
-	displayName = "Payments Consents API test module for qres local instrument",
+	testName = "payments-consents-api-qres-code-enforcement-test",
+	displayName = "Payments Consents API test module to enforce qres local instrument",
 	summary = "Payments Consents API test module ensuring a qr code is mandatory when the local instrument is QRES",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {

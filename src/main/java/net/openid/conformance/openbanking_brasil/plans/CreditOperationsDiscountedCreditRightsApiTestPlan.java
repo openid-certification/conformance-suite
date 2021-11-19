@@ -12,7 +12,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Credit operations discounted credit rights api test",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	displayName = PlanNames.CREDIT_OPERATIONS_DISCOUNTED_CREDIT_RIGHTS_API_PLAN_NAME,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Discounted Credit Rights API"
 )

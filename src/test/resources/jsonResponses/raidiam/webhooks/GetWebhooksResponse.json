@@ -1,0 +1,6 @@
+[
+    {
+        "AuthorisationServerId": "string",
+        "WebhookStatus": "Pending"
+    }
+]

@@ -1,5 +1,6 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -58,7 +59,12 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 
 		}
 
-		JsonObject jsonObject = new JsonParser().parse(rawJson).getAsJsonObject();
+		JsonObject jsonObject = null;
+		if (new JsonParser().parse(rawJson).isJsonArray()) {
+			jsonObject = convertArrayToJsonObject(rawJson);
+		} else {
+			jsonObject = new JsonParser().parse(rawJson).getAsJsonObject();
+		}
 		if(jsonObject == null) {
 			return new FailingStatement("Unable to load JSON document %s in test %s", resource, method.getName());
 		}
@@ -80,6 +86,16 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 		}
 		Statement statement =  super.methodInvoker(method, test);
 		return withBefores(method, test, statement);
+	}
+
+	private JsonObject convertArrayToJsonObject(String rawJson) {
+		JsonObject result = new JsonObject();
+		result.add("data", new JsonParser().parse(rawJson));
+//		JsonArray inputData = .getAsJsonArray();
+//		for (int i = 0; i < inputData.size(); i++) {
+//			result.add(String.valueOf(i), inputData.get(i));
+//		}
+		return result;
 	}
 
 	private static class FailingStatement extends Statement {

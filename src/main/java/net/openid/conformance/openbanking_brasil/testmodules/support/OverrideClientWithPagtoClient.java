@@ -80,6 +80,7 @@ public class OverrideClientWithPagtoClient extends AbstractOverrideClient {
 
 	@Override
 	String clientJwks() {
+		// there's no separate key for this client, it uses the org jwks for auth
 		return orgJwks;
 	}
 

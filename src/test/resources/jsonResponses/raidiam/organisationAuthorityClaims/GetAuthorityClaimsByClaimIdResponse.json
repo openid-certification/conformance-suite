@@ -1,0 +1,18 @@
+{
+    "OrganisationId": "string",
+    "OrganisationAuthorityClaimId": "string",
+    "AuthorityId": "string",
+    "Status": "Active",
+    "AuthorisationDomain": "string",
+    "Role": "string",
+    "Authorisations": [
+        {
+            "Status": "Active",
+            "MemberState": "st"
+        }
+    ],
+    "RegistrationId": "string",
+    "UniqueTechnicalIdenifier": [
+        "string"
+    ]
+}

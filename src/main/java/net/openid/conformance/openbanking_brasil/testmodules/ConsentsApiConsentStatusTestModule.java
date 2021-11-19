@@ -56,6 +56,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
 				callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+				callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 			});
 		}

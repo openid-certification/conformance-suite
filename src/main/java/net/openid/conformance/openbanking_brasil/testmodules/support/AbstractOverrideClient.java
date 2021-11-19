@@ -66,13 +66,16 @@ public abstract class AbstractOverrideClient extends AbstractCondition {
 
 	abstract String clientJwks();
 
+	String orgJwks() {
+		return orgJwks;
+	}
+
 	@Override
 	public Environment evaluate(Environment env) {
 
 		JsonObject client = (JsonObject) env.getElementFromObject("config", "client");
-		client.addProperty("scope", "openid payments");
 		client.add("jwks", new JsonParser().parse(clientJwks()).getAsJsonObject());
-		client.add("org_jwks", new JsonParser().parse(orgJwks).getAsJsonObject());
+		client.add("org_jwks", new JsonParser().parse(orgJwks()).getAsJsonObject());
 
 		JsonObject directory = (JsonObject) env.getElementFromObject("config", "directory");
 		directory.addProperty("client_id", directoryClientId());

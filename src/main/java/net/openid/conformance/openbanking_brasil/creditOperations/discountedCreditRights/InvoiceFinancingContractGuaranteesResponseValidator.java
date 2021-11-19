@@ -72,7 +72,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidator extends Abstrac
 		assertField(element,
 			new DoubleField
 				.Builder("warrantyAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setOptional()
 				.build());
 	}

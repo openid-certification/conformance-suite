@@ -6,6 +6,8 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectRealCreditorAccountPhoneToPaymentConsent;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectRealCreditorAccountToPaymentPhone;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -48,13 +50,13 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 		eventLog.startBlock("Setting payment consent payload to use real phone number + DICT");
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountPhoneToPaymentConsent.class);
 		callAndContinueOnFailure(SetProxyToRealPhoneNumber.class);
 
 		// Setting payment to DICT / proxy to real phone number
 		eventLog.startBlock("Setting payment payload to use real phone number + DICT");
 		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
-		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentPhone.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);

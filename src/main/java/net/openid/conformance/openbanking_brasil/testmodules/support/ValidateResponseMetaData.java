@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
-    
+
     @Override
 	public Environment evaluate(Environment env) {
 
@@ -36,8 +36,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
         JsonElement dataElement = findByPath(apiResponse, "$.data");
         int metaTotalRecords = 1;
-        int metaTotalPages = 1; 
-        
+        int metaTotalPages = 1;
+
 
         if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
             metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
@@ -59,61 +59,70 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             try {
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).parse(metaRequestDateTime);
             } catch (ParseException e) {
-                throw error("requestDateTime is not in valid RFC 3339 format.");    
+                throw error("requestDateTime is not in valid RFC 3339 format.");
             }
 
         }
 
         Boolean isConsentRequest = false;
         Boolean isPaymentConsent = false;
+        Boolean isPayment = false;
         if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
             isConsentRequest = true;
-            
-            if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
-                isPaymentConsent = true;
-            }
         }
-        
+
+		if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
+			isPaymentConsent = true;
+		}
+
+		if (JsonHelper.ifExists(apiResponse, "$.data.paymentId")) {
+			isPayment = true;
+		}
+
         String selfLink = "";
         String nextLink = "";
         String prevLink = "";
 
         if (JsonHelper.ifExists(apiResponse, "$.links.self")) {
             selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
+            log("Validating self link: " + selfLink);
+            if(isConsentRequest && !isPaymentConsent && !isPayment) {
+				validateSelfLink(selfLink, OIDFJSON.getString(apiResponse.getAsJsonObject("data").get("consentId")));
+			}
         } else {
             //  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
             if (isConsentRequest == false) {
                 throw error("There should be a 'self' link.");
             } else {
                 if (isPaymentConsent) {
-                    throw error("Payment consent requires a 'self' link.");   
+                    throw error("Payment consent requires a 'self' link.");
                 }
             }
         }
 
         if (JsonHelper.ifExists(apiResponse, "$.links.next")) {
             nextLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.next"));
-        } 
+        }
 
         if (JsonHelper.ifExists(apiResponse, "$.links.prev")) {
             prevLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.prev"));
         }
 
-        // Check if the record count in meta tallies with the actual data. 
+        // Check if the record count in meta tallies with the actual data.
         // i.e. if record count > 1, then we should find an array in the data element.
 
         int arrayCount = 1; // We'll assume there is at least one data element.
 		if (dataElement.isJsonArray()) {
             arrayCount = dataElement.getAsJsonArray().size();
-        } 
-                
+        }
+
         if (arrayCount > metaTotalRecords) {
             throw error("Data contains more items than the metadata totalRecords.");
         }
 
         // check if there is 1 page - if so, there should not be a next and prev link.
         if (metaTotalPages == 1) {
-            
+
             // Make sure we don't have a next or prev link
             if (!Strings.isNullOrEmpty(nextLink) || !Strings.isNullOrEmpty(prevLink) ) {
 
@@ -133,7 +142,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             MultiValueMap<String, String> selfLinkQueryStringParams = convertQueryStringParamsToMap(selfLinkParamList);
 
             // if Self is page=1, then we should not see a prev link
-            int selfLinkPageNum = 1;            
+            int selfLinkPageNum = 1;
             try {
                 selfLinkPageNum  = Integer.parseInt(selfLinkQueryStringParams.getFirst("page"));
             } catch (NumberFormatException e) {}
@@ -178,9 +187,9 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
                 }
             }
         }
-        
+
         return env;
-	}    
+	}
 
     protected MultiValueMap<String, String> convertQueryStringParamsToMap(List<NameValuePair> parameters) {
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -190,4 +199,21 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		}
 		return queryParams;
     }
+
+    private void validateSelfLink(String selfLink, String consentIdField){
+    	final String consent_regex = "consents/v1/consents/";
+    	final String consent_payment_regex = "payments/v1/consents";
+    	if(selfLink.contains(consent_regex)){
+			String consentID = selfLink.split(consent_regex)[1];
+			if(consentID.isBlank() || consentID.isEmpty()){
+				throw error("Consent ID needs to be attached to the self link post creation");
+			} else {
+				if(consentID.equalsIgnoreCase(consentIdField)){
+					logSuccess("Consent ID in self link matches the consent ID in the returned object");
+				}
+			}
+		} else if(!selfLink.contains(consent_payment_regex)){
+    		throw error("Invalid 'self' link URI. URI: " + selfLink);
+		}
+	}
 }

@@ -10,7 +10,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Channels api test",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFIlE_PHASE1,
 	displayName = PlanNames.CHANNELS_API_TEST_PLAN,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Channels API"
 )

@@ -1,0 +1,17 @@
+{
+    "ContactId": "string",
+    "OrganisationId": "string",
+    "ContactType": "Business",
+    "FirstName": "string",
+    "LastName": "string",
+    "Department": "string",
+    "EmailAddress": "string",
+    "PhoneNumber": "string",
+    "AddressLine1": "string",
+    "AddressLine2": "string",
+    "City": "string",
+    "Postcode": "string",
+    "Country": "string",
+    "AdditionalInformation": "string",
+    "PgpPublicKey": "string"
+}

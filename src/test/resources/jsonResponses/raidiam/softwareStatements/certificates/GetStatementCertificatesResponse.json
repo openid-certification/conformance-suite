@@ -1,0 +1,27 @@
+[
+    {
+        "OrganisationId": "string",
+        "SoftwareStatementIds": [
+            "string"
+        ],
+        "ClientName": "string",
+        "Status": "string",
+        "ValidFromDateTime": "string",
+        "ExpiryDateTime": "string",
+        "e": "string",
+        "keyType": "string",
+        "kid": "string",
+        "kty": "string",
+        "n": "string",
+        "use": "string",
+        "x5c": [
+            "string"
+        ],
+        "x5t": "string",
+        "x5thashS256": "string",
+        "x5u": "string",
+        "SignedCertPath": "string",
+        "JwkPath": "string",
+        "OrgJwkPath": "string"
+    }
+]

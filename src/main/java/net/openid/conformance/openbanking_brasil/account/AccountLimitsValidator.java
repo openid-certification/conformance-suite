@@ -30,7 +30,7 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new DoubleField
 				.Builder("overdraftContractedLimit")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setNullable()
@@ -47,7 +47,7 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new DoubleField
 				.Builder("overdraftUsedLimit")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setNullable()
@@ -64,7 +64,7 @@ public class AccountLimitsValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new DoubleField
 				.Builder("unarrangedOverdraftAmount")
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setPattern("^-?\\d{1,15}(\\.\\d{1,4})?$")
 				.setMaxLength(20)
 				.setMinLength(0)
 				.setNullable()

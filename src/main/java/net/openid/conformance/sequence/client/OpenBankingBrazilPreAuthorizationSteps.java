@@ -39,9 +39,10 @@ import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateOrganizationJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
 import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseHasLinksForConsents;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSequence {
 
@@ -173,8 +174,11 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			if (stopAfterConsentEndpointCall) {
 				return;
 			}
+			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
 
-			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.INFO);
 
 			callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);

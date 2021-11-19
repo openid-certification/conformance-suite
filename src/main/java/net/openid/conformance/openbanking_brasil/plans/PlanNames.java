@@ -12,9 +12,10 @@ public class PlanNames {
 	public static final String LOANS_API_PLAN_NAME = "Functional tests for loans API - based on Swagger version: 1.0.4";
     public static final String FINANCINGS_API_NAME = "Functional tests for financings API - based on Swagger version: 1.0.4";
 	public static final String CREDIT_OPERATIONS_DISCOUNTED_CREDIT_RIGHTS_API_PLAN_NAME = "Functional tests for discounted credit rights API - based on Swagger version: 1.0.4";
-	public static final String PAYMENTS_API_PHASE_1_TEST_PLAN = "Functional tests for payments API INIC, DICT and MANU (T0/T1) - Based on Swagger version: 1.0.1 (WIP)";
+	public static final String PAYMENTS_API_PHASE_1_TEST_PLAN = "Functional tests for payments API INIC, DICT and MANU (T0/T1) - Based on Swagger version: 1.0.1";
 	public static final String PAYMENTS_API_PHASE_2_TEST_PLAN = "Functional tests for payments API QR Code (T2) - Based on Swagger version: 1.0.1 (WIP)";
 	public static final String PRODUCTS_N_SERVICES_API_TEST_PLAN  = "Functional tests for " +
 		"ProductsNServices API - based on Swagger version: 1.0.0";
 	public static final String CHANNELS_API_TEST_PLAN  = "Functional tests for Channels API - based on Swagger version: 1.0.3 (WIP)";
+	public static final String ADMIN_API_TEST_PLAN  = "Functional tests for Admin API - based on Swagger version: 1.0.1 (WIP)";
 }

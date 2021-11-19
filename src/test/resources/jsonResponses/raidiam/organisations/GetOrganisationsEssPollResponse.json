@@ -1,0 +1,7 @@
+[
+    {
+        "OrganisationId": "string",
+        "EssEnvelopeId": "string",
+        "ExternalSigningServiceEnvelopeStatus": "completed"
+    }
+]

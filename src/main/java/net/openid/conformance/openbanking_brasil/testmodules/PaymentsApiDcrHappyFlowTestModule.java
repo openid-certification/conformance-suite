@@ -3,11 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -25,7 +21,9 @@ public class PaymentsApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFina
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
+		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
+		callAndStopOnFailure(OverrideCNPJ.class);
 		super.configureClient();
 	}
 

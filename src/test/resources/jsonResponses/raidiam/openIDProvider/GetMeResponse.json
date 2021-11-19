@@ -1,0 +1,11 @@
+{
+    "sub": "string",
+    "family_name": "string",
+    "given_name": "string",
+    "name": "string",
+    "email": "string",
+    "email_verified": true,
+    "address": "string",
+    "phone_number": "string",
+    "phone_number_verified": true
+}

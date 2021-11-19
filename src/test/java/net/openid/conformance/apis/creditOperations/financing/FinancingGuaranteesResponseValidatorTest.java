@@ -27,11 +27,10 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(WrongRegexp).json")
+	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(NoTrailingZero).json")
 	public void validateStructureWithWrongRegexp() {
 		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("warrantyAmount")));
+		run(condition);
 	}
 
 	@Test
@@ -40,5 +39,13 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantyType")));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/financing/guarantees/financingGuaranteesResponse(BadDouble).json")
+	public void validateStructureWithBadDouble() {
+		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString("Field at warrantyAmount was not a double"));
 	}
 }

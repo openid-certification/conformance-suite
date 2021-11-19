@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -250,9 +251,14 @@ public class TestRunner implements DataUtils {
 
 			boolean recreate = false;
 			if (testPlan.getPlanName().equals("Payments api phase 1 test")) {
-				if (planVersion.isLowerThan("4.1.38")) {
+				if (planVersion.isLowerThan("4.1.39")) {
 					recreate = true;
-					return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+
+			if (testPlan.getPlanName().equals("Resources api test")) {
+				if (planVersion.isLowerThan("4.1.40")) {
+					recreate = true;
 				}
 			}
 
@@ -345,18 +351,28 @@ public class TestRunner implements DataUtils {
 
 			alias = OIDFJSON.getString(config.get("alias"));
 
-			if (testName.equals("payments-api-dcr-test-unauthorized-client")) {
-				// This test uses a hardcoded client that needs a particular redirect url
+			List<String> needsAccountAlias = List.of(
+				"payments-api-dcr-test-unauthorized-client",
+				"resources-api-dcr-happyflow",
+				"resources-api-dcr-test-attempt-client-takeover",
+				"resources-api-dcr-subjectdn");
+			if (needsAccountAlias.contains(testName)) {
+				// These tests use a hardcoded client that needs a particular redirect url
 				alias = "raidiam-client-accounts-only";
 			}
-			else if (testName.equals("payments-api-dcr-happyflow") || testName.equals("payments-api-dcr-test-attempt-client-takeover")) {
+			else if (testName.equals("payments-api-dcr-happyflow") ||
+				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
+				testName.equals("payments-api-dcr-subjectdn") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client")) {
 				alias = "raidiam-client-payments-only";
 			}
 
-			// create an alias for the test
-			if (!createTestAlias(alias, id)) {
+			try {
+				// create an alias for the test
+				createTestAlias(alias, id);
+			} catch (Exception e) {
 				// there was a failure in creating the test alias, return an error
-				return new ResponseEntity<>(HttpStatus.CONFLICT);
+				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
 			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 
@@ -438,18 +454,46 @@ public class TestRunner implements DataUtils {
 	 * @param id
 	 * @return
 	 */
-	private boolean createTestAlias(String alias, String id) {
+	private void createTestAlias(String alias, String id) {
 		// first see if the alias is already in use
 		if (support.hasAlias(alias)) {
 			// find the test that has the alias (even if it's owned by a different user)
 			TestModule test = support.getRunningTestByAliasIgnoringLoggedInUser(alias);
 
 			if (test != null) {
+				boolean testHasStopped = TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus();
+				boolean oldTestIsOwnedByCurrentUser = test.getOwner().equals(authenticationFacade.getPrincipal());
+
+				if (authenticationFacade.isAdmin()) {
+					// admin users are allowed to claim alias at any time
+				} else {
+					if (!oldTestIsOwnedByCurrentUser) {
+						long idleTimeRequiredSeconds;
+						if (testHasStopped) {
+							// there are no tests running, but give the user a small grace window to start a new test
+							idleTimeRequiredSeconds = 30;
+						} else {
+							// user is hopefully actively testing and a few of the tests have sleeps of many minutes
+							idleTimeRequiredSeconds = 6 * 60;
+						}
+						long idleForSeconds = Duration.between(test.getStatusUpdated(), Instant.now()).toSeconds();
+						if (idleForSeconds < idleTimeRequiredSeconds) {
+							throw new RuntimeException("alias '" + alias + "' is in use by a different user. Please ensure you are using a unique alias value in your test configuration, for example by including the name of your company in it. If you are unable to change the alias you must wait until the other user has completed their testing. If the other user takes no further action the alias will be released in " + (idleTimeRequiredSeconds - idleForSeconds) + " seconds.");
+						}
+					}
+				}
+
 				String message;
-				if (TestModule.Status.FINISHED == test.getStatus() || TestModule.Status.INTERRUPTED == test.getStatus()) {
+				if (testHasStopped) {
 					message = "Alias has now been claimed by another test";
 				} else {
-					message = "Stopping test due to alias conflict - before this test finished, you or another tester have started another test using the same alias. You will need to rerun this test and ensure you complete all steps in this test before you move onto the next test. Please check that the alias in your test configuration is unique, for example include your company name in it.";
+					message = "Stopping test due to alias conflict - before this test finished, ";
+					if (oldTestIsOwnedByCurrentUser) {
+						message += "you have ";
+					} else {
+						message += "another tester has ";
+					}
+					message += "started another test using the same alias. You will need to rerun this test and ensure you complete all steps in this test before you move onto the next test. Please check that the alias in your test configuration is unique, for example include your company name in it.";
 				}
 				eventLog.log(test.getId(), "TEST-RUNNER", test.getOwner(), args("msg", message, "alias", alias, "new_test_id", id));
 
@@ -457,8 +501,9 @@ public class TestRunner implements DataUtils {
 			}
 		}
 
+		// there is a small race condition here if two users are trying to start a test at the same time; this method
+		// should probably be inside a mutex
 		support.addAlias(alias, id);
-		return true;
 	}
 
 	@ApiOperation(value = "Start test by id")

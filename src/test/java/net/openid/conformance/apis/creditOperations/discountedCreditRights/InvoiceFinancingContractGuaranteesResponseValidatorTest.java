@@ -35,11 +35,10 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorTest extends Abs
 	}
 
 	@Test
-	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponse(WrongPattern).json")
+	@UseResurce("jsonResponses/creditOperations/discountedCreditRights/guarantees/invoiceFinancingContractGuaranteesResponse(NoTrailingZero).json")
 	public void validateStructureWrongRegexp() {
 		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("warrantyAmount")));
+		run(condition);
 	}
 }
 

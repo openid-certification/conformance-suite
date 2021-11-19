@@ -69,7 +69,7 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 			new StringField
 				.Builder("networkAdditionalInfo")
 				.setOptional()
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(50)
 				.build());
 

@@ -1,0 +1,37 @@
+{
+    "totalPages": 0,
+    "totalSize": 0,
+    "pageable": {
+        "number": 0,
+        "sort": {
+            "sorted": true,
+            "orderBy": [
+                {
+                    "property": "createdAt",
+                    "direction": "ASC",
+                    "ignoreCase": true,
+                    "ascending": true
+                }
+            ]
+        },
+        "size": 0,
+        "offset": 0,
+        "sorted": true
+    },
+    "numberOfElements": 0,
+    "size": 0,
+    "content": [
+        {
+            "AuthorisationDomainUserId": "string",
+            "Email": "string",
+            "AuthorisationDomain": "string",
+            "AuthorisationDomainRole": "string",
+            "Status": "Active",
+            "ContactRole": "PTC",
+            "System": "Directory"
+        }
+    ],
+    "offset": 0,
+    "empty": true,
+    "pageNumber": 0
+}
