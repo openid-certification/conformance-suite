@@ -36,6 +36,7 @@ public class CreditOperationsDiscountedCreditRightsApiTestModule extends Abstrac
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
+		callAndStopOnFailure(AddInvoiceFinancingsScope.class);
 	}
 
 	@Override
