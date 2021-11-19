@@ -10,6 +10,8 @@ public class EnsureResponseWasJwt extends AbstractCondition {
 		String contentTypeStr = env.getString("resource_endpoint_response_headers", "content-type");
 		if(!contentTypeStr.contains("application/jwt")) {
 			throw error("Was expecting a JWT response. Returned: " + contentTypeStr);
+		} else if (contentTypeStr.contains("application/jwt")){
+			logSuccess("Response content type was JWT");
 		}
 		return env;
 	}

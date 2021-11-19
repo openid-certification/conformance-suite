@@ -7,6 +7,7 @@ import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHea
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.ValidateSelfEndpointPaymentConsent;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -50,9 +51,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(new ValidateSelfEndpoint()
-				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class)
-				));
+			call(new ValidateSelfEndpointPaymentConsent());
 		});
 
 		runInBlock("Validate payment initiation get consent", () -> {
@@ -66,9 +65,7 @@ public class PaymentsConsentsApiTestModule extends AbstractClientCredentialsGran
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			eventLog.startBlock("Validating self endpoint, ensuring response is 200 and response is correct");
-			call(new ValidateSelfEndpoint()
-				.insertAfter(ClearContentTypeHeaderForResourceEndpointRequest.class, condition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class))
-				.insertBefore(EnsureResponseCodeWas200.class, condition(EnsureResponseWasJwt.class))
+			call(new ValidateSelfEndpointPaymentConsent()
 				.insertAfter(EnsureResponseCodeWas200.class, condition(PaymentInitiationConsentValidator.class))
 			);
 		});
