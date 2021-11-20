@@ -11,6 +11,7 @@ import net.openid.conformance.ekyc.test.oidccore.EKYCTestUserinfoContainsDataNot
 import net.openid.conformance.ekyc.test.oidccore.EKYCTestUserinfoDefaults;
 import net.openid.conformance.ekyc.test.oidccore.EKYCTestWithUserProvidedRequest;
 import net.openid.conformance.ekyc.test.oidccore.EKYCTooLongPurposeLeadsToInvalidRequestResponse;
+import net.openid.conformance.ekyc.test.oidccore.EKYCTooShortPurposeLeadsToInvalidRequestResponse;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -26,6 +27,7 @@ import net.openid.conformance.plan.TestPlan;
 		EKYCRequestClaimWithSpecialCharsUnknownToTheOP.class,
 		EKYCRequestClaimWithRandomValueMustBeOmitted.class,
 		EKYCTooLongPurposeLeadsToInvalidRequestResponse.class,
+		EKYCTooShortPurposeLeadsToInvalidRequestResponse.class,
 		EKYCRequestVerifiedClaimsOnlyInIdToken.class,
 		EKYCRequestVerifiedClaimsOnlyInUserinfo.class,
 		EKYCTestWithUserProvidedRequest.class,
