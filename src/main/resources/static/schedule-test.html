@@ -1023,7 +1023,7 @@
                                 </div>
 
                             </div>
-
+                            <div id="unused-elements"></div>
                         </div>
                         <div id="JSONInput" class="tab-pane fade">
                             <textarea autocomplete="off" autocorrect="off" autocapitalize="off"
@@ -1482,13 +1482,29 @@
 
             $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
 
-            walkJSON(FAPI_UI.testJSON);
+            var unused = [];
+            walkJSON(FAPI_UI.testJSON, undefined, unused);
+            var unusedtext = "";
+            if (unused.length > 0) {
+                unusedtext = "Your configuration contains entries that are not required by the current configuration (to see them, switch to the json tab). This is usually harmless. Unused items: "+unused.join(" ");
+            }
+            $("#unused-elements").text(unusedtext);
         }
 
         /**
+         * Iterate the configuration JSON updating the values in the configuration form
          *
+         * @param element An object in the json config structure
+         * @param root The path to the object (or undefined if this is the root of the config)
+         * @param unused Pass an empty array; it will be returned containing the names of any unused keys in the json
          */
-        function walkJSON(element, root) {
+        function walkJSON(element, root, unused) {
+            if (root == "browser" || root == "override") {
+                // browser & override element is not shown in config form, but is not 'unused'
+                return true;
+            }
+            var localunused = [];
+            var localused = [];
 
             _.each(element, function(value, key, obj) {
                 var path;
@@ -1506,16 +1522,31 @@
                     } else {
                         el.val(value);
                     }
+                    if ($(el).is(':visible')) {
+                        localused.push(path);
+                    } else {
+                        localunused.push(path);
+                    }
                 } else {
                     if (_.isObject(value)) {
-                        if (root != undefined) {
-                            walkJSON(value, root + "." + key);
-                        } else {
-                            walkJSON(value, key);
+                        var someused = walkJSON(value, path, unused);
+                        if (!someused) {
+                            localunused.push(path);
                         }
+                    } else {
+                        localunused.push(path);
                     }
                 }
             });
+            if (localused.length == 0) {
+                // nothing was used; pass back up to consider parent element used instead
+                // this makes sure we detect the highest level completely unused object, instead of (say) detecting
+                // each unused field in a jwk
+                return false;
+            }
+            unused.push(...localunused);
+
+            return true;
         }
 
         /**
