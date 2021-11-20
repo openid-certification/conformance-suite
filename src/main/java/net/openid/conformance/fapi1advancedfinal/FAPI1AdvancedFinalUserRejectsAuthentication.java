@@ -14,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-user-rejects-authentication",
 	displayName = "FAPI1-Advanced-Final: user rejects authentication",
-	summary = "This test requires the user to reject the authentication or consent, for example by pressing the 'cancel' button on the login screen. It verifies that the user is redirected back to the relying party's redirect_uri with an 'access_denied' error. (You may need to clear any cookies for the authorization server before running this test, to remove any existing login session and hence ensure the user is offered the opportunity to reject the authentication.)",
+	summary = "This test requires the user to reject the authentication or consent, for example by pressing the 'cancel' button on the login screen. It verifies that the user is redirected back to the relying party's redirect_uri with an 'access_denied' error.\n\nYou may need to clear any cookies for the authorization server before running this test, to remove any existing login session and hence ensure the user is offered the opportunity to reject the authentication.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
