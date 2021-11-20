@@ -15,8 +15,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "ekyc-server-short-purpose-invalid-request",
 	displayName = "eKYC Server Test - Short purpose leads to invalid_request error",
 	summary = "This test requests one known claim, selected from the list of claims_in_verified_claims_supported, " +
-		" with a purpose which is only 2 characters long." +
-		" The authentication request MUST fail and the OP return an error invalid_request to the RP.",
+		" with a purpose which is only 2 characters long.\n\n" +
+		" As per section 6.1 of the spec, the authentication request MUST fail and the OP return an error invalid_request to the RP.",
 	profile = "OIDCC",
 	configurationFields = {
 	}
