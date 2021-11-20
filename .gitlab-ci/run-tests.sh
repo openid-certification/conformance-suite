@@ -263,6 +263,10 @@ makeCIBATest() {
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 }
 
+makeEkycTests() {
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -365,8 +369,17 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
+elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
+    echo "Run eKYC tests"
+    makeEkycTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ekyc.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ekyc.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules ekyc"
+    TESTS="${TESTS} --export-dir ."
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests||--ekyc-tests]"
     exit 1
 fi
 
