@@ -133,7 +133,7 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	}
 
 	protected void processVerifiedClaimsInIdToken() {
-		callAndContinueOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
+		callAndStopOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
 		validateVerifiedClaimsResponseSchema();
 		ensureReturnedVerifiedClaimsMatchOPMetadata(false);
 		validateIdTokenVerifiedClaimsAgainstRequested();
