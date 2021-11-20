@@ -1,0 +1,12 @@
+[
+    {
+        "test-name": "ekyc-server-testbasedonuserinfo-defaults",
+        "variant": "*",
+        "configuration-filename": "*"
+    },
+    {
+        "test-name": "ekyc-server-test-userinfo-notfoundinop",
+        "variant": "*",
+        "configuration-filename": "*"
+    }
+]

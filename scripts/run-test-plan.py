@@ -1137,6 +1137,10 @@ if __name__ == '__main__':
             if client_test or ciba_test or rp_initiated_logout or ekyc_test:
                 untested_test_modules.remove(m)
                 continue
+        elif show_untested == 'ekyc':
+            if not ekyc_test:
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'all-except-logout':
             # we don't run the rp initiated logout tests against Authlete
             if rp_initiated_logout:
