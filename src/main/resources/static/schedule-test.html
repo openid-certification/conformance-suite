@@ -1491,13 +1491,14 @@
         function walkJSON(element, root) {
 
             _.each(element, function(value, key, obj) {
-                var el = null;
-
-                if (_.isString(value) && root == undefined && key != undefined) {
-                    el = $(".config-form-element[data-json-target='" + key + "']");
+                var path;
+                if (root != undefined) {
+                    path = root + "." + key
                 } else {
-                    el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+                    path = key;
                 }
+
+                var el = $(".config-form-element[data-json-target='" + path + "']");
 
                 if (el && $(document).find(el).length) {
                     if (_.isArray(value) || _.isObject(value)) {
