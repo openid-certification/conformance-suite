@@ -49,6 +49,13 @@ public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractConditi
 	}
 
 	protected void checkSchema(String verifiedClaimsJson) {
+		// This JSON Schema library has a dependency on org.json, which has license issues:
+		// https://wiki.debian.org/qa.debian.org/jsonevil
+		//
+		// It also conflicts with spring-boot-starter-test, see the comment in pom.xml.
+		//
+		// Please don't write any more code that uses it; an alternative library is suggested here:
+		// https://stackoverflow.com/a/56767636/292166
 		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("json-schemas/ekyc/verified_claims-12.json");
 
 		JSONObject jsonSchema = new JSONObject(new JSONTokener(inputStream));
