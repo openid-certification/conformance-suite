@@ -44,4 +44,15 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
 		cond.execute(env);
 	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_validateVerifiedClaimsError() {
+		JsonObject verifiedClaimsResponse = new JsonObject();
+		String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
+		JsonObject parsedClaims = new JsonParser().parse(claimsJson).getAsJsonObject();
+		verifiedClaimsResponse.add("id_token", parsedClaims);
+		env.putObject("verified_claims_response", verifiedClaimsResponse);
+		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
+		cond.execute(env);
+	}
 }
