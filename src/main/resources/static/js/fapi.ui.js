@@ -465,7 +465,8 @@ var FAPI_UI = {
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
-			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-"
+			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
+			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},
