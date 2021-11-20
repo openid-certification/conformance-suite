@@ -38,7 +38,7 @@ public class AddUnverifiedClaimsToAuthorizationEndpointRequest extends AbstractA
 			if(claimInfo.has("value")) {
 				value = OIDFJSON.getString(claimInfo.get("value"));
 			}
-			Boolean essential = claimInfo.has("essential")?claimInfo.get("essential").getAsBoolean():false;
+			boolean essential = claimInfo.has("essential")? OIDFJSON.getBoolean(claimInfo.get("essential")):false;
 			addClaim(env, LocationToRequestClaim.ID_TOKEN, claimName, value, essential);
 			addClaim(env, LocationToRequestClaim.USERINFO, claimName, value, essential);
 		}
