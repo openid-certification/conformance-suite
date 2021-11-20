@@ -33,7 +33,7 @@ public class EKYCTooLongPurposeLeadsToInvalidRequestResponse extends BaseEKYCTes
 	@Override
 	protected void onAuthorizationCallbackResponse() {
 		performGenericAuthorizationEndpointErrorResponseValidation();	//<- is this general enough to be applicable to ekyc too?
-		callAndStopOnFailure(EnsureInvalidRequestError.class, "IA-6.1");
+		callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "IA-6.1");
 		//test ends here
 		fireTestFinished();
 	}

@@ -41,7 +41,7 @@ public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends BaseE
 			//server returned an error, this may happen if we requested something that's completely wrong.
 			//error conditions and what needs to be done in such cases are not clearly defined
 			//TODO clarify if this should always fail or if it's up to the OP. and if allowing only invalid_request is correct
-			callAndStopOnFailure(EnsureInvalidRequestError.class);
+			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE);
 			fireTestFinished();
 		}
 	}

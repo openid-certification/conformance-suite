@@ -1,5 +1,6 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimWithLongPurposeToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimWithShortPurposeToAuthorizationEndpointRequest;
@@ -30,7 +31,7 @@ public class EKYCTooShortPurposeLeadsToInvalidRequestResponse extends BaseEKYCTe
 	@Override
 	protected void onAuthorizationCallbackResponse() {
 		performGenericAuthorizationEndpointErrorResponseValidation();	//<- is this general enough to be applicable to ekyc too?
-		callAndStopOnFailure(EnsureInvalidRequestError.class, "IA-6.1");
+		callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.FAILURE, "IA-6.1");
 		//test ends here
 		fireTestFinished();
 	}
