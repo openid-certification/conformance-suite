@@ -10,10 +10,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckM
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Payments api phase 2 test",
+	testPlanName = "Payments Api Phase 2 - QRCodes",
 	profile = OBBProfile.OBB_PROFIlE_PHASE3,
 	displayName = PlanNames.PAYMENTS_API_PHASE_2_TEST_PLAN,
-	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API including QR tests"
+	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API including QR tests. These tests are designed to validate primarily the QRES consents structure ensuring structural integrity and content validation. QRDN tests are pending an agreed approach with Squad Sandbox due to the requirement to integrate with Banco Central for their generation."
 )
 public class PaymentsApiPhase2TestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
@@ -27,8 +27,7 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 					PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule.class,
 					PaymentsConsentsApiEnforceQRESWrongAmountTestModule.class,
 					PaymentsConsentsApiEnforceQRESWrongProxyTestModule.class,
-					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class,
-					PaymentsApiUnregisteredCnpjTestModule.class
+					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
