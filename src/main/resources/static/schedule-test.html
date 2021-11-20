@@ -1475,7 +1475,7 @@
 
                 if (el && $(document).find(el).length) {
                     if (_.isArray(value) || _.isObject(value)) {
-                        el.val(JSON.stringify(value));
+                        el.val(JSON.stringify(value, null, 4));
                     } else {
                         el.val(value);
                     }
