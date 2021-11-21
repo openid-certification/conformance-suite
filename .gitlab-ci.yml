@@ -522,7 +522,7 @@ local_test:
 
   function install_test_dependencies() {
     echo "Installing extra dependencies"
-    apk add -U openssh-client git nodejs npm
+    apk add openssh-client git gcc musl-dev bash
     eval $(ssh-agent -s)
     echo "$SSH_PRIVATE_KEY" | ssh-add -
     cd ..
@@ -532,10 +532,11 @@ local_test:
 
   function set_up_for_running_test_plan() {
     install_test_dependencies
-    pip install requests
+    pip install aiohttp aiofiles aiohttp-retry
   }
 
   function run_client_test_plan() {
+    apk add nodejs npm
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
   }
