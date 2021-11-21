@@ -266,6 +266,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
 			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
 		} else {
+			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
+			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		}
 
@@ -429,6 +431,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
+			}
+			if (clientAuthType == ClientAuthType.MTLS) {
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			return accountRequestsEndpoint(requestId);
@@ -677,13 +686,19 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
+			// required to bind the issued access token to.)
+			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
+			checkMtlsCertificate();
+		}
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().

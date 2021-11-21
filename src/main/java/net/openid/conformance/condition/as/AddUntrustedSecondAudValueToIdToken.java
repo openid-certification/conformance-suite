@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddSecondAudValueToIdToken extends AbstractCondition {
+public class AddUntrustedSecondAudValueToIdToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "id_token_claims")

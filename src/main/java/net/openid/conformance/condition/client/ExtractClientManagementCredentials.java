@@ -1,15 +1,15 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ExtractClientManagementCredentials extends AbstractCondition {
+import java.net.MalformedURLException;
+import java.net.URL;
+
+public class ExtractClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {
 
 	@Override
 	@PreEnvironment(required = "client")
@@ -37,6 +37,18 @@ public class ExtractClientManagementCredentials extends AbstractCondition {
 		if (Strings.isNullOrEmpty(registrationClientUri)) {
 			throw error("registration_client_uri must not be an empty string");
 		}
+
+		URL url;
+		try {
+			url = new URL(registrationClientUri);
+		} catch (MalformedURLException invalidURL) {
+			throw error(errorMessageInvalidURL);
+		}
+		if (!url.getProtocol().equals(requiredProtocol)) {
+			throw error("URL for client management point does not use "+requiredProtocol+" scheme",
+				args("required", requiredProtocol, "actual", registrationClientUri));
+		}
+
 		if (Strings.isNullOrEmpty(registrationAccessToken)) {
 			throw error("registration_access_token must not be an empty string");
 		}

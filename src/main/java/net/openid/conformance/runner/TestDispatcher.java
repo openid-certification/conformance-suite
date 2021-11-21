@@ -3,6 +3,7 @@ package net.openid.conformance.runner;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.ConditionError;
@@ -135,7 +136,7 @@ public class TestDispatcher implements DataUtils {
 			}
 
 			Object response;
-			logIncomingHttpRequest(test, restOfPath, requestParts);
+			logIncomingHttpRequest(test, path, requestParts);
 
 			if (TestModule.Status.CREATED.equals(test.getStatus())) {
 				if (path.endsWith("/client1_jwks")) {
@@ -288,6 +289,27 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	protected void logIncomingHttpRequest(TestModule test, String path, JsonObject requestParts) {
+		// make sure the http headers our proxy adds aren't exposed to the user
+		JsonObject originalHeaders = (JsonObject) requestParts.get("headers");
+		JsonObject headers = originalHeaders.deepCopy();
+		JsonElement tlsCipher = originalHeaders.get("x-ssl-cipher");
+		JsonElement tlsVersion = originalHeaders.get("x-ssl-protocol");
+		JsonElement tlsCert = originalHeaders.get("x-ssl-cert");
+
+		// see chart/templates/ingress.yaml for the apache config that adds these
+		List<String> proxyHeaders = List.of(
+			"X-Ssl-Cipher",
+			"X-Ssl-Protocol",
+			"X-Forwarded-Proto", // no need to log this as it's only acted upon by spring/tomcat
+			"X-Forwarded-Port", // no need to log this as it's only acted upon by spring/tomcat
+			"x-forwarded-host", // automatically added by apache, but only acted upon by spring/tomcat
+			"x-forwarded-server", // automatically added by apache, but only acted upon by spring/tomcat
+			"X-Ssl-Cert",
+			"X-Ssl-Verify"); // this doesn't appear to be used so we don't log it
+		for (String h : proxyHeaders) {
+			headers.remove(h.toLowerCase());
+		}
+
 		eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 			"msg", "Incoming HTTP request to test instance " + test.getId(),
 			"http", "incoming",
@@ -295,7 +317,10 @@ public class TestDispatcher implements DataUtils {
 			"incoming_query_string_params", requestParts.get("query_string_params"),
 			"incoming_body_form_params", requestParts.get("body_form_params"),
 			"incoming_method", requestParts.get("method"),
-			"incoming_headers", requestParts.get("headers"),
+			"incoming_headers", headers,
+			"incoming_tls_cipher", tlsCipher,
+			"incoming_tls_version", tlsVersion,
+			"incoming_tls_cert", tlsCert,
 			"incoming_body", requestParts.get("body"),
 			"incoming_body_json", requestParts.get("body_json")));
 	}

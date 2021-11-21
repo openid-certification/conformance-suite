@@ -207,6 +207,7 @@
                             if(item.startBlock) startBlock = item.msg + ': ';
 
                             if (item.result === 'SKIPPED' ||
+                                item.result === 'INTERRUPTED' ||
                                 item.result === 'FAILURE' ||
                                 item.result === 'WARNING') {
 
