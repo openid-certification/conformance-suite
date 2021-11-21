@@ -250,7 +250,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
-        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config))
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir))
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
@@ -272,7 +272,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     return plan_results
 
 
-async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config):
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir):
     module=moduledict['testModule']
     module_with_variants = get_string_name_for_module_with_variant(moduledict)
     test_start_time = time.time()
@@ -302,7 +302,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
             # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
             if op_plan != None:
                 # the 'client' is our own OP tests
-                plan_results.extend(run_test_plan(op_plan, op_config, output_dir))
+                plan_results.extend(await run_test_plan(op_plan, op_config, output_dir))
             elif re.match(r'fapi-rw-id2-client-.*', module) or \
                 re.match(r'fapi1-advanced-final-client-.*', module):
                 print("FAPI client test: " + module + " " + json.dumps(variant))
