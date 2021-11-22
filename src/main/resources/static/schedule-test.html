@@ -1475,7 +1475,7 @@
 
                 if (el && $(document).find(el).length) {
                     if (_.isArray(value) || _.isObject(value)) {
-                        el.val(JSON.stringify(value));
+                        el.val(JSON.stringify(value, null, 4));
                     } else {
                         el.val(value);
                     }
@@ -1496,13 +1496,17 @@
          */
 
         function populateJSON(key, val) {
-            // check to see if we have an "array string" or a "number string"
-            // i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
+            // preserve valid json objects and arrays as json values; store everything else as a string
+            // This has an odd side effect that (say) a jwks that is invalid json (e.g. extra or missing comma) is
+            // inserted as a string
             try {
                 var stringToJSON = JSON.parse(val); // an array, object or number ?
                 if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
                     FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
-                } else if (_.isNumber(stringToJSON)) {
+                } else {
+                    // something parseable as json but not an object/array (e.g. a number or boolean) - insert as a string
+                    // this makes sure that, e.g., fully numeric client ids are stored in the config as a string as the
+                    // code expects
                     FAPI_UI.prop(FAPI_UI.testJSON, key, val);
                 }
             } catch (e) { // a string

@@ -317,6 +317,7 @@ makeLocalProviderTests() {
 
 }
 
+TESTS="${TESTS} --verbose"
 if [ "$#" -eq 0 ]; then
     echo "Run all tests"
     makeServerTest

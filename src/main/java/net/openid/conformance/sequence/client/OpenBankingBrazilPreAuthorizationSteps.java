@@ -171,6 +171,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			if (stopAfterConsentEndpointCall) {
 				return;
 			}
+			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
 
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
 		}

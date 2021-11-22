@@ -206,11 +206,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 		eventLog.startBlock("Delete client");
 
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
-
-		// we just deregistered the client, so prevent cleanup from trying to do so again
-		env.removeNativeValue("registration_client_uri");
-		env.removeNativeValue("registration_access_token");
+		deleteClient();
 
 		super.onPostAuthorizationFlowComplete();
 	}
@@ -224,6 +220,13 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+	}
+
+	protected void deleteClient() {
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+		// when we just deregistered the client, so prevent cleanup from trying to do so again
+		env.removeNativeValue("registration_client_uri");
+		env.removeNativeValue("registration_access_token");
 	}
 
 	public void unregisterClient1() {

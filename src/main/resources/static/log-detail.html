@@ -552,6 +552,10 @@
         }
 
         function isPendingInteraction() {
+            if (FAPI_UI.status == 'interrupted') {
+                return false;
+            }
+
             if ($('#runningTestBrowser .visitBtn').length) {
                 return true;
             }
@@ -619,10 +623,8 @@
                                 // otherwise, the test can't be started
                                 $('#startBtn').hide();
                             }
-
-                            updateTestInfoStickiness(testId);
                         }
-
+                        updateTestInfoStickiness(testId);
                     }
 
                     // display the exported data

@@ -903,6 +903,7 @@ def parser_args_cli():
 
     parser.add_argument('--export-dir', help='Directory to save exported results into', default=None)
     parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', default='')
+    parser.add_argument('--verbose', help='Print out details of unexpected failures/warnings including a template for the expected failures file, and print details of expected failures/warnings that do not happen', action='store_true')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
@@ -967,6 +968,7 @@ if __name__ == '__main__':
 
     args = parser_args_cli()
     show_untested = args.show_untested_test_modules
+    verbose = args.verbose
     params = args.params
 
     if len(params) % 2 == 1:
@@ -1038,37 +1040,46 @@ if __name__ == '__main__':
     unused_expected_failures = list(filter(is_unused, expected_failures_list))
     if unused_expected_failures:
         print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
-        start_section("unused_expected_failures", "unused expected failures detail", True)
-        for entry in unused_expected_failures:
-            entry_invalid_json = {
-                'test-name': entry['test-name'],
-                'variant': entry.get('variant', None),
-                'configuration-filename': entry['configuration-filename'],
-                'current-block': entry['current-block'],
-                'condition': entry['condition'],
-                'expected-result': entry['expected-result']
-            }
-            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
-        end_section("unused_expected_failures")
+        if verbose:
+            start_section("unused_expected_failures", "unused expected failures detail", True)
+            for entry in unused_expected_failures:
+                entry_invalid_json = {
+                    'test-name': entry['test-name'],
+                    'variant': entry.get('variant', None),
+                    'configuration-filename': entry['configuration-filename'],
+                    'current-block': entry['current-block'],
+                    'condition': entry['condition'],
+                    'expected-result': entry['expected-result']
+                }
+                print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+            end_section("unused_expected_failures")
+        else:
+            print("Rerun with --verbose to see details");
         failed = True
 
     unused_expected_skips = list(filter(is_unused, expected_skips_list))
     if unused_expected_skips:
         print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
-        start_section("unused_expected_skips", "unused expected skips detail", True)
-        for entry in unused_expected_skips:
-            entry_invalid_json = {
-                'test-name': entry['test-name'],
-                'variant': entry.get('variant', None),
-                'configuration-filename': entry['configuration-filename']
-            }
-            print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
-        end_section("unused_expected_skips")
+        if verbose:
+            start_section("unused_expected_skips", "unused expected skips detail", True)
+            for entry in unused_expected_skips:
+                entry_invalid_json = {
+                    'test-name': entry['test-name'],
+                    'variant': entry.get('variant', None),
+                    'configuration-filename': entry['configuration-filename']
+                }
+                print(json.dumps(entry_invalid_json, indent=4) + "\n", file=sys.__stdout__)
+            end_section("unused_expected_skips")
+        else:
+            print("Rerun with --verbose to see details");
         failed = True
 
     if failed_plan_results:
-        summary_unexpected_failures_all_test_plan(failed_plan_results)
-        print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings **"))
+        if verbose:
+            summary_unexpected_failures_all_test_plan(failed_plan_results)
+            print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings **"))
+        else:
+            print(failure("** Exiting with failure - some test modules have unexpected condition failures/warnings - rerun with --verbose to see details **"))
         failed = True
 
     # filter untested list, as we don't currently have test environments for these
