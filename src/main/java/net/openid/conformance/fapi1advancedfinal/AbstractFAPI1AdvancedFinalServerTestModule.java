@@ -64,9 +64,6 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
-	"resource.brazilOrganizationId",
-	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment",
 	"directory.keystore",
 	"directory.client_id"
 })
