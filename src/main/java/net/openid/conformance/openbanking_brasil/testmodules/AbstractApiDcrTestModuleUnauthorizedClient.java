@@ -41,7 +41,6 @@ import net.openid.conformance.condition.client.SetResourcesScopeOnTokenEndpointR
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
@@ -50,7 +49,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirector
 
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
 
-public abstract class AbstractApiDcrTestModuleUnauthorizedClient extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public abstract class AbstractApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModule {
     boolean didRegistrationWithExplicitScopeRequested = false;
 
     abstract boolean isPaymentsApiTest();

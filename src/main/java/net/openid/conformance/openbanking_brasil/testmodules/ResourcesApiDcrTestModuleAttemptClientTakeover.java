@@ -5,6 +5,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCli
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "resources-api-dcr-test-attempt-client-takeover",
@@ -13,17 +15,21 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
 		"resource.resourceUrl"
 	}
 )
+// hide various config values from the FAPI base module we don't need
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"resource.brazilOrganizationId",
+	"resource.brazilPaymentConsent",
+	"resource.brazilPixPayment"
+})
 public class ResourcesApiDcrTestModuleAttemptClientTakeover extends AbstractDcrTestModuleAttemptClientTakeover {
 
 	@Override

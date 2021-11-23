@@ -1,11 +1,12 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "resources-api-dcr-happyflow",
@@ -17,7 +18,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class ResourcesApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
+// hide various config values from the FAPI base module we don't need
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"resource.brazilOrganizationId",
+	"resource.brazilPaymentConsent",
+	"resource.brazilPixPayment"
+})
+public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
 	@Override
 	protected void configureClient() {
@@ -26,5 +34,5 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractFAPI1AdvancedFin
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
 	}
-	
+
 }
