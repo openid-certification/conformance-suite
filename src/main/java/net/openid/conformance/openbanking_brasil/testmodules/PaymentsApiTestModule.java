@@ -24,6 +24,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.jwks",
+		"client.org_jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
