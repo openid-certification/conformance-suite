@@ -60,7 +60,6 @@ import java.util.function.Supplier;
 	"resource.cdrVersion"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.org_jwks",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
