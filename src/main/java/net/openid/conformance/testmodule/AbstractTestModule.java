@@ -881,15 +881,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			/* must be a TestFailureException */
 			String failure;
 			if (error.getCause() instanceof ConditionError) {
+				// ConditionError will already have been logged when created in AbstractCondition.java (and
+				// ConditionError should not be thrown from other places, see
+				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to log again
 				failure = error.getCause().getMessage();
 			} else {
 				failure = error.getMessage();
 				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
 				setFinalError(error);
 
-				// ConditionError will already have been logged when created in AbstractCondition.java (and
-				// ConditionError should not be thrown from other places, see
-				// https://gitlab.com/openid/conformance-suite/issues/443 ) - so no need to log again
 				Map<String, Object> event = new HashMap<>();
 				event.put("caught_at", source);
 				if (error.getCause() == null) {
