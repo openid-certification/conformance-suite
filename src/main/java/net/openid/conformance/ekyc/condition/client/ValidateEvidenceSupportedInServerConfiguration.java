@@ -14,10 +14,15 @@ public class ValidateEvidenceSupportedInServerConfiguration extends AbstractCond
 	public Environment evaluate(Environment env) {
 		JsonElement jsonElement = env.getElementFromObject("server", "evidence_supported");
 		if(jsonElement == null) {
-			throw error("evidence_supported is not set");
+			throw error("evidence_supported is not set in server metadata and is required by the identity assurance specification.");
 		}
 		if(!jsonElement.isJsonArray()) {
 			throw error("evidence_supported must be a json array", args("actual", jsonElement));
+		}
+		for (JsonElement el: jsonElement.getAsJsonArray()) {
+			if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isString()) {
+				throw error("The entries in evidence_supported must be JSON strings.", args("actual", jsonElement));
+			}
 		}
 
 		logSuccess("evidence_supported is valid", args("actual", jsonElement));
