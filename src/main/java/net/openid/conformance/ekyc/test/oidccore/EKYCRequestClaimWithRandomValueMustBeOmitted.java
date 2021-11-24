@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "ekyc-server-one-claim-with-random-value-omitted",
 	displayName = "eKYC Server Test - Only one claim requested with random value, verified_claims omitted from response",
 	summary = "This test requests one known claim, selected from the list of claims_in_verified_claims_supported, " +
-		" but with a random value (a UUID) that cannot be fullfilled and expects a happy path flow." +
+		" but with a random value (a UUID) that cannot be fullfilled and expects the authorization to succeed." +
 		" The verified_claims must be omitted from responses completely as the value cannot be fulfilled.",
 	profile = "OIDCC",
 	configurationFields = {
