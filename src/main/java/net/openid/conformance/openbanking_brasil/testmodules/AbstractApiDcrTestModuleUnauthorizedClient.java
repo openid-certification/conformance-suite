@@ -1,6 +1,5 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddOpenIdPaymentsScopeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddOpenIdResourcesScopeToDynamicRegistrationRequest;
@@ -27,7 +26,6 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
-import net.openid.conformance.condition.client.CreateJwksUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -44,7 +42,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
@@ -75,7 +73,7 @@ public abstract class AbstractApiDcrTestModuleUnauthorizedClient extends Abstrac
 			callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		} else {
 			callAndStopOnFailure(OverrideClientWithPagtoClient.class);
-			callAndStopOnFailure(OverrideScopeWithOpenIdResources.class);
+			callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		}
         callAndStopOnFailure(SetDirectoryInfo.class);
 

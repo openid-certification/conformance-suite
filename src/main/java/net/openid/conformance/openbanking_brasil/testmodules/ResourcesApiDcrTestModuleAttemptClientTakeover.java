@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClientThatHasClientSpecificJwks;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -35,7 +35,7 @@ public class ResourcesApiDcrTestModuleAttemptClientTakeover extends AbstractDcrT
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithDadosClient.class);
-		callAndStopOnFailure(OverrideScopeWithOpenIdResources.class);
+		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
 	}
@@ -43,7 +43,7 @@ public class ResourcesApiDcrTestModuleAttemptClientTakeover extends AbstractDcrT
 	@Override
 	protected void switchToAlternateClient() {
 		callAndStopOnFailure(OverrideClientWithDadosClientThatHasClientSpecificJwks.class);
-		callAndStopOnFailure(OverrideScopeWithOpenIdResources.class);
+		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 	}
 
 }

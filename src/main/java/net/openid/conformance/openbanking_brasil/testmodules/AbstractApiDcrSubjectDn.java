@@ -37,7 +37,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCli
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClientThatHasClientSpecificJwks;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdResources;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
@@ -58,7 +58,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
             callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
         } else {
             callAndStopOnFailure(OverrideClientWithDadosClient.class);
-            callAndStopOnFailure(OverrideScopeWithOpenIdResources.class);
+            callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
         }
         callAndStopOnFailure(SetDirectoryInfo.class);
         callAndStopOnFailure(GetResourceEndpointConfiguration.class);
@@ -86,7 +86,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
             callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
         } else {
             callAndStopOnFailure(OverrideClientWithDadosClientThatHasClientSpecificJwks.class);
-            callAndStopOnFailure(OverrideScopeWithOpenIdResources.class);
+            callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
         }
         callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
