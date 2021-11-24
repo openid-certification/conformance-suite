@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -44,18 +45,21 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 		runInBlock("Validating personal financial relationship response", () -> {
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }
