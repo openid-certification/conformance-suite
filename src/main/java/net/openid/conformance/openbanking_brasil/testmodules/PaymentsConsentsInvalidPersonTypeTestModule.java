@@ -80,5 +80,6 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("endpoint_response_jwt"));
+		callAndStopOnFailure(Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDO.class);
 	}
 }
