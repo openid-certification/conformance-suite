@@ -1,6 +1,8 @@
 package net.openid.conformance.ekyc.plan;
 
 import net.openid.conformance.ekyc.test.oidccore.EKYCHappyPathTest;
+import net.openid.conformance.ekyc.test.oidccore.EKYCHappyPathTestEmptyObjects;
+import net.openid.conformance.ekyc.test.oidccore.EKYCHappyPathTestEssentialFalse;
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimUnknownToTheOP;
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimWithRandomValueMustBeOmitted;
 import net.openid.conformance.ekyc.test.oidccore.EKYCRequestClaimWithSpecialCharsUnknownToTheOP;
@@ -22,6 +24,8 @@ import net.openid.conformance.plan.TestPlan;
 	profile = TestPlan.ProfileNames.ekyctest,
 	testModules = {
 		EKYCHappyPathTest.class,
+		EKYCHappyPathTestEmptyObjects.class,
+		EKYCHappyPathTestEssentialFalse.class,
 		EKYCRequestClaimUnknownToTheOP.class,
 		EKYCRequestEssentialClaimUnknownToTheOP.class,
 		EKYCRequestClaimWithSpecialCharsUnknownToTheOP.class,

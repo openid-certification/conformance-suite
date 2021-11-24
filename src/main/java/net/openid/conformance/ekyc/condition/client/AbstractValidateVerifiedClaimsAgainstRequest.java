@@ -444,14 +444,22 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 						args("trust_framework", returnedTrustFramework));
 				}
 			} else if(requestedTF.has("values")) {
-				if(requestedTF.get("values").getAsJsonArray().contains(returnedTrustFramework)){
+				if (requestedTF.get("values").getAsJsonArray().contains(returnedTrustFramework)) {
 					logSuccess("Returned trust_framework is one of the expected values",
 						args("trust_framework", returnedTrustFramework));
 				} else {
 					throw error("Returned trust_framework value is not one of the requested ones",
-								args("requested", requestedTF.get("values"), "returned", returnedTrustFramework));
+						args("requested", requestedTF.get("values"), "returned", returnedTrustFramework));
 				}
+			} else if(requestedTF.size() == 0) {
+				logSuccess("Requested trust_framework was empty object so any value will be accepted",
+					args("returned", returnedTrustFramework));
+			} else if(requestedTF.size() == 1 && requestedTF.getAsJsonPrimitive("essential") != null) {
+				logSuccess("Requested trust_framework was object with only essential:false so any value will be accepted",
+					args("returned", returnedTrustFramework));
 			} else {
+				// I'm not entirely clear what this error means; it doesn't appear to be a requirement in the spec
+				// I think it might be a requirement when configuring the test rather than a requirement from the spec
 				throw error("Requested trust_framework must contain either value or values",
 							args("requestedTrustFramework", requestedTrustFramework));
 			}

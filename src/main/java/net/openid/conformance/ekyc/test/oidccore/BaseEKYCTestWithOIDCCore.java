@@ -2,7 +2,7 @@ package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
-import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest;
+import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromIdToken;
@@ -31,7 +31,7 @@ public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
 	}
 
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest.class, "IA-6");
+		callAndContinueOnFailure(AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull.class, "IA-6");
 	}
 
 	@Override
