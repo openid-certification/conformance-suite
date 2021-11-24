@@ -7,6 +7,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 
+import java.util.Optional;
+
 public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -14,6 +16,8 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
 	}
+
+
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
@@ -24,20 +28,32 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		env.putBoolean("consent_rejected", false);
+		eventLog.startBlock("Setting date to today");
+		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+		callAndStopOnFailure(PrepareToPostConsentRequest.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+		callAndStopOnFailure(RemoveTransactionIdentification.class);
 		configureDictInfo();
 	}
 
 	protected abstract void configureDictInfo();
 
+	protected Optional<Class<? extends Condition>> errorMessageCondition() {
+		return Optional.empty();
+	}
+
 	@Override
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
-			call(new CallPixPaymentsEndpointSequence()
+			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
 				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check")
-			);
+				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
+			errorMessageCondition().ifPresent(c -> {
+				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
+			});
+			call(pixSequence);
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();
 			eventLog.endBlock();
@@ -94,8 +110,6 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 
 				callAndContinueOnFailure(CheckPollStatus.class);
 				call(statusValidationSequence());
-//				callAndStopOnFailure(PaymentsProxyCheckForRejectedStatus.class);
-//				callAndStopOnFailure(PaymentsProxyCheckForInvalidStatus.class);
 
 				if (env.getBoolean("payment_proxy_check_for_reject")) {
 					if (env.getBoolean("consent_rejected")) {
