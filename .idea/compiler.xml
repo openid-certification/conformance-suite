@@ -6,7 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-	  	<module name="certification" />
+		<module name="certification" />
         <module name="fapi-conformance-suite" />
         <module name="conformance-omnigon" />
         <module name="conformance-suite" />
