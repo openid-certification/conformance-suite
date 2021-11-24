@@ -14,7 +14,7 @@ public class ValidateDocumentsSupportedInServerConfiguration extends AbstractCon
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		JsonArray evidenceSupported = env.getElementFromObject("server", "evidence_supported").getAsJsonArray();
+		JsonArray evidenceSupported = getJsonArrayFromEnvironment(env, "server", "evidence_supported", "evidence_supported in authorization server metadata");
 		JsonElement documentsSupportedElement = env.getElementFromObject("server", "documents_supported");
 		if(evidenceSupported.contains(new JsonPrimitive("document")) ||
 			evidenceSupported.contains(new JsonPrimitive("id_document"))){
