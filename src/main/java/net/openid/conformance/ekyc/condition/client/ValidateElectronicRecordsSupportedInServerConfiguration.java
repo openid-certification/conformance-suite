@@ -11,7 +11,8 @@ public class ValidateElectronicRecordsSupportedInServerConfiguration extends Abs
 
 	//electronic_records_supported: REQUIRED when evidence_supported contains "electronicrecord".
 	// JSON array containing all electronic record types the OP supports (see @!predefinedvalues).
-	//Note "electronicrecord" above is wrong, as of version 12 of the spec
+	//Note "electronicrecord" above is wrong, as of version 12 of the spec, see:
+	// https://bitbucket.org/openid/ekyc-ida/issues/1264/formatting-issues-in-id3
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
@@ -25,11 +26,15 @@ public class ValidateElectronicRecordsSupportedInServerConfiguration extends Abs
 				throw error("electronic_records_supported must be an array",
 					args("actual", jsonElement));
 			}
-			//TODO I assumed this is required
+			// seems a sensible requirement, raised to WG in https://bitbucket.org/openid/ekyc-ida/issues/1265/op-metadata-should-indicate-if-empty
 			if(jsonElement.getAsJsonArray().size()<1){
 				throw error("electronic_records_supported must have at least one entry");
 			}
-			//TODO validate contents?
+			for (JsonElement el: jsonElement.getAsJsonArray()) {
+				if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isString()) {
+					throw error("The entries in evidence_supported must be JSON strings.", args("actual", jsonElement));
+				}
+			}
 			logSuccess("electronic_records_supported is valid", args("electronic_records_supported", jsonElement));
 			return env;
 		} else {
@@ -39,6 +44,11 @@ public class ValidateElectronicRecordsSupportedInServerConfiguration extends Abs
 			}
 			if(!jsonElement.isJsonArray()) {
 				throw error("electronic_records_supported must be a json array", args("actual", jsonElement));
+			}
+			for (JsonElement el: jsonElement.getAsJsonArray()) {
+				if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isString()) {
+					throw error("The entries in evidence_supported must be JSON strings.", args("actual", jsonElement));
+				}
 			}
 			logSuccess("electronic_records_supported is valid");
 			return env;
