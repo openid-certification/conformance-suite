@@ -1,11 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AbstractDictVerifiedPaymentTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealEmailAddress;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.util.Optional;
 
 @PublishTestModule(
 	testName = "payments-api-qres-mismatched-proxy-test",
@@ -33,5 +35,25 @@ public class PaymentsConsentsApiEnforceQRESWrongProxyTestModule extends Abstract
 		callAndStopOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
+	}
+
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		ConditionSequence preAuth = super.createOBBPreauthSteps();
+		preAuth.insertAfter(OptionallyAllow201Or422.class, condition(EnforcePaymentConsentFailureForInvalidDetails.class));
+		return preAuth;
+	}
+
+	@Override
+	protected ConditionSequence statusValidationSequence() {
+		return sequenceOf(
+			condition(PaymentsProxyCheckForRejectedStatus.class),
+			condition(VerifyRejectionReasonForQres.class),
+			condition(PaymentsProxyCheckForInvalidStatus.class));
+	}
+
+	@Override
+	protected Optional<Class<? extends Condition>> errorMessageCondition() {
+		return Optional.of(VerifyErrorIfPixPostFailsOnQres.class);
 	}
 }
