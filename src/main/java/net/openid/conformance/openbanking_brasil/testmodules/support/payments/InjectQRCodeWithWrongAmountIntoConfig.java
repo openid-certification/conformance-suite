@@ -8,11 +8,13 @@ public class InjectQRCodeWithWrongAmountIntoConfig extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject consentPaymentDetails = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject paymentInitiation = (JsonObject) env.getElementFromObject("resource", "brazilPixPayment.data");
 
-		obj.addProperty("qrCode", QrCodeKeys.QRES_WRONG_AMOUNT);
+		consentPaymentDetails.addProperty("qrCode", QrCodeKeys.QRES_WRONG_AMOUNT);
+		paymentInitiation.addProperty("qrCode", QrCodeKeys.QRES_WRONG_AMOUNT);
 
-		logSuccess("Added qr code to payment consent with a payment of 123.45");
+		logSuccess("Added qr code to payment consent and payment initiation with a payment of 123.45");
 
 		return env;
 	}

@@ -14,6 +14,7 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);
+		configureDictInfo();
 	}
 
 	@Override

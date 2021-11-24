@@ -8,11 +8,13 @@ public class InjectQRCodeWithRealEmailIntoConfig extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject consentPaymentDetails = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject paymentInitiation = (JsonObject) env.getElementFromObject("resource", "brazilPixPayment.data");
 
-		obj.addProperty("qrCode", QrCodeKeys.QRES_EMAIL);
+		consentPaymentDetails.addProperty("qrCode", QrCodeKeys.QRES_EMAIL);
+		paymentInitiation.addProperty("qrCode", QrCodeKeys.QRES_EMAIL);
 
-		logSuccess("Added qr code to payment consent");
+		logSuccess("Added qr code to payment consent and payment initiation");
 
 		return env;
 	}
