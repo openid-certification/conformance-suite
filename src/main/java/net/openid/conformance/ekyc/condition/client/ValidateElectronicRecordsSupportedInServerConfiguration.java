@@ -15,7 +15,7 @@ public class ValidateElectronicRecordsSupportedInServerConfiguration extends Abs
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-		JsonArray evidenceSupportedArray = env.getElementFromObject("server", "evidence_supported").getAsJsonArray();
+		JsonArray evidenceSupportedArray = getJsonArrayFromEnvironment(env, "server", "evidence_supported", "evidence_supported in authorization server metadata");
 		JsonElement jsonElement = env.getElementFromObject("server", "electronic_records_supported");
 		if(evidenceSupportedArray.contains(new JsonPrimitive("electronic_record"))) {
 			if(jsonElement==null) {
