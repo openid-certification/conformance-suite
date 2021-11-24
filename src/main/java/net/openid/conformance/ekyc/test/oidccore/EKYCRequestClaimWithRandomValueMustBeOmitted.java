@@ -38,6 +38,11 @@ public class EKYCRequestClaimWithRandomValueMustBeOmitted extends BaseEKYCTestWi
 	}
 
 	@Override
+	protected void processVerifiedClaimsInIdToken() {
+		// we don't expect verified claims so don't attempt to extract
+	}
+
+	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
