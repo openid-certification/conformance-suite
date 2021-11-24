@@ -8,11 +8,13 @@ public class InjectQRCodeWithRealPhoneNumberIntoConfig  extends AbstractConditio
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject consentPaymentDetails = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment.details");
+		JsonObject paymentInitiation = (JsonObject) env.getElementFromObject("resource", "brazilPixPayment.data");
 
-		obj.addProperty("qrCode", QrCodeKeys.QRES_PHONE_NUMBER);
+		consentPaymentDetails.addProperty("qrCode", QrCodeKeys.QRES_PHONE_NUMBER);
+		paymentInitiation.addProperty("qrCode", QrCodeKeys.QRES_PHONE_NUMBER);
 
-		logSuccess("Added qr code to payment consent");
+		logSuccess("Added qr code to payment consent and payment initiation");
 
 		return env;
 	}
