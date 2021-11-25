@@ -27,7 +27,8 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 					PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule.class,
 					PaymentsConsentsApiEnforceQRESWrongAmountTestModule.class,
 					PaymentsConsentsApiEnforceQRESWrongProxyTestModule.class,
-					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class
+					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class,
+					PaymentsConsentsApiQRDNHappyTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
