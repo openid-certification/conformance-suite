@@ -8,7 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalFinancialRelationships;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.ProvideIncorrectPermissionsForCustomerApi;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.ProvideIncorrectPermissionsForCustomerPersonalApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -46,7 +46,7 @@ public class CustomerPersonalWrongPermissionsTestModule extends AbstractPermissi
 
 	@Override
 	protected void prepareIncorrectPermissions() {
-		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerApi.class);
+		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerPersonalApi.class);
 	}
 
 	@Override
