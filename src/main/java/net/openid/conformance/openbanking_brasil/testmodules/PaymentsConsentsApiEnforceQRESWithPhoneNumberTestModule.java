@@ -3,10 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealPhoneNumber;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectQRCodeWithRealPhoneNumberIntoConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SelectQRESCodePixLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SetProxyToRealPhoneNumberOnPayment;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SetProxyToRealPhoneNumberOnPaymentConsent;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -35,5 +32,7 @@ public class PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule extends Abs
 		callAndStopOnFailure(SetProxyToRealPhoneNumber.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumberOnPaymentConsent.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumberOnPayment.class);
+		callAndStopOnFailure(InjectRealCreditorAccountToPaymentPhone.class);
+		callAndStopOnFailure(InjectRealCreditorAccountPhoneToPaymentConsent.class);
 	}
 }
