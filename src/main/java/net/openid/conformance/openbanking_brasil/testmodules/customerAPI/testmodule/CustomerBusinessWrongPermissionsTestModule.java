@@ -40,7 +40,7 @@ public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissi
 
 	@Override
 	protected void prepareIncorrectPermissions() {
-		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerApi.class);
+		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerBusinessApi.class);
 	}
 
 	@Override
