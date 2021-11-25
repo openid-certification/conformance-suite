@@ -175,8 +175,38 @@
         },
         "configuration-filename": "yesdotcom-ekyc.json",
         "current-block": "Verify authorization endpoint response",
-        "condition": "ExtractVerifiedClaimsFromIdToken",
+        "condition": "ValidateVerifiedClaimsInIdTokenAgainstOPMetadata",
         "expected-result": "failure",
-        "comment": "unsure why yes.com fails to return data here"
+        "comment": "awaiting answer from yes.com on what's happening"
+    },
+    {
+        "test-name": "ekyc-server-testuserprovidedrequest",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Userinfo endpoint tests",
+        "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "awaiting answer from yes.com on what's happening"
+    },
+    {
+        "test-name": "ekyc-server-testbasedonuserinfo-defaults",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Userinfo endpoint tests",
+        "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "awaiting answer from yes.com on what's happening"
     }
 ]
