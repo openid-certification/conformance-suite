@@ -15,12 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oidcc-server",
 	displayName = "OIDCC",
 	summary = "Tests primarily 'happy' flows",
-	profile = "OIDCC",
-	configurationFields = {
-		"trust_framework",
-		"claims",
-		"evidence"
-	}
+	profile = "OIDCC"
 )
 public class OIDCCServerTest extends AbstractOIDCCServerTest {
 
