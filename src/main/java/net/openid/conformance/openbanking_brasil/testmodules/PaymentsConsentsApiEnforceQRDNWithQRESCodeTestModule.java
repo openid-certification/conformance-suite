@@ -1,9 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AbstractDictVerifiedPaymentTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRDNCodeLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealEmailAddress;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -35,6 +33,8 @@ public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends Abstra
 		callAndStopOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
+		callAndStopOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
+		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
 	}
 
 }
