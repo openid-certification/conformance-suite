@@ -1,27 +1,24 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
-
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.productsNServices.ProductsNServicesApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.CommonApiTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
-
 @PublishTestPlan(
-	testPlanName = "ProductsNServices api test",
+	testPlanName = "Common api test",
 	profile = OBBProfile.OBB_PROFIlE_PHASE1,
-	displayName = PlanNames.PRODUCTS_N_SERVICES_API_TEST_PLAN,
-	summary = "Structural and logical tests for OpenBanking Brasil-conformant ProductsNServices API"
+	displayName = PlanNames.COMMON_API_TEST_PLAN,
+	summary = "Structural and logical tests for OpenBanking Common API"
 )
-public class ProductsNServicesApiTestPlan implements TestPlan {
+public class CommonApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					ProductsNServicesApiTestModule.class
-
+					CommonApiTestModule.class
 				),
 				List.of(
 					new Variant(ClientAuthType.class, "none")

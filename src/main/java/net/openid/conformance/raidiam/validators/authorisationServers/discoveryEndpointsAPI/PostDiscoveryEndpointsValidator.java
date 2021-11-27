@@ -30,8 +30,7 @@ public class PostDiscoveryEndpointsValidator extends AbstractJsonAssertingCondit
 		assertField(body,
 			new StringField
 				.Builder("ApiEndpoint")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());

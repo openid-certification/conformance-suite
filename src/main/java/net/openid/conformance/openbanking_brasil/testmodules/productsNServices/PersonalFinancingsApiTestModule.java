@@ -1,0 +1,28 @@
+package net.openid.conformance.openbanking_brasil.testmodules.productsNServices;
+
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.productsNServices.financings.PersonalFinancingsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
+import net.openid.conformance.testmodule.PublishTestModule;
+
+@PublishTestModule(
+	testName = "ProductsNServices Personal Financings API test",
+	displayName = "Validate structure of ProductsNServices Personal Financings Api resources",
+	summary = "Validate structure of ProductsNServices Personal Financings Api resources",
+	profile = OBBProfile.OBB_PROFIlE_PHASE1
+)
+public class PersonalFinancingsApiTestModule extends AbstractNoAuthFunctionalTestModule {
+
+	@Override
+	protected void runTests() {
+		runInBlock("Validate ProductsNServices Personal Financings response", () -> {
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-financings");
+			preCallResource();
+			callAndContinueOnFailure(DoNotStopOnFailure.class);
+			callAndContinueOnFailure(PersonalFinancingsValidator.class, Condition.ConditionResult.FAILURE);
+		});
+	}
+}

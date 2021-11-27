@@ -1,0 +1,114 @@
+{
+    "requestTime": "2021-08-20T08:30:00Z",
+    "data": {},
+    "brand": {
+        "name": "EMPRESA",
+        "companies": {
+            "name": "EMPRESA Seguros",
+            "cnpjNumber": "45086338000178",
+            "products": [
+                {
+                    "name": "Nome comercial do Produto",
+                    "code": "123456789_cap",
+                    "modality": "PENSAO_PRAZO_CERTO",
+                    "coverages": [
+                        {
+                            "coverage": "INVALIDEZ",
+                            "coveragesAttributes": {
+                                "indenizationPaymentMethod": "Pagamento Único",
+                                "minValue": {
+                                    "amount": 0,
+                                    "unit": {
+                                        "code": "string",
+                                        "description": "string"
+                                    }
+                                },
+                                "maxValue": {
+                                    "amount": 0,
+                                    "unit": {
+                                        "code": "string",
+                                        "description": "string"
+                                    }
+                                },
+                                "indemnifiablePeriod": "PRAZO",
+                                "indemnifiableDeadline": 48,
+                                "currency": "BRL",
+                                "gracePeriod": {
+                                    "amount": 0,
+                                    "unit": "DIAS"
+                                },
+                                "excludedRisk": [
+                                    "ATO_RECONHECIMENTO_PERIGOSO"
+                                ],
+                                "excludedRiskURL": "string"
+                            },
+                            "coveragePeriod": "VITALICIA"
+                        }
+                    ],
+                    "additional": "SORTEIO",
+                    "additionalOthers": "string",
+                    "assistanceType": [
+                        "FUNERAL"
+                    ],
+                    "assistanceTypeOthers": [
+                        "string"
+                    ],
+                    "termAndCondition": [
+                        {
+                            "susepProcessNumber": "15414.622222/2222-22",
+                            "definition": "wwww.seguradora.com.br/termos"
+                        }
+                    ],
+                    "updatePMBaC": {
+                        "interestRate": 14,
+                        "updateIndex": "IGPM"
+                    },
+                    "premiumUpdateIndex": "IPCA",
+                    "ageReframing": {
+                        "reframingCriterion": "APOS_PERIODO_ANOS",
+                        "reframingPeriodicity": 10
+                    },
+                    "financialRegimeContractType": "REPARTICAO_SIMPLES",
+                    "reclaim": {
+                        "reclaimTable": [
+                            {
+                                "initialMonthRange": 0,
+                                "finalMonthRange": 0,
+                                "percentage": "string"
+                            }
+                        ],
+                        "differentiatedPercentage": "string",
+                        "gracePeriod": "20/Não se aplica"
+                    },
+                    "otherGuarateedValues": "SALDAMENTO",
+                    "profitModality": "PAGAMENTO_UNICO",
+                    "contributionPayment": {
+                        "contributionPaymentMethod": [
+                            "DEBITO_CONTA"
+                        ],
+                        "contributionPeriodicity": [
+                            "MENSAL"
+                        ]
+                    },
+                    "contributionTax": "string",
+                    "minimumRequirements": {
+                        "minRequirementsContractType": "INDIVIDUAL",
+                        "minRequirementsContract": "wwww.seguradora.com.br/termos"
+                    },
+                    "targetAudience": "PESSOA_JURIDICA"
+                }
+            ]
+        }
+    },
+    "linksPaginated": {
+        "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.organizacao.com.br/open-insurance/products-services/v1"
+    },
+    "metaPaginated": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

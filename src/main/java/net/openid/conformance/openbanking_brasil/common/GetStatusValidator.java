@@ -19,7 +19,7 @@ import java.util.Set;
  * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
-@ApiName("Admin Api GET Status")
+@ApiName("Common Api GET Status")
 public class GetStatusValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> CODE = Sets.newHashSet("OK", "PARTIAL_FAILURE", "UNAVAILABLE", "SCHEDULED_OUTAGE");

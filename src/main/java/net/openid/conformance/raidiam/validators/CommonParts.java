@@ -477,37 +477,22 @@ public class CommonParts {
 				.setOptional()
 				.build());
 	}
+
 	private void assertPageable(JsonObject page) {
-					validator.assertField(page,
-						new IntField
-							.Builder("number")
-							.setOptional()
-							.build());
+		validator.assertField(page, new IntField.Builder("number").setOptional().build());
 
-					validator.assertField(page,
-						new ObjectField
-							.Builder("sort")
-							.setValidator(this::assertSort)
-							.setOptional()
-							.build());
+		validator.assertField(page,
+			new ObjectField
+				.Builder("sort")
+				.setValidator(this::assertSort)
+				.setOptional()
+				.build());
 
-					validator.assertField(page,
-						new IntField
-							.Builder("size")
-							.setOptional()
-							.build());
+		validator.assertField(page, new IntField.Builder("size").setOptional().build());
 
-					validator.assertField(page,
-						new IntField
-							.Builder("offset")
-							.setOptional()
-							.build());
+		validator.assertField(page, new IntField.Builder("offset").setOptional().build());
 
-					validator.assertField(page,
-						new BooleanField
-							.Builder("sorted")
-							.setOptional()
-							.build());
+		validator.assertField(page, new BooleanField.Builder("sorted").setOptional().build());
 	}
 
 	private void assertSort(JsonObject sort) {
@@ -770,7 +755,7 @@ public class CommonParts {
 			new StringField
 				.Builder("EmailAddress")
 				.setMaxLength(255)
-				//.setPattern("^(.{1,}@[^.]{1,}).*") TODO: Pattern is not work
+				.setPattern("^(.{1,}@[^.]{1,}).*")
 				.setOptional()
 				.build());
 
@@ -870,8 +855,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("CustomerFriendlyLogoUri")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*\\.(svg)$")
-				//Pattern is'nt work cos in json example we have this - ex.  "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*\\.(svg)$")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -886,8 +870,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("DeveloperPortalUri")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this ex. "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -895,8 +878,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("TermsOfServiceUri")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - ex.  "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -904,8 +886,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("NotificationWebhook")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - ex.  "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -920,8 +901,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("OpenIDDiscoveryDocument")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - ex.  "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -929,8 +909,7 @@ public class CommonParts {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("PayloadSigningCertLocationUri")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - ex.  "ApiEndpoint": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -985,8 +964,7 @@ public class CommonParts {
 					validator.assertField(content,
 						new StringField
 							.Builder("ApiEndpoint")
-							//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-							//Pattern is'nt work cos in json example we have this - "ApiEndpoint": "string"
+							.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 							.setMaxLength(255)
 							.setOptional()
 							.build());
@@ -1060,7 +1038,7 @@ public class CommonParts {
 			new StringField
 				.Builder("PolicyUri")
 				.setMaxLength(255)
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setOptional()
 				.build());
 
@@ -1068,7 +1046,7 @@ public class CommonParts {
 			new StringField
 				.Builder("ClientUri")
 				.setMaxLength(255)
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setOptional()
 				.build());
 
@@ -1076,14 +1054,14 @@ public class CommonParts {
 			new StringField
 				.Builder("LogoUri")
 				.setMaxLength(255)
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setOptional()
 				.build());
 
 		validator.assertField(softwareDetails,
 			new StringArrayField
 				.Builder("RedirectUri")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -1092,7 +1070,7 @@ public class CommonParts {
 			new StringField
 				.Builder("TermsOfServiceUri")
 				.setMaxLength(255)
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setOptional()
 				.build());
 

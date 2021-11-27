@@ -1,4 +1,4 @@
 {
     "ApiDiscoveryId": "string",
-    "ApiEndpoint": "string"
+    "ApiEndpoint": "http://string"
 }

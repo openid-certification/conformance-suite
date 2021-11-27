@@ -10,14 +10,10 @@ import net.openid.conformance.variant.VariantParameters;
 
 @VariantParameters({
 	ClientAuthType.class,
-
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "none",
 	configurationFields = {
-	"server.discoveryUrl",
-	"resource.brazilCpf",
-	"resource.resourceUrl",
-	"resource.consentUrl"
+	"resource.resourceUrl"
 })
 public abstract class AbstractNoAuthFunctionalTestModule extends AbstractBlockLoggingTestModule {
 
@@ -44,12 +40,10 @@ public abstract class AbstractNoAuthFunctionalTestModule extends AbstractBlockLo
 		setStatus(Status.RUNNING);
 		runTests();
 		fireTestFinished();
-
 	}
 
 	protected void preCallResource() {
 		callAndStopOnFailure(CallResource.class);
-
 	}
 
 	protected abstract void runTests();
