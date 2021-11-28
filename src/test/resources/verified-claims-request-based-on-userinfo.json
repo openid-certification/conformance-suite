@@ -1,0 +1,30 @@
+{
+    "claims": {
+        "userinfo": {
+            "verified_claims": {
+                "claims": {
+                    "birthdate": null,
+                    "given_name": null,
+                    "family_name": null
+                },
+                "verification": {
+                    "trust_framework": {
+                        "value": "de_aml"
+                    },
+                    "evidence": [
+                        {
+                            "type": {
+                                "value": "id_document"
+                            }
+                        },
+                        {
+                            "type": {
+                                "value": "utility_bill"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

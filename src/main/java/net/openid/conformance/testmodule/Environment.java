@@ -125,6 +125,19 @@ public class Environment {
 		return putObject(key, new JsonParser().parse(json).getAsJsonObject());
 	}
 
+	public void putObjectFromJsonString(String key, String path, String json) {
+		if (path.contains(".")) {
+			throw new IllegalArgumentException("putObjectFromJsonString does not support '.' separated paths");
+		}
+		JsonObject newObj = new JsonParser().parse(json).getAsJsonObject();
+		JsonObject o = getObject(key);
+		if (o == null) {
+			o = new JsonObject();
+			putObject(key, o);
+		}
+		o.add(path, newObj);
+	}
+
 	/**
 	 * Get a sub-element from a JSON object within the environment, if that object exists. Any
 	 * JSON element can be returned from this function, including objects, arrays, literals, and
