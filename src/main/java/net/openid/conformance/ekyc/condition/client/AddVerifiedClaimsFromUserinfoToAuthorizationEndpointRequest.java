@@ -14,7 +14,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 
 
 	@Override
-	@PreEnvironment(required = {"server", "config", "authorization_endpoint_request"})
+	@PreEnvironment(required = {"config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonElement userinfo = env.getElementFromObject("config", "ekyc_userinfo");
