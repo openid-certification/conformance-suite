@@ -2,6 +2,7 @@ package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.networknt.schema.ValidationMessage;
 import com.tananaev.jsonpatch.JsonPatch;
 import com.tananaev.jsonpatch.JsonPatchFactory;
 import net.openid.conformance.condition.Condition;
@@ -17,7 +18,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
+import static net.openid.conformance.ekyc.condition.client.AbstractValidateAgainstSchema.checkRequestSchema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -43,6 +46,14 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		env.putObject("authorization_endpoint_request", new JsonObject());
 		cond.execute(env);
 		JsonObject result = env.getObject("authorization_endpoint_request");
+
+		Set<ValidationMessage> errors = checkRequestSchema(result.get("claims").toString());
+		if (!errors.isEmpty()) {
+			for (ValidationMessage error: errors) {
+				System.out.println("RequestJsonSchemaError: " + error.toString());
+			}
+		}
+		assertThat(errors.size()).isEqualTo(0);
 
 		String expectedJson = IOUtils.resourceToString(expectedRequestFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
 		JsonObject expected = (JsonObject) new JsonParser().parse(expectedJson);
