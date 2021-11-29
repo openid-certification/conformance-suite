@@ -1,0 +1,37 @@
+{
+    "data": {
+        "loggedUser": {
+            "document": {
+                "identification": "76109277673",
+                "rel": "CPF"
+            }
+        },
+        "creditor": {
+            "personType": "PESSOA_NATURAL",
+            "cpfCnpj": "48847377765",
+            "name": "Marco Antonio de Brito"
+        },
+        "payment": {
+            "type": "PIX",
+            "date": "2021-01-01",
+            "currency": "BRL",
+            "amount": "20201.00",
+            "details": {
+                "localInstrument": "QRDN",
+                "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                "creditorAccount": {
+                    "ispb": "12345678",
+                    "issuer": "1774",
+                    "number": "1234567890",
+                    "accountType": "CACC"
+                }
+            }
+        },
+        "debtorAccount": {
+            "ispb": "12345678",
+            "issuer": "6272",
+            "number": "94088392",
+            "accountType": "CACC"
+        }
+    }
+}

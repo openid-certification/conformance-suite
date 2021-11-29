@@ -8,7 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRDNC
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.CreatePaymentRequestEntityClaimsFromQrdnConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SelectPaymentConsentWithQrdnCode;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SelectQRDNCodePixLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.ValidateQrCodeOnQrdnConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.ValidateQrdnConfig;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -55,6 +55,6 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 	protected void configureDictInfo() {
 		callAndStopOnFailure(SelectQRDNCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectQRDNCodePixLocalInstrument.class);
-		callAndStopOnFailure(ValidateQrCodeOnQrdnConfig.class);
+		callAndStopOnFailure(ValidateQrdnConfig.class);
 	}
 }

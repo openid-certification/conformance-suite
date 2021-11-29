@@ -23,7 +23,6 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 			throw error("As 'payments' is included in the 'scope' within the test configuration, a payment consent request JSON object must also be provided in the test configuration.");
 		}
 
-//		JsonObject paymentData = (JsonObject) paymentConsent.get("data");
 		JsonObject paymentData = get(paymentConsent, "data");
 		JsonObject paymentObject = get(paymentData, "payment");
 		JsonObject paymentDetails = get(paymentObject, "details");
