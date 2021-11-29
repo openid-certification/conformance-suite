@@ -103,6 +103,10 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
 		// JSON array containing all identity document types utilized by the OP for identity verification.
 		JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
+		if (documentsSupportedElement == null) {
+			// FIXME: workaround for yes.com having this value as it doesn't support ID3
+			documentsSupportedElement = opMetadata.get("id_documents_supported");
+		}
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
 			if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
@@ -138,6 +142,10 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		//documents_methods_supported: OPTIONAL. JSON array containing the validation &
 		// verification process the OP supports (see @!predefined_values)
 		JsonElement docMethodsSupportedElement = opMetadata.get("documents_methods_supported");
+		if (docMethodsSupportedElement == null) {
+			// FIXME: workaround for yes.com having this value as it doesn't support ID3
+			docMethodsSupportedElement = opMetadata.get("id_documents_verification_methods_supported");
+		}
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
 			if (evidence.get("type").equals(new JsonPrimitive("document")) ||
