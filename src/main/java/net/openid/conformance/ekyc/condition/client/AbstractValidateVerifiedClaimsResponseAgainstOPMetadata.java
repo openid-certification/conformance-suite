@@ -143,6 +143,9 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 			if (evidence.get("type").equals(new JsonPrimitive("document")) ||
 				evidence.get("type").equals(new JsonPrimitive("id_document"))) {
 				JsonElement method = evidence.get("method");
+				if (method == null) {
+					continue;
+				}
 
 				if(docMethodsSupportedElement==null) {
 					throw error("Evidence document method is " + method + " but documents_methods_supported could not be found in OP metadata");
