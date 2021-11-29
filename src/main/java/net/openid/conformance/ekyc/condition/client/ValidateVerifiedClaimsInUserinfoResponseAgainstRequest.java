@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest extends AbstractValidateVerifiedClaimsAgainstRequest {
 
 	@Override
-	@PreEnvironment(required = {"server", "authorization_endpoint_request", "verified_claims_response"})
+	@PreEnvironment(required = {"authorization_endpoint_request", "verified_claims_response"})
 	public Environment evaluate(Environment env) {
 		JsonElement verifiedClaimsElementFromResponse = env.getElementFromObject("verified_claims_response", "userinfo");
 		JsonElement requestedVerifiedClaimsElement = env.getElementFromObject("authorization_endpoint_request", "claims.userinfo.verified_claims");

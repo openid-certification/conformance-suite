@@ -1,0 +1,29 @@
+{
+  "claims": {
+    "place_of_birth": null,
+    "dogname": null,
+    "birthdate": null,
+    "address": null,
+    "nationalities": null,
+    "given_name": null,
+    "family_name": null
+  },
+  "verification": {
+    "trust_framework": {
+      "value": "de_aml"
+    },
+    "verification_process": {
+      "value": "7df98de2-8834-48fb-b817-ee087cad8497"
+    },
+    "evidence": [
+      {
+        "type": {
+          "value": "id_document"
+        },
+        "document": {
+          "type": null
+        }
+      }
+    ]
+  }
+}

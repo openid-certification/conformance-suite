@@ -2,6 +2,7 @@ package net.openid.conformance.testmodule;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -10,6 +11,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -121,21 +123,41 @@ public class Environment {
 		return store.put(getEffectiveKey(key), value);
 	}
 
-	public JsonObject putObjectFromJsonString(String key, String json) {
-		return putObject(key, new JsonParser().parse(json).getAsJsonObject());
-	}
-
-	public void putObjectFromJsonString(String key, String path, String json) {
-		if (path.contains(".")) {
-			throw new IllegalArgumentException("putObjectFromJsonString does not support '.' separated paths");
-		}
-		JsonObject newObj = new JsonParser().parse(json).getAsJsonObject();
+	public void putObject(String key, String path, JsonObject value) {
 		JsonObject o = getObject(key);
 		if (o == null) {
 			o = new JsonObject();
 			putObject(key, o);
 		}
-		o.add(path, newObj);
+
+		ArrayList<String> pathSegments = Lists.newArrayList(Splitter.on('.').split(path));
+		int lastIndex = pathSegments.size() - 1;
+		String lastSegment = pathSegments.get(lastIndex);
+		pathSegments.remove(lastIndex);
+
+		for (String pathSegment: pathSegments) {
+			JsonElement nextO = o.get(pathSegment);
+			if (nextO == null) {
+				nextO = new JsonObject();
+				o.add(pathSegment, nextO);
+			} else if (nextO.isJsonObject()) {
+				// object already exists
+			} else {
+				throw new UnexpectedTypeException(String.format("putObject(%s, %s, obj) found a non-object of type %s in the path at %s",
+					key, path, nextO.getClass().getSimpleName(), pathSegment));
+			}
+			o = (JsonObject) nextO;
+		}
+		o.add(lastSegment, value);
+	}
+
+	public JsonObject putObjectFromJsonString(String key, String json) {
+		return putObject(key, new JsonParser().parse(json).getAsJsonObject());
+	}
+
+	public void putObjectFromJsonString(String key, String path, String json) {
+		JsonObject newObj = new JsonParser().parse(json).getAsJsonObject();
+		putObject(key, path, newObj);
 	}
 
 	/**
