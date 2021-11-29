@@ -11,6 +11,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+// FIXME rename to AddVerifiedClaimsRequestToRequestSuppliedUserDataToAuthorizationEndpointRequest ?
 public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEndpointRequest extends AbstractCondition {
 
 
