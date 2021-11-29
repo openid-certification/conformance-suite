@@ -27,6 +27,8 @@ m2
 .idea/**/dictionaries
 .idea/**/shelf
 
+.idea/sonarlint
+
 # Sensitive or high-churn files
 .idea/**/dataSources/
 .idea/**/dataSources.ids
