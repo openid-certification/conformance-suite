@@ -4,11 +4,9 @@ import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OpenBankingBrazilPreAuthorizationErrorAgnosticSteps;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OptionallyAllow201Or422;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRDNCodeLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.CreatePaymentRequestEntityClaimsFromQrdnConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SelectPaymentConsentWithQrdnCode;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SelectQRDNCodePixLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.ValidateQrdnConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -42,7 +40,8 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 	protected ConditionSequence createOBBPreauthSteps() {
 		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		ConditionSequence steps = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication)
-			.replace(FAPIBrazilCreatePaymentConsentRequest.class, condition(SelectPaymentConsentWithQrdnCode.class));
+			.replace(FAPIBrazilCreatePaymentConsentRequest.class, condition(SelectPaymentConsentWithQrdnCode.class))
+			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class));
 		return steps;
 	}
 
