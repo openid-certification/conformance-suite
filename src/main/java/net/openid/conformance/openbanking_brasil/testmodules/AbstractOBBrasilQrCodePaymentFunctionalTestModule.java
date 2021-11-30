@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForAcceptedStatus;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -17,6 +18,14 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);
 		configureDictInfo();
+	}
+
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+		ConditionSequence steps = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication)
+			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class));
+		return steps;
 	}
 
 	@Override
