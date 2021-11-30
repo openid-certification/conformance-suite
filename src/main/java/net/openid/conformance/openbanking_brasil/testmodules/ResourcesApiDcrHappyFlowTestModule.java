@@ -1,9 +1,12 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.common.base.Strings;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -33,6 +36,32 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule
 		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
 		super.configureClient();
+	}
+
+	@Override
+	protected void requestProtectedResource() {
+		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
+
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
+		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
+		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+
+		String responseError = env.getString("resource_endpoint_error_code");
+		if (!Strings.isNullOrEmpty(responseError)) {
+			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(EnsureResponseCodeWas404.class);
+			callAndStopOnFailure(CustomerDataResources404.class);
+			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
+		}
+
+		eventLog.endBlock();
 	}
 
 }
