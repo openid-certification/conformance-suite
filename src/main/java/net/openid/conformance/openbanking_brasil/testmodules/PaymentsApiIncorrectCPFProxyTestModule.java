@@ -34,6 +34,7 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractDictVerified
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
 		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
+		callAndContinueOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
