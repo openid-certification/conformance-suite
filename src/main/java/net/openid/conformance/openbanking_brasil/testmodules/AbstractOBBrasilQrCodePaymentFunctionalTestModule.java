@@ -13,6 +13,7 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		eventLog.startBlock("Setting date to today");
 		env.putBoolean("consent_rejected", false);
+		env.putString("proceed_with_test", "proceed");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
