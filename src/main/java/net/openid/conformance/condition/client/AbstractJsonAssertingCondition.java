@@ -40,6 +40,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private boolean logOnlyFailure;
 	private boolean dontStopOnFailure;
 	private int totalElements;
+	private int errorCount;
 
 	@Override
 	public abstract Environment evaluate(Environment environment);
@@ -94,7 +95,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		if (dontStopOnFailure) {
 			try {
 				assertElement(jsonObject, field);
-			} catch (ConditionError ignored) {}
+			} catch (ConditionError ignored) {errorCount++;}
 		} else {
 			assertElement(jsonObject, field);
 		}
@@ -121,6 +122,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 
 		if (field instanceof ObjectField) {
+			@SuppressWarnings("PMD.UnusedLocalVariable")
+			JsonObject object = null;
+			try {
+				object = (JsonObject)  elementByPath;
+			} catch (ClassCastException exception) {
+				throw error(createObjectClassCastExpMessage(field.getPath()));
+			}
 			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
 
 		} else if (field instanceof ObjectArrayField) {
@@ -128,12 +136,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			try {
 				array = (JsonArray)  elementByPath;
 			} catch (ClassCastException exception) {
-				if (dontStopOnFailure) {
-					logFailure(createClassCastExpMessage(field.getPath()), (JsonObject) elementByPath);
-					return;
-				} else {
-					throw exception;
-				}
+				throw error(createArrayClassCastExpMessage(field.getPath()));
 			}
 			assertMinAndMaxItems(array.getAsJsonArray(), field);
 			array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
@@ -382,6 +385,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	protected void logFinalStatus() {
 		logSuccess(createTotalElementsFoundMessage(totalElements));
+		if (errorCount > 0) {
+			throw error(createTotalErrorsFoundMessage(errorCount));
+		}
 	}
 	private void logElementFound(String elementName) {
 		if (!logOnlyFailure) {
@@ -424,9 +430,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
 		}
 	}
-	public String createClassCastExpMessage(String elementName) {
-		return String.format("Class cast exception, expect JsonArray: %s on the %s API " +
-				"response",	elementName, getApiName());
+
+	public String createObjectClassCastExpMessage(String elementName) {
+		return String.format("Class cast exception, expect JsonObject, but found JsonArray. " +
+			"Field: %s on the %s API response",	elementName, getApiName());
+	}
+
+	public String createArrayClassCastExpMessage(String elementName) {
+		return String.format("Class cast exception, expect JsonArray, but found JsonObject. " +
+			"Field: %s on the %s API response",	elementName, getApiName());
 	}
 	public String createQueryMessage(String elementName) {
 		return String.format("Looking up %s on the %s API response", elementName, getApiName());
@@ -435,7 +447,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		return String.format("Successfully validated %d elements on the %s API response",
 			totalElements, getApiName());
 	}
-
+	public String createTotalErrorsFoundMessage(int totalElements) {
+		return String.format("Found %d errors on the %s API response", totalElements, getApiName());
+	}
 	public String createElementCantBeNullMessage(String elementName) {
 		return String.format("Field %s cant be null on the %s API response", elementName, getApiName());
 	}

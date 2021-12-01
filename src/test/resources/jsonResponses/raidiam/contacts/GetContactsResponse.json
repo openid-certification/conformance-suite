@@ -28,7 +28,7 @@
             "FirstName": "string",
             "LastName": "string",
             "Department": "string",
-            "EmailAddress": "string",
+            "EmailAddress": "string@mail.com",
             "PhoneNumber": "string",
             "AddressLine1": "string",
             "AddressLine2": "string",

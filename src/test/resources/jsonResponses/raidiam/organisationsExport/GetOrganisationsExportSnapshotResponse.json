@@ -31,7 +31,7 @@
                 "FirstName": "string",
                 "LastName": "string",
                 "Department": "string",
-                "EmailAddress": "string",
+                "EmailAddress": "string@mail.com",
                 "PhoneNumber": "string",
                 "AddressLine1": "string",
                 "AddressLine2": "string",
@@ -56,20 +56,20 @@
                         "ApiDiscoveryEndpoints": [
                             {
                                 "ApiDiscoveryId": "string",
-                                "ApiEndpoint": "string"
+                                "ApiEndpoint": "http://string"
                             }
                         ]
                     }
                 ],
                 "CustomerFriendlyDescription": "string",
-                "CustomerFriendlyLogoUri": "string",
+                "CustomerFriendlyLogoUri": "http://string.svg",
                 "CustomerFriendlyName": "string",
-                "DeveloperPortalUri": "string",
-                "TermsOfServiceUri": "string",
-                "NotificationWebhook": "string",
+                "DeveloperPortalUri": "http://string",
+                "TermsOfServiceUri": "http://string",
+                "NotificationWebhook": "http://string",
                 "NotificationWebhookStatus": "Pending",
-                "OpenIDDiscoveryDocument": "string",
-                "PayloadSigningCertLocationUri": "string",
+                "OpenIDDiscoveryDocument": "http://string",
+                "PayloadSigningCertLocationUri": "http://string",
                 "ParentAuthorisationServerId": "string"
             }
         ],
@@ -116,13 +116,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -176,13 +176,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -236,13 +236,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -345,7 +345,7 @@
                 "FirstName": "string",
                 "LastName": "string",
                 "Department": "string",
-                "EmailAddress": "string",
+                "EmailAddress": "string@mail.com",
                 "PhoneNumber": "string",
                 "AddressLine1": "string",
                 "AddressLine2": "string",
@@ -370,20 +370,20 @@
                         "ApiDiscoveryEndpoints": [
                             {
                                 "ApiDiscoveryId": "string",
-                                "ApiEndpoint": "string"
+                                "ApiEndpoint": "http://string"
                             }
                         ]
                     }
                 ],
                 "CustomerFriendlyDescription": "string",
-                "CustomerFriendlyLogoUri": "string",
+                "CustomerFriendlyLogoUri": "http://string.svg",
                 "CustomerFriendlyName": "string",
-                "DeveloperPortalUri": "string",
-                "TermsOfServiceUri": "string",
-                "NotificationWebhook": "string",
+                "DeveloperPortalUri": "http://string",
+                "TermsOfServiceUri": "http://string",
+                "NotificationWebhook": "http://string",
                 "NotificationWebhookStatus": "Pending",
-                "OpenIDDiscoveryDocument": "string",
-                "PayloadSigningCertLocationUri": "string",
+                "OpenIDDiscoveryDocument": "http://string",
+                "PayloadSigningCertLocationUri": "http://string",
                 "ParentAuthorisationServerId": "string"
             }
         ],
@@ -430,13 +430,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -490,13 +490,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -550,13 +550,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -659,7 +659,7 @@
                 "FirstName": "string",
                 "LastName": "string",
                 "Department": "string",
-                "EmailAddress": "string",
+                "EmailAddress": "string@mail.com",
                 "PhoneNumber": "string",
                 "AddressLine1": "string",
                 "AddressLine2": "string",
@@ -684,20 +684,20 @@
                         "ApiDiscoveryEndpoints": [
                             {
                                 "ApiDiscoveryId": "string",
-                                "ApiEndpoint": "string"
+                                "ApiEndpoint": "http://string"
                             }
                         ]
                     }
                 ],
                 "CustomerFriendlyDescription": "string",
-                "CustomerFriendlyLogoUri": "string",
+                "CustomerFriendlyLogoUri": "http://string.svg",
                 "CustomerFriendlyName": "string",
-                "DeveloperPortalUri": "string",
-                "TermsOfServiceUri": "string",
-                "NotificationWebhook": "string",
+                "DeveloperPortalUri": "http://string",
+                "TermsOfServiceUri": "http://string",
+                "NotificationWebhook": "http://string",
                 "NotificationWebhookStatus": "Pending",
-                "OpenIDDiscoveryDocument": "string",
-                "PayloadSigningCertLocationUri": "string",
+                "OpenIDDiscoveryDocument": "http://string",
+                "PayloadSigningCertLocationUri": "http://string",
                 "ParentAuthorisationServerId": "string"
             }
         ],
@@ -744,13 +744,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -804,13 +804,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"
@@ -864,13 +864,13 @@
                     "Mode": "Live",
                     "RtsClientCreated": true,
                     "OnBehalfOf": "string",
-                    "PolicyUri": "string",
-                    "ClientUri": "string",
-                    "LogoUri": "string",
+                    "PolicyUri": "http://string.com",
+                    "ClientUri": "http://string.com",
+                    "LogoUri": "http://string.com",
                     "RedirectUri": [
-                        "string"
+                        "http://string.com"
                     ],
-                    "TermsOfServiceUri": "string",
+                    "TermsOfServiceUri": "http://string",
                     "Version": 0,
                     "Locked": true,
                     "AdditionalSoftwareMetadata": "string"

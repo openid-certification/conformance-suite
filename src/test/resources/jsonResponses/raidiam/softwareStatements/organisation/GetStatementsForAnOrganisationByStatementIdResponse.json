@@ -9,13 +9,13 @@
     "Mode": "Live",
     "RtsClientCreated": true,
     "OnBehalfOf": "string",
-    "PolicyUri": "string",
-    "ClientUri": "string",
-    "LogoUri": "string",
+    "PolicyUri": "http://string.com",
+    "ClientUri": "http://string.com",
+    "LogoUri": "http://string.com",
     "RedirectUri": [
-        "string"
+        "http://string.com"
     ],
-    "TermsOfServiceUri": "string",
+    "TermsOfServiceUri": "http://string",
     "Version": 0,
     "Locked": true,
     "AdditionalSoftwareMetadata": "string"

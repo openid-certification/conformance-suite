@@ -16,7 +16,7 @@ import net.openid.conformance.util.field.StringField;
  * Api git hash: ba747ce30bdf7208a246ebf1e8a2313f85263d91
  *
  */
-@ApiName("Admin Api GET Outages")
+@ApiName("Common Api GET Outages")
 public class GetOutagesValidator extends AbstractJsonAssertingCondition {
 
 	@Override

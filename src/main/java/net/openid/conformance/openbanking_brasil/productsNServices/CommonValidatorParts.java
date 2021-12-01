@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.openbanking_brasil.CommonFields;
+import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
@@ -17,6 +18,7 @@ public class CommonValidatorParts {
 		"FLUTUANTES_CDI", "FLUTUANTES_SELIC", "OUTRAS_TAXAS_FLUTUANTES", "INDICES_PRECOS_IGPM",
 		"INDICES_PRECOS_IPCA", "INDICES_PRECOS_IPCC", "OUTROS_INDICES_PRECO", "CREDITO_RURAL_TCR_PRE",
 		"CREDITO_RURAL_TCR_POS", "CREDITO_RURAL_TRFC_PRE", "CREDITO_RURAL_TRFC_POS", "OUTROS_INDEXADORES");
+	public static final Set<String> UNITS = Sets.newHashSet("DIAS", "MESES", "NAO_SE_APLICA");
 
 	private static class Fields extends CommonFields {}
 
@@ -180,5 +182,45 @@ public class CommonValidatorParts {
 	private void assertInnerFieldsMinimumAndMaximum(JsonObject jsonObject) {
 		validator.assertField(jsonObject, Fields.value().build());
 		validator.assertField(jsonObject, Fields.currency().build());
+	}
+
+	public void assertValue(JsonObject minValue) {
+		validator.assertField(minValue,
+			new IntField
+				.Builder("amount")
+				.build());
+
+		validator.assertField(minValue,
+			new ObjectField
+				.Builder("unit")
+				.setValidator(this::assertUnit)
+				.build());
+	}
+
+	public void assertUnit(JsonObject unit) {
+		validator.assertField(unit,
+			new StringField
+				.Builder("code")
+				.build());
+
+		validator.assertField(unit,
+			new StringField
+				.Builder("description")
+				.build());
+	}
+
+	public void assertGracePeriod(JsonObject gracePeriod) {
+		validator.assertField(gracePeriod,
+			new IntField
+				.Builder("amount")
+				.setOptional()
+				.build());
+
+		validator.assertField(gracePeriod,
+			new StringField
+				.Builder("unit")
+				.setEnums(UNITS)
+				.setOptional()
+				.build());
 	}
 }

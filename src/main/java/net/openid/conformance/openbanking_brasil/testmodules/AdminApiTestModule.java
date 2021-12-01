@@ -10,18 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "admin-api-test",
 	displayName = "Validate structure of admin API resources",
 	summary = "Validates the structure of admin API resources",
-	profile = OBBProfile.OBB_PROFILE,
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.jwks",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
-	}
+	profile = OBBProfile.OBB_PROFILE
 )
 public class AdminApiTestModule extends AbstractNoAuthFunctionalTestModule {
 

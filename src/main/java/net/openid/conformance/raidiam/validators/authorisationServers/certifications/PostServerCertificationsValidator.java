@@ -60,8 +60,7 @@ public class PostServerCertificationsValidator extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("CertificationPayloadURI")
-				//.setPattern("^(http:\\/\\/|https:\\/\\/).*")
-				//Pattern is'nt work cos in json example we have this - "CertificationPayloadURI": "string"
+				.setPattern("^(http:\\/\\/|https:\\/\\/).*")
 				.setOptional()
 				.build());
 	}

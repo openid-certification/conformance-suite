@@ -6,6 +6,6 @@
         "Status": "Active",
         "CertificationType": "FAPI-CIBA OP poll w/ MTLS",
         "CertificationVersion": 0,
-        "CertificationPayloadURI": "string"
+        "CertificationPayloadURI": "http://string"
     }
 ]

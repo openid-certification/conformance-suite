@@ -11,20 +11,20 @@
             "ApiDiscoveryEndpoints": [
                 {
                     "ApiDiscoveryId": "string",
-                    "ApiEndpoint": "string"
+                    "ApiEndpoint": "http://string"
                 }
             ]
         }
     ],
     "CustomerFriendlyDescription": "string",
-    "CustomerFriendlyLogoUri": "string",
+    "CustomerFriendlyLogoUri": "http://string.svg",
     "CustomerFriendlyName": "string",
-    "DeveloperPortalUri": "string",
-    "TermsOfServiceUri": "string",
-    "NotificationWebhook": "string",
+    "DeveloperPortalUri": "http://string",
+    "TermsOfServiceUri": "http://string",
+    "NotificationWebhook": "http://string",
     "NotificationWebhookStatus": "Pending",
-    "OpenIDDiscoveryDocument": "string",
-    "PayloadSigningCertLocationUri": "string",
+    "OpenIDDiscoveryDocument": "http://string",
+    "PayloadSigningCertLocationUri": "http://string",
     "ParentAuthorisationServerId": "string"
 }
 
