@@ -1,4 +1,4 @@
-package net.openid.conformance.apis.generic;
+package net.openid.conformance.apis.consent;
 
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.containsString;
 
 @UseResurce("jsonResponses/metaData/goodMetaLinksBodyResponse.json")
 public class EnsureResponseHasLinksTest extends AbstractJsonResponseConditionUnitTest {
-    
+
     @Test
 	public void validateMetaDataAndLinks() {
 		EnsureResponseHasLinks condition = new EnsureResponseHasLinks();
@@ -26,4 +26,4 @@ public class EnsureResponseHasLinksTest extends AbstractJsonResponseConditionUni
 	}
 }
 
-    
+
