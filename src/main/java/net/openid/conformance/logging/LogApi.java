@@ -119,11 +119,20 @@ public class LogApi {
 				TestInfo info = stream.next();
 				writer.print(info.getId());
 				writer.print(",");
-				writer.print(info.getOwner().get("iss"));
+				Map<String, String> owner = info.getOwner();
+				String iss = "UNKNOWN";
+				String sub = "UNKNOWN";
+				if(owner == null) {
+					LOG.info("Owner is null on {}", info.getId());
+				} else {
+					iss = owner.get("iss");
+					sub = owner.get("sub");
+				}
+				writer.print(iss);
 				writer.print(",");
-				writer.print(info.getOwner().get("sub"));
+				writer.print(sub);
 				writer.print(",");
-				writer.print(info.getStatus().toString());
+				writer.print(info.getStatus());
 				writer.print(",");
 				writer.print(info.getResult());
 				writer.print(",");
