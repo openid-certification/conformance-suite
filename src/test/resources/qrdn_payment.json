@@ -12,7 +12,7 @@
             "accountType": "CACC"
         },
         "cnpjInitiator": "60545350000165",
-        "remittanceAdvice":"Pagamento da nota RSTO035-002.",
+        "remittanceInformation":"Pagamento da nota RSTO035-002.",
         "proxy": "12345678902",
         "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73"
     }
