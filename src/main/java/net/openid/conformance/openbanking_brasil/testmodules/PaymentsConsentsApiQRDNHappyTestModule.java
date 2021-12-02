@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentReq
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OpenBankingBrazilPreAuthorizationErrorAgnosticSteps;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OptionallyAllow201Or422;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRDNCodeLocalInstrument;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -52,7 +51,7 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 
 	@Override
 	protected void configureDictInfo() {
-		callAndStopOnFailure(SelectQRDNCodeLocalInstrument.class);
+		callAndStopOnFailure(SelectQRDNCodeLocalInstrumentWithQrdnConfig.class);
 		callAndStopOnFailure(SelectQRDNCodePixLocalInstrument.class);
 		callAndStopOnFailure(ValidateQrdnConfig.class);
 	}

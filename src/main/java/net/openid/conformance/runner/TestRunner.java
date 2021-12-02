@@ -99,6 +99,10 @@ public class TestRunner implements DataUtils {
 	@Value("${fintechlabs.external_url_override:}")
 	public String externalUrlOverride;
 
+
+	@Value("${fintechlabs.devmode:false}")
+	private boolean devMode;
+
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	@Autowired
@@ -485,7 +489,7 @@ public class TestRunner implements DataUtils {
 
 				String message;
 				if (testHasStopped) {
-					message = "Alias has now been claimed by another test";
+					message = devMode ? "\uD83E\uDD21 Alas, has now been claimed by another test" : "Alias has now been claimed by another test";
 				} else {
 					message = "Stopping test due to alias conflict - before this test finished, ";
 					if (oldTestIsOwnedByCurrentUser) {
