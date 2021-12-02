@@ -18,7 +18,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 	public Environment evaluate(Environment env) {
 		JsonObject paymentConsent = (JsonObject) env.getElementFromObject("resource", "brazilQrdnPaymentConsent");
 		String cnpj = OIDFJSON.getString(env.getElementFromObject("resource", "brazilQrdnCnpj"));
-		String remittanceAdvice = OIDFJSON.getString(env.getElementFromObject("resource", "brazilQrdnRemittance"));
+		String remittanceInformation = OIDFJSON.getString(env.getElementFromObject("resource", "brazilQrdnRemittance"));
 		if(paymentConsent == null) {
 			throw error("As 'payments' is included in the 'scope' within the test configuration, a payment consent request JSON object must also be provided in the test configuration.");
 		}
@@ -34,7 +34,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 		data.addProperty("cnpjInitiator", cnpj);
 		data.add("proxy", get(paymentDetails, "proxy"));
 		data.add("qrCode", get(paymentDetails, "qrCode"));
-		data.addProperty("remittanceAdvice", remittanceAdvice);
+		data.addProperty("remittanceInformation", remittanceInformation);
 
 		JsonObject payment = new JsonObject();
 		payment.add("amount",get(paymentObject, "amount"));
