@@ -1,0 +1,701 @@
+openapi: 3.0.0
+info:
+  title: APIs Open Data do Open Insurance Brasil
+  description: 
+    API de informações de Seguro de Automóveis. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.2.2 do manual de escopo de dados.
+  version: 1.0.0
+  contact:
+    url: 'https://http://novosite.susep.gov.br'
+servers:
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Produção
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Homologação  
+tags:
+- name: "auto-insurance"
+paths:
+  /auto-insurance/{commercializationArea}/{fipeCode}/{year}:  
+    get:
+      tags:
+        - auto-insurance
+      summary: Obtém informações de seguros de automóveis
+      description: "Obtém informações de seguros de automóveis"
+      operationId: "getAutoInsurance"
+      parameters:
+        - $ref: "#/components/parameters/cache-Control"
+        - $ref: "#/components/parameters/content-Security-Policy"
+        - $ref: "#/components/parameters/content-Type"
+        - $ref: "#/components/parameters/strict-Transport-Security"
+        - $ref: "#/components/parameters/x-Content-Type-Options"
+        - $ref: "#/components/parameters/x-Frame-Options"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/commercializationArea"
+        - $ref: "#/components/parameters/fipeCode"
+        - $ref: "#/components/parameters/year"
+      responses:
+        '200':
+          description: Dados dos Seguros de Automóveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseAutoInsuranceList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/schemas/ResponseAutoInsuranceList'               
+components:
+  schemas:
+    ResponseAutoInsuranceList:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: object
+          required:
+            - AutoInsuranceBrand
+          properties:
+            brand:
+              $ref: '#/components/schemas/AutoInsuranceBrand'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    AutoInsuranceBrand:
+      type: object
+      required:
+        - name
+        - company
+      properties:
+        name:
+          type: string
+          description: Nome da marca reportada pelo participante do Open Insurance. O conceito a que se refere a marca é em essência uma promessa das sociedades sob ela em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes.
+        company:
+          $ref: '#/components/schemas/AutoInsuranceCompany'  
+    AutoInsuranceCompany:
+      type: array
+      items:
+        description: Informações referente a sociedade a qual a marca pertence.
+        required:
+          - name
+          - cnpjNumber
+          - products
+        properties:
+          name:
+            type: string
+            description: Nome da sociedade pertencente à marca.
+          cnpjNumber:
+            type: string
+            description: CNPJ da sociedade pertencente à marca.
+          products:  
+            type: object
+            description: Lista de Dependências de uma Instituição.
+            $ref: '#/components/schemas/AutoInsuranceProduct'
+    AutoInsuranceProduct:
+      type: array
+      description: Produtos de Seguro de Automóveis.
+      items:
+        type: object
+        required:
+          - name
+          - code
+          - coverages
+          - carParts
+          - carModels
+          - vehicleOvernightZipCode
+          - additional
+          - assistanceServices
+          - termsAndConditions
+          - terms
+          - customerService
+          - premiumPayment
+          - minimumRequirements
+          - targetAudiences
+        properties:
+          name:
+            type: string
+            description: Nome comercial do produto, pelo qual é identificado nos canais de distribuição e atendimento da sociedade.
+          code:
+            type: string
+            description: Código único a ser definido pela sociedade.
+          coverages:
+            $ref: '#/components/schemas/AutoInsuranceCoverage'        
+          carParts:        
+            $ref: '#/components/schemas/AutoInsuranceCarPart'
+          carModels:         
+            $ref: '#/components/schemas/AutoInsuranceCarModel'
+          vehicleOvernightZipCode:
+            type: string
+            description: Área de comercialização do seguro do automóvel.
+            maxLength: 8
+            example: 1311000
+          additional:
+            type: array
+            items:
+              type: string
+              description: Adicionais
+              example: SORTEIO GRATUITO
+              enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK, DESCONTOS, OUTROS]
+          additionalOthers:
+            type: string
+            description: Campo aberto para descrição de cada participante ao selecionar o domínio ‘Outros’ no campo acima ‘Adicionais’
+          assistanceServices:
+            type: array
+            items:
+              $ref: '#/components/schemas/AutoInsuranceAssistanceServices'   
+          termsAndConditions:
+            $ref: '#/components/schemas/AutoInsuranceTermsAndConditions'
+          terms:
+            type: array 
+            description: Prazo.
+            items:
+                type: string
+                example: ANUAL
+                enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL, PLURIANUAL_INTERMITENTE, SEMESTRAL, SEMESTRAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
+          customerService:
+            type: array 
+            description: Rede de atendimento do seguro contratado.
+            items:
+                type: string
+                example: REDE REFERECIADA
+                enum: [REDE_REFERENCIADA , LIVRE_ESCOLHA , REDE_REFERENCIADA_LIVRE_ESCOLHA]  
+          premiumPayment:
+            $ref: '#/components/schemas/AutoInsurancePremiumPayment'      
+          minimumRequirements: 
+            $ref: '#/components/schemas/AutoInsuranceMinimumRequirements'      
+          targetAudiences:
+            type: array 
+            description: Público-alvo.
+            items:
+                type: string         
+                maxLength: 30
+                example: PESSOA_NATURAL
+                enum: [PESSOA_NATURAL, PESSOA_JURIDICA, AMBAS] 
+    AutoInsuranceCoverage:     
+      type: array
+      description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.5 do Anexo II
+      items:
+        type: object
+        required:
+        - coverage
+        - coverageDetail
+        - coverageAttribute
+        properties:
+            coverage:
+              type: string
+              description: Conjunto de riscos elencados na apólice.
+              example: VIDROS
+              enum: [CASCO_COMPREENSIVA_COLISAO_INCENDIO_ROUBO_FURTO, 
+                      CASCO_INCENDIO_ROUBO_FURTO,
+                      CASCO_ROUBO_FURTO,
+                      CASCO_INCENDIO,
+                      CASCO_ALAGAMENTO, 
+                      CASCO_COLISAO_INDENIZACAO_PARCIAL, 
+                      CASCO_COLISAO_INDENIZACAO_INTEGRAL,
+                      RESPONSABILIDADE_CIVIL_FACULTATIVA_VEICULOS_RCFV, 
+                      RESPONSABILIDADE_CIVIL_FACULTATIVA_CONDUTOR_RCFC,
+                      ACIDENTE_PESSOAIS_PASSAGEIROS_VEICULO,
+                      ACIDENTE_PESSOAIS_PASSAGEIROS_CONDUTOR, 
+                      VIDROS,
+                      DIARIA_INDISPONIBILIDADE,
+                      LFR_LANTERNAS_FAROIS_RETROVISORES,
+                      ACESSORIOS_EQUIPAMENTOS,
+                      CARRO_RESERVA,
+                      PEQUENOS_REPAROS, 
+                      RESPONSABILIDADE_CIVIL_CARTA_VERDE,
+                      VOUCHER_MOBILIDADE,
+                      DESPESAS_EXTRAORDINARIAS,
+                      PEQUENOS_REPAROS,
+                      GARANTIA_MECANICA,
+                      OUTRAS]
+            coverageDetail:
+              type: string
+              description: Campo aberto para detalhamento de riscos possíveis dos produtos a ser feito para cada participante.
+              maxLength: 1000
+              example: Roubo total
+            coveragePermissionSeparteAcquisition:
+              type: boolean
+              description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+              example: true
+            coverageAttributes:
+              $ref: '#/components/schemas/AutoInsuranceCoverageAttributes'         
+    AutoInsuranceCovaregeAttibutesDetailsUnit:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code: 
+          type: string
+        description: 
+          type: string
+    AutoInsuranceCovaregeAttibutesDetails:
+        type: object
+        required:
+          - amount
+          - unit
+        properties:
+          amount:
+            type: number
+          unit:
+            $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetailsUnit'
+    AutoInsuranceContractBase:
+      type: array
+      description: Base de contratação.
+      items:
+        type: object
+        required:
+          - contractBaseType
+        properties:
+            contractBaseType:
+              type: string
+              description: Incidência ao capital segurado da cobertura de casco.
+              example: VALOR DETERMINADO
+              enum: [VALOR_DETERMINADO, VALOR_MERCADO, AMBOS]
+            contractBaseMinValue:
+              description: Valor Base de Contratação Mínimo.
+              $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+            contractBaseMaxValue:
+              description: Valor Base de Contratação Máximo.
+              $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+    AutoInsuranceCoverageAttributes:
+      type: object
+      description: Atributos da cobertura.
+      required:
+       - minLMI
+       - maxLMI
+       - contractBase
+       - newCarMaximumCalculatingPeriod
+       - fullIndemnityPercentage
+       - deductibleType
+       - fullIndemnityDeductible
+       - deductiblePaymentByCoverage
+       - deductiblePercentage
+       - mandatoryParticipation
+       - geographicScopeCoverage
+      properties:
+        minLMI:
+          $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+          description: Lista com valor mínimo de LMI aceito pela sociedade para cada cobertura.
+        maxLMI:
+          $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+          description: Lista com valor máximo de LMI aceito pela sociedade para cada cobertura.
+        contractBase:
+          $ref: '#/components/schemas/AutoInsuranceContractBase'
+          description: Veículo Zero Km Base de Contratação
+        newCarMaximumCalculatingPeriod:
+          type: integer
+          description: Prazo máximo para apuração do valor a ser indenizado para veículo zero quilômetro. Em meses.
+          maxLength: 3
+          example: 12
+        newCarContractBase:
+          $ref: '#/components/schemas/AutoInsuranceContractBase'
+          description: Semelhante ao campo “Atributos cobertura - base de contratação” aplicada ao veículo Zero Km. 
+        fullIndemnityPercentage:
+          $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+          description: Percentual do Limite Máximo de Indenização para caracterização de indenização integral.
+          maxLength: 6
+          example: 10.20
+        deductibleType:
+          type: array
+          description: Listagem de tipo de franquia para cada tipo de cobertura do produto.
+          items:
+            type: string
+            example: NORMAL
+            enum: [NORMAL, REDUZIDA, ISENTA, MAJORADA, FLEXIVEL]
+        fullIndemnityDeductible:
+          type: boolean
+          description: Franquia para Indenização Integral.
+          example: true
+        deductiblePaymentByCoverage:
+          type: boolean
+          description: Sinalização para cada cobertura se a seguradora exige pagamento de franquia.
+        deductiblePercentage:
+          $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
+          description: Listagem percentual de franquia e/ou percentual de participação obrigatória do segurado estabelecida pela sociedade para cada tipo de cobertura de produto.
+        mandatoryParticipation:
+          type: string
+          description: Participação Obrigatória do Segurado.
+          maxLength: 300
+          example: Casco - RCF-V Danos 
+        geographicScopeCoverage:
+          type: array
+          description: Listagem de abrangência geográfica do produto para fins de cada cobertura.
+          items:
+            type: string
+            example: NACIONAL
+            enum: [NACIONAL, REGIONAL, INTERNACIONAL, OUTROS_PAISES]
+        geographicScopeCoverageOthers:
+          type: string
+          description: Âmbito geográficoda cobertura - Outros
+    AutoInsuranceMinimumRequirements:
+      type: object
+      description: Produtos de Seguro de Automóvel.
+      required:
+        - contractingType
+        - contractingMinRequirement
+      properties:
+        contractingType:
+          type: array
+          description: Informações sobre todos os requisitos mínimos para contratação.
+          items:
+            type: string
+            example: COLETIVO
+            enum: [COLETIVO , INDIVIDUAL, AMBAS]
+        contractingMinRequirement:
+          type: string
+          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).
+          maxLength: 1024
+          example: https://example.com/mobile-banking
+    AutoInsuranceTermsAndConditions:
+      type: array
+      items:
+        type: object
+        description: Informações dos termos e condições conforme número do processo SUSEP.
+        required:
+          - susepProcessNumber
+          - definition
+        properties:  
+          susepProcessNumber:
+            type: string
+            description: Número do processo SUSEP.
+            maxLength: 20
+            example: 15414.622222/2222-22
+          definition:
+            type: string
+            description: Campo aberto (possibilidade de incluir uma url).
+            maxLength: 1024
+            example: https://ey.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf
+    AutoInsurancePremiumPayment:
+      type: object 
+      description: Informações de pagamento de prêmio.
+      required:
+        - paymentMethod
+        - paymentTypee
+      properties:
+        paymentMethod:
+            type: array
+            description: Meio de pagamento escolhido pelo segurado.
+            items:
+              type: string
+              example: CARTÃO DE CRÉDITO
+              enum: [CARTAO_CREDITO, CARTAO_DEBITO, DEBITO_CONTA_CORRENTE , DEBITO_CONTA_POUPANCA , BOLETO_BANCARIO , PIX, CONSIGINACAO_FOLHA_PAGAMENTO, PONTOS_PROGRAMA_BENEFICIO, OUTROS]
+        paymentType:
+            type: array
+            description: Forma de pagamento.
+            items:
+              type: string
+              example: PARCELADO
+              enum: [A_VISTA , PARCELADO, AMBOS]
+        paymentDetail:
+          type: string
+          description: Campo aberto para detalhamento do campo ‘Outros’ por cada participante.
+    AutoInsuranceAssistanceServices:    
+      type: object
+      description: Serviços de Assistência.
+      required:
+        - assistanceServicesPackage
+        - assistanceServicesDetail
+      properties:
+        assistanceServicesPackage:
+            type: array
+            description: Pacotes de Assistência - Agrupamento.
+            items:
+                type: string
+                example: ATE_10_SERVICOS
+                enum: [ATE_10_SERVICOS, ATE_20_SERVICOS, ACIMA_20_SERVICOS, CUSTOMIZAVEL]
+        assistanceServicesDetail:
+            type: string
+            description:  Serviços de assistência - Detalhamento.
+            maxLength: 1000
+            example: Perda Parcial - Colisão
+        chargeTypeSignaling:
+            type: string
+            description: Sinalização em campo exclusivo se o pacote de Assistência é gratuita ou contratada/paga.
+            example: GRATUITA
+            enum: [GRATUITA, PAGA]
+    AutoInsuranceCarPart:    
+      type: array
+      description: Tipo de peça utilizada para reparação.
+      items:
+        required:
+        - carPartCondition
+        - carPartType
+        properties:
+            carPartCondition:
+                type: string
+                description: Nova ou usada
+                example: NOVAS
+                enum: [NOVAS, USADAS, AMBAS]
+            carPartType:
+                type: string
+                description: Originais e não originais
+                example: ORIGINAIS
+                enum: [ORIGINAIS, COMPATIVEIS, AMBAS]
+    AutoInsuranceCarModel:    
+      type: array
+      description: Listagem de modelos / ano de veículos. Deve ser padronizada na proposta técnica submetida pela Estrutura Inicial de Governança para observância comum por todas as sociedades participantes.
+      items:
+        required:
+            - manufacturer
+            - model
+            - year
+            - fipeCode
+        properties:
+            manufacturer:
+                type: string
+                description: Fabricante
+                maxLength: 20
+                example: FORD 
+            model:
+                type: string
+                description: Modelo
+                maxLength: 20
+                example: KA 
+            year:
+                type: integer
+                description: Ano de fabricação.
+                maxLength: 4
+                example: 2018
+            fipeCode:
+                type: string
+                description: Código FIPE do veículo.
+    Links:
+      type: object
+      properties:
+        self:
+          type: string
+          description: URL da página atualmente requisitada
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        first:
+          type: string
+          description: URL da primeira página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        prev:
+          type: string
+          description: URL da página anterior de registros
+        next:
+          type: string
+          description: URL da próxima página de registros
+        last:
+          type: string
+          description: URL da última página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    Meta:
+      type: object
+      properties:
+        totalRecords:
+          type: integer
+          description: Total de registros encontrados
+          example: 10
+        totalPages:
+          type: integer
+          description: Total de páginas para os registros encontrados
+          example: 1
+      required:
+        - totalRecords
+        - totalPages
+    ResponseError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 13
+          items:
+            type: object
+            required:
+              - code
+              - title
+              - detail
+              - requestDateTime
+            properties:
+              code:
+                description: Código de erro específico do endpoint
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 255
+              title:
+                description: Título legível por humanos deste erro específico
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 255
+              detail:
+                description: Descrição legível por humanos deste erro específico
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 2048
+              requestDateTime:
+                description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 2048  
+                format: date-time
+                example: '2021-08-20T08:30:00Z'
+            additionalProperties: false
+        meta:
+          $ref: '#/components/schemas/Meta'
+      additionalProperties: false    
+  parameters:
+    page:
+      name: page
+      in: query
+      description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    pageSize:
+      name: page-size
+      in: query
+      description: Quantidade total de registros por páginas.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1  
+    fipeCode:
+      name: fipeCode
+      in: path
+      description: Código FIPE
+      required: true
+      schema:
+        type: string
+    year:
+      name: year
+      in: path
+      description: Ano de comercialização do veículo
+      required: true
+      schema:
+        type: string
+    commercializationArea:
+      name: commercializationArea
+      in: path
+      description: Area de comercialização.
+      required: true
+      schema:
+        type: string
+    cache-Control:
+      name: cache-control
+      in: header
+      description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
+      required: true
+      schema: 
+        type: string
+        pattern: '[\w\W\s]*'
+    content-Security-Policy:
+      name: Content-Security-Policy
+      in: header
+      description: Campo para proteção contra ataques clickjack do estilo - drag and drop.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    content-Type:
+      name: content-Type
+      in: header
+      description: Especificar o tipo de conteúdo da resposta.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    strict-Transport-Security:
+      name: Strict-Transport-Security
+      in: header
+      description: Campo para exigir conexões por HTTPS e proteger contra certificados falsificados.
+      schema:
+        type: string
+        pattern:  '[\w\W\s]*'
+    x-Content-Type-Options:
+      name: X-Content-Type-Options
+      in: header
+      description: Campo para evitar que navegadores executem a detecção de MIME e interpretem respostas como HTML de forma inadequada.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    x-Frame-Options:
+      name: X-Frame-Options
+      in: header
+      description: Campo indica se o navegador deve ou não renderizar um frame.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+  securitySchemes:
+    OpenId:
+      type: openIdConnect
+      openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
+    OAuth2Security:
+      type: oauth2
+      description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://authserver.example/authorization'
+          tokenUrl: 'https://authserver.example/token'
+          scopes:
+            financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.    
+  responses:
+
+    BadRequest:
+      description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Forbidden:
+      description: O token tem escopo incorreto ou uma política de segurança foi violada
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    InternalServerError:
+      description: Ocorreu um erro no gateway da API ou no microsserviço
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    MethodNotAllowed:
+      description: O consumidor tentou acessar o recurso com um método não suportado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotAcceptable:
+      description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotFound:
+      description: O recurso solicitado não existe ou não foi implementado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    TooManyRequests:
+      description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Unauthorized:
+      description: Cabeçalho de autenticação ausente/inválido ou token inválido
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'

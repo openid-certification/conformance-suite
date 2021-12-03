@@ -1,0 +1,610 @@
+openapi: 3.0.0
+info:
+  title: APIs Open Data do Open Insurance Brasil
+  description: 
+    API de informações de Seguro Residencial. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.2.2 do manual de escopo de dados.
+  version: 1.0.0
+  contact:
+    url: 'https://http://novosite.susep.gov.br'
+servers:
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Produção
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Homologação  
+tags:
+- name: "home-insurance"
+paths:
+  /home-insurance/commercializationArea/{commercializationArea}:  
+    get:
+      tags:
+        - home-insurance
+      summary: Obtém informações de seguros residenciais
+      description: "Obtém informações de seguros redidenciais"
+      operationId: "getResidentialInsurance"
+      parameters:
+        - $ref: "#/components/parameters/cache-Control"
+        - $ref: "#/components/parameters/content-Security-Policy"
+        - $ref: "#/components/parameters/content-Type"
+        - $ref: "#/components/parameters/strict-Transport-Security"
+        - $ref: "#/components/parameters/x-Content-Type-Options"
+        - $ref: "#/components/parameters/x-Frame-Options"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/commercializationArea"
+      responses:
+        '200':
+          description: Dados dos Seguros Residenciais
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseHomeInsuranceList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/schemas/ResponseHomeInsuranceList'        
+components:
+  schemas:
+    ResponseHomeInsuranceList:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: object
+          required:
+            - HomeInsuranceBrand
+          properties:
+            brand:
+              $ref: '#/components/schemas/HomeInsuranceBrand'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    HomeInsuranceBrand:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Nome da marca reportada pelo participante do Open Insurance. O conceito a que se refere a marca é em essência uma promessa das sociedades sob ela em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes.
+          maxLength: 80
+          example: EMPRESA A seguros
+        company:
+          $ref: '#/components/schemas/HomeInsuranceCompany'  
+    HomeInsuranceCompany:
+      type: array
+      items:
+        description: Informações referente a sociedade a qual a marca pertence.
+        required:
+          - name
+          - cnpjNumber
+        properties:
+          name:
+            type: string
+            description: Nome da sociedade pertencente à marca.
+            maxLength: 80
+            example: ABCDE SEGUROS
+          cnpjNumber:
+            type: string
+            description: CNPJ da sociedade pertencente à marca.
+            maxLength: 14
+            example: 12345678901234
+          products:  
+            type: object
+            description: Produtos de Seguro Residencial.
+            $ref: '#/components/schemas/HomeInsuranceProduct'
+    HomeInsuranceProduct:
+      type: array
+      description: Produtos de Seguro Residencial.
+      items:
+        type: object
+        required:
+          - name
+          - code
+          - coverages
+          - propertyCharacteristics
+          - propertyZipCode
+          - protective
+          - additional
+          - assistanceServices
+          - termsAndConditions
+          - validity
+          - customerService
+          - premiumPayments
+          - minimumRequirement
+          - targetAudiences
+        properties:
+          name:
+            type: string
+            description: Nome comercial do produto, pelo qual é identificado nos canais de distribuição e atendimento da sociedade.
+            maxLength: 80
+            example: RESIDENCIAL XPTO
+          code:
+            type: string
+            description: Código único a ser definido pela sociedade.
+            maxLength: 80
+            example: 0000-0
+          coverages:
+            $ref: '#/components/schemas/HomeInsuranceCoverages'          
+          propertyCharacteristics:
+            $ref: '#/components/schemas/HomeInsurancePropertyCharacteristics'     
+          propertyZipCode:
+            type: string
+            description: Código de Endereçamento Postal do Imóvel
+            maxLength: 8
+            example: "1311000"
+          protective:
+            type: boolean
+            description: Protecionais - Indicativo de exigência de itens protecionais.
+            example: true
+          additional:
+            type: array
+            items:
+              type: string
+              description: Adicionais do Produto.
+              example: SORTEIO_GRATUITO
+              enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK , DESCONTOS , OUTROS]
+          additionalOthers:
+            type: string
+            description: Campo aberto para descrição de cada participante ao selecionar o domínio ‘Outros’ no campo acima ‘Adicionais’.
+            maxLength: 100
+          assistanceServices:
+            $ref: '#/components/schemas/HomeInsuranceAssistanceServices'
+          termsAndConditions:
+            $ref: '#/components/schemas/HomeInsuranceTermsAndConditions'
+          validity:
+            $ref: '#/components/schemas/HomeInsuranceValidity'          
+          customerServices:
+            type: array 
+            description: Informações de pagamento de prêmio.
+            items:
+                type: string
+                example: LIVRE ESCOLHA
+                enum: [REDE_REFERENCIADA , LIVRE_ESCOLHA , REDE_REFERENCIADA_LIVRE_ESCOLHA]
+          premiumRates:
+            type: array 
+            description: Distribuição de frequência relativa aos valores referentes às taxas cobradas.
+            items:
+                type: string            
+          premiumPayments:
+            $ref: '#/components/schemas/HomeInsurancePremiumPayment'                 
+          minimumRequirements:
+            type: array
+            items:
+              $ref: '#/components/schemas/HomeInsuranceMinimumRequirements'   
+          targetAudiences:          
+            type: array
+            items:
+              type: string
+              description: Público a quem se destina o produto
+              example: PESSOA_NATURAL
+              enum: [PESSOA_NATURAL , PESSOA_JURIDICA, AMBAS]             
+    HomeInsuranceMinimumRequirements:
+      type: object
+      description: Produtos de Seguro Residencial.
+      required:
+        - contractingMinRequirement
+        - contractingType
+      properties:
+        contractingType:
+          type: string
+          description: Tipo de contratação.
+          enum: [COLETIVO , INDIVIDUAL, AMBAS]         
+        contractingMinRequirement:
+          type: string
+          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).              
+          maxLength: 1024
+          example: https://openinsurance.com.br/aaa
+    HomeInsuranceCoverageAttributes:     
+      type: object
+      description: Informações de cobertura do Seguro Residencial.
+      required:
+       - minLMI
+       - maxLMI
+       - minDeductibleAmount
+       - insuredMandatoryParticipationPercentage
+      properties:
+        minLMI:
+          description: Lista com valor mínimo de LMI aceito pela sociedade para cada cobertura.
+          $ref: '#/components/schemas/HomeInsuranceCovaregeAttibutesDetails'
+        maxLMI:
+          description: Lista com valor máximo de LMI aceito pela sociedade para cada cobertura.
+          $ref: '#/components/schemas/HomeInsuranceCovaregeAttibutesDetails'
+        minDeductibleAmount:
+          description: Valor mínimo de franquia e participação obrigatória do segurado - Listagem de valor mínimo da franquia (Reais) e/ou Participação Obrigatória do Segurado (Percentual) estabelecida pela sociedade para cada tipo de cobertura do produto.
+          $ref: '#/components/schemas/HomeInsuranceCovaregeAttibutesDetails'
+        insuredMandatoryParticipationPercentage:
+          type: number
+          description: Listagem percentual de franquia e/ou percentual de participação obrigatória do segurado estabelecida pela sociedade para cada tipo de cobertura de produto.
+          maxLength: 9
+    HomeInsuranceCovaregeAttibutesDetailsUnit:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code: 
+          type: string
+          example: R$
+        description: 
+          type: string
+          example: REAL
+    HomeInsuranceCovaregeAttibutesDetails:
+        type: object
+        required:
+          - amount
+          - unit
+        properties:
+          amount:
+            type: number
+          unit:
+            $ref: '#/components/schemas/HomeInsuranceCovaregeAttibutesDetailsUnit'  
+    HomeInsuranceTermsAndConditions:
+      type: array
+      description: Informações dos termos e condições conforme número do processo SUSEP.
+      items:
+        type: object
+        required:
+          - susepProcessNumber
+          - definition
+        properties:  
+          susepProcessNumber:
+            type: string
+            description: Número do processo SUSEP.
+            maxLength: 20
+            example: XXXXX.XXXXXX/XXXX-XX
+          definition:
+            type: string
+            description: Campo aberto (possibilidade de incluir uma url).
+            maxLength: 1024
+            example: https://openinsurance.com.br/aaa
+    HomeInsuranceValidity:
+        type: array
+        description: Vigência
+        items:
+            type: object
+            required:
+              - term
+            properties:
+              term:
+                type: string
+                description: Prazo de vigência do seguro contratado Intervalo contínuo de tempo durante o qual está em vigor o contrato de seguro. (RESOLUÇÃO CNSP Nº 341/2016).
+                example: ANUAL
+                enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+              termOthers:
+                type: string
+                description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+                maxLength: 100
+    HomeInsurancePremiumPayment:
+        type: array 
+        description: Informações de pagamento de prêmio.
+        items:
+          type: object
+          required:
+          - paymentMethod
+          - paymentType
+          properties:
+            paymentMethod:
+              type: string
+              description: Meio de pagamento escolhido pelo segurado.
+              example: CARTÃO DE CRÉDITO
+              enum: [CARTAO_CREDITO , CARTAO_DEBITO , DEBITO_CONTA_CORRENTE , DEBITO_CONTA_POUPANCA , BOLETO_BANCARIO , PIX , CONSIGINACAO_FOLHA_PAGAMENTO , PONTOS_PROGRAMAS_BENEFICIO, OUTROS]
+            paymentMethodDetail:
+              type: string
+              description: Campo aberto para detalhamento do campo ‘Outros’ por cada participante.
+              maxLength: 100
+            paymentType:
+              type: string
+              description: Forma de pagamento
+              example: PAGAMENTO_UNICO
+              enum: [PAGAMENTO_UNICO , PARCELADO, AMBOS]
+    HomeInsuranceAssistanceServices:    
+      type: array
+      description: Agrupamento dos serviços de assistências disponíveis vinculado ao produto.
+      items:
+        type: object
+        required:
+        - assistanceServicesPackage
+        - complementaryAssistanceServicesDetail
+        - chargeTypeSignaling
+        properties:
+          assistanceServicesPackage:
+            type: string
+            description: Pacotes de Assistência.
+            example: ATE_10_SERVICOS
+            enum: [ATE_10_SERVICOS, ATE_20_SERVICOS , ACIMA_20_SERVICOS, CUSTOMIZAVEL]
+          complementaryAssistanceServicesDetail:
+            type: string
+            description: Campo livre para descrição dos serviços ofertados por cada sociedade participante.
+            maxLength: 1000
+            example: reboque pane seca
+          chargeTypeSignaling:
+            type: string
+            description: Sinalização em campo exclusivo se o pacote de Assistência é gratuita ou contratada/paga.
+            example: GRATUITA
+            enum: [GRATUITA, PAGO]
+    HomeInsuranceCoverages:
+      type: array
+      description: Listagem de coberturas incluídas no produto.
+      items:
+        type: object
+        required:
+            - coverageType
+            - coverageDetail
+            - coveragePermissionSeparteAquisition
+            - coverageAttributes
+        properties:
+          coverageType:
+            type: string
+            enum: [IMOVEL_BASICA , IMOVEL_AMPLA , DANOS_ELETRICOS , DANOS_POR_AGUA , ALAGAMENTO , RESPONSABILIDADE_CIVIL_FAMILIAR, RESPONSABILIDADE_CIVIL_DANOS_MORAIS , ROUBO_SUBTRACAO_BENS , ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO , TACOS_GOLFE_HOLE_ONE , PEQUENAS_REFORMAS_OBRAS , GREVES_TUMULTOS_LOCKOUT , MICROEMPREENDEDOR , ESCRITORIO_RESIDENCIA , DANOS_EQUIPAMENTOS_ELETRONICOS , QUEBRA_VIDROS , IMPACTO_VEICULOS , VENDAVAL , PERDA_PAGAMENTO_ALUGUEL , BICICLETA , RESPONSABILIDADE_CIVIL_BICICLETA , RC_EMPREGADOR , DESMORONAMENTO , DESPESAS_EXTRAORDINARIAS , JOIAS_OBRAS_ARTE , TERREMOTO , IMPACTO_AERONAVES , PAISAGISMO ,  INCENDIO , QUEDA_RAIO , EXPLOSAO, OUTRAS]
+            description: Nome do tipo da cobertura.
+            maxLength: 1000
+            example:  Escritório em Residência
+          coverageDetail:
+            type: string
+            description: Campo aberto para detalhamento por coberturas possíveis dos produtos a ser feito por cada participante.
+            maxLength: 1000
+            example: Cobertura especial para escritório residenciais
+          coveragePermissionSeparteAquisition:
+            type: boolean
+            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+            example: false
+          coverageAttributes:
+            $ref: '#/components/schemas/HomeInsuranceCoverageAttributes'
+    HomeInsurancePropertyCharacteristics:
+        type: array 
+        description: Caracteristicas do imóvel.
+        items:
+          type: object
+          required:
+            - propertyType
+            - propertyUsageType
+            - propertyBuildType
+            - destinationInsuredImportance
+          properties:
+            propertyType:             
+                description: Tipo de imóvel.           
+                type: string
+                example: CASA
+                enum: [CASA , APARTAMENTO]  
+            propertyBuildType:
+                type: string
+                description: Descrição do tipo de construção da propriedade.
+                example: ALVENARIA
+                enum: [ALVENARIA , MADEIRA , METALICA , MISTA]
+            propertyUsageType:
+                type: string 
+                description: Descrição do tipo de uso da propriedade.
+                example: HABITUAL
+                enum: [HABITUAL , VERANEIO , DESOCUPADO , CASA_ESCRITORIO , ALUGUEL_TEMPORADA]                         
+            destinationInsuredImportance:
+              type: string
+              description: Destinação da Importância Segurada.
+              example: PRÉDIO
+              enum: [PREDIO, CONTEUDO, AMBOS]   
+    Links:
+      type: object
+      properties:
+        self:
+          type: string
+          description: URL da página atualmente requisitada
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        first:
+          type: string
+          description: URL da primeira página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        prev:
+          type: string
+          description: URL da página anterior de registros
+        next:
+          type: string
+          description: URL da próxima página de registros
+        last:
+          type: string
+          description: URL da última página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    Meta:
+      type: object
+      properties:
+        totalRecords:
+          type: integer
+          description: Total de registros encontrados
+          example: 10
+        totalPages:
+          type: integer
+          description: Total de páginas para os registros encontrados
+          example: 1
+      required:
+        - totalRecords
+        - totalPages
+    ResponseError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 13
+          items:
+            type: object
+            required:
+              - code
+              - title
+              - detail
+              - requestDateTime
+            properties:
+              code:
+                description: Código de erro específico do endpoint
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 255
+              title:
+                description: Título legível por humanos deste erro específico
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 255
+              detail:
+                description: Descrição legível por humanos deste erro específico
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 2048
+              requestDateTime:
+                description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 2048  
+                format: date-time
+                example: '2021-08-20T08:30:00Z'
+            additionalProperties: false
+        meta:
+          $ref: '#/components/schemas/Meta'
+      additionalProperties: false    
+  parameters:
+    page:
+      name: page
+      in: query
+      description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    pageSize:
+      name: page-size
+      in: query
+      description: Quantidade total de registros por páginas.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1  
+    commercializationArea:
+      name: commercializationArea
+      in: path
+      description: Area de comercialização.
+      required: true
+      schema:
+        type: integer
+    cache-Control:
+      name: cache-control
+      in: header
+      description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
+      required: true
+      schema: 
+        type: string
+        pattern: '[\w\W\s]*'
+    content-Security-Policy:
+      name: Content-Security-Policy
+      in: header
+      description: Campo para proteção contra ataques clickjack do estilo - drag and drop.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    content-Type:
+      name: content-Type
+      in: header
+      description: Especificar o tipo de conteúdo da resposta.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    strict-Transport-Security:
+      name: Strict-Transport-Security
+      in: header
+      description: Campo para exigir conexões por HTTPS e proteger contra certificados falsificados.
+      schema:
+        type: string
+        pattern:  '[\w\W\s]*'
+    x-Content-Type-Options:
+      name: X-Content-Type-Options
+      in: header
+      description: Campo para evitar que navegadores executem a detecção de MIME e interpretem respostas como HTML de forma inadequada.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+    x-Frame-Options:
+      name: X-Frame-Options
+      in: header
+      description: Campo indica se o navegador deve ou não renderizar um frame.
+      schema:
+        type: string
+        pattern: '[\w\W\s]*'
+  securitySchemes:
+    OpenId:
+      type: openIdConnect
+      openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
+    OAuth2Security:
+      type: oauth2
+      description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://authserver.example/authorization'
+          tokenUrl: 'https://authserver.example/token'
+          scopes:
+            financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.    
+  responses:
+
+    BadRequest:
+      description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Forbidden:
+      description: O token tem escopo incorreto ou uma política de segurança foi violada
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    InternalServerError:
+      description: Ocorreu um erro no gateway da API ou no microsserviço
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    MethodNotAllowed:
+      description: O consumidor tentou acessar o recurso com um método não suportado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotAcceptable:
+      description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotFound:
+      description: O recurso solicitado não existe ou não foi implementado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    TooManyRequests:
+      description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Unauthorized:
+      description: Cabeçalho de autenticação ausente/inválido ou token inválido
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'          
+  
