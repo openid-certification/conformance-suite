@@ -72,13 +72,6 @@ components:
           required:
             - AutoInsuranceBrand
           properties:
-            requestTime:
-              description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
-              type: string
-              pattern: '[\w\W\s]*'
-              maxLength: 2048  
-              format: date-time
-              example: '2021-08-20T08:30:00Z'
             brand:
               $ref: '#/components/schemas/AutoInsuranceBrand'
         links:
@@ -97,23 +90,24 @@ components:
         company:
           $ref: '#/components/schemas/AutoInsuranceCompany'  
     AutoInsuranceCompany:
-      type: object
-      description: Informações referente a sociedade a qual a marca pertence.
-      required:
-        - name
-        - cnpjNumber
-        - products
-      properties:
-        name:
-          type: string
-          description: Nome da sociedade pertencente à marca.
-        cnpjNumber:
-          type: string
-          description: CNPJ da sociedade pertencente à marca.
-        products:  
-          type: object
-          description: Lista de Dependências de uma Instituição.
-          $ref: '#/components/schemas/AutoInsuranceProduct'
+      type: array
+      items:
+        description: Informações referente a sociedade a qual a marca pertence.
+        required:
+          - name
+          - cnpjNumber
+          - products
+        properties:
+          name:
+            type: string
+            description: Nome da sociedade pertencente à marca.
+          cnpjNumber:
+            type: string
+            description: CNPJ da sociedade pertencente à marca.
+          products:  
+            type: object
+            description: Lista de Dependências de uma Instituição.
+            $ref: '#/components/schemas/AutoInsuranceProduct'
     AutoInsuranceProduct:
       type: array
       description: Produtos de Seguro de Automóveis.
@@ -122,6 +116,7 @@ components:
         required:
           - name
           - code
+          - coverages
           - carParts
           - carModels
           - vehicleOvernightZipCode
@@ -130,7 +125,7 @@ components:
           - termsAndConditions
           - terms
           - customerService
-          - premiumPayments
+          - premiumPayment
           - minimumRequirements
           - targetAudiences
         properties:
@@ -152,16 +147,20 @@ components:
             maxLength: 8
             example: 1311000
           additional:
-            type: string
-            description: Adicionais
-            example: SORTEIO GRATUITO
-            enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK, DESCONTOS, OUTROS]
+            type: array
+            items:
+              type: string
+              description: Adicionais
+              example: SORTEIO GRATUITO
+              enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK, DESCONTOS, OUTROS]
           additionalOthers:
             type: string
             description: Campo aberto para descrição de cada participante ao selecionar o domínio ‘Outros’ no campo acima ‘Adicionais’
           assistanceServices:
-            $ref: '#/components/schemas/AutoInsuranceAssistanceServices'   
-          termAndCondition:
+            type: array
+            items:
+              $ref: '#/components/schemas/AutoInsuranceAssistanceServices'   
+          termsAndConditions:
             $ref: '#/components/schemas/AutoInsuranceTermsAndConditions'
           terms:
             type: array 
@@ -177,7 +176,7 @@ components:
                 type: string
                 example: REDE REFERECIADA
                 enum: [REDE_REFERENCIADA , LIVRE_ESCOLHA , REDE_REFERENCIADA_LIVRE_ESCOLHA]  
-          premiumPayments:
+          premiumPayment:
             $ref: '#/components/schemas/AutoInsurancePremiumPayment'      
           minimumRequirements: 
             $ref: '#/components/schemas/AutoInsuranceMinimumRequirements'      
@@ -187,8 +186,8 @@ components:
             items:
                 type: string         
                 maxLength: 30
-                example: PESSOA NATURAL
-                enum: [PESSOA NATURAL, PESSOA JURIDICA] 
+                example: PESSOA_NATURAL
+                enum: [PESSOA_NATURAL, PESSOA_JURIDICA, AMBAS] 
     AutoInsuranceCoverage:     
       type: array
       description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.5 do Anexo II
@@ -221,6 +220,10 @@ components:
                       CARRO_RESERVA,
                       PEQUENOS_REPAROS, 
                       RESPONSABILIDADE_CIVIL_CARTA_VERDE,
+                      VOUCHER_MOBILIDADE,
+                      DESPESAS_EXTRAORDINARIAS,
+                      PEQUENOS_REPAROS,
+                      GARANTIA_MECANICA,
                       OUTRAS]
             coverageDetail:
               type: string
@@ -283,7 +286,7 @@ components:
        - fullIndemnityPercentage
        - deductibleType
        - fullIndemnityDeductible
-       - minDeductibleAmount
+       - deductiblePaymentByCoverage
        - deductiblePercentage
        - mandatoryParticipation
        - geographicScopeCoverage
@@ -302,7 +305,7 @@ components:
           description: Prazo máximo para apuração do valor a ser indenizado para veículo zero quilômetro. Em meses.
           maxLength: 3
           example: 12
-        newCardContractBase:
+        newCarContractBase:
           $ref: '#/components/schemas/AutoInsuranceContractBase'
           description: Semelhante ao campo “Atributos cobertura - base de contratação” aplicada ao veículo Zero Km. 
         fullIndemnityPercentage:
@@ -321,9 +324,6 @@ components:
           type: boolean
           description: Franquia para Indenização Integral.
           example: true
-        deductibleExists:
-          type: boolean
-          description: Existência de Franquia
         deductiblePaymentByCoverage:
           type: boolean
           description: Sinalização para cada cobertura se a seguradora exige pagamento de franquia.
@@ -358,7 +358,7 @@ components:
           items:
             type: string
             example: COLETIVO
-            enum: [COLETIVO , INDIVIDUAL]
+            enum: [COLETIVO , INDIVIDUAL, AMBAS]
         contractingMinRequirement:
           type: string
           description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).
@@ -371,7 +371,7 @@ components:
         description: Informações dos termos e condições conforme número do processo SUSEP.
         required:
           - susepProcessNumber
-          - termAndCondition
+          - definition
         properties:  
           susepProcessNumber:
             type: string
