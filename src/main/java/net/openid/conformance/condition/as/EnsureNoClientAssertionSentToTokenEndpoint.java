@@ -16,7 +16,7 @@ public class EnsureNoClientAssertionSentToTokenEndpoint extends AbstractConditio
 			logSuccess("Client did not send a client_assertion to token endpoint");
 			return env;
 		} else {
-			throw error("Client assertion should not exist in request parameters");
+			throw error("client_assertion should not exist in request parameters, it is only required when the test is set to use private_key_jwt client authentication.");
 		}
 	}
 }
