@@ -3,55 +3,10 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
-import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
-import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.CalculateAtHash;
-import net.openid.conformance.condition.as.CalculateCHash;
-import net.openid.conformance.condition.as.CalculateSHash;
-import net.openid.conformance.condition.as.CheckForClientCertificate;
-import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
-import net.openid.conformance.condition.as.CreateAuthorizationCode;
-import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
-import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
-import net.openid.conformance.condition.as.CreateRefreshToken;
-import net.openid.conformance.condition.as.EncryptJARMResponse;
-import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectWasEncrypted;
-import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
-import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
-import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
-import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
-import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
+import net.openid.conformance.condition.as.*;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
-import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
-import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
-import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
-import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
-import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
@@ -60,58 +15,13 @@ import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwks
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
-import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
-import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
-import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
-import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
-import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
-import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
-import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
-import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
-import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
-import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
-import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
-import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
-import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
-import net.openid.conformance.condition.as.FilterUserInfoForScopes;
-import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
-import net.openid.conformance.condition.as.LoadServerJWKs;
-import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
-import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.ValidateAuthorizationCode;
-import net.openid.conformance.condition.as.ValidateRedirectUri;
-import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
-import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
-import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
-import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
-import net.openid.conformance.condition.client.GetStaticClient2Configuration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
@@ -160,7 +70,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
-import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -684,6 +593,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
+	protected void checkClientId(){
+		callAndStopOnFailure(CheckClientIdRequiredOnTokenRequest.class, ConditionResult.FAILURE, "RFC8705-2");
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequest.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
+	}
+
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
@@ -782,6 +696,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
+
+		checkClientId();
 
 		checkMtlsCertificate();
 
