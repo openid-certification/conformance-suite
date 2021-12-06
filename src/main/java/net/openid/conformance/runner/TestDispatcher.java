@@ -311,7 +311,7 @@ public class TestDispatcher implements DataUtils {
 		}
 
 		eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
-			"msg", "Incoming HTTP request to test instance " + test.getId(),
+			"msg", "Incoming HTTP request to " + path,
 			"http", "incoming",
 			"incoming_path", path,
 			"incoming_query_string_params", requestParts.get("query_string_params"),
