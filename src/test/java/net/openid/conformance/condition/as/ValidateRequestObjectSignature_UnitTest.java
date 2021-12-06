@@ -51,7 +51,7 @@ public class ValidateRequestObjectSignature_UnitTest {
 			"    \"max_age\": 900,\n" +
 			"    \"aud\": \"https://www.certification.openid.net/test/a/quanto_test_node/\",\n" +
 			"    \"nbf\": 1631590717,\n" +
-			"    \"scope\": \"openid consent:urn:conformance.oidf:sdKOsNw7HS accounts\",\n" +
+			"    \"scope\": \"openid consent:urn:conformance:oidf:sdKOsNw7HS accounts\",\n" +
 			"    \"claims\": {\n" +
 			"      \"user_info\": {\n" +
 			"        \"acr\": {\n" +
