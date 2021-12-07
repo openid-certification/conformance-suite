@@ -55,7 +55,7 @@ public class PaymentsConsentsApiEnforceQRESWrongProxyTestModule extends Abstract
 	}
 
 	@Override
-	protected Optional<Class<? extends Condition>> errorMessageCondition() {
+	protected Optional<Class<? extends Condition>> resourceCreationErrorMessageCondition() {
 		return Optional.of(VerifyErrorIfPixPostFailsOnQres.class);
 	}
 }

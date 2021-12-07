@@ -22,6 +22,9 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	protected ConditionSequence createOBBPreauthSteps() {
 		eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		OpenBankingBrazilPreAuthorizationErrorAgnosticSteps steps = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication);
+		consentErrorMessageCondition().ifPresent(c -> {
+			steps.insertAfter(OptionallyAllow201Or422.class, condition(c));
+		});
 		return steps;
 	}
 
@@ -38,7 +41,11 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 
 	protected abstract void configureDictInfo();
 
-	protected Optional<Class<? extends Condition>> errorMessageCondition() {
+	protected Optional<Class<? extends Condition>> resourceCreationErrorMessageCondition() {
+		return Optional.empty();
+	}
+
+	protected Optional<Class<? extends Condition>> consentErrorMessageCondition() {
 		return Optional.empty();
 	}
 
@@ -50,7 +57,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
 				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
-			errorMessageCondition().ifPresent(c -> {
+			resourceCreationErrorMessageCondition().ifPresent(c -> {
 				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
 			});
 			call(pixSequence);
@@ -73,6 +80,9 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	protected void validateResponse() {
 		callAndStopOnFailure(ProxyTestCheckForPass.class);
 		callAndStopOnFailure(EnsureProxyTestResourceResponseCodeWas422.class);
+		resourceCreationErrorMessageCondition().ifPresent(c -> {
+			callAndStopOnFailure(c);
+		});
 
 		if (!env.getBoolean("proxy_payment_422")) {
 			int count = 1;

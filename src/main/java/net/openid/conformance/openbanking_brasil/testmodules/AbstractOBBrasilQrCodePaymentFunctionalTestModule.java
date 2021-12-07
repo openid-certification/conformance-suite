@@ -35,7 +35,7 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 			validationStarted = true;
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence();
 			postProcessResourceSequence(pixSequence);
-			errorMessageCondition().ifPresent(c -> {
+			resourceCreationErrorMessageCondition().ifPresent(c -> {
 				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
 			});
 			call(pixSequence);
