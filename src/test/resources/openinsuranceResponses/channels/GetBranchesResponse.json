@@ -1,0 +1,73 @@
+{
+  "data": {
+    "brand": {
+      "name": "Organização AZ",
+      "companies": [
+        {
+          "name": "Empresa A1",
+          "cnpjNumber": "45086338000178",
+          "branches": [
+            {
+              "identification": {
+                "type": "POSTO_ATENDIMENTO",
+                "code": "1111",
+                "checkDigit": "9",
+                "name": "Marília"
+              },
+              "postalAddress": {
+                "address": "Av Naburo Ykesaki 1270, bloco 35, fundos",
+                "additionalInfo": "Loja B",
+                "districtName": "Centro",
+                "townName": "São Paulo",
+                "ibgeCode": "3550308",
+                "countrySubDivision": "SP",
+                "postCode": "17500-00",
+                "country": "Brasil",
+                "countryCode": "BRA",
+                "geographicCoordinates": {
+                  "latitude": "-89.8365180",
+                  "longitude": "-179.836519"
+                }
+              },
+              "availability": {
+                "standards": [
+                  {
+                    "weekday": "SEGUNDA_FEIRA",
+                    "openingTime": "10:00:57Z",
+                    "closingTime": "16:00:57Z"
+                  }
+                ],
+                "isPublicAccessAllowed": true
+              },
+              "phones": [
+                {
+                  "type": "FIXO",
+                  "countryCallingCode": "55",
+                  "areaCode": "19",
+                  "number": "35721199"
+                }
+              ],
+              "services": [
+                {
+                  "name": "ENDOSSO",
+                  "code": "01"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "links": {
+      "self": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
+      "first": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
+      "prev": "string",
+      "next": "string",
+      "last": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>"
+    },
+    "meta": {
+      "totalRecords": 1,
+      "totalPages": 1
+    }
+  }
+}

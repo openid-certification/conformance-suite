@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.productsNServices.openInsurance;
+package net.openid.conformance.openinsurance.validator.productsNServices;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
@@ -21,11 +21,11 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
 import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.EXCLUDED_RISKS;
 
 /**
- * Api endpoint: /person/
+ * Api endpoint: /pension-plan/
  * Api version: 1.0.0
  */
 
-@ApiName("ProductsNServices Person")
+@ApiName("ProductsNServices PensionPlan")
 public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> MODALITY = Sets.newHashSet("PECULIO", "RENDA", "PENSAO_PRAZO_CERTO", "PENSAO_MENORES_21", "PENSAO_MENORES_24", "PENSAO_CONJUGE_VITALICIA", "PENSAO_CONJUGE_TEMPORARIA");
