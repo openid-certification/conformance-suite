@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.CreatePaymentRequestEntityClaimsFromQrdnConfig;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -45,6 +46,43 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfigTests {
 		JsonObject expectedPayment = new JsonParser().parse(rawPaymentJson).getAsJsonObject();
 
 		assertEquals(expectedPayment, paymentClaims);
+
+		JsonObject obj = paymentClaims.getAsJsonObject("data");
+		obj = obj.getAsJsonObject("payment");
+
+		assertNull(obj.get("igbeTownCode"));
+
+	}
+
+	@Test
+	public void igbeTownIsCopiedIfPresent() throws IOException {
+
+		String rawJson = IOUtils.resourceToString("qrdn_consent_config_igbe.json", Charset.defaultCharset(), getClass().getClassLoader());
+
+		JsonObject qrdnConsentConfig = new JsonParser().parse(rawJson).getAsJsonObject();
+
+		JsonObject resourceConfig = new JsonObject();
+		resourceConfig.add("brazilQrdnPaymentConsent", qrdnConsentConfig);
+		resourceConfig.addProperty("brazilQrdnCnpj", "60545350000165");
+		resourceConfig.addProperty("brazilQrdnRemittance", "Pagamento da nota RSTO035-002.");
+		JsonObject config = new JsonObject();
+		config.add("resource", resourceConfig);
+
+		Environment environment = new Environment();
+		environment.putObject("resource", resourceConfig);
+		environment.putObject("config", config);
+
+		CreatePaymentRequestEntityClaimsFromQrdnConfig condition = new CreatePaymentRequestEntityClaimsFromQrdnConfig();
+
+		condition.setProperties("test", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
+		condition.execute(environment);
+
+		JsonObject paymentClaims = environment.getObject("resource_request_entity_claims");
+        JsonObject obj = paymentClaims.getAsJsonObject("data");
+
+        String igbeTown = OIDFJSON.getString(obj.get("igbeTownCode"));
+
+        assertEquals("5300108", igbeTown);
 
 	}
 

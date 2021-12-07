@@ -32,6 +32,10 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 		JsonObject data = new JsonObject();
 		data.addProperty("localInstrument", "QRDN");
 		data.addProperty("cnpjInitiator", cnpj);
+		JsonElement igbeTownCodeElement = paymentObject.get("igbeTownCode");
+		if(igbeTownCodeElement != null) {
+			data.add("igbeTownCode", igbeTownCodeElement);
+		}
 		data.add("proxy", get(paymentDetails, "proxy"));
 		data.add("qrCode", get(paymentDetails, "qrCode"));
 		data.addProperty("remittanceInformation", remittanceInformation);
