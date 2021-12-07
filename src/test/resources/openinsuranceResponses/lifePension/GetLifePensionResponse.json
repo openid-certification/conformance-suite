@@ -1,0 +1,115 @@
+{
+    "requestTime": "2021-11-19T10:06:08.867-02:00",
+    "brand": {
+        "name": "Seguros Teste",
+        "companies": {
+            "name": "SEGURO COMPANY NAME",
+            "societyName": "SEGURO COMPANY SOCIETY NAME",
+            "cnpjNumber": "12345678901234",
+            "products": [
+                {
+                    "name": "Brasilprev Private Multimercado 2020",
+                    "code": "1234",
+                    "segment": "SEGURO_PESSOAS",
+                    "type": "PGBL",
+                    "modality": "CONTRIBUICAO_VARIAVEL",
+                    "optionalCoverage": "string",
+                    "productDetails": [
+                        {
+                            "susepProcessNumber": "15414.614141/2020-71",
+                            "contractTermsConditions": "https://example.com/mobilebanking",
+                            "defferalPeriod": {
+                                "interestRate": 0.25123,
+                                "updateIndex": "IPCA",
+                                "otherMinimumPerformanceGarantees": "SELIC",
+                                "reversalFinancialResults": 5.123,
+                                "minimumPremiumAmount": [
+                                    {
+                                        "minimumPremiumAmountValue": 0,
+                                        "minimumPremiumAmountDescription": "VALOR_MENSAL"
+                                    }
+                                ],
+                                "premiumPaymentMethod": [
+                                    "CARTAO_CREDITO"
+                                ],
+                                "permissionExtraordinaryContributions": true,
+                                "permissonScheduledFinancialPayments": true,
+                                "gracePeriodRedemption": 100,
+                                "gracePeriodBetweenRedemptionRequests": 30,
+                                "redemptionPaymentTerm": 10,
+                                "gracePeriodPortability": 12,
+                                "gracePeriodBetweenPortabilityRequests": 15,
+                                "portabilityPaymentTerm": 20,
+                                "investimentFunds": [
+                                    {
+                                        "cnpjNumber": "13.456.789/0001-12",
+                                        "companyName": "EYPREV",
+                                        "maximumAdministrationFee": 20.1,
+                                        "typePerformanceFee": [
+                                            "DIRETAMENTE"
+                                        ],
+                                        "maximumPerformanceFee": 20,
+                                        "eligibilityRule": true,
+                                        "minimumContributionAmount": 1000,
+                                        "minimumMathematicalProvisionAmount": 1000
+                                    }
+                                ]
+                            },
+                            "grantPeriodBenefit": {
+                                "incomeModality": [
+                                    "PAGAMENTO_UNICO"
+                                ],
+                                "biometricTable": [
+                                    "AT_2000_MALE"
+                                ],
+                                "interestRate": 3.225,
+                                "updateIndex": "IPCA",
+                                "reversalResultsFinancial": 13.252,
+                                "investimentFunds": [
+                                    {
+                                        "cnpjNumber": "13.456.789/0001-12",
+                                        "companyName": "EYPREV",
+                                        "maximumAdministrationFee": 20.1,
+                                        "typePerformanceFee": [
+                                            "DIRETAMENTE"
+                                        ],
+                                        "maximumPerformanceFee": 20,
+                                        "eligibilityRule": true,
+                                        "minimumContributionAmount": 1000,
+                                        "minimumMathematicalProvisionAmount": 1000
+                                    }
+                                ]
+                            },
+                            "costs": {
+                                "loadingAntecipated": {
+                                    "minValue": 4.122,
+                                    "maxValue": 10
+                                },
+                                "loadingLate": {
+                                    "minValue": 4.122,
+                                    "maxValue": 10
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "minimumRequirements": {
+                "contractType": "INDIVIDUAL",
+                "participantQualified": true,
+                "minRequirementsContract": "https://example.com/mobile-banking"
+            }
+        }
+    },
+    "links": {
+        "self": "http://localhost:8080/open-insurance/products-services/v1/capitalization-title/?page=1&page-size=2",
+        "first": "http://localhost:8080/open-insurance/products-services/v1/capitalization-title/?page=1&page-size=2",
+        "prev": "",
+        "next": "http://localhost:8080/open-insurance/products-services/v1/capitalization-title/?page=2&page-size=2",
+        "last": "http://localhost:8080/open-insurance/products-services/v1/capitalization-title/?page=525&page-size=2"
+    },
+    "meta": {
+        "totalRecords": 1050,
+        "totalPages": 525
+    }
+}
