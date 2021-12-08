@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class EnsureConsentErrorWasDetalhePgtoInvalido extends AbstractErrorFromJwtResponseCondition  {
 
-	public static final String EXPECTED_ERROR = "COBRANCA_INVALIDA";
+	public static final String EXPECTED_ERROR = "DETALHE_PGTO_INVALIDO";
 
 	@Override
 	public Environment evaluate(Environment env) {
