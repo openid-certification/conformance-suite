@@ -81,5 +81,8 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("endpoint_response_jwt"));
 		callAndStopOnFailure(Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDO.class);
+		if (env.getString("warning_message") != null){
+			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
+		}
 	}
 }

@@ -17,8 +17,10 @@ public class Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDO extends AbstractCondi
 
 		if (status.equalsIgnoreCase("DETALHE_PGTO_INVALIDO")) {
 			logSuccess("Error code is DETALHE_PGTO_INVALIDO as expected");
+		} else if (status.equalsIgnoreCase("NAO_INFORMADO")){
+			env.putString("warning_message", "Participant returned " + status + " this is accepted behaviour in the specs but awaiting clarification if this is correct");
 		} else {
-			logFailure("Incorrect error code "+status+" should be DETALHE_PGTO_INVALIDO");
+			throw error ("Incorrect error code "+ status);
 		}
 		return env;
 	}
