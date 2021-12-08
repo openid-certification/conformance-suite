@@ -3,9 +3,9 @@ package net.openid.conformance.openbanking_brasil.testmodules.support.payments;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 
-public class EnsureConsentErrorWasCobrancaInvalida extends AbstractErrorFromJwtResponseCondition  {
+public class EnsureConsentErrorWasDetalhePgtoInvalido extends AbstractErrorFromJwtResponseCondition  {
 
-	public static final String EXPECTED_ERROR = "COBRANCA_INVALIDA";
+	public static final String EXPECTED_ERROR = "DETALHE_PGTO_INVALIDO";
 
 	@Override
 	public Environment evaluate(Environment env) {

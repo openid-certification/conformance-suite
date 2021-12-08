@@ -44,7 +44,7 @@ public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends Abstra
 
 	@Override
 	protected Optional<Class<? extends Condition>> consentErrorMessageCondition() {
-		return Optional.ofNullable(EnsureConsentErrorWasCobrancaInvalida.class);
+		return Optional.ofNullable(EnsureConsentErrorWasDetalhePgtoInvalido.class);
 	}
 
 	@Override
