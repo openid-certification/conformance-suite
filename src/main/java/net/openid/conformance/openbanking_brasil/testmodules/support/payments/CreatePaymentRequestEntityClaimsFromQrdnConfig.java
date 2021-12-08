@@ -59,6 +59,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 		return env;
 	}
 
+	@SuppressWarnings("unchecked")
 	private <J extends JsonElement> J get(JsonObject source, String key) {
 		JsonElement element = source.get(key);
 		if(element == null) {
