@@ -19,7 +19,7 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		}
 
 		if(statusCode == HttpStatus.SC_CREATED) {
-			logSuccess(endpointName + " endpoint returned an http status of 2301 - proceeding with test now", args("http_status", statusCode));
+			logSuccess(endpointName + " endpoint returned an http status of 201 - proceeding with test now", args("http_status", statusCode));
 			env.putString("proceed_with_test", "proceed");
 		}
 

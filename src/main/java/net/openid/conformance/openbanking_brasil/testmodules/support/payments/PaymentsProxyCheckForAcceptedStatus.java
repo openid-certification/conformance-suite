@@ -5,9 +5,16 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.List;
 import java.util.Map;
 
 public class PaymentsProxyCheckForAcceptedStatus extends AbstractJsonAssertingCondition {
+
+	private static final List<String> ACCEPTED_STATUSES = List.of(
+		"ACCC",
+		"ACSC",
+		"ACSP"
+	);
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -19,7 +26,7 @@ public class PaymentsProxyCheckForAcceptedStatus extends AbstractJsonAssertingCo
 
 		log(checkStatus ? "Configured to check status" : "Not configured to check status", Map.of("status", status));
 		if (checkStatus) {
-			if (status.equals("ACCC")) {
+			if (ACCEPTED_STATUSES.contains(status)) {
 				env.putBoolean("consent_rejected", true);
 			}
 		}

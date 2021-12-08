@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.productsNServices.openInsurance;
+package net.openid.conformance.openinsurance.validator.productsNServices;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;

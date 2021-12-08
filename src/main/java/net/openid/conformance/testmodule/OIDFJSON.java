@@ -50,12 +50,25 @@ public final class OIDFJSON {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
 			throw new UnexpectedJsonTypeException("getInt called on something that is not a number: " + json);
 		}
+		String value = json.getAsJsonPrimitive().getAsString();
+		try {
+			Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new UnexpectedJsonTypeException("getInt called on something that is not a int: " + json);
+		}
 		return json.getAsInt();
 	}
 
 	public static float getFloat(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
 			throw new UnexpectedJsonTypeException("getFloat called on something that is not a number: " + json);
+		}
+
+		String value = json.getAsJsonPrimitive().getAsString();
+		try {
+			Float.parseFloat(value);
+		} catch (NumberFormatException e) {
+			throw new UnexpectedJsonTypeException("getFloat called on something that is not a Float " + json);
 		}
 		return json.getAsFloat();
 	}
@@ -64,12 +77,24 @@ public final class OIDFJSON {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
 			throw new UnexpectedJsonTypeException("getDouble called on something that is not a number: " + json);
 		}
+		String value = json.getAsJsonPrimitive().getAsString();
+		try {
+			Double.parseDouble(value);
+		} catch (NumberFormatException e) {
+			throw new UnexpectedJsonTypeException("getDouble called on something that is not a Double " + json);
+		}
 		return json.getAsDouble();
 	}
 
 	public static long getLong(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) {
 			throw new UnexpectedJsonTypeException("getLong called on something that is not a number: " + json);
+		}
+		String value = json.getAsJsonPrimitive().getAsString();
+		try {
+			Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			throw new UnexpectedJsonTypeException("getLong called on something that is not a Long: " + json);
 		}
 		return json.getAsLong();
 	}

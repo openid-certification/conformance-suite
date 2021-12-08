@@ -1,9 +1,12 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.util.Optional;
 
 @PublishTestModule(
 	testName = "payments-api-qrdn-with-qres-code-test",
@@ -39,4 +42,13 @@ public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends Abstra
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
 	}
 
+	@Override
+	protected Optional<Class<? extends Condition>> consentErrorMessageCondition() {
+		return Optional.ofNullable(EnsureConsentErrorWasCobrancaInvalida.class);
+	}
+
+	@Override
+	protected Optional<Class<? extends Condition>> resourceCreationErrorMessageCondition() {
+		return Optional.ofNullable(VerifyErrorIfPixPostFailsOnQres.class);
+	}
 }

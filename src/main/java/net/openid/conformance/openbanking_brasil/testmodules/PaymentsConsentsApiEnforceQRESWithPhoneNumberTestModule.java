@@ -28,6 +28,8 @@ public class PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule extends Abs
 	protected void configureDictInfo() {
 		callAndStopOnFailure(SelectQRESCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectQRESCodePixLocalInstrument.class);
+		callAndStopOnFailure(SetPaymentAmountToKnownValueOnConsent.class);
+		callAndStopOnFailure(SetPaymentAmountToKnownValueOnPaymentInitiation.class);
 		callAndStopOnFailure(InjectQRCodeWithRealPhoneNumberIntoConfig.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumber.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumberOnPaymentConsent.class);

@@ -11,6 +11,7 @@ public class SetPaymentAmountToKnownValueOnConsent extends AbstractCondition {
 		JsonObject obj = (JsonObject) env.getElementFromObject("resource", "brazilPaymentConsent.data.payment");
 
 		obj.addProperty("amount", "100.00");
+		obj.addProperty("amount", "100.00");
 
 		logSuccess("Added payment amount of 100.00 to payment consent");
 

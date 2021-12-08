@@ -28,7 +28,7 @@ public abstract class AbstractErrorFromJwtResponseCondition extends AbstractCond
 							passed.set(true);
 						}
 						if(!passed.get()) {
-							throw error("Error code was not " + errorToExpect);
+							throw error("Error code was not " + errorToExpect, Map.of("error", errorCode));
 						} else {
 							logSuccess("Successfully found error code  " + errorToExpect);
 						}

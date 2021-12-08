@@ -129,6 +129,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			} catch (ClassCastException exception) {
 				throw error(createObjectClassCastExpMessage(field.getPath()));
 			}
+			if (field.getValidator()==null){
+				throw error(String.format("ObjectField [%s] - validator should not be null", field.getPath()));
+			}
 			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
 
 		} else if (field instanceof ObjectArrayField) {
@@ -177,6 +180,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof ArrayField) {
 			JsonElement found = elementByPath;
 			assertMinAndMaxItems(found.getAsJsonArray(), field);
+		} else if (field instanceof NumberField) {
+			assertHasNumberField(jsonObject, field.getPath());
+			String value = getJsonValueAsString(jsonObject, field.getPath());
+			assertPatternAndMaxMinLength(value, field);
 		}
 
 	}
@@ -197,6 +204,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 							.build());
 				})
 				.build());
+	}
+
+	protected void assertHasNumberField(JsonObject jsonObject, String path) {
+		JsonElement found = findByPath(jsonObject, path);
+		try {
+			OIDFJSON.getNumber(found);
+		} catch (UnexpectedJsonTypeException u) {
+			throw error("Field at " + path + " was not an Number", jsonObject);
+		}
 	}
 
 	protected void assertHasIntField(JsonObject jsonObject, String path) {
