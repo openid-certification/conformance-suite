@@ -5,13 +5,13 @@ import net.openid.conformance.testmodule.Environment;
 
 public class VerifyErrorIfPixPostFailsOnQres extends AbstractErrorFromJwtResponseCondition {
 
-	public static final String DETALHE_PGTO_INVALIDO = "COBRANCA_INVALIDA";
+	public static final String PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO = "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO";
 
 	@Override
 	public Environment evaluate(Environment env) {
 
 		JsonObject response = env.getObject("resource_endpoint_response_full");
-		validateError(response, DETALHE_PGTO_INVALIDO);
+		validateError(response, PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO);
 
 		return env;
 	}
