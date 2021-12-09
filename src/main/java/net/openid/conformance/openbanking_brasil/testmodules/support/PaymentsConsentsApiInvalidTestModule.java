@@ -69,7 +69,7 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 		eventLog.startBlock("Validate response");
 		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDOConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidatePaymentConsentErrorResponse422.class, Condition.ConditionResult.FAILURE);
-
 	}
 }
