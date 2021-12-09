@@ -148,8 +148,8 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 			assertField(body,
 				new StringField
 					.Builder("transactionIdentification")
-					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
-					.setMaxLength(25)
+					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,34}$")
+					.setMaxLength(35)
 					.build());
 		} else if (body.has("localInstrument") && (OIDFJSON.getString(body.get("localInstrument")).equals("MANU") || OIDFJSON.getString(body.get("localInstrument")).equals("DICT"))) {
 			assertField(body,
@@ -163,8 +163,8 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 			assertField(body,
 				new StringField
 					.Builder("transactionIdentification")
-					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,24}$")
-					.setMaxLength(25)
+					.setPattern("^[a-zA-Z0-9][a-zA-Z0-9]{0,34}$")
+					.setMaxLength(35)
 					.setOptional()
 					.build());
 		}
