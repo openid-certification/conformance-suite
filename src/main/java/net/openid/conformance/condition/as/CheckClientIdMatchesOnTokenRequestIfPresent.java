@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckClientIdMatchesOnTokenRequest extends AbstractCondition {
+public class CheckClientIdMatchesOnTokenRequestIfPresent extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"token_endpoint_request", "client"})
@@ -23,7 +23,8 @@ public class CheckClientIdMatchesOnTokenRequest extends AbstractCondition {
 			return env;
 		}
 
-		throw error("client_id on the request does not match the expected one");
+		throw error("client_id on the request " + clientId + " does not match the expected one " + expectedClientId,
+			args("expected", expectedClientId, "actual", clientId) );
 
 	}
 }

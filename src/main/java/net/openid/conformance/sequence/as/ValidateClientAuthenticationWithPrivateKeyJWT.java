@@ -1,6 +1,7 @@
 package net.openid.conformance.sequence.as;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.EnsureClientAssertionSignatureAlgorithmMatchesRegistered;
 import net.openid.conformance.condition.as.EnsureClientAssertionTypeIsJwt;
 import net.openid.conformance.condition.as.ExtractClientAssertion;
@@ -18,6 +19,8 @@ public class ValidateClientAuthenticationWithPrivateKeyJWT extends AbstractCondi
 		callAndContinueOnFailure(ValidateClientAssertionSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 		callAndContinueOnFailure(EnsureClientAssertionTypeIsJwt.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
 		callAndContinueOnFailure(ValidateClientAssertionClaims.class, Condition.ConditionResult.FAILURE, "RFC7523-3", "OIDCC-9");
+
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 	}
 }
