@@ -52,6 +52,8 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
+		data.add("ibgeTownCode", get(paymentObject, "ibgeTownCode"));
+
 		pixPayment.add("data", data);
 		env.putObject("resource_request_entity_claims", pixPayment);
 
