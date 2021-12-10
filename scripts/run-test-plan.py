@@ -1115,6 +1115,7 @@ if __name__ == '__main__':
                       re.match(r'oidcc-client-.*', m)
         ciba_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
+        ekyc_test = re.match(r'ekyc-server-', m)
 
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
@@ -1128,12 +1129,16 @@ if __name__ == '__main__':
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if re.match(r'fapi1?-.*', m) or client_test:
+            if re.match(r'fapi1?-.*', m) or client_test or ekyc_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
-            if client_test or ciba_test or rp_initiated_logout:
+            if client_test or ciba_test or rp_initiated_logout or ekyc_test:
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'ekyc':
+            if not ekyc_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':

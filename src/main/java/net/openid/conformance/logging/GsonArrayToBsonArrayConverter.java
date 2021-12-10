@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BasicDBList> {
 
-	private Gson gson = new GsonBuilder().create();
+	private Gson gson = new GsonBuilder().serializeNulls().create();
 
 	/* (non-Javadoc)
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)

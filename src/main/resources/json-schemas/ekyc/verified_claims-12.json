@@ -1,0 +1,637 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://openid.net/schemas/verified_claims-12.json",
+  "definitions": {
+    "date_type": {
+      "type": "string",
+      "pattern": "^(?:(?:(?:(?:(?:[1-9]\\d)(?:0[48]|[2468][048]|[13579][26])|(?:(?:[2468][048]|[13579][26])00))(\\/|-|\\.)(?:0?2\\1(?:29)))|(?:(?:[1-9]\\d{3})(\\/|-|\\.)(?:(?:(?:0?[13578]|1[02])\\2(?:31))|(?:(?:0?[13-9]|1[0-2])\\2(?:29|30))|(?:(?:0?[1-9])|(?:1[0-2]))\\2(?:0?[1-9]|1\\d|2[0-8])))))$"
+    },
+    "time_type": {
+      "type": "string",
+      "pattern": "^(?:[\\+-]?\\d{4}(?!\\d{2}\\b))(?:(-?)(?:(?:0[1-9]|1[0-2])(?:\\1(?:[12]\\d|0[1-9]|3[01]))?|W(?:[0-4]\\d|5[0-2])(?:-?[1-7])?|(?:00[1-9]|0[1-9]\\d|[12]\\d{2}|3(?:[0-5]\\d|6[1-6])))(?:[T\\s](?:(?:(?:[01]\\d|2[0-3])(?:(:?)[0-5]\\d)?|24\\:?00)(?:[\\.,]\\d+(?!:))?)?(?:\\2[0-5]\\d(?:[\\.,]\\d+)?)?(?:[zZ]|(?:[\\+-])(?:[01]\\d|2[0-3]):?(?:[0-5]\\d)?)?)?)?$"
+    },
+    "document_number": {
+      "type": "string"
+    },
+    "document_details": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "document_number": {
+          "$ref": "#/definitions/document_number"
+        },
+        "number": {
+          "$ref": "#/definitions/document_number"
+        },
+        "personal_number": {
+          "type": "string"
+        },
+        "serial_number": {
+          "type": "string"
+        },
+        "date_of_issuance": {
+          "$ref": "#/definitions/date_type"
+        },
+        "date_of_expiry": {
+          "$ref": "#/definitions/date_type"
+        },
+        "issuer": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "formatted": {
+              "type": "string"
+            },
+            "street_address": {
+              "type": "string"
+            },
+            "locality": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "postal_code": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "country_code": {
+              "type": "string"
+            },
+            "jurisdiction": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "validation_method": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "policy":{
+          "type": "string"
+        },
+        "procedure": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "verification_method": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "policy":{
+          "type": "string"
+        },
+        "procedure": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "electronic_signature",
+            "id_document",
+            "document",
+            "electronic_record",
+            "vouch",
+            "utility_bill"
+          ]
+        },
+        "attachments": {
+          "$ref": "#/definitions/attachments"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "value": "electronic_signature"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "signature_type": {
+                "type": "string"
+              },
+              "issuer": {
+                "type": "string"
+              },
+              "serial_number": {
+                "type": "string"
+              },
+              "created_at": {
+                "$ref": "#/definitions/time_type"
+              }
+            }
+          },
+          "else": {}
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "pattern": "^(id_)*document$"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "validation_method": {
+                "$ref": "#/definitions/validation_method"
+              },
+              "verification_method": {
+                "$ref": "#/definitions/verification_method"
+              },
+              "method": {
+                "type": "string"
+              },
+              "verifier": {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string"
+                  },
+                  "txn": {
+                    "type": "string"
+                  }
+                }
+              },
+              "time": {
+                "$ref": "#/definitions/time_type"
+              },
+              "document_details": {
+                "$ref": "#/definitions/document_details"
+              },
+              "document": {
+                "$ref": "#/definitions/document_details"
+              }
+            }
+          },
+          "else": {}
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "value": "electronic_record"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "validation_method": {
+                "$ref": "#/definitions/validation_method"
+              },
+              "verification_method": {
+                "$ref": "#/definitions/verification_method"
+              },
+              "verifier": {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string"
+                  },
+                  "txn": {
+                    "type": "string"
+                  }
+                }
+              },
+              "time": {
+                "$ref": "#/definitions/time_type"
+              },
+              "record": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "personal_number": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "$ref": "#/definitions/date_type"
+                  },
+                  "date_of_expiry": {
+                    "$ref": "#/definitions/date_type"
+                  },
+                  "source": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "formatted": {
+                        "type": "string"
+                      },
+                      "street_address": {
+                        "type": "string"
+                      },
+                      "locality": {
+                        "type": "string"
+                      },
+                      "region": {
+                        "type": "string"
+                      },
+                      "postal_code": {
+                        "type": "string"
+                      },
+                      "country": {
+                        "type": "string"
+                      },
+                      "country_code": {
+                        "type": "string"
+                      },
+                      "jurisdiction": {
+                         "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {}
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "value": "vouch"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "validation_method": {
+                "$ref": "#/definitions/validation_method"
+              },
+              "verification_method": {
+                "$ref": "#/definitions/verification_method"
+              },
+              "verifier": {
+                "type": "object",
+                "properties": {
+                  "organization": {
+                    "type": "string"
+                  },
+                  "txn": {
+                    "type": "string"
+                  }
+                }
+              },
+              "time": {
+                "$ref": "#/definitions/time_type"
+              },
+              "attestation": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "reference_number": {
+                    "type": "string"
+                  },
+                  "personal_number": {
+                    "type": "string"
+                  },
+                  "date_of_issuance": {
+                    "$ref": "#/definitions/date_type"
+                  },
+                  "date_of_expiry": {
+                    "$ref": "#/definitions/date_type"
+                  },
+                  "voucher": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "birthdate": {
+                        "$ref": "#/definitions/date_type"
+                      },
+                      "formatted": {
+                        "type": "string"
+                      },
+                      "street_address": {
+                        "type": "string"
+                      },
+                      "locality": {
+                        "type": "string"
+                      },
+                      "region": {
+                        "type": "string"
+                      },
+                      "postal_code": {
+                        "type": "string"
+                      },
+                      "country": {
+                        "type": "string"
+                      },
+                      "occupation": {
+                        "type": "string"
+                      },
+                      "organization": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {}
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "value": "utility_bill"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "provider": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "formatted": {
+                    "type": "string"
+                  },
+                  "street_address": {
+                    "type": "string"
+                  },
+                  "locality": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  }
+                }
+              },
+              "date": {
+                "$ref": "#/definitions/date_type"
+              }
+            }
+          },
+          "else": {}
+        }
+      ]
+    },
+    "digest": {
+      "type": "object",
+      "properties": {
+        "alg": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "contentEncoding": "base64"
+        }
+      },
+      "required": [
+        "alg",
+        "value"
+      ]
+    },
+    "external_attachment": {
+      "type": "object",
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "digest": {
+          "$ref": "#/definitions/digest"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "access_token": {
+          "type": ["string", "null"]
+        },
+        "expires_in": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "digest",
+        "url"
+      ]
+    },
+    "embedded_attachment": {
+      "type": "object",
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string",
+          "contentEncoding": "base64"
+        }
+      },
+      "required": [
+        "content_type",
+        "content"
+      ]
+    },
+    "attachments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/external_attachment"
+          },
+          {
+            "$ref": "#/definitions/embedded_attachment"
+          }
+        ]
+      }
+    },
+    "verified_claims_def": {
+      "type": "object",
+      "properties": {
+        "verification": {
+          "type": "object",
+          "properties": {
+            "trust_framework": {
+              "type": "string"
+            },
+            "assurance_level": {
+              "type": "string"
+            },
+            "assurance_process": {
+              "type": "object",
+              "properties": {
+                "policy":{
+                  "type": "string"
+                },
+                "procedure": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            },
+            "time": {
+              "$ref": "#/definitions/time_type"
+            },
+            "verification_process": {
+              "type": "string"
+            },
+            "evidence": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/definitions/evidence"
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "trust_framework"
+          ],
+          "additionalProperties": true
+        },
+        "claims": {
+          "type": "object",
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "verification",
+        "claims"
+      ],
+      "additionalProperties": false
+    },
+    "distributed_claims_available_def": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "$ref": "verified_claims_request-12.json#/definitions/verified_claims_def"
+      }
+    },
+    "aggregated_claims": {
+      "properties": {
+        "JWT": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "JWT"
+      ]
+    },
+    "distributed_claims": {
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "access_token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpoint",
+        "access_token"
+      ]
+    },
+    "_claim_sources": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/aggregated_claims"
+        },
+        {
+          "$ref": "#/definitions/distributed_claims"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "verified_claims": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/verified_claims_def"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/verified_claims_def"
+          }
+        }
+      ]
+    },
+    "_claim_names": {
+      "type": "object",
+      "properties": {
+        "verified_claims": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/definitions/distributed_claims_available_def"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "_claim_sources": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "$ref": "#/definitions/_claim_sources"
+      }
+    }
+  }
+}
