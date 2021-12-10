@@ -2,7 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
 	<meta charset="UTF-8">
-	<title>Open Banking Brasil Functional Conformance: Login</title>
+	<title class="browserTitle"></title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -19,7 +19,7 @@
 	<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
-				<a href="index.html"><img src="/images/ob_brasil.svg"></a>
+				<a href='index.html'><img id="logo" src=''></a>
 			</div>
 			<div id="userInfoDiv" class="col-md-4 text-right"></div>
 		</div>
@@ -29,12 +29,12 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
-				<h1 class="text-center">Login to the Open Banking Brasil Functional Conformance Suite</h1>
+				<h1 class="text-center headerText"></h1>
 				<p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
 				<p id="logout" class="bg-info collapse">You have been logged out.</p>
 				<p class="text-center">
-					<a class="btn btn-success btn-lg" href="/openid_connect_login?iss=https://auth.sandbox.directory.openbankingbrasil.org.br/">Log in with OB Brazil Directory</a>
-					<a class="btn btn-primary btn-lg" href="/openid_connect_login?iss=https://gitlab.com">Administrator Login</a>
+					<a class="btn btn-success btn-lg loginHref" href=""></a>
+					<a class="btn btn-primary btn-lg" href="/openid_connect_login?iss=https://gitlab.com">Log in with GitLab</a>
 				</p>
 			</div>
 		</div>
@@ -53,7 +53,7 @@
     <footer class="pageFooter">
 		<div class="row">
 			<div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
-				<span class="muted">Open Banking Brasil Functional Conformance Suite - Brought to you by Raidiam, with thanks to the OpenID Foundation<br /></span>
+				<span class="muted"><div class="brandDesc"></div><br /></span>
 				<span class="muted"></span><a href="https://raidiam.com"><img src="/images/raidiam.png" width="285" height="32"></a></span>
 			</div>
 		</div>
@@ -74,9 +74,23 @@
 	        if (logout) {
 	        	   $('#logout').show();
 	        }
-	    });
-    </script>
 
+			loadServerInfo();
+	    });
+
+		function loadServerInfo() {
+			return $.getJSON('/api/server', function(data) {
+				$(".browserTitle").text(data.brand + " Functional Conformance: Login");
+				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+				$(".brandDesc").text(data.brand + " Functional Conformance Suite - Brought to you by Raidiam, with thanks to the OpenID Foundation");
+				$("#logo").attr("src", "/images/" + data.logo);
+				$(".headerText").text("Login to the " + data.brand + " Functional Conformance Suite");
+				$(".loginHref").attr("href", "/openid_connect_login?iss=" + data.issuer);
+				$(".loginHref").text("Login with " + data.brand);
+				
+			});
+		}
+	</script>
 
 </body>
 </html>
