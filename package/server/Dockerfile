@@ -14,5 +14,8 @@ ENTRYPOINT java \
   -D"oidc.gitlab.secret=${OIDC_GITLAB_SECRET}" \
   -D"oidc.obbrazil.clientid=${OIDC_OBBRAZIL_CLIENTID}" \
   -D"oidc.obbrazil.secret=${OIDC_OBBRAZIL_SECRET}" \
+  -D"fintechlabs.issuer=${FINTECHLABS_ISSUER}" \
+  -D"fintechlabs.logo=${FINTECHLABS_LOGO}" \
+  -D"fintechlabs.brand=${FINTECHLABS_BRAND}" \
   -jar /server/fapi-test-suite.jar
   
