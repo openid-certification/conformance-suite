@@ -109,6 +109,31 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 			evidence.add("type", evidenceType);
 			//TODO add evidence type specific items
 
+////			evidence.add("document_details", JsonNull.INSTANCE);
+////			JsonObject doc = new JsonObject();
+////			doc.add("type", JsonNull.INSTANCE);
+////			evidence.add("document", doc);
+//
+//			JsonObject doc = new JsonObject();
+//			doc.add("type", JsonNull.INSTANCE);
+//			evidence.add("document", doc); // FIXME yes.com still use document
+////			evidence.add("document_details", doc);
+//                 {
+//                    "method": "pipp",
+//                    "document": {
+//                        "number": "L3FY80139",
+//                        "date_of_issuance": "2018-01-02",
+//                        "date_of_expiry": "2028-01-02",
+//                        "type": "idcard",
+//                        "issuer": {
+//                            "country": "DE",
+//                            "name": "BA MITTE BÜA 1"
+//                        }
+//                    },
+//                    "time": "2012-04-23T18:00:43.511+01",
+//                    "type": "id_document"
+//                }
+
 			//attachments
 			if(evidenceInUserinfo.has("attachments")) {
 				evidence.add("attachments", JsonNull.INSTANCE);
