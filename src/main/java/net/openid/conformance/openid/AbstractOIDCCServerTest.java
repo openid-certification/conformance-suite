@@ -521,7 +521,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost));
+		call(createAuthorizationRequestSequence());
+	}
+
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return new CreateAuthorizationRequestSteps(formPost);
 	}
 
 	protected void createAuthorizationRedirect() {

@@ -19,9 +19,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCEnsureRequestWithValidPkceSucceeds extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(new SetupPkceAndAddToAuthorizationRequest()));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(new SetupPkceAndAddToAuthorizationRequest());
 	}
 
 	@Override

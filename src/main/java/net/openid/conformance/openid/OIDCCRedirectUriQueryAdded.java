@@ -2,6 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.AddQueryToRedirectUriInAuthorizationRequest;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -22,9 +23,9 @@ public class OIDCCRedirectUriQueryAdded extends AbstractOIDCCServerTestExpecting
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-				.then(condition(AddQueryToRedirectUriInAuthorizationRequest.class)));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddQueryToRedirectUriInAuthorizationRequest.class));
 	}
 
 	@Override

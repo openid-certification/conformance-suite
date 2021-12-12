@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.common.ExpectResponseTypeMissingErrorPage;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-Response-Missing.json
@@ -20,9 +21,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCResponseTypeMissing extends AbstractOIDCCServerTestExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.skip(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class, "Miss out the response_type"));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.skip(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class, "Miss out the response_type");
 	}
 
 	@Override
