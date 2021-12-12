@@ -1,7 +1,6 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.ekyc.condition.client.AddOneVerifiedClaimInIdTokenOnlyToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.EnsureUserinfoDoesNotContainVerifiedClaims;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -16,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class EKYCRequestVerifiedClaimsOnlyInIdToken extends BaseEKYCTestWithOIDCCore {
+public class EKYCRequestVerifiedClaimsOnlyInIdToken extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

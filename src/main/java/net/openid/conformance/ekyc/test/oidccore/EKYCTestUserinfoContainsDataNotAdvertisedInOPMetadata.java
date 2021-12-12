@@ -5,9 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEndpointRequest;
-import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromUserinfoResponse;
-import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -21,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ekyc_userinfo"
 	}
 )
-public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends BaseEKYCTestWithOIDCCore {
+public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

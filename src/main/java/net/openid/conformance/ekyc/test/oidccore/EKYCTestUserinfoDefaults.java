@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ekyc_userinfo"
 	}
 )
-public class EKYCTestUserinfoDefaults extends BaseEKYCTestWithOIDCCore {
+public class EKYCTestUserinfoDefaults extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

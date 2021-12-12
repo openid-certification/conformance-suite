@@ -2,7 +2,6 @@ package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
-import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimWithLongPurposeToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimWithShortPurposeToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -21,7 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class EKYCTooShortPurposeLeadsToInvalidRequestResponse extends BaseEKYCTestWithOIDCCore {
+public class EKYCTooShortPurposeLeadsToInvalidRequestResponse extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

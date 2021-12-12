@@ -1,7 +1,6 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.ekyc.condition.client.AddEssentialUnknownVerifiedClaimToAuthorizationEndpointRequest;
-import net.openid.conformance.ekyc.condition.client.AddUnknownVerifiedClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /*
@@ -17,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class EKYCRequestEssentialClaimUnknownToTheOP extends BaseEKYCTestWithOIDCCore {
+public class EKYCRequestEssentialClaimUnknownToTheOP extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

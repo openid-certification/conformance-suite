@@ -14,7 +14,7 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUser
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
 
-public class BaseEKYCTestWithOIDCCore extends AbstractOIDCCServerTest {
+public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void createAuthorizationRequest() {
