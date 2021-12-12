@@ -12,9 +12,9 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTo
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoAgainstOPMetadata;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
-import net.openid.conformance.openid.OIDCCServerTest;
+import net.openid.conformance.openid.AbstractOIDCCServerTest;
 
-public class BaseEKYCTestWithOIDCCore extends OIDCCServerTest {
+public class BaseEKYCTestWithOIDCCore extends AbstractOIDCCServerTest {
 
 	@Override
 	protected void createAuthorizationRequest() {
