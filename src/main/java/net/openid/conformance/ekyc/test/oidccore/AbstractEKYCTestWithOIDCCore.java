@@ -1,6 +1,7 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull;
@@ -14,8 +15,23 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUser
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 
 public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTest {
+
+	@Override
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(new SetupPkceAndAddToAuthorizationRequest());
+	}
+
+	@Override
+	protected void createAuthorizationCodeRequest() {
+		super.createAuthorizationCodeRequest();
+
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5");
+	}
 
 	@Override
 	protected void createAuthorizationRequest() {
