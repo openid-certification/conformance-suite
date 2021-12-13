@@ -33,8 +33,8 @@
                 "standards": [
                   {
                     "weekday": "SEGUNDA_FEIRA",
-                    "openingTime": "10:00:57Z",
-                    "closingTime": "16:00:57Z"
+                    "openingTime": "10:00:57",
+                    "closingTime": "16:00:57"
                   }
                 ],
                 "isPublicAccessAllowed": true

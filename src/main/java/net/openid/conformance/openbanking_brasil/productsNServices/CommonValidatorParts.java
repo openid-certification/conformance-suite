@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.NumberField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
@@ -186,7 +187,7 @@ public class CommonValidatorParts {
 
 	public void assertValue(JsonObject minValue) {
 		validator.assertField(minValue,
-			new IntField
+			new NumberField
 				.Builder("amount")
 				.build());
 
@@ -211,7 +212,7 @@ public class CommonValidatorParts {
 
 	public void assertGracePeriod(JsonObject gracePeriod) {
 		validator.assertField(gracePeriod,
-			new IntField
+			new NumberField
 				.Builder("amount")
 				.setOptional()
 				.build());

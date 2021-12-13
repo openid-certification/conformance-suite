@@ -10,7 +10,10 @@ import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServi
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.IntArrayField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.NumberArrayField;
+import net.openid.conformance.util.field.NumberField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringArrayField;
@@ -19,8 +22,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-capitalizationtitle.yaml
  * Api endpoint: /capitalization-title/
  * Api version: 1.0.0
+ * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices Capitalization Title")
@@ -28,7 +33,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 	public static final Set<String> MODALITY = Sets.newHashSet("TRADICIONAL", "INSTRUMENTO_GARANTIA", "COMPRA_PROGRAMADA", "POPULAR", "INCENTIVO", "FILANTROPIA_PREMIAVEL");
 	public static final Set<String> UPDATE_INDEX = Sets.newHashSet("IPCA", "IGPM", "INPC", "TR", "INDICE_REMUNERACAO_DEPOSITOS_POUPANCA", "OUTROS");
-	public static final Set<String> COST_TYPE = Sets.newHashSet("PAGMENTO_UNICO", "PAGAMENTO_MENSAL", "PAGAMENTO_PERIODICO");
+	public static final Set<String> COST_TYPE = Sets.newHashSet("PAGAMENTO_UNICO", "PAGAMENTO_MENSAL", "PAGAMENTO_PERIODICO");
 	public static final Set<String> FREQUENCY = Sets.newHashSet("MENSAL", "UNICO", "PERIODICO");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_CREDITO", "CARTAO_DEBITO", "DEBITO_CONTA_CORRENTE", "DEBITO_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_FOLHA_PAGAMENTO", "PAGAMENTO_COM_PONTOS", "OUTROS");
 	public static final Set<String> TIME_INTERVAL = Sets.newHashSet("UNICO", "DIARIO", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "QUADRIMESTRAL", "SEMESTRAL", "ANUAL", "OUTROS");
@@ -53,7 +58,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 			.Builder("brand")
 			.setValidator(brand -> {
 				assertField(brand, Fields.name().setMaxLength(80).build());
-				assertField(brand, new ObjectField
+				assertField(brand, new ObjectArrayField
 					.Builder("companies")
 					.setValidator(this::assertCompany)
 					.build());
@@ -97,7 +102,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.Builder("termsAndConditions")
 				.setValidator(termsAndConditions -> {
 					assertField(termsAndConditions,
-						new StringField
+						new NumberField
 							.Builder("susepProcessNumber")
 							.setMaxLength(20)
 							.build());
@@ -112,28 +117,32 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.build());
 
 		assertField(product,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("quotas")
 				.setValidator(quotas -> {
 					assertField(quotas,
-						new StringField
+						new IntField
+							.Builder("quota")
+							.build());
+
+					assertField(quotas,
+						new NumberArrayField
 							.Builder("capitalizationQuota")
 							.setMaxLength(9)
 							.build());
 
 					assertField(quotas,
-						new StringField
+						new NumberArrayField
 							.Builder("raffleQuota")
 							.setMaxLength(9)
 							.build());
 
 					assertField(quotas,
-						new StringField
+						new NumberArrayField
 							.Builder("chargingQuota")
 							.setMaxLength(9)
 							.build());
 				})
-				.setOptional()
 				.build());
 
 		assertField(product,
@@ -197,6 +206,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 							.setOptional()
 							.build());
 				})
+				.setOptional()
 				.build());
 
 		assertField(product,
@@ -204,7 +214,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.Builder("redemption")
 				.setValidator(redemption -> {
 					assertField(redemption,
-						new StringField
+						new NumberField
 							.Builder("redemption")
 							.setMaxLength(6)
 							.build());
@@ -244,7 +254,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 					assertField(minimumRequirements,
 						new StringArrayField
-							.Builder("targetAudience")
+							.Builder("targetAudiences")
 							.setEnums(TARGET_AUDIENCE)
 							.build());
 				})
@@ -289,7 +299,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.build());
 
 		assertField(raffle,
-			new StringField
+			new NumberField
 				.Builder("minimumContemplationProbability")
 				.setMaxLength(8)
 				.build());
@@ -297,7 +307,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 	private void assertCapitalizationPeriod(JsonObject capitalizationPeriod) {
 		assertField(capitalizationPeriod,
-			new StringField
+			new NumberField
 				.Builder("interestRate")
 				.setMaxLength(7)
 				.build());
@@ -321,13 +331,13 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.build());
 
 		assertField(capitalizationPeriod,
-			new StringField
+			new NumberArrayField
 				.Builder("earlyRedemption")
 				.setMaxLength(9)
 				.build());
 
 		assertField(capitalizationPeriod,
-			new StringField
+			new NumberField
 				.Builder("redemptionPercentageEndTerm")
 				.setMaxLength(7)
 				.build());
@@ -341,13 +351,13 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 		private void assertContributionAmount(JsonObject contributionAmount) {
 			assertField(contributionAmount,
-				new IntField
+				new NumberField
 					.Builder("minValue")
 					.setOptional()
 					.build());
 
 			assertField(contributionAmount,
-				new IntField
+				new NumberField
 					.Builder("maxValue")
 					.setOptional()
 					.build());
@@ -360,7 +370,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 					.build());
 
 			assertField(contributionAmount,
-				new IntField
+				new NumberField
 					.Builder("value")
 					.setOptional()
 					.build());

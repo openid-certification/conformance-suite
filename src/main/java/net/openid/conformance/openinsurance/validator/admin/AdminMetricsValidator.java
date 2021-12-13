@@ -10,7 +10,7 @@ import net.openid.conformance.util.field.*;
 /**
  * Api url: src/main/java/net/openid/conformance/openinsurance/swagger/swagger-admin-metrics.yaml
  * Api endpoint: /metrics
- * Api git hash: e95f6bd7ccd97d88b0a20bb1b7c4411f4249ecde
+ * Api git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 @ApiName("Admin Metrics")
 public class AdminMetricsValidator extends AbstractJsonAssertingCondition {

@@ -21,8 +21,10 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
 import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.EXCLUDED_RISKS;
 
 /**
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-pensionplan.yaml
  * Api endpoint: /pension-plan/
  * Api version: 1.0.0
+ * Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices PensionPlan")

@@ -7,26 +7,22 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.DatetimeField;
-import net.openid.conformance.util.field.IntField;
-import net.openid.conformance.util.field.NumberField;
-import net.openid.conformance.util.field.ObjectArrayField;
-import net.openid.conformance.util.field.ObjectField;
-import net.openid.conformance.util.field.StringArrayField;
-import net.openid.conformance.util.field.StringField;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
 /**
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-lifepension.yaml
  * Api endpoint: /life-pension/
  * Api version: 1.0.0
+ * Api Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices Life Pension")
 public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> SEGMENT = Sets.newHashSet("SEGURO_PESSOAS", "PREVIDENCIA");
+	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> TYPE_PERFORMANCE_FEE = Sets.newHashSet("DIRETAMENTE", "INDIRETAMENTE", "NAO_APLICA");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO_AVERBADO", "COLETIVO_INSTITUIDO", "INDIVIDUAL");
 	public static final Set<String> UPDATE_INDEX = Sets.newHashSet("IPCA", "INPC", "IGP-M");
@@ -44,68 +40,42 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 
 		assertField(body,
-			new DatetimeField
-				.Builder("requestTime")
-				.setPattern("[\\w\\W\\s]*")
-				.setMaxLength(2048)
-				.setOptional()
+			new ObjectArrayField.Builder("data")
+				.setValidator(data->{
+					assertField(data,
+						new ObjectField
+							.Builder("identification")
+							.setValidator(this::assertIdentification)
+							.build());
+
+					assertField(data,
+						new ObjectArrayField
+							.Builder("products")
+							.setValidator(this::assertProducts)
+							.build());
+				})
 				.build());
-
-		assertField(body, new ObjectField
-			.Builder("brand")
-			.setValidator(brand -> {
-				assertField(brand, Fields.name().setMaxLength(80).build());
-				assertField(brand, new ObjectField
-					.Builder("companies")
-					.setValidator(this::assertCompanies)
-					.build());
-			})
-			.setOptional().build());
-
 		logFinalStatus();
 		return environment;
 	}
 
-	private void assertCompanies(JsonObject companies) {
-		assertField(companies, Fields.name().setMaxLength(80).build());
-		assertField(companies,
+
+	private void assertIdentification(JsonObject identification){
+		assertField(identification,
+			new StringField
+				.Builder("brand")
+				.setMaxLength(80)
+				.build());
+
+		assertField(identification,
 			new StringField
 				.Builder("societyName")
 				.setMaxLength(80)
 				.build());
-		assertField(companies, Fields.cnpjNumber().setMaxLength(14).build());
 
-		assertField(companies,
-			new ObjectArrayField
-				.Builder("products")
-				.setValidator(this::assertProducts)
-				.build());
-
-		assertField(companies,
-			new ObjectField
-				.Builder("minimumRequirements")
-				.setValidator(minimumRequirements -> {
-					assertField(minimumRequirements,
-						new StringField
-							.Builder("contractType")
-							.setMaxLength(15)
-							.setEnums(CONTRACT_TYPE)
-							.build());
-
-					assertField(minimumRequirements,
-						new BooleanField
-							.Builder("participantQualified")
-							.build());
-
-					assertField(minimumRequirements,
-						new StringField
-							.Builder("minRequirementsContract")
-							.setMaxLength(1024)
-							.build());
-				})
-				.setOptional()
-				.build());
+		assertField(identification, Fields.cnpjNumber().setMaxLength(14).build());
 	}
+
 
 	private void assertProducts(JsonObject products) {
 		assertField(products,
@@ -155,7 +125,38 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 				.setValidator(this::assertProductDetails)
 				.setOptional()
 				.build());
-		}
+
+		assertField(products,
+			new ObjectField
+				.Builder("minimumRequirements")
+				.setValidator(minimumRequirements -> {
+					assertField(minimumRequirements,
+						new StringField
+							.Builder("contractType")
+							.setMaxLength(15)
+							.setEnums(CONTRACT_TYPE)
+							.build());
+
+					assertField(minimumRequirements,
+						new BooleanField
+							.Builder("participantQualified")
+							.build());
+
+					assertField(minimumRequirements,
+						new StringField
+							.Builder("minRequirementsContract")
+							.setMaxLength(1024)
+							.build());
+				})
+				.setOptional()
+				.build());
+
+		assertField(products,
+			new StringField
+				.Builder("targetAudience")
+				.setEnums(TARGET_AUDIENCE)
+				.build());
+	}
 
 	private void assertProductDetails(JsonObject productDetails) {
 		assertField(productDetails,
@@ -187,7 +188,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 				.Builder("costs")
 				.setValidator(this::assertCosts)
 				.build());
-		}
+	}
 
 	private void assertCosts(JsonObject costs) {
 		assertField(costs,
@@ -201,7 +202,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 				.Builder("loadingLate")
 				.setValidator(this::assertMinAndMaxValues)
 				.build());
-		}
+	}
 
 	private void assertMinAndMaxValues(JsonObject values) {
 		assertField(values,
@@ -308,7 +309,6 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		assertField(defferalPeriod,
 			new StringArrayField
 				.Builder("premiumPaymentMethod")
-				.setMaxLength(20)
 				.setEnums(PREMIUM_PAYMENT_METHOD)
 				.setOptional()
 				.build());
@@ -365,7 +365,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 				.Builder("investimentFunds")
 				.setValidator(this::assertInvestimentFunds)
 				.build());
-		}
+	}
 
 	private void assertInvestimentFunds(JsonObject investimentFunds) {
 		assertField(investimentFunds,

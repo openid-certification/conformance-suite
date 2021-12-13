@@ -154,6 +154,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof IntField) {
 			assertHasIntField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
+			assertMinimum(value, field);
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof BooleanField) {
 			assertHasBooleanField(jsonObject, field.getPath());
@@ -177,6 +178,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		} else if (field instanceof IntArrayField) {
 			assertHasIntArrayField(jsonObject, field.getPath());
+			OIDFJSON.getNumberArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v.toString(), field));
+			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		} else if (field instanceof ArrayField) {
 			JsonElement found = elementByPath;
 			assertMinAndMaxItems(found.getAsJsonArray(), field);
@@ -184,8 +187,20 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertHasNumberField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
 			assertPatternAndMaxMinLength(value, field);
+		} else if (field instanceof NumberArrayField) {
+			assertHasNumberArrayField(jsonObject, field.getPath());
+			OIDFJSON.getNumberArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v.toString(), field));
+			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		}
 
+	}
+
+	private void assertMinimum(String value, Field field) {
+		if (field.getMinimum() != Integer.MIN_VALUE) {
+			if (Integer.parseInt(value) < field.getMinimum()) {
+				throw error("Value at " + field.getPath() + " less than required minimum ", args("value", value, "minimum", field.getMinimum()));
+			}
+		}
 	}
 
 	public void assertGeographicCoordinates(JsonObject body) {
@@ -278,6 +293,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
+	protected void assertHasNumberArrayField(JsonObject jsonObject, String path) {
+		JsonElement found = findByPath(jsonObject, path);
+		try {
+			OIDFJSON.getNumberArray(found);
+		} catch (UnexpectedJsonTypeException u) {
+			throw error("Field at " + path + " was not an array of Numbers", jsonObject);
+		}
+	}
+
 	protected void assertHasCharField(JsonObject jsonObject, String path) {
 		JsonElement found = findByPath(jsonObject, path);
 		try {
@@ -305,11 +329,25 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 	}
 
-	//@Deprecated Use assertField(JsonObject jsonObject, String path)
+	/**
+	Use assertField(JsonObject jsonObject, String path)
+	 */
+	@Deprecated
 	protected void assertJsonObject(JsonObject body, String pathToJsonObject, Consumer<JsonObject> consumer) {
 		JsonObject object = (JsonObject) findByPath(body, pathToJsonObject);
 		consumer.accept(object.getAsJsonObject());
 	}
+
+	/**
+	 Use assertField(JsonObject jsonObject, String path)
+	 */
+	@Deprecated
+	public void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
+		JsonElement jsonElement = findByPath(body, pathToJsonArray);
+		JsonArray array = (JsonArray) jsonElement;
+		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
+	}
+
 
 	protected void assertJsonField(JsonObject jsonObject, String path, String expected) {
 		JsonElement actual = findByPath(jsonObject, path);
@@ -541,13 +579,6 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		Class<?> clazz = getClass();
 		ApiName apiName = clazz.getDeclaredAnnotation(ApiName.class);
 		return apiName == null ? clazz.getSimpleName() : apiName.value();
-	}
-
-	//@Deprecated Use assertField(JsonObject jsonObject, String path);
-	public void assertJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {
-		JsonElement jsonElement = findByPath(body, pathToJsonArray);
-		JsonArray array = (JsonArray) jsonElement;
-		array.forEach(jsonObject -> consumer.accept(jsonObject.getAsJsonObject()));
 	}
 
 	protected void assertOptionalJsonArrays(JsonObject body, String pathToJsonArray, Consumer<JsonObject> consumer) {

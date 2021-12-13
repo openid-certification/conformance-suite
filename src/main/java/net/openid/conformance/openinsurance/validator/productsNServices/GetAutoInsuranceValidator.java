@@ -9,7 +9,6 @@ import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidat
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -19,17 +18,70 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api endpoint: /auto-insurance/{commercializationArea}/{fipeCode}/{year}
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-autoinsurance.yaml
+ * Api endpoint: src/main/java/net/openid/conformance/openinsurance/validator/productsNServices/auto-insurance
  * Api version: 1.0.0
+ * Api git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices Auto Insurance")
 public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> CONDITION = Sets.newHashSet("NOVAS", "USADAS", "AMBAS");
+	public static final Set<String> PART_TYPE = Sets.newHashSet("ORIGINAIS", "COMPATIVEIS", "AMBAS");
+	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO_GRATUITO", "CLUBE_BENEFICIOS", "CASHBACK", "DESCONTOS", "OUTROS");
+	public static final Set<String> SERVICE_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
+	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITA", "PAGA" );
+	public static final Set<String> TERMS = Sets.newHashSet("ANUAL",
+		"ANUAL_INTERMITENTE",
+		"PLURIANUAL",
+		"PLURIANUAL_INTERMITENTE",
+		"SEMESTRAL",
+		"SEMESTRAL_INTERMITENTE",
+		"MENSAL",
+		"MENSAL_INTERMITENTE",
+		"DIARIO",
+		"DIARIO_INTERMITENTE",
+		"OUTROS");
+	public static final Set<String> CUSTOMER_SERVICE = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_LIVRE_ESCOLHA");
+	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_CREDITO",
+		"CARTAO_DEBITO",
+		"DEBITO_CONTA_CORRENTE",
+		"DEBITO_CONTA_POUPANCA",
+		"BOLETO_BANCARIO",
+		"PIX",
+		"CONSIGINACAO_FOLHA_PAGAMENTO",
+		"PONTOS_PROGRAMA_BENEFICIO",
+		"OUTROS");
+	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO", "AMBOS" );
+	public static final Set<String> CONTRACTING_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL", "AMBAS"  );
+	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "AMBAS" );
 	public static final Set<String> GEOGRAPHIC_SCOPE_COVERAGE = Sets.newHashSet("NACIONAL", "REGIONAL", "INTERNACIONAL", "OUTROS_PAISES");
 	public static final Set<String> DEDUCTIBLE_TYPES = Sets.newHashSet("NORMAL", "REDUZIDA", "ISENTA", "MAJORADA", "FLEXIVEL");
 	public static final Set<String> CONTRACT_BASE_TYPE = Sets.newHashSet("VALOR_DETERMINADO", "VALOR_MERCADO", "AMBOS");
-	public static final Set<String> COVERAGE = Sets.newHashSet("CASCO_COMPREENSIVA_COLISAO_INCENDIO_ROUBO_FURTO", "CASCO_INCENDIO_ROUBO_FURTO", "CASCO_ROUBO_FURTO", "CASCO_INCENDIO", "CASCO_ALAGAMENTO", "CASCO_COLISAO_INDENIZACAO_PARCIAL", "CASCO_COLISAO_INDENIZACAO_INTEGRAL", "RESPONSABILIDADE_CIVIL_FACULTATIVA_VEICULOS_RCFV", "RESPONSABILIDADE_CIVIL_FACULTATIVA_CONDUTOR_RCFC", "ACIDENTE_PESSOAIS_PASSAGEIROS_VEICULO", "ACIDENTE_PESSOAIS_PASSAGEIROS_CONDUTOR", "VIDROS", "DIARIA_INDISPONIBILIDADE", "LFR_LANTERNAS_FAROIS_RETROVISORES", "ACESSORIOS_EQUIPAMENTOS", "CARRO_RESERVA", "PEQUENOS_REPAROS", "RESPONSABILIDADE_CIVIL_CARTA_VERDE", "OUTRAS");
+	public static final Set<String> COVERAGE = Sets.newHashSet("CASCO_COMPREENSIVA_COLISAO_INCENDIO_ROUBO_FURTO",
+		"CASCO_INCENDIO_ROUBO_FURTO",
+		"CASCO_ROUBO_FURTO",
+		"CASCO_INCENDIO",
+		"CASCO_ALAGAMENTO",
+		"CASCO_COLISAO_INDENIZACAO_PARCIAL",
+		"CASCO_COLISAO_INDENIZACAO_INTEGRAL",
+		"RESPONSABILIDADE_CIVIL_FACULTATIVA_VEICULOS_RCFV",
+		"RESPONSABILIDADE_CIVIL_FACULTATIVA_CONDUTOR_RCFC",
+		"ACIDENTE_PESSOAIS_PASSAGEIROS_VEICULO",
+		"ACIDENTE_PESSOAIS_PASSAGEIROS_CONDUTOR",
+		"VIDROS",
+		"DIARIA_INDISPONIBILIDADE",
+		"LFR_LANTERNAS_FAROIS_RETROVISORES",
+		"ACESSORIOS_EQUIPAMENTOS",
+		"CARRO_RESERVA",
+		"PEQUENOS_REPAROS",
+		"RESPONSABILIDADE_CIVIL_CARTA_VERDE",
+		"VOUCHER_MOBILIDADE",
+		"DESPESAS_EXTRAORDINARIAS",
+		"PEQUENOS_REPAROS",
+		"GARANTIA_MECANICA",
+		"OUTRAS");
 	private final CommonValidatorParts parts;
 	private static class Fields extends ProductNServicesCommonFields { }
 
@@ -42,29 +94,20 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 
-		assertField(body, new ObjectField
-			.Builder("data")
-			.setValidator(data -> {
-
-				assertField(data,
-					new DatetimeField
-						.Builder("requestTime")
-						.setPattern("[\\w\\W\\s]*")
-						.setMaxLength(2048)
-						.setOptional()
-						.build());
-
-				assertField(data, new ObjectField
-					.Builder("brand")
-					.setValidator(brand -> {
-						assertField(brand, Fields.name().build());
-						assertField(brand, new ObjectField
-							.Builder("company")
-							.setValidator(this::assertCompany)
-							.build());
-					})
-					.setOptional().build());
-			}).build());
+		assertField(body,
+			new ObjectField
+				.Builder("data").setValidator(data ->
+					assertField(data,
+						new ObjectField.Builder("brand")
+							.setValidator(brand -> {
+								assertField(brand, Fields.name().build());
+								assertField(brand,
+									new ObjectArrayField
+										.Builder("company")
+										.setValidator(this::assertCompany)
+										.build());
+							}).build())
+				).build());
 
 		logFinalStatus();
 		return environment;
@@ -78,7 +121,6 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("products")
 				.setValidator(this::assertProducts)
-				.setOptional()
 				.build());
 	}
 
@@ -90,7 +132,6 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("coverages")
 				.setValidator(this::assertCoverages)
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -100,11 +141,13 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 					assertField(carParts,
 						new StringField
 							.Builder("carPartCondition")
+							.setEnums(CONDITION)
 							.build());
 
 					assertField(carParts,
 						new StringField
 							.Builder("carPartType")
+							.setEnums(PART_TYPE)
 							.build());
 				})
 				.build());
@@ -116,16 +159,19 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 					assertField(carModels,
 						new StringField
 							.Builder("manufacturer")
+							.setMaxLength(20)
 							.build());
 
 					assertField(carModels,
 						new StringField
 							.Builder("model")
+							.setMaxLength(20)
 							.build());
 
 					assertField(carModels,
 						new IntField
 							.Builder("year")
+							.setMaxLength(4)
 							.build());
 
 					assertField(carModels,
@@ -138,51 +184,60 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new StringField
 				.Builder("vehicleOvernightZipCode")
+				.setMaxLength(8)
 				.build());
 
 		assertField(products,
-			new StringField
+			new StringArrayField
 				.Builder("additional")
+				.setEnums(ADDITIONAL)
 				.build());
 
 		assertField(products,
 			new StringField
 				.Builder("additionalOthers")
+				.setOptional()
 				.build());
 
 		assertField(products,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("assistanceServices")
 				.setValidator(assistanceServices -> {
 					assertField(assistanceServices,
 						new StringArrayField
 							.Builder("assistanceServicesPackage")
+							.setEnums(SERVICE_PACKAGE)
 							.build());
 
 					assertField(assistanceServices,
 						new StringField
 							.Builder("assistanceServicesDetail")
+							.setMaxLength(1000)
 							.build());
 
 					assertField(assistanceServices,
 						new StringField
 							.Builder("chargeTypeSignaling")
+							.setEnums(TYPE_SIGNALING)
+							.setOptional()
 							.build());
 				})
 				.build());
 
 		assertField(products,
 			new ObjectArrayField
-				.Builder("termAndCondition")
-				.setValidator(termAndCondition -> {
-					assertField(termAndCondition,
+				.Builder("termsAndConditions")
+				.setValidator(termsAndConditions -> {
+					assertField(termsAndConditions,
 						new StringField
 							.Builder("susepProcessNumber")
+							.setMaxLength(20)
 							.build());
 
-					assertField(termAndCondition,
+					assertField(termsAndConditions,
 						new StringField
 							.Builder("definition")
+							.setMaxLength(1024)
 							.build());
 				})
 				.build());
@@ -190,30 +245,36 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new StringArrayField
 				.Builder("terms")
+				.setEnums(TERMS)
 				.build());
 
 		assertField(products,
 			new StringArrayField
 				.Builder("customerService")
+				.setEnums(CUSTOMER_SERVICE)
 				.build());
 
 		assertField(products,
 			new ObjectField
-				.Builder("premiumPayments")
-				.setValidator(premiumPayments -> {
-					assertField(premiumPayments,
+				.Builder("premiumPayment")
+				.setValidator(premiumPayment -> {
+					assertField(premiumPayment,
 						new StringArrayField
 							.Builder("paymentMethod")
+							.setEnums(PAYMENT_METHOD)
 							.build());
 
-					assertField(premiumPayments,
+					assertField(premiumPayment,
 						new StringArrayField
 							.Builder("paymentType")
+							.setEnums(PAYMENT_TYPE)
+							.setOptional()
 							.build());
 
-					assertField(premiumPayments,
+					assertField(premiumPayment,
 						new StringField
 							.Builder("paymentDetail")
+							.setOptional()
 							.build());
 				})
 				.build());
@@ -225,11 +286,13 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 					assertField(minimumRequirements,
 						new StringArrayField
 							.Builder("contractingType")
+							.setEnums(CONTRACTING_TYPE)
 							.build());
 
 					assertField(minimumRequirements,
 						new StringField
 							.Builder("contractingMinRequirement")
+							.setMaxLength(1024)
 							.build());
 				})
 				.build());
@@ -237,6 +300,8 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new StringArrayField
 				.Builder("targetAudiences")
+				.setMaxLength(30)
+				.setEnums(TARGET_AUDIENCE)
 				.build());
 	}
 
@@ -314,12 +379,6 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(coverageAttributes,
 			new BooleanField
 				.Builder("fullIndemnityDeductible")
-				.build());
-
-		assertField(coverageAttributes,
-			new BooleanField
-				.Builder("deductibleExists")
-				.setOptional()
 				.build());
 
 		assertField(coverageAttributes,

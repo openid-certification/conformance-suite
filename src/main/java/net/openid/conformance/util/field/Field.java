@@ -21,6 +21,7 @@ public class Field {
 	private int maxItems;
 	private int minItems;
 	private int maxValue;
+	private int minimum = Integer.MIN_VALUE;
 	private Set<String> enums = Collections.emptySet();
 	protected Consumer<JsonObject> validator;
 
@@ -55,6 +56,22 @@ public class Field {
 		this.minItems = minItems;
 		this.maxValue = maxValue;
 		this.enums = enums;
+	}
+
+	protected Field(boolean optional, boolean nullable, String path, String pattern,
+					int maxLength, int minLength, int maxItems, int minItems, int maxValue,
+					Set<String> enums, int minimum) {
+		this.optional = optional;
+		this.nullable = nullable;
+		this.path = path;
+		this.pattern = pattern;
+		this.maxLength = maxLength;
+		this.minLength = minLength;
+		this.maxItems = maxItems;
+		this.minItems = minItems;
+		this.maxValue = maxValue;
+		this.enums = enums;
+		this.minimum = minimum;
 	}
 
 	public Field(boolean optional, boolean nullable, String path, int maxItems, int minItems, Consumer<JsonObject> validator) {
@@ -144,6 +161,10 @@ public class Field {
 
 	public Consumer<JsonObject> getValidator() { return this.validator; }
 
+	public int getMinimum() {
+		return this.minimum;
+	}
+
 	public abstract static class FieldBuilder {
 		protected boolean optional;
 		protected boolean nullable;
@@ -154,6 +175,7 @@ public class Field {
 		protected int maxItems;
 		protected int minItems;
 		protected int maxValue;
+		protected  int minimum;
 		protected Set<String> enums = Collections.emptySet();
 		protected Consumer<JsonObject> validator;
 
@@ -213,6 +235,11 @@ public class Field {
 
 		public FieldBuilder setValidator(Consumer<JsonObject> validator) {
 			this.validator = validator;
+			return this;
+		}
+
+		public FieldBuilder setMinimum(int minimum) {
+			this.minimum = minimum;
 			return this;
 		}
 
