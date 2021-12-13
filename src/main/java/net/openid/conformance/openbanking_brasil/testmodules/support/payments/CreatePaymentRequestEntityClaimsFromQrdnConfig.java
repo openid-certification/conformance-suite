@@ -33,9 +33,9 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 		JsonObject data = new JsonObject();
 		data.addProperty("localInstrument", "QRDN");
 		data.addProperty("cnpjInitiator", cnpj);
-		JsonElement igbeTownCodeElement = paymentObject.get("igbeTownCode");
+		JsonElement igbeTownCodeElement = paymentObject.get("ibgeTownCode");
 		if(igbeTownCodeElement != null) {
-			data.add("igbeTownCode", igbeTownCodeElement);
+			data.add("ibgeTownCode", igbeTownCodeElement);
 		}
 		data.add("proxy", get(paymentDetails, "proxy"));
 		data.add("qrCode", get(paymentDetails, "qrCode"));
@@ -53,9 +53,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
-		if (env.getElementFromObject("data", "ibgeTownCode") != null) {
-			data.add("ibgeTownCode", get(paymentObject, "ibgeTownCode"));
-		}
+
 		pixPayment.add("data", data);
 		env.putObject("resource_request_entity_claims", pixPayment);
 
