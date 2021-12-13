@@ -50,7 +50,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfigTests {
 		JsonObject obj = paymentClaims.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 
-		assertNull(obj.get("igbeTownCode"));
+		assertNull(obj.get("ibgeTownCode"));
 
 	}
 
@@ -80,7 +80,7 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfigTests {
 		JsonObject paymentClaims = environment.getObject("resource_request_entity_claims");
         JsonObject obj = paymentClaims.getAsJsonObject("data");
 
-        String igbeTown = OIDFJSON.getString(obj.get("igbeTownCode"));
+        String igbeTown = OIDFJSON.getString(obj.get("ibgeTownCode"));
 
         assertEquals("5300108", igbeTown);
 

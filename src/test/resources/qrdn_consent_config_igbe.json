@@ -16,7 +16,7 @@
             "date": "2021-01-01",
             "currency": "BRL",
             "amount": "20201.00",
-            "igbeTownCode": "5300108",
+            "ibgeTownCode": "5300108",
             "details": {
                 "localInstrument": "QRDN",
                 "proxy": "12345678902",

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -52,8 +53,9 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
-		data.add("ibgeTownCode", get(paymentObject, "ibgeTownCode"));
-
+		if (env.getElementFromObject("data", "ibgeTownCode") != null) {
+			data.add("ibgeTownCode", get(paymentObject, "ibgeTownCode"));
+		}
 		pixPayment.add("data", data);
 		env.putObject("resource_request_entity_claims", pixPayment);
 
