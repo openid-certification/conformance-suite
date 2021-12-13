@@ -49,6 +49,6 @@ public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends Abstra
 
 	@Override
 	protected Optional<Class<? extends Condition>> resourceCreationErrorMessageCondition() {
-		return Optional.ofNullable(VerifyErrorIfPixPostFailsOnQres.class);
+		return Optional.ofNullable(VerifyErrorIfPixPostFailsOnQresCobranca.class);
 	}
 }
