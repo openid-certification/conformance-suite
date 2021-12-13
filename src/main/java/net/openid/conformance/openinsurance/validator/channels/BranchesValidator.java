@@ -199,14 +199,14 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("openingTime")
 				.setMaxLength(13)
-				//.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
+				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
 				.build());
 
 		assertField(standards,
 			new StringField
 				.Builder("closingTime")
 				.setMaxLength(13)
-				//.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
+				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
 				.build());
 	}
 

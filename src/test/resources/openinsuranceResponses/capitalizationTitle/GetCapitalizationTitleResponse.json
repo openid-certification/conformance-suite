@@ -2,89 +2,102 @@
     "requestTime": "2021-08-20T08:30:00Z",
     "brand": {
         "name": "ACME seguros",
-        "companies": {
-            "name": "ACME cap da ACME seguros",
-            "cnpjNumber": "12345678901234",
-            "product": [
-                {
-                    "name": "ACMEcap",
-                    "code": "01234589_cap",
-                    "modality": [
-                        "TRADICIONAL"
-                    ],
-                    "costType": [
-                        "PAGMENTO_UNICO"
-                    ],
-                    "termsAndConditions": {
-                        "susepProcessNumber": "15414.622222/2222-22",
-                        "termsRegulations": "https://ey.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf"
-                    },
-                    "quotas": {
-                        "capitalizationQuota": "10,000000",
-                        "raffleQuota": "10,000000",
-                        "chargingQuota": "10,000000"
-                    },
-                    "validity": 48,
-                    "serieSize": 5000000,
-                    "capitalizationPeriod": {
-                        "interestRate": "0,25123",
-                        "updateIndex": [
-                            "IPCA"
+        "companies": [
+            {
+                "name": "ACME cap da ACME seguros",
+                "cnpjNumber": "12345678901234",
+                "product": [
+                    {
+                        "name": "ACMEcap",
+                        "code": "01234589_cap",
+                        "modality": [
+                            "TRADICIONAL"
                         ],
-                        "others": [
-                            "Índice de atualização"
+                        "costType": [
+                            "PAGAMENTO_UNICO"
                         ],
-                        "contributionAmount": {
-                            "minValue": 500,
-                            "maxValue": 5000,
-                            "frequency": "MENSAL",
-                            "value": 0
+                        "termsAndConditions": {
+                            "susepProcessNumber": 15414622222222222,
+                            "termsRegulations": "https://ey.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf"
                         },
-                        "earlyRedemption": "10,000000",
-                        "redemptionPercentageEndTerm": "100,002",
-                        "gracePeriodRedemption": 48
-                    },
-                    "latePayment": {
-                        "suspensionPeriod": 10,
-                        "termExtensionOption": true
-                    },
-                    "contributionPayment": {
-                        "paymentMethod": [
-                            "CARTAO_CREDITO"
+                        "quotas": [
+                            {
+                                "quota": 10,
+                                "capitalizationQuota": [
+                                    10
+                                ],
+                                "raffleQuota": [
+                                    10
+                                ],
+                                "chargingQuota": [
+                                    10
+                                ]
+                            }
                         ],
-                        "updateIndex": [
-                            "IPCA"
-                        ],
-                        "others": [
-                            "Índice de atualização"
-                        ]
-                    },
-                    "redemption": {
-                        "redemption": "151,23"
-                    },
-                    "raffle": {
-                        "raffleQty": 10000,
-                        "timeInterval": [
-                            "QUINZENAL"
-                        ],
-                        "raffleValue": 5,
-                        "earlySettlementRaffle": true,
-                        "mandatoryContemplation": true,
-                        "ruleDescription": "Sorteio às quartas-feiras",
-                        "minimumContemplationProbability": "0,000001"
-                    },
-                    "additionalDetails": {
-                        "additionalDetails": "https://example.com/openinsurance"
-                    },
-                    "minimumRequirements": {
-                        "minimumRequirementDetails": "https://ey.exemplo/capitalizacao/tradicional/PU/requisitos_min",
-                        "targetAudience": [
-                            "PESSOAL_NATURAL"
-                        ]
+                        "validity": 48,
+                        "serieSize": 5000000,
+                        "capitalizationPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": [
+                                "IPCA"
+                            ],
+                            "others": [
+                                "Índice de atualização"
+                            ],
+                            "contributionAmount": {
+                                "minValue": 500,
+                                "maxValue": 5000,
+                                "frequency": "MENSAL",
+                                "value": 0
+                            },
+                            "earlyRedemption": [
+                                10
+                            ],
+                            "redemptionPercentageEndTerm": 100.002,
+                            "gracePeriodRedemption": 48
+                        },
+                        "latePayment": {
+                            "suspensionPeriod": 10,
+                            "termExtensionOption": true
+                        },
+                        "contributionPayment": {
+                            "paymentMethod": [
+                                "CARTAO_CREDITO"
+                            ],
+                            "updateIndex": [
+                                "IPCA"
+                            ],
+                            "others": [
+                                "Índice de atualização"
+                            ]
+                        },
+                        "redemption": {
+                            "redemption": 151.23
+                        },
+                        "raffle": {
+                            "raffleQty": 10000,
+                            "timeInterval": [
+                                "QUINZENAL"
+                            ],
+                            "raffleValue": 5,
+                            "earlySettlementRaffle": true,
+                            "mandatoryContemplation": true,
+                            "ruleDescription": "Sorteio às quartas-feiras",
+                            "minimumContemplationProbability": 0.000001
+                        },
+                        "additionalDetails": {
+                            "additionalDetails": "https://example.com/openinsurance"
+                        },
+                        "minimumRequirements": {
+                            "minimumRequirementDetails": "https://ey.exemplo/capitalizacao/tradicional/PU/requisitos_min",
+                            "targetAudiences": [
+                                "PESSOAL_NATURAL"
+                            ]
+                        }
                     }
-                }
-            ]
-        }
+                ]
+            }
+        ]
     },
     "links": {
         "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",

@@ -1,159 +1,163 @@
 {
     "data": {
-        "requestTime": "2021-08-20T08:30:00Z",
         "brand": {
             "name": "string",
-            "company": {
-                "name": "string",
-                "cnpjNumber": "string",
-                "products": [
-                    {
-                        "name": "string",
-                        "code": "string",
-                        "coverages": [
-                            {
-                                "coverage": "VIDROS",
-                                "coverageDetail": "Roubo total",
-                                "coveragePermissionSeparteAcquisition": true,
-                                "coverageAttributes": {
-                                    "minLMI": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "string",
-                                            "description": "string"
-                                        }
-                                    },
-                                    "maxLMI": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "string",
-                                            "description": "string"
-                                        }
-                                    },
-                                    "contractBase": [
-                                        {
-                                            "contractBaseType": "VALOR_DETERMINADO",
-                                            "contractBaseMinValue": {
-                                                "amount": 0,
-                                                "unit": {
-                                                    "code": "string",
-                                                    "description": "string"
-                                                }
-                                            },
-                                            "contractBaseMaxValue": {
-                                                "amount": 0,
-                                                "unit": {
-                                                    "code": "string",
-                                                    "description": "string"
+            "company": [
+                {
+                    "name": "string",
+                    "cnpjNumber": "string",
+                    "products": [
+                        {
+                            "name": "string",
+                            "code": "string",
+                            "coverages": [
+                                {
+                                    "coverage": "VIDROS",
+                                    "coverageDetail": "Roubo total",
+                                    "coveragePermissionSeparteAcquisition": true,
+                                    "coverageAttributes": {
+                                        "minLMI": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "string",
+                                                "description": "string"
+                                            }
+                                        },
+                                        "maxLMI": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "string",
+                                                "description": "string"
+                                            }
+                                        },
+                                        "contractBase": [
+                                            {
+                                                "contractBaseType": "VALOR_DETERMINADO",
+                                                "contractBaseMinValue": {
+                                                    "amount": 0,
+                                                    "unit": {
+                                                        "code": "string",
+                                                        "description": "string"
+                                                    }
+                                                },
+                                                "contractBaseMaxValue": {
+                                                    "amount": 0,
+                                                    "unit": {
+                                                        "code": "string",
+                                                        "description": "string"
+                                                    }
                                                 }
                                             }
-                                        }
-                                    ],
-                                    "newCarMaximumCalculatingPeriod": 12,
-                                    "newCardContractBase": [
-                                        {
-                                            "contractBaseType": "VALOR_DETERMINADO",
-                                            "contractBaseMinValue": {
-                                                "amount": 0,
-                                                "unit": {
-                                                    "code": "string",
-                                                    "description": "string"
-                                                }
-                                            },
-                                            "contractBaseMaxValue": {
-                                                "amount": 0,
-                                                "unit": {
-                                                    "code": "string",
-                                                    "description": "string"
+                                        ],
+                                        "newCarMaximumCalculatingPeriod": 12,
+                                        "newCarContractBase": [
+                                            {
+                                                "contractBaseType": "VALOR_DETERMINADO",
+                                                "contractBaseMinValue": {
+                                                    "amount": 0,
+                                                    "unit": {
+                                                        "code": "string",
+                                                        "description": "string"
+                                                    }
+                                                },
+                                                "contractBaseMaxValue": {
+                                                    "amount": 0,
+                                                    "unit": {
+                                                        "code": "string",
+                                                        "description": "string"
+                                                    }
                                                 }
                                             }
-                                        }
-                                    ],
-                                    "fullIndemnityPercentage": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "string",
-                                            "description": "string"
-                                        }
-                                    },
-                                    "deductibleType": [
-                                        "NORMAL"
-                                    ],
-                                    "fullIndemnityDeductible": true,
-                                    "deductibleExists": true,
-                                    "deductiblePaymentByCoverage": true,
-                                    "deductiblePercentage": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "string",
-                                            "description": "string"
-                                        }
-                                    },
-                                    "mandatoryParticipation": "Casco - RCF-V Danos",
-                                    "geographicScopeCoverage": [
-                                        "NACIONAL"
-                                    ],
-                                    "geographicScopeCoverageOthers": "string"
+                                        ],
+                                        "fullIndemnityPercentage": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "string",
+                                                "description": "string"
+                                            }
+                                        },
+                                        "deductibleType": [
+                                            "NORMAL"
+                                        ],
+                                        "fullIndemnityDeductible": true,
+                                        "deductiblePaymentByCoverage": true,
+                                        "deductiblePercentage": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "string",
+                                                "description": "string"
+                                            }
+                                        },
+                                        "mandatoryParticipation": "Casco - RCF-V Danos",
+                                        "geographicScopeCoverage": [
+                                            "NACIONAL"
+                                        ],
+                                        "geographicScopeCoverageOthers": "string"
+                                    }
                                 }
-                            }
-                        ],
-                        "carParts": [
-                            {
-                                "carPartCondition": "NOVAS",
-                                "carPartType": "ORIGINAIS"
-                            }
-                        ],
-                        "carModels": [
-                            {
-                                "manufacturer": "FORD",
-                                "model": "KA",
-                                "year": 2018,
-                                "fipeCode": "string"
-                            }
-                        ],
-                        "vehicleOvernightZipCode": "1311000",
-                        "additional": "SORTEIO GRATUITO",
-                        "additionalOthers": "string",
-                        "assistanceServices": {
-                            "assistanceServicesPackage": [
-                                "ATE_10_SERVICOS"
                             ],
-                            "assistanceServicesDetail": "Perda Parcial - Colisão",
-                            "chargeTypeSignaling": "GRATUITA"
-                        },
-                        "termAndCondition": [
-                            {
-                                "susepProcessNumber": "15414.622222/2222-22",
-                                "definition": "https://ey.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf"
-                            }
-                        ],
-                        "terms": [
-                            "ANUAL"
-                        ],
-                        "customerService": [
-                            "REDE REFERECIADA"
-                        ],
-                        "premiumPayments": {
-                            "paymentMethod": [
-                                "CARTÃO DE CRÉDITO"
+                            "carParts": [
+                                {
+                                    "carPartCondition": "NOVAS",
+                                    "carPartType": "ORIGINAIS"
+                                }
                             ],
-                            "paymentType": [
-                                "PARCELADO"
+                            "carModels": [
+                                {
+                                    "manufacturer": "FORD",
+                                    "model": "KA",
+                                    "year": 2018,
+                                    "fipeCode": "string"
+                                }
                             ],
-                            "paymentDetail": "string"
-                        },
-                        "minimumRequirements": {
-                            "contractingType": [
-                                "COLETIVO"
+                            "vehicleOvernightZipCode": "1311000",
+                            "additional": [
+                                "SORTEIO_GRATUITO"
                             ],
-                            "contractingMinRequirement": "https://example.com/mobile-banking"
-                        },
-                        "targetAudiences": [
-                            "PESSOA NATURAL"
-                        ]
-                    }
-                ]
-            }
+                            "additionalOthers": "string",
+                            "assistanceServices": [
+                                {
+                                    "assistanceServicesPackage": [
+                                        "ATE_10_SERVICOS"
+                                    ],
+                                    "assistanceServicesDetail": "Perda Parcial - Colisão",
+                                    "chargeTypeSignaling": "GRATUITA"
+                                }
+                            ],
+                            "termsAndConditions": [
+                                {
+                                    "susepProcessNumber": "15414.622222/2222-22",
+                                    "definition": "https://ey.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf"
+                                }
+                            ],
+                            "terms": [
+                                "ANUAL"
+                            ],
+                            "customerService": [
+                                "REDE_REFERENCIADA"
+                            ],
+                            "premiumPayment": {
+                                "paymentMethod": [
+                                    "CARTAO_CREDITO"
+                                ],
+                                "paymentType": [
+                                    "PARCELADO"
+                                ],
+                                "paymentDetail": "string"
+                            },
+                            "minimumRequirements": {
+                                "contractingType": [
+                                    "COLETIVO"
+                                ],
+                                "contractingMinRequirement": "https://example.com/mobile-banking"
+                            },
+                            "targetAudiences": [
+                                "PESSOA_NATURAL"
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     },
     "links": {

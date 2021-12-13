@@ -2,96 +2,104 @@
     "data": {
         "brand": {
             "name": "EMPRESA A seguros",
-            "company": {
-                "name": "ABCDE SEGUROS",
-                "cnpjNumber": "12345678901234",
-                "products": [
-                    {
-                        "name": "RESIDENCIAL XPTO",
-                        "code": "0000-0",
-                        "coverages": [
-                            {
-                                "coverageType": "DANOS_ELETRICOS",
-                                "coverageDetail": "Cobertura especial para escritório residenciais",
-                                "coveragePermissionSeparteAcquisition": false,
-                                "coverageAttributes": {
-                                    "minLMI": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "R$",
-                                            "description": "REAL"
-                                        }
-                                    },
-                                    "maxLMI": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "R$",
-                                            "description": "REAL"
-                                        }
-                                    },
-                                    "minDeductibleAmount": {
-                                        "amount": 0,
-                                        "unit": {
-                                            "code": "R$",
-                                            "description": "REAL"
-                                        }
-                                    },
-                                    "insuredMandatoryParticipationPercentage": 0
+            "company": [
+                {
+                    "name": "ABCDE SEGUROS",
+                    "cnpjNumber": "12345678901234",
+                    "products": [
+                        {
+                            "name": "RESIDENCIAL XPTO",
+                            "code": "0000-0",
+                            "coverages": [
+                                {
+                                    "coverageType": "IMOVEL_BASICA",
+                                    "coverageDetail": "Cobertura especial para escritório residenciais",
+                                    "coveragePermissionSeparteAquisition": false,
+                                    "coverageAttributes": {
+                                        "minLMI": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        },
+                                        "maxLMI": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        },
+                                        "minDeductibleAmount": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        },
+                                        "insuredMandatoryParticipationPercentage": 0
+                                    }
                                 }
-                            }
-                        ],
-                        "propertyCharacteristics": [
-                            {
-                                "propertyType": "CASA",
-                                "propertyBuildType": "ALVENARIA",
-                                "propertyUsageType": "HABITUAL",
-                                "importanceInsured": "PREDIO"
-                            }
-                        ],
-                        "propertyZipCode": 1311000,
-                        "protective": true,
-                        "additional": "SORTEIO_GRATUITO",
-                        "additionalOthers": "string",
-                        "assistanceServices": [
-                            {
-                                "assistanceServicesPackage": "ATE_10_SERVICOS",
-                                "complementaryAssistanceServicesDetail": "reboque pane seca",
-                                "chargeTypeSignaling": "GRATUITA"
-                            }
-                        ],
-                        "termsAndConditions": [
-                            {
-                                "susepProcessNumber": "XXXXX.XXXXXX/XXXX-XX",
-                                "definition": "https://openinsurance.com.br/aaa"
-                            }
-                        ],
-                        "validity": [
-                            {
-                                "term": "ANUAL",
-                                "termOthers": "string"
-                            }
-                        ],
-                        "customerServices": [
-                            "LIVRE_ESCOLHA"
-                        ],
-                        "premiumRates": [
-                            "string"
-                        ],
-                        "premiumPayments": [
-                            {
-                                "paymentMethod": "CARTAO_CREDITO",
-                                "paymentMethodDetail": "string",
-                                "paymentType": "A_VISTA"
-                            }
-                        ],
-                        "minimumRequirements": {
-                            "contractingType": "COLETIVO",
-                            "contractingMinRequirement": "https://openinsurance.com.br/aaa"
-                        },
-                        "targetAudiences": ["PESSOA_NATURAL"]
-                    }
-                ]
-            }
+                            ],
+                            "propertyCharacteristics": [
+                                {
+                                    "propertyType": "CASA",
+                                    "propertyBuildType": "ALVENARIA",
+                                    "propertyUsageType": "HABITUAL",
+                                    "destinationInsuredImportance": "PREDIO"
+                                }
+                            ],
+                            "propertyZipCode": "1311000",
+                            "protective": true,
+                            "additional": [
+                                "SORTEIO_GRATUITO"
+                            ],
+                            "additionalOthers": "string",
+                            "assistanceServices": [
+                                {
+                                    "assistanceServicesPackage": "ATE_10_SERVICOS",
+                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
+                                    "chargeTypeSignaling": "GRATUITA"
+                                }
+                            ],
+                            "termsAndConditions": [
+                                {
+                                    "susepProcessNumber": "XXXXX.XXXXXX/XXXX-XX",
+                                    "definition": "https://openinsurance.com.br/aaa"
+                                }
+                            ],
+                            "validity": [
+                                {
+                                    "term": "ANUAL",
+                                    "termOthers": "string"
+                                }
+                            ],
+                            "customerServices": [
+                                "LIVRE_ESCOLHA"
+                            ],
+                            "premiumRates": [
+                                "string"
+                            ],
+                            "premiumPayments": [
+                                {
+                                    "paymentMethod": "CARTAO_CREDITO",
+                                    "paymentMethodDetail": "string",
+                                    "paymentType": "PARCELADO"
+                                }
+                            ],
+                            "minimumRequirements": [
+                                {
+                                    "contractingType": "COLETIVO",
+                                    "contractingMinRequirement": "https://openinsurance.com.br/aaa"
+                                }
+                            ],
+                            "targetAudiences": [
+                                "PESSOA_NATURAL"
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     },
     "links": {

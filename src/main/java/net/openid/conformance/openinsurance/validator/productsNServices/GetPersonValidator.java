@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServi
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.NumberField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringArrayField;
@@ -21,8 +22,10 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
 import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.EXCLUDED_RISKS;
 
 /**
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-person.yaml
  * Api endpoint: /person/
  * Api version: 1.0.0
+ * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices Person")
@@ -35,8 +38,8 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> BENEFIT_RECALCULATION_CRITERIA = Sets.newHashSet("INDICE", "VINCULADO_SALDO_DEVEDOR", "VARIAVEL_ACORDO_CRITERIO_ESPECIFICO");
 	public static final Set<String> PMBAC_UPDATE_INDEX = Sets.newHashSet("IPCA", "IGP-M", "INPC");
 	public static final Set<String> VALIDITY = Sets.newHashSet("VITALICIA", "TEMPORARIA_PRAZO_FIXO", "TEMPORARIA_INTERMITENTE");
-	private static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO", "SERVICO_ASSISTENCIAS_COMPLEMENTARES_PAGO", "SERVICO_ASSISTENCIAS_COMPLEMENTARES_GRATUITO", "OUTROS", "NAO_HA");
-	private static final Set<String> ASSISTANCE_TYPE = Sets.newHashSet("ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA", "ARQUITETO_VIRTUAL", "ASSESSORIA_FINANCEIRA", "AUTOMOVEL", "AUXILIO_NATALIDADE", "AVALIACAO_CLINICA_PREVENTIVA", "BOLSA_PROTEGIDA", "CESTA_BASICA", "CHECKUP_ODONTOLOGICO", "CLUBE_VANTAGENS_BENEFICIOS", "CONVALESCENCIA", "DECESSO", "DESCONTO_FARMACIAS_MEDICAMENTOS", "DESPESAS_FARMACEUTICAS_VIAGEM", "DIGITAL", "EDUCACIONAL", "EMPRESARIAL", "ENCANADOR", "ENTRETENIMENTO", "FIANCAS_DESPESAS_LEGAIS", "FISIOTERAPIA", "FUNERAL", "HELP_LINE", "HOSPEDAGEM_ACOMPANHANTE", "INTERRUPCAO_VIAGEM", "INVENTARIO", "MAIS_EM_VIDA", "MAMAE_BEBE", "MEDICA_ACIDENTE_DOENCA", "MOTOCICLETA", "MULHER", "NUTRICIONISTA", "ODONTOLOGICA", "ORIENTACAO_FITNESS", "ORIENTACAO_JURIDICA", "ORIENTACAO_NUTRICIONAL", "PERSONAL_FITNESS", "ORIENTACAO_PSICOSSOCIAL_FAMILIAR", "PERDA_ROUBO_CARTAO", "PET", "PRORROGACAO_ESTADIA", "PROTECAO_DADOS", "RECOLOCACAO_PROFISSIONAL", "REDE_DESCONTO_NUTRICIONAL", "RESIDENCIAL", "RETORNO_MENORES_SEGURADO", "SAQUE_COACAO", "SAUDE_BEM_ESTAR", "SEGUNDA_OPINIAO_MEDICA", "SENIOR", "SUSTENTAVEL_DESCARTE_ECOLOGICO", "TELEMEDICINA", "VIAGEM", "VITIMA");
+	private static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO", "SERVICOS_ASSISTENCIAS_COMPLEMENTARES_PAGO", "SERVICOS_ASSISTENCIA_COMPLEMENTARES_GRATUITO", "OUTROS", "NAO_HA");
+	private static final Set<String> ASSISTANCE_TYPE = Sets.newHashSet("ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA", "ARQUITETO_VIRTUAL", "ASSESSORIA_FINANCEIRA", "AUTOMOVEL", "AUXILIO_NATALIDADE", "AVALIACAO_CLINICA_PREVENTIVA", "BOLSA_PROTEGIDA", "CESTA_BASICA", "CHECKUP_ODONTOLOGICO", "CLUBE_VANTAGENS_BENEFICIOS", "CONVALESCENCIA", "DECESSO", "DESCONTO_FARMACIAS_MEDICAMENTOS", "DESPESAS_FARMACEUTICAS_VIAGEM", "DIGITAL", "EDUCACIONAL", "EMPRESARIAL", "ENCANADOR", "ENTRETENIMENTO", "EQUIPAMENTOS_MEDICOS", "FIANCAS_DESPESAS_LEGAIS", "FISIOTERAPIA", "FUNERAL", "HELP_LINE", "HOSPEDAGEM_ACOMPANHANTE", "INTERRUPCAO_VIAGEM", "INVENTARIO", "MAIS_EM_VIDA", "MAMAE_BEBE", "MEDICA_ACIDENTE_DOENCA", "MOTOCICLETA", "MULHER", "NUTRICIONISTA", "ODONTOLOGICA", "ORIENTACAO_FITNESS", "ORIENTACAO_JURIDICA", "ORIENTACAO_NUTRICIONAL", "PERSONAL_FITNESS", "ORIENTACAO_PSICOSSOCIAL_FAMILIAR", "PERDA_ROUBO_CARTAO", "PET", "PRORROGACAO_ESTADIA", "PROTECAO_DADOS", "RECOLOCACAO_PROFISSIONAL", "REDE_DESCONTO_NUTRICIONAL", "RESIDENCIAL", "RETORNO_MENORES_SEGURADO", "SAQUE_COACAO", "SAUDE_BEM_ESTAR", "SEGUNDA_OPINIAO_MEDICA", "SENIOR", "SUSTENTAVEL_DESCARTE_ECOLOGICO", "TELEMEDICINA", "VIAGEM", "VITIMA", "OUTROS");
 	public static final Set<String> INDEMNITY_PAYMENT_METHOD_1 = Sets.newHashSet("PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO", "REEMBOLSO_DESPESAS", "PRESTACAO_SERVICOS");
 	public static final Set<String> INDEMNITY_PAYMENT_METHOD_2 = Sets.newHashSet("UNICO","SOB_FORMA_DE_RENDA");
 	public static final Set<String> INDEMNITY_PAYMENT_FREQUENCY = Sets.newHashSet("INDENIZACAO_UNICA", "DIARIA_OU_PARCELA");
@@ -46,7 +49,7 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> FREQUENCY = Sets.newHashSet("DIARIA", "MENSAL", "UNICA", "ANUAL", "TRIMESTRAL", "SEMESTRAL", "FRACIONADO", "OUTRA");
 	public static final Set<String> CONTRACTING_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_JURIDICA", "PESSOA_NATURAL");
-	private static final Set<String> COVERAGE = Sets.newHashSet("ADIANTAMENTO_DOENCA_ESTAGIO_TERMINAL", "AUXILIO_CESTA_BASICA", "AUXILIO_FINANCEIRO_IMEDIATO", "CANCELAMENTO_DE_VIAGEM", "CIRURGIA", "COBERTURA_PARA_HERNIA", "COBERTURA_PARA_LER_DORT", "CUIDADOS_PROLONGADOS_ACIDENTE", "DESEMPREGO_PERDA_DE_RENDA", "DESPESAS_EXTRA_INVALIDEZ_PERMANENTE_TOTAL_PARCIAL_ACIDENTE_DEI", "DESPESAS_EXTRA_MORTE_DEM", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS_BRASIL", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS_EXTERIOR", "DIARIA_INCAPACIDADE_TOTAL_TEMPORARIA", "DIARIA_INTERNACAO_HOSPITALAR", "DIARIAS_INCAPACIDADE_PECUNIARIA_DIP", "DOENCA_CONGENITA_FILHOS_DCF", "FRATURA_OSSEA", "DOENCAS_TROPICAIS", "INCAPACIDADE_TOTAL_ACIDENTE", "INCAPACIDADE_PARCIAL_ACIDENTE", "INVALIDEZ_FUNCIONAL_PERMANENTE_DOENCA", "INVALIDEZ_LABORATIVA_DOENCA", "MORTE", "MORTE_ACIDENTAL", "MORTE_CONJUGE", "MORTE_FILHOS", "MORTE_ADIATAMENTO_DOENCA_ESTAGIO_TERMINAL", "PAGAMENTO_ANTECIPADO_ESPECIAL_DOENCA_PROFISSIONAL_PAED", "PERDA_DA_AUTONOMIA_PESSOAL", "PERDA_INVOLUNTARIA_EMPREGO", "QUEIMADURA_GRAVE", "REGRESSO_ANTECIPADO_SANITARIO", "RENDA_INCAPACIDADE_TEMPORARIA", "RESCISAO_CONTRATUAL_CASO_MORTE_RCM", "RESCISAO_TRABALHISTA", "SERVICO_AUXILIO_FUNERAL", "SOBREVIVENCIA", "TRANSPLANTE_ORGAOS", "TRANSLADO", "TRANSLADO_CORPO", "VERBA_RESCISORIA", "OUTROS");
+	private static final Set<String> COVERAGE = Sets.newHashSet("ADIANTAMENTO_DOENCA_ESTAGIO_TERMINAL", "AUXILIO_CESTA_BASICA", "AUXILIO_FINANCEIRO_IMEDIATO", "CANCELAMENTO_DE_VIAGEM", "CIRURGIA", "COBERTURA_PARA_HERNIA", "COBERTURA_PARA_LER_DORT", "CUIDADOS_PROLONGADOS_ACIDENTE", "DESEMPREGO_PERDA_DE_RENDA", "DESPESAS_EXTRA_INVALIDEZ_PERMANENTE_TOTAL_PARCIAL_ACIDENTE_DEI", "DESPESAS_EXTRA_MORTE_DEM", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS_BRASIL", "DESPESAS_MEDICAS_HOSPITALARES_ODONTOLOGICAS_EXTERIOR", "DIARIA_INCAPACIDADE_TOTAL_TEMPORARIA", "DIARIA_INTERNACAO_HOSPITALAR", "INTERNACAO_HOSPITALAR", "DIARIAS_INCAPACIDADE_PECUNIARIA_DIP", "DOENCA_GRAVE", "DOENCA_CONGENITA_FILHOS_DCF", "FRATURA_OSSEA", "DOENCAS_TROPICAIS", "INCAPACIDADE_TOTAL_OU_TEMPORARIA", "INVALIDEZ_PERMANENTE_TOTAL_PARCIAL", "INVALIDEZ_TOTAL_ACIDENTE", "INVALIDEZ_PARCIAL_ACIDENTE", "INVALIDEZ_FUNCIONAL_PERMANENTE_DOENCA", "INVALIDEZ_LABORATIVA_DOENCA", "MORTE", "MORTE_ACIDENTAL", "MORTE_CONJUGE", "MORTE_FILHOS", "MORTE_ADIATAMENTO_DOENCA_ESTAGIO_TERMINAL", "PAGAMENTO_ANTECIPADO_ESPECIAL_DOENCA_PROFISSIONAL_PAED", "PERDA_DA_AUTONOMIA_PESSOAL", "PERDA_INVOLUNTARIA_EMPREGO", "QUEIMADURA_GRAVE", "REGRESSO_ANTECIPADO_SANITARIO", "RENDA_INCAPACIDADE_TEMPORARIA", "RESCISAO_CONTRATUAL_CASO_MORTE_RCM", "RESCISAO_TRABALHISTA", "SERVICO_AUXILIO_FUNERAL", "SOBREVIVENCIA", "TRANSPLANTE_ORGAOS", "TRANSLADO", "TRANSLADO_MEDICO", "TRANSLADO_CORPO", "VERBA_RESCISORIA", "OUTRAS");
 
 	private final CommonValidatorParts parts;
 	private static class Fields extends ProductNServicesCommonFields { }
@@ -83,6 +86,7 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("products")
 				.setValidator(this::assertProducts)
+				.setOptional()
 				.build());
 	}
 
@@ -94,7 +98,6 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("category")
 				.setEnums(CATEGORY)
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -147,21 +150,19 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new BooleanField
 				.Builder("globalCapital")
-				.setOptional()
 				.build());
 
 		assertField(products,
 			new StringArrayField
 				.Builder("validity")
 				.setEnums(VALIDITY)
-				.setOptional()
 				.build());
 
 		assertField(products,
 			new ObjectField.Builder("pmbacRemuneration")
 				.setValidator(pmbacRemuneration -> {
 					assertField(pmbacRemuneration,
-						new IntField
+						new NumberField
 							.Builder("interestRate")
 							.build());
 
@@ -230,6 +231,11 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
+			new BooleanField
+				.Builder("allowPortability")
+				.build());
+
+		assertField(products,
 			new IntField
 				.Builder("portabilityGraceTime")
 				.build());
@@ -244,7 +250,6 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 			new StringArrayField
 				.Builder("indemnityPaymentIncome")
 				.setEnums(INDEMNITY_PAYMENT_INCOME)
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -265,7 +270,6 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("targetAudience")
 				.setEnums(TARGET_AUDIENCE)
-				.setOptional()
 				.build());
 	}
 
@@ -318,7 +322,7 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 							.build());
 
 					assertField(reclaimTable,
-						new IntField
+						new NumberField
 							.Builder("percentage")
 							.build());
 				})
@@ -373,13 +377,13 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(coverageAttributes,
-			new ObjectArrayField
+			new ObjectField
 				.Builder("minValue")
 				.setValidator(parts::assertValue)
 				.build());
 
 		assertField(coverageAttributes,
-			new ObjectArrayField
+			new ObjectField
 				.Builder("maxValue")
 				.setValidator(parts::assertValue)
 				.build());
@@ -419,13 +423,13 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(coverageAttributes,
-			new IntField
+			new NumberField
 				.Builder("differentiatedDeductibleDays")
 				.setOptional()
 				.build());
 
 		assertField(coverageAttributes,
-			new IntField
+			new NumberField
 				.Builder("deductibleBRL")
 				.build());
 

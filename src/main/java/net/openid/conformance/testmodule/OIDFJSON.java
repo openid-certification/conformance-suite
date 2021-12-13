@@ -126,6 +126,19 @@ public final class OIDFJSON {
 		return strings;
 	}
 
+	public static List<Number> getNumberArray(JsonElement json) {
+		if (!json.isJsonArray()) {
+			throw new UnexpectedJsonTypeException("getString called on something that is not an array: " + json);
+		}
+		JsonArray array = json.getAsJsonArray();
+		Iterator<JsonElement> iterator = array.iterator();
+		List<Number> numbers = new ArrayList<>();
+		while(iterator.hasNext()) {
+			numbers.add(getNumber(iterator.next()));
+		}
+		return numbers;
+	}
+
 	public static List<Integer> getIntArray(JsonElement json) {
 		if (!json.isJsonArray()) {
 			throw new UnexpectedJsonTypeException("getInt called on something that is not an array: " + json);

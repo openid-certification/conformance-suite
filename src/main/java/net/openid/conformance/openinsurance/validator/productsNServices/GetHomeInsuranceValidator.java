@@ -9,7 +9,7 @@ import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidat
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.NumberField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringArrayField;
@@ -18,8 +18,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
+ * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-homeinsurance.yaml
  * Api endpoint: /home-insurance/commercializationArea/{commercializationArea}
  * Api version: 1.0.0
+ * Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 
 @ApiName("ProductsNServices Home Insurance")
@@ -27,10 +29,10 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> PROPERTY_TYPE = Sets.newHashSet("CASA", "APARTAMENTO");
 	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "AMBAS");
-	public static final Set<String> CONTRACTING_TYPES = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
+	public static final Set<String> CONTRACTING_TYPES = Sets.newHashSet("COLETIVO", "INDIVIDUAL", "AMBAS");
 	public static final Set<String> PAYMENT_TYPES = Sets.newHashSet("A_VISTA", "PARCELADO", "AMBOS");
-	public static final Set<String> CHARGE_TYPE_SIGNALING = Sets.newHashSet("GRATUITA", "PAGA");
-	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO", "CARTAO_DEBITO", "DEBITO_CONTA_CORRENTE", "DEBITO_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGINACAO_FOLHA_PAGAMENTO", "PAGAMENTO_COM_PONTOS");
+	public static final Set<String> CHARGE_TYPE_SIGNALING = Sets.newHashSet("GRATUITA", "PAGO");
+	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO", "CARTAO_DEBITO ", "DEBITO_CONTA_CORRENTE ", "DEBITO_CONTA_POUPANCA ", "BOLETO_BANCARIO ", "PIX ", "CONSIGINACAO_FOLHA_PAGAMENTO ", "PONTOS_PROGRAMAS_BENEFICIO", "OUTROS");
 	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_LIVRE_ESCOLHA");
 	public static final Set<String> TERMS = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO_GRATUITO", "CLUBE_BENEFICIOS", "CASHBACK", "DESCONTOS", "OUTROS");
@@ -60,7 +62,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 					.Builder("brand")
 					.setValidator(brand -> {
 						assertField(brand, Fields.name().build());
-						assertField(brand, new ObjectField
+						assertField(brand, new ObjectArrayField
 							.Builder("company")
 							.setValidator(this::assertCompany)
 							.setOptional()
@@ -102,7 +104,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new IntField
+			new StringField
 				.Builder("propertyZipCode")
 				.setMaxLength(8)
 				.build());
@@ -113,7 +115,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new StringField
+			new StringArrayField
 				.Builder("additional")
 				.setEnums(ADDITIONAL)
 				.build());
@@ -122,6 +124,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("additionalOthers")
 				.setMaxLength(100)
+				.setOptional()
 				.build());
 
 		assertField(products,
@@ -162,7 +165,6 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 						new StringField
 							.Builder("definition")
 							.setMaxLength(1024)
-							.setOptional()
 							.build());
 				})
 				.build());
@@ -225,7 +227,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("minimumRequirements")
 				.setValidator(minimumRequirements -> {
 					assertField(minimumRequirements,
@@ -246,7 +248,6 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new StringArrayField
 				.Builder("targetAudiences")
-				.setMaxLength(30)
 				.setEnums(TARGET_AUDIENCES)
 				.build());
 	}
@@ -272,7 +273,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 
 		assertField(propertyCharacteristics,
 			new StringField
-				.Builder("importanceInsured")
+				.Builder("destinationInsuredImportance")
 				.setEnums(IMPORTANCE_INSURED)
 				.build());
 	}
@@ -293,7 +294,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 
 		assertField(coverages,
 			new BooleanField
-				.Builder("coveragePermissionSeparteAcquisition")
+				.Builder("coveragePermissionSeparteAquisition")
 				.build());
 
 		assertField(coverages,
@@ -323,7 +324,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(coverageAttributes,
-			new IntField
+			new NumberField
 				.Builder("insuredMandatoryParticipationPercentage")
 				.setMaxLength(9)
 				.build());
