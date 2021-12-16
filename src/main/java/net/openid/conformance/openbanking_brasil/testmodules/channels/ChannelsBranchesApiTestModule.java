@@ -12,7 +12,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "Channels Branches Api test",
 	displayName = "Validate structure of Channels Branches Api resources",
 	summary = "Validate structure of Channels Branches Api resources",
-	profile = OBBProfile.OBB_PROFIlE_PHASE1
+	profile = OBBProfile.OBB_PROFIlE_PHASE1,
+	configurationFields = {
+		"server.discoveryUrl",
+		"resource.brazilCpf",
+		"resource.resourceUrl",
+		"resource.consentUrl"
+	}
 )
 public class ChannelsBranchesApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
