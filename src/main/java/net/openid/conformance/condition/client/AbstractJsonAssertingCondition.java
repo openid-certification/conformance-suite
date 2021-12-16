@@ -46,12 +46,22 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
-		String entityString = environment.getString("resource_endpoint_response");
+		String entityString = parseResource(environment.getString("resource_endpoint_response"));
 		String statusString = environment.getEffectiveKey("doNotStopOnFailure");
 		if (statusString != null) {
 			this.dontStopOnFailure = Boolean.parseBoolean(statusString);
 		}
-		return GSON.fromJson(entityString, JsonObject.class);
+		return  GSON.fromJson(entityString, JsonObject.class);
+	}
+
+	private String parseResource(String resource) {
+		JsonElement jsonElement = new JsonParser().parse(resource);
+		if (jsonElement.isJsonArray()) {
+			JsonObject body = new JsonObject();
+			body.add("data", jsonElement);
+			return body.toString();
+		}
+		return resource;
 	}
 
 	protected JsonObject headersFrom(Environment environment) {
@@ -330,7 +340,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	/**
-	Use assertField(JsonObject jsonObject, String path)
+	 Use assertField(JsonObject jsonObject, String path)
 	 */
 	@Deprecated
 	protected void assertJsonObject(JsonObject body, String pathToJsonObject, Consumer<JsonObject> consumer) {
@@ -421,15 +431,15 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	protected JsonElement findDoubleByPath(JsonObject jsonObject, String path) {
-			logQuerying(path);
-			if (jsonObject.has(path)) {
-				JsonElement element = jsonObject.get(path);
-				logElementFound(path);
-				totalElements++;
-				return element;
-			} else {
-				throw error(createElementNotFoundMessage(path), jsonObject);
-			}
+		logQuerying(path);
+		if (jsonObject.has(path)) {
+			JsonElement element = jsonObject.get(path);
+			logElementFound(path);
+			totalElements++;
+			return element;
+		} else {
+			throw error(createElementNotFoundMessage(path), jsonObject);
+		}
 	}
 
 	public void setLogOnlyFailure() {
@@ -617,10 +627,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private String getDoubleValueAsString(JsonObject jsonObject, String path) {
 		JsonElement actual = findDoubleByPath(jsonObject, path);
 		String stringValue = "";
-			try {
-				stringValue = String.valueOf(OIDFJSON.getNumber(actual));
-			} catch (UnexpectedJsonTypeException ex) {
-				throw error(String.format("Path %s was not a number", path), jsonObject);
+		try {
+			stringValue = String.valueOf(OIDFJSON.getNumber(actual));
+		} catch (UnexpectedJsonTypeException ex) {
+			throw error(String.format("Path %s was not a number", path), jsonObject);
 		}
 		return stringValue;
 	}

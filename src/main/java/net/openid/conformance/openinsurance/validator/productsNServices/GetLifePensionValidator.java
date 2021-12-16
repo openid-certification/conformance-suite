@@ -1,7 +1,9 @@
 package net.openid.conformance.openinsurance.validator.productsNServices;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
@@ -40,8 +42,9 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		JsonObject body = bodyFrom(environment);
 
 		assertField(body,
-			new ObjectArrayField.Builder("data")
-				.setValidator(data->{
+			new ObjectArrayField
+				.Builder("data")
+				.setValidator(data -> {
 					assertField(data,
 						new ObjectField
 							.Builder("identification")
@@ -55,10 +58,10 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 							.build());
 				})
 				.build());
+
 		logFinalStatus();
 		return environment;
 	}
-
 
 	private void assertIdentification(JsonObject identification){
 		assertField(identification,
@@ -75,7 +78,6 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 
 		assertField(identification, Fields.cnpjNumber().setMaxLength(14).build());
 	}
-
 
 	private void assertProducts(JsonObject products) {
 		assertField(products,
