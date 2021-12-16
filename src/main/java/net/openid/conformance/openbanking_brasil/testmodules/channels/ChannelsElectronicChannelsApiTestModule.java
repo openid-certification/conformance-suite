@@ -12,13 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "Channels Electronic Channels Api test",
 	displayName = "Validate structure of Channels Electronic Channels Api resources",
 	summary = "Validate structure of Channels Electronic Channels Api resources",
-	profile = OBBProfile.OBB_PROFIlE_PHASE1,
-	configurationFields = {
-		"server.discoveryUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl",
-		"resource.consentUrl"
-	}
+	profile = OBBProfile.OBB_PROFIlE_PHASE1
 )
 public class ChannelsElectronicChannelsApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
