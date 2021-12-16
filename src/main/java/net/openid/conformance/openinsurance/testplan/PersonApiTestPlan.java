@@ -6,7 +6,6 @@ import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
-import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.validator.productsNServices.GetPersonValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -46,7 +45,7 @@ public class PersonApiTestPlan implements TestPlan {
 		protected void runTests() {
 			runInBlock("Validate ProductsNServices - Person response", () -> {
 				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "person");
-				callAndStopOnFailure(CallNoCacheResource.class);
+				preCallResource();
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(GetPersonValidator.class, Condition.ConditionResult.FAILURE);
 			});

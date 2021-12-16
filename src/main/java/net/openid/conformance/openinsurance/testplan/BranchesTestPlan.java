@@ -5,7 +5,6 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
-import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.validator.channels.BranchesValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -45,7 +44,7 @@ public class BranchesTestPlan implements TestPlan {
 		protected void runTests() {
 			runInBlock("Validate Channels - Branches response", () -> {
 				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "branches");
-				callAndStopOnFailure(CallNoCacheResource.class);
+				preCallResource();
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(BranchesValidator.class, Condition.ConditionResult.FAILURE);
 			});
