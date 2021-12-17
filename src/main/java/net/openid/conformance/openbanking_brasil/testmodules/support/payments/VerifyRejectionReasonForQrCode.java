@@ -10,7 +10,7 @@ import net.openid.conformance.util.JWTUtil;
 import java.text.ParseException;
 import java.util.Map;
 
-public class VerifyRejectionReasonForQres extends AbstractCondition {
+public class VerifyRejectionReasonForQrCode extends AbstractCondition {
 
 	public static final String EXPECTED_REASON = "ELEMENT_CONTENT_FORMALLY_INCORRECT";
 

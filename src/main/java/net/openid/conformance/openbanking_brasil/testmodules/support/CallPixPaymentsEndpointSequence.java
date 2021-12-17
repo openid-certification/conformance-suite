@@ -26,6 +26,7 @@ public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 		callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 
 		// we reuse the request object conditions to add various jwt claims; it would perhaps make sense to make
 		// these more generic.
