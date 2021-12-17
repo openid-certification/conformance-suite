@@ -50,7 +50,7 @@ public class PaymentsConsentsApiEnforceQRESWrongProxyTestModule extends Abstract
 	protected ConditionSequence statusValidationSequence() {
 		return sequenceOf(
 			condition(PaymentsProxyCheckForRejectedStatus.class),
-			condition(VerifyRejectionReasonForQres.class),
+			condition(VerifyRejectionReasonForQrCode.class),
 			condition(PaymentsProxyCheckForInvalidStatus.class));
 	}
 

@@ -55,7 +55,7 @@ public class PaymentsApiQRESMismatchConsentPaymentTestModule extends AbstractDic
 	protected ConditionSequence statusValidationSequence() {
 		return sequenceOf(
 			condition(PaymentsProxyCheckForRejectedStatus.class),
-			condition(VerifyRejectionReasonForQres.class),
+			condition(VerifyRejectionReasonForQrCode.class),
 			condition(PaymentsProxyCheckForInvalidStatus.class));
 	}
 }

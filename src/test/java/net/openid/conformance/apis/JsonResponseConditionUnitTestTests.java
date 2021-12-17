@@ -1,23 +1,17 @@
 package net.openid.conformance.apis;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.UseResurce;
-import net.openid.conformance.validation.Match;
 import net.openid.conformance.validation.RegexMatch;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
@@ -194,6 +188,18 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 		};
 
 		run(condition);
+
+	}
+
+	@Test
+	public void npe() {
+
+		String s = null;
+		Gson GSON = JsonUtils.createBigDecimalAwareGson();
+		JsonObject object = GSON.fromJson(s, JsonObject.class);
+		boolean b = JsonHelper.ifExists(object, "$.data");
+
+		assertNotNull(object);
 
 	}
 
