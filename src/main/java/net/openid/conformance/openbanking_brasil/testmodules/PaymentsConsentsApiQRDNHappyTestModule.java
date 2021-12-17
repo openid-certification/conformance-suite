@@ -11,9 +11,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 
 @PublishTestModule(
-	testName = "payments-api-qrdn-good-email-proxy-test",
-	displayName = "Payments Consents API test module for QRDN local instrument with email address",
-	summary = "Payments Consents API test module using a qr code with an email address in it",
+	testName = "payments-api-qrdn-good-proxy-test",
+	displayName = "Payments Consents API test module for QRDN local instrument with user provided details",
+	summary = "The test will use the user provided QRDN fields: Payment consent request JSON with QRDN embedded;Initiators CNPJ for QRDN test;Remittance information for QRDN test, to create the request_body for both the Post Consents and the Post Payments. The Dynamic QRCode must be created by the organisation by using the PIX Tester environment and all the creditor details must be aligned with what is supplied on this field. The Test will first create a payment using the provided qrdn and, after it reaches an ACCC state, it will create another payment using the same QRDN and will expect a failure as the QRDN should be on a consumed state.",
 	profile = OBBProfile.OBB_PROFIlE_PHASE3,
 	configurationFields = {
 		"server.discoveryUrl",
