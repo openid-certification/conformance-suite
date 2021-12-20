@@ -11,9 +11,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 
 @PublishTestModule(
-	testName = "payments-api-qrdn-good-proxy-test-legacy",
+	testName = "payments-api-qrdn-good-proxy-test-deprecated",
 	displayName = "Payments Consents API test module for QRDN local instrument which expects an ACCC status",
-	summary = "The test will use the user provided QRDN fields: Payment consent request JSON with QRDN embedded;Initiators CNPJ for QRDN test;Remittance information for QRDN test, to create the request_body for both the Post Consents and the Post Payments of this test. The Dynamic QRCode must be created by the organisation by using the PIX Tester environment and all the creditor details must be aligned with what is supplied on this field ",
+	summary = "[THIS TEST HAS BEEN REPLACED BY payments-api-qrdn-good-proxy-test AND SHALL BE REMOVED. RUNNING THIS TEST WILL CONSUME THE QRDN BRINGING A FAILURE TO THE OTHER MODULE].  ",
 	profile = "hide",
 	configurationFields = {
 		"server.discoveryUrl",
