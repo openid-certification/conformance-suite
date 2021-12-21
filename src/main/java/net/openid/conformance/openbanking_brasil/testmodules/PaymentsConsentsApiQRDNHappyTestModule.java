@@ -122,8 +122,11 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 		});
 		call(pixSequence);
 		pollForStatusChange();
-		callAndStopOnFailure(EnsurePaymentIsRejected.class);
-		callAndStopOnFailure(VerifyRejectionReasonForQrCode.class);
+		if (!env.getBoolean("proxy_payment_422")) {
+			callAndStopOnFailure(EnsurePaymentIsRejected.class);
+			callAndStopOnFailure(VerifyRejectionReasonForQrCode.class);
+		}
+		
 		fireTestFinished();
 	}
 
