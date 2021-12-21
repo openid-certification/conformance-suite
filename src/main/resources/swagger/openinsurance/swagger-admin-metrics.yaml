@@ -103,9 +103,7 @@ components:
               type: string
               description: Taxa de disponibilidade (considerando todos os serviços ativos ao mesmo tempo).
             endpoints:
-              type: array
-              items:
-                $ref: '#/components/schemas/EndpointUptime'
+              $ref: '#/components/schemas/EndpointUptime'
         downtime:
           type: object
           required:
@@ -120,35 +118,37 @@ components:
               type: integer
               description: Quantidade de segundos de indisponibilidade agendada.
             endpoints:
-              type: array
-              items:
-                $ref: '#/components/schemas/EndpointDowntime'
+              $ref: '#/components/schemas/EndpointDowntime'
     EndpointUptime:
-      type: object
-      description: Tempos de uptime por endpoint.
-      required:
-        - url
-        - uptimeRate
-      properties:
-        url:
-          type: string
-          description: URL do endpoint
-        uptimeRate:
-          type: string
-          description: Taxa de disponibilidade do endpoint.
+      type: array
+      items:
+        type: object
+        description: Tempos de uptime por endpoint.
+        required:
+          - url
+          - uptimeRate
+        properties:
+          url:
+            type: string
+            description: URL do endpoint
+          uptimeRate:
+            type: string
+            description: Taxa de disponibilidade do endpoint.
     EndpointDowntime:
-      type: object
-      description: Tempos de downtime por endpoint.
-      required:
-        - url
-        - partialDowntime
-      properties:
-        url:
-          type: string
-          description: URL do endpoint
-        partialDowntime:
-          type: integer
-          description: Quantidade de segundos de indisponibilidade do endpoint.
+      type: array
+      items:
+        type: object
+        description: Tempos de downtime por endpoint.
+        required:
+          - url
+          - partialDowntime
+        properties:
+          url:
+            type: string
+            description: URL do endpoint
+          partialDowntime:
+            type: integer
+            description: Quantidade de segundos de indisponibilidade do endpoint.
     InvocationMetrics:
       type: object
       required:
