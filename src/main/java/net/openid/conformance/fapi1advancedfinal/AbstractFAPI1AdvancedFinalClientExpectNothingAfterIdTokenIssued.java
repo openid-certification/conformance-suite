@@ -16,6 +16,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenI
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
 		super.issueIdToken(isAuthorizationEndpoint);
 		startWaitingForTimeout();
+		issueIdTokenCalled = true;
 	}
 
 	@Override
@@ -27,6 +28,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenI
 		}
 		return super.tokenEndpoint(requestId);
 	}
+
+	@Override
+	protected Object authorizationCodeGrantType(String requestId) {
+		return super.authorizationCodeGrantType(requestId);
+	}
+
 
 	@Override
 	protected Object userinfoEndpoint(String requestId) {

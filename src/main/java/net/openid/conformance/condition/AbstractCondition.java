@@ -661,7 +661,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.register("http", new PlainConnectionSocketFactory())
 			.build();
 
-		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 		builder.setConnectionManager(ccm);
 
 		HttpClient httpClient = builder.build();
