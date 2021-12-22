@@ -126,7 +126,7 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 			callAndStopOnFailure(EnsurePaymentIsRejected.class);
 			callAndStopOnFailure(VerifyRejectionReasonForQrCode.class);
 		}
-		
+
 		fireTestFinished();
 	}
 
@@ -141,6 +141,7 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 
 				call(sequenceOf(
 					condition(PaymentsProxyCheckForRejectedStatus.class),
+					condition(PaymentsProxyCheckEnsureNoRejectionReasonUnlessRejected.class),
 					condition(PaymentsProxyCheckForInvalidStatus.class)));
 
 				if (env.getBoolean("payment_proxy_check_for_reject")) {
