@@ -8,8 +8,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentStatusIsAwaitingAuthorisation;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectQRCodeWithTransactionIdentifierIntoConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -50,10 +49,13 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndContinueOnFailure(SelectQRESCodeLocalInstrument.class);
+		callAndContinueOnFailure(SelectQRESCodePixLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(InjectQRCodeWithTransactionIdentifierIntoConfig.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);
+		callAndContinueOnFailure(SetProxyToRealEmailAddressOnPayment.class);
+		callAndContinueOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);
 	}
 
 	@Override
