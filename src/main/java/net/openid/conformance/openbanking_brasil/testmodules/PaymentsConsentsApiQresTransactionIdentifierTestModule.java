@@ -71,7 +71,7 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 	protected void validateResponse() {
 		callAndStopOnFailure(EnsureResponseWasJwt.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDO.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(Ensure422ResponseCodeWasNAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE);
 	}
 }
