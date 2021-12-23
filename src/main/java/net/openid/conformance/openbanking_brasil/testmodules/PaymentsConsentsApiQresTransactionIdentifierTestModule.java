@@ -2,10 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
-import net.openid.conformance.condition.client.SetResourceMethodToPost;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
@@ -64,7 +61,7 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(AddTransactionIdentification.class);
 		call(new CallPixPaymentsEndpointSequence()
-			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class))
+			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
 			.skip(EnsureHttpStatusCodeIs201.class, "Expecting error here")
 		);
 		validateResponse();
