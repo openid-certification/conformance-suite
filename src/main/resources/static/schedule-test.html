@@ -826,6 +826,42 @@
                                 </div>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">commercializationArea</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Marketing area."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.commercializationArea"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">fipeCode</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="FIPE code."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.fipeCode"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">year</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Vehicle marketing year."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.year"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">consentUrl</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -1559,7 +1595,7 @@
 				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
 				$(".brandDesc").text(data.brand + " Functional Conformance Suite - Brought to you by Raidiam, with thanks to the OpenID Foundation");
 				$("#logo").attr("src", "/images/" + data.logo);
-				
+
 			});
         }
 

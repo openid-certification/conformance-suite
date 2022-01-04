@@ -10,15 +10,34 @@ public class ObjectField extends Field {
 		super(optional, nullable, path, validator);
 	}
 
-	public static class Builder extends FieldBuilder {
+	public static class Builder {
+
+		private boolean optional;
+		private boolean nullable;
+		private final String path;
+		private Consumer<JsonObject> validator;
+
 		public Builder(String path) {
-			super(path);
+			this.path = path;
 		}
 
-		@Override
+		public Builder setOptional() {
+			this.optional = true;
+			return this;
+		}
+
+		public Builder setNullable() {
+			this.nullable = true;
+			return this;
+		}
+
+		public Builder setValidator(Consumer<JsonObject> validator) {
+			this.validator = validator;
+			return this;
+		}
+
 		public ObjectField build() {
 			return new ObjectField(this.optional, this.nullable, this.path, this.validator);
 		}
-
 	}
 }

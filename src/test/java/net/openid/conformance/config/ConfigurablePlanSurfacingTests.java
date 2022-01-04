@@ -25,7 +25,9 @@ public class ConfigurablePlanSurfacingTests {
 		Collection<VariantService.TestPlanHolder> testPlans = variantService().getTestPlans();
 
 		List<String> profilesToSurface = List.of(RaidiamProfile.RAIDIAM_PROFILE, OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-			OBBProfile.OBB_PROFIlE_PHASE1, OBBProfile.OBB_PROFIlE_PHASE2, OBBProfile.OBB_PROFIlE_PHASE3, TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
+			OBBProfile.OBB_PROFIlE_PHASE1, OBBProfile.OBB_PROFIlE_PHASE2,
+			OBBProfile.OBB_PROFIlE_PHASE3, OBBProfile.OBB_PROFIlE_PHASE4, TestPlan.ProfileNames.optest,
+			TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));

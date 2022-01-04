@@ -20,7 +20,7 @@ public class UnarrangedAccountBusinessOverdraftApiTestModule extends AbstractNoA
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Business Unarranged Account Overdraft response",
 			() -> {
-				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-unarranged-account-overdraft");
+				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 				preCallResource();
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(UnarrangedAccountBusinessOverdraftValidator.class,

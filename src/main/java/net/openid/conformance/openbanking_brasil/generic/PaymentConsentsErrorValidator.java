@@ -8,8 +8,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.text.ParseException;
@@ -70,7 +70,7 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 	private void assertOuterFields(JsonObject body) {
 		try {
 			JsonObject errors = findByPath(body, "$").getAsJsonObject();
-			assertField(errors, new ArrayField
+			assertField(errors, new ObjectArrayField
 				.Builder("errors")
 				.setMinItems(1)
 				.setMaxItems(13)
@@ -114,12 +114,12 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 		);
 		assertField(meta, new IntField
 			.Builder("totalRecords")
-			.setMinItems(0)
+			.setMinValue(0)
 			.build()
 		);
 		assertField(meta, new IntField
 			.Builder("totalPages")
-			.setMinItems(1)
+			.setMinValue(1)
 			.build()
 		);
 	}

@@ -19,7 +19,7 @@ public class BusinessInvoiceFinancingsApiTestModule extends AbstractNoAuthFuncti
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Business Invoice Financings response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-invoice-financings");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessInvoiceFinancingsValidator.class,

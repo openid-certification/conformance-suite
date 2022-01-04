@@ -28,10 +28,10 @@ public class CreditCardAccountsTransactionResponseValidator extends AbstractJson
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertField(body,
-			new ArrayField.Builder(ROOT_PATH)
+			new ObjectArrayField.Builder(ROOT_PATH)
+				.setValidator(this::assertInnerFields)
 				.setMinItems(1)
 				.build());
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
 
 		return environment;
 	}

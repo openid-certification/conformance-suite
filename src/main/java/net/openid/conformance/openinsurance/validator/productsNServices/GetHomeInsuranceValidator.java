@@ -30,9 +30,9 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> PROPERTY_TYPE = Sets.newHashSet("CASA", "APARTAMENTO");
 	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "AMBAS");
 	public static final Set<String> CONTRACTING_TYPES = Sets.newHashSet("COLETIVO", "INDIVIDUAL", "AMBAS");
-	public static final Set<String> PAYMENT_TYPES = Sets.newHashSet("A_VISTA", "PARCELADO", "AMBOS");
+	public static final Set<String> PAYMENT_TYPES = Sets.newHashSet("PAGAMENTO_UNICO", "PARCELADO", "AMBOS");
 	public static final Set<String> CHARGE_TYPE_SIGNALING = Sets.newHashSet("GRATUITA", "PAGO");
-	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO", "CARTAO_DEBITO ", "DEBITO_CONTA_CORRENTE ", "DEBITO_CONTA_POUPANCA ", "BOLETO_BANCARIO ", "PIX ", "CONSIGINACAO_FOLHA_PAGAMENTO ", "PONTOS_PROGRAMAS_BENEFICIO", "OUTROS");
+	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO","CARTAO_DEBITO","DEBITO_CONTA_CORRENTE","DEBITO_CONTA_POUPANCA","BOLETO_BANCARIO","PIX","CONSIGINACAO_FOLHA_PAGAMENTO","PONTOS_PROGRAMAS_BENEFICIO","OUTROS");
 	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_LIVRE_ESCOLHA");
 	public static final Set<String> TERMS = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO_GRATUITO", "CLUBE_BENEFICIOS", "CASHBACK", "DESCONTOS", "OUTROS");
@@ -40,8 +40,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> PROPERTY_BUILD_TYPE = Sets.newHashSet("ALVENARIA", "MADEIRA", "METALICA", "MISTA");
 	public static final Set<String> PROPERTY_USAGE_TYPE = Sets.newHashSet("HABITUAL", "VERANEIO", "DESOCUPADO", "CASA_ESCRITORIO", "ALUGUEL_TEMPORADA");
 	public static final Set<String> IMPORTANCE_INSURED = Sets.newHashSet("PREDIO", "CONTEUDO", "AMBOS");
-	public static final Set<String> COVERAGE_TYPES = Sets.newHashSet("IMOVEL_BASICA", "IMOVEL_AMPLA", "DANOS_ELETRICOS", "DANOS_POR_AGUA", "ALAGAMENTO", "RESPONSABILIDADE_CIVIL_FAMILIAR", "RESPONSABILIDADE_CIVIL_DANOS_MORAIS", "ROUBO_SUBTRACAO_BENS", "ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO", "TACOS_GOLFE_HOLE_ONE", "PEQUENAS_REFORMAS_OBRA", "GREVES_TUMULTOS_LOCKOUT", "MICROEMPREENDEDOR", "ESCRITORIO_RESIDENCIA", "DANOS_EQUIPAMENTOS_ELETRONICOS", "QUEBRA_VIDROS", "IMPACTO_VEICULOS", "VENDAVAL", "PERDA_PAGAMENTO_ALUGUEL", "BICICLETA", "RESPONSABILIDADE_CIVIL_BICICLETA", "RC_EMPREGADOR", "DESMORONAMENTO", "DESPESAS_EXTRAORDINARIAS", "JOIAS_OBRAS_ARTE", "TERREMOTO", "IMPACTO_AERONAVES", "PAISAGISMO", "INCENDIO", "QUEDA_RAIO", "EXPLOSAO", "OUTRAS");
-
+	public static final Set<String> COVERAGE_TYPES = Sets.newHashSet("IMOVEL_BASICA","IMOVEL_AMPLA","DANOS_ELETRICOS","DANOS_POR_AGUA","ALAGAMENTO","RESPONSABILIDADE_CIVIL_FAMILIAR","RESPONSABILIDADE_CIVIL_DANOS_MORAIS","ROUBO_SUBTRACAO_BENS","ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO","TACOS_GOLFE_HOLE_ONE","PEQUENAS_REFORMAS_OBRAS","GREVES_TUMULTOS_LOCKOUT","MICROEMPREENDEDOR","ESCRITORIO_RESIDENCIA","DANOS_EQUIPAMENTOS_ELETRONICOS","QUEBRA_VIDROS","IMPACTO_VEICULOS","VENDAVAL","PERDA_PAGAMENTO_ALUGUEL","BICICLETA","RESPONSABILIDADE_CIVIL_BICICLETA","RC_EMPREGADOR","DESMORONAMENTO","DESPESAS_EXTRAORDINARIAS","JOIAS_OBRAS_ARTE","TERREMOTO","IMPACTO_AERONAVES","PAISAGISMO","INCENDIO","QUEDA_RAIO","EXPLOSAO","OUTRAS");
 	private final CommonValidatorParts parts;
 	private static class Fields extends ProductNServicesCommonFields { }
 
@@ -56,20 +55,17 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 
 		assertField(body, new ObjectField
 			.Builder("data")
-			.setValidator(data -> {
-
-				assertField(data, new ObjectField
-					.Builder("brand")
-					.setValidator(brand -> {
-						assertField(brand, Fields.name().build());
-						assertField(brand, new ObjectArrayField
-							.Builder("company")
-							.setValidator(this::assertCompany)
-							.setOptional()
-							.build());
-					})
-					.setOptional().build());
-			}).build());
+			.setValidator(data -> assertField(data, new ObjectField
+				.Builder("brand")
+				.setValidator(brand -> {
+					assertField(brand, Fields.name().build());
+					assertField(brand, new ObjectArrayField
+						.Builder("company")
+						.setValidator(this::assertCompany)
+						.setOptional()
+						.build());
+				})
+				.setOptional().build())).build());
 
 		logFinalStatus();
 		return environment;

@@ -47,7 +47,7 @@ public class BusinessQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWrongMaximum() {
 		BusinessQualificationResponseValidator condition = new BusinessQualificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("year")));
+		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaximum("year")));
 	}
 
 	@Test

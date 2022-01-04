@@ -6,6 +6,7 @@ public interface OBBProfile {
 	String OBB_PROFIlE_PHASE1 = "Open Banking Brasil Functional Tests for Phase 1 - Open Data";
 	String OBB_PROFIlE_PHASE2 = "Open Banking Brasil Functional Tests for Phase 2 - Customer Data";
 	String OBB_PROFIlE_PHASE3 = "Open Banking Brasil Functional Tests for Phase 3 - Payment Initiation";
+	String OBB_PROFIlE_PHASE4 = "Open Banking Brasil Functional Tests for Phase 4";
 	String OBB_PROFILE_OPEN_INSURANCE = "Open Insurance Functional Tests";
 
 }

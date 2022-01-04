@@ -1,29 +1,70 @@
 package net.openid.conformance.util.field;
 
-import java.util.Set;
-
 public class LongitudeField extends DoubleField {
 
 	private static final String DEFAULT_PATTERN = "^-?\\d{1,3}\\.\\d{1,8}$";
 	private static final int DEFAULT_MAX_LENGTH = 13;
 
-	private LongitudeField(boolean optional, boolean nullable, String path, String pattern, int maxLength, int minLength,
-						  int maxItems, int minItems, int maxValue, Set<String> enums) {
-		super(optional, nullable, path, pattern, maxLength, minLength, maxItems, minItems, maxValue, enums);
+	private LongitudeField(boolean optional, boolean nullable, String path, String pattern,
+						   int maxLength, int minLength, Double maxValue, Double minValue) {
+		super(optional, nullable, path, pattern, maxLength, minLength, minValue, maxValue);
 	}
 
-	public static class Builder extends FieldBuilder {
+	public static class Builder {
+
+		private boolean optional;
+		private boolean nullable;
+		private String path = "";
+		private String pattern = "";
+		private int maxLength;
+		private int minLength;
+		private Double maxValue;
+		private Double minValue;
 
 		public Builder() {
-			super("longitude");
-			setPattern(DEFAULT_PATTERN);
-			setMaxLength(DEFAULT_MAX_LENGTH);
+			this.path = "longitude";
+			this.pattern = DEFAULT_PATTERN;
+			this.maxLength = DEFAULT_MAX_LENGTH;
 		}
 
-		@Override
+		public Builder setOptional() {
+			this.optional = true;
+			return this;
+		}
+
+		public Builder setNullable() {
+			this.nullable = true;
+			return this;
+		}
+
+		public Builder setPattern(String pattern) {
+			this.pattern = pattern;
+			return this;
+		}
+
+		public Builder setMaxLength(int maxLength) {
+			this.maxLength = maxLength;
+			return this;
+		}
+
+		public Builder setMinLength(int minLength) {
+			this.minLength = minLength;
+			return this;
+		}
+
+		public Builder setMaxValue(Double maxValue) {
+			this.maxValue = maxValue;
+			return this;
+		}
+
+		public Builder setMinValue(Double minValue) {
+			this.minValue = minValue;
+			return this;
+		}
+
 		public LongitudeField build() {
 			return new LongitudeField(this.optional, this.nullable, this.path, this.pattern, this.maxLength,
-				this.minLength, this.maxItems, this.minItems, this.maxValue, this.enums);
+				this.minLength, this.maxValue, this.minValue);
 		}
 	}
 }

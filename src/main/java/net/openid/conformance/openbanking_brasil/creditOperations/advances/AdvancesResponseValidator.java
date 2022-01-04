@@ -6,7 +6,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 

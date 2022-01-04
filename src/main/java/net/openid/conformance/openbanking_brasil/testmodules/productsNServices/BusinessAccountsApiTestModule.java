@@ -20,7 +20,7 @@ public class BusinessAccountsApiTestModule extends AbstractNoAuthFunctionalTestM
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Business Accounts response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-accounts");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessAccountsValidator.class, Condition.ConditionResult.FAILURE);

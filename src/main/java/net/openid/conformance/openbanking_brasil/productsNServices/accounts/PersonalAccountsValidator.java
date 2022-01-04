@@ -280,7 +280,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("otherServices")
 				.setValidator(this::assertInnerOtherServices)
-				.setMinLength(1)
+				.setMinItems(1)
 				.setOptional()
 				.build());
 	}

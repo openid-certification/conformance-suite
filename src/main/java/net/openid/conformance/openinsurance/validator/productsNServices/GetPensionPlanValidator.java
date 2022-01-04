@@ -8,12 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.DatetimeField;
-import net.openid.conformance.util.field.IntField;
-import net.openid.conformance.util.field.ObjectArrayField;
-import net.openid.conformance.util.field.ObjectField;
-import net.openid.conformance.util.field.StringArrayField;
-import net.openid.conformance.util.field.StringField;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
@@ -69,20 +64,19 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 			new DatetimeField
 				.Builder("requestTime")
 				.setPattern("[\\w\\W\\s]*")
+				.setMaxLength(2048)
 				.setOptional()
 				.build());
 
-		//assertHasField(body, "data");
-
-		 assertField(body, new ObjectField
-				.Builder("brand")
-				.setValidator(brand -> {
-					assertField(brand, Fields.name().build());
-					assertField(brand, new ObjectField
-						.Builder("companies")
-						.setValidator(this::assertCompanies)
-						.build());
-				}).build());
+		assertField(body, new ObjectField
+			.Builder("brand")
+			.setValidator(brand -> {
+				assertField(brand, Fields.name().build());
+				assertField(brand, new ObjectField
+					.Builder("companies")
+					.setValidator(this::assertCompanies)
+					.build());
+			}).build());
 		logFinalStatus();
 		return environment;
 	}
@@ -163,7 +157,7 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 				.Builder("updatePMBaC")
 				.setValidator(updatePMBaC -> {
 					assertField(updatePMBaC,
-						new IntField
+						new NumberField
 							.Builder("interestRate")
 							.build());
 

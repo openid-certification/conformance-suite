@@ -12,20 +12,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "Channels Shared Automated Teller Machines test",
 	displayName = "Validate structure of Channels Shared Automated Teller Machines Api resources",
 	summary = "Validate structure of Channels Shared Automated Teller Machines Api resources",
-	profile = OBBProfile.OBB_PROFIlE_PHASE1,
-	configurationFields = {
-		"server.discoveryUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl",
-		"resource.consentUrl"
-	}
+	profile = OBBProfile.OBB_PROFIlE_PHASE1
 )
 public class ChannelsSharedAutomatedTellerMachinesApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
 	@Override
 	protected void runTests() {
 		runInBlock("Validate Channels Shared Automated Teller Machines response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "shared-automated-teller-machines");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(SharedAutomatedTellerMachinesValidator.class, Condition.ConditionResult.FAILURE);
