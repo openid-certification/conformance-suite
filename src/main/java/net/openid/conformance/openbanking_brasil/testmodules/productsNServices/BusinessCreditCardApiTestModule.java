@@ -19,7 +19,7 @@ public class BusinessCreditCardApiTestModule extends AbstractNoAuthFunctionalTes
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Business Credit Cards response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "business-credit-cards");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(BusinessCreditCardValidator.class, Condition.ConditionResult.FAILURE);

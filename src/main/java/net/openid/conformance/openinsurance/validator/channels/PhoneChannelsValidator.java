@@ -14,10 +14,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: src/main/java/net/openid/conformance/swagger/openinsurance/swagger-channels.yaml
+ * https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-channels.yaml
  * Api endpoint: /phone-channels
- * Api git hash: 233e9d8be9866d369f70e0dd40e7a40ca0018a1b
- *
+ * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 @ApiName("Phone Channels")
 public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {

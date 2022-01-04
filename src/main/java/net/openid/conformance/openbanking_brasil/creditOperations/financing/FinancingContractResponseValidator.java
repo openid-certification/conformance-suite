@@ -7,9 +7,9 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -151,29 +151,26 @@ public class FinancingContractResponseValidator extends AbstractJsonAssertingCon
 
 	private void assertInterestRates(JsonObject data) {
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("interestRates")
+				.setValidator(this::assertInnerFieldsInterestRates)
 				.build());
-
-		assertJsonArrays(data, "interestRates", this::assertInnerFieldsInterestRates);
 	}
 
 	private void assertContractedFinanceCharges(JsonObject data) {
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("contractedFinanceCharges")
+				.setValidator(this::assertInnerFieldsContractedFinanceCharges)
 				.build());
-
-		assertJsonArrays(data, "contractedFinanceCharges", this::assertInnerFieldsContractedFinanceCharges);
 	}
 
 	private void assertContractedFees(JsonObject data) {
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("contractedFees")
+				.setValidator(this::assertInnerFieldsContractedFees)
 				.build());
-
-		assertJsonArrays(data, "contractedFees", this::assertInnerFieldsContractedFees);
 	}
 
 	private void assertInnerFieldsContractedFinanceCharges(JsonObject data) {

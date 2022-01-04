@@ -6,8 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringArrayField;
 import net.openid.conformance.util.field.StringField;
 
@@ -74,24 +74,20 @@ public class PersonalRelationsResponseValidator extends AbstractJsonAssertingCon
 		assertHasField(data, "procurators");
 
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("procurators")
+				.setValidator(this::assertInnerFieldsProcurators)
 				.setMinItems(1)
 				.build());
-
-		assertJsonArrays(data, "procurators", this::assertInnerFieldsProcurators);
-
 
 		assertHasField(data, "accounts");
 
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("accounts")
+				.setValidator(this::assertInnerFieldsAccounts)
 				.setMinItems(1)
 				.build());
-
-		assertJsonArrays(data, "accounts", this::assertInnerFieldsAccounts);
-
 	}
 
 	private void assertInnerFieldsProcurators(JsonObject data) {

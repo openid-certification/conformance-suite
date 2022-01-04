@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking_brasil;
 
 import net.openid.conformance.util.field.DatetimeField;
-import net.openid.conformance.util.field.Field;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -9,49 +8,49 @@ import java.util.Set;
 
 public class CommonFields {
 
-	public static Field.FieldBuilder dataYYYYMMDD(String fieldName) {
+	public static DatetimeField.Builder dataYYYYMMDD(String fieldName) {
 		return new DatetimeField
 			.Builder(fieldName)
 			.setPattern(DatetimeField.PATTERN_YYYY_MM_DD)
 			.setMaxLength(10);
 	}
 
-	public static Field.FieldBuilder currency() {
+	public static StringField.Builder currency() {
 		return new StringField
 			.Builder("currency")
 			.setPattern("^(\\w{3}){1}$")
 			.setMaxLength(3);
 	}
 
-	public static Field.FieldBuilder consentId() {
+	public static StringField.Builder consentId() {
 		return new StringField
 			.Builder("consentId")
 			.setPattern("^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\\-.:=@;$_!*'%\\/?#]+$")
 			.setMaxLength(256);
 	}
 
-	public static Field.FieldBuilder name() {
+	public static StringField.Builder name() {
 		return new StringField
 			.Builder("name")
 			.setPattern("[\\w\\W\\s]*")
 			.setMaxLength(80);
 	}
 
-	public static Field.FieldBuilder code() {
+	public static StringField.Builder code() {
 		return new StringField
 			.Builder("code")
 			.setMaxLength(100)
 			.setPattern("[\\w\\W\\s]*");
 	}
 
-	public static Field.FieldBuilder cnpjNumber() {
+	public static StringField.Builder cnpjNumber() {
 		return new StringField
 			.Builder("cnpjNumber")
 			.setPattern("(\\d{14})$|^NA$")
 			.setMaxLength(14);
 	}
 
-	public static Field.FieldBuilder urlComplementaryList() {
+	public static StringField.Builder urlComplementaryList() {
 		return new StringField
 			.Builder("urlComplementaryList")
 			.setPattern("[\\w\\W\\s]*")
@@ -59,35 +58,35 @@ public class CommonFields {
 			.setOptional();
 	}
 
-	public static Field.FieldBuilder type(Set<String> types) {
+	public static StringField.Builder type(Set<String> types) {
 		return new StringField
 			.Builder("type")
 			.setEnums(types);
 	}
 
-	public static Field.FieldBuilder chargingTriggerInfo() {
+	public static StringField.Builder chargingTriggerInfo() {
 		return new StringField
 			.Builder("chargingTriggerInfo")
 			.setPattern("[\\w\\W\\s]*")
 			.setMaxLength(2000);
 	}
 
-	private static Field.FieldBuilder value(String value) {
+	private static StringField.Builder value(String value) {
 		return new StringField
 			.Builder(value)
 			.setPattern("^((\\d{1,9}\\.\\d{2}){1}|NA)$")
 			.setMaxLength(12);
 	}
 
-	public static Field.FieldBuilder value() {
+	public static StringField.Builder value() {
 		return value("value");
 	}
 
-	public static Field.FieldBuilder monthlyFee() {
+	public static StringField.Builder monthlyFee() {
 		return value("monthlyFee");
 	}
 
-	public static Field.FieldBuilder rate() {
+	public static StringField.Builder rate() {
 		return new StringField
 			.Builder("rate")
 			.setPattern("(^[0-9](\\.[0-9]{4})$|^NA$)")

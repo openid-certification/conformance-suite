@@ -344,7 +344,7 @@ public class PersonalIdentificationResponseValidator extends AbstractJsonAsserti
 
 	private void assertInnerPostalAddressesFields(JsonObject body) {
 
-		assertField(body, new BooleanField("isMain"));
+		assertField(body, new BooleanField.Builder("isMain").build());
 
 		assertField(body,
 			new StringField

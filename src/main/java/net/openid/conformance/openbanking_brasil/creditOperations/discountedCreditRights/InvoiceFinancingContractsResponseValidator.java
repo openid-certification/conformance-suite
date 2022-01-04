@@ -24,7 +24,7 @@ public class InvoiceFinancingContractsResponseValidator extends AbstractJsonAsse
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-		
+
 		return environment;
 	}
 

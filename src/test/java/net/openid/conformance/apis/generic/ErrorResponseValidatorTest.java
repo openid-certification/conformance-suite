@@ -49,7 +49,7 @@ public class ErrorResponseValidatorTest extends AbstractJsonResponseConditionUni
 		putStatusCode(environment, 404);
 		ErrorValidator condition = new ErrorValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = "Errors field is not a Json Array";
+		String expected = "Class cast exception, expect JsonArray, but found JsonObject. Field: errors on the ErrorValidator API response";
 
 		assertThat(error.getMessage(), containsString(expected));
 	}

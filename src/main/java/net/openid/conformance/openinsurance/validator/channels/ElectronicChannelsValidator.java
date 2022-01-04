@@ -14,10 +14,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: src/main/java/net/openid/conformance/swagger/openinsurance/swagger-channels.yaml
+ * https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-channels.yaml
  * Api endpoint: /electronic-channels
- * Api git hash: 233e9d8be9866d369f70e0dd40e7a40ca0018a1b
- *
+ * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
 @ApiName("Electronic Channels")
 public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition {
@@ -37,22 +36,20 @@ public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition 
 		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 
-		assertJsonObject(body, ROOT_PATH,
-			data -> assertField(data,
-				new ObjectField
-					.Builder("brand").setValidator(
-						brand -> {
-							assertField(brand, Fields.name().build());
-							assertField(brand,
-								new ObjectArrayField
-									.Builder("companies")
-									.setMinItems(1)
-									.setValidator(this::assertCompanies)
-									.build());
-						})
-					.setOptional()
-					.build())
-		);
+		assertField(body,
+			new ObjectField
+				.Builder("brand").setValidator(
+					brand -> {
+						assertField(brand, Fields.name().build());
+						assertField(brand,
+							new ObjectArrayField
+								.Builder("companies")
+								.setMinItems(1)
+								.setValidator(this::assertCompanies)
+								.build());
+					})
+				.setOptional()
+				.build());
 		logFinalStatus();
 		return environment;
 	}
@@ -97,10 +94,10 @@ public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition 
 
 		assertField(identification,
 			new StringArrayField
-			.Builder("urls")
-			.setPattern("[\\w\\W]*")
-			.setMaxLength(1024)
-			.setMinItems(1)
-			.build());
+				.Builder("urls")
+				.setPattern("[\\w\\W]*")
+				.setMaxLength(1024)
+				.setMinItems(1)
+				.build());
 	}
 }

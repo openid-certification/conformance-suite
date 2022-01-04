@@ -107,7 +107,7 @@ public class BankingAgentsChannelValidator extends AbstractJsonAssertingConditio
 				.Builder("services")
 				.setValidator(this::assertServices)
 				.setMinItems(1)
-				.setMaxLength(20)
+				.setMaxItems(20)
 				.build());
 	}
 

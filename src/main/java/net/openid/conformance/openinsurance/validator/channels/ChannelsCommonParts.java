@@ -12,7 +12,7 @@ import java.util.Set;
 public class ChannelsCommonParts {
 
 	public static final Set<String> WEEKDAY_ENUM = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");
-	private static final Set<String> NAMES_ENUM = Sets.newHashSet("ALTERACACOES_FORMA_PAGAMENTO",
+	private static final Set<String> NAMES_ENUM = Sets.newHashSet("ALTERACOES_FORMA_PAGAMENTO",
 		"AVISO_SINISTRO",
 		"CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
 		"EFETIVACAO_APORTE",

@@ -40,4 +40,6 @@ public class PlanNames {
 	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.0";
 	public static final String HOME_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Home Insurance API - based on Swagger version: 1.0.0";
 	public static final String CAPITALIZATION_TITLE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Capitalization Title API - based on Swagger version: 1.0.0";
+	public static final String EXCHANGE_ONLINE_RATE_API_TEST_PLAN = "Functional tests for Open Data Exchange - Online Rate API - based on Swagger version: 1.0.0";
+	public static final String EXCHANGE_VALUE_VET_TEST_PLAN = "Functional tests for Open Data Exchange - Vet Value API - based on Swagger version: 1.0.0";
 }

@@ -6,23 +6,19 @@ import net.openid.conformance.openbanking_brasil.admin.GetMetricsAdminApiValidat
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
-@PublishTestModule(
-	testName = "admin-api-test",
+@PublishTestModule(testName = "admin-api-test",
 	displayName = "Validate structure of admin API resources",
 	summary = "Validates the structure of admin API resources",
-	profile = OBBProfile.OBB_PROFILE
-)
+	profile = OBBProfile.OBB_PROFILE)
 public class AdminApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
 	@Override
 	protected void runTests() {
 		runInBlock("Validate Admin Metrics response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "metrics");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(GetMetricsAdminApiValidator.class, Condition.ConditionResult.FAILURE);
 		});
-
-
 	}
-	}
+}

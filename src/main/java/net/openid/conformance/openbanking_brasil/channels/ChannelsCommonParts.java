@@ -107,7 +107,7 @@ public class ChannelsCommonParts {
 	}
 
 	public void assertPostalAddress(JsonObject locations, boolean isOptional) {
-		Field.FieldBuilder fieldBuilder = new ObjectField.Builder("postalAddress")
+		ObjectField.Builder fieldBuilder = new ObjectField.Builder("postalAddress")
 			.setValidator(this::assertInnerPostalAddress);
 		if (isOptional) {
 			fieldBuilder.setOptional();

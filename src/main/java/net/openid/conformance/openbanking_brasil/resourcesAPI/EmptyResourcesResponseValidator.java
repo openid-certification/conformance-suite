@@ -2,16 +2,14 @@ package net.openid.conformance.openbanking_brasil.resourcesAPI;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
-import net.openid.conformance.util.field.*;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.Field;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 import java.util.Set;
 
@@ -32,11 +30,11 @@ public class EmptyResourcesResponseValidator extends AbstractJsonAssertingCondit
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertField(body,
-			new ArrayField.Builder("data")
+			new ObjectArrayField.Builder("data")
+				.setValidator(this::assertInnerFields)
 				.setMinItems(0)
 				.build());
 
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
 		return environment;
 	}
 

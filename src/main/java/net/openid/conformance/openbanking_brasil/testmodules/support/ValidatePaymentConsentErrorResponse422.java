@@ -8,13 +8,14 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Locale;
+import java.util.Set;
 
 public class ValidatePaymentConsentErrorResponse422 extends AbstractJsonAssertingCondition {
 
@@ -51,12 +52,12 @@ public class ValidatePaymentConsentErrorResponse422 extends AbstractJsonAssertin
 	}
 
 	private void assertOuterFields(JsonObject body) {
-		assertField(body, new ArrayField
-			.Builder("errors")
-			.setMinItems(1)
-			.setMaxItems(13)
-			.build()
-		);
+		assertField(body,
+			new ObjectArrayField
+				.Builder("errors")
+				.setMinItems(1)
+				.setMaxItems(13)
+				.build());
 	}
 
 	private void assertErrorFields(JsonObject body) {
@@ -92,15 +93,16 @@ public class ValidatePaymentConsentErrorResponse422 extends AbstractJsonAssertin
 			.Builder("requestDateTime")
 			.build()
 		);
-		assertField(meta, new IntField
-			.Builder("totalRecords")
-			.setMinItems(0)
-			.build()
-		);
-		assertField(meta, new IntField
-			.Builder("totalPages")
-			.setMinItems(1)
-			.build()
+		assertField(meta,
+			new IntField
+				.Builder("totalRecords")
+				.setMinValue(0)
+				.build());
+		assertField(meta,
+			new IntField
+				.Builder("totalPages")
+				.setMinValue(1)
+				.build()
 		);
 	}
 
