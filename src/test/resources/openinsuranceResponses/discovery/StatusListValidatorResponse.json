@@ -1,0 +1,27 @@
+{
+    "data": {
+        "status": [
+            {
+                "code": "OK",
+                "explanation": "Retorno com Sucesso",
+                "detectionTime": "2021-07-21T08:30:00Z",
+                "expectedResolutionTime": "2021-07-21T08:30:00Z",
+                "updateTime": "2021-01-02T01:00:00Z",
+                "unavailableEndpoints": [
+                    "https://api.seguradora.com.br/open-insurance/channels/v1/electronic-channels"
+                ]
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>",
+        "first": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 9,
+        "totalPages": 3
+    }
+}

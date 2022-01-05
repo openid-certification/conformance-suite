@@ -199,36 +199,35 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	}
 
 	private void assertObjectField(JsonElement elementByPath, JsonObject baseObj, Field field) {
-		@SuppressWarnings("PMD.UnusedLocalVariable")
-		JsonObject object = null;
-		try {
-			object = (JsonObject)  elementByPath;
-		} catch (ClassCastException exception) {
+		if (!elementByPath.isJsonObject()) {
 			throw error(createObjectClassCastExpMessage(field.getPath()), args("path",
-				getPath(), "jsonElement", currentElement));
-		}
-		if (field.getValidator()==null){
-			throw error(String.format("ObjectField [%s] - validator should not be null", field.getPath()), args("path",
-				getPath(), "jsonElement", currentElement));
+				getPath(), "jsonElement", elementByPath));
 		}
 		this.parentPath += field.getPath() + ".";
+		if (field.getValidator() == null) {
+			logInfo(String.format("Field: '%s'. ObjectField. Validator property is empty and inner fields will not be validated", field.getPath()),
+				args("path", field.getPath(), "jsonElement", elementByPath));
+			this.parentPath = ".";
+			return;
+		}
 		assertJsonObject(baseObj, field.getPath(), ((ObjectField) field).getValidator());
 		this.parentPath = ".";
 	}
 
 	private void assertArrayField(JsonElement elementByPath, Field field) {
 		ObjectArrayField objectArrayField = (ObjectArrayField) field;
-		JsonArray array = null;
-		try {
-			array = (JsonArray)  elementByPath;
-		} catch (ClassCastException exception) {
+		if (!elementByPath.isJsonArray()) {
 			throw error(createArrayClassCastExpMessage(objectArrayField.getPath()));
 		}
-		assertMinAndMaxItems(array.getAsJsonArray(), objectArrayField);
-		if (field.getValidator() == null) {
-			throw error(String.format("The validator from field %s must initialize! But null found", field.getPath()));
-		}
+		JsonArray array = elementByPath.getAsJsonArray();
 		this.parentPath +=  (this.parentPath.contains(field.getPath()))? "" : field.getPath() + ".";
+		assertMinAndMaxItems(array, objectArrayField);
+		if (field.getValidator() == null) {
+			logInfo(String.format("Field: '%s'. ObjectArrayField. Validator property is empty and inner fields will not be validated", field.getPath()),
+				args("path", field.getPath(), "jsonElement", elementByPath));
+			this.parentPath = ".";
+			return;
+		}
 		array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
 		this.parentPath = ".";
 	}

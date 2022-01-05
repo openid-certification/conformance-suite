@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "outageTime": "2020-07-21T08:30:00Z",
+            "duration": "PT2H30M",
+            "isPartial": false,
+            "explanation": "Atualização do API Gateway",
+            "unavailableEndpoints": ["electronic-channels"]
+        }
+    ],
+    "links": {
+        "self": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>",
+        "first": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.seguradora.com.br/open-insurance/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 9,
+        "totalPages": 3
+    }
+}
