@@ -33,7 +33,6 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 					PaymentsConsentsApiEnforceQRESWrongProxyTestModule.class,
 					PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule.class,
 					PaymentsApiQRESMismatchConsentPaymentTestModule.class,
-					PaymentsConsentsApiQRDNHappyLegacyTestModule.class,
 					PaymentsConsentsApiQRDNHappyTestModule.class,
 					PaymentsConsentsApiQresTransactionIdentifierTestModule.class,
 					PaymentsApiTestModule.class,
