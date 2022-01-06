@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.Optional;
@@ -40,6 +41,14 @@ public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends Abstra
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
 		callAndStopOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
+	}
+
+	@Override
+	protected ConditionSequence statusValidationSequence() {
+		return sequenceOf(
+			condition(PaymentsProxyCheckForRejectedStatus.class),
+			condition(VerifyRejectionReasonForQrCode.class),
+			condition(PaymentsProxyCheckForInvalidStatus.class));
 	}
 
 	@Override
