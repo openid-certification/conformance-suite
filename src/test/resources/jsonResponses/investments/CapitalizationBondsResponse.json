@@ -1,0 +1,93 @@
+{
+    "data": [
+        {
+            "participantIdentification": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "insuranceCompanyIdentification": {
+                "name": "ACME cap da ACME seguros",
+                "cnpjNumber": "50685362000135"
+            },
+            "product": {
+                "name": "ACMEcap",
+                "code": "01234589_cap",
+                "modality": "TRADICIONAL",
+                "costType": "PAGAMENTO_UNICO"
+            },
+            "termsAndConditions": {
+                "susepProcessNumber": "15414.622222/2222-22",
+                "termsRegulations": "https://ACME.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais.pdf"
+            },
+            "quotas": [
+                {
+                    "tranche": 10,
+                    "capitalizationQuota": "0.000010",
+                    "raffleQuota": "0.000010",
+                    "chargingQuota": "0.000010"
+                }
+            ],
+            "validity": 999,
+            "serieSize": 5000000,
+            "capitalizationPeriod": {
+                "interestRate": "0.25123",
+                "adjustmentIndex": "IPCA",
+                "adjustmentIndexAdditionalInfo": "",
+                "contributionAmount": [
+                    {
+                        "timeInterval": "PAGAMENTO_MENSAL",
+                        "periodicityAdditionalInfo": "",
+                        "minimum": 1000,
+                        "maximum": 5000,
+                        "allowed": 5000
+                    }
+                ],
+                "earlyRedemptions": "1.55000000",
+                "redemptionPercentageEndTerm": "1.51",
+                "gracePeriodRedemption": 999
+            },
+            "latePayment": {
+                "suspensionMonths": 999,
+                "periodExtensionOption": true
+            },
+            "contributionPayment": {
+                "paymentMethod": "CARTAO_CREDITO",
+                "paymentMethodAdditionalInfo": "",
+                "adjustmentIndex": "IPCA",
+                "adjustmentIndexAdditionalInfo": ""
+            },
+            "redemptionPercentageEndTerm": "1.51",
+            "draws": [
+                {
+                    "timeInterval": "UNICO",
+                    "periodicityAdditionalInfo": "",
+                    "quantity": 10000,
+                    "prizeMultiplier": 999999,
+                    "earlySettlementRaffle": true,
+                    "mandatoryContemplation": true,
+                    "ruleDescription": "Sorteio aos Sábados",
+                    "minimumContemplationProbability": "1.000002"
+                }
+            ],
+            "additionalInfo": "https://ACME.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais",
+            "minimumRequirementDetails": "https://ACME.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais",
+            "targetAudiences": [
+                "PESSOA_NATURAL"
+            ]
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

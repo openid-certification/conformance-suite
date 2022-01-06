@@ -5,7 +5,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
+import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
+import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.openinsurance.validator.productsNServices.GetPersonValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -15,7 +16,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "ProductsNServices - Person API test",
+	testPlanName = "Open Insurance - ProductsNServices - Person API test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
 	displayName = PlanNames.PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN,
 	summary = "Structural and logical tests for ProductsNServices - Person API"
@@ -35,7 +36,7 @@ public class PersonApiTestPlan implements TestPlan {
 	}
 
 	@PublishTestModule(
-		testName = " ProductsNServices - Person API test",
+		testName = "Open Insurance - ProductsNServices - Person API test",
 		displayName = "Validate structure of ProductsNServices - Person API Api resources",
 		summary = "Validate structure of ProductsNServices - Person Api resources",
 		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE)
@@ -44,8 +45,8 @@ public class PersonApiTestPlan implements TestPlan {
 		@Override
 		protected void runTests() {
 			runInBlock("Validate ProductsNServices - Person response", () -> {
-				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "person");
-				preCallResource();
+				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
+				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(GetPersonValidator.class, Condition.ConditionResult.FAILURE);
 			});

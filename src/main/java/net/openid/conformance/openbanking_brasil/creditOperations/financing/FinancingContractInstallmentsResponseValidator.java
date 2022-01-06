@@ -6,10 +6,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -94,7 +94,7 @@ public class FinancingContractInstallmentsResponseValidator extends AbstractJson
 
 	private void assertBalloonPayments(JsonObject body) {
 		assertField(body,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("balloonPayments")
 				.setMinItems(0)
 				.setNullable()

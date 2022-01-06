@@ -6,10 +6,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.DoubleField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -95,13 +95,12 @@ public class InvoiceFinancingContractInstallmentsResponseValidator extends Abstr
 
 	private void assertBalloonPayments(JsonObject body) {
 		assertField(body,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("balloonPayments")
+				.setValidator(this::assertInnerFieldsBalloonPayments)
 				.setMinItems(0)
 				.setNullable()
 				.build());
-
-		assertJsonArrays(body, "balloonPayments", this::assertInnerFieldsBalloonPayments);
 	}
 
 	private void assertInnerFieldsBalloonPayments(JsonObject body) {

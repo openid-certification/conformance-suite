@@ -6,8 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.BooleanField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -74,13 +74,11 @@ public class CardIdentificationResponseValidator extends AbstractJsonAssertingCo
 				.build());
 
 		assertField(data,
-			new ArrayField.
+			new ObjectArrayField.
 				Builder("paymentMethod")
+				.setValidator(this::assertInnerFieldsPaymentMethod)
 				.setMinItems(1)
 				.build());
-
-
-		assertJsonArrays(data, "paymentMethod", this::assertInnerFieldsPaymentMethod);
 	}
 
 

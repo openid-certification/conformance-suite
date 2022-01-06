@@ -13,7 +13,7 @@ public class PlanNames {
 	public static final String FINANCINGS_API_NAME = "Functional tests for financings API - based on Swagger version: 1.0.4";
 	public static final String CREDIT_OPERATIONS_DISCOUNTED_CREDIT_RIGHTS_API_PLAN_NAME = "Functional tests for discounted credit rights API - based on Swagger version: 1.0.4";
 	public static final String PAYMENTS_API_PHASE_1_TEST_PLAN = "Functional tests for payments API INIC, DICT and MANU (T0/T1) - Based on Swagger version: 1.0.1";
-	public static final String PAYMENTS_API_PHASE_2_TEST_PLAN = "Functional tests for payments API QR Code (T2) - Based on Swagger version: 1.0.1 (WIP)";
+	public static final String PAYMENTS_API_PHASE_2_TEST_PLAN = "Functional tests for payments API INIC, DICT, MANU and QR Code (T0/T1/T2) - Based on Swagger version: 1.0.1 (WIP)";
 	public static final String PRODUCTS_N_SERVICES_API_TEST_PLAN  = "Functional tests for " +
 		"ProductsNServices API - based on Swagger version: 1.0.0";
 	public static final String BANKING_AGENTS_API_TEST_PLAN = "Functional tests for Channels - BankingAgents API - based on Swagger version: 1.0.3 (WIP)";
@@ -40,4 +40,6 @@ public class PlanNames {
 	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.0";
 	public static final String HOME_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Home Insurance API - based on Swagger version: 1.0.0";
 	public static final String CAPITALIZATION_TITLE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Capitalization Title API - based on Swagger version: 1.0.0";
+	public static final String EXCHANGE_ONLINE_RATE_API_TEST_PLAN = "Functional tests for Open Data Exchange - Online Rate API - based on Swagger version: 1.0.0";
+	public static final String EXCHANGE_VALUE_VET_TEST_PLAN = "Functional tests for Open Data Exchange - Vet Value API - based on Swagger version: 1.0.0";
 }

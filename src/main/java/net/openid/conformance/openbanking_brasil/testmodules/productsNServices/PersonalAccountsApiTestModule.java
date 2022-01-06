@@ -19,7 +19,7 @@ public class PersonalAccountsApiTestModule extends AbstractNoAuthFunctionalTestM
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Personal Accounts response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-accounts");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalAccountsValidator.class, Condition.ConditionResult.FAILURE);

@@ -1,12 +1,14 @@
 package net.openid.conformance.openbanking_brasil.generic;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
-import net.openid.conformance.util.field.ArrayField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Base64;
@@ -61,12 +63,29 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 	private void assertOuterFields(JsonObject body) {
 		try {
 			JsonObject errors = findByPath(body, "$").getAsJsonObject();
-			assertField(errors, new ArrayField
-				.Builder("errors")
-				.setMinItems(1)
-				.setMaxItems(13)
-				.build()
-			);
+			assertField(errors,
+				new ObjectArrayField
+					.Builder("errors")
+					.setValidator(error -> {
+						new StringField.
+							Builder("code")
+							.setOptional()
+							.build();
+
+						new StringField.
+							Builder("title")
+							.setOptional()
+							.build();
+
+						new StringField.
+							Builder("detail")
+							.setOptional()
+							.build();
+
+					})
+					.setMinItems(1)
+					.setMaxItems(13)
+					.build());
 		} catch (IllegalStateException e){
 			throw error("Errors field is not a Json Array. This is not spec compliant.");
 		}

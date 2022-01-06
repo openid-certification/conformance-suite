@@ -19,7 +19,7 @@ public class PersonalCreditCardApiTestModule extends AbstractNoAuthFunctionalTes
 	@Override
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Personal Credit Cards response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-credit-cards");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(PersonalCreditCardValidator.class, Condition.ConditionResult.FAILURE);

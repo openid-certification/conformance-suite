@@ -16,7 +16,9 @@ import net.openid.conformance.validation.RegexMatch;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.annotation.meta.field;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -31,12 +33,15 @@ import static net.openid.conformance.testmodule.OIDFJSON.UnexpectedJsonTypeExcep
 
 public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
-	private static Gson GSON = JsonUtils.createBigDecimalAwareGson();
+	private static final Gson GSON = JsonUtils.createBigDecimalAwareGson();
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractJsonAssertingCondition.class);
 
 	private static final Pattern JSONPATH_PRETTIFIER = Pattern.compile("(\\$\\.data\\.|\\$\\.data\\[\\d\\]\\.)(?<path>.+)");
 	public static final String ROOT_PATH = "$.data";
+	private String parentPath = "";
+	private String currentField = "";
+	private JsonElement currentElement;
 	private boolean logOnlyFailure;
 	private boolean dontStopOnFailure;
 	private int totalElements;
@@ -46,12 +51,23 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	public abstract Environment evaluate(Environment environment);
 
 	protected JsonObject bodyFrom(Environment environment) {
-		String entityString = environment.getString("resource_endpoint_response");
+		String resource = environment.getString("resource_endpoint_response");
+		String entityString = (resource == null)? null : parseResource(resource);
 		String statusString = environment.getEffectiveKey("doNotStopOnFailure");
 		if (statusString != null) {
 			this.dontStopOnFailure = Boolean.parseBoolean(statusString);
 		}
-		return GSON.fromJson(entityString, JsonObject.class);
+		return  GSON.fromJson(entityString, JsonObject.class);
+	}
+
+	private String parseResource(String resource) {
+		JsonElement jsonElement = new JsonParser().parse(resource);
+		if (jsonElement.isJsonArray()) {
+			JsonObject body = new JsonObject();
+			body.add("data", jsonElement);
+			return body.toString();
+		}
+		return resource;
 	}
 
 	protected JsonObject headersFrom(Environment environment) {
@@ -103,6 +119,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 
 	private void assertElement(JsonObject jsonObject, Field field) {
+		this.currentElement = jsonObject;
+		this.currentField = field.getPath();
 		if (!ifExists(jsonObject, field.getPath())) {
 			if (field.isOptional()){
 				return;
@@ -117,33 +135,14 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		}
 
 		if (elementByPath.isJsonNull()) {
-			//return;//TODO:: 1. return; - this is for passing ProductsNServicesApiTestModule;
-			throw error(createElementCantBeNullMessage(field.getPath()));
+			throw error(createElementCantBeNullMessage(field.getPath()), args("path",
+				getPath(), "jsonElement", currentElement));
 		}
 
 		if (field instanceof ObjectField) {
-			@SuppressWarnings("PMD.UnusedLocalVariable")
-			JsonObject object = null;
-			try {
-				object = (JsonObject)  elementByPath;
-			} catch (ClassCastException exception) {
-				throw error(createObjectClassCastExpMessage(field.getPath()));
-			}
-			if (field.getValidator()==null){
-				throw error(String.format("ObjectField [%s] - validator should not be null", field.getPath()));
-			}
-			assertJsonObject(jsonObject, field.getPath(), ((ObjectField) field).getValidator());
-
+			assertObjectField(elementByPath, jsonObject, field);
 		} else if (field instanceof ObjectArrayField) {
-			JsonArray array = null;
-			try {
-				array = (JsonArray)  elementByPath;
-			} catch (ClassCastException exception) {
-				throw error(createArrayClassCastExpMessage(field.getPath()));
-			}
-			assertMinAndMaxItems(array.getAsJsonArray(), field);
-			array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
-
+			assertArrayField(elementByPath, field);
 		} else if (field instanceof StringField || field instanceof DatetimeField) {
 			assertHasStringField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
@@ -154,7 +153,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof IntField) {
 			assertHasIntField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
-			assertMinimum(value, field);
+			assertMinAndMaxValue(value, field);
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof BooleanField) {
 			assertHasBooleanField(jsonObject, field.getPath());
@@ -171,6 +170,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		} else if (field instanceof DoubleField) {
 			assertHasDoubleField(jsonObject, field.getPath());
 			String value = getDoubleValueAsString(jsonObject, field.getPath());
+			assertMinAndMaxValue(value, field);
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof StringArrayField) {
 			assertHasStringArrayField(jsonObject, field.getPath());
@@ -178,29 +178,58 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		} else if (field instanceof IntArrayField) {
 			assertHasIntArrayField(jsonObject, field.getPath());
-			OIDFJSON.getNumberArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v.toString(), field));
+			OIDFJSON.getNumberArray(elementByPath).forEach(v -> {
+				assertMinAndMaxValue(v.toString(), field);
+				assertPatternAndMaxMinLength(v.toString(), field);
+			});
 			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
-		} else if (field instanceof ArrayField) {
-			JsonElement found = elementByPath;
-			assertMinAndMaxItems(found.getAsJsonArray(), field);
 		} else if (field instanceof NumberField) {
 			assertHasNumberField(jsonObject, field.getPath());
 			String value = getJsonValueAsString(jsonObject, field.getPath());
+			assertMinAndMaxValue(value, field);
 			assertPatternAndMaxMinLength(value, field);
 		} else if (field instanceof NumberArrayField) {
 			assertHasNumberArrayField(jsonObject, field.getPath());
-			OIDFJSON.getNumberArray(elementByPath).forEach(v -> assertPatternAndMaxMinLength(v.toString(), field));
+			OIDFJSON.getNumberArray(elementByPath).forEach(v -> {
+				assertMinAndMaxValue(v.toString(), field);
+				assertPatternAndMaxMinLength(v.toString(), field);
+			});
 			assertMinAndMaxItems(elementByPath.getAsJsonArray(), field);
 		}
-
 	}
 
-	private void assertMinimum(String value, Field field) {
-		if (field.getMinimum() != Integer.MIN_VALUE) {
-			if (Integer.parseInt(value) < field.getMinimum()) {
-				throw error("Value at " + field.getPath() + " less than required minimum ", args("value", value, "minimum", field.getMinimum()));
-			}
+	private void assertObjectField(JsonElement elementByPath, JsonObject baseObj, Field field) {
+		if (!elementByPath.isJsonObject()) {
+			throw error(createObjectClassCastExpMessage(field.getPath()), args("path",
+				getPath(), "jsonElement", elementByPath));
 		}
+		this.parentPath += field.getPath() + ".";
+		if (field.getValidator() == null) {
+			logInfo(String.format("Field: '%s'. ObjectField. Validator property is empty and inner fields will not be validated", field.getPath()),
+				args("path", field.getPath(), "jsonElement", elementByPath));
+			this.parentPath = ".";
+			return;
+		}
+		assertJsonObject(baseObj, field.getPath(), ((ObjectField) field).getValidator());
+		this.parentPath = ".";
+	}
+
+	private void assertArrayField(JsonElement elementByPath, Field field) {
+		ObjectArrayField objectArrayField = (ObjectArrayField) field;
+		if (!elementByPath.isJsonArray()) {
+			throw error(createArrayClassCastExpMessage(objectArrayField.getPath()));
+		}
+		JsonArray array = elementByPath.getAsJsonArray();
+		this.parentPath +=  (this.parentPath.contains(field.getPath()))? "" : field.getPath() + ".";
+		assertMinAndMaxItems(array, objectArrayField);
+		if (field.getValidator() == null) {
+			logInfo(String.format("Field: '%s'. ObjectArrayField. Validator property is empty and inner fields will not be validated", field.getPath()),
+				args("path", field.getPath(), "jsonElement", elementByPath));
+			this.parentPath = ".";
+			return;
+		}
+		array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
+		this.parentPath = ".";
 	}
 
 	public void assertGeographicCoordinates(JsonObject body) {
@@ -226,7 +255,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getNumber(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not an Number", jsonObject);
+			throw error("Field at " + this.parentPath + " was not an Number",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -235,7 +265,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getInt(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not an int", jsonObject);
+			throw error("Field at " + this.parentPath + path + " was not an int",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -244,7 +275,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getDouble(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a double", jsonObject);
+			throw error("Field at " + path + " was not a double",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -253,7 +285,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getFloat(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a float", jsonObject);
+			throw error("Field at " + this.parentPath + path + " was not a float",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -262,7 +295,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getLong(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a long", jsonObject);
+			throw error("Field at " + this.parentPath + path + " was not a long",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -271,7 +305,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getBoolean(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a boolean", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a boolean",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -280,7 +315,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getStringArray(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not an array of strings", jsonObject);
+			throw error("Field at " + this.parentPath + " was not an array of strings",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -289,7 +325,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getIntArray(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not an array of Integers", jsonObject);
+			throw error("Field at " + this.parentPath + " was not an array of Integers",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -298,7 +335,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getNumberArray(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not an array of Numbers", jsonObject);
+			throw error("Field at " + this.parentPath + " was not an array of Numbers",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -307,7 +345,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getCharacter(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a character", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a character",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -316,7 +355,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getShort(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a short", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a short",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -325,12 +365,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		try {
 			OIDFJSON.getByte(found);
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + path + " was not a byte", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a byte",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
 	/**
-	Use assertField(JsonObject jsonObject, String path)
+	 Use assertField(JsonObject jsonObject, String path)
 	 */
 	@Deprecated
 	protected void assertJsonObject(JsonObject body, String pathToJsonObject, Consumer<JsonObject> consumer) {
@@ -353,14 +394,16 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findByPath(jsonObject, path);
 		String stringValue = getOrFail(() -> OIDFJSON.getString(actual));
 		if (!stringValue.equals(expected)) {
-			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
+			throw error(String.format("Path %s did not match %s", this.parentPath, expected),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
 	protected void assertJsonField(JsonObject jsonObject, String path, Match match) {
 		String stringValue = getJsonValueAsString(jsonObject, path);
 		if (!match.matches(stringValue)) {
-			throw error(String.format("Path %s did not match %s", path, match), jsonObject);
+			throw error(String.format("Path %s did not match %s", this.parentPath, match),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -379,7 +422,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findByPath(jsonObject, path);
 		Number number = getOrFail(() -> OIDFJSON.getNumber(actual));
 		if (!number.equals(expected)) {
-			throw error(String.format("Path %s did not match %s", path, expected), jsonObject);
+			throw error(String.format("Path %s did not match %s", path, expected),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -387,7 +431,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findByPath(jsonObject, path);
 		Character c = getOrFail(() -> OIDFJSON.getCharacter(actual));
 		if (!c.equals(expected)) {
-			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
+			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -395,7 +440,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		JsonElement actual = findByPath(jsonObject, path);
 		Boolean bool = getOrFail(() -> OIDFJSON.getBoolean(actual));
 		if (!bool.equals(expected)) {
-			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)), jsonObject);
+			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -416,20 +462,22 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			totalElements++;
 			return element;
 		} catch (PathNotFoundException e) {
-			throw error(createElementNotFoundMessage(path), jsonObject);
+			throw error(createElementNotFoundMessage(path),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
 	protected JsonElement findDoubleByPath(JsonObject jsonObject, String path) {
-			logQuerying(path);
-			if (jsonObject.has(path)) {
-				JsonElement element = jsonObject.get(path);
-				logElementFound(path);
-				totalElements++;
-				return element;
-			} else {
-				throw error(createElementNotFoundMessage(path), jsonObject);
-			}
+		logQuerying(path);
+		if (jsonObject.has(path)) {
+			JsonElement element = jsonObject.get(path);
+			logElementFound(path);
+			totalElements++;
+			return element;
+		} else {
+			throw error(createElementNotFoundMessage(path),
+				args("path", getPath(), "currentElement", this.currentElement));
+		}
 	}
 
 	public void setLogOnlyFailure() {
@@ -464,9 +512,11 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a string",
+				args("path", getPath(), "currentElement", this.currentElement));
 		} catch (NumberFormatException nfe) {
-			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
+			throw error("Field at " + this.parentPath + " could not be parsed to a double",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -479,9 +529,11 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 				throw error(createCoordinateIsNotWithinAllowedAreaMessage(doubleField.getPath()), jsonObject);
 			}
 		} catch (UnexpectedJsonTypeException u) {
-			throw error("Field at " + doubleField.getPath() + " was not a string", jsonObject);
+			throw error("Field at " + this.parentPath + " was not a string",
+				args("path", getPath(), "currentElement", this.currentElement));
 		} catch (NumberFormatException nfe) {
-			throw error("Field at " + doubleField.getPath() + " could not be parsed to a double", jsonObject);
+			throw error("Field at " + this.parentPath + " could not be parsed to a double",
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
@@ -608,7 +660,8 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			try {
 				stringValue = String.valueOf(OIDFJSON.getNumber(actual));
 			} catch (UnexpectedJsonTypeException ex) {
-				throw error(String.format("Path %s was not a string or number", path), jsonObject);
+				throw error(String.format("Path %s was not a string or number", this.parentPath),
+					args("path", getPath(), "currentElement", this.currentElement));
 			}
 		}
 		return stringValue;
@@ -617,18 +670,18 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 	private String getDoubleValueAsString(JsonObject jsonObject, String path) {
 		JsonElement actual = findDoubleByPath(jsonObject, path);
 		String stringValue = "";
-			try {
-				stringValue = String.valueOf(OIDFJSON.getNumber(actual));
-			} catch (UnexpectedJsonTypeException ex) {
-				throw error(String.format("Path %s was not a number", path), jsonObject);
+		try {
+			stringValue = String.valueOf(OIDFJSON.getNumber(actual));
+		} catch (UnexpectedJsonTypeException ex) {
+			throw error(String.format("Path %s was not a number", this.parentPath),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 		return stringValue;
 	}
 
 	private void assertPatternAndTimeRange(String stringFieldValue, DatetimeField field, JsonObject jsonObject) {
 		if (!field.getPattern().isEmpty()) {
-			assertRegexMatchesField(stringFieldValue, field.getPath(),
-				RegexMatch.regex(field.getPattern()));
+			assertRegexMatchesField(stringFieldValue, field.getPath(), field.getPattern());
 		}
 		if (field.getDaysOlderAccepted() > 0) {
 			assertDaysOlderAccepted(stringFieldValue, field.getPath(), field.getDaysOlderAccepted());
@@ -640,8 +693,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 
 	private void assertPatternAndMaxMinLength(String stringFieldValue, Field field) {
 		if (!field.getPattern().isEmpty()) {
-			assertRegexMatchesField(stringFieldValue, field.getPath(),
-				RegexMatch.regex(field.getPattern()));
+			assertRegexMatchesField(stringFieldValue, field.getPath(), field.getPattern());
 		}
 		if (field.getMaxLength() > 0) {
 			assertMaxLength(stringFieldValue, field.getPath(), field.getMaxLength());
@@ -657,61 +709,70 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 			EnumChecker.getInstance().check(field, className);
 			assertValueFromEnum(stringFieldValue, field.getEnums(), field.getPath());
 		}
-		if (field.getMaxValue() > 0) {
-			assertMaxValue(stringFieldValue, field.getPath(), field.getMaxValue());
-		}
 	}
 
 	private void assertCurrencyNotNa(String fieldValue, Field field){
 		if(fieldValue.equalsIgnoreCase("NA")){
-			throw error(createCurrencyNotNaMessage(field.getPath()));
+			throw error(createCurrencyNotNaMessage(field.getPath()),
+				args("path", getPath(), "currentElement", this.currentElement));
 		}
 	}
 
 	private void assertValueFromEnum(String fieldValue, Set<String> enums, String path) {
 		if (!enums.contains(fieldValue)) {
-			throw error(createFieldValueNotMatchEnumerationMessage(path));
+			throw error(createFieldValueNotMatchEnumerationMessage(path),
+				args("path", getPath(), "value", fieldValue, "enums", enums));
 		}
 	}
 
 	private void assertMinAndMaxItems(JsonArray array, Field field) {
 		if (array.size() < field.getMinItems()) {
-			throw error(createArrayIsLessThanMaxItemsMessage(field.getPath()));
+			throw error(createArrayIsLessThanMaxItemsMessage(field.getPath()), args("path",
+				getPath(), "currentElement", this.currentElement));
 		}
 
 		if (field.getMaxItems() != 0 && array.size() > field.getMaxItems()) {
-			throw error(createArrayIsMoreThanMaxItemsMessage(field.getPath()));
+			throw error(createArrayIsMoreThanMaxItemsMessage(field.getPath()), args("path",
+				getPath(), "currentElement", this.currentElement));
 		}
 	}
 
-	private void assertRegexMatchesField(String value, String path, Match match) {
+	private void assertRegexMatchesField(String value, String path, String pattern) {
+		Match match = RegexMatch.regex(pattern);
 		if (!match.matches(value)) {
 			throw error(createFieldValueNotMatchPatternMessage(path),
-				args("path", path, "value", value));
+				args("path", getPath(), "value", value, "pattern", pattern, "currentElement", currentElement));
 		}
 	}
 
 	private void assertMaxLength(String stringValue, String path, int maxLength) {
 		if (stringValue.length() > maxLength) {
-			throw error(createFieldValueIsMoreThanMaxLengthMessage(path));
+			throw error(createFieldValueIsMoreThanMaxLengthMessage(path),
+				args("path", getPath(), "value", stringValue, "required MaxLength", maxLength));
 		}
 	}
 
 	private void assertMinLength(String stringValue, String path, int minLength) {
 		if (stringValue.length() < minLength) {
-			throw error(createFieldValueIsLessThanMinLengthMessage(path));
+			throw error(createFieldValueIsLessThanMinLengthMessage(path),
+				args("path", getPath(), "value", stringValue, "required MinLength", minLength));
 		}
 	}
 
-	private void assertMaxValue(String stringValue, String path, int maxValue) {
-		if (Integer.parseInt(stringValue) > maxValue) {
-			throw error(createFieldValueIsMoreThanMaximum(path));
+	private void assertMinAndMaxValue(String value, Field field) {
+		if (field.getMinValue() != null && new BigDecimal(value).compareTo(field.getMinValue()) < 0) {
+			throw error(createFieldValueIsLessThanMinimum(field.getPath()), args("value", value, "path", getPath(), "required MinValue", field.getMinValue()));
+
+		}
+		if (field.getMaxValue() != null && new BigDecimal(value).compareTo(field.getMaxValue()) > 0) {
+			throw error(createFieldValueIsMoreThanMaximum(field.getPath()), args("path", getPath(), "value", value, "required MaxValue", field.getMaxValue()));
 		}
 	}
 
 	private void assertDaysOlderAccepted(String stringValue, String path, int daysOlderAccepted) {
 		if (Instant.parse(stringValue).isAfter(Instant.now().plus(daysOlderAccepted, ChronoUnit.DAYS))) {
-			throw error(createFieldValueIsOlderThanLimit(path));
+			throw error(createFieldValueIsOlderThanLimit(path),
+				args("path", getPath(), "value", stringValue));
 		}
 	}
 
@@ -724,6 +785,10 @@ public abstract class AbstractJsonAssertingCondition extends AbstractCondition {
 		if (Instant.parse(currentValue).isAfter(Instant.parse(valueComparedTo).plus(secondsOlder+5, ChronoUnit.SECONDS)) || Instant.parse(currentValue).isBefore(Instant.parse(valueComparedTo).plus(secondsOlder, ChronoUnit.SECONDS))) {
 			throw error(createFieldIsntInSecondsRange(path));
 		}
+	}
+
+	private String getPath() {
+		return this.parentPath + this.currentField;
 	}
 
 	private <T> T getOrFail(Lambda<T> lambda) {

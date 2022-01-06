@@ -44,7 +44,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 	}
 
 	private void assertData(JsonObject body) {
-		assertField(body, new DatetimeField("updateDateTime"));
+		assertField(body, new DatetimeField.Builder("updateDateTime").build());
 
 		assertField(body,
 			new StringField
@@ -74,7 +74,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 				.setMaxLength(70)
 				.build());
 
-		assertField(body, new DatetimeField("incorporationDate"));
+		assertField(body, new DatetimeField.Builder("incorporationDate").build());
 
 		assertField(body,
 			new StringField
@@ -187,7 +187,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 				.setOptional()
 				.build());
 
-		assertField(body, new DatetimeField("startDate"));
+		assertField(body, new DatetimeField.Builder("startDate").build());
 
 		assertField(body,
 			new StringField

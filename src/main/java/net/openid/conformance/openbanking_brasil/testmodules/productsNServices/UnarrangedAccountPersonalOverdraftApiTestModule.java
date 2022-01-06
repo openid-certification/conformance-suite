@@ -20,7 +20,7 @@ public class UnarrangedAccountPersonalOverdraftApiTestModule extends AbstractNoA
 	protected void runTests() {
 		runInBlock("Validate ProductsNServices Personal Unarranged Account Overdraft response",
 			() -> {
-				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "personal-unarranged-account-overdraft");
+				callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 				preCallResource();
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(UnarrangedAccountPersonalOverdraftValidator.class,

@@ -15,7 +15,6 @@ import java.util.Set;
  * Api endpoint: /branches
  * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
  */
-
 @ApiName("Branches Channels")
 public class BranchesValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> WEEKDAY_ENUM = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");

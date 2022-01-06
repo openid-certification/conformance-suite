@@ -53,11 +53,10 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 
 	private void assertReleases(JsonObject data) {
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("releases")
+				.setValidator(this::assertInnerReleases)
 				.build());
-
-		assertJsonArrays(data, "releases", this::assertInnerReleases);
 	}
 
 	private void assertInnerReleases(JsonObject body) {
@@ -105,17 +104,16 @@ public class FinancingPaymentsResponseValidator extends AbstractJsonAssertingCon
 	private void assertInnerFieldOverParcel(JsonObject body) {
 		JsonObject data = findByPath(body, "overParcel").getAsJsonObject();
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("fees")
+				.setValidator(this::assertInnerFieldFees)
 				.build());
 
 		assertField(data,
-			new ArrayField
+			new ObjectArrayField
 				.Builder("charges")
+				.setValidator(this::assertInnerFieldsCharges)
 				.build());
-
-		assertJsonArrays(data, "fees", this::assertInnerFieldFees);
-		assertJsonArrays(data, "charges", this::assertInnerFieldsCharges);
 	}
 
 	private void assertInnerFieldFees(JsonObject body) {

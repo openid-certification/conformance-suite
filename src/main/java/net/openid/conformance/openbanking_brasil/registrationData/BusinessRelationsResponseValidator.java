@@ -5,11 +5,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ArrayField;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringArrayField;
 import net.openid.conformance.util.field.StringField;
-
 
 import java.util.Set;
 
@@ -63,12 +62,10 @@ public class BusinessRelationsResponseValidator extends AbstractJsonAssertingCon
 		assertHasField(body, "accounts");
 
 		assertField(body,
-			new ArrayField.Builder("accounts")
+			new ObjectArrayField.Builder("accounts")
+				.setValidator(this::assertInnerFieldsForAccounts)
 				.setMinItems(1)
 				.build());
-
-		assertJsonArrays(body, "accounts",
-			this::assertInnerFieldsForAccounts);
 	}
 
 	private void assertInnerFieldsForAccounts(JsonObject body) {
@@ -112,12 +109,10 @@ public class BusinessRelationsResponseValidator extends AbstractJsonAssertingCon
 		assertHasField(body, "procurators");
 
 		assertField(body,
-			new ArrayField.Builder("procurators")
+			new ObjectArrayField.Builder("procurators")
+				.setValidator(this::assertInnerFieldsForProcurators)
 				.setMinItems(1)
 				.build());
-
-		assertJsonArrays(body, "procurators",
-			this::assertInnerFieldsForProcurators);
 	}
 
 	private void assertInnerFieldsForProcurators(JsonObject body) {

@@ -6,20 +6,52 @@ import java.util.function.Consumer;
 
 public class ObjectArrayField extends Field {
 
-	private ObjectArrayField(boolean optional, boolean nullable, String path, Consumer<JsonObject> validator, int minItems, int maxItems) {
-		super(optional, nullable, path, maxItems, minItems, validator);
+	private ObjectArrayField(boolean optional, boolean nullable, String path,
+							 Consumer<JsonObject> validator, int minItems, int maxItems) {
+		super(optional, nullable, path, validator, minItems, maxItems);
 	}
 
-	public static class Builder extends FieldBuilder {
+	public static class Builder {
+
+		private boolean optional;
+		private boolean nullable;
+		private final String path;
+		private Consumer<JsonObject> validator;
+		private int maxItems;
+		private int minItems;
+
 		public Builder(String path) {
-			super(path);
+			this.path = path;
 		}
 
-		@Override
+		public Builder setOptional() {
+			this.optional = true;
+			return this;
+		}
+
+		public Builder setNullable() {
+			this.nullable = true;
+			return this;
+		}
+
+		public Builder setValidator(Consumer<JsonObject> validator) {
+			this.validator = validator;
+			return this;
+		}
+
+		public Builder setMaxItems(int maxItems) {
+			this.maxItems = maxItems;
+			return this;
+		}
+
+		public Builder setMinItems(int minItems) {
+			this.minItems = minItems;
+			return this;
+		}
+
 		public ObjectArrayField build() {
 			return new ObjectArrayField(this.optional, this.nullable, this.path, this.validator,
 				this.minItems, this.maxItems);
 		}
-
 	}
 }

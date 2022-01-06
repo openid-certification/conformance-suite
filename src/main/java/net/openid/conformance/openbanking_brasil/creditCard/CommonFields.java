@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking_brasil.creditCard;
 
 import com.google.common.collect.Sets;
-import net.openid.conformance.util.field.Field;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -14,14 +13,14 @@ public class CommonFields extends net.openid.conformance.openbanking_brasil.Comm
 	private static final Set<String> enumTransactionType = Sets.newHashSet("PAGAMENTO", "TARIFA", "OPERACOES_CREDITO_CONTRATADAS_CARTAO", "ESTORNO", "CASHBACK", "OUTROS");
 
 
-	public static Field.FieldBuilder feeType() {
+	public static StringField.Builder feeType() {
 		return new StringField
 			.Builder("feeType")
 			.setEnums(enumFeeType)
 			.setMaxLength(29);
 	}
 
-	public static Field.FieldBuilder lineName() {
+	public static StringField.Builder lineName() {
 		return new StringField
 			.Builder("lineName")
 			.setMaxLength(28)
@@ -29,21 +28,21 @@ public class CommonFields extends net.openid.conformance.openbanking_brasil.Comm
 			.setOptional();
 	}
 
-	public static Field.FieldBuilder otherCreditsType() {
+	public static StringField.Builder otherCreditsType() {
 		return new StringField
 			.Builder("otherCreditsType")
 			.setEnums(enumCreditsType)
 			.setMaxLength(19);
 	}
 
-	public static Field.FieldBuilder paymentType() {
+	public static StringField.Builder paymentType() {
 		return new StringField
 			.Builder("paymentType")
 			.setEnums(enumPaymentType)
 			.setMaxLength(7);
 	}
 
-	public static Field.FieldBuilder transactionType() {
+	public static StringField.Builder transactionType() {
 		return new StringField
 			.Builder("transactionType")
 			.setEnums(enumTransactionType)

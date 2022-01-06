@@ -7,14 +7,8 @@ public class PrepareToGetProductsNChannelsApi extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-
-		if (getRequirements().isEmpty()) {
-			throw error("Url part to resource must be add in environment, when configure test module.");
-		}
-		String urlPart = getRequirements().iterator().next();
-		String baseURL = env.getString("config", "resource.resourceUrl");
-		String protectedUrl = String.format("%s/%s", baseURL, urlPart);
-		env.putString("protected_resource_url", protectedUrl);
+		String resourceUrl = env.getString("config", "resource.resourceUrl");
+		env.putString("protected_resource_url", resourceUrl);
 		return env;
 	}
 }

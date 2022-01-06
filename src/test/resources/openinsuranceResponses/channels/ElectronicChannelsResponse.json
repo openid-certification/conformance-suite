@@ -1,266 +1,28 @@
 {
-    "data": {
-        "brand": {
-            "name": "Bradesco Seguros S/A",
-            "companies": [
-                {
-                    "name": "Bradesco Capitalização S/A",
-                    "cnpjNumber": "33010851000174",
-                    "electronicChannels": [
-                        {
-                            "identification": {
-                                "type": "CHAT",
-                                "accessType": "CHAT",
-                                "urls": [
-                                    "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS",
-                                    "code": "09"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "MOBILE",
-                                "accessType": "APP",
-                                "urls": [
-                                    "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "RESGATE",
-                                    "code": "17"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "MOBILE",
-                                "accessType": "APP",
-                                "urls": [
-                                    "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CHAT",
-                                "accessType": "CHAT",
-                                "urls": [
-                                    "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Bradesco Vida e Previdência S/A",
-                    "cnpjNumber": "51990695000137",
-                    "electronicChannels": [{
+    "brand": {
+        "name": "Bradesco Seguros S/A",
+        "companies": [
+            {
+                "name": "Bradesco Capitalização S/A",
+                "cnpjNumber": "33010851000174",
+                "electronicChannels": [
+                    {
                         "identification": {
-                            "type": "MOBILE",
-                            "accessType": "APP",
+                            "type": "CHAT",
+                            "accessType": "CHAT",
                             "urls": [
                                 "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
                             ]
                         },
                         "services": [
+                            {
+                                "name": "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS",
+                                "code": "09"
+                            },
+                            {
+                                "name": "INFORMACOES_SOBRE_SORTEIOS",
+                                "code": "10"
+                            },
                             {
                                 "name": "INFORMACOES_GERAIS_DUVIDAS",
                                 "code": "07"
@@ -305,12 +67,8 @@
                                 }
                             ]
                         }
-                    }]
-                },
-                {
-                    "name": "Bradesco Auto/RE Cia de Seguros",
-                    "cnpjNumber": "92682038000100",
-                    "electronicChannels": [{
+                    },
+                    {
                         "identification": {
                             "type": "MOBILE",
                             "accessType": "APP",
@@ -319,127 +77,21 @@
                             ]
                         },
                         "services": [
-                            {
-                                "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                "code": "07"
-                            },
-                            {
-                                "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                "code": "03"
-                            },
-                            {
-                                "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                "code": "18"
-                            },
-                            {
-                                "name": "ALTERACACOES_FORMA_PAGAMENTO",
-                                "code": "01"
-                            },
-                            {
-                                "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                "code": "10"
-                            },
                             {
                                 "name": "RESGATE",
                                 "code": "17"
-                            }
-                        ],
-                        "availability": {
-                            "standards": [
-                                {
-                                    "weekday": "SEGUNDA_FEIRA",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "TERCA_FEIRA",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "QUARTA_FEIRA",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "QUINTA_FEIRA",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "SEXTA_FEIRA",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "SABADO",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                },
-                                {
-                                    "weekday": "DOMINGO",
-                                    "openingTime": "00:00:00",
-                                    "closingTime": "23:59:00"
-                                }
-                            ]
-                        }
-                    }]
-                },
-                {
-                    "name": "Bradesco Seguros S/A",
-                    "cnpjNumber": "33055146000193",
-                    "electronicChannels": [{
-                        "identification": {
-                            "type": "INTERNET",
-                            "accessType": "INTERNET",
-                            "urls": [
-                                "https://www.bradescoseguros.com.br/clientes/produtos/capitalizacao"
-                            ]
-                        },
-                        "services": [
-                            {
-                                "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                "code": "03"
-                            },
-                            {
-                                "name": "OUVIDORIA_RECEPCAO_SUGESTOES_ELOGIOS",
-                                "code": "11"
                             },
                             {
                                 "name": "INFORMACOES_GERAIS_DUVIDAS",
                                 "code": "07"
                             },
                             {
-                                "name": "OUVIDORIA_TRATAMENTO_RECLAMACOES_SOBRE_IRREGULARDADES_CONDUTA_COMPANHIA",
-                                "code": "14"
-                            },
-                            {
-                                "name": "SUGESTOES_ELOGIOS",
-                                "code": "19"
-                            },
-                            {
-                                "name": "RECLAMACAO",
-                                "code": "16"
-                            },
-                            {
                                 "name": "INFORMACOES_SOBRE_SORTEIOS",
                                 "code": "10"
                             },
                             {
-                                "name": "OUVIDORIA_SOLUCAO_EVENTUAIS_DIVERGENCIAS_SOBRE_CONTRATO_SEGURO_CAPITALIZAÇÃO_PREVIDÊNCIA_APOS_ESGOTADOS_CANAIS_REGULARES_ATENDIMENTO_AQUELAS_ORIUNDAS_ORGAOS_REGULADORES_OU_INTEGRANTES_SISTEMA_NACIONAL_DEFESA_CONSUMIDOR",
-                                "code": "12"
-                            },
-                            {
-                                "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                "code": "18"
-                            },
-                            {
-                                "name": "OUVIDORIA_TRATAMENTO_INSATISFACAO_CONSUMIDOR_RELACAO_ATENDIMENTO_RECEBIDO_CANAIS_REGULARES_ATENDIMENTO",
-                                "code": "13"
-                            },
-                            {
-                                "name": "ALTERACACOES_FORMA_PAGAMENTO",
-                                "code": "01"
+                                "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
+                                "code": "03"
                             }
                         ],
                         "availability": {
@@ -481,10 +133,356 @@
                                 }
                             ]
                         }
-                    }]
-                }
-            ]
-        }
+                    },
+                    {
+                        "identification": {
+                            "type": "MOBILE",
+                            "accessType": "APP",
+                            "urls": [
+                                "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
+                            ]
+                        },
+                        "services": [
+                            {
+                                "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
+                                "code": "03"
+                            }
+                        ],
+                        "availability": {
+                            "standards": [
+                                {
+                                    "weekday": "SEGUNDA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "TERCA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "QUARTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "QUINTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "SEXTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "SABADO",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "DOMINGO",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "identification": {
+                            "type": "CHAT",
+                            "accessType": "CHAT",
+                            "urls": [
+                                "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
+                            ]
+                        },
+                        "services": [
+                            {
+                                "name": "INFORMACOES_SOBRE_SORTEIOS",
+                                "code": "10"
+                            },
+                            {
+                                "name": "INFORMACOES_GERAIS_DUVIDAS",
+                                "code": "07"
+                            }
+                        ],
+                        "availability": {
+                            "standards": [
+                                {
+                                    "weekday": "SEGUNDA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "TERCA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "QUARTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "QUINTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "SEXTA_FEIRA",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "SABADO",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                },
+                                {
+                                    "weekday": "DOMINGO",
+                                    "openingTime": "00:00:00",
+                                    "closingTime": "23:59:00"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Bradesco Vida e Previdência S/A",
+                "cnpjNumber": "51990695000137",
+                "electronicChannels": [{
+                    "identification": {
+                        "type": "MOBILE",
+                        "accessType": "APP",
+                        "urls": [
+                            "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
+                        ]
+                    },
+                    "services": [
+                        {
+                            "name": "INFORMACOES_GERAIS_DUVIDAS",
+                            "code": "07"
+                        }
+                    ],
+                    "availability": {
+                        "standards": [
+                            {
+                                "weekday": "SEGUNDA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "TERCA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUARTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUINTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SEXTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SABADO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "DOMINGO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            }
+                        ]
+                    }
+                }]
+            },
+            {
+                "name": "Bradesco Auto/RE Cia de Seguros",
+                "cnpjNumber": "92682038000100",
+                "electronicChannels": [{
+                    "identification": {
+                        "type": "MOBILE",
+                        "accessType": "APP",
+                        "urls": [
+                            "https://www.bradescoseguros.com.br/clientes/aplicativo-bradesco-seguros"
+                        ]
+                    },
+                    "services": [
+                        {
+                            "name": "INFORMACOES_GERAIS_DUVIDAS",
+                            "code": "07"
+                        },
+                        {
+                            "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
+                            "code": "03"
+                        },
+                        {
+                            "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
+                            "code": "18"
+                        },
+                        {
+                            "name": "ALTERACOES_FORMA_PAGAMENTO",
+                            "code": "01"
+                        },
+                        {
+                            "name": "INFORMACOES_SOBRE_SORTEIOS",
+                            "code": "10"
+                        },
+                        {
+                            "name": "RESGATE",
+                            "code": "17"
+                        }
+                    ],
+                    "availability": {
+                        "standards": [
+                            {
+                                "weekday": "SEGUNDA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "TERCA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUARTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUINTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SEXTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SABADO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "DOMINGO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            }
+                        ]
+                    }
+                }]
+            },
+            {
+                "name": "Bradesco Seguros S/A",
+                "cnpjNumber": "33055146000193",
+                "electronicChannels": [{
+                    "identification": {
+                        "type": "INTERNET",
+                        "accessType": "INTERNET",
+                        "urls": [
+                            "https://www.bradescoseguros.com.br/clientes/produtos/capitalizacao"
+                        ]
+                    },
+                    "services": [
+                        {
+                            "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
+                            "code": "03"
+                        },
+                        {
+                            "name": "OUVIDORIA_RECEPCAO_SUGESTOES_ELOGIOS",
+                            "code": "11"
+                        },
+                        {
+                            "name": "INFORMACOES_GERAIS_DUVIDAS",
+                            "code": "07"
+                        },
+                        {
+                            "name": "OUVIDORIA_TRATAMENTO_RECLAMACOES_SOBRE_IRREGULARDADES_CONDUTA_COMPANHIA",
+                            "code": "14"
+                        },
+                        {
+                            "name": "SUGESTOES_ELOGIOS",
+                            "code": "19"
+                        },
+                        {
+                            "name": "RECLAMACAO",
+                            "code": "16"
+                        },
+                        {
+                            "name": "INFORMACOES_SOBRE_SORTEIOS",
+                            "code": "10"
+                        },
+                        {
+                            "name": "OUVIDORIA_SOLUCAO_EVENTUAIS_DIVERGENCIAS_SOBRE_CONTRATO_SEGURO_CAPITALIZAÇÃO_PREVIDÊNCIA_APOS_ESGOTADOS_CANAIS_REGULARES_ATENDIMENTO_AQUELAS_ORIUNDAS_ORGAOS_REGULADORES_OU_INTEGRANTES_SISTEMA_NACIONAL_DEFESA_CONSUMIDOR",
+                            "code": "12"
+                        },
+                        {
+                            "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
+                            "code": "18"
+                        },
+                        {
+                            "name": "OUVIDORIA_TRATAMENTO_INSATISFACAO_CONSUMIDOR_RELACAO_ATENDIMENTO_RECEBIDO_CANAIS_REGULARES_ATENDIMENTO",
+                            "code": "13"
+                        },
+                        {
+                            "name": "ALTERACOES_FORMA_PAGAMENTO",
+                            "code": "01"
+                        }
+                    ],
+                    "availability": {
+                        "standards": [
+                            {
+                                "weekday": "SEGUNDA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "TERCA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUARTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "QUINTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SEXTA_FEIRA",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "SABADO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            },
+                            {
+                                "weekday": "DOMINGO",
+                                "openingTime": "00:00:00",
+                                "closingTime": "23:59:00"
+                            }
+                        ]
+                    }
+                }]
+            }
+        ]
     },
     "links": {
         "self": "http://localhost:8080/open-insurance/channels/v1/electronic-channels?page=1&page-size=10",

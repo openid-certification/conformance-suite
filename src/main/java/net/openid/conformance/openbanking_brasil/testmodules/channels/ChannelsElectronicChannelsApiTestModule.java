@@ -12,20 +12,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "Channels Electronic Channels Api test",
 	displayName = "Validate structure of Channels Electronic Channels Api resources",
 	summary = "Validate structure of Channels Electronic Channels Api resources",
-	profile = OBBProfile.OBB_PROFIlE_PHASE1,
-	configurationFields = {
-		"server.discoveryUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl",
-		"resource.consentUrl"
-	}
+	profile = OBBProfile.OBB_PROFIlE_PHASE1
 )
 public class ChannelsElectronicChannelsApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
 	@Override
 	protected void runTests() {
 		runInBlock("Validate Channels Electronic Channels response", () -> {
-			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class, "electronic-channels");
+			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
 			callAndContinueOnFailure(ElectronicChannelsValidator.class, Condition.ConditionResult.FAILURE);

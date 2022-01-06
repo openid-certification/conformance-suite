@@ -38,7 +38,7 @@ public class PersonalQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureExcessMaxLength() {
 		PersonalQualificationResponseValidator condition = new PersonalQualificationResponseValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("year")));
+			containsString(condition.createFieldValueIsMoreThanMaximum("year")));
 	}
 
 	@Test
