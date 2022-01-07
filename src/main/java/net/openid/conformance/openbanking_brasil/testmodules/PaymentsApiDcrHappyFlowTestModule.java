@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -30,6 +31,7 @@ public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 
 		super.onConfigure(config, baseUrl);
 	}

@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTo
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -45,6 +46,7 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforceAbsenceOfDebtorAccount.class);
+		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		createPlaceholder();
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);

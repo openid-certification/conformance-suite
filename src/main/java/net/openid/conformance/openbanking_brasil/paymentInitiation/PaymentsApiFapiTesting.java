@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinal;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -40,6 +41,7 @@ public class PaymentsApiFapiTesting extends FAPI1AdvancedFinal {
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		super.onConfigure(config, baseUrl);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}

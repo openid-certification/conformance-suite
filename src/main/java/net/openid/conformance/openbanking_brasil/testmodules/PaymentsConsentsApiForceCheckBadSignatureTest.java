@@ -2,16 +2,20 @@
 
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-	import net.openid.conformance.condition.Condition;
-	import net.openid.conformance.condition.client.*;
-	import net.openid.conformance.openbanking_brasil.OBBProfile;
-	import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
-	import net.openid.conformance.openbanking_brasil.generic.PaymentConsentsErrorValidator;
-	import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-	import net.openid.conformance.sequence.ConditionSequence;
-	import net.openid.conformance.testmodule.PublishTestModule;
+	import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
+import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.PaymentConsentsErrorValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainPaymentsAccessTokenWithClientCredentials;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
+import net.openid.conformance.openbanking_brasil.testmodules.support.SignedPaymentConsentSequence;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.PublishTestModule;
 
-	import java.util.Random;
+import java.util.Random;
 
 @PublishTestModule(
 	testName = "payments-consents-force-check-signature-test",
@@ -38,6 +42,11 @@ public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClien
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
+	}
+
+	@Override
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 
 	@Override
