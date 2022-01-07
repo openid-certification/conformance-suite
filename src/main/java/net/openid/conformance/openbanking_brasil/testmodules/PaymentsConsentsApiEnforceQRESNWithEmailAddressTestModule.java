@@ -1,11 +1,10 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.InjectRealCreditorAccountEmailToPaymentConsent;
-import net.openid.conformance.openbanking_brasil.testmodules.support.InjectRealCreditorAccountToPayment;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealEmailAddress;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -37,4 +36,13 @@ public class PaymentsConsentsApiEnforceQRESNWithEmailAddressTestModule extends A
 		callAndStopOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
 	}
+
+	@Override
+	protected ConditionSequence statusValidationSequence() {
+		return sequenceOf(
+			condition(PaymentsProxyCheckForAcceptedStatus.class),
+			condition(PaymentsProxyCheckForInvalidStatus.class),
+			condition(PaymentFetchPixPaymentsValidator.class));
+	}
+
 }
