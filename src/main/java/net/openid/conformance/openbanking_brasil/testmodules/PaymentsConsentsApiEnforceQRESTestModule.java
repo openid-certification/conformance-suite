@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-qres-code-enforcement-test",
 	displayName = "Payments Consents API test module to enforce qres local instrument",
-	summary = "Payments Consents API test module ensuring a qr code is mandatory when the local instrument is QRES",
+	summary = "Payments Consents API test module ensuring a qr code is mandatory when the local instrument is QRES. Test will do a POST Consents using localinstrument equal to qres but won't send a qrcode on the request payload. Test will expect a 422 response from the server",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
