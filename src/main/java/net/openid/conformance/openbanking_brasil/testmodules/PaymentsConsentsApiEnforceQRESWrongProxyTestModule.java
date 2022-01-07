@@ -12,7 +12,7 @@ import java.util.Optional;
 @PublishTestModule(
 	testName = "payments-api-qres-mismatched-proxy-test",
 	displayName = "Payments Consents API test module for QRES local instrument with mismatched proxy",
-	summary = "Payments Consents API test module using a qres code with an email address in it which is different from the proxy",
+	summary = "Payments Consents API test module using a qres code with a PIX key that differs from the proxy key sent. Test will set a Payload using the creditor account details related to the cliente-a00001@pix.bcb.gov.br and the debtor account details will fetched from the configuration field set by the instituion. The qrcode will be a static QRcode provided by the Conformance Suite that will have a proxy value that differs from cliente-a00001@pix.bcb.gov.br. The test will expect a failure that may happen on any point during the payment flow. For a failure on the POST Consents, test will expect a 422 - DETALHE_PGTO_INVALIDO. For a Failure on the POST Payments, test will expect a 422 - COBRANCA_INVALIDA. For a Rejection on the created Payment, test will expect a payment with RJCT status and RejectionReason equal to ELEMENT_CONTENT_FORMALLY_INCORRECT",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
