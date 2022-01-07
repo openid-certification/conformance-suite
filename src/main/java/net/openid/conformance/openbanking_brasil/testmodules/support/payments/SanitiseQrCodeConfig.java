@@ -5,15 +5,13 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
-import java.util.Set;
 
 public class SanitiseQrCodeConfig extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		Set<String> qrInstruments = Set.of("QRDN", "QRES");
 		String localInstrument = env.getString("config", "resource.brazilPaymentConsent.data.payment.details.localInstrument");
-		if(qrInstruments.contains(localInstrument)) {
+		if("QRDN".equals(localInstrument) || "QRES".equals(localInstrument)) {
 			logSuccess("Local Instrument is QRES or QRDN - leaving alone");
 			return env;
 		}
