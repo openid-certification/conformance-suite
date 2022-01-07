@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
@@ -124,6 +125,7 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 		pollForStatusChange();
 		if (!env.getBoolean("proxy_payment_422")) {
 			callAndStopOnFailure(EnsurePaymentIsRejected.class);
+			callAndStopOnFailure(PaymentFetchPixPaymentsValidator.class);
 		}
 
 		fireTestFinished();

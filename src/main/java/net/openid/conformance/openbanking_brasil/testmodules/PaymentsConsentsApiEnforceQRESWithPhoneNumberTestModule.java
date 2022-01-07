@@ -1,9 +1,12 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsProxyCheckForInvalidStatus;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealPhoneNumber;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -37,4 +40,13 @@ public class PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule extends Abs
 		callAndStopOnFailure(InjectRealCreditorAccountToPaymentPhone.class);
 		callAndStopOnFailure(InjectRealCreditorAccountPhoneToPaymentConsent.class);
 	}
+
+	@Override
+	protected ConditionSequence statusValidationSequence() {
+		return sequenceOf(
+			condition(PaymentsProxyCheckForAcceptedStatus.class),
+			condition(PaymentsProxyCheckForInvalidStatus.class),
+			condition(PaymentFetchPixPaymentsValidator.class));
+	}
+
 }
