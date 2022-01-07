@@ -39,7 +39,7 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 	}
 
 	@Override
-	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 
