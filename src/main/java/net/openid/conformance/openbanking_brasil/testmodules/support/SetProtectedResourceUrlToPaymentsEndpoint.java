@@ -6,7 +6,7 @@ public class SetProtectedResourceUrlToPaymentsEndpoint extends AbstractProtected
 
 	@Override
 	protected String getResourcePath() {
-		return "/payments/v1/pix/payments";
+		return "/open-banking/payments/v1/pix/payments";
 	}
 
 }
