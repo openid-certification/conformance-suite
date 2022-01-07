@@ -17,7 +17,7 @@ import java.util.List;
 	testPlanName = "Payments api phase 1 test",
 	profile = OBBProfile.OBB_PROFIlE_PHASE3,
 	displayName = PlanNames.PAYMENTS_API_PHASE_1_TEST_PLAN,
-	summary = "Structural and logical tests for OpenBanking Brasil-conformant payments API - Submissions for this test plan should only be done until 14/01/21. After this date the service desk will only accept test plans that includes the QRES and QRDN modules"
+	summary = "Structural and logical tests for OpenBanking Brasil payments API for INIC, MANU and DICT - Submissions for this test plan should only be done until 14/01/22. After this date, the service desk will only accept submissions that also include QRES and QRDN modules"
 )
 public class PaymentsApiPhase1TestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
