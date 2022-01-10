@@ -1,9 +1,11 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -33,6 +35,11 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
+	}
+
+	@Override
+	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 
 	@Override

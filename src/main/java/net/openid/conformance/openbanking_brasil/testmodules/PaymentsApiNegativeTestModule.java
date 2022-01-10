@@ -7,6 +7,7 @@ import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderFo
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
@@ -43,6 +44,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
+		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		super.validateClientConfiguration();
 	}
 

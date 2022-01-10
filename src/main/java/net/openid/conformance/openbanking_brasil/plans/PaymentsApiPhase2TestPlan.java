@@ -35,6 +35,7 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 					PaymentsApiQRESMismatchConsentPaymentTestModule.class,
 					PaymentsConsentsApiQRDNHappyTestModule.class,
 					PaymentsConsentsApiQresTransactionIdentifierTestModule.class,
+					// the below are also in the phase 1 test plan
 					PaymentsApiTestModule.class,
 					PaymentsApiNegativeTestModule.class,
 					PaymentApiNoDebtorProvidedTestModule.class,

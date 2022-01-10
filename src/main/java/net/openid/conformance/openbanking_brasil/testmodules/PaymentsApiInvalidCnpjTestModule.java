@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 
@@ -48,6 +49,7 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		callAndStopOnFailure(ReplaceInitiatorCnpjWithBadValue.class);
 
 	}
