@@ -14,7 +14,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckM
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Payments Api Phase 2 - INIC/DICT/MANU/QRES/QRDN",
+	testPlanName = "Payments API - INIC/DICT/MANU/QRES/QRDN",
 	profile = OBBProfile.OBB_PROFIlE_PHASE3,
 	displayName = PlanNames.PAYMENTS_API_PHASE_2_TEST_PLAN,
 	summary = "Structural and logical tests for OpenBanking Brasil payments API, including QR tests. These tests are designed to validate the payment initation of types MANU, DICT, INIC, QRES and QRDN ensuring structural integrity and content validation. "
