@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -41,70 +40,75 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-        "directory.client_id"
+		"directory.client_id"
 	}
 )
 
-public class PreFlightCertCheckModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PreFlightCertCheckPaymentsModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
-    @Override
-    protected void runTests() {
-        runInBlock("Pre-flight MTLS Cert Checks", () -> {
-            callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		    callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+	@Override
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		env.putString("clientCredentialScope", "payments");
+	}
 
-            // normally our DCR tests create a key on the fly to use, but in this case the key has to be registered
-            // manually with the central directory so we must use user supplied keys
-            callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
+	@Override
+	protected void runTests() {
+		runInBlock("Pre-flight MTLS Cert Checks", () -> {
+			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 
-            callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-        });
+			// normally our DCR tests create a key on the fly to use, but in this case the key has to be registered
+			// manually with the central directory so we must use user supplied keys
+			callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
 
-        runInBlock("Pre-flight Get an SSA", () -> {
+			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
+		});
+
+		runInBlock("Pre-flight Get an SSA", () -> {
 
 			env.mapKey("access_token", "directory_access_token");
 
 			callAndStopOnFailure(SetDirectoryInfo.class);
-            callAndStopOnFailure(ExtractDirectoryConfiguration.class);
+			callAndStopOnFailure(ExtractDirectoryConfiguration.class);
 
-		    callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+			callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
-		    callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+			callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
-            callAndStopOnFailure(MapDirectoryValues.class);
+			callAndStopOnFailure(MapDirectoryValues.class);
 
-            callAndStopOnFailure(GetDynamicServerConfiguration.class);
+			callAndStopOnFailure(GetDynamicServerConfiguration.class);
 
-            // this overwrites the non-directory values; we will have to replace them below
-            callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
+			// this overwrites the non-directory values; we will have to replace them below
+			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
-            callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-            callAndStopOnFailure(SetDirectorySoftwareScopeOnTokenEndpointRequest.class);
+			callAndStopOnFailure(SetDirectorySoftwareScopeOnTokenEndpointRequest.class);
 
-            // MTLS client auth
-            callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+			// MTLS client auth
+			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
-            callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpoint.class);
 
-            callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
-            callAndStopOnFailure(CheckForAccessTokenValue.class);
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
 
-            callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-            callAndStopOnFailure(UnmapDirectoryValues.class);
+			callAndStopOnFailure(UnmapDirectoryValues.class);
 
-            // restore MTLS aliases to the values for the server being tested
-            callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
+			// restore MTLS aliases to the values for the server being tested
+			callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
-            callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
+			callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
 
-            // use access token to get ssa
-            // https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
-            callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+			// use access token to get ssa
+			// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
+			callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
 
 			env.unmapKey("access_token");
 		});
-    }
+	}
 }
