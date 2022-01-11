@@ -29,9 +29,8 @@ public class PreFlightCertCheckPaymentsModule extends PreFlightCertCheckModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
-		super.createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
+		return super.createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)
 			.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetPaymentsScopeOnTokenEndpointRequest.class));
-		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
 }
