@@ -48,11 +48,8 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 		env.putObject("config", config);
 		preConfigure(config, baseUrl, externalUrlOverride);
 
-		if (Strings.isNullOrEmpty(env.getString("clientCredentialScope"))) {
-			call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
-		} else {
-			call(sequence(() -> createGetPaymentsAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
-		}
+		call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
+
 
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
@@ -63,10 +60,6 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
-	}
-
-	protected ConditionSequence createGetPaymentsAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
-		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
 	@Override
