@@ -17,9 +17,8 @@ public class EnsureNoRejectionReasonIFStatusIsNotRJCT extends AbstractCondition 
 		String status = OIDFJSON.getString(data.get("status"));
 
 		JsonElement rejectionReasonElement = data.get("rejectionReason");
-		String rejectionReason = rejectionReasonElement == null ? null : OIDFJSON.getString(data.get("rejectionReason"));
 
-		if (!status.equals("RJCT") && rejectionReason != null){
+		if (!status.equals("RJCT") && rejectionReasonElement != null){
 			throw error("A rejection reason should only be sent with a status of RJCT");
 		}
 		return env;
