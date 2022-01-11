@@ -27,7 +27,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "preflight-cert-check-test",
+	testName = "preflight-cert-check-payments-test",
 	displayName = "Pre-flight checks will validate the mTLS certificate before requesting an access token using the Directory client_id provided in the test configuration. Finally, an SSA will be generated using the Open Banking Brasil Directory.",
 	summary = "Pre-flight checks will validate the mTLS certificate before requesting an access token using the Directory client_id provided in the test configuration. Finally, an SSA will be generated using the Open Banking Brasil Directory.",
 	profile = OBBProfile.OBB_PROFILE,
