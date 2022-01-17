@@ -1,5 +1,6 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.JsonPrimitive;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -198,6 +199,56 @@ public class Environment_UnitTest {
 		assertTrue(env.containsObject(altKey));
 		assertEquals(altObject, env.getObject(altKey));
 
+	}
+
+	@Test
+	public void testPutWithPathSingle() {
+
+		assertFalse(env.containsObject(altKey));
+		assertNull(env.getObject(altKey));
+
+		env.putObject(altKey, "foo", altObject);
+
+		assertTrue(env.containsObject(altKey));
+		assertEquals(altObject, env.getElementFromObject(altKey, "foo"));
+
+	}
+
+	@Test
+	public void testPutWithPathDeep() {
+
+		assertFalse(env.containsObject(altKey));
+		assertNull(env.getObject(altKey));
+
+		env.putObject(altKey, "foo.bar.flibble", altObject);
+
+		assertTrue(env.containsObject(altKey));
+		assertEquals(altObject, env.getElementFromObject(altKey, "foo.bar.flibble"));
+
+	}
+
+	@Test
+	public void testPutWithPathIntoExisting() {
+
+		assertFalse(env.containsObject(altKey));
+		assertNull(env.getObject(altKey));
+
+		env.putObject(testKey, "object.baz", altObject);
+
+		assertEquals(altObject, env.getElementFromObject(testKey, "object.baz"));
+		assertEquals(new JsonPrimitive(1234), env.getElementFromObject(testKey, "object.int"));
+
+	}
+
+	@Test
+	public void testPutWithPathMultiple() {
+
+		assertFalse(env.containsObject(altKey));
+		assertNull(env.getObject(altKey));
+
+		env.putObject(altKey, "foo.bar", altObject);
+
+		assertEquals(altObject, env.getElementFromObject(altKey, "foo.bar"));
 	}
 
 	/**
