@@ -12,7 +12,6 @@ import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResp
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
-import net.openid.conformance.condition.as.EnsureClientIdIsPresentOnTokenRequest;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
