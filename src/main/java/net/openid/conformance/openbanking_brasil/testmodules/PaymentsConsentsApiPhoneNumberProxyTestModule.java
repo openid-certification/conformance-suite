@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureNoRejectionReasonIFStatusIsNotRJCT;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectRealCreditorAccountPhoneToPaymentConsent;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectRealCreditorAccountToPaymentPhone;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -66,6 +67,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureNoRejectionReasonIFStatusIsNotRJCT.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);

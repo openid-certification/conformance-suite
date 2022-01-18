@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureNoRejectionReasonIFStatusIsNotRJCT;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -140,6 +141,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 
 	protected ConditionSequence statusValidationSequence() {
 		return sequenceOf(
+			condition(EnsureNoRejectionReasonIFStatusIsNotRJCT.class),
 			condition(PaymentsProxyCheckForRejectedStatus.class),
 			condition(PaymentsProxyCheckForInvalidStatus.class));
 	}
