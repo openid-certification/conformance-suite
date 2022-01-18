@@ -39,6 +39,12 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule
 	}
 
 	@Override
+	protected void validateDcrResponseScope() {
+		// many banks don't support all phase2 scopes, so we may get fewer scopes than we requested
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsOpenidResources.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1.1", "RFC7591-2", "RFC7591-3.2.1");
+	}
+
+	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
 
