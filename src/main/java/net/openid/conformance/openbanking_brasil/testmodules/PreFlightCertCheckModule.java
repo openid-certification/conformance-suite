@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.openbanking_brasil.testmodules.support.MapDirectoryValues;

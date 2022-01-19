@@ -24,7 +24,7 @@ public class PaymentsApiPhase2TestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
+					PreFlightCertCheckPaymentsModule.class,
 					PaymentsConsentsApiEnforceQRDNTestModule.class,
 					PaymentsConsentsApiEnforceQRESTestModule.class,
 					PaymentsConsentsApiEnforceQRESNWithEmailAddressTestModule.class,

@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
@@ -10,6 +11,7 @@ import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainAccessTokenWithClientCredentials;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainPaymentsAccessTokenWithClientCredentials;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.*;
 import net.openid.conformance.variant.*;
@@ -41,11 +43,14 @@ public abstract class AbstractClientCredentialsGrantFunctionalTestModule extends
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
-		preConfigure(config, baseUrl, externalUrlOverride);
+
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
+		preConfigure(config, baseUrl, externalUrlOverride);
 
 		call(sequence(() -> createGetAccessTokenWithClientCredentialsSequence(clientAuthSequence)));
+
+
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
