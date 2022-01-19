@@ -52,8 +52,8 @@ public abstract class AbstractDcrTestModuleAttemptClientTakeover extends Abstrac
 		env.removeObject("registration_client_endpoint_request_body"); // so a 'GET' is made
 		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
 		env.mapKey("endpoint_response", "registration_client_endpoint_response");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2", "RFC7592-2.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7592-2.1");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "RFC7592-2.2");
 		call(exec().unmapKey("endpoint_response"));
 
 		getSsa();
