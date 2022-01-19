@@ -1,0 +1,11 @@
+[
+    {
+        "test-name": "payments-api-inic-pix-response-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/brazil-raidiam-functional-payments-automated.json",
+        "current-block": "Validate response",
+        "condition": "PaymentInitiationPixPaymentsValidator",
+        "expected-result": "failure",
+        "comment": "mock bank bank is not fully compliant"
+    }
+]
