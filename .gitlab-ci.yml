@@ -51,6 +51,7 @@ dev_build:
       - target/
 
 upload_dev:
+ resource_group: uses_dev_environment
  rules:
    - if: $CI_COMMIT_BRANCH != "master"
  stage: upload_dev
@@ -66,6 +67,8 @@ upload_dev:
    - install_build_dependencies
    - docker build -t conformance-suite .
    - upload_dev
+   - sleep 120 # wait for deployment to happen
+   - run_dev_tests # runs as part of upload jobs - combined with resource_group, this makes sure no other pipeline deploys before/whilst the tests run
  allow_failure:
    exit_codes:
      - 137
@@ -538,10 +541,16 @@ upload:
 
     aws ecr --region us-west-2 get-login-password | docker login --username AWS --password-stdin $DEV_DOCKER_REGISTRY
 
-    echo "Pusing image to ECR"
+    echo "Pushing image to ECR"
     docker push $DEV_DOCKER_REGISTRY:$CI_APPLICATION_TAG
     docker push $DEV_DOCKER_REGISTRY:dev
+  }
 
+  function run_dev_tests() {
+    apk add bash
+    export CONFORMANCE_SERVER="https://dev.conformance.directory.openbankingbrasil.org.br/"
+    # CONFORMANCE_TOKEN is set in variables under https://gitlab.com/obb1/certification/-/settings/ci_cd
+    ./scripts/run-functional-tests.sh
   }
 
   function upload() {
