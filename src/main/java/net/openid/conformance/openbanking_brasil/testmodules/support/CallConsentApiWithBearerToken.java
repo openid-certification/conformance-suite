@@ -110,12 +110,14 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 			restTemplate.setMessageConverters(Collections.singletonList(converter));
 
 			HttpEntity<String> request;
-			if (method.equals("GET")) {
+			if (method.equals("GET") || method.equals("DELETE")) {
 				request = new HttpEntity<>(null, headers);
 			} else {
 				request = new HttpEntity<>(requestObject.toString(), headers);
 				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			}
+
+
 
 			HttpMethod httpMethod = HttpMethod.resolve(method);
 
