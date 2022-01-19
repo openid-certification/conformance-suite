@@ -40,8 +40,8 @@ build:
 
 dev_build:
   <<: *maven
-  rules:
-   - if: $CI_COMMIT_BRANCH != "master"
+  except:
+   - master
   stage: build
   script:
     - set_app_version
@@ -52,8 +52,8 @@ dev_build:
 
 upload_dev:
  resource_group: uses_dev_environment
- rules:
-   - if: $CI_COMMIT_BRANCH != "master"
+ except:
+   - master
  stage: upload_dev
  needs: ["dev_build"]
  interruptible: true
