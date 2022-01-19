@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +43,14 @@ public class DBTokenService implements TokenService {
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);
 
+		JsonObject jsonObject = authenticationFacade.getUserInfo().toJson();
+		// gitlab includes this in it's userinfo, but this keyname is not valid in mongodb. We don't need the data
+		// contained here currently, so just remove it.
+		jsonObject.remove("https://gitlab.org/claims/groups/owner");
 		Document token = new Document()
 				.append("_id", id)
 				.append("owner", authenticationFacade.getPrincipal())
-				.append("info", Document.parse(authenticationFacade.getUserInfo().toJson().toString()))
+				.append("info", Document.parse(jsonObject.toString()))
 				.append("token", Base64Utils.encodeToString(tokenBytes))
 				.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
 
