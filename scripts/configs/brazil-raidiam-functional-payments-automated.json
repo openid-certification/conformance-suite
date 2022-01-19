@@ -1,6 +1,6 @@
 {
     "alias": "obbsb",
-    "description": "raidiam mock bank payments phase 1 automated test (private_key_jwt client auth)",
+    "description": "Payments tests - standard config",
     "server": {
         "discoveryUrl": "https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration"
     },
@@ -53,9 +53,9 @@
         "client_id": "QjRzruzFWi_U_tMahlz01"
     },
     "resource": {
-        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
-        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
-        "brazilCpf": "48847377765",
+        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
+        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
+        "brazilCpf": "76109277673",
         "brazilPaymentConsent": {
             "data": {
                 "loggedUser": {
@@ -73,7 +73,7 @@
                     "type": "PIX",
                     "date": "2021-01-01",
                     "currency": "BRL",
-                    "amount": "100000.12",
+                    "amount": "1333.00",
                     "details": {
                         "localInstrument": "DICT",
                         "proxy": "12345678901",
@@ -97,7 +97,7 @@
             "data": {
                 "localInstrument": "DICT",
                 "payment": {
-                    "amount": "100000.12",
+                    "amount": "1333.00",
                     "currency": "BRL"
                 },
                 "creditorAccount": {
@@ -111,7 +111,48 @@
                 "proxy": "12345678901"
             }
         },
-        "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+        "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
+        "brazilQrdnPaymentConsent": {
+            "data": {
+                "loggedUser": {
+                    "document": {
+                        "identification": "76109277673",
+                        "rel": "CPF"
+                    }
+                },
+                "creditor": {
+                    "personType": "PESSOA_NATURAL",
+                    "cpfCnpj": "48847377765",
+                    "name": "Marco Antonio de Brito"
+                },
+                "payment": {
+                    "type": "PIX",
+                    "date": "2021-01-01",
+                    "currency": "BRL",
+                    "amount": "1333.00",
+                    "igbeTownCode": "oiweowew",
+                    "details": {
+                        "localInstrument": "QRDN",
+                        "proxy": "12345678902",
+                        "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                        "creditorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "1774",
+                            "number": "1234567890",
+                            "accountType": "CACC"
+                        }
+                    }
+                },
+                "debtorAccount": {
+                    "ispb": "12345678",
+                    "issuer": "6272",
+                    "number": "94088392",
+                    "accountType": "CACC"
+                }
+            }
+        },
+        "brazilQrdnCnpj": "43142666000197",
+        "brazilQrdnRemittance": "$$EDITPAYMENT$$:20201.01"
     },
     "client2": {
         "client_id": "QqLqA-tH9RpP5Al5n55LZ",
@@ -223,12 +264,12 @@
             ]
         }
     ],
-    "override": {
-        "payments-api-proxy-real-email-invalid-credior-proxy-test": {
+    "override" : {
+        "payments-consents-api-proxy-email-proxy-test" : {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
-                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
-                "brazilCpf": "48847377765",
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
+                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -246,7 +287,7 @@
                             "type": "PIX",
                             "date": "2021-01-01",
                             "currency": "BRL",
-                            "amount": "10422.00",
+                            "amount": "20422.00",
                             "details": {
                                 "localInstrument": "DICT",
                                 "proxy": "12345678901",
@@ -270,7 +311,7 @@
                     "data": {
                         "localInstrument": "DICT",
                         "payment": {
-                            "amount": "100000.12",
+                            "amount": "20422.00",
                             "currency": "BRL"
                         },
                         "creditorAccount": {
@@ -284,14 +325,53 @@
                         "proxy": "12345678901"
                     }
                 },
-                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
+                "brazilQrdnPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "20422.00",
+                            "igbeTownCode": "oiweowew",
+                            "details": {
+                                "localInstrument": "QRDN",
+                                "proxy": "12345678902",
+                                "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                }
             }
         },
-        "payments-api-proxy-test-incorrect-cpf": {
+        "payments-api-proxy-fake-email-proxy-test" : {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
-                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
-                "brazilCpf": "48847377765",
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
+                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -309,7 +389,7 @@
                             "type": "PIX",
                             "date": "2021-01-01",
                             "currency": "BRL",
-                            "amount": "10422.00",
+                            "amount": "20422.00",
                             "details": {
                                 "localInstrument": "DICT",
                                 "proxy": "12345678901",
@@ -333,7 +413,7 @@
                     "data": {
                         "localInstrument": "DICT",
                         "payment": {
-                            "amount": "100000.12",
+                            "amount": "20422.00",
                             "currency": "BRL"
                         },
                         "creditorAccount": {
@@ -347,14 +427,53 @@
                         "proxy": "12345678901"
                     }
                 },
-                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
+                "brazilQrdnPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "20422.00",
+                            "igbeTownCode": "oiweowew",
+                            "details": {
+                                "localInstrument": "QRDN",
+                                "proxy": "12345678902",
+                                "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                }
             }
         },
-        "payments-api-proxy-phone-number-proxy-test": {
+        "payments-api-proxy-real-email-invalid-credior-proxy-test" : {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
-                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
-                "brazilCpf": "48847377765",
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
+                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -372,7 +491,7 @@
                             "type": "PIX",
                             "date": "2021-01-01",
                             "currency": "BRL",
-                            "amount": "1333.00",
+                            "amount": "20422.00",
                             "details": {
                                 "localInstrument": "DICT",
                                 "proxy": "12345678901",
@@ -396,7 +515,7 @@
                     "data": {
                         "localInstrument": "DICT",
                         "payment": {
-                            "amount": "1333.00",
+                            "amount": "20422.00",
                             "currency": "BRL"
                         },
                         "creditorAccount": {
@@ -410,14 +529,53 @@
                         "proxy": "12345678901"
                     }
                 },
-                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
+                "brazilQrdnPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "20422.00",
+                            "igbeTownCode": "oiweowew",
+                            "details": {
+                                "localInstrument": "QRDN",
+                                "proxy": "12345678902",
+                                "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                }
             }
         },
-        "payments-api-proxy-fake-email-proxy-test": {
+        "payments-api-proxy-test-incorrect-cpf" : {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io",
-                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/payments/v1/consents",
-                "brazilCpf": "48847377765",
+                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
+                "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
+                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -435,7 +593,7 @@
                             "type": "PIX",
                             "date": "2021-01-01",
                             "currency": "BRL",
-                            "amount": "10422.00",
+                            "amount": "20201.00",
                             "details": {
                                 "localInstrument": "DICT",
                                 "proxy": "12345678901",
@@ -459,7 +617,7 @@
                     "data": {
                         "localInstrument": "DICT",
                         "payment": {
-                            "amount": "100000.12",
+                            "amount": "20201.00",
                             "currency": "BRL"
                         },
                         "creditorAccount": {
@@ -473,7 +631,46 @@
                         "proxy": "12345678901"
                     }
                 },
-                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817"
+                "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
+                "brazilQrdnPaymentConsent": {
+                    "data": {
+                        "loggedUser": {
+                            "document": {
+                                "identification": "76109277673",
+                                "rel": "CPF"
+                            }
+                        },
+                        "creditor": {
+                            "personType": "PESSOA_NATURAL",
+                            "cpfCnpj": "48847377765",
+                            "name": "Marco Antonio de Brito"
+                        },
+                        "payment": {
+                            "type": "PIX",
+                            "date": "2021-01-01",
+                            "currency": "BRL",
+                            "amount": "20201.00",
+                            "igbeTownCode": "oiweowew",
+                            "details": {
+                                "localInstrument": "QRDN",
+                                "proxy": "12345678902",
+                                "qrCode": "00020126510014BR.GOV.BCB.PIX0129cliente-a00001@pix.bcb.gov.br5204000053039865802BR5910JOAO SILVA6014BELO HORIZONTE62070503***63042A73",
+                                "creditorAccount": {
+                                    "ispb": "12345678",
+                                    "issuer": "1774",
+                                    "number": "1234567890",
+                                    "accountType": "CACC"
+                                }
+                            }
+                        },
+                        "debtorAccount": {
+                            "ispb": "12345678",
+                            "issuer": "6272",
+                            "number": "94088392",
+                            "accountType": "CACC"
+                        }
+                    }
+                }
             }
         }
     }
