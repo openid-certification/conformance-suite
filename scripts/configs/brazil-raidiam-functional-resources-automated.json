@@ -53,8 +53,8 @@
         "client_id": "QjRzruzFWi_U_tMahlz01"
     },
     "resource": {
-        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/resources/v1/resources",
-        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/consents/v1/consents",
+        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/resources/v1/resources",
+        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/consents/v1/consents",
         "brazilCpf": "76109277673",
         "brazilPaymentConsent": {
             "data": {
