@@ -15,7 +15,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="certification" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
+      <module name="certification" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror" />
       <module name="conformance-omnigon" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror" />
       <module name="conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
       <module name="fapi-conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
