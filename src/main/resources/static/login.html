@@ -34,7 +34,7 @@
 				<p id="logout" class="bg-info collapse">You have been logged out.</p>
 				<p class="text-center">
 					<a class="btn btn-success btn-lg loginHref" href=""></a>
-					<a class="btn btn-primary btn-lg" href="/openid_connect_login?iss=https://gitlab.com">Log in with GitLab</a>
+					<a class="btn btn-primary btn-lg adminLogin" href="/openid_connect_login?iss=https://gitlab.com">Log in with GitLab</a>
 				</p>
 			</div>
 		</div>
@@ -87,6 +87,10 @@
 				$(".headerText").text("Login to the " + data.brand + " Functional Conformance Suite");
 				$(".loginHref").attr("href", "/openid_connect_login?iss=" + data.issuer);
 				$(".loginHref").text("Login with " + data.brand);
+
+				if (data.brand.toLowerCase().includes("open banking brazil")) {
+					$(".adminLogin").hide();	
+				}
 				
 			});
 		}
