@@ -51,7 +51,6 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
-		createPlaceholder();
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
@@ -61,7 +60,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 	protected void createPlaceholder() {
 		callAndStopOnFailure(AskForScreenshotWithNoAccountSelection.class);
 
-		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+		env.putString("error_callback_placeholder", env.getString("payments_placeholder"));
 	}
 
 	@Override
@@ -82,8 +81,19 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 				condition(AddJWTAcceptHeader.class),
 				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
 			)));
-
-		fireTestReviewNeeded();
 	}
 
+	@Override
+	protected void performRedirect() {
+		performRedirectWithPlaceholder();
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		waitForPlaceholders();
+
+		eventLog.log(getName(), "All test steps have run. The test will remaining in 'WAITING' state until the required screenshot is uploaded using the 'Upload Images' button at the top of the page. It may take upto 30 seconds for the test to move to 'FINISHED' after the upload.");
+
+		setStatus(Status.WAITING);
+	}
 }

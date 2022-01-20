@@ -7,11 +7,11 @@ import net.openid.conformance.testmodule.Environment;
 public class AskForScreenshotWithAccountSelection extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(strings = "redirect_uri_missing_error")
+	@PostEnvironment(strings = "payments_placeholder")
 	public Environment evaluate(Environment env) {
 
 		String placeholder = createBrowserInteractionPlaceholder("Upload a screenshot showing the user is presented with an option to select an account");
-		env.putString("redirect_uri_missing_error", placeholder);
+		env.putString("payments_placeholder", placeholder);
 
 		return env;
 	}
