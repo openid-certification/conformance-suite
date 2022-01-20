@@ -1,0 +1,26 @@
+# Steps to run the suite without Docker, from IntelliJ:
+# $ mvn clean package
+# $ docker-compose -f docker-compose-dev-linux-nodocker.yml build
+# $ docker-compose -f docker-compose-dev-linux-nodocker.yml up
+# Run/Debug Application.main() with program arguments
+# --fintechlabs.devmode=true --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
+version: '3'
+services:
+  mongodb:
+    image: mongo:4.2
+    volumes:
+     - ./mongo/data:/data/db
+    ports:
+     - "27017:27017"
+  httpdlocal:
+    build:
+      context: ./httpd
+      dockerfile: Dockerfile-nodocker
+    ports:
+     - "8443:8443"
+    volumes:
+      # we don't use delegated here so that updates propogate promptly
+     - ./src/main/resources/:/usr/local/apache2/htdocs/
+    # for linux, we add a hostname mapping for host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
