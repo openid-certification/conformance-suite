@@ -19,7 +19,6 @@ services:
     ports:
      - "8443:8443"
     volumes:
-      # we don't use delegated here so that updates propogate promptly
      - ./src/main/resources/:/usr/local/apache2/htdocs/
     # for linux, we add a hostname mapping for host.docker.internal
     extra_hosts:
