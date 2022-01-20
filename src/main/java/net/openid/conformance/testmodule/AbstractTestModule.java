@@ -991,8 +991,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				clearLock();
 
 				if (delayMillis < 30 * 1000) {
-					// backoff checks to every 30 seconds so we don't overload db or jvm
-					delayMillis *= 2;
+					// backoff checks to every 30 seconds so we don't overload db or jvm (but backoff slowly so that there's not a long
+					// delay before the test moves to finished if the user uploads relatively promptly).
+					delayMillis *= 1.2;
 				}
 				Thread.sleep(delayMillis);
 
