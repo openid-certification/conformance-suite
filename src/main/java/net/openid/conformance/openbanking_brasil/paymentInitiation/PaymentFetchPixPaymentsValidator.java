@@ -9,10 +9,9 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -47,7 +46,7 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 	public Environment evaluate(Environment environment) {
 		JsonObject body = environment.getObject("resource_endpoint_response");
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 		assertHasField(body, "$.meta");
 		assertMetaFields(body.getAsJsonObject("meta"));
 		return environment;
@@ -143,7 +142,7 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 				.setOptional()
 				.build());
 
-		assertJsonObject(body, "payment", this::assertPayment);
+		assertField(body, new ObjectField.Builder("payment").setValidator(this::assertPayment).build());
 		if (body.has("localInstrument") && OIDFJSON.getString(body.get("localInstrument")).equals("INIC")) {
 			assertField(body,
 				new StringField
@@ -184,7 +183,7 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 				.setMaxLength(14)
 				.build());
 
-		assertJsonObject(body, "creditorAccount", this::assertCreditorAccount);
+		assertField(body, new ObjectField.Builder("creditorAccount").setValidator(this::assertCreditorAccount).build());
 	}
 
 	private void assertPayment(JsonObject payment) {

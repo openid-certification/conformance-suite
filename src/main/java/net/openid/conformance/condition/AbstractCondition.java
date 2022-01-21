@@ -337,16 +337,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		log(copy);
 	}
 
-	protected void logInfo(String msg, Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
-		copy.put("msg", msg);
-		copy.put("result", ConditionResult.INFO);
-		if (!getRequirements().isEmpty()) {
-			copy.put("requirements", getRequirements());
-		}
-		log(copy);
-	}
-
 	protected void logSuccess(JsonObject in) {
 		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("result", ConditionResult.SUCCESS.toString());

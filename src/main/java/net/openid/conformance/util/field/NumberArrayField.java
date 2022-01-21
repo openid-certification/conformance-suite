@@ -26,10 +26,10 @@ public class NumberArrayField extends Field {
 		private boolean nullable;
 		private String path = "";
 		private String pattern = "";
-		private int maxItems;
-		private int minItems;
 		private int maxLength;
 		private int minLength;
+		private int maxItems;
+		private int minItems;
 		private Number minValue = null;
 		private Number maxValue;
 
@@ -84,8 +84,8 @@ public class NumberArrayField extends Field {
 
 		public NumberArrayField build() {
 			return new NumberArrayField(this.optional, this.nullable, this.path, this.pattern,
-				this.maxItems, this.minItems,
 				this.maxLength, this.minLength,
+				this.maxItems, this.minItems,
 				this.maxValue, this.minValue);
 		}
 	}

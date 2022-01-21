@@ -1,0 +1,117 @@
+{
+    "data": [
+        {
+            "participant": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "society": {
+                "name": "Society A1",
+                "cnpjNumber": "13456789000112"
+            },
+            "name": "Produto A",
+            "code": "0001",
+            "segment": "PREVIDENCIA",
+            "modality": "BENEFICIO_DEFINIDO",
+            "additionalInfo": "https://openinsurance.com.br/aaa",
+            "termsAndConditions": [
+                {
+                    "susepProcessNumber": "15414.622222/2222-22",
+                    "detail": "https://openinsurance.com.br/aaa"
+                }
+            ],
+            "type": "PGBL",
+            "defferalPeriod": {
+                "interestRate": "0.251231",
+                "updateIndex": "IPCA",
+                "otherMinimumPerformanceGarantees": "SELIC",
+                "reversalFinancialResults": "0.051230",
+                "minimumPremium": {
+                    "currency": "BRL",
+                    "periodicity": "MENSAL",
+                    "amount": "250.00"
+                },
+                "premiumPaymentMethods": [
+                    "CARTAO_CREDITO"
+                ],
+                "permissionExtraordinaryContributions": true,
+                "permissionScheduledFinancialPayments": true,
+                "gracePeriod": {
+                    "redemption": 100,
+                    "betweenRedemptionRequests": 30,
+                    "portability": 12,
+                    "betweenPortabilityRequests": 15
+                },
+                "redemptionPaymentTerm": 10,
+                "portabilityPaymentTerm": 20,
+                "investmentFunds": [
+                    {
+                        "cnpjNumber": "13456789000112",
+                        "name": "EMPRESAAPREV",
+                        "maximumAdministrationFee": "0.201000",
+                        "typePerformanceFee": "DIRETAMENTE",
+                        "maximumPerformanceFee": "0.201000",
+                        "eligibilityRule": true,
+                        "minimumContributionAmount": "1000.00",
+                        "minimumMathematicalProvisionAmount": "1000.00",
+                        "currency": "BRL"
+                    }
+                ]
+            },
+            "grantPeriodBenefit": {
+                "incomeModalities": [
+                    "PAGAMENTO_UNICO"
+                ],
+                "biometricTable": [
+                    "AT_2000_MALE"
+                ],
+                "interestRate": "0.225222",
+                "updateIndex": "IPCA",
+                "reversalFinancialResults": "1.252111",
+                "investmentFunds": [
+                    {
+                        "cnpjNumber": "13456789000112",
+                        "name": "EMPRESAAPREV",
+                        "maximumAdministrationFee": "0.201000",
+                        "typePerformanceFee": "DIRETAMENTE",
+                        "maximumPerformanceFee": "0.201000",
+                        "eligibilityRule": true,
+                        "minimumContributionAmount": "1000.00",
+                        "minimumMathematicalProvisionAmount": "1000.00",
+                        "currency": "BRL"
+                    }
+                ]
+            },
+            "costs": {
+                "loadingAntecipated": {
+                    "minValue": "0.000000",
+                    "maxValue": "0.100000"
+                },
+                "loadingLate": {
+                    "minValue": "0.000000",
+                    "maxValue": "0.100000"
+                }
+            },
+            "minimumRequirements": {
+                "contractType": "COLETIVO",
+                "participantQualified": true,
+                "contractingMinRequirement": "https://openinsurance.com.br/aaa"
+            },
+            "targetAudience": "PESSOA_NATURAL"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

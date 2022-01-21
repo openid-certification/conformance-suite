@@ -8,6 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -45,7 +46,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 	public Environment evaluate(Environment environment) {
 		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 
 		return environment;
 	}
@@ -123,7 +124,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 				.setOptional()
 				.build());
 
-		assertJsonObject(body, "payment", this::assertPayment);
+		assertField(body, new ObjectField.Builder("payment").setValidator(this::assertPayment).build());
 		if (body.has("localInstrument") && OIDFJSON.getString(body.get("localInstrument")).equals("INIC")) {
 			assertField(body,
 				new StringField
@@ -164,7 +165,7 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 				.setMaxLength(14)
 				.build());
 
-		assertJsonObject(body, "creditorAccount", this::assertCreditorAccount);
+		assertField(body, new ObjectField.Builder("creditorAccount").setValidator(this::assertCreditorAccount).build());
 	}
 
 	private void assertPayment(JsonObject payment) {

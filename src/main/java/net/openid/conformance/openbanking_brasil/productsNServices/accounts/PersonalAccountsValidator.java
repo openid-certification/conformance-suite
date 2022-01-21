@@ -73,7 +73,7 @@ public class PersonalAccountsValidator extends AbstractJsonAssertingCondition {
 		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 		logFinalStatus();
 		return environment;
 	}

@@ -63,16 +63,16 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH,
-			data -> assertField(data, new ObjectField
-				.Builder("brand")
-				.setValidator(brand -> {
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
+			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
+				brand -> {
 					assertField(brand, Fields.name().build());
-					assertField(brand, new ObjectArrayField
-						.Builder("companies")
-						.setValidator(this::assertPersonCompanies)
-						.build());
-		}).build()));
+					assertField(brand,
+						new ObjectArrayField.Builder("companies")
+							.setValidator(this::assertPersonCompanies)
+							.build());}
+			).build())
+		).build());
 		logFinalStatus();
 		return environment;
 	}
