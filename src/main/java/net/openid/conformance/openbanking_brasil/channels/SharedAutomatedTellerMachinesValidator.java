@@ -44,21 +44,19 @@ public class SharedAutomatedTellerMachinesValidator extends AbstractJsonAssertin
 		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 
-		assertJsonObject(body, ROOT_PATH,
-			data -> assertField(data, new ObjectField
-				.Builder("brand")
-				.setOptional()
-				.setValidator(
-					brand -> {
-						assertField(brand, Fields.name().setOptional().build());
-						assertField(brand,
-							new ObjectArrayField.Builder("companies")
-								.setValidator(this::assertCompanies)
-								.setOptional()
-								.build());
-					}
-				).build())
-			);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
+			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
+				brand -> {
+					assertField(brand, Fields.name().setOptional().build());
+					assertField(brand,
+						new ObjectArrayField.Builder("companies")
+							.setMinItems(1)
+							.setValidator(this::assertCompanies)
+							.setOptional()
+							.build());}
+			).build())
+		).setOptional().build());
+
 		logFinalStatus();
 		return environment;
 	}
@@ -82,15 +80,13 @@ public class SharedAutomatedTellerMachinesValidator extends AbstractJsonAssertin
 		assertField(tellerMachines,
 			new ObjectField
 				.Builder("identification")
-				.setValidator(identification -> {
-								assertField(identification,
-									new StringField
-										.Builder("ownerName")
-										.setMaxLength(100)
-										.setPattern("[\\w\\W\\s]*")
-										.setOptional()
-										.build());
-								})
+				.setValidator(identification -> assertField(identification,
+					new StringField
+						.Builder("ownerName")
+						.setMaxLength(100)
+						.setPattern("[\\w\\W\\s]*")
+						.setOptional()
+						.build()))
 				.setOptional()
 				.build());
 

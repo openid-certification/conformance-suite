@@ -37,7 +37,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonObject body = initBodyArray(environment);
 
 		assertField(body,
 			new ObjectArrayField.Builder("data")

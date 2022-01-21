@@ -81,8 +81,8 @@ public class IntArrayField extends Field {
 
 		public IntArrayField build() {
 			return new IntArrayField(this.optional, this.nullable, this.path, this.pattern,
-				this.maxItems, this.minItems,
 				this.maxLength, this.minLength,
+				this.maxItems, this.minItems,
 				this.maxValue, this.minValue);
 		}
 	}

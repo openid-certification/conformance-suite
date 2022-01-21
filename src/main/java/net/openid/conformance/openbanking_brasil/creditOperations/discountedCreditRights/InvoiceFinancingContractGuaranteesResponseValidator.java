@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.DoubleField;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
@@ -42,7 +43,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidator extends Abstrac
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonArrays(body, ROOT_PATH, this::assertData);
+		assertField(body, new ObjectArrayField.Builder(ROOT_PATH).setValidator(this::assertData).build());
 		return environment;
 	}
 

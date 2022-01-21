@@ -1,0 +1,174 @@
+{
+    "data": [
+        {
+            "participant": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "society": {
+                "name": "Society A1",
+                "cnpjNumber": "13456789000112"
+            },
+            "name": "Produto A",
+            "code": "0001",
+            "category": "TRADICIONAL",
+            "modality": "FUNERAL",
+            "coverages": [
+                {
+                    "type": "MORTE",
+                    "additionalInfos": [
+                        "string"
+                    ],
+                    "attributes": {
+                        "indemnityPaymentMethods": [
+                            "PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO"
+                        ],
+                        "indemnityPaymentFrequencies": [
+                            "INDENIZACAO_UNICA"
+                        ],
+                        "indemnifiableDeadline": 48,
+                        "minValue": {
+                            "currencyValue": {
+                                "amount": "0.01",
+                                "currency": "BRL"
+                            }
+                        },
+                        "maxValue": {
+                            "currencyValue": {
+                                "amount": "0.01",
+                                "currency": "BRL"
+                            }
+                        },
+                        "indemnifiablePeriods": [
+                            "QUANTIDADE_DETERMINADA_PARCELAS"
+                        ],
+                        "maximumQtyIndemnifiableInstallments": 10,
+                        "gracePeriod": {
+                            "amount": 90,
+                            "unit": "MESES"
+                        },
+                        "differentiatedGracePeriod": {
+                            "amount": 90,
+                            "unit": "MESES"
+                        },
+                        "deductibleDays": 10,
+                        "differentiatedDeductibleDays": 15,
+                        "deductible": {
+                            "currencyValue": {
+                                "amount": "0.01",
+                                "currency": "BRL"
+                            }
+                        },
+                        "differentiatedDeductible": {
+                            "currencyValue": {
+                                "amount": "0.01",
+                                "currency": "BRL"
+                            }
+                        },
+                        "excludedRisks": "ATO_RECONHECIMENTO_PERIGOSO",
+                        "excludedRisksURL": "https://openinsurance.com.br/aaa",
+                        "allowApartPurchase": true
+                    },
+                    "coveragePeriod": "TEMPORARIA"
+                }
+            ],
+            "assistanceTypes": [
+                "PET",
+                "FUNERAL"
+            ],
+            "assistanceAdditionalInfos": [
+                "string"
+            ],
+            "additionals": [
+                "SORTEIO",
+                "OUTROS"
+            ],
+            "termsAndConditions": {
+                "susepProcessNumber": "15414.622222/2222-22",
+                "detail": "https://openinsurance.com.br/aaa"
+            },
+            "globalCapital": true,
+            "terms": [
+                "VITALICIA"
+            ],
+            "pmbacRemuneration": {
+                "interestRate": "14.2521",
+                "updateIndexes": [
+                    "IPCA"
+                ]
+            },
+            "benefitRecalculation": {
+                "criterias": [
+                    "INDICE"
+                ],
+                "updateIndexes": [
+                    "IPCA"
+                ]
+            },
+            "ageAdjustment": {
+                "criterias": [
+                    "APOS_PERIODO_EM_ANOS"
+                ],
+                "frequency": 10
+            },
+            "financialRegimeContractTypes": [
+                "REPARTICAO_SIMPLES"
+            ],
+            "reclaim": {
+                "table": {
+                    "initialMonthRange": 1,
+                    "finalMonthRange": 1,
+                    "percentage": "0.5000"
+                },
+                "differentiatedPercentage": "https://openinsurance.com.br/aaa’\nObs.: Exceção de cobertura ou critério definido acima será descrito aqui na URL\nExemplo: Cobertura X: a partir de 25 meses = 100%\n",
+                "gracePeriod": {
+                    "amount": 90,
+                    "unit": "MESES"
+                }
+            },
+            "otherGuaranteedValues": [
+                "SALDAMENTO"
+            ],
+            "profitModality": "SOB_FORMA_DE_RENDA",
+            "allowPortability": true,
+            "portabilityGraceTime": {
+                "amount": 90,
+                "unit": "MESES"
+            },
+            "indemnityPaymentMethods": [
+                "UNICO"
+            ],
+            "indemnityPaymentIncomes": [
+                "CERTA"
+            ],
+            "premiumPayment": {
+                "paymentMethods": [
+                    "CARTAO_CREDITO"
+                ],
+                "frequencies": [
+                    "DIARIA"
+                ]
+            },
+            "contributionTax": "string",
+            "minimumRequirement": {
+                "contractType": "COLETIVO_AVERBADO",
+                "contractingMinRequirement": "https://openinsurance.com.br/aaa"
+            },
+            "targetAudience": "PESSOA_NATURAL"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

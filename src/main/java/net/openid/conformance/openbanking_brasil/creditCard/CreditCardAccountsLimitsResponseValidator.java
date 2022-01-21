@@ -6,9 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.DoubleField;
-import net.openid.conformance.util.field.StringField;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
@@ -29,7 +27,7 @@ public class CreditCardAccountsLimitsResponseValidator extends AbstractJsonAsser
 
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
+		assertField(body, new ObjectArrayField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 
 		return environment;
 	}

@@ -43,7 +43,7 @@ public class PersonalIdentificationResponseValidator extends AbstractJsonAsserti
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFieldsForData);
+		assertField(body, new ObjectArrayField.Builder(ROOT_PATH).setValidator(this::assertInnerFieldsForData).build());
 		return environment;
 	}
 
@@ -172,7 +172,7 @@ public class PersonalIdentificationResponseValidator extends AbstractJsonAsserti
 
 	private void assertFiliation(JsonObject body) {
 		assertHasField(body, "filiation");
-		assertJsonArrays(body, "filiation", this::assertInnerFiliationFields);
+		assertField(body, new ObjectArrayField.Builder("filiation").setValidator(this::assertInnerFiliationFields).build());
 	}
 
 	private void assertDocuments(JsonObject body) {
@@ -268,7 +268,7 @@ public class PersonalIdentificationResponseValidator extends AbstractJsonAsserti
 				.build());
 
 		assertHasField(body, "documents");
-		assertJsonArrays(body, "documents", this::assertInnerNationalityDocumentsFields);
+		assertField(body, new ObjectArrayField.Builder("documents").setValidator(this::assertInnerNationalityDocumentsFields).build());
 	}
 
 	private void assertInnerNationalityDocumentsFields(JsonObject body) {
