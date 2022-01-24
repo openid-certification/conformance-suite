@@ -10,6 +10,15 @@ public class DictHomologKeys {
 	public static final String PROXY_EMAIL_OWNER_NAME= "Joao Silva";
 	public static final String PROXY_EMAIL_PERSON_TYPE = "PESSOA_NATURAL";
 	public static final String PROXY_EMAIL_ACCOUNT_TYPE = "CACC";
+	public static final String PROXY_EMAIL_STANDARD_TYPE = "PIX";
+	public static final String PROXY_EMAIL_STANDARD_AMOUNT = "100.00";
+	public static final String PROXY_EMAIL_STANDARD_CURRENCY = "BRL";
+	public static final String PROXY_EMAIL_STANDARD_LOCALINSTRUMENT = "DICT";
+	public static final String PROXY_EMAIL_STANDARD_IBGETOWNCODE = "5300108";
+	public static final String PROXY_EMAIL_STANDARD_CODE = "OTHER";
+	public static final String PROXY_EMAIL_STANDARD_ADDITIONALINFORMATION = "Conformance Suite Test";
+	public static final String PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION ="Conformance Suite Test";
+
 	public static final String PROXY_PHONE_NUMBER = "+5561990010001";
 	public static final String PROXY_PHONE_NUMBER_BANK_CODE = "998";
 	public static final String PROXY_PHONE_NUMBER_ACCOUNT_NUMBER = "12345678";
