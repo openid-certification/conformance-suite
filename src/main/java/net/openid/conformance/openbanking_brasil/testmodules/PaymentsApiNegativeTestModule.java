@@ -148,12 +148,18 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 			}
 		}
-		if(!finalAuth) {
+		if(!finalAuth && !secondTest) {
+			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndStopOnFailure(EnsureResponseCodeWas422.class);
+			callAndStopOnFailure(EnsureResponseWasJwt.class);
+			callAndContinueOnFailure(Ensure422ResponseCodeWasPAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO_OR_NAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
+		} else if (!finalAuth) {
 			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
 			callAndContinueOnFailure(EnsurePaymentCodeIsCorrect.class, Condition.ConditionResult.FAILURE);
-		} else {
+		}
+		else {
 			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
 			callAndContinueOnFailure(EnsureResponseCodeWas201.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureNoRejectionReasonIFStatusIsNotRJCT.class, Condition.ConditionResult.FAILURE);
