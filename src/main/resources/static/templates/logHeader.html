@@ -50,7 +50,7 @@
                     <% if (test.summary) { %>
                     <div class="row">
                         <div class="col-md-12">
-                            <p class="bgSummary bg-info"><%- test.summary %></p>
+                            <p class="bgSummary bg-info"><%= test.summary.replace(new RegExp('\r?\n', 'g'), '<br />') %></p>
                         </div>
 
                     </div>

@@ -14,13 +14,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-api-test-real-creditor-no-debtor-account",
 	displayName = "Payments API test module to allow user to select debtor account against a real creditor",
-	summary = "This test checks a user is asked to select a debtor account when not provided in the request." +
-		"Flow:" +
-		"Makes a good payment flow - expects success. Screenshot should be provided proving the user had to select a debtor account." +
-		"Required:" +
-		"Consent url pointing at the consent endpoint." +
-		"Resource url pointing at the base url. The test appends on the required payment endpoints" +
-		"Config: Debtor account is removed from the config by the test",
+	summary = "This test checks a user is asked to select a debtor account when not provided in the request.\n\n" +
+		"Flow:\n" +
+		"Makes a good payment flow - expects success. Screenshot should be provided proving the user had to select a debtor account.\n\n" +
+		"Required:\n" +
+		"Consent url pointing at the consent endpoint.\n" +
+		"Resource url pointing at the base url. The test appends on the required payment endpoints\n" +
+		"Config: Debtor account is removed from the config by the test\n\n" +
+		"A screenshot should be uploaded showing the user is presented with an option to select an account.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -55,7 +56,6 @@ public class PaymentApiNoDebtorProvidedRealCreditorTestModule extends AbstractOB
 		callAndStopOnFailure(InjectRealCreditorAccountToPaymentConsent.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
 		callAndStopOnFailure(EnforceAbsenceOfDebtorAccount.class);
-		createPlaceholder();
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
@@ -65,7 +65,7 @@ public class PaymentApiNoDebtorProvidedRealCreditorTestModule extends AbstractOB
 	protected void createPlaceholder() {
 		callAndStopOnFailure(AskForScreenshotWithAccountSelection.class);
 
-		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+		env.putString("error_callback_placeholder", env.getString("payments_placeholder"));
 	}
 
 	@Override
@@ -79,7 +79,20 @@ public class PaymentApiNoDebtorProvidedRealCreditorTestModule extends AbstractOB
 				condition(AddJWTAcceptHeader.class),
 				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
 			)));
-		fireTestReviewNeeded();
+	}
+
+	@Override
+	protected void performRedirect() {
+		performRedirectWithPlaceholder();
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		waitForPlaceholders();
+
+		eventLog.log(getName(), "All test steps have run. The test will remaining in 'WAITING' state until the required screenshot is uploaded using the 'Upload Images' button at the top of the page. It may take upto 30 seconds for the test to move to 'FINISHED' after the upload.");
+
+		setStatus(Status.WAITING);
 	}
 
 }

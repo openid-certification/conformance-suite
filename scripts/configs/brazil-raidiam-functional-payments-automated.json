@@ -233,6 +233,14 @@
                     "match": "https://auth.mockbank.poc.raidiam.io/interaction*",
                     "commands": [
                         [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            10,
+                            ".*would like you to share the following .*",
+                            "update-image-placeholder-optional"
+                        ],
+                        [
                             "click",
                             "xpath",
                             "//label[@for='hidden-291e5a29-49ed-401f-a583-193caa7aceee']/div[1]/div[1]"
