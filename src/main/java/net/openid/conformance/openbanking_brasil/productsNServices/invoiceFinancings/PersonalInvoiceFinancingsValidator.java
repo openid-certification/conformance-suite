@@ -45,19 +45,17 @@ public class PersonalInvoiceFinancingsValidator extends AbstractJsonAssertingCon
 		setLogOnlyFailure();
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH,
-			(data) -> assertField(data,
-				new ObjectField.Builder("brand").setValidator(
-					(brand) -> {
-						assertField(brand, CommonFields.name().build());
-						assertField(brand,
-							new ObjectArrayField.Builder("companies")
-								.setMinItems(1)
-								.setValidator(this::assertCompanies)
-								.build());
-					}
-				).build())
-		);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
+			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
+				brand -> {
+					assertField(brand, CommonFields.name().build());
+					assertField(brand,
+						new ObjectArrayField.Builder("companies")
+							.setMinItems(1)
+							.setValidator(this::assertCompanies)
+							.build());}
+			).build())
+		).build());
 		logFinalStatus();
 		return environment;
 	}

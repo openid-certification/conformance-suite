@@ -1,0 +1,85 @@
+{
+    "data": [
+        {
+            "participantIdentification": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "fees": {
+                "investmentType": "CRI",
+                "custodyFee": {
+                    "name": "NA",
+                    "code": "NA",
+                    "chargingTriggerInfo": "NA",
+                    "prices": [
+                        {
+                            "interval": "1_FAIXA",
+                            "value": "0.020300",
+                            "customerRate": "0.500000"
+                        },
+                        {
+                            "interval": "2_FAIXA",
+                            "value": "0.030600",
+                            "customerRate": "0.100000"
+                        },
+                        {
+                            "interval": "3_FAIXA",
+                            "value": "0.034300",
+                            "customerRate": "0.300000"
+                        },
+                        {
+                            "interval": "4_FAIXA",
+                            "value": "0.246800",
+                            "customerRate": "0.100000"
+                        }
+                    ],
+                    "minimum": "0.010000",
+                    "maximum": "0.300000"
+                },
+                "loadingRate": {
+                    "name": "NA",
+                    "code": "NA",
+                    "chargingTriggerInfo": "NA",
+                    "prices": [
+                        {
+                            "interval": "1_FAIXA",
+                            "value": "0.020300",
+                            "customerRate": "0.500000"
+                        },
+                        {
+                            "interval": "2_FAIXA",
+                            "value": "0.030600",
+                            "customerRate": "0.100000"
+                        },
+                        {
+                            "interval": "3_FAIXA",
+                            "value": "0.034300",
+                            "customerRate": "0.300000"
+                        },
+                        {
+                            "interval": "4_FAIXA",
+                            "value": "0.246800",
+                            "customerRate": "0.100000"
+                        }
+                    ],
+                    "minimum": "0.010000",
+                    "maximum": "0.300000"
+                }
+            }
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

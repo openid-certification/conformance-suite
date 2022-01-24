@@ -1,0 +1,56 @@
+{
+    "data": [
+        {
+            "participantIdentification": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "product": {
+                "name": "FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO",
+                "cnpjNumber": "64108803000191",
+                "isinCode": "BRAAAAAAA000",
+                "admin": "ADM OPEN BANKING DTVM S.A.",
+                "adminCnpjNumber": "14511732000150",
+                "fundManager": "GESTOR OPEN BANKING DTVM S.A.",
+                "fundManagerCnpjNumber": "16332711000101",
+                "anbimaCategory": "MULTIMERCADO"
+            },
+            "fees": {
+                "maxAdminFee": "0.020000",
+                "entryFee": "0.010000",
+                "performanceFeeMethod": "PASSIVO",
+                "performanceFeeBenchmark": "CDI",
+                "performanceFeeBenchmarkAdditionalInfo": "string",
+                "performanceFeeAmount": "0.050000",
+                "exitFee": "0.030000"
+            },
+            "generalConditions": {
+                "minimumAmount": "100000.12",
+                "currency": "BRL",
+                "redemptionQuotationDays": 3,
+                "redemptionQuotationTerm": "DIAS_CORRIDOS",
+                "redemptionPaymentTerm": 3,
+                "redemptionGraceDays": "DIAS_CORRIDOS",
+                "applicationQuotationDays": 60,
+                "applicationQuotationTerm": 3,
+                "applicationQuotationPeriod": "DIAS_CORRIDOS",
+                "fundQuotaType": "COTA_DE_ABERTURA"
+            },
+            "taxation": "CURTO_PRAZO"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

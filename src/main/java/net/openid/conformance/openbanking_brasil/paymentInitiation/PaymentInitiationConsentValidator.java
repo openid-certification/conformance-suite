@@ -34,7 +34,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 
 		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
-		assertJsonObject(body, ROOT_PATH, this::assertInnerFields);
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 
 		return environment;
 	}
@@ -78,7 +78,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setMaxLength(22)
 				.build());
 
-		assertJsonObject(body, "loggedUser", this::assertLoggedUser);
+		assertField(body, new ObjectField.Builder("loggedUser").setValidator(this::assertLoggedUser).build());
 
 		assertField(body,
 			new ObjectField
@@ -88,8 +88,8 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 				.setNullable()
 				.build());
 
-		assertJsonObject(body, "creditor", this::assertCreditor);
-		assertJsonObject(body, "payment", this::assertPayment);
+		assertField(body, new ObjectField.Builder("creditor").setValidator(this::assertCreditor).build());
+		assertField(body, new ObjectField.Builder("payment").setValidator(this::assertPayment).build());
 
 		assertField(body,
 			new ObjectField
@@ -100,7 +100,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertLoggedUser(JsonObject loggedUser) {
-		assertJsonObject(loggedUser, "document", this::assertLoggedUserDocument);
+		assertField(loggedUser, new ObjectField.Builder("document").setValidator(this::assertLoggedUserDocument).build());
 	}
 
 	private void assertLoggedUserDocument(JsonObject document) {
@@ -120,7 +120,7 @@ public class PaymentInitiationConsentValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertBusinessEntity(JsonObject businessEntity) {
-		assertJsonObject(businessEntity, "document", this::assertBusinessEntityDocument);
+		assertField(businessEntity, new ObjectField.Builder("document").setValidator(this::assertBusinessEntityDocument).build());
 	}
 
 	private void assertBusinessEntityDocument(JsonObject document) {

@@ -23,7 +23,7 @@ public class GetAuthorityValidator extends PostAuthorityValidator {
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonObject body = initBodyArray(environment);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("data")

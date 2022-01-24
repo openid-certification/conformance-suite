@@ -5,11 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.DatetimeField;
-import net.openid.conformance.util.field.DoubleField;
-import net.openid.conformance.util.field.IntField;
-import net.openid.conformance.util.field.StringField;
+import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
@@ -53,7 +49,7 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 
 	private void assertReleases(JsonObject body) {
 		assertHasField(body, "releases");
-		assertJsonArrays(body, "releases", this::assertInnerFieldsForReleases);
+		assertField(body, new ObjectArrayField.Builder("releases").setValidator(this::assertInnerFieldsForReleases).build());
 	}
 
 	private void assertInnerFieldsForReleases(JsonObject body) {
@@ -105,10 +101,10 @@ public class InvoiceFinancingContractPaymentsResponseValidator extends AbstractJ
 
 	private void assertOverParcel(JsonObject body) {
 		assertHasField(body,"fees");
-		assertJsonArrays(body, "fees", this::assertOverParcelFees);
+		assertField(body, new ObjectArrayField.Builder("fees").setValidator(this::assertOverParcelFees).build());
 
 		assertHasField(body,"charges");
-		assertJsonArrays(body, "charges", this::assertOverParcelCharges);
+		assertField(body, new ObjectArrayField.Builder("charges").setValidator(this::assertOverParcelCharges).build());
 	}
 
 	private void assertOverParcelCharges(JsonObject body) {

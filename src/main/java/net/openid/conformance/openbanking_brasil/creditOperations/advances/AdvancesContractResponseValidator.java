@@ -165,7 +165,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 	}
 
 	private void assertInterestRate(JsonObject element) {
-		assertJsonArrays(element, "interestRates", this::assertInnerFieldsForInterestRate);
+		assertField(element, new ObjectArrayField.Builder("interestRates").setValidator(this::assertInnerFieldsForInterestRate).build());
 	}
 
 	private void assertContractedFees(JsonObject element) {

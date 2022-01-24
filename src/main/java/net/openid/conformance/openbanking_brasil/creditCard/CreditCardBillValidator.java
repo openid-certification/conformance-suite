@@ -33,8 +33,7 @@ public class CreditCardBillValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
-		assertJsonArrays(body, ROOT_PATH, this::assertInnerFields);
-
+		assertField(body, new ObjectArrayField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
 		return environment;
 	}
 

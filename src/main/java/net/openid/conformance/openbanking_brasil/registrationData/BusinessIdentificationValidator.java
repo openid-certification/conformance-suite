@@ -8,7 +8,6 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -39,7 +38,7 @@ public class BusinessIdentificationValidator extends AbstractJsonAssertingCondit
 	public Environment evaluate(Environment environment) {
 		JsonObject body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
-		assertJsonArrays(body, ROOT_PATH, this::assertData);
+		assertField(body, new ObjectArrayField.Builder(ROOT_PATH).setValidator(this::assertData).build());
 		return environment;
 	}
 
