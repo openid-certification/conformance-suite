@@ -1,10 +1,7 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.ekyc.condition.client.AddUserProvidedClaimsRequestToAuthorizationEndpointRequest;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -17,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ekyc_verified_claims_request"
 	}
 )
-public class EKYCTestWithUserProvidedRequest extends BaseEKYCTestWithOIDCCore {
+public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

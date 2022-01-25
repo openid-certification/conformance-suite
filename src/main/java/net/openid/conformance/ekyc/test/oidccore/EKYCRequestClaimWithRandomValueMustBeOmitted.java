@@ -4,10 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.ekyc.condition.client.AddClaimWithRandomValueToAuthorizationEndpointRequest;
-import net.openid.conformance.ekyc.condition.client.AddUnknownVerifiedClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.EnsureIdTokenDoesNotContainVerifiedClaims;
 import net.openid.conformance.ekyc.condition.client.EnsureUserinfoDoesNotContainVerifiedClaims;
-import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromUserinfoResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /*
@@ -24,7 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class EKYCRequestClaimWithRandomValueMustBeOmitted extends BaseEKYCTestWithOIDCCore {
+public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

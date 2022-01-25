@@ -16,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class EKYCRequestClaimUnknownToTheOP extends BaseEKYCTestWithOIDCCore {
+public class EKYCRequestClaimUnknownToTheOP extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {

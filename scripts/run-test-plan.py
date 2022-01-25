@@ -520,7 +520,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 
         if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
             incomplete += 1
-        if 'result' not in info:
+        if 'result' not in info or info['result'] is None:
             info['result'] = 'UNKNOWN'
 
         test_name = info['testName']

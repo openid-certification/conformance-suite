@@ -86,9 +86,9 @@ test:
 
 compare_cloud:
   <<: *compare
-  needs: ["server_test", "ciba_test", "client_test"]
+  needs: ["server_test", "ciba_test", "client_test", "ekyc_test", "brazil_test"]
   script:
-    - run_compare server_test ciba_test client_test
+    - run_compare server_test ciba_test client_test ekyc_test brazil_test
 
 compare_local:
   <<: *compare

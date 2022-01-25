@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.AddExtraFoobarToAuthorizationEndpointRequest;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Equivalent of https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Req_NotUnderstood
@@ -13,9 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCEnsureRequestWithUnknownParameterSucceeds extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(AddExtraFoobarToAuthorizationEndpointRequest.class).requirements("RFC6749-3.1")));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddExtraFoobarToAuthorizationEndpointRequest.class).requirements("RFC6749-3.1"));
 	}
 
 }

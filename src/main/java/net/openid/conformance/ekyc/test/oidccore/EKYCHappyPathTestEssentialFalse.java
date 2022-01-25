@@ -1,6 +1,5 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
-import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingEmptyJsonObject;
 import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestWithEssentialFalse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -16,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"verified_claim_names"
 	}
 )
-public class EKYCHappyPathTestEssentialFalse extends BaseEKYCTestWithOIDCCore {
+public class EKYCHappyPathTestEssentialFalse extends AbstractEKYCTestWithOIDCCore {
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
 		callAndContinueOnFailure(AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestWithEssentialFalse.class, "IA-6");

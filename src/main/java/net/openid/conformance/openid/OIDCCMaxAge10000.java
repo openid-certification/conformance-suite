@@ -23,13 +23,13 @@ public class OIDCCMaxAge10000 extends AbstractOIDCCSameAuthTwiceServerTest {
 		// claim for auth_time is present - and claims are optional to implement, so max_age is the only choice to
 		// force auth_time to be returned.
 		// discussed on the certification email list 3rd March 2020
-		call(new CreateAuthorizationRequestSteps(formPost)
+		call(createAuthorizationRequestSequence()
 			.then(condition(AddMaxAge15000ToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 	}
 
 	@Override
 	protected void createSecondAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
+		call(createAuthorizationRequestSequence()
 			.then(condition(AddMaxAge10000ToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 	}
 

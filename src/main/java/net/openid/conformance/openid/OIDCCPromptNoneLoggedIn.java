@@ -15,7 +15,7 @@ public class OIDCCPromptNoneLoggedIn extends AbstractOIDCCSameAuthTwiceServerTes
 	@Override
 	protected void createSecondAuthorizationRequest() {
 		// with prompt=none this time
-		call(new CreateAuthorizationRequestSteps(formPost)
+		call(createAuthorizationRequestSequence()
 			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 	}
 

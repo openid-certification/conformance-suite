@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import net.openid.conformance.condition.client.AddQueryToRedirectUri;
 import net.openid.conformance.condition.client.ReplaceRedirectUriQueryInAuthorizationRequest;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
@@ -35,9 +36,9 @@ public class OIDCCRedirectUriQueryMismatch extends AbstractOIDCCServerTestExpect
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-				.then(condition(ReplaceRedirectUriQueryInAuthorizationRequest.class)));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(ReplaceRedirectUriQueryInAuthorizationRequest.class));
 	}
 
 	@Override

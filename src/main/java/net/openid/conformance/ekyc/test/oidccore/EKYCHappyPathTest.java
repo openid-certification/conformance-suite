@@ -27,7 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"verified_claim_names"
 	}
 )
-public class EKYCHappyPathTest extends BaseEKYCTestWithOIDCCore {
+public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
