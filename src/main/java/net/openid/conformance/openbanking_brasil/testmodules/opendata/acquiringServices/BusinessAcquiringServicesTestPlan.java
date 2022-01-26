@@ -17,7 +17,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Business Acquiring Services API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Acquiring Services - Business API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Acquiring Services - Business API - based on Swagger version: 1.0.0-rc1.0 (WIP)",
 	summary = "Structural and logical tests for Acquiring Services API"
 )
 public class BusinessAcquiringServicesTestPlan implements TestPlan {

@@ -17,7 +17,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Investments - Funds API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Investments - Funds API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Investments - Funds API - based on Swagger version: 1.0.0-rc1.0 (WIP)",
 	summary = "Structural and logical tests for Investments API"
 )
 public class GetFundsTestPlan implements TestPlan {
