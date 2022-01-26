@@ -9,13 +9,12 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsCon
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Payments api phase 1 test",
-	profile = OBBProfile.OBB_PROFIlE_PHASE3,
+	profile = OBBProfile.DEV_ONLY,
 	displayName = PlanNames.PAYMENTS_API_PHASE_1_TEST_PLAN,
 	summary = "Structural and logical tests for OpenBanking Brasil payments API for INIC, MANU and DICT - Submissions for this test plan should only be done until 14/01/22. After this date, the service desk will only accept submissions that also include QRES and QRDN modules"
 )
