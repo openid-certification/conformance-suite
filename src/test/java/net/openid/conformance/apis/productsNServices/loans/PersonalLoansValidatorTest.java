@@ -2,10 +2,7 @@ package net.openid.conformance.apis.productsNServices.loans;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.account.AccountBalancesResponseValidator;
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
-import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
-import net.openid.conformance.openbanking_brasil.productsNServices.accounts.PersonalAccountsValidator;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.productsNServices.loans.PersonalLoansValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -27,8 +24,8 @@ public class PersonalLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureLessMinItems() {
 		PersonalLoansValidator condition = new PersonalLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsLessThanMaxItemsMessage("applications")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsLessThanMaxItemsMessage("applications", condition.getApiName())));
 
 	}
 
@@ -37,8 +34,8 @@ public class PersonalLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureMoreMaxItems() {
 		PersonalLoansValidator condition = new PersonalLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsMoreThanMaxItemsMessage("applications")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsMoreThanMaxItemsMessage("applications", condition.getApiName())));
 	}
 
 	@Test
@@ -46,8 +43,8 @@ public class PersonalLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWrongPattern() {
 		PersonalLoansValidator condition = new PersonalLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchPatternMessage("rate")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchPatternMessage("rate", condition.getApiName())));
 	}
 
 	@Test
@@ -55,7 +52,7 @@ public class PersonalLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWrongEnum() {
 		PersonalLoansValidator condition = new PersonalLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchEnumerationMessage("interval")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchEnumerationMessage("interval", condition.getApiName())));
 	}
 }

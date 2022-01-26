@@ -1,9 +1,8 @@
 package net.openid.conformance.raidiam.validators.authorisationServers.certifications;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * This class corresponds to {@link PostServerCertificationsValidator}
@@ -14,15 +13,8 @@ public class GetServerCertificationsValidator extends PostServerCertificationsVa
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
-
-		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(this::assertServerCertifications)
-				.setOptional()
-				.build());
-
+		JsonElement body = bodyFrom(environment);
+		assertServerCertifications(body);
 		return environment;
 	}
 }

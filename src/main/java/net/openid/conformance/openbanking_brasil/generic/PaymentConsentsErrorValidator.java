@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.generic;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;

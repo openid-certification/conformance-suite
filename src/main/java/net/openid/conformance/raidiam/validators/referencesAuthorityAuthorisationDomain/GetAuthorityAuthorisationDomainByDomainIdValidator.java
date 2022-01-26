@@ -1,7 +1,7 @@
 package net.openid.conformance.raidiam.validators.referencesAuthorityAuthorisationDomain;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -18,12 +18,12 @@ public class GetAuthorityAuthorisationDomainByDomainIdValidator extends Abstract
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 		assertAuthorityAuthorisationDomain(body);
 		return environment;
 	}
 
-	protected void assertAuthorityAuthorisationDomain(JsonObject body) {
+	protected void assertAuthorityAuthorisationDomain(JsonElement body) {
 		assertField(body,
 			new StringField
 				.Builder("AuthorisationDomainName")

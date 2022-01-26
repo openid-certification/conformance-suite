@@ -1,8 +1,9 @@
 package net.openid.conformance.raidiam.validators;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -32,7 +33,7 @@ public class CommonParts {
 		this.validator = validator;
 	}
 
-	public void assertTermsAndConditionsItem(JsonObject termsAndConditionsItem) {
+	public void assertTermsAndConditionsItem(JsonElement termsAndConditionsItem) {
 		validator.assertField(termsAndConditionsItem,
 			new IntField
 				.Builder("TnCId")
@@ -182,7 +183,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertDomainRoleDetails(JsonObject orgAccessDetails) {
+	public void assertDomainRoleDetails(JsonElement orgAccessDetails) {
 		validator.assertField(orgAccessDetails,
 			new ObjectArrayField
 				.Builder("DomainRoleDetails")
@@ -204,7 +205,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertAuthority(JsonObject body) {
+	public void assertAuthority(JsonElement body) {
 		validator.assertField(body,
 			new StringField
 				.Builder("AuthorityId")
@@ -243,7 +244,7 @@ public class CommonParts {
 		validator.assertField(body, CommonFields.getStatus());
 	}
 
-	public void organisationDomainUsersContent(JsonObject content) {
+	public void organisationDomainUsersContent(JsonElement content) {
 		validator.assertField(content,
 			new StringField
 				.Builder("AuthorisationDomainUserId")
@@ -270,7 +271,7 @@ public class CommonParts {
 		assertBasicRoleField(content);
 	}
 
-	public void organisationContent(JsonObject content) {
+	public void organisationContent(JsonElement content) {
 		validator.assertField(content,
 			new StringField
 				.Builder("OrganisationId")
@@ -404,7 +405,7 @@ public class CommonParts {
 				.build());
 	}
 
-	private void assertBasicRoleField(JsonObject domainRoleDetails) {
+	private void assertBasicRoleField(JsonElement domainRoleDetails) {
 		validator.assertField(domainRoleDetails,
 			new StringField
 				.Builder("Status")
@@ -427,7 +428,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertDefaultResponseFields(JsonObject body) {
+	public void assertDefaultResponseFields(JsonElement body) {
 		validator.assertField(body,
 			new IntField
 				.Builder("totalPages")
@@ -537,7 +538,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertOrgTermsAndConditionsDetail(JsonObject data) {
+	public void assertOrgTermsAndConditionsDetail(JsonElement data) {
 		validator.assertField(data,
 			new StringField
 				.Builder("InitiatedBy")
@@ -632,7 +633,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertOrgDomainRoleClaims(JsonObject data) {
+	public void assertOrgDomainRoleClaims(JsonElement data) {
 		validator.assertField(data,
 			new StringField
 				.Builder("OrganisationId")
@@ -714,7 +715,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertExportContacts(JsonObject content) {
+	public void assertExportContacts(JsonElement content) {
 		validator.assertField(content,
 			new StringField
 				.Builder("ContactId")
@@ -816,7 +817,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertAuthorisationServers(JsonObject authorisationServers) {
+	public void assertAuthorisationServers(JsonElement authorisationServers) {
 		validator.assertField(authorisationServers,
 			new StringField
 				.Builder("AuthorisationServerId")
@@ -922,7 +923,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertApiResources(JsonObject data) {
+	public void assertApiResources(JsonElement data) {
 		validator.assertField(data,
 			new StringField
 				.Builder("ApiResourceId")
@@ -973,7 +974,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertSoftwareDetails(JsonObject softwareDetails) {
+	public void assertSoftwareDetails(JsonElement softwareDetails) {
 		validator.assertField(softwareDetails, CommonFields.getStatus());
 
 		validator.assertField(softwareDetails,
@@ -1095,7 +1096,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertSoftwareAuthorityClaims(JsonObject authorityClaims) {
+	public void assertSoftwareAuthorityClaims(JsonElement authorityClaims) {
 		validator.assertField(authorityClaims,
 			new StringField
 				.Builder("SoftwareStatementId")
@@ -1128,7 +1129,7 @@ public class CommonParts {
 				.build());
 	}
 
-	public void assertCertificates(JsonObject softwareCertificates) {
+	public void assertCertificates(JsonElement softwareCertificates) {
 		validator.assertField(softwareCertificates, CommonFields.getOrganisationId());
 
 		validator.assertField(softwareCertificates,

@@ -1,0 +1,8 @@
+{
+    "number1": 1.1,
+    "double1": 1.1,
+    "int1": 11,
+    "intArray1": [11, 21, 31],
+    "numberArray1": [1.2, 2.22, 3.1,2000],
+    "stringArray1": ["s","s2"]
+}

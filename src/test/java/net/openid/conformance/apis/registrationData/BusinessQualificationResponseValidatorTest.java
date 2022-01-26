@@ -2,6 +2,7 @@ package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.BusinessQualificationResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,8 @@ public class BusinessQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWithMissingField() {
 		BusinessQualificationResponseValidator condition = new BusinessQualificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("currency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("currency",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +33,8 @@ public class BusinessQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWrongEnum() {
 		BusinessQualificationResponseValidator condition = new BusinessQualificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("frequency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("frequency",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -39,7 +42,9 @@ public class BusinessQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWrongRegexp() {
 		BusinessQualificationResponseValidator condition = new BusinessQualificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("date")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("date",
+				condition.getApiName())));
 	}
 
 	@Test
@@ -47,7 +52,8 @@ public class BusinessQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWrongMaximum() {
 		BusinessQualificationResponseValidator condition = new BusinessQualificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaximum("year")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaximum("year",
+			condition.getApiName())));
 	}
 
 	@Test

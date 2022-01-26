@@ -1,9 +1,10 @@
 package net.openid.conformance.openbanking_brasil.productsNServices.loans;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
@@ -54,7 +55,7 @@ public class BusinessLoansValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		setLogOnlyFailure();
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
 			data -> assertField(data, new ObjectField.Builder("brand").setValidator(

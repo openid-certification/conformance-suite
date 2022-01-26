@@ -2,6 +2,7 @@ package net.openid.conformance.apis.paymentInitiation;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureWithWrongEnum() {
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("rejectionReason")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("rejectionReason", condition.getApiName())));
 	}
 
 	@Test
@@ -38,7 +39,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureWithMissField() {
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("statusUpdateDateTime")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("statusUpdateDateTime", condition.getApiName())));
 	}
 
 	@Test
@@ -46,7 +47,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureWithWrongRegexp() {
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("ispb")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("ispb", condition.getApiName())));
 	}
 
 	@Test
@@ -75,7 +76,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureMANUBad(){
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("transactionIdentification", condition.getApiName())));
 	}
 
 	@Test
@@ -83,7 +84,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureDICTBad(){
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("transactionIdentification", condition.getApiName())));
 	}
 
 	@Test
@@ -91,7 +92,7 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 	public void validateStructureINICBad(){
 		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("transactionIdentification")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("transactionIdentification", condition.getApiName())));
 	}
 
 }

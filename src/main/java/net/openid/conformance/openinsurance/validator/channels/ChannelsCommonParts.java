@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.validator.channels;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;

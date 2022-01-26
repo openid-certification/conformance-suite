@@ -1,9 +1,10 @@
 package net.openid.conformance.openbanking_brasil.opendata.capitalizationBonds;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -36,7 +37,7 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 
 		assertField(body,
 			new ObjectArrayField.Builder("data")

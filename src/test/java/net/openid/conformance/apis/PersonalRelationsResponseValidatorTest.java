@@ -1,6 +1,7 @@
 package net.openid.conformance.apis;
 
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.PersonalRelationsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class PersonalRelationsResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithMissingField() {
 		PersonalRelationsResponseValidator condition = new PersonalRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("branchCode");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("branchCode", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -31,7 +32,7 @@ public class PersonalRelationsResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithWrongPattern() {
 		PersonalRelationsResponseValidator condition = new PersonalRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createFieldValueNotMatchPatternMessage("startDate");
+		String expected = ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("startDate", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -40,7 +41,7 @@ public class PersonalRelationsResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithWrongMaxItems() {
 		PersonalRelationsResponseValidator condition = new PersonalRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createArrayIsMoreThanMaxItemsMessage("productsServicesType");
+		String expected = ErrorMessagesUtils.createArrayIsMoreThanMaxItemsMessage("productsServicesType", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

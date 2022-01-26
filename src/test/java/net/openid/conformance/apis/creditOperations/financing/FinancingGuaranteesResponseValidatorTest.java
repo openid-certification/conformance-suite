@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.financing;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingGuaranteesResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,9 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 	public void validateStructureWithMissingField() {
 		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("warrantySubType")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("warrantySubType",
+				condition.getApiName())));
 	}
 
 	@Test
@@ -38,7 +41,9 @@ public class FinancingGuaranteesResponseValidatorTest extends AbstractJsonRespon
 	public void validateStructureWithWrongEnum() {
 		FinancingGuaranteesResponseValidator condition = new FinancingGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantyType")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
+				"warrantyType", condition.getApiName())));
 	}
 
 	@Test

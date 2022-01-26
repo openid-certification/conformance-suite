@@ -2,6 +2,7 @@ package net.openid.conformance.apis.account;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.account.AccountIdentificationResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class AccountIdentificationResponseValidatorTest extends AbstractJsonResp
 		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createElementNotFoundMessage("currency")));
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("currency", condition.getApiName())));
 	}
 
 	@Test
@@ -33,7 +34,7 @@ public class AccountIdentificationResponseValidatorTest extends AbstractJsonResp
 		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("number")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("number", condition.getApiName())));
 	}
 
 	@Test
@@ -42,6 +43,6 @@ public class AccountIdentificationResponseValidatorTest extends AbstractJsonResp
 		AccountIdentificationResponseValidator condition = new AccountIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("type", condition.getApiName())));
 	}
 }

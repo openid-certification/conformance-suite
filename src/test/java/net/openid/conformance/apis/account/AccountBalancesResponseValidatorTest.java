@@ -2,6 +2,7 @@ package net.openid.conformance.apis.account;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.account.AccountBalancesResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class AccountBalancesResponseValidatorTest extends AbstractJsonResponseCo
 	public void validateStructureWithMissingField() {
 		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("blockedAmount");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("blockedAmount", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -32,7 +33,7 @@ public class AccountBalancesResponseValidatorTest extends AbstractJsonResponseCo
 	public void validateStructureWithWrongRegexp() {
 		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createFieldValueNotMatchPatternMessage("blockedAmountCurrency");
+		String expected = ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("blockedAmountCurrency", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

@@ -11,14 +11,14 @@ public class Utils {
 	/**
 	 * @param fieldName Use "", if map is not inner field;
 	 */
-	public static void convertJsonMapToJsonArray(JsonObject body, String fieldName) {
+	public static void convertJsonMapToJsonArray(JsonElement body, String fieldName) {
 		JsonArray array = new JsonArray();
 		JsonObject temp = null;
 		if (fieldName.equals("")) {
 			temp = body.getAsJsonObject();
 			fieldName = "data";
 		} else {
-			temp =  body.get(fieldName).getAsJsonObject();
+			temp =  body.getAsJsonObject().get(fieldName).getAsJsonObject();
 		}
 		for (Map.Entry<String, JsonElement> entry : temp.entrySet()) {
 			array.add(entry.getValue());

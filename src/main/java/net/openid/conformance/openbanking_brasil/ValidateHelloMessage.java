@@ -2,10 +2,10 @@ package net.openid.conformance.openbanking_brasil;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAdditionalAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateHelloMessage extends AbstractJsonAssertingCondition {
+public class ValidateHelloMessage extends AbstractJsonAdditionalAssertingCondition {
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response")

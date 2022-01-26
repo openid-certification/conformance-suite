@@ -1,6 +1,6 @@
 package net.openid.conformance.raidiam.validators.organisationsExport;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.raidiam.validators.Utils;
@@ -26,7 +26,7 @@ public class GetOrganisationsExportSnapshotByOrganisationIdValidator extends Get
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject snapshot = bodyFrom(environment);
+		JsonElement snapshot = bodyFrom(environment);
 
 		assertField(snapshot,
 			new ObjectField

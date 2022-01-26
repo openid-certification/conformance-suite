@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
@@ -56,7 +56,7 @@ public class ErrorValidator extends AbstractJsonAssertingCondition {
 			log("Check status stored is same as response: " + environment.getInteger("resource_endpoint_response_status").toString());
 			return response;
 		} else {
-			return bodyFrom(environment);
+			return bodyFrom(environment).getAsJsonObject();
 		}
 	}
 

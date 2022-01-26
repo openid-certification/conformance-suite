@@ -15,9 +15,9 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Investments - Treasure API test plan",
+	testPlanName = "Investments - Treasure Titles API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Investments - Treasure API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Investments - Treasure Titles API - based on Swagger version: 1.0.0",
 	summary = "Structural and logical tests for Investments API"
 )
 public class GetTreasureTestPlan implements TestPlan {
@@ -31,15 +31,15 @@ public class GetTreasureTestPlan implements TestPlan {
 	}
 
 	@PublishTestModule(
-		testName = "Investments - Treasure API test module",
-		displayName = "Validate structure of Investments Treasure response",
-		summary = "Validate structure of Investments Treasure response",
+		testName = "Investments - Treasure Titles API test module",
+		displayName = "Validate structure of Investments Treasure Titles response",
+		summary = "Validate structure of Investments Treasure Titles response",
 		profile = OBBProfile.OBB_PROFIlE_PHASE4
 	)
 	public static class TreasureTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override
 		protected void runTests() {
-			runInBlock("Validate Investments Treasure response", () -> {
+			runInBlock("Validate Investments Treasure Titles response", () -> {
 				callAndStopOnFailure(PrepareInvestmentsUrl.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);

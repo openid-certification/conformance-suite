@@ -2,6 +2,7 @@ package net.openid.conformance.apis.productsNServices.accounts;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.productsNServices.accounts.BusinessAccountsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,8 +31,8 @@ public class BusinessAccountsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongPattern() {
 		BusinessAccountsValidator condition = new BusinessAccountsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchPatternMessage("rate")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchPatternMessage("rate", condition.getApiName())));
 	}
 
 	@Test
@@ -39,8 +40,8 @@ public class BusinessAccountsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongEnum() {
 		BusinessAccountsValidator condition = new BusinessAccountsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchEnumerationMessage("type")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchEnumerationMessage("type", condition.getApiName())));
 	}
 
 	@Test
@@ -48,8 +49,8 @@ public class BusinessAccountsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureMoreMaxItems() {
 		BusinessAccountsValidator condition = new BusinessAccountsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsMoreThanMaxItemsMessage("openingClosingChannels")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsMoreThanMaxItemsMessage("openingClosingChannels", condition.getApiName())));
 	}
 
 	@Test
@@ -57,7 +58,7 @@ public class BusinessAccountsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureLessMinItems() {
 		BusinessAccountsValidator condition = new BusinessAccountsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsLessThanMaxItemsMessage("openingClosingChannels")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsLessThanMaxItemsMessage("openingClosingChannels", condition.getApiName())));
 	}
 }
