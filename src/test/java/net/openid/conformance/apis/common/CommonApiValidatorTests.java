@@ -2,6 +2,7 @@ package net.openid.conformance.apis.common;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.common.GetOutagesValidator;
 import net.openid.conformance.openbanking_brasil.common.GetStatusValidator;
 import net.openid.conformance.util.UseResurce;
@@ -24,7 +25,7 @@ public class CommonApiValidatorTests extends AbstractJsonResponseConditionUnitTe
 	public void validateGetOutagesValidatorWithMissingField() {
 		GetOutagesValidator condition = new GetOutagesValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("duration");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("duration", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -40,7 +41,7 @@ public class CommonApiValidatorTests extends AbstractJsonResponseConditionUnitTe
 	public void validateGetStatusValidatorWithMissingField() {
 		GetStatusValidator condition = new GetStatusValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("explanation");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("explanation", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

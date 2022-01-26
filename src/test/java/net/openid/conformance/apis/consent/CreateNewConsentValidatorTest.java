@@ -2,6 +2,7 @@ package net.openid.conformance.apis.consent;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
 //import net.openid.conformance.openbanking_brasil.consents.CreateNewConsentValidatorWithError;
@@ -27,7 +28,7 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithMissingExpirationDateTimeField() {
 		CreateNewConsentValidator condition = new CreateNewConsentValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("expirationDateTime");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("expirationDateTime", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -36,7 +37,7 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithMissingField() {
 		CreateNewConsentValidator condition = new CreateNewConsentValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("permissions");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("permissions", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 
 	}
@@ -46,7 +47,8 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithWrongRegexp() {
 		ConsentDetailsIdentifiedByConsentIdValidator condition = new ConsentDetailsIdentifiedByConsentIdValidator();
 		ConditionError error = runAndFail(condition);
-		Assert.assertThat(error.getMessage(), StringContains.containsString(condition.createFieldValueNotMatchPatternMessage("creationDateTime")));
+		Assert.assertThat(error.getMessage(), StringContains.containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("creationDateTime",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -54,7 +56,8 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithWrongEnum() {
 		ConsentDetailsIdentifiedByConsentIdValidator condition = new ConsentDetailsIdentifiedByConsentIdValidator();
 		ConditionError error = runAndFail(condition);
-		Assert.assertThat(error.getMessage(), StringContains.containsString(condition.createFieldValueNotMatchEnumerationMessage("permissions")));
+		Assert.assertThat(error.getMessage(), StringContains.containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("permissions",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -62,7 +65,8 @@ public class CreateNewConsentValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithTooLongExpiration() {
 		CreateNewConsentValidator condition = new CreateNewConsentValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createFieldValueIsOlderThanLimit("expirationDateTime");
+		String expected = ErrorMessagesUtils.createFieldValueIsOlderThanLimit("expirationDateTime",
+			condition.getApiName());
 		Assert.assertThat(error.getMessage(), containsString(expected));
 	}
 

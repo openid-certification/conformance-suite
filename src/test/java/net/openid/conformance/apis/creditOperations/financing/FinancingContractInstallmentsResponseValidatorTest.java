@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.financing;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractInstallmentsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,9 @@ public class FinancingContractInstallmentsResponseValidatorTest extends Abstract
 	public void validateStructureWithMissingField() {
 		FinancingContractInstallmentsResponseValidator condition = new FinancingContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("pastDueInstalments")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("pastDueInstalments",
+				condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +34,8 @@ public class FinancingContractInstallmentsResponseValidatorTest extends Abstract
 	public void validateStructureWrongEnum() {
 		FinancingContractInstallmentsResponseValidator condition = new FinancingContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("typeNumberOfInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("typeNumberOfInstalments",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -39,6 +43,7 @@ public class FinancingContractInstallmentsResponseValidatorTest extends Abstract
 	public void validateStructureWrongMaxLength() {
 		FinancingContractInstallmentsResponseValidator condition = new FinancingContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("totalNumberOfInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("totalNumberOfInstalments",
+			condition.getApiName())));
 	}
 }

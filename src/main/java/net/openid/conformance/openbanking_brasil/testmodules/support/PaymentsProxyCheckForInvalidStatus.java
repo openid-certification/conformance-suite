@@ -1,13 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 
 public class PaymentsProxyCheckForInvalidStatus extends AbstractJsonAssertingCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		
+
 		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
 
 		if (checkStatus) {

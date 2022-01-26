@@ -2,6 +2,7 @@ package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.PersonalIdentificationResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class PersonalIdentificationResponseValidatorTest extends AbstractJsonRes
 	public void validateStructureWithMissingField() {
 		PersonalIdentificationResponseValidator condition = new PersonalIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("sex");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("sex", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -41,7 +42,7 @@ public class PersonalIdentificationResponseValidatorTest extends AbstractJsonRes
 		PersonalIdentificationResponseValidator condition = new PersonalIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("birthDate")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("birthDate", condition.getApiName())));
 	}
 
 	@Test
@@ -50,8 +51,8 @@ public class PersonalIdentificationResponseValidatorTest extends AbstractJsonRes
 		PersonalIdentificationResponseValidator condition = new PersonalIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage(
-				"countryCode")));
+			containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage(
+				"countryCode", condition.getApiName())));
 	}
 
 	@Test
@@ -60,7 +61,7 @@ public class PersonalIdentificationResponseValidatorTest extends AbstractJsonRes
 		PersonalIdentificationResponseValidator condition = new PersonalIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage("sex")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("sex", condition.getApiName())));
 	}
 
 	@Test
@@ -69,6 +70,7 @@ public class PersonalIdentificationResponseValidatorTest extends AbstractJsonRes
 		PersonalIdentificationResponseValidator condition = new PersonalIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createCoordinateIsNotWithinAllowedAreaMessage("latitude")));
+			containsString(ErrorMessagesUtils.createCoordinateIsNotWithinAllowedAreaMessage(
+				"latitude", condition.getApiName())));
 	}
 }

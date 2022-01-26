@@ -2,6 +2,7 @@ package net.openid.conformance.apis.admin;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.admin.GetMetricsAdminApiValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,8 @@ public class AdminApiValidatorTest extends AbstractJsonResponseConditionUnitTest
 	public void validateStructureWithMissingField() {
 		GetMetricsAdminApiValidator condition = new GetMetricsAdminApiValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("requestTime");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("requestTime",
+			condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

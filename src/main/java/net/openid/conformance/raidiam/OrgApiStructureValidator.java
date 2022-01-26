@@ -1,16 +1,16 @@
 package net.openid.conformance.raidiam;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAdditionalAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class OrgApiStructureValidator extends AbstractJsonAssertingCondition {
+public class OrgApiStructureValidator extends AbstractJsonAdditionalAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject response = bodyFrom(environment);
+		JsonElement response = bodyFrom(environment);
 
 		assertJsonField(response, "$.OrgDetails.OrganisationId", "e1ebedfc-7600-46af-a30a-180a1e6f49c1");
 		assertJsonField(response, "$.OrgDetails.Status", "Active");

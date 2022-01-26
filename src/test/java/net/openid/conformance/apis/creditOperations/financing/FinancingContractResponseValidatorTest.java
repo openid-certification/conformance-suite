@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.financing;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingContractResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,8 @@ public class FinancingContractResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithMissingField() {
 		FinancingContractResponseValidator condition = new FinancingContractResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("feeRate")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("feeRate", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +33,9 @@ public class FinancingContractResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWrongEnum() {
 		FinancingContractResponseValidator condition = new FinancingContractResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
+				"productType", condition.getApiName())));
 	}
 
 	@Test
@@ -39,6 +43,8 @@ public class FinancingContractResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWrongPattern() {
 		FinancingContractResponseValidator condition = new FinancingContractResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("currency")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("currency",
+				condition.getApiName())));
 	}
 }

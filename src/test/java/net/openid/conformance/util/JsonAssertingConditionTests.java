@@ -2,6 +2,7 @@ package net.openid.conformance.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Option;
@@ -11,7 +12,8 @@ import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAdditionalAssertingCondition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -26,7 +28,9 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class JsonAssertingConditionTests {
 
@@ -170,7 +174,7 @@ public class JsonAssertingConditionTests {
 		Environment environment = new Environment();
 		environment.putObject("response", object);
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 
 			@Override
 			public Environment evaluate(Environment env) {
@@ -204,7 +208,7 @@ public class JsonAssertingConditionTests {
 		Environment environment = new Environment();
 		environment.putObject("response", object);
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 
 			@Override
 			public Environment evaluate(Environment env) {
@@ -240,7 +244,7 @@ public class JsonAssertingConditionTests {
 
 			@Override
 			public Environment evaluate(Environment env) {
-				JsonObject object = bodyFrom(environment);
+				JsonElement object = bodyFrom(environment);
 
 				assertField(object,
 					new DoubleField

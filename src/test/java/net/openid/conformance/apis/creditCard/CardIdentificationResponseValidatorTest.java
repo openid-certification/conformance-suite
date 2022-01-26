@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CardIdentificationResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class CardIdentificationResponseValidatorTest extends AbstractJsonRespons
 	public void validateStructureWithMissingField() {
 		CardIdentificationResponseValidator condition = new CardIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("isMultipleCreditCard")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("isMultipleCreditCard", condition.getApiName())));
 	}
 
 	@Test
@@ -31,13 +32,13 @@ public class CardIdentificationResponseValidatorTest extends AbstractJsonRespons
 	public void validateStructureWithWrongRegexp() {
 		CardIdentificationResponseValidator condition = new CardIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("identificationNumber")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("identificationNumber", condition.getApiName())));
 	}
 	@Test
 	@UseResurce("jsonResponses/creditCard/cardIdentification/cardIdentificationResponseWrongEnum.json")
 	public void validateStructureWithWrongEnum() {
 		CardIdentificationResponseValidator condition = new CardIdentificationResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("productType", condition.getApiName())));
 	}
 }

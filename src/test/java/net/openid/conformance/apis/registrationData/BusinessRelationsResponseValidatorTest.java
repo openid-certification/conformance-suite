@@ -2,6 +2,7 @@ package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.BusinessRelationsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class BusinessRelationsResponseValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithMissingFieldOK() {
 		BusinessRelationsResponseValidator condition = new BusinessRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("type")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("type", condition.getApiName())));
 	}
 
 	@Test
@@ -32,7 +33,7 @@ public class BusinessRelationsResponseValidatorTest extends AbstractJsonResponse
 		BusinessRelationsResponseValidator condition = new BusinessRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("number")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("number", condition.getApiName())));
 	}
 
 	@Test
@@ -41,8 +42,8 @@ public class BusinessRelationsResponseValidatorTest extends AbstractJsonResponse
 		BusinessRelationsResponseValidator condition = new BusinessRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage(
-				"productsServicesType")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
+				"productsServicesType", condition.getApiName())));
 	}
 
 	@Test
@@ -51,8 +52,8 @@ public class BusinessRelationsResponseValidatorTest extends AbstractJsonResponse
 		BusinessRelationsResponseValidator condition = new BusinessRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsMoreThanMaxItemsMessage(
-				"productsServicesType")));
+			containsString(ErrorMessagesUtils.createArrayIsMoreThanMaxItemsMessage(
+				"productsServicesType", condition.getApiName())));
 	}
 
 	@Test
@@ -61,7 +62,7 @@ public class BusinessRelationsResponseValidatorTest extends AbstractJsonResponse
 		BusinessRelationsResponseValidator condition = new BusinessRelationsResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"accounts")));
+			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
+				"accounts", condition.getApiName())));
 	}
 }

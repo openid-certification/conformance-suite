@@ -2,6 +2,7 @@ package net.openid.conformance.openinsurance.productsNServices;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openinsurance.validator.productsNServices.GetPersonValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,7 +31,8 @@ public class PersonValidatorTest extends AbstractJsonResponseConditionUnitTest {
 	public void validateStructureWrongEnumInStringArray() {
 		GetPersonValidator condition = new GetPersonValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createFieldValueNotMatchEnumerationMessage("indemnityPaymentMethod");
+		String expected = ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
+			"indemnityPaymentMethod", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 }

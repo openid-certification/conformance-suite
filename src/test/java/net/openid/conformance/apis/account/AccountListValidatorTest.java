@@ -2,6 +2,7 @@ package net.openid.conformance.apis.account;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 		ConditionError error = runAndFail(condition);
 
 		// We make sure it is the error we're expecting
-		assertThat(error.getMessage(),  containsString(condition.createElementNotFoundMessage("accountId")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils.createElementNotFoundMessage("accountId", condition.getApiName())));
 
 	}
 
@@ -43,8 +44,8 @@ public class AccountListValidatorTest extends AbstractJsonResponseConditionUnitT
 
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"data")));
+			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
+				"data", condition.getApiName())));
 	}
 
 }

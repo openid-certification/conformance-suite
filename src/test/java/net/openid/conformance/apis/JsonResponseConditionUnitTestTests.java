@@ -2,7 +2,8 @@ package net.openid.conformance.apis;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAdditionalAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.UseResurce;
@@ -34,7 +35,7 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 	@Test
 	public void appliesCondition() {
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
 				assertJsonField(bodyFrom(environment), "$.message", "This is a simple json document");
@@ -51,10 +52,10 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 
 		setHeaders("X-Fake-Header", "present");
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
-				JsonObject headers = headersFrom(environment);
+				JsonObject headers = environment.getObject("resource_endpoint_response_headers");
 				assertJsonField(headers, "X-Fake-Header", "present");
 				return environment;
 			}
@@ -69,10 +70,10 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 
 		setHeaders("X-Fake-Header", "present", "forsure");
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
-				JsonObject headers = headersFrom(environment);
+				JsonObject headers = environment.getObject("resource_endpoint_response_headers");
 				assertJsonField(headers, "X-Fake-Header", "present", "forsure");
 				return environment;
 			}
@@ -87,7 +88,7 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 
 		setStatus(502);
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
 				assertStatus(502, environment);
@@ -145,7 +146,7 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 	@Test
 	public void assertsRegexes() {
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
 				assertJsonField(bodyFrom(environment), "$.fixedString", RegexMatch.regex("^[a-z0-9]+$"));
@@ -161,7 +162,7 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 	@Test(expected = AssertionError.class)
 	public void regexFailsIfNoMatch() {
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
 				assertJsonField(bodyFrom(environment), "$.fixedString", RegexMatch.regex("^MATCH$"));
@@ -176,7 +177,7 @@ public class JsonResponseConditionUnitTestTests extends AbstractJsonResponseCond
 	@Test(expected = AssertionError.class)
 	public void regexFailsIfNotNumberOrString() {
 
-		AbstractJsonAssertingCondition condition = new AbstractJsonAssertingCondition() {
+		AbstractJsonAdditionalAssertingCondition condition = new AbstractJsonAdditionalAssertingCondition() {
 			@Override
 			public Environment evaluate(Environment environment) {
 				assertJsonField(bodyFrom(environment), "$.bool", RegexMatch.regex("^[a-z0-9]+$"));

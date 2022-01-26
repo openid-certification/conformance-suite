@@ -1,10 +1,9 @@
 package net.openid.conformance.apis;
 
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.account.AccountBalancesResponseValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.UseResurce;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -15,16 +14,16 @@ import java.nio.file.Paths;
 
 public class OverrideJsonResourceTests extends AbstractJsonResponseConditionUnitTest {
 
-	@UseResurce("jsonResponses/account/accountListResponse.json")
+	@UseResurce("jsonResponses/account/balances/accountBalancesResponse.json")
 	@Test
 	public void canOverrideResource() throws URISyntaxException {
 
-		AccountListValidator condition = new AccountListValidator() {
+		AccountBalancesResponseValidator condition = new AccountBalancesResponseValidator() {
 
 			@Override
 			public Environment evaluate(Environment environment) {
 				environment = super.evaluate(environment);
-				assertJsonField(bodyFrom(environment), "$.data[0].brandName", "Overridden JSON file");
+				assertJsonField(bodyFrom(environment), "$.links.self", "Overridden JSON file");
 				return environment;
 			}
 		};
@@ -35,7 +34,7 @@ public class OverrideJsonResourceTests extends AbstractJsonResponseConditionUnit
 
 	@BeforeClass
 	public static void setupProperties() throws URISyntaxException {
-		URL res = OverrideJsonResourceTests.class.getClassLoader().getResource("jsonResponses/overriddenAccountList.json");
+		URL res = OverrideJsonResourceTests.class.getClassLoader().getResource("jsonResponses/overriddenAccountBalances.json");
 		File file = Paths.get(res.toURI()).toFile();
 		String absolutePath = file.getAbsolutePath();
 		System.setProperty("resource.override", absolutePath);

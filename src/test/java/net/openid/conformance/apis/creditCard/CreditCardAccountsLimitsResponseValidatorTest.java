@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsLimitsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class CreditCardAccountsLimitsResponseValidatorTest extends AbstractJsonR
 	public void validateStructureWithMissingField() {
 		CreditCardAccountsLimitsResponseValidator condition = new CreditCardAccountsLimitsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("consolidationType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("consolidationType", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class CreditCardAccountsLimitsResponseValidatorTest extends AbstractJsonR
 	public void validateStructureWrongEnum() {
 		CreditCardAccountsLimitsResponseValidator condition = new CreditCardAccountsLimitsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("creditLineLimitType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("creditLineLimitType", condition.getApiName())));
 	}
 
 	@Test
@@ -39,7 +40,7 @@ public class CreditCardAccountsLimitsResponseValidatorTest extends AbstractJsonR
 	public void validateStructureWrongPattern() {
 		CreditCardAccountsLimitsResponseValidator condition = new CreditCardAccountsLimitsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("limitAmount")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("limitAmount", condition.getApiName())));
 	}
 
 

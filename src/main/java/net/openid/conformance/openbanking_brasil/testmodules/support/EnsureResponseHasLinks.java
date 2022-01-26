@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.StringField;
 
@@ -13,7 +13,7 @@ public class EnsureResponseHasLinks extends AbstractJsonAssertingCondition {
 
 		JsonObject body;
     	try {
-    		body = bodyFrom(environment);
+    		body = bodyFrom(environment).getAsJsonObject();
 		} catch(JsonSyntaxException e) {
     		body = environment.getObject("resource_endpoint_response");
 		}

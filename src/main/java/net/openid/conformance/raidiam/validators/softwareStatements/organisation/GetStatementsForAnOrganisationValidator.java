@@ -1,10 +1,9 @@
 package net.openid.conformance.raidiam.validators.softwareStatements.organisation;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * Api endpoint: GET /organisations/{OrganisationId}/softwarestatements
@@ -19,15 +18,8 @@ public class GetStatementsForAnOrganisationValidator extends PostStatementsForAn
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
-
-		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(parts::assertSoftwareDetails)
-				.setOptional()
-				.build());
-
+		JsonElement body = bodyFrom(environment);
+		parts.assertSoftwareDetails(body);
 		return environment;
 	}
 }

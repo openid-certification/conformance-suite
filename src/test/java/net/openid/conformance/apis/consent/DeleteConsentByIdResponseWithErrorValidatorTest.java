@@ -2,6 +2,7 @@ package net.openid.conformance.apis.consent;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.consent.DeleteConsentByIdResponseWithErrorValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,6 +24,7 @@ public class DeleteConsentByIdResponseWithErrorValidatorTest extends AbstractJso
 	public void validateStructureWithMissingField() {
 		DeleteConsentByIdResponseWithErrorValidator condition = new DeleteConsentByIdResponseWithErrorValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("detail")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("detail", condition.getApiName())));
 	}
 }

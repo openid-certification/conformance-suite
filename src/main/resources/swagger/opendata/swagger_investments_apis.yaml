@@ -20,13 +20,13 @@ servers:
 tags:
     - name: Funds
       description: Método para obter a lista de Fundos de Investimentos
-    - name: Fixed Income Bank
+    - name: Bank Fixed Incomes
       description: 'Método para obter a lista de produtos de Renda Fixa Bancária (CDB, RDB, LCI e LCA)'
-    - name: Fixed Income Credit
+    - name: Credit Fixed Incomes
       description: 'Método para obter a lista de produtos de Renda Fixa Crédito (Debênture, CRI e CRA)'
-    - name: Variable Income
+    - name: Variable Incomes
       description: Método para obter a lista de informações de produtos de Renda Variável (Ações e Fundos de Índices)
-    - name: Treasure
+    - name: Treasure Titles
       description: Método para obter informações de Títulos do Tesouro Direto
 paths:
     /funds:
@@ -52,10 +52,10 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-    /fixed-income-bank:
+    /bank-fixed-incomes:
         get:
             tags:
-                - Fixed Income Bank
+                - Bank Fixed Incomes
             summary: 'Conjunto de informações de produtos de Renda Fixa Bancária (CDB, RDB, LCI e LCA)'
             operationId: investmentsGetFixedIncomeBank
             description: 'Método para obter a lista de produtos de Renda Fixa Bancária (CDB, RDB, LCI e LCA)'
@@ -75,10 +75,10 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-    /fixed-income-credit:
+    /credit-fixed-incomes:
         get:
             tags:
-                - Fixed Income Credit
+                - Credit Fixed Incomes
             summary: 'Conjunto de informações de produtos de Renda Fixa Crédito (Debênture, CRI e CRA)'
             operationId: investmentsGetFixedIncomeCredit
             description: 'Método para obter a lista de produtos de Renda Fixa Crédito (Debênture, CRI e CRA)'
@@ -98,10 +98,10 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-    /variable-income:
+    /variable-incomes:
         get:
             tags:
-                - Variable Income
+                - Variable Incomes
             summary: Conjunto de informações de produtos de Renda Variável (Ações e Fundos de Índices)
             operationId: investmentsGetVariableIncome
             description: Método para obter a lista de informações de produtos de Renda Variável (Ações e Fundos de Índices)
@@ -121,10 +121,10 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-    /treasure:
+    /treasure-titles:
         get:
             tags:
-                - Treasure
+                - Treasure Titles
             summary: Conjunto de informações de Títulos do Tesouro Direto
             operationId: investmentsGetTreasure
             description: Método para obter informações de Títulos do Tesouro Direto
@@ -160,7 +160,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         OKResponseInvestmentsFixedIncomeBank:
             type: object
@@ -176,7 +176,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         OKResponseInvestmentsFixedIncomeCredit:
             type: object
@@ -192,7 +192,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         OKResponseInvestmentsVariableIncome:
             type: object
@@ -208,7 +208,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         OKResponseInvestmentsTreasure:
             type: object
@@ -224,58 +224,21 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
-        FrequencyDistribution:
+        InvestmentsFrequencyDistribution:
             type: object
             description: Distribuição por frequência.
             required:
-                - name
-                - code
-                - chargingTriggerInfo
                 - prices
                 - minimum
                 - maximum
             properties:
-                name:
-                    type: string
-                    description: Nome do serviço
-                    maxLength: 200
-                    example: NA
-                code:
-                    type: string
-                    description: Código de identificação do serviço.
-                    maxLength: 200
-                    example: NA
-                chargingTriggerInfo:
-                    type: string
-                    description: Fatos geradores de cobrança.
-                    maxLength: 200
-                    example: NA
                 prices:
                     type: array
                     description: Distribuição dos preços.
                     items:
-                        type: object
-                        required:
-                            - interval
-                            - value
-                            - customerRate
-                        properties:
-                            interval:
-                                $ref: '#/components/schemas/EnumInterval'
-                            value:
-                                type: string
-                                description: Mediana.
-                                example: '0.020300'
-                                maxLength: 8
-                                pattern: '^\d{1}\.\d{1,6}$'
-                            customerRate:
-                                type: string
-                                description: Percentual de clientes.
-                                example: '0.500000'
-                                maxLength: 8
-                                pattern: '^\d{1}\.\d{1,6}$'
+                        $ref: '#/components/schemas/InvestmentsFrequencyDistributionPrice'
                     minItems: 4
                     maxItems: 4
                     example:
@@ -303,17 +266,46 @@ components:
                     maxLength: 8
                     pattern: '^\d{1}\.\d{1,6}$'
                     example: '0.300000'
+        InvestmentsFrequencyDistributionPrice:
+            type: object
+            required:
+                - interval
+                - value
+                - customerRate
+            properties:
+                interval:
+                    $ref: '#/components/schemas/EnumInterval'
+                value:
+                    type: string
+                    description: Mediana.
+                    example: '0.020300'
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
+                customerRate:
+                    type: string
+                    description: Percentual de clientes.
+                    example: '0.500000'
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
         InvestmentsFixedIncomeBank:
             type: object
             required:
-                - productIdentification
+                - participant
+                - issuerInstitutionCnpjNumber
+                - investimentType
                 - index
                 - investmentConditions
             properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/InvestmentsParticipantIdentification'
-                productIdentification:
-                    $ref: '#/components/schemas/InvestmentsFixedIncomeBankProductIdentification'
+                participant:
+                    $ref: '#/components/schemas/Participant'
+                issuerInstitutionCnpjNumber:
+                    type: string
+                    description: CNPJ da instituição emissora.
+                    maxLength: 14
+                    pattern: '^\d{14}$'
+                    example: '45086338000178'
+                investimentType:
+                    $ref: '#/components/schemas/EnumInvestmentsFixedIncomeBankProductType'
                 index:
                     $ref: '#/components/schemas/InvestmentsFixedIncomeBankIndex'
                 investmentConditions:
@@ -333,8 +325,26 @@ components:
                     maxLength: 50
                     example: Dólar
                 issueRemunerationRate:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
             additionalProperties: false
+        InvestimentFundMinimumAmount:
+            type: object
+            required:
+                - value
+                - currency
+            properties:
+                value:
+                    type: string
+                    description: Valor mínimo do primeiro aporte.
+                    minLength: 4
+                    maxLength: 19
+                    pattern: '^\d{1,16}\.\d{2}$'
+                    example: '100000.12'
+                currency:
+                    type: string
+                    pattern: '^[A-Z]{3}$'
+                    description: 'Moeda referente ao valor da transação, segundo modelo ISO-4217. p.ex. ''BRL''<br>Todos os saldos informados estão representados com a moeda vigente do Brasil'
+                    example: BRL
         InvestmentsFixedIncomeBankInvestmentConditions:
             type: object
             required:
@@ -379,173 +389,36 @@ components:
                     minimum: 0
                     example: 180
             additionalProperties: false
-        InvestmentsFixedIncomeBankProductIdentification:
-            type: object
-            required:
-                - issuerInstitutionCNPJ
-                - productType
-            properties:
-                issuerInstitutionCNPJ:
-                    type: string
-                    description: CNPJ da instituição emissora.
-                    maxLength: 14
-                    pattern: '^\d{14}$'
-                    example: '45086338000178'
-                productType:
-                    $ref: '#/components/schemas/EnumInvestmentsFixedIncomeBankProductType'
-            additionalProperties: false
         InvestmentsFixedIncomeCredit:
-            type: object
-            required:
-                - fees
-            properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/InvestmentsParticipantIdentification'
-                fees:
-                    $ref: '#/components/schemas/InvestmentsFixedIncomeCreditFees'
-            additionalProperties: false
-        InvestmentsFixedIncomeCreditFees:
             type: object
             required:
                 - investmentType
                 - custodyFee
                 - loadingRate
             properties:
+                participant:
+                    $ref: '#/components/schemas/Participant'
                 investmentType:
                     $ref: '#/components/schemas/EnumInvestmentsFixedIncomeCreditInvestmentType'
                 custodyFee:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
                 loadingRate:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
             additionalProperties: false
         InvestmentsFund:
             type: object
             required:
-                - participantIdentification
-                - product
-                - fees
-                - generalConditions
-                - taxation
-            properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/InvestmentsParticipantIdentification'
-                product:
-                    $ref: '#/components/schemas/InvestmentsFundProduct'
-                fees:
-                    $ref: '#/components/schemas/InvestmentsFundFees'
-                generalConditions:
-                    $ref: '#/components/schemas/InvestmentsFundGeneralConditions'
-                taxation:
-                    $ref: '#/components/schemas/EnumInvestmentsFundTaxation'
-            additionalProperties: false
-        InvestmentsFundFees:
-            type: object
-            properties:
-                maxAdminFee:
-                    type: string
-                    description: 'Taxa máxima cobrada para remunerar o administrador e os demais prestadores de serviços do fundo. Caso não haja a difererença de Máximo e Mínimo, considerar a taxa de administração do fundo.'
-                    minLength: 3
-                    maxLength: 8
-                    pattern: '^\d{1}\.\d{1,6}$'
-                    example: '0.020000'
-                entryFee:
-                    type: string
-                    description: 'Taxa cobrada no momento da aplicação, que incide sobre o valor investido no fundo.'
-                    minLength: 3
-                    maxLength: 8
-                    pattern: '^\d{1}\.\d{1,6}$'
-                    example: '0.010000'
-                performanceFeeMethod:
-                    $ref: '#/components/schemas/EnumInvestmentsFundFeesPerformanceFeeMethod'
-                performanceFeeBenchmark:
-                    $ref: '#/components/schemas/EnumInvestmentsFundFeesPerformanceFeeBenchmark'
-                performanceFeeBenchmarkAdditionalInfo:
-                    type: string
-                    description: Campo a ser preenchido pelas participantes quando houver ‘Outros’ no campo ‘Taxa de Performance - Benchmark’.
-                performanceFeeAmount:
-                    type: string
-                    description: Taxa cobrada do fundo em função de resultado conforme regras dispostas no regulamento do fundo.
-                    minLength: 3
-                    maxLength: 8
-                    pattern: '^\d{1}\.\d{1,6}$'
-                    example: '0.050000'
-                exitFee:
-                    type: string
-                    description: Taxa paga pelo cotista ao resgatar recursos de um fundo.
-                    minLength: 3
-                    maxLength: 8
-                    pattern: '^\d{1}\.\d{1,6}$'
-                    example: '0.030000'
-            additionalProperties: false
-        InvestmentsFundGeneralConditions:
-            type: object
-            required:
-                - minimumAmount
-                - currency
-                - redemptionQuotationDays
-                - redemptionQuotationTerm
-                - redemptionPaymentTerm
-                - redemptionGraceDays
-                - applicationQuotationTerm
-                - applicationQuotationPeriod
-                - fundQuotaType
-            properties:
-                minimumAmount:
-                    type: string
-                    description: Valor mínimo do primeiro aporte.
-                    minLength: 4
-                    maxLength: 19
-                    pattern: '^\d{1,16}\.\d{2}$'
-                    example: '100000.12'
-                currency:
-                    type: string
-                    description: 'Moeda referente ao valor mínimo de aplicação, segundo modelo ISO-4217. p.ex.''BRL''.'
-                    maxLength: 3
-                    example: BRL
-                redemptionQuotationDays:
-                    type: integer
-                    format: int32
-                    description: Prazo em dias indicada no regulamento do fundo para a conversão das cotas em dinheiro.
-                    minimum: 0
-                    example: 3
-                redemptionQuotationTerm:
-                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
-                redemptionPaymentTerm:
-                    type: integer
-                    format: int32
-                    description: 'Prazo em dias do efetivo pagamento, pelo fundo, do valor líquido devido ao cotista que efetuou pedido de resgate.'
-                    minimum: 0
-                    example: 3
-                redemptionGraceDays:
-                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
-                applicationQuotationDays:
-                    type: integer
-                    format: int32
-                    description: 'Indica se o fundo estabelece um período em que o investidor não pode resgatar os recursos aplicados no fundo. Caso ocorra resgate antes do período, o investidor perderá a rentabilidade do período.'
-                    minimum: 0
-                    example: 60
-                applicationQuotationTerm:
-                    type: integer
-                    format: int32
-                    description: Prazo em dias de cotização da aplicação.
-                    minimum: 0
-                    example: 3
-                applicationQuotationPeriod:
-                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
-                fundQuotaType:
-                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsFundQuotaType'
-            additionalProperties: false
-        InvestmentsFundProduct:
-            type: object
-            required:
+                - participant
                 - name
                 - cnpjNumber
                 - admin
-                - adminCnpjNumber
                 - fundManager
-                - fundManagerCnpjNumber
                 - anbimaCategory
+                - generalConditions
+                - taxation
             properties:
+                participant:
+                    $ref: '#/components/schemas/Participant'
                 name:
                     type: string
                     description: Nome oficial do fundo de investimento.
@@ -564,77 +437,187 @@ components:
                     pattern: '^[A-Z]{2}([A-Z0-9]){9}\d{1}$'
                     example: BRAAAAAAA000
                 admin:
+                    $ref: '#/components/schemas/InvestmentsFundAdmin'
+                fundManager:
+                    $ref: '#/components/schemas/InvestmentsFundFundManager'
+                anbimaCategory:
+                    $ref: '#/components/schemas/EnumInvestmentsFundProductAnbimaCategory'
+                fees:
+                    $ref: '#/components/schemas/InvestmentsFundFees'
+                generalConditions:
+                    $ref: '#/components/schemas/InvestmentsFundGeneralConditions'
+                taxation:
+                    $ref: '#/components/schemas/EnumInvestmentsFundTaxation'
+            additionalProperties: false
+        InvestmentsFundAdmin:
+            required:
+                - name
+                - cnpjNumber
+            properties:
+                name:
                     type: string
                     description: Razão social da pessoa jurídica autorizada pela CVM para o exercício de administrador de carteiras de valores mobiliários e responsável pela administração do fundo.
                     maxLength: 100
                     example: ADM OPEN BANKING DTVM S.A.
-                adminCnpjNumber:
+                cnpjNumber:
                     type: string
                     description: CNPJ do administrador.
                     maxLength: 14
                     pattern: '^\d{14}$'
                     example: '14511732000150'
-                fundManager:
+        InvestmentsFundFundManager:
+            required:
+                - name
+                - cnpjNumber
+            properties:
+                name:
                     type: string
                     description: Pessoa natural ou jurídica responsável pela gestão profissional dos ativos da carteira de valores mobiliários autorizado pela CVM.
                     maxLength: 100
                     example: GESTOR OPEN BANKING DTVM S.A.
-                fundManagerCnpjNumber:
+                cnpjNumber:
                     type: string
                     description: CNPJ do gestor do fundo de investimento.
                     maxLength: 14
                     pattern: '^\d{14}$'
                     example: '16332711000101'
-                anbimaCategory:
-                    $ref: '#/components/schemas/EnumInvestmentsFundProductAnbimaCategory'
+        InvestmentsFundFees:
+            type: object
+            properties:
+                maxAdminFee:
+                    type: string
+                    description: 'Taxa máxima cobrada para remunerar o administrador e os demais prestadores de serviços do fundo. Caso não haja a difererença de Máximo e Mínimo, considerar a taxa de administração do fundo.'
+                    minLength: 3
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
+                    example: '0.020000'
+                entryFee:
+                    type: string
+                    description: 'Taxa cobrada no momento da aplicação, que incide sobre o valor investido no fundo.'
+                    minLength: 3
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
+                    example: '0.010000'
+                performanceFee:
+                    $ref: '#/components/schemas/InvestmentsFundFeesPerformanceFee'
+                exitFee:
+                    type: string
+                    description: Taxa paga pelo cotista ao resgatar recursos de um fundo.
+                    minLength: 3
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
+                    example: '0.030000'
+            additionalProperties: false
+        InvestmentsFundFeesPerformanceFee:
+            type: object
+            properties:
+                method:
+                    $ref: '#/components/schemas/EnumInvestmentsFundFeesPerformanceFeeMethod'
+                benchmark:
+                    $ref: '#/components/schemas/EnumInvestmentsFundFeesPerformanceFeeBenchmark'
+                benchmarkAdditionalInfo:
+                    type: string
+                    description: Campo a ser preenchido pelas participantes quando houver ‘Outros’ no campo ‘Taxa de Performance - Benchmark’.
+                amount:
+                    type: string
+                    description: Taxa cobrada do fundo em função de resultado conforme regras dispostas no regulamento do fundo.
+                    minLength: 3
+                    maxLength: 8
+                    pattern: '^\d{1}\.\d{1,6}$'
+                    example: '0.050000'
+        InvestmentsFundGeneralConditionsRedemption:
+            type: object
+            required:
+                - quotationDays
+                - quotationTerm
+                - paymentDays
+                - paymentTerm
+            properties:
+                quotationDays:
+                    type: integer
+                    format: int32
+                    description: Prazo em dias indicada no regulamento do fundo para a conversão das cotas em dinheiro.
+                    minimum: 0
+                    example: 3
+                quotationTerm:
+                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
+                paymentDays:
+                    type: integer
+                    format: int32
+                    description: 'Prazo em dias do efetivo pagamento, pelo fundo, do valor líquido devido ao cotista que efetuou pedido de resgate.'
+                    example: 3
+                    minimum: 0
+                paymentTerm:
+                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
+                graceDays:
+                    type: integer
+                    format: int32
+                    description: 'Estabelece um período em quantidade de dias corridos em que o investidor não pode resgatar os recursos aplicados no fundo. Caso ocorra resgate antes do período, o investidor perderá a rentabilidade do período. Caso não exista, não informe o campo.'
+                    minimum: 0
+                    example: 60
+        InvestmentsFundGeneralConditionsApplication:
+            type: object
+            required:
+                - quotationDays
+                - quotationTerm
+            properties:
+                quotationDays:
+                    type: integer
+                    format: int32
+                    description: 'Indica se o fundo estabelece um período em que o investidor não pode resgatar os recursos aplicados no fundo. Caso ocorra resgate antes do período, o investidor perderá a rentabilidade do período.'
+                    minimum: 0
+                    example: 60
+                quotationTerm:
+                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsTermType'
+        InvestmentsFundGeneralConditions:
+            type: object
+            required:
+                - minimumAmount
+                - currency
+                - redemption
+                - application
+                - fundQuotaType
+            properties:
+                minimumAmount:
+                    $ref: '#/components/schemas/InvestimentFundMinimumAmount'
+                redemption:
+                    $ref: '#/components/schemas/InvestmentsFundGeneralConditionsRedemption'
+                application:
+                    $ref: '#/components/schemas/InvestmentsFundGeneralConditionsApplication'
+                fundQuotaType:
+                    $ref: '#/components/schemas/EnumInvestmentsFundGeneralConditionsFundQuotaType'
             additionalProperties: false
         InvestmentsTreasure:
             type: object
             required:
-                - fees
-            properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/InvestmentsParticipantIdentification'
-                fees:
-                    $ref: '#/components/schemas/InvestmentsTreasureFees'
-            additionalProperties: false
-        InvestmentsTreasureFees:
-            type: object
-            required:
                 - investmentType
                 - custodyFee
                 - loadingRate
             properties:
+                participant:
+                    $ref: '#/components/schemas/Participant'
                 investmentType:
                     $ref: '#/components/schemas/EnumInvestmentsTreasureInvestmentType'
                 custodyFee:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
                 loadingRate:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
             additionalProperties: false
         InvestmentsVariableIncome:
             type: object
             required:
-                - fees
-            properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/InvestmentsParticipantIdentification'
-                fees:
-                    $ref: '#/components/schemas/InvestmentsVariableIncomeFees'
-            additionalProperties: false
-        InvestmentsVariableIncomeFees:
-            type: object
-            required:
                 - investmentType
                 - custodyFee
                 - loadingRate
             properties:
+                participant:
+                    $ref: '#/components/schemas/Participant'
                 investmentType:
                     $ref: '#/components/schemas/EnumInvestmentsVariableIncomeInvestmentType'
                 custodyFee:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
                 loadingRate:
-                    $ref: '#/components/schemas/FrequencyDistribution'
+                    $ref: '#/components/schemas/InvestmentsFrequencyDistribution'
             additionalProperties: false
         EnumInvestmentsFixedIncomeBankIndexer:
             type: string
@@ -669,8 +652,8 @@ components:
             maxLength: 29
             enum:
                 - DIARIA
-                - NA_DATA_DE_VENCIMENTO
-                - DIARIA_APOS_PRAZO_DE_CARENCIA
+                - DATA_VENCIMENTO
+                - DIARIA_APOS_PRAZO_CARENCIA
             example: DIARIA
         EnumInvestmentsFixedIncomeCreditInvestmentType:
             type: string
@@ -699,7 +682,8 @@ components:
                 - IBOVESPA_MEDIO
                 - IRF_M
                 - IMA_GERAL
-                - INPCIGP_M
+                - INPC
+                - IGP_M
                 - SMLL_SMALL_CAP
                 - IDA_IPCA
                 - ISE
@@ -715,25 +699,24 @@ components:
             example: CDI
         EnumInvestmentsFundFeesPerformanceFeeMethod:
             type: string
-            description: Metodologia do campo para taxa de performance.<br><ol><li>Passivo</li><li>Ativo</li><li>Ajuste</li><li>Outros</li></ol>
+            description: Metodologia do campo para taxa de performance.<br><ol><li>Passivo</li><li>Ativo</li><li>Ajuste</li></ol>
             maxLength: 7
             enum:
                 - PASSIVO
                 - ATIVO
                 - AJUSTE
-                - OUTROS
             example: PASSIVO
         EnumInvestmentsFundGeneralConditionsFundQuotaType:
             type: string
             description: Referente a incidência de tributos sobre o produto de investimento&#58;<br><br><ol><li>Cota de abertura</li><li>Cota de fechamento</li></ol>
             maxLength: 18
             enum:
-                - COTA_DE_ABERTURA
-                - COTA_DE_FECHAMENTO
-            example: COTA_DE_ABERTURA
+                - COTA_ABERTURA
+                - COTA_FECHAMENTO
+            example: COTA_ABERTURA
         EnumInvestmentsFundGeneralConditionsTermType:
             type: string
-            description: Período em dias corridos ou dias úteis do prazo de cotização de resgate.<br><br><ol><li>Dias corridos</li><li>Dias úteis</li></ol>
+            description: Período em dias corridos ou dias úteis do prazo de cotização.<br><br><ol><li>Dias corridos</li><li>Dias úteis</li></ol>
             maxLength: 13
             enum:
                 - DIAS_CORRIDOS
@@ -771,9 +754,9 @@ components:
             maxLength: 16
             enum:
                 - ACOES
-                - FUNDO_DE_INDICES
+                - FUNDO_INDICES
             example: ACOES
-        InvestmentsParticipantIdentification:
+        Participant:
             type: object
             description: Conjunto de informações relativas ao participante do produto de open banking
             required:
@@ -854,13 +837,12 @@ components:
                     example: 'https://api.banco.com.br/open-banking/api/v1/resource'
                     pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
             additionalProperties: false
-        Meta:
+        Phase4Meta:
             type: object
             description: Meta informações referente à API requisitada.
             required:
                 - totalRecords
                 - totalPages
-                - requestDateTime
             properties:
                 totalRecords:
                     type: integer
@@ -872,12 +854,6 @@ components:
                     format: int32
                     description: Número total de páginas no resultado
                     example: 1
-                requestDateTime:
-                    description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
-                    type: string
-                    maxLength: 20
-                    format: date-time
-                    example: '2021-05-21T08:30:00Z'
             additionalProperties: false
     parameters:
         page:
@@ -985,7 +961,30 @@ components:
                                             maxLength: 2048
                                     additionalProperties: false
                             meta:
-                                $ref: '#/components/schemas/Meta'
+                                type: object
+                                description: Meta informações referente a API requisitada.
+                                required:
+                                    - totalRecords
+                                    - totalPages
+                                    - requestDateTime
+                                properties:
+                                    totalRecords:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de registros no resultado
+                                        example: 1
+                                    totalPages:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de páginas no resultado
+                                        example: 1
+                                    requestDateTime:
+                                        description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                                        type: string
+                                        maxLength: 20
+                                        format: date-time
+                                        example: '2021-05-21T08:30:00Z'
+                                additionalProperties: false
                         additionalProperties: false
         TooManyRequests:
             description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'

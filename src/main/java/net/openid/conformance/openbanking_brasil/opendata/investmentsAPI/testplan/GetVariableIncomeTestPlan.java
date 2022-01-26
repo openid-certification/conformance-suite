@@ -15,9 +15,9 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Investments - Variable Income API test plan",
+	testPlanName = "Investments - Variable Incomes API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Investments - Variable Income API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Investments - Variable Incomes API - based on Swagger version: 1.0.0",
 	summary = "Structural and logical tests for Investments API"
 )
 public class GetVariableIncomeTestPlan implements TestPlan {
@@ -31,15 +31,15 @@ public class GetVariableIncomeTestPlan implements TestPlan {
 	}
 
 	@PublishTestModule(
-		testName = "Investments - Variable Income API test module",
-		displayName = "Validate structure of Investments Variable Income response",
-		summary = "Validate structure of Investments Variable Income response",
+		testName = "Investments - Variable Incomes API test module",
+		displayName = "Validate structure of Investments Variable Incomes response",
+		summary = "Validate structure of Investments Variable Incomes response",
 		profile = OBBProfile.OBB_PROFIlE_PHASE4
 	)
 	public static class VariableIncomeTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override
 		protected void runTests() {
-			runInBlock("Validate Investments Variable Income response", () -> {
+			runInBlock("Validate Investments Variable Incomes response", () -> {
 				callAndStopOnFailure(PrepareInvestmentsUrl.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);

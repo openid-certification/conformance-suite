@@ -3,5 +3,6 @@
     "double1": 2.09,
     "int1": 1,
     "intArray1": [3, 2, 4],
-    "numberArray1": [1.2, 2.2, 3]
+    "numberArray1": [1.2, 2.2, 3],
+    "stringArray1": ["s","s2"]
 }
