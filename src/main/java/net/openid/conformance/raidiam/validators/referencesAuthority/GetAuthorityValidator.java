@@ -1,10 +1,9 @@
 package net.openid.conformance.raidiam.validators.referencesAuthority;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * Api url: ****
@@ -23,14 +22,8 @@ public class GetAuthorityValidator extends PostAuthorityValidator {
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
-		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(parts::assertAuthority)
-				.setOptional()
-				.build());
-
+		JsonElement body = bodyFrom(environment);
+		parts.assertAuthority(body);
 		return environment;
 	}
 }

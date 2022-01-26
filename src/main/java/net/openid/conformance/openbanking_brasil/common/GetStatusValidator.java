@@ -1,8 +1,9 @@
 package net.openid.conformance.openbanking_brasil.common;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.DatetimeField;
@@ -26,7 +27,7 @@ public class GetStatusValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 		assertField(body,
 			new ObjectField
 				.Builder("data")

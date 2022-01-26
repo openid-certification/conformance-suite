@@ -1,9 +1,8 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -12,8 +11,8 @@ public class EnsureConsentWasRejected extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
-		JsonObject consentResponse = bodyFrom(env);
-		if (!consentResponse.entrySet().isEmpty()) {
+		JsonElement consentResponse = bodyFrom(env);
+		if (!consentResponse.getAsJsonObject().entrySet().isEmpty()) {
 			JsonElement statusElement = findByPath(consentResponse, "$.data.status");
 			String status = OIDFJSON.getString(statusElement);
 			if (!status.equals("REJECTED")) {

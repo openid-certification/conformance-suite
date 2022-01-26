@@ -23,13 +23,16 @@ tags:
     - name: BusinessAcquiringServices
       description: Operações para obter as informações de Credenciamento para Pessoa Jurídica.
 paths:
-    /personal-acquiring-services:
+    /personals:
         get:
             tags:
                 - PersonalAcquiringServices
             summary: Conjunto de informações de Credenciamento para Pessoa Física.
             operationId: getPersonalAcquiringServices
             description: Método para disponibilizar as taxas e tarifas por serviços.
+            parameters:
+                - $ref: '#/components/parameters/page'
+                - $ref: '#/components/parameters/pageSize'
             responses:
                 '200':
                     $ref: '#/components/responses/OKResponseAcquiringServices'
@@ -43,13 +46,16 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-    /business-acquiring-services:
+    /businesses:
         get:
             tags:
                 - BusinessAcquiringServices
             summary: Conjunto de informações de Credenciamento para Pessoa Jurídica.
             operationId: getBusinessAcquiringServices
             description: Método para disponibilizar as taxas e tarifas por serviços.
+            parameters:
+                - $ref: '#/components/parameters/page'
+                - $ref: '#/components/parameters/pageSize'
             responses:
                 '200':
                     $ref: '#/components/responses/OKResponseAcquiringServices'
@@ -73,11 +79,13 @@ components:
                 - meta
             properties:
                 data:
-                    $ref: '#/components/schemas/AcquiringServicesContractData'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AcquiringServicesContractData'
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         Links:
             type: object
@@ -121,13 +129,12 @@ components:
                     example: 'https://api.banco.com.br/open-banking/api/v1/resource'
                     pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
             additionalProperties: false
-        Meta:
+        Phase4Meta:
             type: object
             description: Meta informações referente à API requisitada.
             required:
                 - totalRecords
                 - totalPages
-                - requestDateTime
             properties:
                 totalRecords:
                     type: integer
@@ -139,14 +146,8 @@ components:
                     format: int32
                     description: Número total de páginas no resultado
                     example: 1
-                requestDateTime:
-                    description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
-                    type: string
-                    maxLength: 20
-                    format: date-time
-                    example: '2021-05-21T08:30:00Z'
             additionalProperties: false
-        AcquiringServicesParticipantIdentification:
+        Participant:
             type: object
             description: Conjunto de informações relativas ao participante do produto de open banking
             required:
@@ -175,59 +176,6 @@ components:
                     pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
                     example: 'https://empresaa1.com/companies'
             additionalProperties: false
-        FeesAndRatesForService:
-            type: object
-            required:
-                - feeName
-                - code
-                - prices
-                - chargingTriggerInfo
-                - minimum
-                - maximum
-            properties:
-                feeName:
-                    $ref: '#/components/schemas/EnumAcquiringServicesFeeName'
-                code:
-                    $ref: '#/components/schemas/EnumAcquiringServicesCode'
-                prices:
-                    type: array
-                    minItems: 4
-                    maxItems: 4
-                    items:
-                        $ref: '#/components/schemas/Price'
-                    example:
-                        - interval: 1_FAIXA
-                          value: '0.0203'
-                          customerRate: '0.5000'
-                        - interval: 2_FAIXA
-                          value: '0.0306'
-                          customerRate: '0.1000'
-                        - interval: 3_FAIXA
-                          value: '0.0343'
-                          customerRate: '0.3000'
-                        - interval: 4_FAIXA
-                          value: '0.2468'
-                          customerRate: '0.1000'
-                chargingTriggerInfo:
-                    type: string
-                    maxLength: 200
-                    example: NA
-                    description: |
-                        Recebimento através de transação de cartão.
-                minimum:
-                    type: string
-                    minLength: 1
-                    maxLength: 999999
-                    pattern: '^\d{1}\.\d{1,4}$'
-                    description: Valor mínimo
-                    example: '2.0'
-                maximum:
-                    type: string
-                    minLength: 1
-                    maxLength: 999999
-                    pattern: '^\d{1}\.\d{1,4}$'
-                    description: Valor máximo
-                    example: '5.0'
         EnumAcquiringServicesFeeName:
             type: string
             description: |
@@ -236,9 +184,9 @@ components:
                   2. Taxa de Desconto na Modalidade Débito
             maxLength: 38
             enum:
-                - TAXA_DE_DESCONTO_NA_MODALIDADE_CREDITO
-                - TAXA_DE_DESCONTO_NA_MODALIDADE_DEBITO
-            example: TAXA_DE_DESCONTO_NA_MODALIDADE_CREDITO
+                - TAXA_DESCONTO_MODALIDADE_CREDITO
+                - TAXA_DESCONTO_MODALIDADE_DEBITO
+            example: TAXA_DESCONTO_MODALIDADE_CREDITO
         EnumAcquiringServicesCode:
             type: string
             description: Sigla da Tarifa cobrada sobre o Serviço de Credenciamento informado.
@@ -284,18 +232,80 @@ components:
             type: object
             description: Conjunto de informações referentes às informações de credenciamento
             required:
-                - participantIdentification
-                - name
+                - participant
+                - feeName
                 - code
+                - prices
                 - chargingTriggerInfo
+                - minimum
+                - maximum
             properties:
-                participantIdentification:
-                    $ref: '#/components/schemas/AcquiringServicesParticipantIdentification'
-                feesAndRatesForService:
+                participant:
+                    $ref: '#/components/schemas/Participant'
+                feeName:
+                    $ref: '#/components/schemas/EnumAcquiringServicesFeeName'
+                code:
+                    $ref: '#/components/schemas/EnumAcquiringServicesCode'
+                prices:
                     type: array
+                    minItems: 4
+                    maxItems: 4
                     items:
-                        $ref: '#/components/schemas/FeesAndRatesForService'
+                        $ref: '#/components/schemas/Price'
+                    example:
+                        - interval: 1_FAIXA
+                          value: '0.0203'
+                          customerRate: '0.5000'
+                        - interval: 2_FAIXA
+                          value: '0.0306'
+                          customerRate: '0.1000'
+                        - interval: 3_FAIXA
+                          value: '0.0343'
+                          customerRate: '0.3000'
+                        - interval: 4_FAIXA
+                          value: '0.2468'
+                          customerRate: '0.1000'
+                chargingTriggerInfo:
+                    type: string
+                    maxLength: 200
+                    example: NA
+                    description: |
+                        Recebimento através de transação de cartão.
+                minimum:
+                    type: string
+                    minLength: 1
+                    maxLength: 999999
+                    pattern: '^\d{1}\.\d{1,4}$'
+                    description: Valor mínimo
+                    example: '2.0'
+                maximum:
+                    type: string
+                    minLength: 1
+                    maxLength: 999999
+                    pattern: '^\d{1}\.\d{1,4}$'
+                    description: Valor máximo
+                    example: '5.0'
             additionalProperties: false
+    parameters:
+        page:
+            name: page
+            in: query
+            description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+                format: int32
+        pageSize:
+            name: page-size
+            in: query
+            description: Quantidade total de registros por páginas.
+            schema:
+                type: integer
+                default: 25
+                minimum: 1
+                format: int32
+                maximum: 1000
     responses:
         OKResponseAcquiringServices:
             description: Dados de operações de credenciamento obtidos com sucesso.
@@ -346,7 +356,30 @@ components:
                                             maxLength: 2048
                                     additionalProperties: false
                             meta:
-                                $ref: '#/components/schemas/Meta'
+                                type: object
+                                description: Meta informações referente a API requisitada.
+                                required:
+                                    - totalRecords
+                                    - totalPages
+                                    - requestDateTime
+                                properties:
+                                    totalRecords:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de registros no resultado
+                                        example: 1
+                                    totalPages:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de páginas no resultado
+                                        example: 1
+                                    requestDateTime:
+                                        description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                                        type: string
+                                        maxLength: 20
+                                        format: date-time
+                                        example: '2021-05-21T08:30:00Z'
+                                additionalProperties: false
                         additionalProperties: false
         MethodNotAllowed:
             description: O consumidor tentou acessar o recurso com um método não suportado

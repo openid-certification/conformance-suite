@@ -360,6 +360,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// it is unusual to catch Error, but if we're running in a background thread and don't catch it, nothing
 			// will appear in the test results - and we want to log errors (e.g. stack overflows) into the test results
 			// so they're easily visible rather than needing to dig through server console logging
+
 			logException(e);
 			logger.error(getId() + ": Generic error from underlying test framework", e);
 			throw new TestFailureException(getId(), e);

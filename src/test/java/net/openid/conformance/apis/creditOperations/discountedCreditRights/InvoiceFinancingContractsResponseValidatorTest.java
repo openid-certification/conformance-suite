@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.discountedCreditRights;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class InvoiceFinancingContractsResponseValidatorTest extends AbstractJson
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("ipocCode")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("ipocCode", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class InvoiceFinancingContractsResponseValidatorTest extends AbstractJson
 	public void validateStructureWrongEnum() {
 		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productSubType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("productSubType", condition.getApiName())));
 	}
 
 	@Test
@@ -39,6 +40,6 @@ public class InvoiceFinancingContractsResponseValidatorTest extends AbstractJson
 	public void validateStructureWrongRegexp() {
 		InvoiceFinancingContractsResponseValidator condition = new InvoiceFinancingContractsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("companyCnpj", condition.getApiName())));
 	}
 }

@@ -2,6 +2,7 @@ package net.openid.conformance.apis.channels;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.channels.BankingAgentsChannelValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,9 @@ public class BankingAgentsChannelValidatorTest extends AbstractJsonResponseCondi
 	public void validateStructureWithMissingField() {
 		BankingAgentsChannelValidator condition = new BankingAgentsChannelValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("cnpjNumber")));
+		assertThat(error.getMessage(),
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("cnpjNumber",
+				condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +34,8 @@ public class BankingAgentsChannelValidatorTest extends AbstractJsonResponseCondi
 	public void validateStructureWithWrongEnum() {
 		BankingAgentsChannelValidator condition = new BankingAgentsChannelValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("weekday")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("weekday",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -39,6 +43,7 @@ public class BankingAgentsChannelValidatorTest extends AbstractJsonResponseCondi
 	public void validateStructureWithWrongMaxLength() {
 		BankingAgentsChannelValidator condition = new BankingAgentsChannelValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("additionalInfo")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("additionalInfo",
+			condition.getApiName())));
 	}
 }

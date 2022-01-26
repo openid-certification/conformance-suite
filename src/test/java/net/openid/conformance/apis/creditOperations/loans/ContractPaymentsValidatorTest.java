@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.loans;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.ContractPaymentsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class ContractPaymentsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithMissingField() {
 		ContractPaymentsValidator condition = new ContractPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("currency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("currency", condition.getApiName())));
 	}
 
 	@Test
@@ -30,7 +31,7 @@ public class ContractPaymentsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongEnum() {
 		ContractPaymentsValidator condition = new ContractPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("chargeType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("chargeType", condition.getApiName())));
 	}
 
 	@Test
@@ -38,7 +39,7 @@ public class ContractPaymentsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongRegexp() {
 		ContractPaymentsValidator condition = new ContractPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("paidDate")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("paidDate", condition.getApiName())));
 	}
 
 	@Test
@@ -46,6 +47,6 @@ public class ContractPaymentsValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongMaxLength() {
 		ContractPaymentsValidator condition = new ContractPaymentsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments", condition.getApiName())));
 	}
 }

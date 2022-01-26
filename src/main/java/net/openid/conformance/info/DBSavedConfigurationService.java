@@ -21,7 +21,6 @@ import com.mongodb.DBObject;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 
 @Service
 public class DBSavedConfigurationService implements SavedConfigurationService {
@@ -66,11 +65,11 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
             String consentUrl = OIDFJSON.getString(getByPath(config, "$.resource.consentUrl"));
 
 			if ( consentUrl.toLowerCase().indexOf(imdsUrl.toLowerCase()) != -1 ) {
-				throw new IllegalStateException("Bad URL");			 
+				throw new IllegalStateException("Bad URL");
 			}
 
 			if ( consentUrl.toLowerCase().indexOf("http://") != -1 ) {
-				throw new IllegalStateException("Bad URL - only https is allowed");			 
+				throw new IllegalStateException("Bad URL - only https is allowed");
 			}
         }
 
@@ -113,11 +112,11 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
             String consentUrl = OIDFJSON.getString(getByPath(config, "$.resource.consentUrl"));
 
 			if ( consentUrl.toLowerCase().indexOf(imdsUrl.toLowerCase()) != -1 ) {
-				throw new IllegalStateException("Bad URL");			 
+				throw new IllegalStateException("Bad URL");
 			}
 
 			if ( consentUrl.toLowerCase().indexOf("http://") != -1 ) {
-				throw new IllegalStateException("Bad URL - only https is allowed");			 
+				throw new IllegalStateException("Bad URL - only https is allowed");
 			}
         }
 

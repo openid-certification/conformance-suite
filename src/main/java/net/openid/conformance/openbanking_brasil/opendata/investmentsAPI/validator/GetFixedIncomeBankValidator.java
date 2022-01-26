@@ -1,9 +1,10 @@
 package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -15,25 +16,25 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_investments_apis.yaml
- * Api endpoint: /fixed-income-bank
- * Git hash:
+ * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_investments_apis.yaml
+ * Api endpoint: /bank-fixed-incomes
+ * Git hash: c90e531a2693825fe55fd28a076367cefcb01ad8
  */
 
-@ApiName("Investments Fixed Income Bank")
+@ApiName("Investments Bank Fixed Incomes")
 public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
 
-	private static final Set<String> PRODUCT_TYPE = Sets.newHashSet("CDB","RDB","LCI","LCA");
-	private static final Set<String> REDEMPTION_TERM = Sets.newHashSet("DIARIA","NA_DATA_DE_VENCIMENTO","DIARIA_APOS_PRAZO_DE_CARENCIA");
-	private static final Set<String> INDEXER = Sets.newHashSet("CDI","DI","TR","IPCA","IGP_M","IGP_DI","INPC","BCP","TLC","SELIC","OUTROS");
-	private static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA","2_FAIXA","3_FAIXA","4_FAIXA");
+	private static final Set<String> PRODUCT_TYPE = Sets.newHashSet("CDB", "RDB", "LCI", "LCA");
+	private static final Set<String> REDEMPTION_TERM = Sets.newHashSet("DIARIA", "DATA_DE_VENCIMENTO", "DIARIA_APOS_PRAZO_DE_CARENCIA");
+	private static final Set<String> INDEXER = Sets.newHashSet("CDI", "DI", "TR", "IPCA", "IGP_M", "IGP_DI", "INPC", "BCP", "TLC", "SELIC", "OUTROS");
+	private static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 
 		assertField(body,
 			new ObjectArrayField
@@ -48,29 +49,22 @@ public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition 
 	private void assertData(JsonObject data) {
 		assertField(data,
 			new ObjectField
-				.Builder("participantIdentification")
-				.setValidator(this::assertParticipantIdentification)
-				.setOptional()
+				.Builder("participant")
+				.setValidator(this::assertParticipant)
 				.build());
 
 		assertField(data,
-			new ObjectField
-				.Builder("productIdentification")
-				.setValidator(productIdentification -> {
-					assertField(productIdentification,
-						new StringField
-							.Builder("issuerInstitutionCNPJ")
-							.setMaxLength(14)
-							.setPattern("^\\d{14}$")
-							.build());
+			new StringField
+				.Builder("issuerInstitutionCnpjNumber")
+				.setMaxLength(14)
+				.setPattern("^\\d{14}$")
+				.build());
 
-					assertField(productIdentification,
-						new StringField
-							.Builder("productType")
-							.setMaxLength(3)
-							.setEnums(PRODUCT_TYPE)
-							.build());
-				})
+		assertField(data,
+			new StringField
+				.Builder("investimentType")
+				.setMaxLength(3)
+				.setEnums(PRODUCT_TYPE)
 				.build());
 
 		assertField(data,
@@ -80,7 +74,7 @@ public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition 
 					assertField(index,
 						new StringField
 							.Builder("indexer")
-							.setMaxLength(3)
+							.setMaxLength(6)
 							.setEnums(INDEXER)
 							.build());
 
@@ -148,15 +142,6 @@ public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition 
 	}
 
 	private void assertIssueRemunerationRate(JsonObject issueRemunerationRate) {
-		assertField(issueRemunerationRate, Fields.name().setMaxLength(200).build());
-		assertField(issueRemunerationRate, Fields.code().setMaxLength(200).build());
-
-		assertField(issueRemunerationRate,
-			new StringField
-				.Builder("chargingTriggerInfo")
-				.setMaxLength(200)
-				.build());
-
 		assertField(issueRemunerationRate,
 			new ObjectArrayField
 				.Builder("prices")
@@ -203,7 +188,7 @@ public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition 
 				.build());
 	}
 
-	private void assertParticipantIdentification(JsonObject participantIdentification) {
+	private void assertParticipant(JsonObject participantIdentification) {
 		assertField(participantIdentification,
 			new StringField
 				.Builder("brand")

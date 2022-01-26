@@ -1,8 +1,9 @@
 package net.openid.conformance.openbanking_brasil.account;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAdditionalAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.DoubleField;
@@ -14,18 +15,18 @@ import net.openid.conformance.util.field.StringField;
  *  * Api git hash: f14f533cf29fdcef0a3ad38e2f49e1f31c5ab7b2
  **/
 @ApiName("Account Balances")
-public class AccountBalancesResponseValidator extends AbstractJsonAssertingCondition {
+public class AccountBalancesResponseValidator extends AbstractJsonAdditionalAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertInnerFields(body);
 		return environment;
 	}
 
-	private void assertInnerFields(JsonObject body) {
+	private void assertInnerFields(JsonElement body) {
 
 		JsonObject data = findByPath(body, "$.data").getAsJsonObject();
 

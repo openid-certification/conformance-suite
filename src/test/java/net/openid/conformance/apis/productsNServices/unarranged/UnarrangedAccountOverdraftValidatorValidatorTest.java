@@ -2,6 +2,7 @@ package net.openid.conformance.apis.productsNServices.unarranged;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.productsNServices.unarrangedAccountOverdraft.UnarrangedAccountPersonalOverdraftValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,8 +31,8 @@ public class UnarrangedAccountOverdraftValidatorValidatorTest extends AbstractJs
 	public void validateStructureWrongPattern() {
 		UnarrangedAccountPersonalOverdraftValidator condition = new UnarrangedAccountPersonalOverdraftValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchPatternMessage("rate")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchPatternMessage("rate", condition.getApiName())));
 	}
 
 	@Test
@@ -39,8 +40,8 @@ public class UnarrangedAccountOverdraftValidatorValidatorTest extends AbstractJs
 	public void validateStructureWrongEnum() {
 		UnarrangedAccountPersonalOverdraftValidator condition = new UnarrangedAccountPersonalOverdraftValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchEnumerationMessage("referentialRateIndexer")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchEnumerationMessage("referentialRateIndexer", condition.getApiName())));
 	}
 
 	@Test
@@ -48,8 +49,8 @@ public class UnarrangedAccountOverdraftValidatorValidatorTest extends AbstractJs
 	public void validateStructureMoreMaxItems() {
 		UnarrangedAccountPersonalOverdraftValidator condition = new UnarrangedAccountPersonalOverdraftValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsMoreThanMaxItemsMessage("applications")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsMoreThanMaxItemsMessage("applications", condition.getApiName())));
 
 	}
 }

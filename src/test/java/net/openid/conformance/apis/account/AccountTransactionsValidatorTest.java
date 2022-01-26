@@ -2,6 +2,7 @@ package net.openid.conformance.apis.account;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -32,8 +33,8 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 	public void validateStructureWithMissingField() {
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage(
-			"partieCheckDigit")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage(
+			"partieCheckDigit", condition.getApiName())));
 	}
 
 	@Test
@@ -42,7 +43,8 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("transactionDate")));
+			containsString(ErrorMessagesUtils
+				.createFieldValueNotMatchPatternMessage("transactionDate", condition.getApiName())));
 	}
 
 	@Test
@@ -52,8 +54,8 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		ConditionError error = runAndFail(condition);
 		// We make sure it is the error we're expecting
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage(
-				"partieCheckDigit")));
+			containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage(
+				"partieCheckDigit", condition.getApiName())));
 	}
 
 	@Test
@@ -62,8 +64,8 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage(
-				"creditDebitType")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
+				"creditDebitType", condition.getApiName())));
 	}
 
 	@Test
@@ -72,8 +74,8 @@ public class AccountTransactionsValidatorTest extends AbstractJsonResponseCondit
 		AccountTransactionsValidator condition = new AccountTransactionsValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"data")));
+			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
+				"data", condition.getApiName())));
 	}
 	// @Test
 	// @UseResurce("jsonResponses/account/transactions/errors/accountTransactionsResponseWithError(BadLinks).json")

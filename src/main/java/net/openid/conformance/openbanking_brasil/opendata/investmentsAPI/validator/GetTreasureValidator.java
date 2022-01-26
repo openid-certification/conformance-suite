@@ -1,9 +1,10 @@
 package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -14,12 +15,12 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_investments_apis.yaml
- * Api endpoint: /treasure
- * Git hash:
+ * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_investments_apis.yaml
+ * Api endpoint: /treasure-titles
+ * Git hash: c90e531a2693825fe55fd28a076367cefcb01ad8
  */
 
-@ApiName("Investments Treasure")
+@ApiName("Investments Treasure Titles")
 public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
@@ -30,7 +31,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 
 		assertField(body,
 			new ObjectArrayField
@@ -45,48 +46,32 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 	private void assertData(JsonObject data) {
 		assertField(data,
 			new ObjectField
-				.Builder("participantIdentification")
-				.setValidator(this::assertParticipantIdentification)
+				.Builder("participant")
+				.setValidator(this::assertParticipant)
 				.setOptional()
 				.build());
 
 		assertField(data,
-			new ObjectField
-				.Builder("fees")
-				.setValidator(fees -> {
-					assertField(fees,
-						new StringField
-							.Builder("investmentType")
-							.setMaxLength(14)
-							.setEnums(INVESTMENT_TYPE)
-							.build());
-
-					assertField(fees,
-						new ObjectField
-							.Builder("custodyFee")
-							.setValidator(this::assertCustodyFee)
-							.build());
-
-					assertField(fees,
-						new ObjectField
-							.Builder("loadingRate")
-							.setValidator(this::assertCustodyFee)
-							.build());
-				})
+			new StringField
+				.Builder("investmentType")
+				.setMaxLength(14)
+				.setEnums(INVESTMENT_TYPE)
 				.build());
 
+		assertField(data,
+			new ObjectField
+				.Builder("custodyFee")
+				.setValidator(this::assertCustodyFee)
+				.build());
+
+		assertField(data,
+			new ObjectField
+				.Builder("loadingRate")
+				.setValidator(this::assertCustodyFee)
+				.build());
 	}
 
 	private void assertCustodyFee(JsonObject custodyFee) {
-		assertField(custodyFee, Fields.name().setMaxLength(200).build());
-		assertField(custodyFee, Fields.code().setMaxLength(200).build());
-
-		assertField(custodyFee,
-			new StringField
-				.Builder("chargingTriggerInfo")
-				.setMaxLength(200)
-				.build());
-
 		assertField(custodyFee,
 			new ObjectArrayField
 				.Builder("prices")
@@ -133,7 +118,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 				.build());
 	}
 
-	private void assertParticipantIdentification(JsonObject participantIdentification) {
+	private void assertParticipant(JsonObject participantIdentification) {
 		assertField(participantIdentification,
 			new StringField
 				.Builder("brand")

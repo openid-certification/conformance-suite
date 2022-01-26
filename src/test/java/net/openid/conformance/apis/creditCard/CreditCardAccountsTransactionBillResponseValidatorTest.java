@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionBillResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class CreditCardAccountsTransactionBillResponseValidatorTest extends Abst
 	public void validateStructureWrongEnum() {
 		CreditCardAccountsTransactionBillResponseValidator condition = new CreditCardAccountsTransactionBillResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("lineName")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("lineName", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class CreditCardAccountsTransactionBillResponseValidatorTest extends Abst
 	public void validateStructureWrongMaxLength() {
 		CreditCardAccountsTransactionBillResponseValidator condition = new CreditCardAccountsTransactionBillResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("payeeMCC")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("payeeMCC", condition.getApiName())));
 	}
 
 	@Test
@@ -39,7 +40,7 @@ public class CreditCardAccountsTransactionBillResponseValidatorTest extends Abst
 	public void validateStructureWrongRegexp() {
 		CreditCardAccountsTransactionBillResponseValidator condition = new CreditCardAccountsTransactionBillResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("billId")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("billId", condition.getApiName())));
 	}
 
 }

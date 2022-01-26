@@ -1,6 +1,6 @@
 package net.openid.conformance.raidiam.validators.authorisationServers.discoveryEndpointsAPI;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 
@@ -13,7 +13,7 @@ public class GetDiscoveryEndpointsByEndpointIDValidator extends PostDiscoveryEnd
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
+		JsonElement body = bodyFrom(environment);
 		assertEndpoints(body);
 		return environment;
 	}

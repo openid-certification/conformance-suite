@@ -1,43 +1,41 @@
 {
-    "data": {
-        "participantIdentification": {
-            "brand": "Organização",
-            "name": "Organização A1",
-            "cnpjNumber": "13456789000112",
-            "urlComplementaryList": "https://empresaa1.com/companies"
-        },
-        "feesAndRatesForService": [
-            {
-                "feeName": "TAXA_DE_DESCONTO_NA_MODALIDADE_CREDITO",
-                "code": "MDR_CREDITO",
-                "prices": [
-                    {
-                        "interval": "1_FAIXA",
-                        "value": "0.0203",
-                        "customerRate": "0.5000"
-                    },
-                    {
-                        "interval": "2_FAIXA",
-                        "value": "0.0306",
-                        "customerRate": "0.1000"
-                    },
-                    {
-                        "interval": "3_FAIXA",
-                        "value": "0.0343",
-                        "customerRate": "0.3000"
-                    },
-                    {
-                        "interval": "4_FAIXA",
-                        "value": "0.2468",
-                        "customerRate": "0.1000"
-                    }
-                ],
-                "chargingTriggerInfo": "NA",
-                "minimum": "2.0",
-                "maximum": "5.0"
-            }
-        ]
-    },
+    "data": [
+        {
+            "participant": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "feeName": "TAXA_DESCONTO_MODALIDADE_CREDITO",
+            "code": "MDR_CREDITO",
+            "prices": [
+                {
+                    "interval": "1_FAIXA",
+                    "value": "0.0203",
+                    "customerRate": "0.5000"
+                },
+                {
+                    "interval": "2_FAIXA",
+                    "value": "0.0306",
+                    "customerRate": "0.1000"
+                },
+                {
+                    "interval": "3_FAIXA",
+                    "value": "0.0343",
+                    "customerRate": "0.3000"
+                },
+                {
+                    "interval": "4_FAIXA",
+                    "value": "0.2468",
+                    "customerRate": "0.1000"
+                }
+            ],
+            "chargingTriggerInfo": "NA",
+            "minimum": "2.0",
+            "maximum": "5.0"
+        }
+    ],
     "links": {
         "self": "https://api.banco.com.br/open-banking/api/v1/resource",
         "first": "https://api.banco.com.br/open-banking/api/v1/resource",
@@ -47,7 +45,6 @@
     },
     "meta": {
         "totalRecords": 1,
-        "totalPages": 1,
-        "requestDateTime": "2021-05-21T08:30:00Z"
+        "totalPages": 1
     }
 }

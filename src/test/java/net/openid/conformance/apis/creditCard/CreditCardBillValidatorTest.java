@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardBillValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -24,7 +25,8 @@ public class CreditCardBillValidatorTest extends AbstractJsonResponseConditionUn
 	public void validateStructureWithMissingField() {
 		CreditCardBillValidator condition = new CreditCardBillValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("currency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("currency",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -32,7 +34,8 @@ public class CreditCardBillValidatorTest extends AbstractJsonResponseConditionUn
 	public void validateStructureWrongEnum() {
 		CreditCardBillValidator condition = new CreditCardBillValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("type",
+			condition.getApiName())));
 	}
 
 	@Test
@@ -40,6 +43,7 @@ public class CreditCardBillValidatorTest extends AbstractJsonResponseConditionUn
 	public void validateStructureWrongPattern() {
 		CreditCardBillValidator condition = new CreditCardBillValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("billTotalAmountCurrency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("billTotalAmountCurrency",
+			condition.getApiName())));
 	}
 }

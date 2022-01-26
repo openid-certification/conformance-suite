@@ -1,8 +1,9 @@
 package net.openid.conformance.openinsurance.validator.admin;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -18,7 +19,7 @@ public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		setLogOnlyFailure();
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 
 		assertField(body, new ObjectField.Builder("data").setValidator(data -> {
 

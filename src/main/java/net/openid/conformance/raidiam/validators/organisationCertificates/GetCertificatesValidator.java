@@ -1,11 +1,10 @@
 package net.openid.conformance.raidiam.validators.organisationCertificates;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * Api endpoint: GET /organisations/{OrganisationId}/certificates
@@ -22,12 +21,8 @@ public class GetCertificatesValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
-		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(parts::assertCertificates)
-				.build());
+		JsonElement body = bodyFrom(environment);
+		parts.assertCertificates(body);
 
 		return environment;
 	}

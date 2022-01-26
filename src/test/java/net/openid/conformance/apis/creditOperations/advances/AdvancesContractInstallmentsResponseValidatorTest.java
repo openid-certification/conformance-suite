@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.advances;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.advances.AdvancesContractInstallmentsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJ
 	public void validateStructureWithMissingField() {
 		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("typeContractRemaining")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("typeContractRemaining", condition.getApiName())));
 	}
 
 
@@ -32,7 +33,7 @@ public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJ
 	public void validateStructureWrongEnum() {
 		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("typeNumberOfInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("typeNumberOfInstalments", condition.getApiName())));
 	}
 
 	@Test
@@ -40,7 +41,7 @@ public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJ
 	public void validateStructureWrongRegexp() {
 		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("dueDate")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("dueDate", condition.getApiName())));
 	}
 
 	@Test
@@ -48,6 +49,6 @@ public class AdvancesContractInstallmentsResponseValidatorTest extends AbstractJ
 	public void validateStructureWrongMaxLength() {
 		AdvancesContractInstallmentsResponseValidator condition = new AdvancesContractInstallmentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments", condition.getApiName())));
 	}
 }

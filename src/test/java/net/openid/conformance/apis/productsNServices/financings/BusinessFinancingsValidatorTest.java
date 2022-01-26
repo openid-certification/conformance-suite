@@ -2,8 +2,8 @@ package net.openid.conformance.apis.productsNServices.financings;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.productsNServices.financings.BusinessFinancingsValidator;
-import net.openid.conformance.openbanking_brasil.productsNServices.financings.PersonalFinancingsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
@@ -31,8 +31,8 @@ public class BusinessFinancingsValidatorTest extends AbstractJsonResponseConditi
 	public void validateStructureWrongPattern() {
 		BusinessFinancingsValidator condition = new BusinessFinancingsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchPatternMessage("rate")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchPatternMessage("rate", condition.getApiName())));
 	}
 
 	@Test
@@ -40,7 +40,7 @@ public class BusinessFinancingsValidatorTest extends AbstractJsonResponseConditi
 	public void validateStructureWrongEnum() {
 		BusinessFinancingsValidator condition = new BusinessFinancingsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchEnumerationMessage("referentialRateIndexer")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchEnumerationMessage("referentialRateIndexer", condition.getApiName())));
 	}
 }

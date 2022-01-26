@@ -2,6 +2,7 @@ package net.openid.conformance.apis.paymentInitiation;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWrongBusinessEntity() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("rel")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("rel", condition.getApiName())));
 	}
 
 	@Test
@@ -38,7 +39,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithWrongEnum() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("type", condition.getApiName())));
 	}
 
 	@Test
@@ -46,7 +47,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithMissField() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("cpfCnpj")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("cpfCnpj", condition.getApiName())));
 	}
 
 	@Test
@@ -54,7 +55,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithWrongRegexp() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("creationDateTime")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("creationDateTime", condition.getApiName())));
 	}
 
 	@Test
@@ -62,7 +63,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithExpirationOld() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldIsntInSecondsRange("expirationDateTime")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldIsntInSecondsRange("expirationDateTime", condition.getApiName())));
 	}
 
 	@Test
@@ -70,7 +71,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithExpirationYoung() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldIsntInSecondsRange("expirationDateTime")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldIsntInSecondsRange("expirationDateTime", condition.getApiName())));
 	}
 
 	@Test
@@ -78,7 +79,7 @@ public class PaymentInitiationConsentValidatorTest extends AbstractJsonResponseC
 	public void validateStructureWithMissingDetails() {
 		PaymentInitiationConsentValidator condition = new PaymentInitiationConsentValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("details")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("details", condition.getApiName())));
 	}
 
 }
