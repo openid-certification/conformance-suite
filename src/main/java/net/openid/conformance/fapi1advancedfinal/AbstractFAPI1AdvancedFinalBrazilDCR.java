@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
@@ -225,18 +226,19 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 	protected void deleteClient() {
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 		// when we just deregistered the client, so prevent cleanup from trying to do so again
-		env.removeNativeValue("registration_client_uri");
-		env.removeNativeValue("registration_access_token");
+		JsonObject client = env.getObject("client");
+		client.remove("registration_client_uri");
+		client.remove("registration_access_token");
 	}
 
 	public void unregisterClient1() {
 		eventLog.startBlock("Unregister dynamically registered client");
 
-		// IF management interface, delete the client to clean up
-		skipIfMissing(new String[]{"client"},
-			new String[]{"registration_client_uri", "registration_access_token"},
-			Condition.ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(Condition.ConditionResult.INFO)
+			.onFail(Condition.ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		eventLog.endBlock();
 	}

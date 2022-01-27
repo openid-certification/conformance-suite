@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -7,10 +8,10 @@ import net.openid.conformance.testmodule.Environment;
 public class CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint extends AbstractCondition {
 
     @Override
-    @PreEnvironment(required = { "registration_client_endpoint_response" }, strings = "registration_access_token")
+    @PreEnvironment(required = { "registration_client_endpoint_response", "client" })
     public Environment evaluate(Environment env) {
 
-		String originalRegistrationAccessToken = env.getString("registration_access_token");
+		String originalRegistrationAccessToken = env.getString("client", "registration_access_token");
 
 		String registrationAccessToken = getStringFromEnvironment(env,
 			"registration_client_endpoint_response",
@@ -20,7 +21,7 @@ public class CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint 
 		if (!registrationAccessToken.equals(originalRegistrationAccessToken)) {
 			// access token has been rotated; this probably isn't recommended but it is allowed (at least for now)
 			// as per https://github.com/OpenBanking-Brasil/specs-seguranca/issues/198
-			env.putString("registration_access_token", registrationAccessToken);
+			env.putString("client", "registration_access_token", registrationAccessToken);
 			logSuccess("Client configuration endpoint returned new registration_access_token.",
 				args("original", originalRegistrationAccessToken, "new", registrationAccessToken));
 			return env;

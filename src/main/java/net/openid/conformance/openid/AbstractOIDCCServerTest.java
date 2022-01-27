@@ -694,10 +694,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public void unregisterClient() {
 		eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
 
-		skipIfMissing(new String[] {"client"},
-			new String[] {"registration_client_uri", "registration_access_token"},
-			ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		eventLog.endBlock();
 	}
