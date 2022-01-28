@@ -2,6 +2,7 @@ package net.openid.conformance.apis;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
@@ -61,14 +62,20 @@ public abstract class AbstractJsonResponseConditionUnitTest implements DataUtils
 		Gson gson = new GsonBuilder()
 			.serializeNulls()
 			.create();
-		environment.putString("resource_endpoint_response", gson.toJson(jsonObject));
+		environment.putString("resource_endpoint_response", gson.toJson(ifJsonWrapped(jsonObject)));
 		environment.putObject("consent_endpoint_response", jsonObject);
 		environment.putObject("resource_endpoint_response_headers", mapToJsonObject(responseHeaders, false));
+	}
+
+	private JsonElement ifJsonWrapped(JsonObject jsonObject) {
+		if (jsonObject.has(JsonLoadingJUnitRunner.WRAPPED)) {
+			return jsonObject.get(JsonLoadingJUnitRunner.WRAPPED);
+		}
+		return jsonObject;
 	}
 
 	@BeforeClass
 	public static void setup() {
 		configureJsonPathForGson();
 	}
-
 }

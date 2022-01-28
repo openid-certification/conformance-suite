@@ -41,7 +41,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		JsonElement body = bodyFrom(environment);
 
 		assertField(body,
-			new ObjectArrayField.Builder("data")
+			new ObjectArrayField.Builder("$")
 				.setValidator(data->{
 					assertField(data,
 						new ObjectField

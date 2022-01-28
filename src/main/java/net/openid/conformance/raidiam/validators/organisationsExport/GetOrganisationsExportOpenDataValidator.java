@@ -30,7 +30,12 @@ public class GetOrganisationsExportOpenDataValidator extends AbstractJsonAsserti
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertExportOpenData(body);
+
+		assertField(body,
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertExportOpenData)
+						.build());
 
 		return environment;
 	}

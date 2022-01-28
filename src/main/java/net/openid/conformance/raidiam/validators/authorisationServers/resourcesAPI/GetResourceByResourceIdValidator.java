@@ -20,8 +20,8 @@ public class GetResourceByResourceIdValidator extends AbstractJsonAssertingCondi
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-
 		parts.assertApiResources(body);
+
 		return environment;
 	}
 }

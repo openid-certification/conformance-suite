@@ -20,7 +20,6 @@ public class GetAuthorisationServersByServerIdValidator extends AbstractJsonAsse
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-
 		parts.assertAuthorisationServers(body);
 		return environment;
 	}

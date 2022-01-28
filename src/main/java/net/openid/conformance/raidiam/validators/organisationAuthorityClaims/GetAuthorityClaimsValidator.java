@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * Api endpoint: GET /organisations/{OrganisationId}/authorityclaims
@@ -20,7 +21,12 @@ public class GetAuthorityClaimsValidator extends PostAuthorityClaimsValidator {
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		parts.assertOrgDomainRoleClaims(body);
+		assertField(body,
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(parts::assertOrgDomainRoleClaims)
+						.build());
+
 		return environment;
 	}
 }

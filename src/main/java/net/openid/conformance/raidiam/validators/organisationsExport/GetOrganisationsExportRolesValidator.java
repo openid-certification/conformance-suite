@@ -25,7 +25,13 @@ public class GetOrganisationsExportRolesValidator extends AbstractJsonAssertingC
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertInnerFields(body);
+
+		assertField(body,
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertInnerFields)
+						.build());
+
 		return environment;
 	}
 
