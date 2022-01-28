@@ -1,12 +1,7 @@
 package net.openid.conformance.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.UseResurce;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -15,9 +10,6 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -26,6 +18,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
+
+	public static final String WRAPPED = "__WRAPPED_JsonArray__";
 
 	public JsonLoadingJUnitRunner(Class<?> testClass) throws InitializationError {
 		super(testClass);
@@ -90,11 +84,7 @@ public class JsonLoadingJUnitRunner extends BlockJUnit4ClassRunner {
 
 	private JsonObject convertArrayToJsonObject(String rawJson) {
 		JsonObject result = new JsonObject();
-		result.add("data", new JsonParser().parse(rawJson));
-//		JsonArray inputData = .getAsJsonArray();
-//		for (int i = 0; i < inputData.size(); i++) {
-//			result.add(String.valueOf(i), inputData.get(i));
-//		}
+		result.add(WRAPPED, new JsonParser().parse(rawJson));
 		return result;
 	}
 

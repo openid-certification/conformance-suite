@@ -6,6 +6,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.ObjectArrayField;
 
 /**
  * Api url: ****
@@ -25,10 +26,16 @@ public class GetOrganisationAdminUsersValidator extends AbstractJsonAssertingCon
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
+		assertField(body,
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(array -> {
+							assertField(array, CommonFields.getStatus());
+							assertField(array, CommonFields.getUserEmail());
+							parts.assertDomainRoleDetails(array);
+						})
+						.build());
 
-		assertField(body, CommonFields.getStatus());
-		assertField(body, CommonFields.getUserEmail());
-		parts.assertDomainRoleDetails(body);
 		return environment;
 	}
 }

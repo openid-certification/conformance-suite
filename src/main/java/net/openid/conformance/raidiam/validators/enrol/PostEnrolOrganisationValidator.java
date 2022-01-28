@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.StringArrayField;
 import net.openid.conformance.util.field.StringField;
 
@@ -20,7 +21,12 @@ public class PostEnrolOrganisationValidator extends AbstractJsonAssertingConditi
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertEnrol(body);
+		assertField(body,
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertEnrol)
+						.build());
+
 		return environment;
 	}
 
