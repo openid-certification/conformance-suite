@@ -339,7 +339,6 @@ public class BrowserControl implements DataUtils {
 						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
 							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE,
 							"current_dom", driver.getCurrentDomAsXml())));
-				// note that this leaves us in the current list of runners for the executing test
 				this.lastException = e.getMessage();
 				if (e instanceof TestFailureException) {
 					// avoid wrapping a TestFailureException around a TestFailureException
