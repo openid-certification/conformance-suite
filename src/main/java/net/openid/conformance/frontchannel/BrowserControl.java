@@ -842,4 +842,8 @@ public class BrowserControl implements DataUtils {
 		return out;
 	}
 
+	public boolean runnersActive() {
+		return !runners.isEmpty();
+	}
+
 }
