@@ -348,6 +348,7 @@ public class BrowserControl implements DataUtils {
 				throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e);
 			} finally {
 				runners.remove(this);
+				driver.close();
 			}
 		}
 
@@ -839,6 +840,10 @@ public class BrowserControl implements DataUtils {
 		}
 
 		return out;
+	}
+
+	public boolean runnersActive() {
+		return !runners.isEmpty();
 	}
 
 }

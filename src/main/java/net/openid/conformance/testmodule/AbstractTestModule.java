@@ -533,7 +533,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// wait for web runners to wrap up first
 
 			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
-			while (browser.getWebRunners().size() > 0
+			while (browser.runnersActive()
 				&& Instant.now().isBefore(timeout)) {
 				Thread.sleep(100); // sleep before we check again
 			}
