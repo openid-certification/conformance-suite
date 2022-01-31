@@ -34,6 +34,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 		env.putBoolean("consent_rejected", false);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
+		eventLog.endBlock();
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);
@@ -137,6 +138,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				}
 			}
 		}
+		eventLog.endBlock();
 	}
 
 	protected ConditionSequence statusValidationSequence() {
