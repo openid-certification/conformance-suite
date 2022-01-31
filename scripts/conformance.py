@@ -109,7 +109,7 @@ class Conformance(object):
             raise Exception("start_test failed - HTTP {:d} {}".format(response.status_code, response.content))
         return json.loads(response.content.decode('utf-8'))
 
-    def wait_for_state(self, module_id, required_states, timeout=240):
+    def wait_for_state(self, module_id, required_states, timeout=480):
         timeout_at = time.time() + timeout
         while True:
             if time.time() > timeout_at:

@@ -1,0 +1,33 @@
+{
+    "payments-consents-api-proxy-email-proxy-test": {
+        "pixPaymentAmount": "9999.99"
+    },
+    "payments-api-qres-mismatched-proxy-test": {
+        "pixPaymentAmount": "10422.01"
+    },
+    "payments-api-qrdn-with-qres-code-test": {
+        "pixPaymentAmount": "{{10422.01}}"
+    },
+    "payments-api-qres-mismatched-consent-payment-test": {
+        "pixPaymentAmount": "20422.00"
+    },
+    "payments-api-qres-with-transaction-identifier-test": {
+        "pixPaymentAmount": "1333.00"
+    },
+    "payments-api-proxy-fake-email-proxy-test": {
+        "pixPaymentAmount": "20201.00"
+    },
+    "payments-api-proxy-real-email-invalid-credior-proxy-test": {
+        "pixPaymentAmount": "20422.00"
+    },
+    "payments-api-proxy-test-incorrect-cpf": {
+        "pixPaymentAmount": "10422.00"
+    },
+    "payments-api-qrdn-good-proxy-test": {
+        "pixPaymentAmount": "1333",
+        "qrdnAmount": "20201.00"
+    },
+    "payments-api-qres-wrong-amount-proxy-test": {
+        "pixPaymentAmount": "10422.01"
+    }
+}
