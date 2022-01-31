@@ -360,15 +360,6 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
-    echo "Run local provider tests"
-    makeLocalProviderTests
-    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
-    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
-    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
-    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
-    TESTS="${TESTS} --export-dir ."
 elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     echo "Run eKYC tests"
     makeEkycTests
@@ -377,6 +368,15 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ekyc"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
+elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
+    echo "Run local provider tests"
+    makeLocalProviderTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-local.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
 else
     echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests||--ekyc-tests]"
