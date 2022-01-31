@@ -12,8 +12,8 @@ public class ClientManagementEndpointAndAccessTokenRequired extends AbstractCond
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String registrationClientUri = env.getString("registration_client_uri");
-		String registrationAccessToken = env.getString("registration_access_token");
+		String registrationClientUri = env.getString("client", "registration_client_uri");
+		String registrationAccessToken = env.getString("client", "registration_access_token");
 
 		if (registrationClientUri == null ||
 			registrationAccessToken == null) {

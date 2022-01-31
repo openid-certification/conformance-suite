@@ -484,10 +484,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		eventLog.startBlock("Unregister dynamically registered client");
 
 		// IF management interface, delete the client to clean up
-		skipIfMissing(new String[] {"client"},
-			new String[] {"registration_client_uri", "registration_access_token"},
-			Condition.ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(Condition.ConditionResult.INFO)
+			.onFail(Condition.ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		eventLog.endBlock();
 	}
@@ -497,10 +498,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		env.mapKey("client", "client2");
 
-		skipIfMissing(new String[] {"client2"},
-			new String[] {"registration_client_uri", "registration_access_token"},
-			Condition.ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(Condition.ConditionResult.INFO)
+			.onFail(Condition.ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		env.unmapKey("client");
 

@@ -8,8 +8,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
+import javax.validation.UnexpectedTypeException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,7 +125,7 @@ public class Environment {
 		return store.put(getEffectiveKey(key), value);
 	}
 
-	public void putObject(String key, String path, JsonObject value) {
+	private void putElement(String key, String path, JsonElement value) {
 		JsonObject o = getObject(key);
 		if (o == null) {
 			o = new JsonObject();
@@ -149,6 +151,14 @@ public class Environment {
 			o = (JsonObject) nextO;
 		}
 		o.add(lastSegment, value);
+	}
+
+	public void putObject(String key, String path, JsonObject value) {
+		putElement(key, path, value);
+	}
+
+	public void putString(String key, String path, String value) {
+		putElement(key, path, new JsonPrimitive(value));
 	}
 
 	public JsonObject putObjectFromJsonString(String key, String json) {

@@ -53,10 +53,8 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noErrors(){
-		JsonObject client = new JsonObject();
-		env.putString("registration_access_token", "reg.access.token");
-		client.addProperty("registration_client_uri", "https://good.example.com/deregister");
-		env.putObject("client", client);
+		env.putString("client", "registration_access_token", "reg.access.token");
+		env.putString("client", "registration_client_uri", "https://good.example.com/deregister");
 		cond.execute(env);
 		hoverfly.verify(service("good.example.com")
 			.delete("/deregister")
@@ -69,7 +67,7 @@ public class UnregisterDynamicallyRegisteredClient_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badResponse(){
 		JsonObject client = new JsonObject();
-		env.putString("registration_access_token", "reg.access.token");
+		client.addProperty("registration_access_token", "reg.access.token");
 		client.addProperty("registration_client_uri", "https://bad.example.com/deregister");
 		env.putObject("client", client);
 		cond.execute(env);

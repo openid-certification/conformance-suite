@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class ExtractClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {
+public class ExtractClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {//FIXME rename to Verify instead of Extract
 
 	@Override
 	@PreEnvironment(required = "client")
@@ -53,10 +53,7 @@ public class ExtractClientManagementCredentials extends AbstractJsonUriIsValidAn
 			throw error("registration_access_token must not be an empty string");
 		}
 
-		env.putString("registration_client_uri", registrationClientUri);
-		env.putString("registration_access_token", registrationAccessToken);
-
-		logSuccess("Extracted dynamic registration management credentials",
+		logSuccess("Verified dynamic registration management credentials",
 			args("registration_client_uri", registrationClientUri,
 				"registration_access_token", registrationAccessToken));
 

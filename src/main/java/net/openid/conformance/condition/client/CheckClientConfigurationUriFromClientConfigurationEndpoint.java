@@ -8,10 +8,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class CheckClientConfigurationUriFromClientConfigurationEndpoint extends AbstractCondition {
 
     @Override
-    @PreEnvironment(required = { "registration_client_endpoint_response" }, strings = "registration_client_uri")
+    @PreEnvironment(required = { "registration_client_endpoint_response", "client" })
     public Environment evaluate(Environment env) {
 
-		String expectedRegistrationClientUri = env.getString("registration_client_uri");
+		String expectedRegistrationClientUri = env.getString("client", "registration_client_uri");
 
 		String registrationClientUri = getStringFromEnvironment(env,
 			"registration_client_endpoint_response",

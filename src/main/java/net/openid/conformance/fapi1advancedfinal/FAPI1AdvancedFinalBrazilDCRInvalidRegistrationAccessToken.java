@@ -32,8 +32,8 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken extends A
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		String accessToken = env.getString("registration_access_token");
-		env.putString("registration_access_token", "ivegotthisterriblepaininallthediodesdownmyleftside");
+		String accessToken = env.getString("client", "registration_access_token");
+		env.putString("client", "registration_access_token", "ivegotthisterriblepaininallthediodesdownmyleftside");
 
 		eventLog.startBlock("Calling GET / DELETE on configuration endpoint with invalid access token");
 
@@ -48,7 +48,7 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken extends A
 
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
 
-		env.putString("registration_access_token", accessToken);
+		env.putString("client", "registration_access_token", accessToken);
 
 		deleteClient();
 
