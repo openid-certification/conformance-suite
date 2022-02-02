@@ -22,11 +22,14 @@ class RetryTransport(httpx.HTTPTransport):
         request: httpx.Request,
     ) -> httpx.Response:
         retry = 0
+        resp = None
         while retry < 5:
             retry += 1
             if retry > 2:
                 time.sleep(1)
             try:
+                if resp is not None:
+                    resp.close()
                 resp = super().handle_request(request)
             except Exception as e:
                 print("httpx {} exception {} caught - retrying".format(request.url, e))
