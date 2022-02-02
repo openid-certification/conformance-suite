@@ -1,7 +1,6 @@
 package net.openid.conformance.apis.raidiam.users;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
 import net.openid.conformance.raidiam.validators.users.GetUsersResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;

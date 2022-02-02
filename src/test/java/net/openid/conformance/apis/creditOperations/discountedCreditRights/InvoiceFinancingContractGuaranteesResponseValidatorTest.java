@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.discountedCreditRights;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractGuaranteesResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorTest extends Abs
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("warrantyType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("warrantyType", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorTest extends Abs
 	public void validateStructureWrongEnum() {
 		InvoiceFinancingContractGuaranteesResponseValidator condition = new InvoiceFinancingContractGuaranteesResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("warrantySubType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("warrantySubType", condition.getApiName())));
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithMissingField() {
 		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("productType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("productType", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithWrongEnum() {
 		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("productType", condition.getApiName())));
 	}
 
 	@Test
@@ -40,7 +41,7 @@ public class CardListResponseValidatorTest extends AbstractJsonResponseCondition
 		CardAccountsDataResponseResponseValidator condition = new CardAccountsDataResponseResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"data")));
+			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
+				"data", condition.getApiName())));
 	}
 }

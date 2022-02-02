@@ -1,8 +1,8 @@
 package net.openid.conformance.raidiam.validators.organisations;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.StringField;
@@ -23,7 +23,7 @@ public class GetOrganisationsEssPollByEnvelopeIdValidator extends AbstractJsonAs
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject content = bodyFrom(environment);
+		JsonElement content = bodyFrom(environment);
 
 				assertField(content,
 					new StringField

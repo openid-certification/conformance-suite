@@ -2,7 +2,7 @@ package net.openid.conformance.apis.creditOperations.loans;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.GetLoansResponseValidator;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.util.UseResurce;
@@ -25,7 +25,7 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWithMissingField() {
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("ipocCode")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("ipocCode", condition.getApiName())));
 	}
 
 	@Test
@@ -33,7 +33,7 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongEnum() {
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("productType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("productType", condition.getApiName())));
 	}
 
 	@Test
@@ -41,7 +41,7 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongMaxLength() {
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("ipocCode")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("ipocCode", condition.getApiName())));
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongRegexp() {
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("companyCnpj", condition.getApiName())));
 	}
 
 	@Test

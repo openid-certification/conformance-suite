@@ -1,8 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
@@ -12,16 +13,17 @@ import java.text.ParseException;
 public class Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDOConsent extends AbstractJsonAssertingCondition {
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonObject apiResponse = bodyFrom(env);
+		JsonElement apiResponse = bodyFrom(env);
 		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
 			apiResponse = env.getObject("consent_endpoint_response_full");
 		}
 
 		JsonObject decodedJwt;
 		try {
-			decodedJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(OIDFJSON.getString(apiResponse.get("body")));
+			decodedJwt =
+				JWTUtil.jwtStringToJsonObjectForEnvironment(OIDFJSON.getString(apiResponse.getAsJsonObject().get("body")));
 		} catch (ParseException exception) {
-			throw error("Could not parse the body: ", apiResponse);
+			throw error("Could not parse the body: ", apiResponse.getAsJsonObject());
 		}
 		JsonObject claims = decodedJwt.getAsJsonObject("claims");
 

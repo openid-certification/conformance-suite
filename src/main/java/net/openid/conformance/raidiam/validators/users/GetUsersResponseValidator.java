@@ -1,8 +1,9 @@
 package net.openid.conformance.raidiam.validators.users;
 
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.Utils;
 import net.openid.conformance.raidiam.validators.CommonFields;
@@ -30,12 +31,12 @@ public class GetUsersResponseValidator extends AbstractJsonAssertingCondition {
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = bodyFrom(environment);
+		JsonElement body = bodyFrom(environment);
 		assertInnerFields(body);
 		return environment;
 	}
 
-	private void assertInnerFields(JsonObject body) {
+	private void assertInnerFields(JsonElement body) {
 		assertField(body,
 			new BooleanField
 				.Builder("SuperUser")

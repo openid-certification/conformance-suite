@@ -2,6 +2,7 @@ package net.openid.conformance.apis.account;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.account.AccountLimitsValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class AccountLimitsValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWithMissingField() {
 		AccountLimitsValidator condition = new AccountLimitsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("unarrangedOverdraftAmountCurrency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("unarrangedOverdraftAmountCurrency", condition.getApiName())));
 	}
 
 	@Test
@@ -31,6 +32,6 @@ public class AccountLimitsValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWrongRegexp() {
 		AccountLimitsValidator condition = new AccountLimitsValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("overdraftUsedLimitCurrency")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("overdraftUsedLimitCurrency", condition.getApiName())));
 	}
 }

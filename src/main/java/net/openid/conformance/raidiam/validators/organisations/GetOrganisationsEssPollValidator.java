@@ -1,8 +1,8 @@
 package net.openid.conformance.raidiam.validators.organisations;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -25,10 +25,10 @@ public class GetOrganisationsEssPollValidator extends AbstractJsonAssertingCondi
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
+		JsonElement body = bodyFrom(environment);
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(data -> {
 					assertField(data,
 						new StringField

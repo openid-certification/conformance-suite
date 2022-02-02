@@ -1,8 +1,8 @@
 package net.openid.conformance.raidiam.validators.organisationsExport;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
@@ -29,17 +29,18 @@ public class GetOrganisationsExportOpenDataValidator extends AbstractJsonAsserti
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
+		JsonElement body = bodyFrom(environment);
+
 		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(this::assertExportOpenData)
-				.build());
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertExportOpenData)
+						.build());
 
 		return environment;
 	}
 
-	private void assertExportOpenData(JsonObject content) {
+	private void assertExportOpenData(JsonElement content) {
 		assertField(content,
 			new StringField
 				.Builder("OrganisationId")

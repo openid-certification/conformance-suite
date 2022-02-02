@@ -2,7 +2,7 @@ package net.openid.conformance.apis.creditCard;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -24,7 +24,7 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 	public void validateStructureWithMissingField() {
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("identificationNumber")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("identificationNumber", condition.getApiName())));
 	}
 
 	@Test
@@ -32,7 +32,7 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 	public void validateStructureWrongEnum() {
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("lineName")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("lineName", condition.getApiName())));
 	}
 
 	@Test
@@ -40,7 +40,7 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 	public void validateStructureWrongMaxLength() {
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("payeeMCC")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("payeeMCC", condition.getApiName())));
 	}
 
 	@Test
@@ -48,7 +48,7 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 	public void validateStructureWrongRegexp() {
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("billId")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("billId", condition.getApiName())));
 	}
 
 	@Test
@@ -64,8 +64,8 @@ public class CreditCardAccountsTransactionResponseValidatorTest extends Abstract
 		CreditCardAccountsTransactionResponseValidator condition = new CreditCardAccountsTransactionResponseValidator();
 		ConditionError error = runAndFail(condition);
 		assertThat(error.getMessage(),
-			containsString(condition.createArrayIsLessThanMaxItemsMessage(
-				"$.data")));
+			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
+				"$.data", condition.getApiName())));
 	}
 
 	// @Test

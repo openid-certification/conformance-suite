@@ -1,7 +1,7 @@
 package net.openid.conformance.raidiam.validators.enrol;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -20,18 +20,17 @@ public class PostEnrolOrganisationValidator extends AbstractJsonAssertingConditi
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
+		JsonElement body = bodyFrom(environment);
 		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(this::assertEnrol)
-				.setOptional()
-				.build());
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertEnrol)
+						.build());
 
 		return environment;
 	}
 
-	private void assertEnrol(JsonObject body) {
+	private void assertEnrol(JsonElement body) {
 		assertField(body, CommonFields.getOrganisationId());
 
 		assertField(body,

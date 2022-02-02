@@ -2,10 +2,65 @@
     {
         "test-name": "payments-api-inic-pix-response-test",
         "variant": "*",
-        "configuration-filename": "./scripts/configs/brazil-raidiam-functional-payments-automated.json",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
         "condition": "PaymentInitiationPixPaymentsValidator",
         "expected-result": "failure",
         "comment": "mock bank bank is not fully compliant"
+    },
+    {
+        "test-name": "payments-api-qres-good-email-proxy-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Validate response",
+        "condition": "PaymentFetchPixPaymentsValidator",
+        "expected-result": "failure",
+        "comment": "mock bank bank is not fully compliant"
+    },
+    {
+        "test-name": "payments-api-qres-good-phone-number-proxy-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Validate response",
+        "condition": "PaymentFetchPixPaymentsValidator",
+        "expected-result": "failure",
+        "comment": "mock bank bank is not fully compliant"
+    },
+    {
+        "test-name": "payments-api-qres-wrong-amount-proxy-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Validate response",
+        "condition": "ChuckWarning",
+        "expected-result": "failure",
+        "comment": "not currently possible to test against mock bank"
+    },
+    {
+        "test-name": "payments-api-qres-mismatched-consent-payment-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "VerifyErrorIfPixPostFailsOnQres",
+        "expected-result": "failure",
+        "comment": "Mock bank does not return the correct error"
+    },
+    {
+        "test-name": "payments-api-qres-with-transaction-identifier-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "EnsureResponseCodeWas422",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
+    },
+
+    {
+        "test-name": "payments-api-qrdn-good-proxy-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "PaymentFetchPixPaymentsValidator",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
     }
 ]

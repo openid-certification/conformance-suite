@@ -2,6 +2,7 @@ package net.openid.conformance.apis.creditOperations.discountedCreditRights;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractPaymentsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class InvoiceFinancingContractPaymentsResponseValidatorTest extends Abstr
 	public void validateStructureWithMissingField() {
 		InvoiceFinancingContractPaymentsResponseValidator condition = new InvoiceFinancingContractPaymentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createElementNotFoundMessage("isOverParcelPayment")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("isOverParcelPayment", condition.getApiName())));
 	}
 
 	@Test
@@ -31,7 +32,7 @@ public class InvoiceFinancingContractPaymentsResponseValidatorTest extends Abstr
 	public void validateStructureWrongEnum() {
 		InvoiceFinancingContractPaymentsResponseValidator condition = new InvoiceFinancingContractPaymentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchEnumerationMessage("chargeType")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("chargeType", condition.getApiName())));
 	}
 
 	@Test
@@ -39,7 +40,7 @@ public class InvoiceFinancingContractPaymentsResponseValidatorTest extends Abstr
 	public void validateStructureWrongRegexp() {
 		InvoiceFinancingContractPaymentsResponseValidator condition = new InvoiceFinancingContractPaymentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueNotMatchPatternMessage("paidDate")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("paidDate", condition.getApiName())));
 	}
 
 	@Test
@@ -47,6 +48,6 @@ public class InvoiceFinancingContractPaymentsResponseValidatorTest extends Abstr
 	public void validateStructureWrongMaxLength() {
 		InvoiceFinancingContractPaymentsResponseValidator condition = new InvoiceFinancingContractPaymentsResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments")));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("paidInstalments", condition.getApiName())));
 	}
 }

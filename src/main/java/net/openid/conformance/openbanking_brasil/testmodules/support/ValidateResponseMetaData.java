@@ -1,9 +1,8 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+
 import com.google.common.base.Strings;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
-import net.openid.conformance.condition.PreEnvironment;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.http.NameValuePair;
@@ -11,13 +10,12 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 
 public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
@@ -25,14 +23,14 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     @Override
 	public Environment evaluate(Environment env) {
 
-        JsonObject apiResponse = bodyFrom(env);
+		JsonElement apiResponse = bodyFrom(env);
 
         if (!JsonHelper.ifExists(apiResponse, "$.data")) {
 			apiResponse = env.getObject("consent_endpoint_response");
 		}
 
         log("Debug apiResponse:");
-		log(apiResponse);
+		log(apiResponse.toString());
 
         JsonElement dataElement = findByPath(apiResponse, "$.data");
         int metaTotalRecords = 1;
@@ -87,7 +85,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
             log("Validating self link: " + selfLink);
             if(isConsentRequest && !isPaymentConsent && !isPayment) {
-				validateSelfLink(selfLink, OIDFJSON.getString(apiResponse.getAsJsonObject("data").get("consentId")));
+				validateSelfLink(selfLink,
+					OIDFJSON.getString(apiResponse.getAsJsonObject().getAsJsonObject("data").get("consentId")));
 			}
         } else {
             //  self link is mandatory for all resources except dados Consents (payment consents do require a self link)

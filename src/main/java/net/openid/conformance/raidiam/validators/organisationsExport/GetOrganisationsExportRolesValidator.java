@@ -1,8 +1,8 @@
 package net.openid.conformance.raidiam.validators.organisationsExport;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractJsonAssertingCondition;
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
@@ -24,17 +24,18 @@ public class GetOrganisationsExportRolesValidator extends AbstractJsonAssertingC
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		JsonObject body = initBodyArray(environment);
+		JsonElement body = bodyFrom(environment);
+
 		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(this::assertInnerFields)
-				.build());
+				new ObjectArrayField
+						.Builder("$")
+						.setValidator(this::assertInnerFields)
+						.build());
 
 		return environment;
 	}
 
-	private void assertInnerFields(JsonObject data) {
+	private void assertInnerFields(JsonElement data) {
 		assertField(data, CommonFields.getOrganisationId());
 
 		assertField(data,

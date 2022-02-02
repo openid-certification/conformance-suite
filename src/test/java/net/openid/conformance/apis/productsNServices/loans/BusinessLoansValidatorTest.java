@@ -2,6 +2,7 @@ package net.openid.conformance.apis.productsNServices.loans;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.productsNServices.loans.BusinessLoansValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,8 +24,8 @@ public class BusinessLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureLessMinItems() {
 		BusinessLoansValidator condition = new BusinessLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsLessThanMaxItemsMessage("applications")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsLessThanMaxItemsMessage("applications", condition.getApiName())));
 
 	}
 
@@ -33,8 +34,8 @@ public class BusinessLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureMoreMaxItems() {
 		BusinessLoansValidator condition = new BusinessLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createArrayIsMoreThanMaxItemsMessage("applications")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createArrayIsMoreThanMaxItemsMessage("applications", condition.getApiName())));
 	}
 
 	@Test
@@ -42,8 +43,8 @@ public class BusinessLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWrongPattern() {
 		BusinessLoansValidator condition = new BusinessLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchPatternMessage("rate")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchPatternMessage("rate", condition.getApiName())));
 	}
 
 	@Test
@@ -51,7 +52,7 @@ public class BusinessLoansValidatorTest extends AbstractJsonResponseConditionUni
 	public void validateStructureWrongEnum() {
 		BusinessLoansValidator condition = new BusinessLoansValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(),  containsString(condition
-			.createFieldValueNotMatchEnumerationMessage("interval")));
+		assertThat(error.getMessage(),  containsString(ErrorMessagesUtils
+			.createFieldValueNotMatchEnumerationMessage("interval", condition.getApiName())));
 	}
 }

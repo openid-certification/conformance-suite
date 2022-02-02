@@ -2,6 +2,7 @@ package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.BusinessIdentificationValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructureWithMissingField() {
 		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		ConditionError error = runAndFail(condition);
-		String expected = condition.createElementNotFoundMessage("updateDateTime");
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("updateDateTime", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -39,7 +40,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructurePatternNotMatch() {
 		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("cnpjNumber")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("cnpjNumber", condition.getApiName())));
 	}
 
 	@Test
@@ -47,7 +48,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructureExcessMaxLength() {
 		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaxLengthMessage("civilName")));
+			containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("civilName", condition.getApiName())));
 	}
 
 	@Test
@@ -55,7 +56,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructureEnumNotMatch() {
 		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage("type")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("type", condition.getApiName())));
 	}
 
 	@Test
@@ -63,6 +64,7 @@ public class LegalEntityIdentificationValidatorTest extends AbstractJsonResponse
 	public void validateStructureCoordinatesNotMatch() {
 		BusinessIdentificationValidator condition = new BusinessIdentificationValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createCoordinateIsNotWithinAllowedAreaMessage("latitude")));
+			containsString(ErrorMessagesUtils.createCoordinateIsNotWithinAllowedAreaMessage(
+				"latitude", condition.getApiName())));
 	}
 }

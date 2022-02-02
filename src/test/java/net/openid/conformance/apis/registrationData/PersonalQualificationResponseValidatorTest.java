@@ -1,6 +1,7 @@
 package net.openid.conformance.apis.registrationData;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.openbanking_brasil.registrationData.PersonalQualificationResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class PersonalQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureWithMissingField() {
 		PersonalQualificationResponseValidator condition = new PersonalQualificationResponseValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createElementNotFoundMessage("$.data.informedIncome")));
+			containsString(ErrorMessagesUtils.createElementNotFoundMessage("$.data.informedIncome", condition.getApiName())));
 	}
 
 	@Test
@@ -30,7 +31,7 @@ public class PersonalQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructurePatternNotMatch() {
 		PersonalQualificationResponseValidator condition = new PersonalQualificationResponseValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueNotMatchPatternMessage("companyCnpj")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("companyCnpj", condition.getApiName())));
 	}
 
 	@Test
@@ -38,7 +39,7 @@ public class PersonalQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureExcessMaxLength() {
 		PersonalQualificationResponseValidator condition = new PersonalQualificationResponseValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueIsMoreThanMaximum("year")));
+			containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaximum("year", condition.getApiName())));
 	}
 
 	@Test
@@ -46,6 +47,6 @@ public class PersonalQualificationResponseValidatorTest extends AbstractJsonResp
 	public void validateStructureEnumNotMatch() {
 		PersonalQualificationResponseValidator condition = new PersonalQualificationResponseValidator();
 		assertThat(runAndFail(condition).getMessage(),
-			containsString(condition.createFieldValueNotMatchEnumerationMessage("occupationCode")));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("occupationCode", condition.getApiName())));
 	}
 }
