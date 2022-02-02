@@ -78,5 +78,6 @@ public class PaymentsConsentsApiInvalidTestModule extends AbstractClientCredenti
 		callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDOConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidatePaymentConsentErrorResponse422.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 }
