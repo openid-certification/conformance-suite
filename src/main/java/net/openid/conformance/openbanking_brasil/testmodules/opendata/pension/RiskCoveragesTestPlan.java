@@ -17,7 +17,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Pension - Risk Coverages API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Pension - Risk Coverages - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Pension - Risk Coverages - based on Swagger version: 1.0.0-rc1.0 (WIP)",
 	summary = "Structural and logical tests for Pension API"
 )
 public class RiskCoveragesTestPlan implements TestPlan {
