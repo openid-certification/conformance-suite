@@ -226,6 +226,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected FAPIJARMType jarmType;
 
+	protected boolean startingShutdown = false;
+
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
@@ -416,8 +418,14 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
@@ -427,10 +435,16 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
@@ -440,6 +454,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return accountRequestsEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -1292,6 +1309,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected void startWaitingForTimeout() {
+		this.startingShutdown = true;
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(5 * 1000);
 			if (getStatus().equals(Status.WAITING)) {
