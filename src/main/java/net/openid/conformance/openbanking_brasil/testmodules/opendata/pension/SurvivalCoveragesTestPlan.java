@@ -14,12 +14,12 @@ import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
 
-//@PublishTestPlan(
-//	testPlanName = "Pension - Survival Coverages API test plan",
-//	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-//	displayName = "Functional tests for Pension - Survival Coverages - based on Swagger version: 1.0.0",
-//	summary = "Structural and logical tests for Pension API"
-//)
+@PublishTestPlan(
+	testPlanName = "Pension - Survival Coverages API test plan",
+	profile = OBBProfile.OBB_PROFIlE_PHASE4,
+	displayName = "Functional tests for Pension - Survival Coverages - based on Swagger version: 1.0.0",
+	summary = "Structural and logical tests for Pension API"
+)
 public class SurvivalCoveragesTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
