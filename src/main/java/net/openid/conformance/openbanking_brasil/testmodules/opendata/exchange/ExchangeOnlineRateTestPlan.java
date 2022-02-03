@@ -14,12 +14,12 @@ import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
 
-//@PublishTestPlan(
-//	testPlanName = "Opendata Exchange - Online Rate API test plan",
-//	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-//	displayName = "Functional tests for Exchange - Online Rate API - based on Swagger version: 1.0.0",
-//	summary = "Structural and logical tests for Exchange API"
-//)
+@PublishTestPlan(
+	testPlanName = "Opendata Exchange - Online Rate API test plan",
+	profile = OBBProfile.OBB_PROFIlE_PHASE4,
+	displayName = "Functional tests for Exchange - Online Rate API - based on Swagger version: 1.0.0",
+	summary = "Structural and logical tests for Exchange API"
+)
 public class ExchangeOnlineRateTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(

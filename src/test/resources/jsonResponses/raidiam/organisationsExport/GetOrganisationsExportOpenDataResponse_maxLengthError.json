@@ -1,0 +1,102 @@
+[
+    {
+        "OrganisationId": "stringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstring",
+        "Status": "Active",
+        "OrganisationName": "string",
+        "CreatedOn": "string",
+        "LegalEntityName": "string",
+        "CountryOfRegistration": "string",
+        "CompanyRegister": "string",
+        "Tag": "string",
+        "Size": "string",
+        "RegistrationNumber": "string",
+        "RegistrationId": "string",
+        "RegisteredName": "string",
+        "AddressLine1": "string",
+        "AddressLine2": "string",
+        "City": "string",
+        "Postcode": "string",
+        "Country": "string",
+        "ParentOrganisationReference": "string",
+        "Contacts": [
+            {
+                "ContactId": "string",
+                "OrganisationId": "string",
+                "ContactType": "Business",
+                "FirstName": "string",
+                "LastName": "string",
+                "Department": "string",
+                "EmailAddress": "string@mail.com",
+                "PhoneNumber": "string",
+                "AddressLine1": "string",
+                "AddressLine2": "string",
+                "City": "string",
+                "Postcode": "string",
+                "Country": "string",
+                "AdditionalInformation": "string",
+                "PgpPublicKey": "string"
+            }
+        ],
+        "AuthorisationServers": [
+            {
+                "AuthorisationServerId": "string",
+                "OrganisationId": "string",
+                "AutoRegistrationSupported": true,
+                "ApiResources": [
+                    {
+                        "ApiResourceId": "string",
+                        "ApiFamilyType": "string",
+                        "ApiVersion": 0,
+                        "ApiCertificationUri": "string",
+                        "ApiDiscoveryEndpoints": [
+                            {
+                                "ApiDiscoveryId": "string",
+                                "ApiEndpoint": "http://string"
+                            }
+                        ]
+                    }
+                ],
+                "CustomerFriendlyDescription": "string",
+                "CustomerFriendlyLogoUri": "http://string.svg",
+                "CustomerFriendlyName": "string",
+                "DeveloperPortalUri": "http://string",
+                "TermsOfServiceUri": "http://string",
+                "NotificationWebhook": "http://string",
+                "NotificationWebhookStatus": "Pending",
+                "OpenIDDiscoveryDocument": "http://string",
+                "PayloadSigningCertLocationUri": "http://string",
+                "ParentAuthorisationServerId": "string"
+            }
+        ],
+        "OrgDomainClaims": [
+            {
+                "OrganisationAuthorityDomainClaimId": "string",
+                "AuthorisationDomainName": "string",
+                "AuthorityId": "string",
+                "AuthorityName": "string",
+                "RegistrationId": "string",
+                "Status": "Active"
+            }
+        ],
+        "OrgDomainRoleClaims": [
+            {
+                "OrganisationId": "string",
+                "OrganisationAuthorityClaimId": "string",
+                "AuthorityId": "string",
+                "Status": "Active",
+                "AuthorisationDomain": "string",
+                "Role": "string",
+                "Authorisations": [
+                    {
+                        "Status": "Active",
+                        "MemberState": "st"
+                    }
+                ],
+                "RegistrationId": "string",
+                "UniqueTechnicalIdenifier": [
+                    "string"
+                ]
+            }
+        ]
+    }
+]

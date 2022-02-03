@@ -1,8 +1,8 @@
-package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.testplan;
+package net.openid.conformance.openbanking_brasil.testmodules.opendata.investementsAPI;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.testplan.utils.PrepareInvestmentsUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.opendata.investementsAPI.utils.PrepareInvestmentsUrl;
 import net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator.GetVariableIncomeValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;

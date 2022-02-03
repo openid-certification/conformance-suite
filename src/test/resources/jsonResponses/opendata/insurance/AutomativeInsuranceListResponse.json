@@ -1,0 +1,142 @@
+{
+    "data": [
+        {
+            "participant": {
+                "brand": "Organização",
+                "name": "Organização A1",
+                "cnpjNumber": "13456789000112",
+                "urlComplementaryList": "https://empresaa1.com/companies"
+            },
+            "society": {
+                "name": "Society A1",
+                "cnpjNumber": "13456789000112"
+            },
+            "name": "Produto A",
+            "code": "0001",
+            "coverages": [
+                {
+                    "type": "ROUBO_TOTAL_OU_PARCIAL",
+                    "detail": "NA",
+                    "permissionSeparateAcquisition": true,
+                    "attributes": {
+                        "minLMI": {
+                            "amount": "0.01",
+                            "currency": "BRL"
+                        },
+                        "maxLMI": {
+                            "amount": "1000000.01",
+                            "currency": "BRL"
+                        },
+                        "newCar": {
+                            "contractBase": {
+                                "determinedValue": {
+                                    "min": {
+                                        "amount": "50.000",
+                                        "currency": "BRL"
+                                    },
+                                    "max": {
+                                        "amount": "50.000",
+                                        "currency": "BRL"
+                                    }
+                                },
+                                "marketValuePercentage": {
+                                    "min": "0.20",
+                                    "max": "1.00"
+                                }
+                            },
+                            "maximumCalculatingPeriod": 12
+                        },
+                        "fullIndemnityPercentage": "0.75",
+                        "deductibleTypes": [
+                            "NORMAL"
+                        ],
+                        "fullIndemnityDeductible": true,
+                        "deductiblePaymentByCoverage": true,
+                        "deductiblePercentage": "0.75",
+                        "mandatoryParticipation": "Casco: R$ 0,00\nRCF-V Danos\nMateriais: X%\n",
+                        "geographicScope": {
+                            "coverages": [
+                                "NACIONAL"
+                            ],
+                            "details": "Brasil, Argentina,\nUruguai, Paraguai,\nChile, Bolívia e\nVenezuela\n"
+                        },
+                        "contractBase": {
+                            "determinedValue": {
+                                "min": {
+                                    "amount": "50.000",
+                                    "currency": "BRL"
+                                },
+                                "max": {
+                                    "amount": "50.000",
+                                    "currency": "BRL"
+                                }
+                            },
+                            "marketValuePercentage": {
+                                "min": "0.20",
+                                "max": "1.00"
+                            }
+                        }
+                    }
+                }
+            ],
+            "carParts": [
+                {
+                    "condition": "NOVAS",
+                    "type": "ORIGINAIS"
+                }
+            ],
+            "carModel": {
+                "model": "KA",
+                "year": 1985,
+                "manufacturer": "FORD",
+                "fipeCode": "003128-3"
+            },
+            "vehicleOvernightPostalCode": 1311000,
+            "additionals": [
+                "SORTEIO_GRATUITO"
+            ],
+            "additionalInfo": "Detalhar os serviços, benefícios e outros",
+            "assistanceServices": [
+                {
+                    "package": "ATE_10_SERVICOS",
+                    "detail": "Plano 1 - Cobertura de Assistência 24h com os serviços de - reboque pane seca - reboque pane mecanica - chaveiro - remoção médica - acompanhante hospital Inclui serviços residenciais gratuitos - Serviços à Residência",
+                    "chargeType": "GRATUITA"
+                }
+            ],
+            "termsAndConditions": [
+                {
+                    "susepProcessNumber": "15414.622222/2222-22",
+                    "detail": "https://openinsurance.com.br/aaa"
+                }
+            ],
+            "terms": [
+                "ANUAL"
+            ],
+            "termsAdditionalInfo": "string",
+            "customerService": "REDE_REFERENCIADA",
+            "premiumPayment": {
+                "paymentMethods": [
+                    "CARTAO_CREDITO"
+                ],
+                "paymentType": "A_VISTA",
+                "paymentMethodsAdditionalInfo": "Descritivo"
+            },
+            "minimumRequirement": {
+                "contractType": "COLETIVO",
+                "contractingMinRequirement": "https://openinsurance.com.br/aaa"
+            },
+            "targetAudience": "PESSOA_NATURAL"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}
