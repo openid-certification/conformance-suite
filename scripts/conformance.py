@@ -57,7 +57,7 @@ class Conformance(object):
             api_url_base += "/"
         self.api_url_base = api_url_base
         transport = RetryTransport(verify=verify_ssl)
-        self.httpclient = httpx.Client(verify=verify_ssl, transport=transport)
+        self.httpclient = httpx.Client(verify=verify_ssl, transport=transport, timeout=20)
         headers = {'Content-Type': 'application/json'}
         if api_token is not None:
             headers['Authorization'] = 'Bearer {0}'.format(api_token)
