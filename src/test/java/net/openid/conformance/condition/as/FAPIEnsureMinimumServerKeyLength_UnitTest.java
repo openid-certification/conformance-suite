@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import net.openid.conformance.BaseConditionMocked_UnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,13 +21,10 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FAPIEnsureMinimumServerKeyLength_UnitTest {
+public class FAPIEnsureMinimumServerKeyLength_UnitTest extends BaseConditionMocked_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
-
-	@Mock
-	private TestInstanceEventLog eventLog;
 
 	private FAPIEnsureMinimumServerKeyLength cond;
 
