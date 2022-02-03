@@ -206,8 +206,8 @@ for test_plan,modules in sorted(master_results.items()):
             print(red("** No result in new run\n"))
 
 if differences:
-    print(red("\n\nDifferences found - returning exit code 16.\n"))
-    sys.exit(16) # 16 signals to the gitlab CI that the job has a warning (i.e. it didn't fail)
+    print(red("\n\nDifferences found - exiting with failure.\n"))
+    sys.exit(1)
 
 print(green("No differences found."))
 sys.exit(0)

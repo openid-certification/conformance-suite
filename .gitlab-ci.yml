@@ -74,10 +74,10 @@ test:
 .compare: &compare
   stage: compare
   interruptible: true
-  # show a 'warning' (not a failure) if we successfully find differences
-  allow_failure:
-    exit_codes:
-      - 16
+  # we only want to show a 'warning' if there's differences, but gitlab is inflexible so any failure will show as a
+  # warning. When implemented, https://gitlab.com/gitlab-org/gitlab/-/issues/16733 would allow us to still fail if
+  # something went wrong.
+  allow_failure: true
   image: python:3.10-alpine3.15
   only:
     refs:
