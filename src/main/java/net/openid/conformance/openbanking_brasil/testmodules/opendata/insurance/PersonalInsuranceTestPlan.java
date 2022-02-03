@@ -17,7 +17,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Open Banking Brasil - Opendata Insurance - PersonalInsurance API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Opendata Insurance - PersonalInsurance API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Insurance - PersonalInsurance API - based on Swagger version: 1.0.0-rc1.0 (WIP)",
 	summary = "Structural and logical tests for Opendata Insurance - PersonalInsurance API"
 )
 public class PersonalInsuranceTestPlan implements TestPlan {
