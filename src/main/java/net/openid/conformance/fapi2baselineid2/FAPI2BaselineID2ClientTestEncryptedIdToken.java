@@ -9,14 +9,14 @@ import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-encrypted-idtoken",
-	displayName = "FAPI1-Advanced-Final: client test encrypted id_token",
+	testName = "fapi2-baseline-id2-client-test-encrypted-idtoken",
+	displayName = "FAPI2-Baseline-ID2: client test encrypted id_token",
 	summary = "Tests a 'happy path' flow with encrypted id_tokens. This test uses client2. " +
 		"The client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the authorization endpoint (which will immediately redirect back with an encrypted id_token), " +
 		"exchange the authorization code for an access token at the token endpoint " +
 		"and make a GET request to the accounts endpoint displayed.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

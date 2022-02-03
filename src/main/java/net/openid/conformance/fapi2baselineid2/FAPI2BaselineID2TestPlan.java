@@ -8,8 +8,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @PublishTestPlan (
-	testPlanName = "fapi1-advanced-final-test-plan",
-	displayName = "FAPI1-Advanced-Final: Authorization server test",
+	testPlanName = "fapi2-baseline-id2-test-plan",
+	displayName = "FAPI2-Baseline-ID2: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases

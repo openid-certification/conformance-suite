@@ -7,10 +7,10 @@ import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-valid-aud-as-array",
-	displayName = "FAPI1-Advanced-Final: client test - valid aud in id_token as data type array",
+	testName = "fapi2-baseline-id2-client-test-valid-aud-as-array",
+	displayName = "FAPI2-Baseline-ID2: client test - valid aud in id_token as data type array",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

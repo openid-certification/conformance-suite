@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-no-software-statement",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR no software statement",
+	testName = "fapi2-baseline-id2-brazil-dcr-no-software-statement",
+	displayName = "FAPI2-Baseline-ID2: Brazil DCR no software statement",
 	summary = "Perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

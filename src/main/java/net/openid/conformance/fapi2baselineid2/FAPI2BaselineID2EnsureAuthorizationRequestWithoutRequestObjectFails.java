@@ -10,10 +10,10 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-authorization-request-without-request-object-fails",
-	displayName = "FAPI1-Advanced-Final: ensure authorization request without request_object fails",
+	testName = "fapi2-baseline-id2-ensure-authorization-request-without-request-object-fails",
+	displayName = "FAPI2-Baseline-ID2: ensure authorization request without request_object fails",
 	summary = "This test calls the authorization endpoint without using a request object (i.e. with all the parameters passed in the url query), and should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

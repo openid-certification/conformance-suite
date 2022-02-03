@@ -10,10 +10,10 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-par-ensure-pkce-required",
-	displayName = "FAPI1-Advanced-Final: ensure pkce is required when using pushed authorization requests",
-	summary = "This test makes a FAPI authorization request without using PKCE (RFC7636), which must be rejected. FAPI1-Advanced-Final requires servers to reject PAR requests that do not use PKCE, clause 5.2.2-18. Depending on when the server chooses to verify the request, the refusal may be an error from the pushed authorization request endpoint, or an invalid_request error may be returned from the authorization endpoint, or an error may be shown to the user (a screenshot of which must be uploaded).",
-	profile = "FAPI1-Advanced-Final",
+	testName = "fapi2-baseline-id2-par-ensure-pkce-required",
+	displayName = "FAPI2-Baseline-ID2: ensure pkce is required when using pushed authorization requests",
+	summary = "This test makes a FAPI authorization request without using PKCE (RFC7636), which must be rejected. FAPI2-Baseline-ID2 requires servers to reject PAR requests that do not use PKCE, clause 5.2.2-18. Depending on when the server chooses to verify the request, the refusal may be an error from the pushed authorization request endpoint, or an invalid_request error may be returned from the authorization endpoint, or an error may be shown to the user (a screenshot of which must be uploaded).",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

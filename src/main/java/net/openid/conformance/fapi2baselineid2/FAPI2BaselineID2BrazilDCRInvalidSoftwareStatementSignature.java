@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.InvalidateSoftwareStatementSignat
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-invalid-software-statement-signature",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR invalidate software statement signature",
+	testName = "fapi2-baseline-id2-brazil-dcr-invalid-software-statement-signature",
+	displayName = "FAPI2-Baseline-ID2: Brazil DCR invalidate software statement signature",
 	summary = "Perform the DCR flow, but using a software statement where the signature has been invalidated - the server must reject the registration attempt.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

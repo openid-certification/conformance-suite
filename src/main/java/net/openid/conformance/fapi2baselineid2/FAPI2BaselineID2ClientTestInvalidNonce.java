@@ -4,10 +4,10 @@ import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-invalid-nonce",
-	displayName = "FAPI1-Advanced-Final: client test - invalid nonce in id_token from authorization_endpoint, should be rejected",
+	testName = "fapi2-baseline-id2-client-test-invalid-nonce",
+	displayName = "FAPI2-Baseline-ID2: client test - invalid nonce in id_token from authorization_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the nonce value in the id_token from the authorization_endpoint does not match the nonce value in the request object",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

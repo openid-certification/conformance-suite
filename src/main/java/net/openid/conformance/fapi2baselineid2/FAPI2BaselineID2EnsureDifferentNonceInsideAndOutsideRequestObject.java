@@ -14,10 +14,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-different-nonce-inside-and-outside-request-object",
-	displayName = "FAPI1-Advanced-Final: ensure different nonce inside and outside request object",
+	testName = "fapi2-baseline-id2-ensure-different-nonce-inside-and-outside-request-object",
+	displayName = "FAPI2-Baseline-ID2: ensure different nonce inside and outside request object",
 	summary = "This test passes a different nonce in the authorization_endpoint parameters to the one inside the signed request object. There are 3 valid ways the authorization server may handle this: it must either return an invalid_request error back to the client, or must show an error page (saying the request is invalid as the 'nonce' value in the request object and outside it are different - upload a screenshot of the error page), or must successfully authenticate and return the nonce from inside the request object in the id_token.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

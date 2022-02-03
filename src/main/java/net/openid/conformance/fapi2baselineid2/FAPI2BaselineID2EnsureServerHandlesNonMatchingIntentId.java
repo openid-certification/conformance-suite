@@ -15,10 +15,10 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-server-handles-non-matching-intent-id",
-	displayName = "FAPI1-Advanced-Final: server handles non matching openbanking_intent_id",
+	testName = "fapi2-baseline-id2-ensure-server-handles-non-matching-intent-id",
+	displayName = "FAPI2-Baseline-ID2: server handles non matching openbanking_intent_id",
 	summary = "This test registers an intent/consent with one client and then uses it with a different client. It should end with the user being redirected back to the conformance suite (with an invalid_request, invalid_request_object or access_denied error), or with the authorization server displaying an error message to the user saying the intent/consent id belongs to a different client (a screenshot of which must be uploaded).",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

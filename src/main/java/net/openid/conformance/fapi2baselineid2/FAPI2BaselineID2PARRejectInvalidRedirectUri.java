@@ -22,10 +22,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 //PAR-3.1.1 : If the signature validation fails, the authorization server shall return 401 Unauthorized HTTP error response. The same applies if the client_id or, if applicable, the iss claim in the request object do not match the authenticated client_id.
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-par-attempt-invalid-redirect_uri",
+	testName = "fapi2-baseline-id2-par-attempt-invalid-redirect_uri",
 	displayName = "PAR : try to use an invalid redirect_uri ",
 	summary = "This test tries to provide an invalid redirect_uri and expects authorization server to return an error",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

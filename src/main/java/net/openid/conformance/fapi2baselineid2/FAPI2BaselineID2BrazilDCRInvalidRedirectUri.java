@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-invalid-redirect-uri",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR Invalid Redirect URI",
+	testName = "fapi2-baseline-id2-brazil-dcr-invalid-redirect-uri",
+	displayName = "FAPI2-Baseline-ID2: Brazil DCR Invalid Redirect URI",
 	summary = "Perform the DCR flow, but requesting a redirect uri not present in the software statement - the server must reject the registration attempt.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

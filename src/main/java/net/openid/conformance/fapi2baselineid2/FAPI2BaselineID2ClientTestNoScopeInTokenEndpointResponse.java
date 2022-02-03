@@ -10,10 +10,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
  * returning the granted scopes if they're different from the requested scopes.
  */
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-no-scope-in-token-endpoint-response",
-	displayName = "FAPI1-Advanced-Final: client test - token endpoint response will not contain the granted scopes, should be accepted",
+	testName = "fapi2-baseline-id2-client-test-no-scope-in-token-endpoint-response",
+	displayName = "FAPI2-Baseline-ID2: client test - token endpoint response will not contain the granted scopes, should be accepted",
 	summary = "Same as the happy path flow except the token endpoint response will not contain the granted scopes. The client must assume that they are the same as the requested scopes.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

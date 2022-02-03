@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.RemoveRedirectUrisFromDynamicClie
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-no-redirect-uri",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR no redirect uri",
+	testName = "fapi2-baseline-id2-brazil-dcr-no-redirect-uri",
+	displayName = "FAPI2-Baseline-ID2: Brazil DCR no redirect uri",
 	summary = "Perform the DCR flow, but without including a redirect uri in the request body - the server must reject the registration attempt.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

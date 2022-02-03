@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazil-dcr-invalid-jwks-uri",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR Invalid JWKS URI",
+	testName = "fapi2-baseline-id2-brazil-dcr-invalid-jwks-uri",
+	displayName = "FAPI2-Baseline-ID2: Brazil DCR Invalid JWKS URI",
 	summary = "Perform the DCR flow, but requesting a jwks uri not hosted on the OB Brazil directory - the server must reject the registration attempt.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

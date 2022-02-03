@@ -8,10 +8,10 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-valid-pkce-succeeds",
-	displayName = "FAPI1-Advanced-Final: ensure valid pkce succeeds",
-	summary = "This test makes a FAPI authorization request using valid PKCE (RFC7636), which must succeed. FAPI1-Advanced-Final does not require servers to support PKCE, but as per https://tools.ietf.org/html/rfc6749#section-3.1 'The authorization server MUST ignore unrecognized request parameters' - i.e. whether the server supports PKCE or not, a valid PKCE request must succeed. The reason for this test is that many OpenID Connect clients speculatively use PKCE, and the OAuth2 standard requires that requests from such clients must not fail.",
-	profile = "FAPI1-Advanced-Final",
+	testName = "fapi2-baseline-id2-ensure-valid-pkce-succeeds",
+	displayName = "FAPI2-Baseline-ID2: ensure valid pkce succeeds",
+	summary = "This test makes a FAPI authorization request using valid PKCE (RFC7636), which must succeed. FAPI2-Baseline-ID2 does not require servers to support PKCE, but as per https://tools.ietf.org/html/rfc6749#section-3.1 'The authorization server MUST ignore unrecognized request parameters' - i.e. whether the server supports PKCE or not, a valid PKCE request must succeed. The reason for this test is that many OpenID Connect clients speculatively use PKCE, and the OAuth2 standard requires that requests from such clients must not fail.",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

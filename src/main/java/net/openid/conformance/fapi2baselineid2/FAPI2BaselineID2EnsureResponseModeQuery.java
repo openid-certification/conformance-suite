@@ -15,10 +15,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-response-mode-query",
-	displayName = "FAPI1-Advanced-Final: ensure response_mode query",
+	testName = "fapi2-baseline-id2-ensure-response-mode-query",
+	displayName = "FAPI2-Baseline-ID2: ensure response_mode query",
 	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not allowed by FAPI-RW (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate without returning the result in the query.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

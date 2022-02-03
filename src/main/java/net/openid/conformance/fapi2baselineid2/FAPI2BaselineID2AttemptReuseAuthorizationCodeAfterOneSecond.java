@@ -7,10 +7,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import org.apache.http.HttpStatus;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",
-	displayName = "FAPI1-Advanced-Final: try to reuse authorization code after one second",
+	testName = "fapi2-baseline-id2-attempt-reuse-authorisation-code-after-one-second",
+	displayName = "FAPI2-Baseline-ID2: try to reuse authorization code after one second",
 	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

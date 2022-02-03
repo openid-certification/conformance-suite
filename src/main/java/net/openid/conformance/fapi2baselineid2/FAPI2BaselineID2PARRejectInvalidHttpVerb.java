@@ -8,10 +8,10 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-par-attempt-invalid-http-method",
+	testName = "fapi2-baseline-id2-par-attempt-invalid-http-method",
 	displayName = "PAR : try to use an invalid http method ",
 	summary = "This test tries to use an invalid http method and expects authorization server to return an error",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

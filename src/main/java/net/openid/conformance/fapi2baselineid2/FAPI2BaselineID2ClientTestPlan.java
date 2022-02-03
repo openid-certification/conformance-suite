@@ -8,8 +8,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @PublishTestPlan (
-	testPlanName = "fapi1-advanced-final-client-test-plan",
-	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
+	testPlanName = "fapi2-baseline-id2-client-test-plan",
+	displayName = "FAPI2-Baseline-ID2: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI2BaselineID2ClientTest.class,
@@ -79,7 +79,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				return "Not a conformance profile. Please use 'FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+				return "Not a conformance profile. Please use 'FAPI2-Baseline-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 		}
 
 		certProfile += " Adv. RP w/";

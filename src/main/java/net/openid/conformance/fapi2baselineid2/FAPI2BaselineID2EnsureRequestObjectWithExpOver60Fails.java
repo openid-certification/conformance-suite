@@ -14,10 +14,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-request-object-with-exp-over-60-fails",
-	displayName = "FAPI1-Advanced-Final: ensure request object with exp value of more then than 60 minutes after the nbf value fails",
+	testName = "fapi2-baseline-id2-ensure-request-object-with-exp-over-60-fails",
+	displayName = "FAPI2-Baseline-ID2: ensure request object with exp value of more then than 60 minutes after the nbf value fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

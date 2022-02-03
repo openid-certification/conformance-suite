@@ -56,8 +56,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-brazildcr-happypath-test",
-	displayName = "FAPI1-Advanced-Final: client DCR happy path test",
+	testName = "fapi2-baseline-id2-client-brazildcr-happypath-test",
+	displayName = "FAPI2-Baseline-ID2: client DCR happy path test",
 	summary = "Tests a 'happy path' flow; " +
 		"first perform OpenID discovery from the displayed discoveryUrl, and register the client. " +
 		"Then call the authorization endpoint (which will immediately redirect back), " +
@@ -67,7 +67,7 @@ import javax.servlet.http.HttpSession;
 		"each time - it is vital that the client PERMANENTLY "+
 		"stores the registration_client_uri and registration_access_token so that future changes may be "+
 		"made to the configuration of the client.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"directory.keystore"
@@ -115,7 +115,7 @@ public class FAPI2BaselineID2BrazilClientDCRHappyPathTest extends AbstractFAPI2B
 		} else if (path.equals(env.getString("registration_client_uri", "path"))) {
 			if (OIDFJSON.getString(requestParts.get("method")).equals("DELETE")) {
 				// We ignore this to keep the OP tests against RP tests happy,
-				// fapi1-advanced-final-brazildcr-happy-flow calls DELETE as it's final step.
+				// fapi2-baseline-id2-brazildcr-happy-flow calls DELETE as it's final step.
 				return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 			}
 

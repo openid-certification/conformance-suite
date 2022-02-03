@@ -8,8 +8,8 @@ import net.openid.conformance.variant.VariantSelection;
 import java.util.List;
 
 @PublishTestPlan (
-	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
-	displayName = "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
+	testPlanName = "fapi2-baseline-id2-brazil-dcr-test-plan",
+	displayName = "FAPI2-Baseline-ID2: Brazil Dynamic Client Registration Authorization server test",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2BaselineID2BrazilDCRTestPlan implements TestPlan {

@@ -24,10 +24,10 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-mtls-holder-of-key-required",
-	displayName = "FAPI1-Advanced-Final: ensure mtls holder of key required",
+	testName = "fapi2-baseline-id2-ensure-mtls-holder-of-key-required",
+	displayName = "FAPI2-Baseline-ID2: ensure mtls holder of key required",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -11,10 +11,10 @@ import java.util.UUID;
  * either an exact match, or contains a subset of the scope sent in the authorization request.
  */
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-invalid-scope-in-token-endpoint-response",
-	displayName = "FAPI1-Advanced-Final: client test - token endpoint response will not contain a scope that was not requested, should be rejected",
+	testName = "fapi2-baseline-id2-client-test-invalid-scope-in-token-endpoint-response",
+	displayName = "FAPI2-Baseline-ID2: client test - token endpoint response will not contain a scope that was not requested, should be rejected",
 	summary = "A random scope value, which was not requested by the client, will be included in the scope value in the token endpoint response.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

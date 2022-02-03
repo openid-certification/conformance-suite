@@ -9,13 +9,13 @@ import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-client-test-encrypted-idtoken-usingrsa15",
-	displayName = "FAPI1-Advanced-Final: client test id_token encrypted using RSA1_5 algorithm",
+	testName = "fapi2-baseline-id2-client-test-encrypted-idtoken-usingrsa15",
+	displayName = "FAPI2-Baseline-ID2: client test id_token encrypted using RSA1_5 algorithm",
 	summary = "This test uses client2. " +
 		"The client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the authorization endpoint which will immediately redirect back with an id_token " +
 		"encrypted using RSA1_5 algorithm which is not allowed.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

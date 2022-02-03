@@ -342,7 +342,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			if (isSecondClient) {
 				callAndStopOnFailure(AddIatToRequestObject.class);
 			}
-			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI1-ADV-5.2.2-17"); // mandatory in FAPI1-Advanced-Final
+			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI1-ADV-5.2.2-17"); // mandatory in FAPI2-Baseline-ID2
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI1-ADV-5.2.2-13");
 
 			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI1-ADV-5.2.2-14");

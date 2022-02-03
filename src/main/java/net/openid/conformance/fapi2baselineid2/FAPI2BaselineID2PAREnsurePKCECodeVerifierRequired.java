@@ -14,10 +14,10 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-pkce-code-verifier-required",
-	displayName = "FAPI1-Advanced-Final: Ensure PKCE code_verifier required",
+	testName = "fapi2-baseline-id2-ensure-pkce-code-verifier-required",
+	displayName = "FAPI2-Baseline-ID2: Ensure PKCE code_verifier required",
 	summary = "This test authenticates as normal except that when calling the token endpoint it omits the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, as PKCE is required and requires the code_verifier parameter.",
-	profile = "FAPI1-Advanced-Final",
+	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
