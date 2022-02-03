@@ -59,6 +59,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequ
 import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
 import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -203,10 +204,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
-	public static final String BRAZIL_ACCOUNTS_PATH = "accounts/v1/accounts";
-	public static final String BRAZIL_PAYMENT_INITIATION_PATH = "payments/v1/pix/payments";
-	public static final String BRAZIL_CONSENTS_PATH = "consents/v1/consents";
-	public static final String BRAZIL_PAYMENTS_CONSENTS_PATH = "payments/v1/consents";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
@@ -306,10 +303,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			exposeMtlsPath("accounts_endpoint", BRAZIL_ACCOUNTS_PATH);
-			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
-			exposeMtlsPath("payments_consents_endpoint", BRAZIL_PAYMENTS_CONSENTS_PATH);
-			exposeMtlsPath("payment_initiation_path", BRAZIL_PAYMENT_INITIATION_PATH);
+			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
+			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
+			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
@@ -481,23 +478,23 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH) || path.equals(BRAZIL_ACCOUNTS_PATH)) {
+		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
 		}
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if(BRAZIL_CONSENTS_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
-			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
+			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, false);
 			}
-			if(BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, true);
-			} else if(path.startsWith(BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, true);
 			}
-			if(BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
@@ -1230,7 +1227,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				throw new TestFailureException(getId(), BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
+				throw new TestFailureException(getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
 			}
 		}
 

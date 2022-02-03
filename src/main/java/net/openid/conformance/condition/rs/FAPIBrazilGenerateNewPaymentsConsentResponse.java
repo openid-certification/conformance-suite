@@ -1,13 +1,11 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -104,7 +102,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_PAYMENTS_CONSENTS_PATH);
+		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 		dataElement.add("links", links);
 
 		JsonObject meta = new JsonObject();
