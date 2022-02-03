@@ -17,7 +17,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Opendata Exchange - Vet Value API test plan",
 	profile = OBBProfile.OBB_PROFIlE_PHASE4,
-	displayName = "Functional tests for Exchange - Vet Value API - based on Swagger version: 1.0.0",
+	displayName = "Functional tests for Exchange - Vet Value API - based on Swagger version: 1.0.0-rc1.0 (WIP)",
 	summary = "Structural and logical tests for Exchange API"
 )
 public class ExchangeVetValueTestPlan implements TestPlan {
