@@ -1,0 +1,24 @@
+[
+    {
+        "Status": "Active",
+        "ClientId": "stringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstring",
+        "ClientName": "string",
+        "Description": "string",
+        "Environment": "string",
+        "OrganisationId": "string",
+        "SoftwareStatementId": "string",
+        "Mode": "Live",
+        "RtsClientCreated": true,
+        "OnBehalfOf": "string",
+        "PolicyUri": "http://string.com",
+        "ClientUri": "http://string.com",
+        "LogoUri": "http://string.com",
+        "RedirectUri": [
+            "http://string.com"
+        ],
+        "TermsOfServiceUri": "http://string",
+        "Version": 0,
+        "Locked": true,
+        "AdditionalSoftwareMetadata": "string"
+    }
+]

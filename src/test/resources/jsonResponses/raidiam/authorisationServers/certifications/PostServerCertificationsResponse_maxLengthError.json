@@ -1,0 +1,9 @@
+{
+    "DateOfCertification": "string",
+    "CertificationId": "stringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstring",
+    "AuthorisationServerId": "string",
+    "Status": "Active",
+    "CertificationType": "FAPI-CIBA OP poll w/ MTLS",
+    "CertificationVersion": 0,
+    "CertificationPayloadURI": "http://string"
+}

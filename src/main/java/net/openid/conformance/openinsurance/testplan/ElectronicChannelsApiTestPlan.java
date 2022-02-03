@@ -6,7 +6,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
+import net.openid.conformance.openbanking_brasil.testmodules.support.LogOnlyFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.openinsurance.validator.channels.ElectronicChannelsValidator;
@@ -48,6 +48,7 @@ public class ElectronicChannelsApiTestPlan implements TestPlan {
 				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
+				callAndContinueOnFailure(LogOnlyFailure.class);
 				callAndContinueOnFailure(ElectronicChannelsValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		}
