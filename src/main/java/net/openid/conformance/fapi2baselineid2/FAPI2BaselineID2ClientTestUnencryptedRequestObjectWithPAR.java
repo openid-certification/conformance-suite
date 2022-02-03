@@ -26,7 +26,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = "by_value")
-public class FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR extends AbstractFAPI1AdvancedFinalClientTest {
+public class FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){

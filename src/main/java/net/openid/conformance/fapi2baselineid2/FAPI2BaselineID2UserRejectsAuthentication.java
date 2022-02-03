@@ -33,7 +33,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalUserRejectsAuthentication extends AbstractFAPI1AdvancedFinalMultipleClient {
+public class FAPI2BaselineID2UserRejectsAuthentication extends AbstractFAPI2BaselineID2MultipleClient {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {

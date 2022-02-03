@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
-public class FAPI1AdvancedFinalClientTestEncryptedIdToken extends AbstractFAPI1AdvancedFinalClientTest {
+public class FAPI2BaselineID2ClientTestEncryptedIdToken extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
 	protected void onConfigurationCompleted() {

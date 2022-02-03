@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPI1AdvancedFinalClientTestInvalidMissingAud extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
+public class FAPI2BaselineID2ClientTestInvalidMissingAud extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

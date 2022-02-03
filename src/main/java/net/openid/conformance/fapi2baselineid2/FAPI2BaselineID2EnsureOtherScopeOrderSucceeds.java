@@ -26,7 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureOtherScopeOrderSucceeds extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2EnsureOtherScopeOrderSucceeds extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {

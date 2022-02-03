@@ -1,31 +1,31 @@
 package net.openid.conformance.fapi2baselineid2.brazil;
 
 
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalBrazilClientDCRHappyPathTest;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientRefreshTokenTest;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTest;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestEncryptedIdToken;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestIatIsWeekInPast;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidAlternateAlg;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidAud;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidCHash;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidExpiredExp;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidIss;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidMissingAud;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidMissingExp;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidMissingIss;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidMissingNonce;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidMissingSHash;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidNonce;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidNullAlg;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidSHash;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidSecondaryAud;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestInvalidSignature;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR;
-import net.openid.conformance.fapi2baselineid2.FAPI1AdvancedFinalClientTestValidAudAsArray;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2BrazilClientDCRHappyPathTest;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientRefreshTokenTest;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTest;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestEncryptedIdToken;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestIatIsWeekInPast;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidAlternateAlg;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidAud;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidCHash;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidExpiredExp;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidIss;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingAud;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingExp;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingIss;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingNonce;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingSHash;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidNonce;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidNullAlg;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSHash;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSecondaryAud;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSignature;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestValidAudAsArray;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
@@ -91,34 +91,34 @@ public class BrazilOBClientTestPlan implements TestPlan {
 
 	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		List<Class<? extends TestModule>> byValueModules = List.of(
-			FAPI1AdvancedFinalClientTest.class,
-			FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
-			FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
-			FAPI1AdvancedFinalClientTestInvalidSHash.class,
-			FAPI1AdvancedFinalClientTestInvalidCHash.class,
-			FAPI1AdvancedFinalClientTestInvalidNonce.class,
-			FAPI1AdvancedFinalClientTestInvalidIss.class,
-			FAPI1AdvancedFinalClientTestInvalidAud.class,
-			FAPI1AdvancedFinalClientTestInvalidSecondaryAud.class,
-			FAPI1AdvancedFinalClientTestInvalidSignature.class,
-			FAPI1AdvancedFinalClientTestInvalidNullAlg.class,
-			FAPI1AdvancedFinalClientTestInvalidAlternateAlg.class,
-			FAPI1AdvancedFinalClientTestInvalidExpiredExp.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingExp.class,
-			FAPI1AdvancedFinalClientTestIatIsWeekInPast.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingAud.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingIss.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
-			FAPI1AdvancedFinalClientTestValidAudAsArray.class,
-			FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
-			FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
-			FAPI1AdvancedFinalClientRefreshTokenTest.class,
-			FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class
+			FAPI2BaselineID2ClientTest.class,
+			FAPI2BaselineID2ClientTestEncryptedIdToken.class,
+			FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15.class,
+			FAPI2BaselineID2ClientTestInvalidSHash.class,
+			FAPI2BaselineID2ClientTestInvalidCHash.class,
+			FAPI2BaselineID2ClientTestInvalidNonce.class,
+			FAPI2BaselineID2ClientTestInvalidIss.class,
+			FAPI2BaselineID2ClientTestInvalidAud.class,
+			FAPI2BaselineID2ClientTestInvalidSecondaryAud.class,
+			FAPI2BaselineID2ClientTestInvalidSignature.class,
+			FAPI2BaselineID2ClientTestInvalidNullAlg.class,
+			FAPI2BaselineID2ClientTestInvalidAlternateAlg.class,
+			FAPI2BaselineID2ClientTestInvalidExpiredExp.class,
+			FAPI2BaselineID2ClientTestInvalidMissingExp.class,
+			FAPI2BaselineID2ClientTestIatIsWeekInPast.class,
+			FAPI2BaselineID2ClientTestInvalidMissingAud.class,
+			FAPI2BaselineID2ClientTestInvalidMissingIss.class,
+			FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
+			FAPI2BaselineID2ClientTestInvalidMissingSHash.class,
+			FAPI2BaselineID2ClientTestValidAudAsArray.class,
+			FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse.class,
+			FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse.class,
+			FAPI2BaselineID2ClientRefreshTokenTest.class,
+			FAPI2BaselineID2BrazilClientDCRHappyPathTest.class
 		);
 		List<Class<? extends TestModule>> parModules = new LinkedList<>();
 		parModules.addAll(byValueModules);
-		parModules.add(FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR.class);
+		parModules.add(FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR.class);
 
 		List<TestPlan.Variant> variantListByValue = List.of(
 			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),

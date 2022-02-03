@@ -21,7 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRBadMTLS extends AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue {
+public class FAPI2BaselineID2BrazilDCRBadMTLS extends AbstractFAPI2BaselineID2BrazilDCRMTLSIssue {
 
 	@Override
 	protected void mapToWrongMTLS() {

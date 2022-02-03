@@ -36,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
-public class FAPI1AdvancedFinalPARCheckAudienceForJWTClientAssertion extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2PARCheckAudienceForJWTClientAssertion extends AbstractFAPI2BaselineID2ServerTestModule {
 	/*
 	PAR-2.0
 	Note that there's some potential ambiguity around the appropriate audience value to use when

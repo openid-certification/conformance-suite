@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI2BaselineID2BrazilDCRUpdateClientConfigInvalidJwksByValue extends AbstractFAPI2BaselineID2BrazilDCR {
 	String originalRedirectUri;
 
 	@Override

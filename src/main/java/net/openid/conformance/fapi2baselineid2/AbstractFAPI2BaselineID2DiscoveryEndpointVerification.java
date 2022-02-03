@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-public abstract class AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractTestModule {
+public abstract class AbstractFAPI2BaselineID2DiscoveryEndpointVerification extends AbstractTestModule {
 	private Class<? extends ConditionSequence> variantAuthChecks;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 

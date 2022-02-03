@@ -1,6 +1,6 @@
 package net.openid.conformance.fapi2baselineid2;
 
-public abstract class AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPI1AdvancedFinalServerTestModule {
+public abstract class AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected void performRedirect() {

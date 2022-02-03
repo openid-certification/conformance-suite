@@ -30,7 +30,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI2BaselineID2BrazilDCRUpdateClientConfigInvalidRedirectUri extends AbstractFAPI2BaselineID2BrazilDCR {
 	String originalRedirectUri;
 
 	@Override

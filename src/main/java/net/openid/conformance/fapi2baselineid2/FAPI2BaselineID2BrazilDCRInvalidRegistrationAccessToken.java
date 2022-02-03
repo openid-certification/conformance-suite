@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI2BaselineID2BrazilDCRInvalidRegistrationAccessToken extends AbstractFAPI2BaselineID2BrazilDCR {
 
 	@Override
 	public void start() {

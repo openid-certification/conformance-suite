@@ -25,7 +25,7 @@ import java.util.UUID;
 		"directory.keystore"
 	}
 )
-public class FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse extends AbstractFAPI1AdvancedFinalClientTest {
+public class FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

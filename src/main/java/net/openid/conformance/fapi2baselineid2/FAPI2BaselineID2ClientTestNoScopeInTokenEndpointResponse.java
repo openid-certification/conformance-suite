@@ -24,7 +24,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.keystore"
 	}
 )
-public class FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse extends AbstractFAPI1AdvancedFinalClientTest {
+public class FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

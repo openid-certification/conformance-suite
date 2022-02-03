@@ -34,7 +34,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2PARRejectRequestUriInParAuthorizationFormParams extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected  void performParAuthorizationRequestFlow() {

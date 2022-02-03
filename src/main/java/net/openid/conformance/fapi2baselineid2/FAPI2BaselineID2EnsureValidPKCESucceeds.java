@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"pushed" // All PAR requests must use PKCE, so we don't need a separate test valid PKCE for PAR
 })
-public class FAPI1AdvancedFinalEnsureValidPKCESucceeds extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2EnsureValidPKCESucceeds extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {

@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
 })
-public class FAPI1AdvancedFinalPARIncorrectPKCECodeVerifierRejected extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
+public class FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected extends AbstractFAPI2BaselineID2PerformTokenEndpoint {
 
 	@Override
 	protected void addPkceCodeVerifier() {

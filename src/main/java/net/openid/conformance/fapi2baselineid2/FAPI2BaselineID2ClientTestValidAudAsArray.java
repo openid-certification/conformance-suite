@@ -22,7 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIJARMType.class, values = "plain_oauth")
-public class FAPI1AdvancedFinalClientTestValidAudAsArray extends AbstractFAPI1AdvancedFinalClientTest {
+public class FAPI2BaselineID2ClientTestValidAudAsArray extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){

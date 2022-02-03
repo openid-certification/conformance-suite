@@ -22,7 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
-public class FAPI1AdvancedFinalClientTestInvalidSHash extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
+public class FAPI2BaselineID2ClientTestInvalidSHash extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void endTestIfRequiredParametersAreMissing() {

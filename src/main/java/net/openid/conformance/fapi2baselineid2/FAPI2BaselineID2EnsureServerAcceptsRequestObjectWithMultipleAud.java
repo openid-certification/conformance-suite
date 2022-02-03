@@ -27,7 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {

@@ -41,7 +41,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"openbanking_uk",
 	"consumerdataright_au"
 })
-public class FAPI1AdvancedFinalBrazilEnsureEncryptionRequired extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2BaselineID2BrazilEnsureEncryptionRequired extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

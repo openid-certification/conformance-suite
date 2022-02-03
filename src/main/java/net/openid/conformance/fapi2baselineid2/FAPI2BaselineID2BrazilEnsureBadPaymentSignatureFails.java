@@ -37,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"openbanking_uk",
 	"consumerdataright_au"
 })
-public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI1AdvancedFinalServerTestModule {
+public class FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {

@@ -12,36 +12,36 @@ import java.util.Map;
 	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
-		FAPI1AdvancedFinalClientTest.class,
-		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
-		FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
-		FAPI1AdvancedFinalClientTestInvalidSHash.class,
-		FAPI1AdvancedFinalClientTestInvalidCHash.class,
-		FAPI1AdvancedFinalClientTestInvalidNonce.class,
-		FAPI1AdvancedFinalClientTestInvalidIss.class,
-		FAPI1AdvancedFinalClientTestInvalidAud.class,
-		FAPI1AdvancedFinalClientTestInvalidSecondaryAud.class,
-		FAPI1AdvancedFinalClientTestInvalidSignature.class,
-		FAPI1AdvancedFinalClientTestInvalidNullAlg.class,
-		FAPI1AdvancedFinalClientTestInvalidAlternateAlg.class,
-		FAPI1AdvancedFinalClientTestInvalidExpiredExp.class,
-		FAPI1AdvancedFinalClientTestInvalidMissingExp.class,
-		FAPI1AdvancedFinalClientTestIatIsWeekInPast.class,
-		FAPI1AdvancedFinalClientTestInvalidMissingAud.class,
-		FAPI1AdvancedFinalClientTestInvalidMissingIss.class,
-		FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
-		FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
-		FAPI1AdvancedFinalClientTestValidAudAsArray.class,
-		FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
-		FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
+		FAPI2BaselineID2ClientTest.class,
+		FAPI2BaselineID2ClientTestEncryptedIdToken.class,
+		FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15.class,
+		FAPI2BaselineID2ClientTestInvalidSHash.class,
+		FAPI2BaselineID2ClientTestInvalidCHash.class,
+		FAPI2BaselineID2ClientTestInvalidNonce.class,
+		FAPI2BaselineID2ClientTestInvalidIss.class,
+		FAPI2BaselineID2ClientTestInvalidAud.class,
+		FAPI2BaselineID2ClientTestInvalidSecondaryAud.class,
+		FAPI2BaselineID2ClientTestInvalidSignature.class,
+		FAPI2BaselineID2ClientTestInvalidNullAlg.class,
+		FAPI2BaselineID2ClientTestInvalidAlternateAlg.class,
+		FAPI2BaselineID2ClientTestInvalidExpiredExp.class,
+		FAPI2BaselineID2ClientTestInvalidMissingExp.class,
+		FAPI2BaselineID2ClientTestIatIsWeekInPast.class,
+		FAPI2BaselineID2ClientTestInvalidMissingAud.class,
+		FAPI2BaselineID2ClientTestInvalidMissingIss.class,
+		FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
+		FAPI2BaselineID2ClientTestInvalidMissingSHash.class,
+		FAPI2BaselineID2ClientTestValidAudAsArray.class,
+		FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse.class,
+		FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse.class,
 		// OB systems specific tests
-		FAPI1AdvancedFinalClientTestNoAtHash.class,
-		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class,
+		FAPI2BaselineID2ClientTestNoAtHash.class,
+		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
-		FAPI1AdvancedFinalClientRefreshTokenTest.class
+		FAPI2BaselineID2ClientRefreshTokenTest.class
 	}
 )
-public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
+public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;

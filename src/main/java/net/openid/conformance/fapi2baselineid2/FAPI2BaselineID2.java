@@ -43,7 +43,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 			"resource.resourceUrl"
 		}
 	)
-public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient {
+public class FAPI2BaselineID2 extends AbstractFAPI2BaselineID2MultipleClient {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

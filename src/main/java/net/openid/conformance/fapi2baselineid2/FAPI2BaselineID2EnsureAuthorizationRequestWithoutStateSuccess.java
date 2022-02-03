@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState {
+public class FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess extends AbstractFAPI2BaselineID2EnsureRequestObjectWithoutState {
 
 	@Override
 	protected void performRedirect() {

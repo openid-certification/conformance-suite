@@ -200,7 +200,7 @@ import javax.servlet.http.HttpSession;
 	"client.scope",
 	"client2.scope"
 })
-public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestModule {
+public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";

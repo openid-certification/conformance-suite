@@ -37,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
-public class FAPI1AdvancedFinalEnsureClientAssertionInTokenEndpoint extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
+public class FAPI2BaselineID2EnsureClientAssertionInTokenEndpoint extends AbstractFAPI2BaselineID2PerformTokenEndpoint {
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {

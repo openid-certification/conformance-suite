@@ -45,7 +45,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMultipleClient {
+public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2MultipleClient {
 
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
 		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");

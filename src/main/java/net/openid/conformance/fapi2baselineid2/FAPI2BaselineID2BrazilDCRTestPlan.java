@@ -12,30 +12,30 @@ import java.util.List;
 	displayName = "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
 	profile = TestPlan.ProfileNames.optest
 )
-public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
+public class FAPI2BaselineID2BrazilDCRTestPlan implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					FAPI1AdvancedFinalBrazilDCRHappyFlow.class,
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant.class,
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2.class,
-					FAPI1AdvancedFinalBrazilDCRClientDeletion.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
-					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
-					FAPI1AdvancedFinalBrazilDCRNoMTLS.class,
-					FAPI1AdvancedFinalBrazilDCRBadMTLS.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfig.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
+					FAPI2BaselineID2BrazilDCRHappyFlow.class,
+					FAPI2BaselineID2BrazilDCRHappyFlowVariant.class,
+					FAPI2BaselineID2BrazilDCRHappyFlowVariant2.class,
+					FAPI2BaselineID2BrazilDCRClientDeletion.class,
+					FAPI2BaselineID2BrazilDCRInvalidRegistrationAccessToken.class,
+					FAPI2BaselineID2BrazilDCRInvalidSoftwareStatementSignature.class,
+					FAPI2BaselineID2BrazilDCRNoSoftwareStatement.class,
+					FAPI2BaselineID2BrazilDCRNoMTLS.class,
+					FAPI2BaselineID2BrazilDCRBadMTLS.class,
+					FAPI2BaselineID2BrazilDCRUpdateClientConfig.class,
+					FAPI2BaselineID2BrazilDCRUpdateClientConfigBadJwksUri.class,
+					FAPI2BaselineID2BrazilDCRUpdateClientConfigInvalidJwksByValue.class,
+					FAPI2BaselineID2BrazilDCRUpdateClientConfigInvalidRedirectUri.class,
+					FAPI2BaselineID2BrazilDCRNoRedirectUri.class,
+					FAPI2BaselineID2BrazilDCRInvalidRedirectUri.class,
+					FAPI2BaselineID2BrazilDCRInvalidJwksUri.class,
+					FAPI2BaselineID2BrazilDCRInvalidJwksByValue.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)

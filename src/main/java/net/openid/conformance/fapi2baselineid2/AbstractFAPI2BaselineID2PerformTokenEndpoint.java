@@ -5,7 +5,7 @@ package net.openid.conformance.fapi2baselineid2;
  *
  * i.e. it does not go on to call the resource endpoint.
  */
-public abstract class AbstractFAPI1AdvancedFinalPerformTokenEndpoint extends AbstractFAPI1AdvancedFinalServerTestModule {
+public abstract class AbstractFAPI2BaselineID2PerformTokenEndpoint extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
 	protected void performPostAuthorizationFlow() {

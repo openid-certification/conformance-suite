@@ -37,7 +37,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRClientDeletion extends AbstractFAPI1AdvancedFinalBrazilDCR {
+public class FAPI2BaselineID2BrazilDCRClientDeletion extends AbstractFAPI2BaselineID2BrazilDCR {
 
 	protected void performClientCredentialsGrant() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
