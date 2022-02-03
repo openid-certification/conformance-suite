@@ -124,9 +124,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 	}
 
 	private void initAdditionalProperties(Environment env) {
-		String statusString =  env.getEffectiveKey("doNotStopOnFailure");
+		String statusString = env.getEffectiveKey("doNotStopOnFailure");
 		if (statusString != null) {
 			this.dontStopOnFailure = Boolean.parseBoolean(statusString);
+		}
+		String logOnlyFailureProp = env.getEffectiveKey("logOnlyFailure");
+		if (statusString != null) {
+			this.logOnlyFailure = Boolean.parseBoolean(logOnlyFailureProp);
 		}
 	}
 
@@ -186,11 +190,6 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 							.build());
 				})
 				.build());
-	}
-
-	protected void setLogOnlyFailure() {
-		log("Log Only Failure Mode is ON");
-		logOnlyFailure = true;
 	}
 
 	protected void logFinalStatus() {

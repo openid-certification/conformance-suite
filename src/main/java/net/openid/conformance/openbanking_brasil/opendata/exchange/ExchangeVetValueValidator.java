@@ -13,22 +13,22 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_exchange_apis.yaml
- * Api endpoint: /vet-value
+ * Api: swagger/opendata/swagger-exchange.yaml
+ * Api endpoint: /vet-values
  * Api version: 1.0.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
 @ApiName("Online Rate")
 public class ExchangeVetValueValidator extends AbstractJsonAssertingCondition {
 
-	private static class Fields extends ProductNServicesCommonFields { }
+	private static class Fields extends ProductNServicesCommonFields {}
 
-	public static final Set<String> CURRENCY = Sets.newHashSet("USD", "EUR");
 	public static final Set<String> DELIVERY_CURRENCY = Sets.newHashSet("ESPECIE", "CARTAO_PRE_PAGO", "TELETRANSMISSAO_SWIFT");
 	public static final Set<String> TRANSANCTION_TYPE = Sets.newHashSet("COMPRA", "VENDA");
-	public static final Set<String> TRANSANCTION_CATEGORY = Sets.newHashSet("COMERCIO_EXTERIOR","TRANSPORTE","SEGUROS","VIAGENS_INTERNACIONAIS","TRANSFERENCIAS_UNILATERAIS","SERVICOS_DIVERSOS","RENDAS_DE_CAPITAIS","CAPITAIS_BRASILEIROS","CAPITAIS_ESTRANGEIROS","PRESTACAO_DE_SERVICO_DE_PAGAMENTO_OU_TRANSFERENCIA_INTERNACIONAL_EFX");
 	public static final Set<String> RANGE_TRANSANCTION_CATEGORY = Sets.newHashSet("0,01_200", "200,01_500", "500,01_1.000", "1.000,01_3.000", "3.000,01_10.000", "10.000,01_30.000", "30.000,01_100.000");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "PESSOA_NATURAL_JURIDICA");
+	public static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA","2_FAIXA","3_FAIXA","4_FAIXA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -47,7 +47,7 @@ public class ExchangeVetValueValidator extends AbstractJsonAssertingCondition {
 
 	private void assertData(JsonObject data) {
 		assertField(data,
-		new ObjectField.Builder("participantIdentification")
+		new ObjectField.Builder("participant")
 			.setValidator(this::assertParticipantIdentification)
 			.build());
 
@@ -61,15 +61,7 @@ public class ExchangeVetValueValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new StringField
 				.Builder("foreignCurrency")
-				.setMaxLength(3)
-				.setEnums(CURRENCY)
-				.build());
-
-		assertField(data,
-			new StringField
-				.Builder("transactionCategory")
-				.setMaxLength(68)
-				.setEnums(TRANSANCTION_CATEGORY)
+				.setPattern("^[A-Z]{3}$")
 				.build());
 
 		assertField(data,
@@ -95,10 +87,62 @@ public class ExchangeVetValueValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(data,
+			new ObjectField.Builder("vetAmount")
+				.setValidator(this::assertVetAmount)
+				.build());
+	}
+
+	private void assertVetAmount(JsonObject vetAmount) {
+		assertField(vetAmount, Fields.name().setMaxLength(200).build());
+		assertField(vetAmount, Fields.code().setMaxLength(200).build());
+
+		assertField(vetAmount,
 			new StringField
-				.Builder("vetAmount")
-				.setMaxLength(7)
-				.setPattern("^\\d{1}\\.\\d{1,5}$")
+				.Builder("chargingTriggerInfo")
+				.setMaxLength(200)
+				.build());
+
+		assertField(vetAmount,
+			new ObjectArrayField.Builder("prices")
+				.setValidator(this::assertPrices)
+				.setMinItems(4)
+				.setMaxItems(4)
+				.build());
+
+		assertField(vetAmount,
+			new StringField
+				.Builder("minimum")
+				.setMaxLength(8)
+				.setPattern("^\\d{1}\\.\\d{1,6}$")
+				.build());
+
+		assertField(vetAmount,
+			new StringField
+				.Builder("maximum")
+				.setMaxLength(8)
+				.setPattern("^\\d{1}\\.\\d{1,6}$")
+				.build());
+	}
+
+	private void assertPrices(JsonObject prices) {
+		assertField(prices,
+			new StringField
+				.Builder("interval")
+				.setEnums(INTERVAL)
+				.build());
+
+		assertField(prices,
+			new StringField
+				.Builder("value")
+				.setMaxLength(8)
+				.setPattern("^\\d{1}\\.\\d{1,6}$")
+				.build());
+
+		assertField(prices,
+			new StringField
+				.Builder("customerRate")
+				.setMaxLength(8)
+				.setPattern("^\\d{1}\\.\\d{1,6}$")
 				.build());
 	}
 

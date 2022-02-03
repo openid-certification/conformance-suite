@@ -34,7 +34,6 @@ public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		setLogOnlyFailure();
 		JsonElement body = bodyFrom(environment);
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
 			data -> assertField(data, new ObjectField.Builder("brand").setValidator(

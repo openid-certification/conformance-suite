@@ -41,7 +41,6 @@ public class BusinessAccountsValidator extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-		setLogOnlyFailure();
 		JsonElement body = bodyFrom(environment);
 		assertHasField(body, ROOT_PATH);
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(

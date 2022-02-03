@@ -13,44 +13,45 @@ import java.util.Set;
 
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_pension_apis.yaml
+ * Api: swagger/opendata/swagger-pension.yaml
  * Api endpoint: /risk-coverages
  * Api version: 1.0.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
 @ApiName("Pension Risk Coverages")
 public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
+
 	private final CommonOpenDataParts parts;
+
 	public RiskCoveragesValidator() {
 		parts = new CommonOpenDataParts(this);
 	}
 
-	public static final Set<String> MODALITY = Sets.newHashSet("FUNERAL","PRESTAMISTA","VIAGEM","EDUCACIONAL","DOTAL","ACIDENTES_PESSOAIS","VIDA","PERDA_CERTIFICADO_HABILITACAO_VOO","DOENCAS_GRAVES_DOENCA_TERMINAL","DESEMPREGO_PERDA_RENDA","EVENTOS_ALEATORIOS","PECULIO","PENSAO_PRAZO_CERTO","PENSAO_MENORES_21","PENSAO_MENORES_24","PENSAO_CONJUGE_VITALICIA","PENSAO_CONJUGE_TEMPORARIA");
-	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL","MICROSSEGURO");
-	public static final Set<String> PERIOD = Sets.newHashSet("VITALICIA","TEMPORARIA");
-	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS","ATE_FIM_CICLO_DETERMINADO");
-	public static final Set<String> TYPE = Sets.newHashSet("MORTE","INVALIDEZ");
-	public static final Set<String> PROFIT_MODALITY = Sets.newHashSet("PAGAMENTO_UNICO","SOB_FORMA_DE_RENDA");
-	public static final Set<String> UNIT = Sets.newHashSet( "DIAS","MESES","NAO_APLICA");
-	public static final Set<String> INDEX = Sets.newHashSet( "IPCA","IGP_M","INPC");
-	public static final Set<String> RISKS = Sets.newHashSet("ATO_RECONHECIMENTO_PERIGOSO","ATO_ILICITO_DOLOSO_PRATICADO_SEGURADO","OPERACOES_DE_GUERRA","FURACOES_CICLONES_TERREMOTOS","MATERIAL_NUCLEAR","DOENCAS_LESOES_PREEXISTENTES","EPIDEMIAS_PANDEMIAS","SUICIDIO","ATO_ILICITO_DOLOSO_PRATICADO_CONTROLADOR","OUTROS");
-	public static final Set<String> ASSISTANCE_TYPE = Sets.newHashSet("ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA","ARQUITETO_VIRTUAL","ASSESSORIA_FINANCEIRA","AUTOMOVEL","AUXILIO_NATALIDADE","AVALIACAO_CLINICA_PREVENTIVA","BOLSA_PROTEGIDA","CESTA_BASICA","CHECKUP_ODONTOLOGICO","CLUBE_VANTAGENS_BENEFICIOS","CONVALESCENCIA","DECESSO","DESCONTO_FARMACIAS_MEDICAMENTOS","DESPESAS_FARMACEUTICAS_VIAGEM","DIGITAL","EDUCACIONAL","EMPRESARIAL","ENCANADOR","ENTRETENIMENTO","EQUIPAMENTOS_MEDICOS","FIANCAS_DESPESAS_LEGAIS","FISIOTERAPIA","FUNERAL","HELP_LINE","HOSPEDAGEM_ACOMPANHANTE","INTERRUPCAO_VIAGEM","INVENTARIO","MAIS_EM_VIDA","MAMAE_BEBE","MEDICA_ACIDENTE_DOENCA","MOTOCICLETA","MULHER","NUTRICIONISTA","ODONTOLOGICA","ORIENTACAO_FITNESS","ORIENTACAO_JURIDICA","ORIENTACAO_NUTRICIONAL","PERSONAL_FITNESS","ORIENTACAO_PSICOSSOCIAL_FAMILIAR","PERDA_ROUBO_CARTAO","PET","PRORROGACAO_ESTADIA","PROTECAO_DADOS","RECOLOCACAO_PROFISSIONAL","REDE_DESCONTO_NUTRICIONAL","RESIDENCIAL","RETORNO_MENORES_SEGURADO","SAQUE_COACAO","SAUDE_BEM_ESTAR","SEGUNDA_OPINIAO_MEDICA","SENIOR","SUSTENTAVEL_DESCARTE_ECOLOGICO","TELEMEDICINA","VIAGEM","VITIMA","OUTROS");
-	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO","SERVICOS_ASSISTENCIAS_COMPLEMENTARES_PAGO","SERVICOS_ASSISTENCIA_COMPLEMENTARES_GRATUITO","OUTROS","NAO_HA");
-	public static final Set<String> TERMS = Sets.newHashSet("VITALICIA","TEMPORARIA_PRAZO_FIXO","TEMPORARIA_INTERMITENTE");
-	public static final Set<String> CRITERIAS = Sets.newHashSet("INDICE","VINCULADO_SALDO_DEVEDOR","VARIAVEL_ACORDO_CRITERIO_ESPECIFICO");
-	public static final Set<String> CRITERIAS_AGE_ADJ = Sets.newHashSet("APOS_PERIODO_EM_ANOS","A_CADA_PERIODO_EM_ANOS","POR_MUDANCA_DE_FAIXA_ETARIA","NAO_APLICAVEL");
+	public static final Set<String> MODALITY = Sets.newHashSet("FUNERAL", "PRESTAMISTA", "VIAGEM", "EDUCACIONAL", "DOTAL", "ACIDENTES_PESSOAIS", "VIDA", "PERDA_CERTIFICADO_HABILITACAO_VOO", "DOENCAS_GRAVES_DOENCA_TERMINAL", "DESEMPREGO_PERDA_RENDA", "EVENTOS_ALEATORIOS", "PECULIO", "PENSAO_PRAZO_CERTO", "PENSAO_MENORES_21", "PENSAO_MENORES_24", "PENSAO_CONJUGE_VITALICIA", "PENSAO_CONJUGE_TEMPORARIA");
+	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL", "MICROSSEGURO");
+	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "ATE_FIM_CICLO_DETERMINADO");
+	public static final Set<String> TYPE = Sets.newHashSet("MORTE", "INVALIDEZ");
+	public static final Set<String> UNIT = Sets.newHashSet("DIAS", "MESES", "NAO_APLICA");
+	public static final Set<String> INDEX = Sets.newHashSet("IPCA", "IGP_M", "INPC");
+	public static final Set<String> RISKS = Sets.newHashSet("ATO_RECONHECIMENTO_PERIGOSO", "ATO_ILICITO_DOLOSO_PRATICADO_SEGURADO", "OPERACOES_DE_GUERRA", "FURACOES_CICLONES_TERREMOTOS", "MATERIAL_NUCLEAR", "DOENCAS_LESOES_PREEXISTENTES", "EPIDEMIAS_PANDEMIAS", "SUICIDIO", "ATO_ILICITO_DOLOSO_PRATICADO_CONTROLADOR", "OUTROS");
+	public static final Set<String> ASSISTANCE_TYPE = Sets.newHashSet("ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA", "ARQUITETO_VIRTUAL", "ASSESSORIA_FINANCEIRA", "AUTOMOVEL", "AUXILIO_NATALIDADE", "AVALIACAO_CLINICA_PREVENTIVA", "BOLSA_PROTEGIDA", "CESTA_BASICA", "CHECKUP_ODONTOLOGICO", "CLUBE_VANTAGENS_BENEFICIOS", "CONVALESCENCIA", "DECESSO", "DESCONTO_FARMACIAS_MEDICAMENTOS", "DESPESAS_FARMACEUTICAS_VIAGEM", "DIGITAL", "EDUCACIONAL", "EMPRESARIAL", "ENCANADOR", "ENTRETENIMENTO", "EQUIPAMENTOS_MEDICOS", "FIANCAS_DESPESAS_LEGAIS", "FISIOTERAPIA", "FUNERAL", "HELP_LINE", "HOSPEDAGEM_ACOMPANHANTE", "INTERRUPCAO_VIAGEM", "INVENTARIO", "MAIS_EM_VIDA", "MAMAE_BEBE", "MEDICA_ACIDENTE_DOENCA", "MOTOCICLETA", "MULHER", "NUTRICIONISTA", "ODONTOLOGICA", "ORIENTACAO_FITNESS", "ORIENTACAO_JURIDICA", "ORIENTACAO_NUTRICIONAL", "PERSONAL_FITNESS", "ORIENTACAO_PSICOSSOCIAL_FAMILIAR", "PERDA_ROUBO_CARTAO", "PET", "PRORROGACAO_ESTADIA", "PROTECAO_DADOS", "RECOLOCACAO_PROFISSIONAL", "REDE_DESCONTO_NUTRICIONAL", "RESIDENCIAL", "RETORNO_MENORES_SEGURADO", "SAQUE_COACAO", "SAUDE_BEM_ESTAR", "SEGUNDA_OPINIAO_MEDICA", "SENIOR", "SUSTENTAVEL_DESCARTE_ECOLOGICO", "TELEMEDICINA", "VIAGEM", "VITIMA", "OUTROS");
+	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO", "SERVICOS_ASSISTENCIAS_COMPLEMENTARES_PAGO", "SERVICOS_ASSISTENCIA_COMPLEMENTARES_GRATUITO", "OUTROS", "NAO_HA");
+	public static final Set<String> TERMS = Sets.newHashSet("VITALICIA", "TEMPORARIA_PRAZO_FIXO", "TEMPORARIA_INTERMITENTE");
+	public static final Set<String> CRITERIAS = Sets.newHashSet("INDICE", "VINCULADO_SALDO_DEVEDOR", "VARIAVEL_ACORDO_CRITERIO_ESPECIFICO");
+	public static final Set<String> CRITERIAS_AGE_ADJ = Sets.newHashSet("APOS_PERIODO_ANOS","CADA_PERIODO_ANOS","MUDANCA_FAIXA_ETARIA","NAO_APLICAVEL");
 	public static final Set<String> FIN_REGIMES = Sets.newHashSet("REPARTICAO_SIMPLES","REPARTICAO_CAPITAIS","CAPITALIZACAO");
-	public static final Set<String> OTHER_GUARANTEED_VALUES = Sets.newHashSet("SALDAMENTO","BENEFICIO_PROLONGADO","NAO_APLICA");
-	public static final Set<String> INDEMNITY_PAYMENT_METHOD = Sets.newHashSet("UNICO","SOB_FORMA_DE_RENDA");
-	public static final Set<String> INDEMNITY_PAYMENT_METHODS = Sets.newHashSet("PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO","REEMBOLSO_DESPESAS","PRESTACAO_SERVICOS");
-	public static final Set<String> INDEMNITY_PAYMENT_INCOME = Sets.newHashSet("CERTA","TEMPORARIA","TEMPORARIA_REVERSIVEL","TEMPORARIO_MINIMO_GARANTIDO","TEMPORARIA_REVERSIVEL_MINIMO_GARANTIDO","VITALICIA","VITALICIA_REVERSIVEL","VITALICIA_MINIMO_GARANTIDO","VITALICIA_REVERSIVEL_MINIMO_GARANTIDO");
-	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO","CARTAO_DEBITO","DEBITO_CONTA_CORRENTE","DEBITO_CONTA_POUPANCA","BOLETO_BANCARIO","PIX","CONSIGNACAO_FOLHA_PAGAMENTO","PONTOS_PROGRAMA_BENEFÍCIO","OUTROS");
-	public static final Set<String> FREQUENCY = Sets.newHashSet("DIARIA","MENSAL","UNICA","ANUAL","TRIMESTRAL","SEMESTRAL","FRACIONADO","OUTRA");
-	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO_AVERBADO","COLETIVO_INSTITUIDO","INDIVIDUAL");
-	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL","PESSOA_JURIDICA","PESSOA_NATURAL_JURIDICA");
-	public static final Set<String> PAYMENT_FREQUENCIES = Sets.newHashSet("INDENIZACAO_UNICA","DIARIA_OU_PARCELA");
+	public static final Set<String> OTHER_GUARANTEED_VALUES = Sets.newHashSet("SALDAMENTO", "BENEFICIO_PROLONGADO", "NAO_APLICA");
+	public static final Set<String> INDEMNITY_PAYMENT_METHOD = Sets.newHashSet("UNICO", "SOB_FORMA_DE_RENDA");
+	public static final Set<String> INDEMNITY_PAYMENT_METHODS = Sets.newHashSet("PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO", "REEMBOLSO_DESPESAS", "PRESTACAO_SERVICOS");
+	public static final Set<String> INDEMNITY_PAYMENT_INCOME = Sets.newHashSet("CERTA", "TEMPORARIA", "TEMPORARIA_REVERSIVEL", "TEMPORARIO_MINIMO_GARANTIDO", "TEMPORARIA_REVERSIVEL_MINIMO_GARANTIDO", "VITALICIA", "VITALICIA_REVERSIVEL", "VITALICIA_MINIMO_GARANTIDO", "VITALICIA_REVERSIVEL_MINIMO_GARANTIDO");
+	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO", "CARTAO_DEBITO", "DEBITO_CONTA_CORRENTE", "DEBITO_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_FOLHA_PAGAMENTO", "PONTOS_PROGRAMA_BENEFÍCIO", "OUTROS");
+	public static final Set<String> FREQUENCY = Sets.newHashSet("DIARIA", "MENSAL", "UNICA", "ANUAL", "TRIMESTRAL", "SEMESTRAL", "FRACIONADO", "OUTRA");
+	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO_AVERBADO", "COLETIVO_INSTITUIDO", "INDIVIDUAL");
+	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "PESSOA_NATURAL_JURIDICA");
+	public static final Set<String> PAYMENT_FREQUENCIES = Sets.newHashSet("INDENIZACAO_UNICA", "DIARIA_OU_PARCELA");
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -70,7 +71,6 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 			new ObjectField
 				.Builder("participant")
 				.setValidator(parts::assertParticipantIdentification)
-				.setOptional()
 				.build());
 
 		assertField(data,
@@ -128,7 +128,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(data,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("termsAndConditions")
 				.setValidator(termsAndConditions -> {
 					assertField(termsAndConditions,
@@ -144,6 +144,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 							.setMaxLength(1024)
 							.build());
 				})
+				.setMinItems(1)
 				.build());
 
 		assertField(data,
@@ -210,7 +211,6 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 							.Builder("criterias")
 							.setMaxLength(27)
 							.setEnums(CRITERIAS_AGE_ADJ)
-							.setOptional()
 							.build());
 
 					assertField(ageAdjustment,
@@ -226,7 +226,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 			new StringArrayField
 				.Builder("financialRegimeContractTypes")
 				.setEnums(FIN_REGIMES)
-				.setMaxLength(29)
+				.setMaxLength(19)
 				.setOptional()
 				.build());
 
@@ -246,14 +246,6 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(data,
-			new StringField
-				.Builder("profitModality")
-				.setEnums(PROFIT_MODALITY)
-				.setMaxLength(19)
-				.setOptional()
-				.build());
-
-		assertField(data,
 			new BooleanField
 				.Builder("allowPortability")
 				.setOptional()
@@ -262,7 +254,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new ObjectField
 				.Builder("portabilityGraceTime")
-				.setValidator(gracePeriod->{
+				.setValidator(gracePeriod -> {
 					assertField(gracePeriod,
 						new NumberField
 							.Builder("amount")
@@ -314,14 +306,14 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 							.setMaxLength(10)
 							.setMinItems(1)
 							.build());
-				})
-				.build());
 
-		assertField(data,
-			new StringField
-				.Builder("contributionTax")
-				.setMaxLength(500)
-				.setOptional()
+					assertField(premiumPayments,
+						new StringField
+							.Builder("contributionTax")
+							.setMaxLength(500)
+							.setOptional()
+							.build());
+				})
 				.build());
 
 		assertField(data,
@@ -363,7 +355,8 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 		assertField(coverages,
 			new StringArrayField
-				.Builder("additionalInfos")
+				.Builder("typeAdditionalInfos")
+				.setMaxLength(100)
 				.setOptional()
 				.build());
 
@@ -371,14 +364,6 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 			new ObjectField
 				.Builder("attributes")
 				.setValidator(this::assertAttributes)
-				.build());
-
-		assertField(coverages,
-			new StringField
-				.Builder("coveragePeriod")
-				.setMaxLength(10)
-				.setEnums(PERIOD)
-				.setOptional()
 				.build());
 	}
 
@@ -400,36 +385,15 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(coverageAttributes,
-			new IntField
-				.Builder("indemnifiableDeadline")
-				.setMaxValue(9999)
-				.setOptional()
-				.build());
-
-		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("minValue")
-				.setValidator(minValue ->
-					assertField(minValue,
-					new ObjectField
-						.Builder("currencyValue")
-						.setValidator(this::assertCurrencyValue)
-						.setOptional()
-						.build())
-				)
+				.setValidator(this::assertCurrencyValue)
 				.build());
 
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("maxValue")
-				.setValidator(maxValue ->
-					assertField(maxValue,
-					new ObjectField
-						.Builder("currencyValue")
-						.setValidator(this::assertCurrencyValue)
-						.setOptional()
-						.build())
-				)
+				.setValidator(this::assertCurrencyValue)
 				.build());
 
 		assertField(coverageAttributes,
@@ -443,7 +407,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(coverageAttributes,
 			new IntField
 				.Builder("maximumQtyIndemnifiableInstallments")
-				.setMaxLength(999999999)
+				.setMaxValue(999999999)
 				.setOptional()
 				.build());
 
@@ -477,32 +441,20 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("deductible")
-				.setValidator(deductible -> assertField(deductible,
-					new ObjectField
-						.Builder("currencyValue")
-						.setValidator(this::assertCurrencyValue)
-						.setOptional()
-						.build())
-				)
+				.setValidator(this::assertCurrencyValue)
 				.setOptional()
 				.build());
 
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("differentiatedDeductible")
-				.setValidator(differentiatedDeductible ->
-					assertField(differentiatedDeductible,
-					new ObjectField
-						.Builder("currencyValue")
-						.setValidator(this::assertCurrencyValue)
-						.setOptional()
-						.build())
-				)
+				.setValidator(this::assertCurrencyValue)
 				.setOptional()
 				.build());
 
+
 		assertField(coverageAttributes,
-			new StringField
+			new StringArrayField
 				.Builder("excludedRisks")
 				.setEnums(RISKS)
 				.setMaxLength(40)
@@ -555,22 +507,20 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 	private void assertReclaim(JsonObject reclaim) {
 		assertField(reclaim,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("table")
 				.setValidator(table -> {
 					assertField(table,
 						new IntField
 							.Builder("initialMonthRange")
-							.setMinValue(1)
-							.setMaxValue(12)
+							.setMaxLength(2)
 							.setOptional()
 							.build());
 
 					assertField(table,
 						new IntField
 							.Builder("finalMonthRange")
-							.setMinValue(1)
-							.setMaxValue(12)
+							.setMaxLength(2)
 							.setOptional()
 							.build());
 
@@ -578,23 +528,18 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 						new StringField
 							.Builder("percentage")
 							.setPattern("^[0-1]\\.\\d{4}$")
+							.setMaxLength(6)
 							.setOptional()
 							.build());
 				})
-				.setOptional()
-				.build());
-
-		assertField(reclaim,
-			new StringField
-				.Builder("differentiatedPercentage")
-				.setMaxLength(1024)
+				.setMinItems(1)
 				.setOptional()
 				.build());
 
 		assertField(reclaim,
 			new ObjectField
 				.Builder("gracePeriod")
-				.setValidator(gracePeriod-> {
+				.setValidator(gracePeriod -> {
 					assertField(gracePeriod,
 						new NumberField
 							.Builder("amount")
@@ -608,6 +553,13 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 							.setMaxLength(10)
 							.build());
 				})
+				.setOptional()
+				.build());
+
+		assertField(reclaim,
+			new StringField
+				.Builder("differentiatedPercentage")
+				.setMaxLength(1024)
 				.setOptional()
 				.build());
 	}

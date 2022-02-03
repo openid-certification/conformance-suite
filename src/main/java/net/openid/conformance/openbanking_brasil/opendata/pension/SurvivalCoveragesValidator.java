@@ -12,9 +12,10 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_pension_apis.yaml
+ * Api: swagger/opendata/swagger-pension.yaml
  * Api endpoint: /survival-coverages
  * Api version: 1.0.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
 @ApiName("Pension Survival Coverages")
@@ -114,6 +115,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 							.setMaxLength(1024)
 							.build());
 				})
+				.setMinItems(1)
 				.setOptional()
 				.build());
 
@@ -211,7 +213,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("interestRate")
 				.setPattern("^[0-1]\\.\\d{6}$")
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.setOptional()
 				.build());
 
@@ -261,7 +263,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("interestRate")
 				.setPattern("^[0-1]\\.\\d{6}$")
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.setOptional()
 				.build());
 
@@ -289,8 +291,8 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(defferalPeriod,
-			new ObjectField
-				.Builder("minimumPremium")
+			new ObjectArrayField
+				.Builder("minimumPremiums")
 				.setValidator(minimumPremium -> {
 					assertField(minimumPremium,
 						new StringField
@@ -373,7 +375,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(investmentFunds,
 			new StringField
 				.Builder("maximumAdministrationFee")
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.setPattern("^[0-1]\\.\\d{6}$")
 				.setOptional()
 				.build());
@@ -389,7 +391,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(investmentFunds,
 			new StringField
 				.Builder("maximumPerformanceFee")
-				.setMaxLength(10)
+				.setMaxLength(8)
 				.setPattern("^[0-1]\\.\\d{6}$")
 				.setOptional()
 				.build());
@@ -404,6 +406,7 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("minimumContributionAmount")
 				.setPattern("^\\d{1,16}\\.\\d{2,4}$")
+				.setMaxLength(21)
 				.setOptional()
 				.build());
 

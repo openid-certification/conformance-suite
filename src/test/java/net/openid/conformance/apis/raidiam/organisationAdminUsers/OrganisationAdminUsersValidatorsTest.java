@@ -1,12 +1,17 @@
 package net.openid.conformance.apis.raidiam.organisationAdminUsers;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
 import net.openid.conformance.raidiam.validators.organisationAdminUsers.GetOrganisationAdminUsersByEmailValidator;
 import net.openid.conformance.raidiam.validators.organisationAdminUsers.GetOrganisationAdminUsersValidator;
 import net.openid.conformance.raidiam.validators.organisationAdminUsers.PostOrganisationAdminUsersValidator;
 import net.openid.conformance.raidiam.validators.organisationAdminUsers.PutOrganisationAdminUsersByEmailValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class OrganisationAdminUsersValidatorsTest extends AbstractJsonResponseConditionUnitTest {
 
@@ -25,6 +30,15 @@ public class OrganisationAdminUsersValidatorsTest extends AbstractJsonResponseCo
 	}
 
 	@Test
+	@UseResurce("jsonResponses/raidiam/organisationAdminUsers/OrganisationAdminUsers_FieldCantBeNull.json")
+	public void GetOrganisationAdminUsersValidatorStructureCantBeNull() {
+		GetOrganisationAdminUsersByEmailValidator condition = new GetOrganisationAdminUsersByEmailValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementCantBeNullMessage("Status",
+			condition.getApiName())));
+	}
+
+	@Test
 	@UseResurce("jsonResponses/raidiam/organisationAdminUsers/GetOrganisationAdminUsersByEmail.json")
 	public void GetOrganisationAdminUsersByEmail() {
 		GetOrganisationAdminUsersByEmailValidator condition = new GetOrganisationAdminUsersByEmailValidator();
@@ -39,6 +53,15 @@ public class OrganisationAdminUsersValidatorsTest extends AbstractJsonResponseCo
 	}
 
 	@Test
+	@UseResurce("jsonResponses/raidiam/organisationAdminUsers/OrganisationAdminUsers_FieldCantBeNull.json")
+	public void GetOrganisationAdminUsersByEmailvalidateStructureCantBeNull() {
+		GetOrganisationAdminUsersByEmailValidator condition = new GetOrganisationAdminUsersByEmailValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementCantBeNullMessage("Status",
+			condition.getApiName())));
+	}
+
+	@Test
 	@UseResurce("jsonResponses/raidiam/organisationAdminUsers/PostOrganisationAdminUsers.json")
 	public void PostOrganisationAdminUsers() {
 		PostOrganisationAdminUsersValidator condition = new PostOrganisationAdminUsersValidator();
@@ -50,6 +73,15 @@ public class OrganisationAdminUsersValidatorsTest extends AbstractJsonResponseCo
 	public void PostOrganisationAdminUsersWithMissingField() {
 		PostOrganisationAdminUsersValidator condition = new PostOrganisationAdminUsersValidator();
 		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/raidiam/organisationAdminUsers/OrganisationAdminUsers_FieldCantBeNull.json")
+	public void PostOrganisationAdminUsersCantBeNull() {
+		PostOrganisationAdminUsersValidator condition = new PostOrganisationAdminUsersValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementCantBeNullMessage("Status",
+			condition.getApiName())));
 	}
 
 	@Test

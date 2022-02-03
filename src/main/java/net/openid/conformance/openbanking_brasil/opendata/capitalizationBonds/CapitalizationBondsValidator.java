@@ -14,21 +14,21 @@ import java.util.Set;
 
 
 /**
- * Api Swagger URL: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_capitalization_bonds_apis.yaml
- * Api endpoint: /products
- * Api version: 1.0.0
+ * Api Swagger: swagger/opendata/swagger-CapitalizationBonds.yaml
+ * Api endpoint: /bonds
+ * Api version: 1.0.0-rc1.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
 @ApiName("CapitalizationBonds")
 public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition {
 
-	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA", "PESSOA_NATURAL_JURIDICA");
 	public static final Set<String> MODALITY = Sets.newHashSet("TRADICIONAL","INSTRUMENTO_GARANTIA","COMPRA_PROGRAMADA","POPULAR","INCENTIVO","FILANTROPIA_PREMIAVEL");
-	public static final Set<String> COST_TYPE = Sets.newHashSet("PAGAMENTO_UNICO","PAGAMENTO_MENSAL","PAGAMENTO_PERIODICO ");
+	public static final Set<String> COST_TYPE = Sets.newHashSet("PAGAMENTO_UNICO","PAGAMENTO_MENSAL","PAGAMENTO_PERIODICO");
 	public static final Set<String> INDEX = Sets.newHashSet("IPCA","IGPM","INPC","TR","INDICE_REMUNERACAO_DEPOSITOS_POUPANCA","OUTROS");
-	public static final Set<String> TIME_INTERVAL_CONTIRBUTION_AMOUNT = Sets.newHashSet("PAGAMENTO_MENSAL", "PAGAMENTO_UNICO", "PERIODICO");
 	public static final Set<String> TIME_INTERVAL = Sets.newHashSet("UNICO","DIÁRIO","SEMANAL","QUINZENAL","MENSAL","BIMESTRAL","TRIMESTRAL","QUADRIMESTRAL","SEMESTRAL","ANUAL","OUTROS");
-	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_CREDITO","CARTAO_DEBITO","DEBITO_CONTA_CORRENTE","DEBITO_CONTA_POUPANCA","BOLETO_BANCARIO","PIX","CONSIGNACAO_FOLHA_PAGAMENTO","PAGAMENTO_COM_PONTOS","OUTROS");
+	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_CREDITO","CARTAO_DEBITO","DEBITO_CONTA_CORRENTE","DEBITO_CONTA_POUPANCA","BOLETO_BANCARIO","PIX","CONSIGNACAO_FOLHA_PAGAMENTO","PAGAMENTO_PONTOS","OUTROS");
 
 
 	private static class Fields extends ProductNServicesCommonFields {
@@ -45,23 +45,37 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 				.setValidator(data -> {
 					assertField(data,
 						new ObjectField
-							.Builder("participantIdentification")
-							.setValidator(this::assertParticipantIdentification)
+							.Builder("participant")
+							.setValidator(this::assertParticipant)
 							.build());
 
 					assertField(data,
 						new ObjectField
-							.Builder("insuranceCompanyIdentification")
+							.Builder("society")
 							.setValidator(insuranceCompanyIdentification -> {
 								assertField(insuranceCompanyIdentification, Fields.name().setMaxLength(80).build());
-								assertField(insuranceCompanyIdentification, Fields.cnpjNumber().setPattern("^\\d{14}$").setMaxLength(14).build());
+								assertField(insuranceCompanyIdentification, Fields.cnpjNumber().setPattern("^\\d{14}$").build());
 							})
 							.build());
 
+
+					assertField(data, Fields.name().setMaxLength(80).build());
+					assertField(data, Fields.code().setMaxLength(100).build());
+
 					assertField(data,
-						new ObjectField
-							.Builder("product")
-							.setValidator(this::assertProduct)
+						new StringField
+							.Builder("modality")
+							.setMinLength(7)
+							.setMaxLength(24)
+							.setEnums(MODALITY)
+							.build());
+
+					assertField(data,
+						new StringField
+							.Builder("costType")
+							.setMinLength(15)
+							.setMaxLength(19)
+							.setEnums(COST_TYPE)
 							.build());
 
 					assertField(data,
@@ -77,7 +91,7 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 
 								assertField(termsAndConditions,
 									new StringField
-										.Builder("termsRegulations")
+										.Builder("detail")
 										.setMaxLength(1024)
 										.build());
 							})
@@ -94,6 +108,7 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 						new IntField
 							.Builder("validity")
 							.setMaxLength(3)
+							.setOptional()
 							.build());
 
 					assertField(data,
@@ -124,6 +139,13 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 					assertField(data,
 						new StringField
 							.Builder("redemptionPercentageEndTerm")
+							.setMaxLength(7)
+							.setPattern("^[0-1]\\.\\d{5}$")
+							.build());
+
+					assertField(data,
+						new StringField
+							.Builder("finalRedemptionRate")
 							.setMaxLength(4)
 							.setPattern("^[0-9]\\.\\d{2}$")
 							.build());
@@ -149,10 +171,9 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 							.build());
 
 					assertField(data,
-						new StringArrayField
-							.Builder("targetAudiences")
-							.setMinItems(1)
-							.setMaxLength(15)
+						new StringField
+							.Builder("targetAudience")
+							.setMaxLength(23)
 							.setEnums(TARGET_AUDIENCE)
 							.build());
 				})
@@ -172,19 +193,19 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 
 		assertField(draws,
 			new StringField
-				.Builder("periodicityAdditionalInfo")
+				.Builder("timeIntervalAdditionalInfo")
 				.setMaxLength(200)
 				.setOptional()
 				.build());
 
 		assertField(draws,
-			new NumberField
+			new IntField
 				.Builder("quantity")
 				.setMaxLength(5)
 				.build());
 
 		assertField(draws,
-			new NumberField
+			new IntField
 				.Builder("prizeMultiplier")
 				.setMaxLength(6)
 				.build());
@@ -218,7 +239,7 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 	private void assertQuotas(JsonObject quotas) {
 		assertField(quotas,
 			new NumberField
-				.Builder("tranche")
+				.Builder("quota")
 				.setMaxLength(3)
 				.build());
 
@@ -261,14 +282,14 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 
 		assertField(contributionPayment,
 			new StringField
-				.Builder("adjustmentIndex")
+				.Builder("updateIndex")
 				.setMaxLength(37)
 				.setEnums(INDEX)
 				.build());
 
 		assertField(contributionPayment,
 			new StringField
-				.Builder("adjustmentIndexAdditionalInfo")
+				.Builder("updateIndexAdditionalInfo")
 				.setMaxLength(200)
 				.setOptional()
 				.build());
@@ -291,20 +312,20 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 		assertField(capitalizationPeriod,
 			new StringField
 				.Builder("interestRate")
-				.setPattern("^\\d{1}.\\d{5}$")
-				.setMaxLength(7)
+				.setPattern("^[0-1]\\.[\\d]{6}$")
+				.setMaxLength(8)
 				.build());
 
 		assertField(capitalizationPeriod,
 			new StringField
-				.Builder("adjustmentIndex")
+				.Builder("updateIndex")
 				.setMaxLength(37)
 				.setEnums(INDEX)
 				.build());
 
 		assertField(capitalizationPeriod,
 			new StringField
-				.Builder("adjustmentIndexAdditionalInfo")
+				.Builder("updateIndexAdditionalInfo")
 				.setMaxLength(200)
 				.setOptional()
 				.build());
@@ -317,17 +338,29 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 				.build());
 
 		assertField(capitalizationPeriod,
-			new StringField
+			new ObjectArrayField
 				.Builder("earlyRedemptions")
-				.setPattern("^[0-1]\\.\\d{8}$")
-				.setMaxLength(10)
+				.setValidator(earlyRedemptions -> {
+					assertField(earlyRedemptions,
+						new IntField
+							.Builder("quota")
+							.setMaxLength(3)
+							.build());
+
+					assertField(earlyRedemptions,
+						new NumberField
+							.Builder("rate")
+							.setMaxLength(9)
+							.build());
+				})
+				.setMinItems(1)
 				.build());
 
 		assertField(capitalizationPeriod,
 			new StringField
 				.Builder("redemptionPercentageEndTerm")
-				.setMaxLength(4)
-				.setPattern("^[0-9]\\.\\d{2}$")
+				.setMaxLength(7)
+				.setPattern("^[0-1]\\.\\d{5}$")
 				.build());
 
 		assertField(capitalizationPeriod,
@@ -340,10 +373,10 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 	private void assertContributionAmount(JsonObject contributionAmount) {
 		assertField(contributionAmount,
 			new StringField
-				.Builder("timeInterval")
-				.setMaxLength(16)
+				.Builder("periodicity")
+				.setMaxLength(13)
 				.setOptional()
-				.setEnums(TIME_INTERVAL_CONTIRBUTION_AMOUNT)
+				.setEnums(TIME_INTERVAL)
 				.build());
 
 		assertField(contributionAmount,
@@ -354,46 +387,27 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 				.build());
 
 		assertField(contributionAmount,
-			new NumberField
+			new StringField
 				.Builder("minimum")
-				.setMaxLength(8)
+				.setPattern("^\\d{1,16}\\.\\d{2,4}$")
+				.setMaxLength(21)
 				.build());
 
 		assertField(contributionAmount,
-			new NumberField
+			new StringField
 				.Builder("maximum")
-				.setMaxLength(8)
+				.setPattern("^\\d{1,16}\\.\\d{2,4}$")
+				.setMaxLength(21)
 				.build());
 
 		assertField(contributionAmount,
 			new NumberField
-				.Builder("allowed")
+				.Builder("allowedValue")
 				.setMaxLength(8)
 				.build());
 	}
 
-	private void assertProduct(JsonObject product) {
-		assertField(product, Fields.name().setMaxLength(80).build());
-		assertField(product, Fields.code().setMaxLength(100).build());
-
-		assertField(product,
-			new StringField
-				.Builder("modality")
-				.setMinLength(7)
-				.setMaxLength(24)
-				.setEnums(MODALITY)
-				.build());
-
-		assertField(product,
-			new StringField
-				.Builder("costType")
-				.setMinLength(15)
-				.setMaxLength(19)
-				.setEnums(COST_TYPE)
-				.build());
-	}
-
-	private void assertParticipantIdentification(JsonObject assertParticipantIdentification) {
+	private void assertParticipant(JsonObject assertParticipantIdentification) {
 		assertField(assertParticipantIdentification,
 			new StringField
 				.Builder("brand")

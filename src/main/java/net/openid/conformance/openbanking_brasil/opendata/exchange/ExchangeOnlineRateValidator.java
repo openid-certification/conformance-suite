@@ -13,9 +13,10 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_exchange_apis.yaml
- * Api endpoint: /online-rate
+ * Api: swagger/opendata/swagger-exchange.yaml
+ * Api endpoint: /online-rates
  * Api version: 1.0.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
 @ApiName("Online Rate")
@@ -23,10 +24,10 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 
 	private static class Fields extends ProductNServicesCommonFields { }
 
-	public static final Set<String> CURRENCY = Sets.newHashSet("USD", "EUR");
 	public static final Set<String> DELIVERY_CURRENCY = Sets.newHashSet("ESPECIE", "CARTAO_PRE_PAGO", "TELETRANSMISSAO_SWIFT");
 	public static final Set<String> TRANSANCTION_TYPE = Sets.newHashSet("COMPRA", "VENDA");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PF", "PJ");
+	public static final Set<String> TRANSANCTION_CATEGORY = Sets.newHashSet("COMERCIO_EXTERIOR","TRANSPORTE","SEGUROS","VIAGENS_INTERNACIONAIS","TRANSFERENCIAS_UNILATERAIS","SERVICOS_DIVERSOS","RENDAS_CAPITAIS","CAPITAIS_BRASILEIROS","CAPITAIS_ESTRANGEIROS","PRESTACAO_SERVICO_PAGAMENTO_OU_TRANSFERENCIA_INTERNACIONAL_EFX");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -39,45 +40,38 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 				.setValidator(data -> {
 					assertField(data,
 						new ObjectField
-							.Builder("participantIdentification")
+							.Builder("participant")
 							.setValidator(this::assertParticipantIdentification)
 							.build());
 
 					assertField(data,
-						new ObjectField
-							.Builder("onlineRate")
-							.setValidator(this::assertOnlineRate)
+						new ObjectArrayField
+							.Builder("values")
+							.setValidator(this::assertValues)
 							.build());
+
+					assertField(data,
+						new DatetimeField
+							.Builder("timestamp")
+							.build());
+
+					assertField(data,
+						new StringField
+							.Builder("disclaimer")
+							.build());
+
+
 				}).build());
 
 		logFinalStatus();
 		return environment;
 	}
 
-	private void assertOnlineRate(JsonObject onlineRate) {
-		assertField(onlineRate,
-			new ObjectArrayField
-				.Builder("values")
-				.setValidator(this::assertValues)
-				.build());
-
-		assertField(onlineRate,
-			new DatetimeField
-				.Builder("timestamp")
-				.build());
-
-		assertField(onlineRate,
-			new StringField
-				.Builder("disclaimer")
-				.build());
-	}
-
 	private void assertValues(JsonObject values) {
 		assertField(values,
 			new StringField
 				.Builder("foreignCurrency")
-				.setMaxLength(3)
-				.setEnums(CURRENCY)
+				.setPattern("^[A-Z]{3}$")
 				.build());
 
 		assertField(values,
@@ -92,6 +86,13 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 				.Builder("transactionType")
 				.setMaxLength(6)
 				.setEnums(TRANSANCTION_TYPE)
+				.build());
+
+		assertField(values,
+			new StringField
+				.Builder("transactionCategory")
+				.setMaxLength(68)
+				.setEnums(TRANSANCTION_CATEGORY)
 				.build());
 
 		assertField(values,

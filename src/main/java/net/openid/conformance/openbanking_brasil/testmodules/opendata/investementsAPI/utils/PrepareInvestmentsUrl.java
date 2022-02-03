@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.testplan.utils;
+package net.openid.conformance.openbanking_brasil.testmodules.opendata.investementsAPI.utils;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
