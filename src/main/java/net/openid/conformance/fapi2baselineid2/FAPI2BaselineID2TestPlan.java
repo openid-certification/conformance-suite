@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Authorization server test",
+	displayName = "FAPI2-Baseline-ID2: Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases

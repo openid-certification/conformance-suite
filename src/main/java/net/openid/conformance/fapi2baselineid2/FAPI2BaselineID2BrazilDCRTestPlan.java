@@ -9,7 +9,7 @@ import java.util.List;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-brazil-dcr-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Brazil Dynamic Client Registration Authorization server test",
+	displayName = "FAPI2-Baseline-ID2: Brazil Dynamic Client Registration Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2BaselineID2BrazilDCRTestPlan implements TestPlan {

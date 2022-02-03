@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-client-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Relying Party (client test)",
+	displayName = "FAPI2-Baseline-ID2: Relying Party (client test) - INCORRECT/INCOMPLETE, DO NOT USE",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI2BaselineID2ClientTest.class,
