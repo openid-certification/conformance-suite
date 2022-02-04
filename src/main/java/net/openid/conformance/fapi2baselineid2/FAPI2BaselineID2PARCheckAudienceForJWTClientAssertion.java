@@ -4,7 +4,6 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 
@@ -30,9 +29,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
-	"by_value"
-})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })

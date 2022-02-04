@@ -46,7 +46,6 @@ import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -235,10 +234,6 @@ public class FAPI2BaselineID2BrazilClientDCRHappyPathTest extends AbstractFAPI2B
 		callAndContinueOnFailure(FAPIBrazilEnsureRedirectUrisMatchSoftwareRedirectUris.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-6");
 		//BrazilOBDCR- 7.1-7 shall require and validate that all client authentication mechanism adhere to the requirements defined in Financial-grade API Security Profile 1.0 - Part 1: Advanced;
 		callAndContinueOnFailure(FAPIBrazilValidateClientAuthenticationMethods.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
-		//BrazilOBDCR- 7.1-8 shall require encrypted request objects as required by the Brasil Open Banking Security Profile;
-		if(authRequestMethod!= FAPIAuthRequestMethod.PUSHED) {
-			callAndContinueOnFailure(FAPIBrazilValidateRequestObjectEncryption.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-8");
-		}
 
 		//TODO how do you validate this during registration? registration request does not contain scopes?
 		//BrazilOBDCR- 7.1-9 shall shall validate that requested scopes are appropriate for the softwares authorized regulatory roles

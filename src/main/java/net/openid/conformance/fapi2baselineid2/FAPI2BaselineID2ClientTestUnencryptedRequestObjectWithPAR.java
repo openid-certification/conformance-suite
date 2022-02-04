@@ -3,8 +3,6 @@ package net.openid.conformance.fapi2baselineid2;
 import net.openid.conformance.condition.as.EnsureRequestObjectWasNotEncrypted;
 import net.openid.conformance.condition.as.RemoveRequestObjectEncryptionValuesFromServerConfiguration;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-unencrypted-request-object-with-par",
@@ -25,7 +23,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks",
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = "by_value")
 public class FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override

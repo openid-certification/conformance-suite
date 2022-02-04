@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectErro
 import net.openid.conformance.condition.client.ExpectInvalidAudienceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.0.1/JAR-4.0: The value of "aud" should be the value of the Authorization Server (AS) issuer
@@ -34,9 +33,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
-	"by_value"
-})
 public class FAPI2BaselineID2PARRejectInvalidAudienceInRequestObject extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

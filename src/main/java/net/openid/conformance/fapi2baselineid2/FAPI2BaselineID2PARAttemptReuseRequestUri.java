@@ -7,8 +7,6 @@ import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpo
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.ExpectInvalidRequestUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-7.3 : An attacker could replay a request URI captured from a legitimate authorization request.
 // In order to cope with such attacks, the AS SHOULD make the request URIs one-time use.
@@ -34,9 +32,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
-	"by_value"
-})
 public class FAPI2BaselineID2PARAttemptReuseRequestUri extends AbstractFAPI2BaselineID2ServerTestModule {
 	boolean secondAttempt = false;
 

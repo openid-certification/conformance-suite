@@ -35,7 +35,6 @@ import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -49,8 +48,7 @@ import java.util.function.Supplier;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI1FinalOPProfile.class,
-	FAPIResponseMode.class,
-	FAPIAuthRequestMethod.class
+	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -120,7 +118,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
+		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
@@ -271,16 +269,19 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		private boolean isSecondClient;
 		private boolean isJarm;
-		private boolean isPar;
+		private boolean usePkce;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
 											   boolean isJarm,
-											   boolean isPar,
+											   boolean usePkce,
 											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isJarm = isJarm;
-			this.isPar = isPar;
+			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
+			// currently not possible to use 'skip' to skip a condition within a sub-sequence nor a conditionsequence
+			// within a condition sequence
+			this.usePkce = usePkce;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
 		}
 
@@ -310,7 +311,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 			}
 
-			call(new SetupPkceAndAddToAuthorizationRequest());
+			if (usePkce) {
+				call(new SetupPkceAndAddToAuthorizationRequest());
+			}
 		}
 
 	}
@@ -320,7 +323,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, isPar, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, true, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
@@ -364,7 +367,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		boolean isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
 		boolean isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
 		boolean encrypt = isBrazil && !isPar;
 		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), encrypt);

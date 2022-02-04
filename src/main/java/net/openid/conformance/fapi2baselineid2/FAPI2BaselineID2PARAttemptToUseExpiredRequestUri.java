@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.2.0 : If the verification is successful, the server MUST generate a request URI and return a
@@ -32,9 +31,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
-	"by_value"
-})
 public class FAPI2BaselineID2PARAttemptToUseExpiredRequestUri extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override

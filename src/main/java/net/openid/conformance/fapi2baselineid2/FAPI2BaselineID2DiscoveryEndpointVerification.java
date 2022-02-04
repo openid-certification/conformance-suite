@@ -31,7 +31,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -47,16 +46,13 @@ import net.openid.conformance.variant.VariantSetup;
 )
 @VariantParameters({
 	FAPI1FinalOPProfile.class,
-	FAPIResponseMode.class,
-	FAPIAuthRequestMethod.class
+	FAPIResponseMode.class
 })
 public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2BaselineID2DiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 
 	protected boolean jarm = false;
-
-	protected boolean par = false;
 
 	protected boolean brazil = false;
 
@@ -84,7 +80,6 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		par = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
 		super.configure(config, baseUrl, externalUrlOverride);
 	}
 
@@ -98,29 +93,17 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-2");
 		}
 
-		if (par) {
-			callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5");
-		}
+		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5");
 
 		super.performEndpointVerification();
 
-		if (par) {
-			callAndContinueOnFailure(CheckDiscRequirePushedAuthorizationRequestsIsABoolean.class, Condition.ConditionResult.FAILURE, "PAR-5");
-		} else {
-			callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-1", "OIDCD-3");
-		}
+		callAndContinueOnFailure(CheckDiscRequirePushedAuthorizationRequestsIsABoolean.class, Condition.ConditionResult.FAILURE, "PAR-5");
 
 		callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
 		call(sequence(profileSpecificChecks));
-
-		if (brazil && !par) {
-			// encrypted request object support is only required for redirect based flows
-			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
-			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
-		}
 	}
 
 	public static class PlainFAPIDiscoveryEndpointChecks extends AbstractConditionSequence {

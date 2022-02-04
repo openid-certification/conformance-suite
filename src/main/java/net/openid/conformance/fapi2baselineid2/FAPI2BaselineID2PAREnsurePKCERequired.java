@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPkceMissingErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -31,9 +30,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
-	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
-})
 public class FAPI2BaselineID2PAREnsurePKCERequired extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
@@ -45,8 +41,6 @@ public class FAPI2BaselineID2PAREnsurePKCERequired extends AbstractFAPI2Baseline
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		// 'isPar' passed as false to skip SetupPkceAndAddToAuthorizationRequest, as it's currently not possible to use
-		// the 'skip' syntax to skip a condition within a sub-sequence nor a conditionsequence within a condition sequence
 		return new CreateAuthorizationRequestSteps(isSecondClient(),
 			jarm,
 			false,

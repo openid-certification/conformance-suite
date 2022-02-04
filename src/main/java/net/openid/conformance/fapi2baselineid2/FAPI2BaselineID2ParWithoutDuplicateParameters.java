@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -27,7 +26,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {"by_value"})
 public class FAPI2BaselineID2ParWithoutDuplicateParameters extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override

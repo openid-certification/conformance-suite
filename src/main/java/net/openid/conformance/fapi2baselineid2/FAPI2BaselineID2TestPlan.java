@@ -69,7 +69,6 @@ import java.util.Map;
 		FAPI2BaselineID2TestEssentialAcrScaClaim.class,
 
 		// OB Brazil specific tests
-		FAPI2BaselineID2BrazilEnsureEncryptionRequired.class,
 		FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails.class,
 
 		//PAR tests
@@ -86,14 +85,11 @@ import java.util.Map;
 		FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected.class,
 		FAPI2BaselineID2PAREnsurePlainPKCERejected.class,
 
-		// TODO: I suspect these 3 can also be used in the non-PAR case, check specs
 		FAPI2BaselineID2PARRejectInvalidAudienceInRequestObject.class,
 		FAPI2BaselineID2PARRejectInvalidRedirectUri.class,
 		FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest.class,
 
 		FAPI2BaselineID2ParWithoutDuplicateParameters.class
-
-		// TODO: for PAR, we could also try passing a non-signed request to the PAR endpoint
 
 	}
 )
@@ -106,9 +102,7 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
-		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
@@ -118,8 +112,8 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (par || jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in UK",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -147,14 +141,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				break;
 			case "mtls":
 				certProfile += " MTLS";
-				break;
-		}
-		switch (requestMethod) {
-			case "by_value":
-				// nothing
-				break;
-			case "pushed":
-				certProfile += ", PAR";
 				break;
 		}
 		switch (responseMode) {
