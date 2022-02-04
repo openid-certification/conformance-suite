@@ -18,7 +18,6 @@ import java.util.Map;
 		FAPI2BaselineID2UserRejectsAuthentication.class,
 		FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
-		FAPI2BaselineID2EnsureValidPKCESucceeds.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case

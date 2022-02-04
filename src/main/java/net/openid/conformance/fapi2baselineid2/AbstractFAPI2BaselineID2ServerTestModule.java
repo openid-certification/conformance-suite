@@ -310,9 +310,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
 			}
 
-			if (isPar) {
-				call(new SetupPkceAndAddToAuthorizationRequest());
-			}
+			call(new SetupPkceAndAddToAuthorizationRequest());
 		}
 
 	}
@@ -473,13 +471,11 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		addClientAuthenticationToTokenEndpointRequest();
 
-		if (isPar) {
-			addPkceCodeVerifier();
-		}
+		addPkceCodeVerifier();
 	}
 
 	protected void addPkceCodeVerifier() {
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5");
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2BASE-4.3.2-5");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
