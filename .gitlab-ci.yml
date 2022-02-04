@@ -78,7 +78,7 @@ test:
   allow_failure:
     exit_codes:
       - 16
-  image: python:3.10-alpine3.15
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
@@ -215,7 +215,7 @@ stop_normal:
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
-  image: python:3.10-alpine3.15
+  image: python:3.9-alpine3.14
   only:
     refs:
       - branches
