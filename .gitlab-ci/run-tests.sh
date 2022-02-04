@@ -72,6 +72,7 @@ makeClientTest() {
 }
 
 makeServerTest() {
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
     TESTS="${TESTS} oidcc-implicit-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
