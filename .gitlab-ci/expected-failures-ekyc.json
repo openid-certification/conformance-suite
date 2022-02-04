@@ -1,20 +1,5 @@
 [
     {
-        "test-name": "ekyc-server-happypath",
-        "variant": {
-            "client_auth_type": "mtls",
-            "server_metadata": "discovery",
-            "response_type": "code",
-            "client_registration": "static_client",
-            "response_mode": "default"
-        },
-        "configuration-filename": "yesdotcom-ekyc.json",
-        "current-block": "",
-        "condition": "ValidateDocumentsSupportedInServerConfiguration",
-        "expected-result": "failure",
-        "comment": "yes.com's server supports an older standard so fails this check"
-    },
-    {
         "test-name": "ekyc-server-long-purpose-invalid-request",
         "variant": {
             "client_auth_type": "mtls",
