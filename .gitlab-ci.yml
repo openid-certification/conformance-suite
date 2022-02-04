@@ -496,7 +496,9 @@ local_test:
     mkdir reference
     cd reference
     for i in $*; do
-      curl --silent --show-error -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i
+      curlurl="https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i"
+      echo "Downloading $curlurl"
+      curl --silent --show-error -L -o $i.zip "$curlurl"
       unzip $i.zip
       rm $i.zip
     done

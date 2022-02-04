@@ -36,6 +36,7 @@ def load_results(artifacts_zip):
 
 def read_zipped_results():
     results = {}
+    os.system("ls -al . reference")
     for results_zip_filename in sorted(os.listdir(".")):
         if not results_zip_filename.endswith(".zip"):
             continue
