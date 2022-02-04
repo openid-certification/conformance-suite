@@ -12,11 +12,15 @@ import java.util.List;
 public class FAPIBrazilValidateConsentScope extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"scope", "consent_id"})
+	@PreEnvironment(strings = {"scope"})
 	public Environment evaluate(Environment env) {
 
 		String scope = env.getString("scope");
-		String consentScope = "consent:" + env.getString("consent_id");
+		String consentId = env.getString("consent_id");
+		if (consentId == null) {
+			throw error("You must create a consent by calling the relevant Brazil consent endpoint with an access token obtained using the client credentials grants before calling the authorization endpoint.");
+		}
+		String consentScope = "consent:" + consentId;
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
 
 		if (scopes.contains(consentScope)) {
