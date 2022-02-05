@@ -19,7 +19,7 @@ public abstract class AbstractAddOnlyOneSimpleVerifiedClaimToAuthorizationEndpoi
         }
         JsonObject verifiedClaims = new JsonObject();
         JsonObject verification = new JsonObject();
-        verification.add("trust_framework", getClaimValue());
+        verification.add("trust_framework", JsonNull.INSTANCE);
         verifiedClaims.add("verification", verification);
         JsonObject claims = new JsonObject();
         JsonElement claimName = verifiedClaimsSupportedElement.getAsJsonArray().get(0);
