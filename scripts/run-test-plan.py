@@ -231,7 +231,10 @@ async def run_test_plan(test_plan, config_file, output_dir):
     parallel_jobs = 3
     if args.no_parallel:
         parallel_jobs = 1
-        print("{}: no_parallel command line argument passed - not running tests in parallel".format(plan_id))
+        print("{}: no-parallel command line argument passed - not running tests within this plan in parallel".format(plan_id))
+    elif args.no_parallel_for_no_alias:
+        parallel_jobs = 1
+        print("{}: no-parallel-for-no-alias command line argument passed - not running tests within this plan in parallel".format(plan_id))
     elif "alias" in parsed_config:
         parallel_jobs = 1
         print("{}: Config '{}' contains alias '{}' - not running tests in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
@@ -939,6 +942,7 @@ def parser_args_cli():
 
     parser.add_argument('--export-dir', help='Directory to save exported results into', default=None)
     parser.add_argument('--no-parallel', help='Disable parallel running of tests', action='store_true')
+    parser.add_argument('--no-parallel-for-no-alias', help='Disable parallel running of tests with no alias', action='store_true')
     parser.add_argument('--show-untested-test-modules', help='Flag to require show or do not show test modules which were untested', default='')
     parser.add_argument('--verbose', help='Print out details of unexpected failures/warnings including a template for the expected failures file, and print details of expected failures/warnings that do not happen', action='store_true')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
@@ -1056,6 +1060,7 @@ async def main():
             json_config = f.read()
         parsed_config = json.loads(json_config)
         if args.no_parallel:
+            # put all jobs into same queue
             alias = None
         else:
             alias = parsed_config["alias"] if "alias" in parsed_config else None
@@ -1065,7 +1070,7 @@ async def main():
             alias = "oidf-obbsb"
         if alias not in queues:
             queues[alias] = asyncio.Queue()
-            parallel_jobs = 2 if alias == None and not args.no_parallel else 1
+            parallel_jobs = 2 if alias == None and not args.no_parallel and not args.no_parallel_for_no_alias else 1
             print("Creating queue for "+str(alias)+" parallel="+str(parallel_jobs))
             workers.extend([asyncio.create_task(queue_worker(queues[alias])) for _ in range(parallel_jobs)])
         print("Adding {} {} to queue {}".format(plan_name, config_json, alias))
