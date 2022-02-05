@@ -14,6 +14,7 @@ import os
 import shutil
 import time
 import traceback
+import zipfile
 
 
 class RetryTransport(httpx.HTTPTransport):
@@ -85,11 +86,15 @@ class Conformance(object):
                     with open(full_path, 'wb') as f:
                         for chunk in response.iter_bytes():
                             f.write(chunk)
+                zip_file = zipfile.ZipFile(full_path)
+                ret = zip_file.testzip()
+                if ret is not None:
+                    raise Exception("exporthtml for {} downloaded corrupt zip file {} - {}".format(plan_id, full_path, str(ret)))
                 return full_path
             except Exception as e:
                 print("httpx {} exception {} caught - retrying".format(api_url, e))
                 await asyncio.sleep(1)
-        raise Exception("exporthtml failed even after retries")
+        raise Exception("exporthtml for {} failed even after retries".format(plan_id))
 
     async def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}api/plan'.format(self.api_url_base)
