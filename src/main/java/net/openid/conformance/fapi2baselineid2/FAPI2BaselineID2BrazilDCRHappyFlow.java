@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
-import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,8 +31,6 @@ public class FAPI2BaselineID2BrazilDCRHappyFlow extends AbstractFAPI2BaselineID2
 		if (isBrazil) {
 			if (brazilPayments) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
-			} else {
-				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.WARNING);
 			}
 		}
 	}

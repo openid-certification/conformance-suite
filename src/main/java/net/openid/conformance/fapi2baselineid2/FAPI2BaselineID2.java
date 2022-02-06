@@ -10,7 +10,6 @@ import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTo
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
-import net.openid.conformance.condition.client.FAPIBrazilMustTestUsingPayments;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
@@ -51,8 +50,6 @@ public class FAPI2BaselineID2 extends AbstractFAPI2BaselineID2MultipleClient {
 		if (isBrazil) {
 			if (brazilPayments) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
-			} else {
-				callAndContinueOnFailure(FAPIBrazilMustTestUsingPayments.class, Condition.ConditionResult.WARNING);
 			}
 		}
 	}
