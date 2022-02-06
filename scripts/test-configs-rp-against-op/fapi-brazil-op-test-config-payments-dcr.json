@@ -1,5 +1,5 @@
 {
-    "alias": "obbsb",
+    "alias": "oidf-obbsb",
     "description": "FAPI Brazil DCR OP test config for running against RP tests - payments",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
@@ -111,7 +111,7 @@
             "tasks": [
                 {
                     "task": "Verify Complete",
-                    "match": "https://*/test/a/obbsb/callback*",
+                    "match": "https://*/test/a/oidf-obbsb/callback*",
                     "commands": [
                         [
                             "wait",
