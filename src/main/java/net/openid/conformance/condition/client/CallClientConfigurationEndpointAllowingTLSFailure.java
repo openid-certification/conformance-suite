@@ -6,6 +6,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
 import javax.net.ssl.SSLException;
+import java.net.SocketException;
 
 public class CallClientConfigurationEndpointAllowingTLSFailure extends CallClientConfigurationEndpoint {
 
@@ -26,7 +27,8 @@ public class CallClientConfigurationEndpointAllowingTLSFailure extends CallClien
 
 	@Override
 	protected Environment handleClientException(Environment env, String registrationClientUri, RestClientException e) {
-		if (e instanceof ResourceAccessException && e.getCause() instanceof SSLException) {
+		if (e instanceof ResourceAccessException &&
+			(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
 			env.putBoolean(RESPONSE_SSL_ERROR_KEY, true);
 			logSuccess("Call to client configuration endpoint "+registrationClientUri+" failed due to a TLS issue", ex(e));
 			return env;
