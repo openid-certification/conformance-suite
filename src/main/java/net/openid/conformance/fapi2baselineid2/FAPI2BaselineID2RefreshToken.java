@@ -3,13 +3,14 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
-import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
+import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
+import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
@@ -18,6 +19,8 @@ import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateRefreshTokenNotRotated;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -78,7 +81,12 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
-		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
+		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication);
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
+				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
+		}
+		call(sequence);
 	}
 
 	@Override
