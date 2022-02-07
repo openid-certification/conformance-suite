@@ -24,9 +24,9 @@ public class SignRequestObject extends AbstractSignJWT {
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
 		env.putString("request_object", jws);
 		logSuccess("Signed the request object", args("request_object", verifiableObj,
-			"header", header.toString(),
-			"claims", claimSet.toString(),
-			"key", jwk.toJSONString()));
+			"header", header,
+			"claims", claimSet,
+			"key", jwk));
 	}
 
 }
