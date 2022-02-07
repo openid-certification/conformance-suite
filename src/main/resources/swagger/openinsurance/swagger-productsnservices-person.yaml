@@ -122,7 +122,6 @@ components:
           - termsAndConditions
           - globalCapital
           - validity
-          - contractType
           - otherGuaranteedValues
           - allowPortability
           - portabilityGraceTime
@@ -492,9 +491,6 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           example: true      
     PersonPmbacRemuneration:
       type: object
-      required:
-        -     
-        - pmbacUpdateIndex
       properties:
         interestRate:
           type: number
@@ -506,9 +502,6 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           enum: [IPCA, IGP-M,INPC]          
     PersonBenefitRecalculation:
       type: object
-      required:
-        - benefitRecalculationCriteria
-        - benefitUpdateIndex
       properties:
         benefitRecalculationCriteria:
           type: string
@@ -570,7 +563,6 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
     PersonPremiumPayment:
       type: object
       required:
-        - paymentMethod
         - frequency
       properties:
         paymentMethod:

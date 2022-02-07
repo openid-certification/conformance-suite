@@ -89,27 +89,26 @@ components:
         company:
           $ref: '#/components/schemas/HomeInsuranceCompany'  
     HomeInsuranceCompany:
-      type: array
-      items:
-        description: Informações referente a sociedade a qual a marca pertence.
-        required:
-          - name
-          - cnpjNumber
-        properties:
-          name:
-            type: string
-            description: Nome da sociedade pertencente à marca.
-            maxLength: 80
-            example: ABCDE SEGUROS
-          cnpjNumber:
-            type: string
-            description: CNPJ da sociedade pertencente à marca.
-            maxLength: 14
-            example: 12345678901234
-          products:  
-            type: object
-            description: Produtos de Seguro Residencial.
-            $ref: '#/components/schemas/HomeInsuranceProduct'
+      type: object
+      description: Informações referente a sociedade a qual a marca pertence.
+      required:
+        - name
+        - cnpjNumber
+      properties:
+        name:
+          type: string
+          description: Nome da sociedade pertencente à marca.
+          maxLength: 80
+          example: ABCDE SEGUROS
+        cnpjNumber:
+          type: string
+          description: CNPJ da sociedade pertencente à marca.
+          maxLength: 14
+          example: 12345678901234
+        products:  
+          type: object
+          description: Produtos de Seguro Residencial.
+          $ref: '#/components/schemas/HomeInsuranceProduct'
     HomeInsuranceProduct:
       type: array
       description: Produtos de Seguro Residencial.
@@ -146,21 +145,19 @@ components:
           propertyCharacteristics:
             $ref: '#/components/schemas/HomeInsurancePropertyCharacteristics'     
           propertyZipCode:
-            type: string
+            type: integer
             description: Código de Endereçamento Postal do Imóvel
             maxLength: 8
-            example: "1311000"
+            example: 1311000
           protective:
             type: boolean
             description: Protecionais - Indicativo de exigência de itens protecionais.
             example: true
           additional:
-            type: array
-            items:
-              type: string
-              description: Adicionais do Produto.
-              example: SORTEIO_GRATUITO
-              enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK , DESCONTOS , OUTROS]
+            type: string
+            description: Adicionais do Produto.
+            example: SORTEIO (GRATUITO)
+            enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK , DESCONTOS , OUTROS]
           additionalOthers:
             type: string
             description: Campo aberto para descrição de cada participante ao selecionar o domínio ‘Outros’ no campo acima ‘Adicionais’.
@@ -185,17 +182,15 @@ components:
                 type: string            
           premiumPayments:
             $ref: '#/components/schemas/HomeInsurancePremiumPayment'                 
-          minimumRequirements:
-            type: array
-            items:
-              $ref: '#/components/schemas/HomeInsuranceMinimumRequirements'   
+          minimumRequirements: 
+            $ref: '#/components/schemas/HomeInsuranceMinimumRequirements'         
           targetAudiences:          
             type: array
+            description: Público a quem se destina o produto
+            maxLength: 30
+            example: PESSOA NATURAL
             items:
-              type: string
-              description: Público a quem se destina o produto
-              example: PESSOA_NATURAL
-              enum: [PESSOA_NATURAL , PESSOA_JURIDICA, AMBAS]             
+              enum: [PESSOA NATURAL , PESSOA JURIDICA, AMBAS]             
     HomeInsuranceMinimumRequirements:
       type: object
       description: Produtos de Seguro Residencial.
@@ -206,7 +201,7 @@ components:
         contractingType:
           type: string
           description: Tipo de contratação.
-          enum: [COLETIVO , INDIVIDUAL, AMBAS]         
+          enum: [COLETIVO , INDIVIDUAL]         
         contractingMinRequirement:
           type: string
           description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).              
@@ -263,10 +258,10 @@ components:
         type: object
         required:
           - susepProcessNumber
-          - definition
+          - termAndCondition
         properties:  
           susepProcessNumber:
-            type: string
+            type: number
             description: Número do processo SUSEP.
             maxLength: 20
             example: XXXXX.XXXXXX/XXXX-XX
@@ -305,7 +300,7 @@ components:
               type: string
               description: Meio de pagamento escolhido pelo segurado.
               example: CARTÃO DE CRÉDITO
-              enum: [CARTAO_CREDITO , CARTAO_DEBITO , DEBITO_CONTA_CORRENTE , DEBITO_CONTA_POUPANCA , BOLETO_BANCARIO , PIX , CONSIGINACAO_FOLHA_PAGAMENTO , PONTOS_PROGRAMAS_BENEFICIO, OUTROS]
+              enum: [CARTAO_CREDITO , CARTAO_DEBITO , DEBITO_CONTA_CORRENTE , DEBITO_CONTA_POUPANCA , BOLETO_BANCARIO , PIX , CONSIGINACAO_FOLHA_PAGAMENTO , PAGAMENTO_COM_PONTOS]
             paymentMethodDetail:
               type: string
               description: Campo aberto para detalhamento do campo ‘Outros’ por cada participante.
@@ -313,8 +308,8 @@ components:
             paymentType:
               type: string
               description: Forma de pagamento
-              example: PAGAMENTO_UNICO
-              enum: [PAGAMENTO_UNICO , PARCELADO, AMBOS]
+              example: A_VISTA
+              enum: [A_VISTA , PARCELADO, AMBOS]
     HomeInsuranceAssistanceServices:    
       type: array
       description: Agrupamento dos serviços de assistências disponíveis vinculado ao produto.
@@ -328,7 +323,7 @@ components:
           assistanceServicesPackage:
             type: string
             description: Pacotes de Assistência.
-            example: ATE_10_SERVICOS
+            example: ATÉ 10 SERVIÇOS 
             enum: [ATE_10_SERVICOS, ATE_20_SERVICOS , ACIMA_20_SERVICOS, CUSTOMIZAVEL]
           complementaryAssistanceServicesDetail:
             type: string
@@ -339,7 +334,7 @@ components:
             type: string
             description: Sinalização em campo exclusivo se o pacote de Assistência é gratuita ou contratada/paga.
             example: GRATUITA
-            enum: [GRATUITA, PAGO]
+            enum: [GRATUITA, PAGA]
     HomeInsuranceCoverages:
       type: array
       description: Listagem de coberturas incluídas no produto.
@@ -348,12 +343,12 @@ components:
         required:
             - coverageType
             - coverageDetail
-            - coveragePermissionSeparteAquisition
+            - coveragePermissionSeparteAcquisition
             - coverageAttributes
         properties:
           coverageType:
             type: string
-            enum: [IMOVEL_BASICA , IMOVEL_AMPLA , DANOS_ELETRICOS , DANOS_POR_AGUA , ALAGAMENTO , RESPONSABILIDADE_CIVIL_FAMILIAR, RESPONSABILIDADE_CIVIL_DANOS_MORAIS , ROUBO_SUBTRACAO_BENS , ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO , TACOS_GOLFE_HOLE_ONE , PEQUENAS_REFORMAS_OBRAS , GREVES_TUMULTOS_LOCKOUT , MICROEMPREENDEDOR , ESCRITORIO_RESIDENCIA , DANOS_EQUIPAMENTOS_ELETRONICOS , QUEBRA_VIDROS , IMPACTO_VEICULOS , VENDAVAL , PERDA_PAGAMENTO_ALUGUEL , BICICLETA , RESPONSABILIDADE_CIVIL_BICICLETA , RC_EMPREGADOR , DESMORONAMENTO , DESPESAS_EXTRAORDINARIAS , JOIAS_OBRAS_ARTE , TERREMOTO , IMPACTO_AERONAVES , PAISAGISMO ,  INCENDIO , QUEDA_RAIO , EXPLOSAO, OUTRAS]
+            enum: [IMOVEL_BASICA , IMOVEL_AMPLA , DANOS_ELETRICOS , DANOS_POR_AGUA , ALAGAMENTO , RESPONSABILIDADE_CIVIL_FAMILIAR, RESPONSABILIDADE_CIVIL_DANOS_MORAIS , ROUBO_SUBTRACAO_BENS , ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO , TACOS_GOLFE_HOLE_ONE , PEQUENAS_REFORMAS_OBRA , GREVES_TUMULTOS_LOCKOUT , MICROEMPREENDEDOR , ESCRITORIO_RESIDENCIA , DANOS_EQUIPAMENTOS_ELETRONICOS , QUEBRA_VIDROS , IMPACTO_VEICULOS , VENDAVAL , PERDA_PAGAMENTO_ALUGUEL , BICICLETA , RESPONSABILIDADE_CIVIL_BICICLETA , RC_EMPREGADOR , DESMORONAMENTO , DESPESAS_EXTRAORDINARIAS , JOIAS_OBRAS_ARTE , TERREMOTO , IMPACTO_AERONAVES , PAISAGISMO ,  INCENDIO , QUEDA_RAIO , EXPLOSAO, OUTRAS]
             description: Nome do tipo da cobertura.
             maxLength: 1000
             example:  Escritório em Residência
@@ -362,7 +357,7 @@ components:
             description: Campo aberto para detalhamento por coberturas possíveis dos produtos a ser feito por cada participante.
             maxLength: 1000
             example: Cobertura especial para escritório residenciais
-          coveragePermissionSeparteAquisition:
+          coveragePermissionSeparteAcquisition:
             type: boolean
             description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
             example: false
@@ -377,7 +372,7 @@ components:
             - propertyType
             - propertyUsageType
             - propertyBuildType
-            - destinationInsuredImportance
+            - importanceInsured
           properties:
             propertyType:             
                 description: Tipo de imóvel.           
@@ -394,7 +389,7 @@ components:
                 description: Descrição do tipo de uso da propriedade.
                 example: HABITUAL
                 enum: [HABITUAL , VERANEIO , DESOCUPADO , CASA_ESCRITORIO , ALUGUEL_TEMPORADA]                         
-            destinationInsuredImportance:
+            importanceInsured:
               type: string
               description: Destinação da Importância Segurada.
               example: PRÉDIO

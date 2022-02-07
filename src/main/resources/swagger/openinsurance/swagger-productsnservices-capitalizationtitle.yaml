@@ -115,7 +115,7 @@ components:
             description: CNPJ da sociedade pertencente à marca.
             maxLength: 14
             example: "12345678901234"
-          product:
+          products:
             $ref: '#/components/schemas/CapitalizationTitleProduct'
     CapitalizationTitleProduct:
       type: array
@@ -260,7 +260,7 @@ components:
                 type: string
                 example: IPCA
                 enum: [IPCA, IGPM, INPC, TR, INDICE_REMUNERACAO_DEPOSITOS_POUPANCA, OUTROS]
-          others:
+          updateIndexOthers:
             type: array
             description: Preenchida pelas participantes quando houver ‘Outros’ no campo.
             items:
@@ -272,9 +272,17 @@ components:
             description: Possibilidade de o titular efetuar o resgate do capital constituído antes do fim do prazo de vigência do título, podendo ocorrer por solicitação expressa do titular ou por contemplação em sorteio com liquidação antecipada
             type: array
             items:
-                type: number
-                maxLength: 9
-                example: 10.000000
+                type: object
+                required:
+                  - quota
+                  - percentage
+                properties:
+                  quota:
+                    type: integer
+                    description: Número de parcela.
+                  percentage:
+                    type: number
+                    description: Percentual da quota
           redemptionPercentageEndTerm:
             description: Percentual mínimo da soma das contribuições efetuadas que poderá ser resgatado ao final da vigência,  tendo como condição os pagamentos das parcelas nos respectivos vencimentos.
             type: number
@@ -341,7 +349,7 @@ components:
             type: string
             example: IPCA
             enum: [IPCA, IGPM, INPC, TR, INDICE_REMUNERACAO_DEPOSITOS_POUPANCA, OUTROS]
-        others:
+        updateIndexOthers:
             type: array
             description: Preenchida pelas participantes quando houver ‘Outros’ no campo.
             items:
