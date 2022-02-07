@@ -388,9 +388,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
-		// as https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp is still a draft we only warn if the value is wrong,
-		// and do not require it to be present.
-		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, ConditionResult.WARNING, "OAuth2-iss-2");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2BASE-4.3.1-13");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
