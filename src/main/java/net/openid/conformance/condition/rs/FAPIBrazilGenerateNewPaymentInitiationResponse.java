@@ -1,19 +1,15 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 
 public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCondition {
@@ -44,7 +40,7 @@ Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, a
 
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_PAYMENT_INITIATION_PATH);
+		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		response.add("links", links);
 
 		JsonObject meta = new JsonObject();

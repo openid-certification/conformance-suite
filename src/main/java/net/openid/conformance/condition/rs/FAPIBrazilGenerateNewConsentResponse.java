@@ -6,12 +6,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
@@ -51,7 +49,7 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_CONSENTS_PATH);
+		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 		dataElement.add("links", links);
 
 		consentResponse.add("data", dataElement);
