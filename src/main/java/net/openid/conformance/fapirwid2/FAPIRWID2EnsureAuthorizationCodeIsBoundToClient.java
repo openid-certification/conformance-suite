@@ -54,8 +54,7 @@ public class FAPIRWID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAP
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 	}

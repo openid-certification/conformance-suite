@@ -417,8 +417,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-4");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
@@ -536,8 +535,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI1-BASE-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {

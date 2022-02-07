@@ -93,8 +93,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-4");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");

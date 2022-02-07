@@ -480,8 +480,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
@@ -590,8 +589,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI-R-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI-RW-8.6");
