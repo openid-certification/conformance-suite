@@ -1,0 +1,473 @@
+[
+    {
+        "identification": {
+            "brand": "BTG Pactual Vida e Previdência BTG Pactual Vida e Previdência BTG Pactual Vida e Previdência BTG Pactual Vida e Previdência",
+            "societyName": "BTG Pactual Vida e Previdência S.A.",
+            "cnpjNumber": "19449767000120"
+        },
+        "products": [
+            {
+                "name": "Brasilprev 150 Private Multimercado 2020",
+                "code": "152323",
+                "segment": "PREVIDENCIA",
+                "type": "PGBL",
+                "modality": "CONTRIBUICAO_VARIAVEL",
+                "optionalCoverage": "https://btgprevidencia.openinsurance-uat.btgpactual.com/",
+                "productDetails": [
+                    {
+                        "susepProcessNumber": "15414.614141/2020-71",
+                        "contractTermsConditions": "https://example.com/mobilebanking",
+                        "defferalPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": "IPCA",
+                            "otherMinimumPerformanceGarantees": "SELIC",
+                            "reversalFinancialResults": 5.123,
+                            "minimumPremiumAmount": [
+                                {
+                                    "minimumPremiumAmountValue": 250
+                                }
+                            ],
+                            "premiumPaymentMethod": [
+                                "TED_DOC"
+                            ],
+                            "permissionExtraordinaryContributions": true,
+                            "permissonScheduledFinancialPayments": true,
+                            "gracePeriodRedemption": 100,
+                            "gracePeriodBetweenRedemptionRequests": 30,
+                            "redemptionPaymentTerm": 10,
+                            "gracePeriodPortability": 12,
+                            "gracePeriodBetweenPortabilityRequests": 15,
+                            "portabilityPaymentTerm": 20,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "grantPeriodBenefit": {
+                            "incomeModality": [
+                                "PAGAMENTO_UNICO"
+                            ],
+                            "biometricTable": [
+                                "AT_2000_MALE_FEMALE"
+                            ],
+                            "interestRate": 3.225,
+                            "updateIndex": "IPCA",
+                            "reversalResultsFinancial": 13.252,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "costs": {
+                            "loadingAntecipated": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            },
+                            "loadingLate": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            }
+                        }
+                    }
+                ],
+                "minimumRequirements": {
+                    "contractType": "INDIVIDUAL",
+                    "participantQualified": false,
+                    "minRequirementsContract": "NA"
+                },
+                "targetAudience": "PESSOA_JURIDICA"
+            },
+            {
+                "name": "Brasilprev 150 Private Multimercado 2020",
+                "code": "152323",
+                "segment": "PREVIDENCIA",
+                "type": "PGBL",
+                "modality": "CONTRIBUICAO_VARIAVEL",
+                "optionalCoverage": "string",
+                "productDetails": [
+                    {
+                        "susepProcessNumber": "15414.614141/2020-71",
+                        "contractTermsConditions": "https://example.com/mobilebanking",
+                        "defferalPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": "IPCA",
+                            "otherMinimumPerformanceGarantees": "SELIC",
+                            "reversalFinancialResults": 5.123,
+                            "minimumPremiumAmount": [
+                                {
+                                    "minimumPremiumAmountValue": 250
+                                }
+                            ],
+                            "premiumPaymentMethod": [
+                                "CARTAO_CREDITO"
+                            ],
+                            "permissionExtraordinaryContributions": true,
+                            "permissonScheduledFinancialPayments": true,
+                            "gracePeriodRedemption": 100,
+                            "gracePeriodBetweenRedemptionRequests": 30,
+                            "redemptionPaymentTerm": 10,
+                            "gracePeriodPortability": 12,
+                            "gracePeriodBetweenPortabilityRequests": 15,
+                            "portabilityPaymentTerm": 20,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "grantPeriodBenefit": {
+                            "incomeModality": [
+                                "PAGAMENTO_UNICO"
+                            ],
+                            "biometricTable": [
+                                "AT_2000_FEMALE"
+                            ],
+                            "interestRate": 3.225,
+                            "updateIndex": "IPCA",
+                            "reversalResultsFinancial": 13.252,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "costs": {
+                            "loadingAntecipated": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            },
+                            "loadingLate": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            }
+                        }
+                    }
+                ],
+                "minimumRequirements": {
+                    "contractType": "INDIVIDUAL",
+                    "participantQualified": false,
+                    "minRequirementsContract": "NA"
+                },
+                "targetAudience": "PESSOA_JURIDICA"
+            },
+            {
+                "name": "Brasilprev 150 Private Multimercado 2020",
+                "code": "152323",
+                "segment": "PREVIDENCIA",
+                "type": "PAGP",
+                "modality": "BENEFICIO_DEFINIDO",
+                "optionalCoverage": "string",
+                "productDetails": [
+                    {
+                        "susepProcessNumber": "15414.614141/2020-71",
+                        "contractTermsConditions": "https://example.com/mobilebanking",
+                        "defferalPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": "IPCA",
+                            "otherMinimumPerformanceGarantees": "SELIC",
+                            "reversalFinancialResults": 5.123,
+                            "minimumPremiumAmount": [
+                                {
+                                    "minimumPremiumAmountValue": 250
+                                }
+                            ],
+                            "premiumPaymentMethod": [
+                                "DEBITO_CONTA_POUPANCA"
+                            ],
+                            "permissionExtraordinaryContributions": true,
+                            "permissonScheduledFinancialPayments": true,
+                            "gracePeriodRedemption": 100,
+                            "gracePeriodBetweenRedemptionRequests": 30,
+                            "redemptionPaymentTerm": 10,
+                            "gracePeriodPortability": 12,
+                            "gracePeriodBetweenPortabilityRequests": 15,
+                            "portabilityPaymentTerm": 20,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "grantPeriodBenefit": {
+                            "incomeModality": [
+                                "RENDA_PRAZO_CERTO"
+                            ],
+                            "biometricTable": [
+                                "AT_2000_FEMALE_SUAVIZADA_10"
+                            ],
+                            "interestRate": 3.225,
+                            "updateIndex": "IPCA",
+                            "reversalResultsFinancial": 13.252,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "costs": {
+                            "loadingAntecipated": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            },
+                            "loadingLate": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            }
+                        }
+                    }
+                ],
+                "minimumRequirements": {
+                    "contractType": "INDIVIDUAL",
+                    "participantQualified": false,
+                    "minRequirementsContract": "NA"
+                },
+                "targetAudience": "PESSOA_JURIDICA"
+            },
+            {
+                "name": "Brasilprev 150 Private Multimercado 2020",
+                "code": "152323",
+                "segment": "PREVIDENCIA",
+                "type": "PGBL",
+                "modality": "CONTRIBUICAO_VARIAVEL",
+                "optionalCoverage": "string",
+                "productDetails": [
+                    {
+                        "susepProcessNumber": "15414.614141/2020-71",
+                        "contractTermsConditions": "https://example.com/mobilebanking",
+                        "defferalPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": "IPCA",
+                            "otherMinimumPerformanceGarantees": "SELIC",
+                            "reversalFinancialResults": 5.123,
+                            "minimumPremiumAmount": [
+                                {
+                                    "minimumPremiumAmountValue": 250
+                                }
+                            ],
+                            "premiumPaymentMethod": [
+                                "DEBITO_CONTA"
+                            ],
+                            "permissionExtraordinaryContributions": true,
+                            "permissonScheduledFinancialPayments": true,
+                            "gracePeriodRedemption": 100,
+                            "gracePeriodBetweenRedemptionRequests": 30,
+                            "redemptionPaymentTerm": 10,
+                            "gracePeriodPortability": 12,
+                            "gracePeriodBetweenPortabilityRequests": 15,
+                            "portabilityPaymentTerm": 20,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "grantPeriodBenefit": {
+                            "incomeModality": [
+                                "RENDA_PRAZO_CERTO"
+                            ],
+                            "biometricTable": [
+                                "AT_2000_FEMALE_SUAVIZADA_10"
+                            ],
+                            "interestRate": 3.225,
+                            "updateIndex": "IPCA",
+                            "reversalResultsFinancial": 13.252,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "costs": {
+                            "loadingAntecipated": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            },
+                            "loadingLate": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            }
+                        }
+                    }
+                ],
+                "minimumRequirements": {
+                    "contractType": "INDIVIDUAL",
+                    "participantQualified": false,
+                    "minRequirementsContract": "NA"
+                },
+                "targetAudience": "PESSOA_JURIDICA"
+            },
+            {
+                "name": "Brasilprev 150 Private Multimercado 2020",
+                "code": "152323",
+                "segment": "PREVIDENCIA",
+                "type": "PGBL",
+                "modality": "CONTRIBUICAO_VARIAVEL",
+                "optionalCoverage": "string",
+                "productDetails": [
+                    {
+                        "susepProcessNumber": "15414.614141/2020-71",
+                        "contractTermsConditions": "https://example.com/mobilebanking",
+                        "defferalPeriod": {
+                            "interestRate": 0.25123,
+                            "updateIndex": "IPCA",
+                            "otherMinimumPerformanceGarantees": "SELIC",
+                            "reversalFinancialResults": 5.123,
+                            "minimumPremiumAmount": [
+                                {
+                                    "minimumPremiumAmountValue": 250
+                                }
+                            ],
+                            "premiumPaymentMethod": [
+                                "DEBITO_CONTA"
+                            ],
+                            "permissionExtraordinaryContributions": true,
+                            "permissonScheduledFinancialPayments": true,
+                            "gracePeriodRedemption": 100,
+                            "gracePeriodBetweenRedemptionRequests": 30,
+                            "redemptionPaymentTerm": 10,
+                            "gracePeriodPortability": 12,
+                            "gracePeriodBetweenPortabilityRequests": 15,
+                            "portabilityPaymentTerm": 20,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "grantPeriodBenefit": {
+                            "incomeModality": [
+                                "RENDA_TEMPORARIA"
+                            ],
+                            "biometricTable": [
+                                "AT_2000_MALE_FEMALE"
+                            ],
+                            "interestRate": 3.225,
+                            "updateIndex": "IPCA",
+                            "reversalResultsFinancial": 13.252,
+                            "investimentFunds": [
+                                {
+                                    "cnpjNumber": "13.456.789/0001-12",
+                                    "companyName": "EYPREV",
+                                    "maximumAdministrationFee": 20.1,
+                                    "typePerformanceFee": [
+                                        "DIRETAMENTE"
+                                    ],
+                                    "maximumPerformanceFee": 20,
+                                    "eligibilityRule": true,
+                                    "minimumContributionAmount": 1000,
+                                    "minimumMathematicalProvisionAmount": 1000
+                                }
+                            ]
+                        },
+                        "costs": {
+                            "loadingAntecipated": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            },
+                            "loadingLate": {
+                                "minValue": 4.122,
+                                "maxValue": 10
+                            }
+                        }
+                    }
+                ],
+                "minimumRequirements": {
+                    "contractType": "INDIVIDUAL",
+                    "participantQualified": false,
+                    "minRequirementsContract": "NA"
+                },
+                "targetAudience": "PESSOA_JURIDICA"
+            }
+        ],
+        "links": {
+            "self": "https://btgprevidencia.openinsurance-uat.btgpactual.com/open-insurance/products-services/v1/life-pension?page=1&page-size=10"
+        },
+        "meta": {
+            "totalRecords": 5,
+            "totalPages": 1
+        }
+    }
+]

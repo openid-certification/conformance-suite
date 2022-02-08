@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
+import net.openid.conformance.openbanking_brasil.testmodules.support.LogOnlyFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.openinsurance.validator.admin.AdminMetricsValidator;
@@ -44,6 +45,7 @@ public class AdminMetricsTestPlan implements TestPlan {
 				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
+				callAndContinueOnFailure(LogOnlyFailure.class);
 				callAndContinueOnFailure(AdminMetricsValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		}

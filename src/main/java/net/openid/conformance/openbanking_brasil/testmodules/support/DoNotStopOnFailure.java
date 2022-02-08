@@ -8,7 +8,7 @@ public class DoNotStopOnFailure extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		env.mapKey("doNotStopOnFailure", "true");
-	    log("Set logging all errors");
+	    log("Setting 'do not stop on failure' is ON");
 		return env;
 	}
 }

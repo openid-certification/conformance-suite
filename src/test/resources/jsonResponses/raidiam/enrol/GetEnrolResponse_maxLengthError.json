@@ -1,0 +1,23 @@
+[
+    {
+        "OrganisationId": "string",
+        "ClientSecret": "string",
+        "RedirectUris": [
+            "http://string.com"
+        ],
+        "TokenEndpointAuthMethod": "string",
+        "GrantTypes": [
+            "stringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstringstring"
+        ],
+        "ResponseTypes": [
+            "string"
+        ],
+        "ClientName": "string",
+        "ClientUri": "http://string.com",
+        "LogoUri": "http://string.com",
+        "TosUri": "http://string.com",
+        "PolicyUri": "http://string.com",
+        "JwksUri": "http://string.com",
+        "Jwks": {}
+    }
+]

@@ -15,12 +15,13 @@ import java.util.Set;
 
 
 /**
- * Api url: https://sensedia.github.io/areadesenvolvedor/swagger/swagger_insurances_apis.yaml
- * Api endpoint: /home
- * Api version: 1.0.0
+ * Api: swagger/opendata/swagger-opendata-insurance.yaml
+ * Api endpoint: /homes
+ * Api version: 1.0.0-rc1.0
+ * Git hash: f3774e4268d7cd7c8a5977a31dae8f727cc9153d
  */
 
-@ApiName("Home Insurance List")
+@ApiName("Homes Insurance List")
 public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 
 	private static class Fields extends ProductNServicesCommonFields {
@@ -34,7 +35,6 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> COVERAGE_TYPE = Sets.newHashSet("IMOVEL_BASICA","IMOVEL_AMPLA","DANOS_ELETRICOS","DANOS_AGUA","ALAGAMENTO","RESPONSABILIDADE_CIVIL_FAMILIAR","RESPONSABILIDADE_CIVIL_DANOS_MORAIS","ROUBO_SUBTRACAO_BENS","ROUBO_SUBTRACAO_BENS_FORA_LOCAL_SEGURADO","TACOS_GOLFE_HOLE_ONE","PEQUENAS_REFORMAS_OBRAS","GRAVES_TUMULTOS_LOCKOUT","MICROEMPREENDEDOR","ESCRITORIO_RESIDENCIA","DANOS_EQUIPAMENTOS_ELETRONICOS","QUEBRA_VIDROS","IMPACTO_VEICULOS","VENDAVAL","PERDA_PAGAMENTO_ALUGUEL","BICICLETA","RESPONSABILIDADE_CIVIL_BICICLETA","RC_EMPREGADOR","DESMORONAMENTO","DESPESAS","JOIAS_OBRAS_ARTE","TERREMOTO","IMPACTO_AERONAVES","PAISAGISMO","INCENDIO","QUEDA_RAIO","EXPLOSAO", "OUTROS");
 	public static final Set<String> PROPERTY_TYPE = Sets.newHashSet("CASA", "APARTAMENTO");
-	public static final Set<String> PROPERTY_BUILD_TYPE = Sets.newHashSet("ALVENARIA", "MADEIRA", "MISTA");
 	public static final Set<String> PROPERTY_USAGE_TYPE = Sets.newHashSet("HABITUAL","VERANEIO","DESOCUPADO","CASA_ESCRITORIO","ALUGUEL_TEMPORADA");
 	public static final Set<String> IMPORTANCE_INSURED = Sets.newHashSet("PREDIO", "CONTEUDO", "AMBOS");
 	public static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO_GRATUITO","CLUBE_BENEFICIOS","CASHBACK","DESCONTOS","OUTROS");
@@ -45,6 +45,7 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> PAYMENT_METHODS = Sets.newHashSet("CARTAO_CREDITO","CARTAO_DEBITO","DEBITO_CONTA_CORRENTE","DEBITO_CONTA_POUPANCA","BOLETO_BANCARIO","PIX","CONSIGNACAO_FOLHA_PAGAMENTO","PONTOS_PROGRAMA_BENEFÍCIO","OUTROS");
 	public static final Set<String> PAYMENT_TYPES = Sets.newHashSet("A_VISTA", "PARCELADO", "AMBOS");
 	public static final Set<String> CONTRACTING_TYPES = Sets.newHashSet("COLETIVO", "INDIVIDUAL", "AMBAS");
+	public static final Set<String> BUILD_TYPES = Sets.newHashSet("ALVENARIA", "MADEIRA", "MISTA");
 	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL","PESSOA_JURIDICA","PESSOA_NATURAL_JURIDICA");
 
 
@@ -54,7 +55,7 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 		JsonElement body = bodyFrom(environment);
 
 		assertField(body,
-			new ObjectField.Builder("data")
+			new ObjectArrayField.Builder("data")
 				.setValidator(this::assertData)
 				.build());
 
@@ -75,54 +76,53 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 				.setValidator(parts::assertSocietyIdentification)
 				.build());
 
+		assertField(data, Fields.name().setMaxLength(80).build());
+		assertField(data, Fields.code().setMaxLength(80).build());
+
 		assertField(data,
-			new ObjectArrayField
-				.Builder("products")
-				.setValidator(this::assertProducts)
-				.setMinItems(1)
-				.build());
-	}
-
-	private void assertProducts(JsonObject products) {
-		assertField(products, Fields.name().setMaxLength(80).build());
-		assertField(products, Fields.code().setMaxLength(80).build());
-
-		assertField(products,
 			new ObjectArrayField
 				.Builder("coverages")
 				.setValidator(this::assertCoverages)
 				.setMinItems(1)
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new ObjectArrayField
 				.Builder("propertyCharacteristics")
 				.setValidator(this::assertPropertyCharacteristics)
 				.setMinItems(1)
 				.build());
 
-		assertField(products,
+		assertField(data,
+			new StringField
+				.Builder("propertyPostalCode")
+				.setPattern("^\\d{8}$")
+				.setMaxLength(8)
+				.setOptional()
+				.build());
+
+		assertField(data,
 			new BooleanField
 				.Builder("protective")
 				.setOptional()
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new StringArrayField
-				.Builder("additional")
+				.Builder("additionals")
 				.setEnums(ADDITIONAL)
 				.setMaxLength(16)
 				.setOptional()
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(100)
 				.setOptional()
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new ObjectArrayField
 				.Builder("assistanceServices")
 				.setValidator(assistanceServices -> {
@@ -150,9 +150,10 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 							.build());
 				})
 				.setMinItems(1)
+				.setOptional()
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new ObjectArrayField
 				.Builder("termsAndConditions")
 				.setValidator(termsAndConditions -> {
@@ -172,39 +173,32 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 				.setMinItems(1)
 				.build());
 
-		assertField(products,
-			new ObjectArrayField
-				.Builder("validity")
-				.setValidator(validity -> {
-					assertField(validity,
-						new StringField
-							.Builder("term")
-							.setEnums(TERM)
-							.setMaxLength(23)
-							.build());
-
-					assertField(validity,
-						new StringField
-							.Builder("termAdditionalInfo")
-							.setMaxLength(100)
-							.setOptional()
-							.build());
-				})
-				.setMinItems(1)
+		assertField(data,
+			new StringArrayField
+				.Builder("terms")
+				.setEnums(TERM)
+				.setMaxLength(23)
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new StringField
-				.Builder("customerServices")
+				.Builder("termsAdditionalInfo")
+				.setMaxLength(255)
+				.setOptional()
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("customerService")
 				.setEnums(CUSTOMER_SERVICES)
 				.setMaxLength(31)
 				.setOptional()
 				.build());
 
 
-		assertField(products,
-			new ObjectArrayField
-				.Builder("premiumPayments")
+		assertField(data,
+			new ObjectField
+				.Builder("premiumPayment")
 				.setValidator(premiumPayments -> {
 					assertField(premiumPayments,
 						new StringArrayField
@@ -229,16 +223,15 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 							.build());
 				})
 				.setOptional()
-				.setMinItems(1)
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new ObjectField
-				.Builder("minimumRequirements")
+				.Builder("minimumRequirement")
 				.setValidator(minimumRequirements -> {
 					assertField(minimumRequirements,
 						new StringField
-							.Builder("contractingType")
+							.Builder("contractType")
 							.setEnums(CONTRACTING_TYPES)
 							.setMaxLength(10)
 							.build());
@@ -250,10 +243,9 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 							.setOptional()
 							.build());
 				})
-				.setOptional()
 				.build());
 
-		assertField(products,
+		assertField(data,
 			new StringField
 				.Builder("targetAudience")
 				.setEnums(TARGET_AUDIENCES)
@@ -270,41 +262,32 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(propertyCharacteristics,
-			new StringField
-				.Builder("buildType")
-				.setEnums(PROPERTY_BUILD_TYPE)
-				.setMaxLength(9)
-				.build());
+				new StringArrayField
+					 .Builder("buildTypes")
+					 .setEnums(BUILD_TYPES)
+					 .setMaxLength(9)
+					 .build());
 
 		assertField(propertyCharacteristics,
 			new StringArrayField
-				.Builder("usageType")
+				.Builder("usageTypes")
 				.setEnums(PROPERTY_USAGE_TYPE)
 				.setMaxLength(17)
 				.build());
 
 		assertField(propertyCharacteristics,
 			new StringArrayField
-				.Builder("importanceInsured")
+				.Builder("importanceInsureds")
 				.setEnums(IMPORTANCE_INSURED)
 				.setMaxLength(8)
-				.build());
-
-		assertField(propertyCharacteristics,
-			new StringField
-				.Builder("postalCode")
-				.setPattern("^\\d{8}$")
-				.setMaxLength(8)
-				.setOptional()
 				.build());
 	}
 
 	private void assertCoverages(JsonObject coverages) {
 		assertField(coverages,
-			new StringArrayField
+			new StringField
 				.Builder("type")
 				.setEnums(COVERAGE_TYPE)
-				.setMinItems(1)
 				.setMaxLength(40)
 				.build());
 
@@ -357,6 +340,7 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 							new StringField
 								.Builder("amount")
 								.setPattern("^\\d{1,16}\\.\\d{2,4}$")
+								.setMaxLength(21)
 								.build());
 
 						assertField(minLMI,

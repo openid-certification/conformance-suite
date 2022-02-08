@@ -5,6 +5,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.channels.BankingAgentsChannelValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
+import net.openid.conformance.openbanking_brasil.testmodules.support.LogOnlyFailure;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToGetProductsNChannelsApi;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -22,6 +23,7 @@ public class ChannelsBankingAgentsApiTestModule extends AbstractNoAuthFunctional
 			callAndStopOnFailure(PrepareToGetProductsNChannelsApi.class);
 			preCallResource();
 			callAndContinueOnFailure(DoNotStopOnFailure.class);
+			callAndContinueOnFailure(LogOnlyFailure.class);
 			callAndContinueOnFailure(BankingAgentsChannelValidator.class, Condition.ConditionResult.FAILURE);
 		});
 	}

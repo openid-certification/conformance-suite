@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckPaymentsModule;
 import net.openid.conformance.openbanking_brasil.testmodules.pixscheduling.PixSchedulingDateInFutureConsentsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.pixscheduling.PixSchedulingDateIsTodayConsentsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -22,7 +23,8 @@ public class PixSchedulingTestPlan  implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					PreFlightCertCheckPaymentsModule.class,
-					PixSchedulingDateInFutureConsentsTestModule.class
+					PixSchedulingDateInFutureConsentsTestModule.class,
+					PixSchedulingDateIsTodayConsentsTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

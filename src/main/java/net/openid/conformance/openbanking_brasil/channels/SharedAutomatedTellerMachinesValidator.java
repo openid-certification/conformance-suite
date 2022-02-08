@@ -42,7 +42,6 @@ public class SharedAutomatedTellerMachinesValidator extends AbstractJsonAssertin
 
 	@Override
 	public Environment evaluate(Environment environment) {
-		setLogOnlyFailure();
 		JsonElement body = bodyFrom(environment);
 
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(

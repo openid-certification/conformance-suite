@@ -85,7 +85,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         GetRiskPensionContractData:
             type: object
@@ -145,11 +145,13 @@ components:
                     example:
                         - PET
                         - FUNERAL
-                assistanceAdditionalInfos:
+                assistanceTypesAdditionalInfos:
                     type: array
                     items:
                         type: string
                     description: Lista a ser preenchida pelas participantes quando houver 'Outros' no campo 'Tipo de Assistência'.
+                    example:
+                        - Assistance additional info.
                 additionals:
                     type: array
                     items:
@@ -158,7 +160,10 @@ components:
                         - SORTEIO
                         - OUTROS
                 termsAndConditions:
-                    $ref: '#/components/schemas/TermsAndConditions'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TermsAndConditions'
+                    minItems: 1
                 globalCapital:
                     type: boolean
                     description: A considerar os seguintes domínios&#58;<br><ol><li>true</li><li>false</li></ol>
@@ -168,24 +173,17 @@ components:
                     items:
                         $ref: '#/components/schemas/EnumTerm'
                 pmbacRemuneration:
-                    $ref: '#/components/schemas/PmbacRemuneration'
+                    $ref: '#/components/schemas/InsurancePensionEnumPmbacRemuneration'
                 benefitRecalculation:
-                    $ref: '#/components/schemas/BenefitRecalculation'
+                    $ref: '#/components/schemas/InsurancePensionBenefitRecalculation'
                 ageAdjustment:
                     $ref: '#/components/schemas/AgeAdjustment'
                 financialRegimeContractTypes:
                     type: array
                     items:
-                        type: string
-                        description: Listagem de regime financeiro para cada combinação de modalidade/cobertura do produto indicando&#58;<br><ol><li>Repartição simples</li><li>Repartição Capitais</li><li>Capitalização</li></ol>
-                        maxLength: 29
-                        enum:
-                            - REPARTICAO_SIMPLES
-                            - REPARTICAO_CAPITAIS
-                            - CAPITALIZACAO
-                        example: REPARTICAO_SIMPLES
+                        $ref: '#/components/schemas/InsurancePensionEnumFinancialRegime'
                 reclaim:
-                    $ref: '#/components/schemas/Reclaim'
+                    $ref: '#/components/schemas/InsurancePensionReclaim'
                 otherGuaranteedValues:
                     type: array
                     items:
@@ -200,8 +198,6 @@ components:
                             - BENEFICIO_PROLONGADO
                             - NAO_APLICA
                         example: SALDAMENTO
-                profitModality:
-                    $ref: '#/components/schemas/EnumRiskPensionPaymentModality'
                 allowPortability:
                     type: boolean
                     description: <ol><li>true</li><li>false</li></ol>
@@ -218,7 +214,7 @@ components:
                         maxLength: 18
                         enum:
                             - UNICO
-                            - SOB_FORMA_DE_RENDA
+                            - SOB_FORMA_RENDA
                         example: UNICO
                 indemnityPaymentIncomes:
                     type: array
@@ -307,11 +303,11 @@ components:
                                     - FRACIONADO
                                     - OUTRA
                                 example: DIARIA
+                        contributionTax:
+                            type: string
+                            description: 'Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III.'
+                            maxLength: 500
                     additionalProperties: false
-                contributionTax:
-                    type: string
-                    maxLength: 500
-                    description: 'Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III.'
                 minimumRequirement:
                     $ref: '#/components/schemas/RiskPensionMinimumRequirement'
                 targetAudience:
@@ -331,7 +327,7 @@ components:
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: '#/components/schemas/Phase4Meta'
             additionalProperties: false
         GetSurvivalPensionContractData:
             type: object
@@ -367,7 +363,7 @@ components:
                         2. Previdência
                     maxLength: 20
                     enum:
-                        - SEGURO_DE_PESSOAS
+                        - SEGURO_PESSOAS
                         - PREVIDENCIA
                     example: PREVIDENCIA
                 modality:
@@ -389,6 +385,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/TermsAndConditions'
+                    minItems: 1
                 type:
                     $ref: '#/components/schemas/SurvivalPensionType'
                 defferalPeriod:
@@ -397,10 +394,11 @@ components:
                     $ref: '#/components/schemas/SurvivalPensionGrantPeriodBenefit'
                 costs:
                     $ref: '#/components/schemas/SurvivalPensionCosts'
-                minimumRequirements:
+                minimumRequirement:
                     $ref: '#/components/schemas/SurvivalPensionMinimumRequirements'
                 targetAudience:
                     $ref: '#/components/schemas/EnumTargetAudience'
+            additionalProperties: false
         SurvivalPensionInvestimentFund:
             type: object
             description: Fundos de Investimento (por fundo).
@@ -421,7 +419,7 @@ components:
                         Lista com as informações do(s) Fundo(s) de Investimento(s) disponíveis para o período de diferimento/acumulação, contemplando:
                           - Taxa Máxima de Administração - em %
                     example: '0.201000'
-                    maxLength: 10
+                    maxLength: 8
                 typePerformanceFee:
                     type: string
                     enum:
@@ -439,7 +437,7 @@ components:
                     description: |
                         Lista com as informações do(s) Fundo(s) de Investimento(s) disponíveis para o período de diferimento/acumulação, contemplando:
                           - Taxa Máxima de Performance - em %
-                    maxLength: 10
+                    maxLength: 8
                     example: '0.201000'
                 eligibilityRule:
                     type: boolean
@@ -454,6 +452,7 @@ components:
                           - Valor Mínimo de Contribuição
                     pattern: '^\d{1,16}\.\d{2,4}$'
                     example: '1000.00'
+                    maxLength: 21
                 minimumMathematicalProvisionAmount:
                     type: string
                     description: |
@@ -461,8 +460,10 @@ components:
                           - Valor Mínimo do Saldo Provisão matemática
                     pattern: '^\d{1,16}\.\d{2,4}$'
                     example: '1000.00'
+                    maxLength: 21
                 currency:
                     $ref: '#/components/schemas/CurrencyCode'
+            additionalProperties: false
         SurvivalPensionMinimumRequirements:
             type: object
             required:
@@ -494,6 +495,7 @@ components:
                     maxLength: 1024
                     description: Campo aberto (possibilidade de incluir URL)
                     example: 'https://openinsurance.com.br/aaa'
+            additionalProperties: false
         SusepProcessNumber:
             type: string
             description: 'Sequência numérica utilizada para consulta dos processos eletrônicos na SUSEP, com caracteres especiais, conforme campo de consulta no site da SUSEP (XXXXX.XXXXXX/XXXX-XX)<br>Observação&#58; Mascaras da SUSEP – Serão permitidos todas as máscaras de Produtos. Limitar pelos códigos das Máscaras.'
@@ -513,7 +515,7 @@ components:
             properties:
                 interestRate:
                     type: string
-                    maxLength: 10
+                    maxLength: 8
                     pattern: '^[0-1]\.\d{6}$'
                     description: Taxa de juros mensal garantida que remunera o plano durante a fase de diferimento/acumulação.
                     example: '0.251231'
@@ -530,8 +532,10 @@ components:
                     pattern: '^[0-1]\.\d{6}$'
                     description: Percentual de reversão de excedente financeiro na concessão. Em %.
                     example: '0.051230'
-                minimumPremium:
-                    $ref: '#/components/schemas/SurvivalPensionMinimumPremium'
+                minimumPremiums:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SurvivalPensionMinimumPremium'
                 premiumPaymentMethods:
                     type: array
                     items:
@@ -580,6 +584,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/SurvivalPensionInvestimentFund'
+            additionalProperties: false
         SurvivalPensionType:
             type: string
             description: |
@@ -642,6 +647,7 @@ components:
                     description: Prazo em dias de carência entre pedidos de portabilidade (entre empresas diferentes).
                     example: 15
                     maximum: 9999
+            additionalProperties: false
         SurvivalPensionCosts:
             type: object
             description: Custos
@@ -653,6 +659,7 @@ components:
                     $ref: '#/components/schemas/SurvivalPensionLoadingAntecipated'
                 loadingLate:
                     $ref: '#/components/schemas/SurvivalPensionLoadingLate'
+            additionalProperties: false
         SurvivalPensionLoadingAntecipated:
             type: object
             description: Carregamento antecipado.
@@ -672,6 +679,7 @@ components:
                     maxLength: 8
                     description: Percentual máximo de carregamento cobrada quando do pagamento do prêmio/ contribuição. Em %.
                     example: '0.100000'
+            additionalProperties: false
         SurvivalPensionLoadingLate:
             type: object
             description: Carregamento postecipado.
@@ -691,6 +699,7 @@ components:
                     maxLength: 8
                     description: Percentual máximo de taxa de carregamento cobrado quando da efetivação de resgate ou portabilidade.
                     example: '0.100000'
+            additionalProperties: false
         SurvivalPensionMinimumPremium:
             type: object
             description: Valor mínimo de prêmio/contribuição
@@ -702,7 +711,7 @@ components:
                     maxLength: 10
                     example: MENSAL
                     enum:
-                        - DIÁRIO
+                        - DIARIO
                         - SEMANAL
                         - QUINZENAL
                         - MENSAL
@@ -710,12 +719,14 @@ components:
                         - TRIMESTRAL
                         - SEMESTRAL
                         - ANUAL
+                        - UNICO
                 amount:
                     type: string
                     maxLength: 21
                     pattern: '^\d{1,16}\.\d{2,4}$'
                     description: Valor mínimo em R$ de prêmio/ contribuição aceita pela sociedade ao plano (identificar valor mensal e/ou aporte único).
                     example: '250.00'
+            additionalProperties: false
         SurvivalPensionGrantPeriodBenefit:
             type: object
             description: Período de concessão do benefício
@@ -783,7 +794,7 @@ components:
                         example: AT_2000_MALE
                 interestRate:
                     type: string
-                    maxLength: 10
+                    maxLength: 8
                     pattern: '^[0-1]\.\d{6}$'
                     description: Taxa de juros garantida utilizada para conversão em renda. Em %
                     example: '0.225222'
@@ -799,6 +810,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/SurvivalPensionInvestimentFund'
+            additionalProperties: false
         Links:
             type: object
             description: Referências para outros recusos da API requisitada.
@@ -866,6 +878,24 @@ components:
                     format: date-time
                     example: '2021-05-21T08:30:00Z'
             additionalProperties: false
+        Phase4Meta:
+            type: object
+            description: Meta informações referente à API requisitada.
+            required:
+                - totalRecords
+                - totalPages
+            properties:
+                totalRecords:
+                    type: integer
+                    format: int32
+                    description: Número total de registros no resultado
+                    example: 1
+                totalPages:
+                    type: integer
+                    format: int32
+                    description: Número total de páginas no resultado
+                    example: 1
+            additionalProperties: false
         Participant:
             type: object
             description: Conjunto de informações relativas ao participante do produto de open banking
@@ -892,13 +922,17 @@ components:
                     pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
                     example: 'https://empresaa1.com/companies'
             additionalProperties: false
-        EnumRiskPensionIndemnifiablePeriod:
+        InsurancePensionEnumIndemnifiablePeriodType:
             type: string
-            description: Listagem do pagamento para cada benefício&#58;<br><ol><li>Quantidade determinada por parcelas</li><li>Até o fim de ciclo determinado</li></ol>
+            description: |
+                Listagem do pagamento para cada benefício:
+                  1. Quantidade determinada de parcelas;
+                  2. Até o fim de ciclo determinado.
+                Se for pagamento único, esse campo não se aplica (retorna vazio).
+            maxLength: 31
             enum:
                 - QUANTIDADE_DETERMINADA_PARCELAS
-                - ATE_FIM_CICLO_DETERMINADO
-            maxLength: 31
+                - FIM_CICLO_DETERMINADO
             example: QUANTIDADE_DETERMINADA_PARCELAS
         EnumTargetAudience:
             type: string
@@ -914,17 +948,6 @@ components:
                 - PESSOA_JURIDICA
                 - PESSOA_NATURAL_JURIDICA
             example: PESSOA_NATURAL
-        EnumRiskPensionPaymentModality:
-            type: string
-            description: |
-                Listagem da forma de pagamento para cada benefício do produto indicando, conforme Resolução CNSP nº 201/2008:
-                1. Pagamento único;
-                2. Sob forma de renda.
-            maxLength: 19
-            enum:
-                - PAGAMENTO_UNICO
-                - SOB_FORMA_DE_RENDA
-            example: SOB_FORMA_DE_RENDA
         EnumProductModality:
             type: string
             description: <ol><li>Funeral</li><li>Prestamista (exceto Habitacional e Rural)</li><li>Viagem</li><li>Educacional</li><li>Dotal (Misto e Puro)</li><li>Acidentes Pessoais</li><li>Vida</li><li>Perda do Certificado de Habilitação de Voo – PCHV</li><li>Doenças Graves ou Doença Terminal</li><li>Desemprego/ Perda de Renda</li><li>Eventos Aleatórios</li><li>Pecúlio</li><li>Pensão prazo certo</li><li>Pensão menores 21 anos</li><li>Pensão menores 24 anos</li><li>Pensão cônjuge vitalícia</li><li>Pensão cônjuge temporária</li></ol>
@@ -956,23 +979,20 @@ components:
             properties:
                 type:
                     $ref: '#/components/schemas/EnumRiskPensionCoverageType'
-                additionalInfos:
+                typeAdditionalInfos:
                     type: array
+                    description: |
+                        Lista de textos para complementar informação relativa ao campo type, quando for selecionada a opção 'OUTROS'.
+                        Restrição: Campo de preenchimento obrigatório se 'type' estiver preenchida a opção 'OUTROS'
                     items:
                         type: string
-                    description: Lista a ser preenchida pelas participantes quando houver 'Outras' (permitir a publicação de uma nova cobertura que não esteja na lista básica).
+                        maxLength: 100
+                    example:
+                        - Detalhar os serviços
+                        - benefícios
+                        - outros
                 attributes:
                     $ref: '#/components/schemas/CoverageAttributes'
-                coveragePeriod:
-                    type: string
-                    description: |
-                        1. Vitalícia;
-                        2. Temporária.
-                    maxLength: 10
-                    enum:
-                        - VITALICIA
-                        - TEMPORARIA
-                    example: TEMPORARIA
             additionalProperties: false
         EnumRiskPensionCoverageType:
             type: string
@@ -981,6 +1001,7 @@ components:
             enum:
                 - MORTE
                 - INVALIDEZ
+                - OUTROS
             example: MORTE
         CoverageAttributes:
             type: object
@@ -1011,12 +1032,6 @@ components:
                             - INDENIZACAO_UNICA
                             - DIARIA_OU_PARCELA
                         example: INDENIZACAO_UNICA
-                indemnifiableDeadline:
-                    type: integer
-                    format: int32
-                    description: 'Caso o período de pagamento seja relacionado a Prazo, listagem de número máximo de parcelas do benefício. Em meses.'
-                    maximum: 9999
-                    example: 48
                 minValue:
                     $ref: '#/components/schemas/InsurancePensionMinValue'
                 maxValue:
@@ -1024,7 +1039,7 @@ components:
                 indemnifiablePeriods:
                     type: array
                     items:
-                        $ref: '#/components/schemas/EnumRiskPensionIndemnifiablePeriod'
+                        $ref: '#/components/schemas/InsurancePensionEnumIndemnifiablePeriodType'
                 maximumQtyIndemnifiableInstallments:
                     type: integer
                     format: int64
@@ -1052,7 +1067,9 @@ components:
                 differentiatedDeductible:
                     $ref: '#/components/schemas/InsurancePensionCoverageDifferentiatedDeductible'
                 excludedRisks:
-                    $ref: '#/components/schemas/EnumExcludedRisks'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EnumExcludedRisks'
                 excludedRisksURL:
                     type: string
                     maxLength: 1024
@@ -1105,47 +1122,84 @@ components:
                 - IGP_M
                 - INPC
             example: IPCA
-        Reclaim:
+        InsurancePensionReclaim:
             type: object
-            description: Resgate
             properties:
                 table:
-                    $ref: '#/components/schemas/ReclaimTable'
-                differentiatedPercentage:
-                    type: string
-                    maxLength: 1024
-                    description: Campo aberto (possibilidade de incluir URL).
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsurancePensionReclaimTableItem'
+                    minItems: 1
+                gracePeriod:
+                    $ref: '#/components/schemas/GracePeriod'
+                differenciatedPercentage:
+                    description: Campo aberto (possibilidade de incluir URL)
                     example: |
                         https://openinsurance.com.br/aaa’
                         Obs.: Exceção de cobertura ou critério definido acima será descrito aqui na URL
                         Exemplo: Cobertura X: a partir de 25 meses = 100%
-                gracePeriod:
-                    $ref: '#/components/schemas/GracePeriod'
+                    maxLength: 1024
             additionalProperties: false
         InsurancePensionMinValue:
             type: object
+            required:
+                - amount
+                - currency
             description: 'Listagem do valor mínimo de cobertura (Capital Segurado), diária ou parcela aceito pela sociedade para cada combinação de modalidade/cobertura do produto.<br>Conforme moeda.'
             properties:
-                currencyValue:
-                    $ref: '#/components/schemas/CurrencyValue'
+                amount:
+                    type: string
+                    maxLength: 21
+                    pattern: '^\d{1,16}\.\d{2,4}$'
+                    example: '0.01'
+                currency:
+                    $ref: '#/components/schemas/CurrencyCode'
+            additionalProperties: false
         InsurancePensionMaxValue:
             type: object
+            required:
+                - amount
+                - currency
             description: 'Listagem do valor máximo de cobertura (Capital Segurado), diária ou parcela aceito pela sociedade para cada combinação de modalidade/cobertura do produto.<br>Conforme moeda.'
             properties:
-                currencyValue:
-                    $ref: '#/components/schemas/CurrencyValue'
+                amount:
+                    type: string
+                    maxLength: 21
+                    pattern: '^\d{1,16}\.\d{2,4}$'
+                    example: '0.01'
+                currency:
+                    $ref: '#/components/schemas/CurrencyCode'
+            additionalProperties: false
         InsurancePensionCoverageDeductible:
             type: object
+            required:
+                - amount
+                - currency
             description: Listagem de franquia em reais para cada combinação de modalidade/cobertura do produto.
             properties:
-                currencyValue:
-                    $ref: '#/components/schemas/CurrencyValue'
+                amount:
+                    type: string
+                    maxLength: 21
+                    pattern: '^\d{1,16}\.\d{2,4}$'
+                    example: '0.01'
+                currency:
+                    $ref: '#/components/schemas/CurrencyCode'
+            additionalProperties: false
         InsurancePensionCoverageDifferentiatedDeductible:
             type: object
+            required:
+                - amount
+                - currency
             description: 'Detalhamento da franquia em reais diferentes para cada cobertura que exista alguma especificidade.<br>Caso a seguradora não tenha essa diferenciação, não retornará nada no campo.'
             properties:
-                currencyValue:
-                    $ref: '#/components/schemas/CurrencyValue'
+                amount:
+                    type: string
+                    maxLength: 21
+                    pattern: '^\d{1,16}\.\d{2,4}$'
+                    example: '0.01'
+                currency:
+                    $ref: '#/components/schemas/CurrencyCode'
+            additionalProperties: false
         RiskPensionMinimumRequirement:
             type: object
             required:
@@ -1174,28 +1228,25 @@ components:
                 - TRADICIONAL
                 - MICROSSEGURO
             example: TRADICIONAL
-        ReclaimTable:
+        InsurancePensionReclaimTableItem:
             type: object
             properties:
                 initialMonthRange:
                     type: integer
-                    format: int32
-                    minimum: 1
-                    maximum: 12
+                    maxLength: 2
                     example: 1
                 finalMonthRange:
                     type: integer
-                    format: int32
-                    minimum: 1
-                    maximum: 12
-                    example: 1
+                    maxLength: 2
+                    example: 12
                 percentage:
                     type: string
-                    pattern: '^[0-1]\.\d{4}$'
+                    pattern: '^\d\.\d{4}$'
+                    description: Percentual de faixa de resgate.
+                    maxLength: 6
                     example: '0.5000'
-                    description: Percentual de faixa de resgate
             additionalProperties: false
-        PmbacRemuneration:
+        InsurancePensionEnumPmbacRemuneration:
             type: object
             properties:
                 interestRate:
@@ -1203,6 +1254,26 @@ components:
                     pattern: '^\d{1,16}\.\d{4}$'
                     description: Taxa de juros para capitalização da PMBaC
                     example: '14.2521'
+                updateIndexes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsurancePensionBenefitRecalculation/properties/updateIndexes/items'
+            additionalProperties: false
+        InsurancePensionBenefitRecalculation:
+            type: object
+            required:
+                - criterias
+                - updateIndexes
+            properties:
+                criterias:
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                            - INDICE
+                            - VINCULADO_SALDO_DEVEDOR
+                            - VARIAVEL_ACORDO_CRITERIO_ESPECIFICO
+                        maxLength: 35
                 updateIndexes:
                     type: array
                     items:
@@ -1219,30 +1290,10 @@ components:
                             - INPC
                         example: IPCA
             additionalProperties: false
-        BenefitRecalculation:
-            type: object
-            required:
-                - criteria
-                - updateIndexes
-            properties:
-                criterias:
-                    type: array
-                    items:
-                        type: string
-                        enum:
-                            - INDICE
-                            - VINCULADO_SALDO_DEVEDOR
-                            - VARIAVEL_ACORDO_CRITERIO_ESPECIFICO
-                        maxLength: 35
-                updateIndexes:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/PmbacRemuneration/properties/updateIndexes/items'
-            additionalProperties: false
         AgeAdjustment:
             type: object
             required:
-                - criteria
+                - criterias
                 - frequency
             properties:
                 criterias:
@@ -1256,37 +1307,22 @@ components:
                               3. Por mudança de faixa etária
                               4. Não aplicável
                         maxLength: 27
-                        example: APOS_PERIODO_EM_ANOS
+                        example: APOS_PERIODO_ANOS
                         enum:
-                            - APOS_PERIODO_EM_ANOS
-                            - A_CADA_PERIODO_EM_ANOS
-                            - POR_MUDANCA_DE_FAIXA_ETARIA
+                            - APOS_PERIODO_ANOS
+                            - CADA_PERIODO_ANOS
+                            - MUDANCA_FAIXA_ETARIA
                             - NAO_APLICAVEL
                 frequency:
                     type: integer
-                    format: int32
                     description: 'Período em anos, caso critério de reenquadramento após ou a cada período em anos.'
                     maxLength: 3
                     example: 10
             additionalProperties: false
-        CurrencyValue:
-            type: object
-            required:
-                - amount
-                - currency
-            properties:
-                amount:
-                    type: string
-                    maxLength: 21
-                    pattern: '^\d{1,16}\.\d{2,4}$'
-                    example: '0.01'
-                currency:
-                    $ref: '#/components/schemas/CurrencyCode'
-            additionalProperties: false
         CurrencyCode:
             type: string
             pattern: '^[A-Z]{3}$'
-            description: 'Moeda referente ao valor da transação, segundo modelo ISO-4217. p.ex. ''BRL''<br>Todos os saldos informados estão representados com a moeda vigente do Brasil'
+            description: 'Moeda referente ao valor monetário, seguindo o modelo ISO-4217.'
             example: BRL
         EnumExcludedRisks:
             type: string
@@ -1295,7 +1331,7 @@ components:
             enum:
                 - ATO_RECONHECIMENTO_PERIGOSO
                 - ATO_ILICITO_DOLOSO_PRATICADO_SEGURADO
-                - OPERACOES_DE_GUERRA
+                - OPERACOES_GUERRA
                 - FURACOES_CICLONES_TERREMOTOS
                 - MATERIAL_NUCLEAR
                 - DOENCAS_LESOES_PREEXISTENTES
@@ -1336,7 +1372,7 @@ components:
                 - HOSPEDAGEM_ACOMPANHANTE
                 - INTERRUPCAO_VIAGEM
                 - INVENTARIO
-                - MAIS_EM_VIDA
+                - MAIS_VIDA
                 - MAMAE_BEBE
                 - MEDICA_ACIDENTE_DOENCA
                 - MOTOCICLETA
@@ -1394,6 +1430,19 @@ components:
                 - TEMPORARIA_PRAZO_FIXO
                 - TEMPORARIA_INTERMITENTE
             example: VITALICIA
+        InsurancePensionEnumFinancialRegime:
+            type: string
+            description: |
+                Listagem de regime financeiro para cada combinação de modalidade/cobertura do produto indicando:
+                  1. Repartição simples
+                  2. Repartição Capitais Cobertura
+                  3. Capitalização
+            maxLength: 19
+            example: REPARTICAO_SIMPLES
+            enum:
+                - REPARTICAO_SIMPLES
+                - REPARTICAO_CAPITAIS
+                - CAPITALIZACAO
     parameters:
         page:
             name: page
