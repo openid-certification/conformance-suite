@@ -6,8 +6,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mongodb.BasicDBList;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.springframework.core.convert.converter.Converter;
 
 import java.util.HashMap;
@@ -44,6 +46,12 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, Basic
 					convertedMap.put(key, new JsonParser().parse(json));
 				} else if (value instanceof JWKSet) {
 					String json = ((JWKSet) value).toString();
+					convertedMap.put(key, new JsonParser().parse(json));
+				} else if (value instanceof JWTClaimsSet) {
+					String json = ((JWTClaimsSet) value).toString();
+					convertedMap.put(key, new JsonParser().parse(json));
+				} else if (value instanceof JWSHeader) {
+					String json = ((JWSHeader) value).toString();
 					convertedMap.put(key, new JsonParser().parse(json));
 				} else {
 					convertedMap.put(key, value);
