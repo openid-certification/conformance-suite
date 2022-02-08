@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -45,6 +46,7 @@ public class PaymentsConsentsApiEnforceQRESTestModule extends AbstractClientCred
 			call(sequence(PaymentConsentErrorTestingSequence.class));
 			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
 
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }

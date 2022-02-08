@@ -138,6 +138,7 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 
 	@Override
 	protected void validateResponse() {
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 
 

@@ -51,6 +51,8 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
+
 			consentSequence();
 
 		});

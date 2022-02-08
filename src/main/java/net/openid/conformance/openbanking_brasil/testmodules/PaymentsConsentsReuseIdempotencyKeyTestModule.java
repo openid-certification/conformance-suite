@@ -62,6 +62,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		//Makes request using same idempotency key but using a different payload - Expects a 422
 		eventLog.startBlock("Making PIX request with with same idempotency key but different payload");
 		callAndStopOnFailure(ModifyPixPaymentValue.class);
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		callPixChangedPayload();
 	}
 

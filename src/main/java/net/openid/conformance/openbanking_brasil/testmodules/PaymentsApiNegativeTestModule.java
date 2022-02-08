@@ -64,7 +64,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 
 	@Override
 	protected void validateResponse() {
-
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 
 	protected void fireSecondTest() {

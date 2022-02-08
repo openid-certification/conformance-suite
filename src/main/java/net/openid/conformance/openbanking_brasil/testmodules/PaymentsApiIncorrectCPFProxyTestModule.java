@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -42,6 +43,6 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractDictVerified
 		callAndContinueOnFailure(InjectCorrectButUnknownCpfOnPayment.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
-
 }

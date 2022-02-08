@@ -44,6 +44,7 @@ public class PaymentsConsentsApiBadPaymentTypeTestModule extends AbstractClientC
 			callAndStopOnFailure(SelectBADPaymentType.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 			consentSequence();
 		});
 	}
