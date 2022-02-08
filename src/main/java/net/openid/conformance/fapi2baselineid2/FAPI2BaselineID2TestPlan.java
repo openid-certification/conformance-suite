@@ -21,7 +21,6 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
-		FAPI2BaselineID2EnsureResponseModeQuery.class,
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
 		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
 		FAPI2BaselineID2EnsureRequestObjectWithLongNonce.class,
