@@ -62,5 +62,14 @@
         "condition": "PaymentFetchPixPaymentsValidator",
         "expected-result": "failure",
         "comment": "Mock bank not compliant"
+    },
+    {
+        "test-name": "payments-api-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Checking the self endpoint - Expecting 200, validating response",
+        "condition": "PaymentFetchPixPaymentsValidator",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
     }
 ]
