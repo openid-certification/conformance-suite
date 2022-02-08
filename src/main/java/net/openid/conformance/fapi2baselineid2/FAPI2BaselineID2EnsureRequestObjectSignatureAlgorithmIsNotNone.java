@@ -38,14 +38,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI2BaselineID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		super.onConfigure(config, baseUrl);
-		if(isPar) {
-			allowPlainErrorResponseForJarm = true;
-		}
-	}
-
-	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI1-ADV-5.2.3.1-3");
 

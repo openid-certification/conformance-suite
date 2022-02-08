@@ -55,7 +55,6 @@ public class FAPI2BaselineID2PARAttemptReuseRequestUri extends AbstractFAPI2Base
 		eventLog.startBlock("Attempting reuse of request_uri and testing if Authorization server returns error in callback");
 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 		secondAttempt = true;
-		allowPlainErrorResponseForJarm = true;
 
 		performRedirectAndWaitForPlaceholdersOrCallback();
 	}

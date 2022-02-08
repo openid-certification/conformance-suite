@@ -138,10 +138,6 @@ public abstract class AbstractFAPI2BaselineID2BrazilDCR extends AbstractFAPI2Bas
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
-		if (!jarm) {
-			// implicit is only required when id_token is returned in frontchannel
-			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
-		}
 		callAndStopOnFailure(AddRefreshTokenGrantTypeToDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class);
 
@@ -151,11 +147,7 @@ public abstract class AbstractFAPI2BaselineID2BrazilDCR extends AbstractFAPI2Bas
 
 		addJwksToRequest();
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
-		if (jarm) {
-			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
-		} else {
-			callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);
-		}
+		callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
 		validateSsa();
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 

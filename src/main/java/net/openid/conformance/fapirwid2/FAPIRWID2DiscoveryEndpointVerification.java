@@ -15,7 +15,7 @@ import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupp
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseTypesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -75,7 +75,7 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 	protected void performEndpointVerification() {
 
 		if (jarm) {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.1.1");
+			callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.1.1");
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-2");

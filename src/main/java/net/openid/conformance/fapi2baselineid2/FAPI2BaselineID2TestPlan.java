@@ -46,7 +46,7 @@ import java.util.Map;
 		// Negative tests for authorization request
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
-		FAPI2BaselineID2EnsureResponseTypeCodeFails.class,
+		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
 
 		// Negative tests for token endpoint
 		FAPI2BaselineID2EnsureClientIdInTokenEndpoint.class,
@@ -102,8 +102,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String responseMode = v.get("fapi_response_mode");
-		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
 		switch (profile) {
@@ -112,19 +110,11 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in UK",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -143,15 +133,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				certProfile += " MTLS";
 				break;
 		}
-		switch (responseMode) {
-			case "plain_response":
-				// nothing
-				break;
-			case "jarm":
-				certProfile += ", JARM";
-				break;
-		}
-
 
 		return certProfile;
 	}
