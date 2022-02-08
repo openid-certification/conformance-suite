@@ -24,6 +24,7 @@ public class EnsureScheduledPaymentDateIsToday extends AbstractCondition {
 		obj = obj.getAsJsonObject("data");
 		obj = obj.getAsJsonObject("payment");
 		obj.remove("date");
+		logSuccess("Successfully removed standard payment date");
 		obj = obj.getAsJsonObject("schedule");
 		obj = obj.getAsJsonObject("single");
 
@@ -32,7 +33,7 @@ public class EnsureScheduledPaymentDateIsToday extends AbstractCondition {
 		log("Setting scheduled payment date to today: " + currentDate);
 		obj.addProperty("date", currentDate.toString());
 		logSuccess("Successfully added current date to payment schedule", obj);
-		logSuccess("Successfully removed standard payment date");
+
 
 		return env;
 	}
