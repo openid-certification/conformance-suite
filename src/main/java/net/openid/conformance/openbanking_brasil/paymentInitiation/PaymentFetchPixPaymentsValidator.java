@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
@@ -12,6 +13,7 @@ import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
+import java.util.Base64;
 import java.util.Set;
 
 /**
@@ -42,13 +44,20 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 		"DENIED_MULTIPLE_AUTHORISATIONS", "EXPIRED_MULTIPLE_AUTHORISATIONS", "EXPIRED_BILL");
 
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response")
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment environment) {
-		JsonObject body = environment.getObject("resource_endpoint_response");
-		assertHasField(body, ROOT_PATH);
-		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
-		assertHasField(body, "$.meta");
-		assertMetaFields(body.getAsJsonObject("meta"));
+		JsonObject body = environment.getObject("resource_endpoint_response_full");
+		log("Response being validate", body);
+		String jwtBody = OIDFJSON.getString(body.get("body"));
+
+		// This is the body of the JWT
+		JsonObject newBody = new Gson().fromJson(new String(Base64.getUrlDecoder().decode(jwtBody.split("\\.")[1].getBytes())), JsonObject.class);
+
+		assertHasField(newBody, ROOT_PATH);
+		assertField(newBody, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
+
+		assertHasField(newBody, "$.meta");
+		assertMetaFields(newBody.getAsJsonObject("meta"));
 		return environment;
 	}
 
