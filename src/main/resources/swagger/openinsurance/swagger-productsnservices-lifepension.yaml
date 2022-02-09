@@ -201,7 +201,6 @@ components:
         - gracePeriodPortability
         - gracePeriodBetweenPortabilityRequests
         - portabilityPaymentTerm
-        - investimentFunds
       properties:
         interestRate:
           type: number
@@ -214,7 +213,7 @@ components:
           description: Indice garantido que remunera o plano durante a fase de diferimento/ acumulação.
           example: IPCA
           maxLength: 12
-          enum: [IPCA,IGP-M,INPC]
+          enum: [IPCA,IGP-M,INPC,NAO_SE_APLICA]
         otherMinimumPerformanceGarantees:
           type: string
           description: Para produtos do tipo PDR e VDR, indicação do percentual e do índice de ampla divulgação utilizados como garantia mínima de desempenho. Em %.
@@ -304,9 +303,6 @@ components:
               - companyName
               - maximumAdministrationFee
               - typePerformanceFee
-              - eligibilityRule
-              - minimumContributionAmount
-              - minimumMathematicalProvisionAmount
             properties:
                 cnpjNumber:
                   type: string
@@ -431,7 +427,7 @@ components:
           type: string
           description: O tipo de serviço contratado.
           example: INDIVIDUAL
-          maxLength: 15
+          maxLength: 19
           enum: [COLETIVO_AVERBADO, COLETIVO_INSTITUIDO, INDIVIDUAL]
         participantQualified:
           type: boolean

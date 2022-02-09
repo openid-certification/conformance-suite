@@ -40,6 +40,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseAutoInsuranceList'
+        '204':
+          description: Dados dos Seguros de Automóveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutoInsuranceProductDefault'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -108,6 +114,11 @@ components:
             type: object
             description: Lista de Dependências de uma Instituição.
             $ref: '#/components/schemas/AutoInsuranceProduct'
+    AutoInsuranceProductDefault:
+      type: array
+      items:
+        type: string
+      description: Campo para que a operadora retorne um produto padrão ou retorno customizado caso a consulta por FIPE não seja atendida.
     AutoInsuranceProduct:
       type: array
       description: Produtos de Seguro de Automóveis.
@@ -196,7 +207,8 @@ components:
         required:
         - coverage
         - coverageDetail
-        - coverageAttribute
+        - coverageAttributes
+        - coveragePermissionSeparteAcquisition  
         properties:
             coverage:
               type: string
