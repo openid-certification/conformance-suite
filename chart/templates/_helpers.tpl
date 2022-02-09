@@ -25,6 +25,11 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- $trackableName | trimSuffix "-stable" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "trackableappnamepvc" -}}
+{{- $trackablePVCName := printf "%s-pvc-%s" (include "appname" .) .Values.application.track -}}
+{{- $trackablePVCName | trimSuffix "-stable" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{/*
 Get a hostname from URL
 */}}
