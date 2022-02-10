@@ -258,7 +258,7 @@ components:
           items:
             $ref: '#/components/schemas/ElectronicChannels'
           minItems: 1
-          maxItems: 99
+          maxItems: 4
           description: Lista  de canais de atendimento eltrônico
     Branch:
       type: object
