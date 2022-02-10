@@ -147,7 +147,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 					}
 					break;
 
+				case CREATED:
 				case WAITING:
+				case CONFIGURED:
+				case RUNNING:
+				case NOT_YET_CREATED:
 					if (testModule.getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
 						removeRunningTest(testId);
 						testModule.getTestExecutionManager().runInBackground(() -> {
