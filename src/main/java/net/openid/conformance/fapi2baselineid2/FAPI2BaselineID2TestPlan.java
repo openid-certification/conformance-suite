@@ -22,7 +22,6 @@ import java.util.Map;
 
 		// Possible failure case
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
-		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
 		FAPI2BaselineID2EnsureRequestObjectWithLongNonce.class,
 		FAPI2BaselineID2EnsureRequestObjectWithLongState.class,
 
@@ -43,6 +42,7 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
+		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
