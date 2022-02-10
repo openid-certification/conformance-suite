@@ -323,6 +323,8 @@ public class TestRunner implements DataUtils {
 				createTestAlias(alias, id);
 			} catch (Exception e) {
 				// there was a failure in creating the test alias, return an error
+				logger.info(id + ": " + testName + "createTestAlias failed: " + e.getMessage());
+				support.removeRunningTest(id);
 				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
 			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
