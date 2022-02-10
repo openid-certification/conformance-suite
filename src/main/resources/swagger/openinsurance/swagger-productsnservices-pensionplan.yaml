@@ -398,7 +398,7 @@ components:
           type: string
           description: Índice utilizado na atualização da PMBaC.
           example: IPCA(IBGE)
-          enum: [IPCA, IGPM, INPC]
+          enum: [FINANCEIRA, IGPM, INPC]
     PensionPlanAgeReframing:     
       type: object
       description: Reenquadramento etário.
