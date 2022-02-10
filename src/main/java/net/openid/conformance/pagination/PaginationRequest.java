@@ -44,6 +44,9 @@ public class PaginationRequest {
 	}
 
 	public void setLength(int length) {
+		if (length > 1000) {
+			throw new RuntimeException("Page length in excess of 1000 entries requested.");
+		}
 		this.length = length;
 	}
 
