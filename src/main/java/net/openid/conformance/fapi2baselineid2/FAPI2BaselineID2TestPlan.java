@@ -84,7 +84,6 @@ import java.util.Map;
 		FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected.class,
 		FAPI2BaselineID2PAREnsurePlainPKCERejected.class,
 
-		FAPI2BaselineID2PARRejectInvalidRedirectUri.class,
 		FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest.class,
 
 		FAPI2BaselineID2ParWithoutDuplicateParameters.class
