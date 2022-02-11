@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint extends AbstractCondition {
@@ -18,12 +19,23 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 		"session_state",
 		"iss" // https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp
 	);
+	public static final String expectDummy1Dummy2Key = "expect_dummy1_dummy2";
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
+		List<String> expectedParams;
+
+		Boolean expectDummy1Dummy2 = env.getBoolean(expectDummy1Dummy2Key);
+		if (expectDummy1Dummy2 != null && expectDummy1Dummy2 == true) {
+			expectedParams = new ArrayList<>(EXPECTED_PARAMS);
+			expectedParams.add("dummy1");
+			expectedParams.add("dummy2");
+		} else {
+			expectedParams = EXPECTED_PARAMS;
+		}
 
 		// https://openid.net/specs/openid-connect-core-1_0.html#AuthError
 		if (callbackParams.has("error")) {
@@ -31,7 +43,7 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 			JsonObject unexpectedParams = new JsonObject();
 
 			callbackParams.entrySet().forEach(entry -> {
-				if (!EXPECTED_PARAMS.contains(entry.getKey())) {
+				if (!expectedParams.contains(entry.getKey())) {
 					unexpectedParams.add(entry.getKey(), entry.getValue());
 				}
 			});
