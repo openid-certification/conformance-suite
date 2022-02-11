@@ -18,6 +18,7 @@ import java.util.Map;
 		FAPI2BaselineID2UserRejectsAuthentication.class,
 		FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
@@ -30,7 +31,6 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutScopeFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutState.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutNonceFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI2BaselineID2EnsureExpiredRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithBadAudFails.class,
