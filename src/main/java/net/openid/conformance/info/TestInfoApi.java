@@ -43,22 +43,23 @@ public class TestInfoApi {
 	private TestInfoService testInfoService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get information of all test module instances", notes = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned")
+	@ApiOperation(value = "Get information of all test module instances", notes = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org")
 	@ApiResponses({
 		@ApiResponse(code = 200, message = "Retrieved successfully")
 	})
-	public ResponseEntity<List<TestInfo>> getAllTests() {
-		List<TestInfo> testInfo = null;
-		if (authenticationFacade.isAdmin()) {
-			testInfo = Lists.newArrayList(testInfos.findAll());
-		} else {
-			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
-			if (owner != null) {
-				testInfo = Lists.newArrayList(testInfos.findAllByOwner(owner));
-			}
-		}
-		return new ResponseEntity<>(testInfo, HttpStatus.OK);
+	public ResponseEntity<Object> getAllTests() {
+//		List<TestInfo> testInfo = null;
+//		if (authenticationFacade.isAdmin()) {
+//			testInfo = Lists.newArrayList(testInfos.findAll());
+//		} else {
+//			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+//			if (owner != null) {
+//				testInfo = Lists.newArrayList(testInfos.findAllByOwner(owner));
+//			}
+//		}
+//		return new ResponseEntity<>(testInfo, HttpStatus.OK);
 
+		return new ResponseEntity<Object>("This API has been disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org", HttpStatus.BAD_REQUEST);
 	}
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
