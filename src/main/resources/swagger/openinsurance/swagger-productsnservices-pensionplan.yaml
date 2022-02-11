@@ -3,7 +3,7 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description: 
     API de informações de Plano de Previdência com cobertura de risco. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
-  version: 1.0.0
+  version: 1.0.2
   contact:
     url: 'https://http://novosite.susep.gov.br'
 servers:
@@ -388,7 +388,6 @@ components:
       description: Atualização/ Remuneração da PMaC.
       required:
         - interestRate
-        - updateIndex
       properties:
         interestRate:
           type: number
@@ -398,7 +397,7 @@ components:
           type: string
           description: Índice utilizado na atualização da PMBaC.
           example: IPCA(IBGE)
-          enum: [FINANCEIRA, IGPM, INPC]
+          enum: [IPCA, IGPM, INPC]
     PensionPlanAgeReframing:     
       type: object
       description: Reenquadramento etário.
@@ -419,7 +418,6 @@ components:
       type: object
       description: Resgate.
       required:
-        - reclaimTable
         - gracePeriod
       properties:
         reclaimTable:

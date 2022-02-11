@@ -3,7 +3,7 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description: 
     API de informações de Seguro de Automóveis. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.2.2 do manual de escopo de dados.
-  version: 1.0.0
+  version: 1.0.2
   contact:
     url: 'https://http://novosite.susep.gov.br'
 servers:
@@ -196,6 +196,7 @@ components:
         required:
         - coverage
         - coverageDetail
+        - coveragePermissionSeparteAcquisition
         - coverageAttribute
         properties:
             coverage:

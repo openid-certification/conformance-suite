@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
   description: As API's administrativas são recursos que podem ser consumidos apenas pelo diretório para avaliação e controle da qualidade dos serviços fornecidos pelas instituições
-  version: 1.0.0
+  version: 1.0.2
   contact:
     url: 'https://http://novosite.susep.gov.br'
 servers:
@@ -101,6 +101,7 @@ components:
           properties:
             generalUptimeRate:
               type: string
+              pattern: ^\d{1}\.\d{1,16}$
               description: Taxa de disponibilidade (considerando todos os serviços ativos ao mesmo tempo).
             endpoints:
               $ref: '#/components/schemas/EndpointUptime'
@@ -133,6 +134,7 @@ components:
             description: URL do endpoint
           uptimeRate:
             type: string
+            pattern: ^\d{1}\.\d{1,16}$
             description: Taxa de disponibilidade do endpoint.
     EndpointDowntime:
       type: array

@@ -3,7 +3,7 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description: 
     Obtém a lista dos produtos Seguros de Pessoas – Coberturas de Risco (excluindo VGBL).
-  version: 1.0.0
+  version: 1.0.2
   contact:
     url: 'https://http://novosite.susep.gov.br'
 servers:
@@ -336,7 +336,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           premiumPayment:
             $ref: '#/components/schemas/PersonPremiumPayment'
           minimunRequirements:
-            $ref: '#/components/schemas/PersonMinimunRequirements'
+            $ref: '#/components/schemas/PersonMinimumRequirements'
           targetAudience:
             type: string
             enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
@@ -492,9 +492,6 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           example: true      
     PersonPmbacRemuneration:
       type: object
-      required:
-        -     
-        - pmbacUpdateIndex
       properties:
         interestRate:
           type: number
@@ -554,7 +551,6 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
     PersonReclaim:
       type: object
       required:
-        - reclaimTable
         - gracePeriod
       properties:
         reclaimTable:

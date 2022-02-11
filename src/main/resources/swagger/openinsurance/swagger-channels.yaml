@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
   description: As APIs descritas neste documento são referentes as APIs da fase Open Data do Open Insurance Brasil.
-  version: 1.0.0
+  version: 1.0.2
   contact:
     url: 'https://http://novosite.susep.gov.br'
 tags:
@@ -258,7 +258,7 @@ components:
           items:
             $ref: '#/components/schemas/ElectronicChannels'
           minItems: 1
-          maxItems: 4
+          maxItems: 99
           description: Lista  de canais de atendimento eltrônico
     Branch:
       type: object
@@ -394,13 +394,13 @@ components:
                 type: string
                 description: Horário de abertura da dependência (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 10:00:57Z
               closingTime:
                 type: string
                 description: Horário de fechamento da dependência (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 16:00:57Z
             required:
               - weekday
@@ -438,13 +438,13 @@ components:
                 type: string
                 description: Horário padrão de início de atendimento do canal eletrônico. (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 10:00:57Z
               closingTime:
                 type: string
                 description: Horário padrão de encerramento de atendimento do canal eletrônico (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 16:00:57Z
             required:
               - weekday
@@ -478,13 +478,13 @@ components:
                 type: string
                 description: Horário de abertura da dependência (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 10:00:57Z
               closingTime:
                 type: string
                 description: Horário de fechamento da dependência (UTC)
                 maxLength: 13
-                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)|Z$|^NA$
+                pattern: ^(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$|^NA$
                 example: 16:00:57Z
             required:
               - weekday
