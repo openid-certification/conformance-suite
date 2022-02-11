@@ -10,7 +10,7 @@ servers:
 tags:
 - name: "Metrics"
 paths:
-  /metrics:  
+  /metrics:
     get:
       tags:
         - Metrics
@@ -102,7 +102,7 @@ components:
             generalUptimeRate:
               type: string
               pattern: ^\d{1}\.\d{1,16}$
-              description: Taxa de disponibilidade (considerando todos os serviços ativos ao mesmo tempo).
+              description: Taxa de disponibilidade (considerando todos os serviços ativos ao mesmo tempo ).
             endpoints:
               $ref: '#/components/schemas/EndpointUptime'
         downtime:
@@ -400,7 +400,7 @@ components:
       in: header
       description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
       required: true
-      schema: 
+      schema:
         type: string
         pattern: '[\w\W\s]*'
     content-Security-Policy:
@@ -437,4 +437,4 @@ components:
       description: Campo indica se o navegador deve ou não renderizar um frame.
       schema:
         type: string
-        pattern: '[\w\W\s]*'    
+        pattern: '[\w\W\s]*'
