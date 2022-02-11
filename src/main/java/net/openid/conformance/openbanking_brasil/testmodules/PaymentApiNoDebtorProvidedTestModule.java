@@ -66,7 +66,6 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		call(new ValidateSelfEndpoint()
 			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
@@ -87,5 +86,4 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 
 		setStatus(Status.WAITING);
 	}
-
 }

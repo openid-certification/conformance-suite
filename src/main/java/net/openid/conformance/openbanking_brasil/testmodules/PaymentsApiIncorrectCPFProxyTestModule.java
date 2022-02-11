@@ -27,6 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
+
 public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractDictVerifiedPaymentTestModule {
 
 	@Override
@@ -43,6 +44,6 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractDictVerified
 		callAndContinueOnFailure(InjectCorrectButUnknownCpfOnPayment.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
+		// callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 }

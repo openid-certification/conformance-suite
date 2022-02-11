@@ -1,9 +1,18 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
+
+import java.text.ParseException;
+import java.util.Map;
 
 public class OptionallyAllow201Or422 extends AbstractCondition {
 
@@ -32,5 +41,4 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		return env;
 
 	}
-
 }
