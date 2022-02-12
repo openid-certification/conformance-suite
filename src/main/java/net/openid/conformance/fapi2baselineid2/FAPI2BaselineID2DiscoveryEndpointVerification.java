@@ -26,6 +26,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -39,7 +40,8 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPI1FinalOPProfile.class
+	FAPI1FinalOPProfile.class,
+	FAPI2AuthRequestMethod.class
 })
 public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2BaselineID2DiscoveryEndpointVerification {
 

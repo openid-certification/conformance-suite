@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectErro
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingNbfClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-request-object-without-nbf-fails",
@@ -34,6 +36,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

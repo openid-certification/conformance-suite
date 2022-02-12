@@ -35,6 +35,7 @@ import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -46,6 +47,7 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
+	FAPI2AuthRequestMethod.class,
 	FAPI1FinalOPProfile.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
@@ -73,6 +75,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected int whichClient;
 	protected Boolean isPar;
 	protected Boolean isBrazil;
+	protected Boolean isSignedRequest;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
@@ -115,6 +118,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -242,10 +246,22 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		createAuthorizationRequest();
 
-		createAuthorizationRequestObject();
+		if (isSignedRequest) {
+			createAuthorizationRequestObject();
+		} else {
+			// the request object is implicitly created by the PAR endpoint, but
+			// AbstractBuildRequestObjectRedirectToAuthorizationEndpoint needs to know what is in the implicit
+			// request object.
+			env.mapKey("request_object_claims", "pushed_authorization_request_form_parameters");
+		}
 
 		if (isPar) {
-			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
+			if (isSignedRequest) {
+				callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
+			} else {
+				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
+			}
+
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
@@ -261,16 +277,13 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
-		private boolean useResponseTypeCodeIdToken;
 		private boolean usePkce;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
-											   boolean useResponseTypeCodeIdToken,
 											   boolean usePkce,
 											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
-			this.useResponseTypeCodeIdToken = useResponseTypeCodeIdToken;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a condition within a sub-sequence nor a conditionsequence
 			// within a condition sequence
@@ -296,11 +309,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndStopOnFailure(CreateRandomNonceValue.class);
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-			if (useResponseTypeCodeIdToken) {
-				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class);
-			} else {
-				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-			}
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
@@ -314,7 +323,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), false, true, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), true, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {

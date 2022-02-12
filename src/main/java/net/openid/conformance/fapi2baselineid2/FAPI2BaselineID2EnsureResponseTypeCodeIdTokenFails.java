@@ -2,6 +2,8 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddExpValueIs70MinutesInFutureToRequestObject;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
@@ -50,9 +52,10 @@ public class FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails extends Abstract
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return super.makeCreateAuthorizationRequestObjectSteps()
-				.butFirst(condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class));
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		return super.makeCreateAuthorizationRequestSteps()
+			.replace(SetAuthorizationEndpointRequestResponseTypeToCode.class,
+				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2BASE-4.3.1-3"));
 	}
 
 	@Override

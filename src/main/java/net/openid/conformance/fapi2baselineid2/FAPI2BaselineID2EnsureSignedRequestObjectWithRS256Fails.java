@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectErro
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-signed-request-object-with-RS256-fails",
@@ -34,6 +36,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
