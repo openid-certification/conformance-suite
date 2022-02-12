@@ -54,9 +54,9 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 
-	protected boolean jarm = false;
+	protected Boolean jarm;
 
-	protected boolean par = false;
+	protected Boolean par;
 
 	protected boolean brazil = false;
 
