@@ -78,9 +78,6 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link ConvertAuthorizationEndpointRequestToRequestObject#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_valuePresent() {
 
@@ -92,9 +89,6 @@ public class ConvertAuthorizationEndpointRequestToRequestObject_UnitTest {
 		assertThat(env.getObject("request_object_claims")).isEqualTo(authorizationEndpointRequest);
 	}
 
-	/**
-	 * Test method for {@link ConvertAuthorizationEndpointRequestToRequestObject#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {
 
