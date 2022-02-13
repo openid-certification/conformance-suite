@@ -78,6 +78,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected Boolean isPar;
 	protected Boolean isBrazil;
 	protected Boolean isSignedRequest;
+	protected Boolean isDpop;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
@@ -120,6 +121,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
@@ -465,6 +467,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected void exchangeAuthorizationCode() {
+		if (isDpop) {
+			createDpopForTokenEndpoint(true);
+		}
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -543,6 +548,16 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 	}
 
+	protected void createDpopForTokenEndpoint(boolean createKey) {
+		if (createKey) {
+			callAndStopOnFailure(GenerateDpopKey.class);
+		}
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+	}
+
 	@Override
 	protected void processCallback() {
 
@@ -572,6 +587,22 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		 */
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
+	}
+
+	protected void updateResourceRequest() {
+		if (isDpop) {
+			// generate new dpop proof
+			addDpopToResourceRequest();
+		}
+		if (brazilPayments) {
+			// we use the idempotency header to allow us to make a request more than once; however it is required
+			// that a new jwt is sent in each retry, so update jti/iat & resign
+			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+			call(exec().unmapKey("request_object_claims"));
+			callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+		}
 	}
 
 	protected void requestProtectedResource() {
@@ -636,6 +667,10 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			}
 		}
 
+		if (isDpop) {
+			addDpopToResourceRequest();
+		}
+
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -656,6 +691,14 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 
 		eventLog.endBlock();
+	}
+
+	private void addDpopToResourceRequest() {
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
+		callAndStopOnFailure(SetDpopAccessTokenHash.class);
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
 	}
 
 	protected void validateBrazilPaymentInitiationSignedResponse() {
@@ -778,7 +821,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 			updatePaymentConsent();
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, false);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(),  isDpop, addTokenEndpointClientAuthentication, brazilPayments, false);
 		return steps;
 	}
 

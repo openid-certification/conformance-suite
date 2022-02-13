@@ -51,6 +51,10 @@ public class CallProtectedResource_UnitTest {
 			.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
 			.willReturn(success("OK", "text/plain")),
 		service("example.com")
+			.get("/dpopresource")
+			.header("Authorization", "DPoP FZFEjr1zCsicM")
+			.willReturn(success("OK", "text/plain")),
+		service("example.com")
 			.get("/resource400")
 			.willReturn(badRequest()),
 		service("example.com")
@@ -86,6 +90,28 @@ public class CallProtectedResource_UnitTest {
 		hoverfly.verify(service("example.com")
 			.get("/resource")
 			.header("Authorization", "Bearer mF_9.B5f-4.1JqM"));
+
+		verify(env, atLeastOnce()).getString("access_token", "value");
+		verify(env, atLeastOnce()).getString("access_token", "type");
+		verify(env, atLeastOnce()).getString("protected_resource_url");
+
+		assertThat(env.getString("resource_endpoint_response_full","body")).isEqualTo("OK");
+	}
+
+	@Test
+	public void testEvaluate_noErrorDpop() {
+		env.putObjectFromJsonString("access_token","{"
+			+ "\"value\":\"FZFEjr1zCsicM\","
+			+ "\"type\":\"DPoP\""
+			+ "}");
+
+		env.putString("protected_resource_url", "http://example.com/dpopresource");
+
+		cond.execute(env);
+
+		hoverfly.verify(service("example.com")
+			.get("/dpopresource")
+			.header("Authorization", "DPoP FZFEjr1zCsicM"));
 
 		verify(env, atLeastOnce()).getString("access_token", "value");
 		verify(env, atLeastOnce()).getString("access_token", "type");

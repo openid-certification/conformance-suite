@@ -468,7 +468,8 @@ var FAPI_UI = {
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
-			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-"
+			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
+			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

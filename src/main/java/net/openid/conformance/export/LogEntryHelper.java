@@ -72,6 +72,7 @@ public class LogEntryHelper {
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-");
+		specLinks.put("DPOP-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();

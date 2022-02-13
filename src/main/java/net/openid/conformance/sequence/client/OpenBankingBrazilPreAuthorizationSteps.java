@@ -2,6 +2,8 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudAsPaymentConsentUriToRequestObject;
+import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
@@ -12,10 +14,12 @@ import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
@@ -33,8 +37,13 @@ import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentReque
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
+import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForConsentEndpoint;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
+import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateOrganizationJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
@@ -45,12 +54,14 @@ import net.openid.conformance.sequence.ConditionSequence;
 public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSequence {
 
 	private boolean payments;
+	private boolean dpop;
 	private boolean stopAfterConsentEndpointCall;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean stopAfterConsentEndpointCall) {
+	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean stopAfterConsentEndpointCall) {
 		this.currentClient = secondClient ? "Second client: " : "";
+		this.dpop = dpop;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 		this.payments = payments;
 		this.stopAfterConsentEndpointCall = stopAfterConsentEndpointCall;
@@ -71,6 +82,14 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		}
 
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+
+		if (dpop) {
+			callAndStopOnFailure(GenerateDpopKey.class);
+			callAndStopOnFailure(CreateDpopClaims.class);
+			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+			callAndStopOnFailure(SignDpopProof.class);
+			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+		}
 
 		/* get access token */
 
@@ -127,6 +146,14 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 			callAndStopOnFailure(ValidateOrganizationJWKsPrivatePart.class);
 
+			if (dpop) {
+				callAndStopOnFailure(CreateDpopClaims.class);
+				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
+				callAndStopOnFailure(SetDpopAccessTokenHash.class);
+				callAndStopOnFailure(SignDpopProof.class);
+				callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+			}
+
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
 
 			callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class);
@@ -167,12 +194,21 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 
+			if (dpop) {
+				callAndStopOnFailure(CreateDpopClaims.class);
+				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
+				callAndStopOnFailure(SetDpopAccessTokenHash.class);
+				callAndStopOnFailure(SignDpopProof.class);
+				callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+			}
+
 			callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
 			if (stopAfterConsentEndpointCall) {
 				return;
 			}
 			call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 			call(exec().unmapKey("endpoint_response"));
 
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.FAILURE);
