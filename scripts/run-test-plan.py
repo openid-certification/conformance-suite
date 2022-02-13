@@ -114,6 +114,7 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
                 continue
             test_start_time = time.time()
             module_id = ''
+            log_detail_url = ''
             module_info = {}
 
             try:
@@ -123,7 +124,8 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
                 module_info['id'] = module_id
                 test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
                 print('Created test module, new id: {}'.format(module_id))
-                print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+                log_detail_url = '{}log-detail.html?log={}'.format(api_url_base, module_id)
+                print(log_detail_url)
 
                 state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
@@ -149,7 +151,7 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
 
             except Exception as e:
                 traceback.print_exc()
-                print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+                print('Exception: Test {} {} failed to run to completion: {} {}'.format(module_with_variants, module_id, e, log_detail_url))
             if module_id != '':
                 test_time_taken[module_id] = time.time() - test_start_time
                 module_info['info'] = await conformance.get_module_info(module_id)
