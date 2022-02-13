@@ -13,7 +13,7 @@ public abstract class AbstractFAPI2BaselineID2PerformTokenEndpoint extends Abstr
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
 
-		requestAuthorizationCode();
+		exchangeAuthorizationCode();
 
 	}
 

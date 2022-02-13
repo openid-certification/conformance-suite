@@ -435,7 +435,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
-		requestAuthorizationCode();
+		exchangeAuthorizationCode();
 		requestProtectedResource();
 		onPostAuthorizationFlowComplete();
 	}
@@ -464,7 +464,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void requestAuthorizationCode() {
+	protected void exchangeAuthorizationCode() {
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 

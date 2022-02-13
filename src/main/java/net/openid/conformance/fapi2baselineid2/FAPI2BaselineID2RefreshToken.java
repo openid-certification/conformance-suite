@@ -138,12 +138,12 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 	}
 
 	@Override
-	protected void requestAuthorizationCode() {
+	protected void exchangeAuthorizationCode() {
 		// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
 		env.mapKey("access_token", "first_access_token");
 		env.mapKey("id_token", "first_id_token");
 
-		super.requestAuthorizationCode();
+		super.exchangeAuthorizationCode();
 
 		// Set up the mappings for the refreshed access and ID tokens
 		env.mapKey("access_token", "second_access_token");

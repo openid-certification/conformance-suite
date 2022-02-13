@@ -53,7 +53,7 @@ public class FAPI2BaselineID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2
 	}
 
 	@Override
-	protected void requestAuthorizationCode() {
+	protected void exchangeAuthorizationCode() {
 		/* This test ends up using an authorization code for client1.
 		 * For MTLS, it passes the client_id for client2 but the tls cert for client 1.
 		 * For private_key_jwt, it passes the client_id and a client_assertion for client 2, but signed
