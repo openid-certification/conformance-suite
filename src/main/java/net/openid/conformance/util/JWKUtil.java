@@ -10,6 +10,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -23,12 +24,12 @@ public class JWKUtil {
 	}
 
 	public static JsonObject getPublicJwksAsJsonObject(JWKSet jwks) {
-		JsonObject publicJwks = new JsonParser().parse(jwks.toJSONObject(true).toJSONString()).getAsJsonObject();
+		JsonObject publicJwks = new JsonParser().parse(JSONObjectUtils.toJSONString(jwks.toJSONObject(true))).getAsJsonObject();
 		return publicJwks;
 	}
 
 	public static JsonObject getPrivateJwksAsJsonObject(JWKSet jwks) {
-		JsonObject privateJwks = new JsonParser().parse(jwks.toJSONObject(false).toJSONString()).getAsJsonObject();
+		JsonObject privateJwks = new JsonParser().parse(JSONObjectUtils.toJSONString(jwks.toJSONObject(false))).getAsJsonObject();
 		return privateJwks;
 	}
 

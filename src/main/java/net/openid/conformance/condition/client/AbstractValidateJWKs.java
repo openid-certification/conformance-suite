@@ -152,7 +152,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			throw error("keys supplied in the test configuration must contain an 'alg' entry that indicates which algorithm will be used for the test (e.g. 'PS256')", args("jwk", jwk.toJSONString()));
 		}
 
-		JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), null, null);
+		JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, jwk.getKeyID(), true, null, null);
 
 		SignedJWT jwt = new SignedJWT(header, claimSet);
 

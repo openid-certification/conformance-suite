@@ -55,6 +55,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			JWK signingJwk = getSigningKey("signing", jwks);
 
 			JWSSigner signer = null;
+			// JWSSignerFactory
 			if (signingJwk.getKeyType().equals(KeyType.RSA)) {
 				signer = new RSASSASigner((RSAKey) signingJwk);
 			} else if (signingJwk.getKeyType().equals(KeyType.EC)) {
@@ -75,7 +76,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()),
 				includeTyp ? JOSEObjectType.JWT : null,
 				null, null, null, null, null, null, null, null,
-				signingJwk.getKeyID(), null, null);
+				signingJwk.getKeyID(), true,null, null);
 
 			String jws = performSigning(header, claims, signer);
 
