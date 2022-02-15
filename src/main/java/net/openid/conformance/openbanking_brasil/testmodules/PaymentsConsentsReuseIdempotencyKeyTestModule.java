@@ -74,6 +74,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callPixSecondBlock();
 
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 
 	public void callPix() {
@@ -99,8 +100,6 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class);
 
 		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class);
-
-		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 
 		if (env.getString("warning_message") != null){
 			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);

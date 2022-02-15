@@ -19,18 +19,20 @@ import java.util.Set;
 import java.util.Map;
 //import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.HttpStatus;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
 
 	private static final String[] allowedErrors = {"code","title","detail"};
 	private static final String[] allowedMetaFields = {"requestDateTime", "totalRecords", "totalPages"};
-	
+
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement apiResponse = bodyFrom(env);
-		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response_full");
+		JsonObject apiResponse = env.getObject("consent_endpoint_response_full");
+
+		if(OIDFJSON.getInt(apiResponse.get("status")) != HttpStatus.SC_UNPROCESSABLE_ENTITY){
+			apiResponse = env.getObject("resource_endpoint_response_full");
 		}
 
 		JsonObject decodedJwt;
@@ -56,7 +58,7 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		JsonArray errors = body.getAsJsonArray("errors");
 
 		for(JsonElement error: errors){
-			assertNoAdditionalErrorFields(error.getAsJsonObject()); 
+			assertNoAdditionalErrorFields(error.getAsJsonObject());
 		}
 	}
 
