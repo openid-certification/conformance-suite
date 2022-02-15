@@ -1,6 +1,5 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
-import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,16 +7,9 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
-import net.openid.conformance.util.field.IntField;
-import net.openid.conformance.util.field.ObjectArrayField;
-import net.openid.conformance.util.field.StringField;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.Set;
 import java.util.Map;
-//import java.util.HashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
