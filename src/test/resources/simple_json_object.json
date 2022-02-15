@@ -1,0 +1,15 @@
+{
+    "data": {
+        "loggedUser": {
+            "document": {
+                "identification": "76109277673",
+                "rel": "CPF"
+            }
+        },
+        "creditor": {
+            "personType": "PESSOA_NATURAL",
+            "cpfCnpj": "48847377765",
+            "name": "Marco Antonio de Brito"
+        }
+    }
+}
