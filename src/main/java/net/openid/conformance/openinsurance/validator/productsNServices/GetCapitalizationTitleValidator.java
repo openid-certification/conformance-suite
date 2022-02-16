@@ -21,10 +21,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-capitalizationtitle.yaml
+ * Api source: swagger/openinsurance/swagger-productsnservices-capitalizationtitle.yaml
  * Api endpoint: /capitalization-title/
- * Api version: 1.0.0
- * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.0.2
+ * Git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
 
 @ApiName("ProductsNServices Capitalization Title")
@@ -74,7 +74,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 		assertField(companies,
 			new ObjectArrayField
-				.Builder("product")
+				.Builder("products")
 				.setValidator(this::assertProduct)
 				.build());
 	}
@@ -201,7 +201,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 					assertField(contributionPayment,
 						new StringArrayField
-							.Builder("others")
+							.Builder("updateIndexOthers")
 							.setOptional()
 							.build());
 				})
@@ -211,13 +211,11 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 		assertField(product,
 			new ObjectField
 				.Builder("redemption")
-				.setValidator(redemption -> {
-					assertField(redemption,
-						new NumberField
-							.Builder("redemption")
-							.setMaxLength(6)
-							.build());
-				})
+				.setValidator(redemption -> assertField(redemption,
+					new NumberField
+						.Builder("redemption")
+						.setMaxLength(6)
+						.build()))
 				.setOptional()
 				.build());
 
@@ -231,13 +229,11 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 		assertField(product,
 			new ObjectField
 				.Builder("additionalDetails")
-				.setValidator(additionalDetails -> {
-					assertField(additionalDetails,
-						new StringField
-							.Builder("additionalDetails")
-							.setMaxLength(1024)
-							.build());
-				})
+				.setValidator(additionalDetails -> assertField(additionalDetails,
+					new StringField
+						.Builder("additionalDetails")
+						.setMaxLength(1024)
+						.build()))
 				.setOptional()
 				.build());
 
@@ -275,7 +271,7 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.build());
 
 		assertField(raffle,
-			new IntField
+			new NumberField
 				.Builder("raffleValue")
 				.setMaxLength(6)
 				.build());
@@ -330,9 +326,20 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 				.build());
 
 		assertField(capitalizationPeriod,
-			new NumberArrayField
+			new ObjectArrayField
 				.Builder("earlyRedemption")
-				.setMaxLength(9)
+				.setValidator(earlyRedemption -> {
+					assertField(earlyRedemption,
+						new IntField
+							.Builder("quota")
+							.build());
+
+					assertField(earlyRedemption,
+						new NumberField
+							.Builder("percentage")
+							.build());
+				})
+				.setOptional()
 				.build());
 
 		assertField(capitalizationPeriod,

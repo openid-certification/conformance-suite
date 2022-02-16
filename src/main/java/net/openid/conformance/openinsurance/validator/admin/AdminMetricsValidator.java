@@ -9,9 +9,10 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
 /**
- * Api url: https://gitlab.com/obb1/certification/-/raw/63195ac6b5315fd7d198d02181c6f5506aba82b4/src/main/resources/swagger/openinsurance/swagger-admin-metrics.yaml
+ * Api source: swagger/openinsurance/swagger-admin-metrics.yaml
  * Api endpoint: /metrics
- * Api git hash: 63195ac6b5315fd7d198d02181c6f5506aba82b4
+ * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.02
  */
 @ApiName("Admin Metrics")
 public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
@@ -54,13 +55,13 @@ public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
 	private void assertAvailabilityMetrics(JsonObject availability) {
 		assertField(availability, new ObjectField.Builder("uptime").setValidator(uptime -> {
 
-			assertField(uptime, new StringField.Builder("generalUptimeRate").build());
+			assertField(uptime, new StringField.Builder("generalUptimeRate").setPattern("^\\d{1}\\.\\d{1,16}$").build());
 
 			assertField(uptime, new ObjectArrayField.Builder("endpoints").setValidator(endpoint -> {
 
 				assertField(endpoint, new StringField.Builder("url").build());
 
-				assertField(endpoint, new StringField.Builder("uptimeRate").build());
+				assertField(endpoint, new StringField.Builder("uptimeRate").setPattern("^\\d{1}\\.\\d{1,16}$").build());
 
 			}).build());
 		}).build());

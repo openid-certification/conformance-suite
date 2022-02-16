@@ -1,13 +1,13 @@
 {
     "data": {
-        "requestTime": "2021-12-23T13:12:53.269Z",
+        "requestTime": "2022-02-11T17:47:58.016Z",
         "availability": {
             "uptime": {
-                "generalUptimeRate": "string",
+                "generalUptimeRate": "1.2",
                 "endpoints": [
                     {
                         "url": "string",
-                        "uptimeRate": "string"
+                        "uptimeRate": "1.2"
                     }
                 ]
             },
