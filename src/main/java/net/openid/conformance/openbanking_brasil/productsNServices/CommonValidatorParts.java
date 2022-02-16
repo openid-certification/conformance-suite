@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.openbanking_brasil.CommonFields;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.NumberField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -222,5 +223,9 @@ public class CommonValidatorParts {
 				.setEnums(UNITS)
 				.setOptional()
 				.build());
+	}
+
+	public boolean isOptionalFieldByFlag(JsonObject jsonObject, String flagField, String flagValue) {
+			return !OIDFJSON.getString(jsonObject.get(flagField)).equals(flagValue);
 	}
 }

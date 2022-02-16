@@ -13,11 +13,4 @@ public class CapitalizationTitleValidatorTest extends AbstractJsonResponseCondit
 		GetCapitalizationTitleValidator condition = new GetCapitalizationTitleValidator();
 		run(condition);
 	}
-
-	@Test
-	@UseResurce("openinsuranceResponses/capitalizationTitle/GetCapitalizationTitleResponse(EarlyRedemptionTest).json")
-	public void testRedemptionArrayBound() {
-		GetCapitalizationTitleValidator condition = new GetCapitalizationTitleValidator();
-		run(condition);
-	}
 }

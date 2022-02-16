@@ -68,15 +68,8 @@
                         "reframingCriterion": "APOS_PERIODO_ANOS",
                         "reframingPeriodicity": 10
                     },
-                    "financialRegimeContractType": "REPARTICAO_SIMPLES",
+                    "financialRegimeContractType": "CAPITALIZACAO",
                     "reclaim": {
-                        "reclaimTable": [
-                            {
-                                "initialMonthRange": 0,
-                                "finalMonthRange": 0,
-                                "percentage": "string"
-                            }
-                        ],
                         "differentiatedPercentage": "string",
                         "gracePeriod": "20/Não se aplica"
                     },

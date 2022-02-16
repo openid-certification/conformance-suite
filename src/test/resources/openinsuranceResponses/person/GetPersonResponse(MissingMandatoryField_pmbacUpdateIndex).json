@@ -84,8 +84,7 @@
                                 "VITALICIA"
                             ],
                             "pmbacRemuneration": {
-                                "interestRate": 0,
-                                "pmbacUpdateIndex": "IPCA"
+                                "interestRate": 0
                             },
                             "benefitRecalculation": {
                                 "benefitRecalculationCriteria": "INDICE",
@@ -95,7 +94,7 @@
                                 "criterion": "APOS_PERIODO_EM_ANOS",
                                 "frequency": 0
                             },
-                            "contractType": "REPARTICAO_SIMPLES",
+                            "contractType": "CAPITALIZACAO",
                             "reclaim": {
                                 "reclaimTable": [
                                     {
