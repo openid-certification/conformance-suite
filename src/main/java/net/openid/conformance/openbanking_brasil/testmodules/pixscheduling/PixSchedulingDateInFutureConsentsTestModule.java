@@ -14,9 +14,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "eek",
-	displayName = "Pix scheduled payment",
-	summary = "Attempts to create a payment consent scheduled for a day in the future, and expects a 422 response with the error NAO_INFORMADIO",
+	testName = "payments-consents-api-pixscheduling-in-future",
+	displayName = "Pix scheduled payment date in future",
+	summary = "Attempts to create a payment consent scheduled for a day in the future, with a payment date of tomorrow, and expects a 422 response with the error NAO_INFORMADIO",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
