@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -63,14 +62,11 @@ public class PaymentsConsentsApiDateTestModule extends AbstractClientCredentials
 		callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
 		eventLog.startBlock("Post payment consent request - Expected to fail based on date");
 		call(new SignedPaymentConsentSequence()
-			.insertAfter(
-				EnsureHttpStatusCodeIs201.class,
-				condition(ValidateErrorAndMetaFieldNames.class)
-				)
-			.replace
-				(EnsureHttpStatusCodeIs201.class,
-					condition(EnsureConsentResponseCodeWas422.class)
-				)
+			.replace(
+				EnsureHttpStatusCodeIs201.class, sequenceOf(
+					condition(EnsureConsentResponseCodeWas422.class),
+					condition(ValidateErrorAndMetaFieldNames.class))
+			)
 		);
 	}
 }

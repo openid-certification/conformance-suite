@@ -13,7 +13,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.text.ParseException;
-import java.util.Map;
 
 public class OptionallyAllow201Or422 extends AbstractCondition {
 
@@ -92,11 +91,11 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	private void assertAllowedMetaFields(JsonObject metaJson) {
 		log("Ensure that the 'meta' response " + metaJson + " only contains metadata fields that are defined in the swagger");
 
-		for (Map.Entry<String, JsonElement> meta : metaJson.entrySet())
+		for (String meta : metaJson.keySet())
 		{
-			log("Checking: " + meta.getKey());
-			if ( !ArrayUtils.contains( allowedMetaFields, meta.getKey() ) ) {
-				throw error("non-standard meta property '" + meta.getKey() + "'' found in the error response");
+			log("Checking: " + meta);
+			if ( !ArrayUtils.contains( allowedMetaFields, meta) ) {
+				throw error("non-standard meta property '" + meta + "'' found in the error response");
 			}
 		}
 	}
@@ -104,11 +103,11 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	private void assertNoAdditionalErrorFields(JsonObject field){
 		log("Ensure that the error response " + field + " only contains error fields that are defined in the swagger");
 
-		for (Map.Entry<String, JsonElement> entry : field.entrySet())
+		for (String entry : field.keySet())
 		{
-			log("Checking: " + entry.getKey());
-			if ( !ArrayUtils.contains( allowedErrors, entry.getKey() ) ) {
-				throw error("non-standard error property '" + entry.getKey() + "'' found in the error response");
+			log("Checking: " + entry);
+			if ( !ArrayUtils.contains( allowedErrors, entry ) ) {
+				throw error("non-standard error property '" + entry + "'' found in the error response");
 			}
 		}
 	}

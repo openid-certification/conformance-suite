@@ -44,6 +44,6 @@ public class PaymentsApiWrongEmailAddressProxyTestModule extends AbstractDictVer
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		// callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
+
 	}
 }

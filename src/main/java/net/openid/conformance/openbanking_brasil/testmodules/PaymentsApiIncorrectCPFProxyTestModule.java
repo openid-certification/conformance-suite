@@ -44,6 +44,6 @@ public class PaymentsApiIncorrectCPFProxyTestModule extends AbstractDictVerified
 		callAndContinueOnFailure(InjectCorrectButUnknownCpfOnPayment.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		// callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
+
 	}
 }
