@@ -1,0 +1,37 @@
+{
+    "data": {
+        "debtorAccount": {
+            "number": "94088392",
+            "accountType": "CACC",
+            "ispb": "12345678",
+            "issuer": "6272"
+        },
+        "loggedUser": {
+            "document": {
+                "identification": "76109277673",
+                "rel": "CPF"
+            }
+        },
+        "creditor": {
+            "name": "Joao Silva",
+            "cpfCnpj": "99991111140",
+            "personType": "PESSOA_NATURAL"
+        },
+        "payment": {
+            "date": "2021-01-01",
+            "amount": "100.00",
+            "currency": "BRL",
+            "details": {
+                "proxy": "cliente-a00001@pix.bcb.gov.br",
+                "localInstrument": "DICT",
+                "creditorAccount": {
+                    "number": "12345678",
+                    "accountType": "CACC",
+                    "ispb": "99999004",
+                    "issuer": "0001"
+                }
+            },
+            "type": "PIX"
+        }
+    }
+}
