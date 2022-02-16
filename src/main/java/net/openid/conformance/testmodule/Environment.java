@@ -162,11 +162,11 @@ public class Environment {
 	}
 
 	public JsonObject putObjectFromJsonString(String key, String json) {
-		return putObject(key, new JsonParser().parse(json).getAsJsonObject());
+		return putObject(key, JsonParser.parseString(json).getAsJsonObject());
 	}
 
 	public void putObjectFromJsonString(String key, String path, String json) {
-		JsonObject newObj = new JsonParser().parse(json).getAsJsonObject();
+		JsonObject newObj = JsonParser.parseString(json).getAsJsonObject();
 		putObject(key, path, newObj);
 	}
 

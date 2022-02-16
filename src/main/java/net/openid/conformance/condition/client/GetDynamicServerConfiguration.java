@@ -78,7 +78,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
 				try {
-					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
+					JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
 
 					logSuccess("Successfully parsed server configuration", serverConfig);
 

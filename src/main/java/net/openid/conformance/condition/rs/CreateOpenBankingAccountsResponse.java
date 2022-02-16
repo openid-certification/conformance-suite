@@ -18,7 +18,7 @@ public class CreateOpenBankingAccountsResponse extends AbstractOpenBankingApiRes
 
 		String accountId = env.getString("account_id");
 
-		JsonObject accountRoot = new JsonParser().parse(
+		JsonObject accountRoot = JsonParser.parseString(
 				"      {\n" +
 				"        \"AccountId\": \"" + accountId + "\",\n" +
 				"        \"Currency\": \"GBP\",\n" +

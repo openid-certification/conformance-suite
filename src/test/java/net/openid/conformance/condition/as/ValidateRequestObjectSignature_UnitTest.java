@@ -33,8 +33,7 @@ public class ValidateRequestObjectSignature_UnitTest {
 
 	@Test
 	public void evaluate_validateSignature1() {
-		JsonParser jsonParser = new JsonParser();
-		JsonObject requestObject = jsonParser.parse("{\n" +
+		JsonObject requestObject = JsonParser.parseString("{\n" +
 			"  \"value\": \"eyJhbGciOiJQUzI1NiIsInR5cCI6Im9hdXRoLWF1dGh6LXJlcStqd3QiLCJraWQiOiJraWQifQ.eyJzY29wZSI6Im9wZW5pZCBjb25zZW50OnVybjpjb25mb3JtYW5jZS5vaWRmOnNkS09zTnc3SFMgYWNjb3VudHMiLCJyZXNwb25zZV90eXBlIjoiY29kZSBpZF90b2tlbiIsInJlZGlyZWN0X3VyaSI6Imh0dHBzOi8vdHBwLmxvY2FsaG9zdC9jYiIsImNvZGVfY2hhbGxlbmdlIjoiUXhGMHJfd1lZTTBCc1Y1QVlNT3lyWTJFN2VjN01yYTMwZGpGYk1XMVFjOCIsImNvZGVfY2hhbGxlbmdlX21ldGhvZCI6IlMyNTYiLCJyZXNwb25zZV9tb2RlIjoiZm9ybV9wb3N0Iiwic3RhdGUiOiJkZTE3NjRiZGJiNjhjOTBkNjIyYzJiMzE3ZWU3ZGVlMTcxOWVjYTA1YmI2Y2U1MzA0YTJiZDg1ZWJhODIwNDlmIiwibm9uY2UiOiJlZjdjNGQxOGY4ZTk3NmY3YzViZGY2YTI5NTM2YzUyMzgyNTBhNTcwMjZmZWE2MWI4Njc0MzkwZTI0YWZhYjQ4IiwiY2xhaW1zIjp7ImlkX3Rva2VuIjp7ImF1dGhfdGltZSI6eyJlc3NlbnRpYWwiOnRydWV9LCJnaXZlbl9uYW1lIjp7ImVzc2VudGlhbCI6dHJ1ZX0sImFjciI6eyJ2YWx1ZSI6InVybjpicmFzaWw6b3BlbmJhbmtpbmc6bG9hMiIsImVzc2VudGlhbCI6dHJ1ZX19LCJ1c2VyX2luZm8iOnsiYXV0aF90aW1lIjp7ImVzc2VudGlhbCI6dHJ1ZX0sImdpdmVuX25hbWUiOnsiZXNzZW50aWFsIjp0cnVlfSwiYWNyIjp7InZhbHVlIjoidXJuOmJyYXNpbDpvcGVuYmFua2luZzpsb2EyIiwiZXNzZW50aWFsIjp0cnVlfX19LCJtYXhfYWdlIjo5MDAsImlzcyI6InF1YW50b190ZXN0IiwiYXVkIjoiaHR0cHM6Ly93d3cuY2VydGlmaWNhdGlvbi5vcGVuaWQubmV0L3Rlc3QvYS9xdWFudG9fdGVzdF9ub2RlLyIsImNsaWVudF9pZCI6InF1YW50b190ZXN0IiwianRpIjoiRHVRR1duNzJ5YUV0ek4zQ2xmUzJ3UGRLMTJNSEVBVXhqeVZwV1dNa3FhVSIsImlhdCI6MTYzMTU5MDcxNywiZXhwIjoxNjMxNTkxMDE3LCJuYmYiOjE2MzE1OTA3MTd9.KMJrsOVahlo0yihP1swnR2qtWLTkXCerlvkZuRKzueJ8n-sr7JcJ3-IQDGsR9ieTpy9y_PW3xD9UYMZBOV-VqtzbPWwZcj6ks93sBWgeQgSDnw0pflAyEbGMYbaOR3rz9DZNCL9DRQlQuRgv8kKVBBzutLI7Gt8L2heBfYIGVX371VzbStVN2_YU5C9d2mLT-pyxBcdDtOgrrTHEYgTPqPrOkKAshoZ4fJ14zU9znNHAtpoIVoUT8Hovx__XXsIpbcXB8Bgb13OnznZosrnPlICyN0nutbo8Ms-yX4UlxYzKF34arXtXrXJWhck3qLqkV0bRvW71yKNZ3qM9YiD5pg\",\n" +
 			"  \"header\": {\n" +
 			"    \"kid\": \"kid\",\n" +
@@ -92,7 +91,7 @@ public class ValidateRequestObjectSignature_UnitTest {
 			"    \"alg\": \"RSA-OAEP\"\n" +
 			"  }\n" +
 			"}").getAsJsonObject();
-		JsonObject clientPublicJwks = jsonParser.parse("{\n" +
+		JsonObject clientPublicJwks = JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -134,7 +133,7 @@ public class ValidateRequestObjectSignature_UnitTest {
 			"/bS6NImyoDUtOvGAEKK5RYbmlxrgz2bhC1Gj6bQ7U1lBV1aA7yEt8Z/m5vd08+xu\n" +
 			"IzfcAugSWarNhDdb5Oh22Jwy4nsO3bH4Q4d52g==\n" +
 			"-----END CERTIFICATE-----");
-		client.add("jwks", jsonParser.parse("{\n" +
+		client.add("jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +

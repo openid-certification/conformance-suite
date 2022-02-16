@@ -35,12 +35,12 @@ public class VerifyNoStateInAuthorizationResponse_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		responseWithState = new JsonParser().parse("{"
+		responseWithState = JsonParser.parseString("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","
 			+ "\"state\":\"xyz\""
 			+ "}").getAsJsonObject();
 
-		responseWithoutState = new JsonParser().parse("{"
+		responseWithoutState = JsonParser.parseString("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\""
 			+ "}").getAsJsonObject();
 	}

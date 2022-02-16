@@ -44,7 +44,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from OpenBanking spec
-		endpointResponse = new JsonParser().parse("{\n" +
+		endpointResponse = JsonParser.parseString("{\n" +
 			"  \"Data\": {\n" +
 			"    \"AccountRequestId\": \"88379\",\n" +
 			"    \"Status\": \"AwaitingAuthorisation\",\n" +

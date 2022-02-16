@@ -36,7 +36,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test
 	public void testEvaluate_RSAPrivateKeyNoError() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -59,7 +59,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	@Test
 	public void testEvaluate_encryptionKeyOnlyNoError() {
 		// This happens when testing with client_secret_basic but using encrypted id_tokens
-		client.add("jwks", new JsonParser().parse("{\n" +
+		client.add("jwks", JsonParser.parseString("{\n" +
 			"            \"keys\": [\n" +
 			"                {\n" +
 			"                    \"p\": \"0_PYObuWtoSKNPp4vKSbZUbVPxn0Pw5Z7r6SRfnYyE8mPaXvptdmQxGazBzt4kABfRHN1aUvnEH8aF2F3HlIP0938wyXWUN-0WvMDcdm1OZYW4bWCjom1JBS8IrvjCoaFzQsWzL-K-1xtTjIu8dSIFco4su9r3vn2YRlCqw-_A8\",\n" +
@@ -84,7 +84,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_RSAPrivateKeyErrorKeysNotMatch() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -106,7 +106,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_RSAPrivateKeyMissingD() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -126,7 +126,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_DKeyNotBase64UrlEncodedError() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -148,7 +148,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test
 	public void testEvaluate_ECKeyNoError() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"EC\"," +
@@ -171,7 +171,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_ECKeyErrorKeysNotMatch() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"EC\"," +
@@ -209,7 +209,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingE() {
 
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -231,7 +231,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingN() {
 
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -253,7 +253,7 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	public void testEvaluate_twoKeys() {
 		// a jwks with two valid private keys; we reject this as we need exactly one key, as otherwise we have no way
 		// to know which key the users wants us to use
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +

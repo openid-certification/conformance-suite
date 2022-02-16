@@ -24,12 +24,12 @@ public class JWKUtil {
 	}
 
 	public static JsonObject getPublicJwksAsJsonObject(JWKSet jwks) {
-		JsonObject publicJwks = new JsonParser().parse(JSONObjectUtils.toJSONString(jwks.toJSONObject(true))).getAsJsonObject();
+		JsonObject publicJwks = JsonParser.parseString(JSONObjectUtils.toJSONString(jwks.toJSONObject(true))).getAsJsonObject();
 		return publicJwks;
 	}
 
 	public static JsonObject getPrivateJwksAsJsonObject(JWKSet jwks) {
-		JsonObject privateJwks = new JsonParser().parse(JSONObjectUtils.toJSONString(jwks.toJSONObject(false))).getAsJsonObject();
+		JsonObject privateJwks = JsonParser.parseString(JSONObjectUtils.toJSONString(jwks.toJSONObject(false))).getAsJsonObject();
 		return privateJwks;
 	}
 

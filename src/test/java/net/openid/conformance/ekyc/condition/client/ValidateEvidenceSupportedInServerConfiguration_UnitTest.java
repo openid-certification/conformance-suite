@@ -43,7 +43,7 @@ public class ValidateEvidenceSupportedInServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_empty () {
 		// zero entries is explicitly permitted in https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#name-op-metadata
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"evidence_supported\": ["
 			+ "]}")
 			.getAsJsonObject();
@@ -53,7 +53,7 @@ public class ValidateEvidenceSupportedInServerConfiguration_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missing () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "}")
 			.getAsJsonObject();
 		env.putObject("server", server);

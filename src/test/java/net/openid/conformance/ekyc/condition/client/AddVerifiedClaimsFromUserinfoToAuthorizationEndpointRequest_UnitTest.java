@@ -56,7 +56,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		assertThat(errors.size()).isEqualTo(0);
 
 		String expectedJson = IOUtils.resourceToString(expectedRequestFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
-		JsonObject expected = (JsonObject) new JsonParser().parse(expectedJson);
+		JsonObject expected = (JsonObject) JsonParser.parseString(expectedJson);
 
 		JsonPatchFactory jpf = new JsonPatchFactory();
 		JsonPatch patch = jpf.create(expected, result);

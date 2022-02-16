@@ -148,7 +148,7 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
-		JsonObject testPlanObj = new JsonParser().parse(gson.toJson(testPlan)).getAsJsonObject();
+		JsonObject testPlanObj = JsonParser.parseString(gson.toJson(testPlan)).getAsJsonObject();
 
 		JsonElement modules = testPlanObj.get("modules");
 

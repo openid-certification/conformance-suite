@@ -40,7 +40,7 @@ public class ExtractServerSigningAlg_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
 
-		jwks = new JsonParser().parse("{"
+		jwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -50,7 +50,7 @@ public class ExtractServerSigningAlg_UnitTest {
 			+ "]}").getAsJsonObject();
 
 
-		invalidJwks = new JsonParser().parse("{"
+		invalidJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -58,7 +58,7 @@ public class ExtractServerSigningAlg_UnitTest {
 			+ "}"
 			+ "]}").getAsJsonObject();
 
-		combinedJwks = new JsonParser().parse("{"
+		combinedJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","

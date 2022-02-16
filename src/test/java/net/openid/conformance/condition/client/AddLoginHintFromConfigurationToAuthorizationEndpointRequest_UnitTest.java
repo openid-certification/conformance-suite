@@ -33,7 +33,7 @@ public class AddLoginHintFromConfigurationToAuthorizationEndpointRequest_UnitTes
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		JsonObject config = new JsonObject();
-		config.add("server", new JsonParser().parse("{\"login_hint\": \"flibble\"}"));
+		config.add("server", JsonParser.parseString("{\"login_hint\": \"flibble\"}"));
 
 		env.putObject("config", config);
 

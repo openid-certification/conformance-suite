@@ -124,7 +124,7 @@ public class CallPAREndpoint extends AbstractCondition {
 			}
 
 			try {
-				JsonElement jsonRoot = new JsonParser().parse(jsonString);
+				JsonElement jsonRoot = JsonParser.parseString(jsonString);
 				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 					throw error("Pushed Authorization did not return a JSON object");
 				}

@@ -45,12 +45,12 @@ public class ExtractAuthorizationCodeFromAuthorizationResponse_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		callbackParams = new JsonParser().parse("{"
+		callbackParams = JsonParser.parseString("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","
 			+ "\"state\":\"xyz\""
 			+ "}").getAsJsonObject();
 
-		callbackParamsWithoutCode = new JsonParser().parse("{"
+		callbackParamsWithoutCode = JsonParser.parseString("{"
 			+ "\"state\":\"xyz\""
 			+ "}").getAsJsonObject();
 	}

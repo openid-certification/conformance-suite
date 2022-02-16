@@ -35,7 +35,7 @@ public class CheckDistinctKeyIdValueInServerJWKs_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -73,7 +73,7 @@ public class CheckDistinctKeyIdValueInServerJWKs_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_duplicateKeyId() {
 
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -119,19 +119,19 @@ public class CheckDistinctKeyIdValueInServerJWKs_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeysInServerJWKs() {
-		env.putObject("server_jwks", new JsonParser().parse("{\"test\": \"missing keys\"}").getAsJsonObject());
+		env.putObject("server_jwks", JsonParser.parseString("{\"test\": \"missing keys\"}").getAsJsonObject());
 		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_keysIsNotArrayInServerJWKs() {
-		env.putObject("server_jwks", new JsonParser().parse("{\"keys\": \"keys is not array\"}").getAsJsonObject());
+		env.putObject("server_jwks", JsonParser.parseString("{\"keys\": \"keys is not array\"}").getAsJsonObject());
 		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_keyIsNotJsonObjectInServerJWKs() {
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +

@@ -23,9 +23,9 @@ public abstract class AbstractEnsureJwksDoesNotContainPrivateOrSymmetricKeys ext
 			for(JWK jwk : jwkSet.getKeys()) {
 				if(jwk instanceof OctetSequenceKey) {
 					//OctetSequenceKey.isPrivate() always returns true
-					symmetricKeys.add(new JsonParser().parse(jwk.toString()));
+					symmetricKeys.add(JsonParser.parseString(jwk.toString()));
 				} else if(jwk.isPrivate()) {
-					privateKeys.add(new JsonParser().parse(jwk.toString()));
+					privateKeys.add(JsonParser.parseString(jwk.toString()));
 				}
 			}
 		} catch (ParseException e) {

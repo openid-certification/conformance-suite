@@ -94,7 +94,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 					args("token_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 						throw error("Token Endpoint did not return a JSON object");
 					}

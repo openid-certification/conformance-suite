@@ -230,7 +230,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caString + "\""
@@ -396,7 +396,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			"V1VtdE9Ld1c1UkNGQitzMy81TFZRRHZTTjhyTGovNTEvNkRoZ0J6OGtXaFlvUXlU" +
 			"aE9helM3RQ0KeGJGQlZkcUFrZ0E3dmc9PQ0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ0K";
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caString + "\""
@@ -492,7 +492,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 			"czRNUEdtSApWSE9rYzhLVC8xRVFyQlZVQWRqOEJiR0pvWDkwZzVwSjE5eE9lNHBJYjR0RjlnPT0" +
 			"KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caString + "\""
@@ -510,7 +510,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noKey() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\""
 			+ "}").getAsJsonObject();
 
@@ -522,7 +522,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKey() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"bad key value\""
 			+ "}").getAsJsonObject();
@@ -535,7 +535,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noCert() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"key\":\"" + key + "\""
 			+ "}").getAsJsonObject();
 
@@ -547,7 +547,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badCert() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"bad cert value\","
 			+ "\"key\":\"" + key + "\""
 			+ "}").getAsJsonObject();
@@ -671,7 +671,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 		String expectCaString = getCorrectOrderCaString(caString);
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caString + "\""

@@ -31,21 +31,21 @@ public class CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequ
 
 	@Test
 	public void testEvaluate_caseInvalidRequest() {
-		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request\"}").getAsJsonObject());
+		env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_request\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
 
 	@Test
 	public void testEvaluate_caseInvalidRequestObject() {
-		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
+		env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_request_object\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseInvalidClient() {
-		env.putObject("authorization_endpoint_response", new JsonParser().parse("{\"error\":\"invalid_client\"}").getAsJsonObject());
+		env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
 		cond.execute(env);
 	}

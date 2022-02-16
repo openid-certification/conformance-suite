@@ -92,7 +92,7 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 				log("Consent endpoint response", args("consent_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 						throw error("Consent endpoint did not return a JSON object");
 					}

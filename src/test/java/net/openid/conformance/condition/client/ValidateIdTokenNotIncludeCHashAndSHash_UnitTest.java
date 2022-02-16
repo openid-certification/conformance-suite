@@ -33,7 +33,7 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 	@Test
 	public void testEvalutate_isGood() {
 		// Define claims object
-		JsonObject claims = new JsonParser().parse("{\n" +
+		JsonObject claims = JsonParser.parseString("{\n" +
 			"  \"at_hash\": \"SzqRJ7WtQMjkoDyPMXnpvA\",\n" +
 			"  \"sub\": \"1001\",\n" +
 			"  \"aud\": \"21541757519\",\n" +
@@ -54,7 +54,7 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvalutate_isBad() {
 		// Define claims object
-		JsonObject claims = new JsonParser().parse("{\n" +
+		JsonObject claims = JsonParser.parseString("{\n" +
 			"  \"at_hash\": \"SzqRJ7WtQMjkoDyPMXnpvA\",\n" +
 			"  \"sub\": \"1001\",\n" +
 			"  \"aud\": \"21541757519\",\n" +

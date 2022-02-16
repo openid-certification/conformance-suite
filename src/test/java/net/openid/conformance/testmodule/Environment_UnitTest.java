@@ -67,7 +67,7 @@ public class Environment_UnitTest {
 
 		mappedKey = "mapped";
 
-		testObject = new JsonParser().parse("{\n" +
+		testObject = JsonParser.parseString("{\n" +
 			"	\"long\": 123465478745287987,\n" +
 			"	\"string\": \"value\",\n" +
 			"	\"stringint\": \"3\",\n" +
@@ -82,9 +82,9 @@ public class Environment_UnitTest {
 			"	}\n" +
 			"}").getAsJsonObject();
 
-		subArray = new JsonParser().parse("[1, 2, \"a\", \"b\"]").getAsJsonArray();
+		subArray = JsonParser.parseString("[1, 2, \"a\", \"b\"]").getAsJsonArray();
 
-		subObject = new JsonParser().parse("{\n" +
+		subObject = JsonParser.parseString("{\n" +
 			"		\"int\": 1234,\n" +
 			"		\"foo\": \"bar\",\n" +
 			"		\"baz\": {\n" +
@@ -100,7 +100,7 @@ public class Environment_UnitTest {
 
 		pathNotFound = "apple.banana.republic";
 
-		altObject = new JsonParser().parse("{\n" +
+		altObject = JsonParser.parseString("{\n" +
 			"	\"number\": 9876,\n" +
 			"	\"thing\": \"evaluation\",\n" +
 			"	\"list\": [10, 20, \"z\", \"w\"],\n" +

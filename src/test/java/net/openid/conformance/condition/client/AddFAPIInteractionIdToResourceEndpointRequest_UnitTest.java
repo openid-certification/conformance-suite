@@ -57,7 +57,7 @@ public class AddFAPIInteractionIdToResourceEndpointRequest_UnitTest {
 	public void testEvaluate_existingHeadersOverwrite() {
 
 		env.putString("fapi_interaction_id", interactionId);
-		env.putObject("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-interaction-id\":\"foo-bar\"}").getAsJsonObject());
+		env.putObject("resource_endpoint_request_headers",	JsonParser.parseString("{\"x-fapi-interaction-id\":\"foo-bar\"}").getAsJsonObject());
 
 		cond.execute(env);
 

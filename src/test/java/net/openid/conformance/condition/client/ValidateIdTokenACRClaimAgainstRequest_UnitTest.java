@@ -54,7 +54,7 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 				"    }\n" +
 				"  }\n" +
 				"}";
-		JsonObject req = new JsonParser().parse(request).getAsJsonObject();
+		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
 		env.putObject("id_token", new JsonObject());
@@ -76,10 +76,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 				"    }\n" +
 				"  }\n" +
 				"}";
-		JsonObject req = new JsonParser().parse(request).getAsJsonObject();
+		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -100,10 +100,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 				"  }\n" +
 				"}";
 
-		JsonObject req = new JsonParser().parse(request).getAsJsonObject();
+		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -127,10 +127,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 				"  }\n" +
 				"}";
 
-		JsonObject req = new JsonParser().parse(request).getAsJsonObject();
+		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -154,10 +154,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 				"  }\n" +
 				"}";
 
-		JsonObject req = new JsonParser().parse(request).getAsJsonObject();
+		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:s\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:s\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);

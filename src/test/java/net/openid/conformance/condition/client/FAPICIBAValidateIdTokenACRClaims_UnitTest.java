@@ -59,7 +59,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		req.addProperty("acr_values", "urn:openbanking:psd2:sca urn:mace:incommon:iap:silver");
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -72,7 +72,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -85,7 +85,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca  urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:sca  urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);
@@ -98,7 +98,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
 		env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = new JsonParser().parse("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver urn:openbanking:psd2:ca\"}}").getAsJsonObject();
+		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver urn:openbanking:psd2:ca\"}}").getAsJsonObject();
 		env.putObject("id_token", idToken);
 
 		cond.execute(env);

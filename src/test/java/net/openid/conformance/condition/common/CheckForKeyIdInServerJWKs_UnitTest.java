@@ -40,7 +40,7 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -65,7 +65,7 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeyId() {
 
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -86,7 +86,7 @@ public class CheckForKeyIdInServerJWKs_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_emptyKeyId() {
 
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +

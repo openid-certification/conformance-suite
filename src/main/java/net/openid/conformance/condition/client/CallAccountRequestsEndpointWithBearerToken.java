@@ -112,7 +112,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 				log("Account requests endpoint response", args("account_requests_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 						throw error("Account requests endpoint did not return a JSON object");
 					}

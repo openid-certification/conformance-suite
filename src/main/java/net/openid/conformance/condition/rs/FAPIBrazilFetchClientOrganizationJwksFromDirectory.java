@@ -45,7 +45,7 @@ public class FAPIBrazilFetchClientOrganizationJwksFromDirectory extends Abstract
 
 			log("Found JWK set string", args("jwk_string", jwkString));
 
-			JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
+			JsonObject jwkSet = JsonParser.parseString(jwkString).getAsJsonObject();
 
 
 			env.putObject("client_organization_jwks", jwkSet);

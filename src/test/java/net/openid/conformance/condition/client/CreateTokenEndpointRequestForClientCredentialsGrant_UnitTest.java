@@ -41,8 +41,8 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant_UnitTest {
 		cond = new CreateTokenEndpointRequestForClientCredentialsGrant();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		clientWithScope = new JsonParser().parse("{\"scope\": \"foo bar\"}").getAsJsonObject();
-		clientWithoutScope = new JsonParser().parse("{}").getAsJsonObject();
+		clientWithScope = JsonParser.parseString("{\"scope\": \"foo bar\"}").getAsJsonObject();
+		clientWithoutScope = JsonParser.parseString("{}").getAsJsonObject();
 
 	}
 

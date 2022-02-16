@@ -277,7 +277,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_valuePresent() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
@@ -297,7 +297,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_valuePresentPEM() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + certPEM + "\","
 			+ "\"key\":\"" + keyPEM + "\","
 			+ "\"ca\":\"" + caPEM + "\""
@@ -356,7 +356,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 			"AwEHoUQDQgAEi7K42r0qe17OiEdDPcuKmS1z12THf4j3YukAQVeaz8kSQCsOv7JY" +
 			"GxAkgOGuT89RCJmtgtWXpGCvMGmxXcynWg==";
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + certPEM + "\","
 			+ "\"key\":\"" + keyPEM + "\""
 			+ "}}").getAsJsonObject();
@@ -375,7 +375,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noKey() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\""
 			+ "}}").getAsJsonObject();
 
@@ -387,7 +387,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKey() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"bad key value\""
 			+ "}}").getAsJsonObject();
@@ -400,7 +400,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noCert() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
 
@@ -412,7 +412,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badCert() {
 
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"bad cert value\","
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();

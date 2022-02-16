@@ -57,7 +57,7 @@ public class JWTUtil {
 		if (jwtClaimsSet == null) {
 			throw new ParseException("Failed to extract JWT claims", 0);
 		}
-		JsonObject claims = new JsonParser().parse(JSONObjectUtils.toJSONString(jwtClaimsSet.toJSONObject(includeNullValues))).getAsJsonObject();
+		JsonObject claims = JsonParser.parseString(JSONObjectUtils.toJSONString(jwtClaimsSet.toJSONObject(includeNullValues))).getAsJsonObject();
 		return claims;
 	}
 
@@ -68,7 +68,7 @@ public class JWTUtil {
 	 * @return
 	 */
 	public static JsonObject jwtHeaderAsJsonObject(JWT jwt) {
-		JsonObject header = new JsonParser().parse(JSONObjectUtils.toJSONString(jwt.getHeader().toJSONObject())).getAsJsonObject();
+		JsonObject header = JsonParser.parseString(JSONObjectUtils.toJSONString(jwt.getHeader().toJSONObject())).getAsJsonObject();
 		return header;
 	}
 

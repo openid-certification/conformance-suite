@@ -40,7 +40,7 @@ public class FetchServerKeys extends AbstractCondition {
 
 				log("Found JWK set string", args("jwk_string", jwkString));
 
-				JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
+				JsonObject jwkSet = JsonParser.parseString(jwkString).getAsJsonObject();
 				env.putObject("server_jwks", jwkSet);
 
 				logSuccess("Found server JWK set", args("server_jwks", jwkSet));

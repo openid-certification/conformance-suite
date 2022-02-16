@@ -91,7 +91,7 @@ public interface DataUtils {
 	}
 
 	public default JsonObject ex(Throwable exception, JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("error", exception.getMessage());
 		copy.addProperty("error_class", exception.getClass().getName());
 

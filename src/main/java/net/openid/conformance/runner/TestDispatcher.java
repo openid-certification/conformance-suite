@@ -126,7 +126,7 @@ public class TestDispatcher implements DataUtils {
 				if (contentType != null) {
 					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_JSON)) {
 						// parse the body as json
-						requestParts.add("body_json", new JsonParser().parse(body));
+						requestParts.add("body_json", JsonParser.parseString(body));
 					}
 
 					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)) {
