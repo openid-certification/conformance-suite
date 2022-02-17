@@ -4,10 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureConsentResponseCodeWas422;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainPaymentsAccessTokenWithClientCredentials;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SignedPaymentConsentSequence;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -52,9 +49,12 @@ public class PixSchedulingDateIsTodayConsentsTestModule extends AbstractClientCr
 			callAndStopOnFailure(RemovePaymentDateFromConsentRequest.class);
 
 			call(new SignedPaymentConsentSequence()
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class)));
+				.replace(EnsureHttpStatusCodeIs201.class, sequenceOf(
+					condition(EnsureConsentResponseCodeWas422.class),
+					condition(EnsureConsentErrorWasInvalid_Schedule.class),
+					condition(ValidateErrorAndMetaFieldNames.class)
+				)));
 
-			callAndStopOnFailure(EnsureConsentErrorWasAgendamantoInvalido.class);
 		});
 
 	}

@@ -27,8 +27,8 @@ public class PixSchedulingTestPlan  implements TestPlan {
 					PreFlightCertCheckPaymentsModule.class,
 					PixSchedulingDateInFutureConsentsTestModule.class,
 					PixSchedulingDateIsTodayConsentsTestModule.class,
-					PixScheduledPaymentTestModule.class,
-					PixScheduledPaymentDateIsPastConsentsTestModule.class
+					PixScheduledPaymentDateIsPastConsentsTestModule.class,
+					PixScheduledPaymentTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
