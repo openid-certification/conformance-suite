@@ -35,4 +35,31 @@ public class PersonValidatorTest extends AbstractJsonResponseConditionUnitTest {
 			"indemnityPaymentMethod", condition.getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
+
+	@Test
+	@UseResurce("openinsuranceResponses/person/GetPersonResponse(MissingMandatoryField_pmbacUpdateIndex).json")
+	public void validateStructureMissingMandatoryFilledPmbacUpdateIndex() {
+		GetPersonValidator condition = new GetPersonValidator();
+		ConditionError error = runAndFail(condition);
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage(
+			"pmbacUpdateIndex", condition.getApiName());
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("openinsuranceResponses/person/GetPersonResponse(MissingMandatoryField_reclaimTable).json")
+	public void validateStructureMissingMandatoryFilledReclaimTable() {
+		GetPersonValidator condition = new GetPersonValidator();
+		ConditionError error = runAndFail(condition);
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage(
+			"reclaimTable", condition.getApiName());
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("openinsuranceResponses/person/GetPersonResponse(MissingMandatoryField_reclaimTable)OK.json")
+	public void validateStructureMissingOptionalReclaimTableOK() {
+		GetPersonValidator condition = new GetPersonValidator();
+		run(condition);
+	}
 }

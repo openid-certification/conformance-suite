@@ -8,15 +8,16 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.field.*;
 
 import java.util.Set;
 
 /**
- * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-lifepension.yaml
+ * Api Source: swagger/openinsurance/swagger-productsnservices-lifepension.yaml
  * Api endpoint: /life-pension/
- * Api version: 1.0.0
- * Api Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.0.2
+ * Api Git Hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
 
 @ApiName("ProductsNServices Life Pension")
@@ -26,14 +27,15 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> TYPE_PERFORMANCE_FEE = Sets.newHashSet("DIRETAMENTE", "INDIRETAMENTE", "NAO_APLICA");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO_AVERBADO", "COLETIVO_INSTITUIDO", "INDIVIDUAL");
-	public static final Set<String> UPDATE_INDEX = Sets.newHashSet("IPCA", "INPC", "IGP-M");
+	public static final Set<String> UPDATE_INDEX = Sets.newHashSet("IPCA", "INPC", "IGP-M", "NAO_SE_APLICA");
 	public static final Set<String> MODALITY = Sets.newHashSet("CONTRIBUICAO_VARIAVEL", "BENEFICIO_DEFINIDO");
 	public static final Set<String> TYPES = Sets.newHashSet("PGBL", "PRGP", "PAGP", "PRSA", "PRI", "PDR", "VGBL", "VRGP", "VAGP", "VRSA", "VRI", "VDR", "DEMAIS_PRODUTOS_PREVIDENCIA");
 	public static final Set<String> PREMIUM_PAYMENT_METHOD = Sets.newHashSet("CARTAO_CREDITO", "DEBITO_CONTA", "DEBITO_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CARTAO_DEBITO", "REGRA_PARCEIRO", "CONSIGNACAO_FOLHA_PAGAMENTO", "PONTOS_PROGRAMA_BENEFICIO", "TED_DOC", "OUTROS");
 	public static final Set<String> INCOME_MODALITY = Sets.newHashSet("PAGAMENTO_UNICO", "RENDA_PRAZO_CERTO", "RENDA_TEMPORARIA", "RENDA_TEMPORARIA_REVERSIVEL", "RENDA_TEMPORARIA_MINMO_GARANTIDO", "RENDA_TEMPORARIA_REVERSIVEL_MININO_GARANTIDO", "RENDA_VITALICIA", "RENDA_VITALICIA_REVERSIVEL_BENEFICIARIO_INDICADO", "RENDA_VITALICIA_CONJUGE_CONTINUIDADE_MENORES", "RENDA_VITALICIA_MINIMO_GARANTIDO", "RENDA_VITALICIA_PRAZO_MINIMO_GRANTIDO");
 	public static final Set<String> BIOMETRIC_TABLE = Sets.newHashSet("AT_2000_MALE", "AT_2000_FEMALE", "AT_2000_MALE_FEMALE", "AT_2000_MALE_SUAVIZADA_10", "AT_2000_FEMALE_SUAVIZADA_10", "AT_2000_MALE_FEMALE_SUAVIZADA_10", "AT_2000_MALE_SUAVIZADA_15", "AT_2000_FEMALE_SUAVIZADA_15", "AT_2000_MALE_FEMALE_SUAVIZADA_15", "AT_83_MALE", "AT_83_FEMALE", "AT_83_MALE_FEMALE", "BR_EMSSB_MALE", "BR_EMSSB_FEMALE", "BR_EMSSB_MALE_FEMALE");
 
-	private static class Fields extends ProductNServicesCommonFields { }
+	private static class Fields extends ProductNServicesCommonFields {
+	}
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -42,7 +44,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 
 		assertField(body,
 			new ObjectArrayField.Builder("$")
-				.setValidator(data->{
+				.setValidator(data -> {
 					assertField(data,
 						new ObjectField
 							.Builder("identification")
@@ -60,8 +62,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		return environment;
 	}
 
-
-	private void assertIdentification(JsonObject identification){
+	private void assertIdentification(JsonObject identification) {
 		assertField(identification,
 			new StringField
 				.Builder("brand")
@@ -76,7 +77,6 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 
 		assertField(identification, Fields.cnpjNumber().setMaxLength(14).build());
 	}
-
 
 	private void assertProducts(JsonObject products) {
 		assertField(products,
@@ -134,7 +134,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 					assertField(minimumRequirements,
 						new StringField
 							.Builder("contractType")
-							.setMaxLength(15)
+							.setMaxLength(19)
 							.setEnums(CONTRACT_TYPE)
 							.build());
 
@@ -257,8 +257,8 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("investimentFunds")
 				.setValidator(this::assertInvestimentFunds)
+				.setOptional(reversalResultsFinancialIsMoreThanZERO(grantPeriodBenefit))
 				.build());
-
 	}
 
 	private void assertDefferalPeriod(JsonObject defferalPeriod) {
@@ -365,6 +365,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("investimentFunds")
 				.setValidator(this::assertInvestimentFunds)
+				.setOptional()
 				.build());
 	}
 
@@ -404,18 +405,26 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		assertField(investimentFunds,
 			new BooleanField
 				.Builder("eligibilityRule")
+				.setOptional()
 				.build());
 
 		assertField(investimentFunds,
 			new NumberField
 				.Builder("minimumContributionAmount")
 				.setMaxLength(5)
+				.setOptional()
 				.build());
 
 		assertField(investimentFunds,
 			new NumberField
 				.Builder("minimumMathematicalProvisionAmount")
 				.setMaxLength(5)
+				.setOptional()
 				.build());
+	}
+
+	private boolean reversalResultsFinancialIsMoreThanZERO(JsonObject jsonObject) {
+		double n = OIDFJSON.getDouble(jsonObject.get("reversalResultsFinancial"));
+		return n <= 0;
 	}
 }

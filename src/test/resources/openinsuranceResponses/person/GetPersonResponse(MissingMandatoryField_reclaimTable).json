@@ -95,15 +95,8 @@
                                 "criterion": "APOS_PERIODO_EM_ANOS",
                                 "frequency": 0
                             },
-                            "contractType": "REPARTICAO_SIMPLES",
+                            "contractType": "CAPITALIZACAO",
                             "reclaim": {
-                                "reclaimTable": [
-                                    {
-                                        "initialMonthRange": 1,
-                                        "finalMonthRange": 12,
-                                        "percentage": 0
-                                    }
-                                ],
                                 "differentiatedPercentage": "string",
                                 "gracePeriod": {
                                     "amount": 60,

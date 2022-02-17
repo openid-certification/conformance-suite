@@ -26,4 +26,19 @@ public class LifePensionValidatorTest extends AbstractJsonResponseConditionUnitT
 		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("brand",
 			condition.getApiName())));
 	}
+
+	@Test
+	@UseResurce("openinsuranceResponses/lifePension/GetLifePensionResponse(MissingMandatoryField_investimentFunds)Error.json")
+	public void validateStructureMissingMandatoryFieldInvestimentFundsError() {
+		GetLifePensionValidator condition = new GetLifePensionValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("investimentFunds",
+			condition.getApiName())));
+	}
+
+	@Test
+	@UseResurce("openinsuranceResponses/lifePension/GetLifePensionResponse(MissingMandatoryField_investimentFunds)OK.json")
+	public void validateStructureMissingMandatoryFieldInvestimentFundsOK() {
+		run(new GetLifePensionValidator());
+	}
 }

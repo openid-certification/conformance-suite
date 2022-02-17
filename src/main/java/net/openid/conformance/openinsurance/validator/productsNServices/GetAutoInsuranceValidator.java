@@ -19,10 +19,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-autoinsurance.yaml
+ * Api source: swagger/openinsurance/swagger-productsnservices-autoinsurance.yaml
  * Api endpoint: src/main/java/net/openid/conformance/openinsurance/validator/productsNServices/auto-insurance
- * Api version: 1.0.0
- * Api git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.0.2
+ * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
 
 @ApiName("ProductsNServices Auto Insurance")
@@ -322,7 +322,6 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 		assertField(coverages,
 			new BooleanField
 				.Builder("coveragePermissionSeparteAcquisition")
-				.setOptional()
 				.build());
 
 		assertField(coverages,

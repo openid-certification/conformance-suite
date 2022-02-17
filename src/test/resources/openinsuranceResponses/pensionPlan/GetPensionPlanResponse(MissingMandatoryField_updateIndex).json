@@ -60,15 +60,14 @@
                         }
                     ],
                     "updatePMBaC": {
-                        "interestRate": 14,
-                        "updateIndex": "IPCA"
+                        "interestRate": 14
                     },
                     "premiumUpdateIndex": "IPCA",
                     "ageReframing": {
                         "reframingCriterion": "APOS_PERIODO_ANOS",
                         "reframingPeriodicity": 10
                     },
-                    "financialRegimeContractType": "REPARTICAO_SIMPLES",
+                    "financialRegimeContractType": "CAPITALIZACAO",
                     "reclaim": {
                         "reclaimTable": [
                             {
