@@ -534,6 +534,13 @@ local_test:
     cd ..
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@gitlab.com:openid/conformance-suite-private.git
     cd conformance-suite-private
+  git clone git@gitlab.com:fintechlabs/sample-openbanking-client-nodejs.git
+  cd sample-openbanking-client-nodejs
+  git checkout bump-openid-client
+      apk add nodejs npm
+
+  npm install
+  cd ..
   }
 
   function set_up_for_running_test_plan() {
