@@ -2,7 +2,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureConsentResponseCodeWas422;
@@ -47,12 +46,10 @@ public class PixSchedulingDateIsTodayConsentsTestModule extends AbstractClientCr
 	@Override
 	protected void runTests() {
 		runInBlock("Validate payment initiation consent", () -> {
-			callAndStopOnFailure(EnsurePaymentDateIsTomorrow.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilScheduleConsentRequest.class);
-			callAndStopOnFailure(EnsureScheduledPaymentDateIsTomorrow.class);
+			callAndStopOnFailure(FAPIBrazilGeneratePaymentConsentRequest.class);
 			callAndStopOnFailure(EnsureScheduledPaymentDateIsToday.class);
+			callAndStopOnFailure(RemovePaymentDateFromConsentRequest.class);
 
 			call(new SignedPaymentConsentSequence()
 				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class)));
