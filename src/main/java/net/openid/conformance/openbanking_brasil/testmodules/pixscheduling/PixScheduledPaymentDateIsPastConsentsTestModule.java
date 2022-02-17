@@ -57,8 +57,6 @@ public class PixScheduledPaymentDateIsPastConsentsTestModule extends AbstractCli
 						condition(EnsureConsentErrorWasInvalid_Schedule.class)
 					))
 			);
-
-			callAndStopOnFailure(EnsureConsentErrorWasNaoInformadio.class);
 		});
 
 	}
