@@ -56,6 +56,7 @@ public class PaymentsConsentsApiEnforceMANUTestModule extends AbstractClientCred
 
 			call(sequence(PaymentConsentErrorTestingSequence.class));
 			callAndContinueOnFailure(EnsureConsentResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Checking consent is rejected if MANU has a proxy in the payload.", () -> {

@@ -74,6 +74,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 		callPixSecondBlock();
 
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 	}
 
 	public void callPix() {

@@ -60,15 +60,13 @@ public class PaymentsConsentsApiDateTestModule extends AbstractClientCredentials
 		eventLog.startBlock("Prepare to post the consent request");
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-
-
 		eventLog.startBlock("Post payment consent request - Expected to fail based on date");
 		call(new SignedPaymentConsentSequence()
-			.replace
-				(EnsureHttpStatusCodeIs201.class,
-					condition(EnsureConsentResponseCodeWas422.class)
-				)
+			.replace(
+				EnsureHttpStatusCodeIs201.class, sequenceOf(
+					condition(EnsureConsentResponseCodeWas422.class),
+					condition(ValidateErrorAndMetaFieldNames.class))
+			)
 		);
-
 	}
 }

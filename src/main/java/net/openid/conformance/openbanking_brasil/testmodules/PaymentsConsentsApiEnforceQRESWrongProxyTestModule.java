@@ -37,6 +37,7 @@ public class PaymentsConsentsApiEnforceQRESWrongProxyTestModule extends Abstract
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
 		callAndStopOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
+
 	}
 
 	@Override

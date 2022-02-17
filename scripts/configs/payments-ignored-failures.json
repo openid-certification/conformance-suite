@@ -9,20 +9,11 @@
         "comment": "mock bank bank is not fully compliant"
     },
     {
-        "test-name": "payments-api-qres-good-email-proxy-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Validate response",
-        "condition": "PaymentFetchPixPaymentsValidator",
-        "expected-result": "failure",
-        "comment": "mock bank bank is not fully compliant"
-    },
-    {
         "test-name": "payments-api-qres-good-phone-number-proxy-test",
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "PaymentFetchPixPaymentsValidator",
+        "condition": "ChuckWarning",
         "expected-result": "failure",
         "comment": "mock bank bank is not fully compliant"
     },
@@ -50,25 +41,6 @@
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "",
         "condition": "EnsureResponseCodeWas422",
-        "expected-result": "failure",
-        "comment": "Mock bank not compliant"
-    },
-
-    {
-        "test-name": "payments-api-qrdn-good-proxy-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "",
-        "condition": "PaymentFetchPixPaymentsValidator",
-        "expected-result": "failure",
-        "comment": "Mock bank not compliant"
-    },
-    {
-        "test-name": "payments-api-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Checking the self endpoint - Expecting 200, validating response",
-        "condition": "PaymentFetchPixPaymentsValidator",
         "expected-result": "failure",
         "comment": "Mock bank not compliant"
     }

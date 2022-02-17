@@ -86,5 +86,4 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 
 		setStatus(Status.WAITING);
 	}
-
 }
