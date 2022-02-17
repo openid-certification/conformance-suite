@@ -79,7 +79,9 @@ public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTe
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
+		env.putString("proceed_with_test", "true");
 		ConditionSequence preauthSteps = super.createOBBPreauthSteps()
+			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class))
 			.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
 		return preauthSteps;
 	}
