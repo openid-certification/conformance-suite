@@ -64,7 +64,6 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 
 	@Override
 	protected void validateResponse() {
-
 	}
 
 	protected void fireSecondTest() {
@@ -153,11 +152,13 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
 			callAndContinueOnFailure(Ensure422ResponseCodeWasPAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO_OR_NAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		} else if (!finalAuth) {
 			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
 			callAndContinueOnFailure(EnsurePaymentCodeIsCorrect.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		}
 		else {
 			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);

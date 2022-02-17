@@ -63,21 +63,7 @@
                             ],
                             "interestRate": 3.225,
                             "updateIndex": "IPCA",
-                            "reversalResultsFinancial": 13.252,
-                            "investimentFunds": [
-                                {
-                                    "cnpjNumber": "13.456.789/0001-12",
-                                    "companyName": "EYPREV",
-                                    "maximumAdministrationFee": 20.1,
-                                    "typePerformanceFee": [
-                                        "DIRETAMENTE"
-                                    ],
-                                    "maximumPerformanceFee": 20,
-                                    "eligibilityRule": true,
-                                    "minimumContributionAmount": 1000,
-                                    "minimumMathematicalProvisionAmount": 1000
-                                }
-                            ]
+                            "reversalResultsFinancial": 13.252
                         },
                         "costs": {
                             "loadingAntecipated": {

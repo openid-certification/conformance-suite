@@ -12,10 +12,12 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-channels.yaml
+ * Api source: swagger/openinsurance/swagger-channels.yaml
  * Api endpoint: /branches
- * Git hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.0.2
+ * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
+
 @ApiName("Branches Channels")
 public class BranchesValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> WEEKDAY_ENUM = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");
@@ -46,8 +48,8 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertCompanies(JsonObject companies) {
-		assertField(companies, Fields.cnpjNumber().setMinLength(14).build());
 		assertField(companies, Fields.name().build());
+		assertField(companies, Fields.cnpjNumber().setMinLength(14).setMaxLength(14).build());
 
 		assertField(companies,
 			new ObjectArrayField
@@ -125,7 +127,6 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 		assertField(postalAddress,
 			new StringField
 				.Builder("address")
-				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(150)
 				.build());
 
@@ -133,7 +134,6 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("additionalInfo")
 				.setMaxLength(30)
-				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 
@@ -141,7 +141,6 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("districtName")
 				.setMaxLength(50)
-				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(postalAddress,
@@ -155,7 +154,6 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("ibgeCode")
 				.setMaxLength(7)
-				.setPattern("^\\d{7}$")
 				.build());
 
 		assertField(postalAddress,
@@ -198,14 +196,14 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("openingTime")
 				.setMaxLength(13)
-				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
+				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)Z$|^NA$")
 				.build());
 
 		assertField(standards,
 			new StringField
 				.Builder("closingTime")
 				.setMaxLength(13)
-				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)|Z$|^NA$")
+				.setPattern("^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)Z$|^NA$")
 				.build());
 	}
 
@@ -234,13 +232,8 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 				.setOptional()
 				.build());
 
-		assertField(identification,
-			new StringField
-				.Builder("name")
-				.setMaxLength(100)
-				.setPattern("[\\w\\W\\s]*")
-				.setOptional()
-				.build());
+		assertField(identification, Fields.name().setMaxLength(100).build());
+
 	}
 
 	public void assertPhones(JsonObject phones) {

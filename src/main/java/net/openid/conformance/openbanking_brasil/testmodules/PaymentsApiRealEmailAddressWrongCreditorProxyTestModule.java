@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectInvalidCreditorAccountToPayment;
@@ -47,6 +48,6 @@ public class PaymentsApiRealEmailAddressWrongCreditorProxyTestModule extends Abs
 
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-	}
 
+	}
 }

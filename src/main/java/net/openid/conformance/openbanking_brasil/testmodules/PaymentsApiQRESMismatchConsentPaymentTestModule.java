@@ -37,6 +37,7 @@ public class PaymentsApiQRESMismatchConsentPaymentTestModule extends AbstractDic
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);
 		callAndStopOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndStopOnFailure(InjectRealCreditorAccountToPayment.class);
+
 	}
 
 	@Override

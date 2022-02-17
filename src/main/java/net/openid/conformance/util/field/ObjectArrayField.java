@@ -29,6 +29,11 @@ public class ObjectArrayField extends Field {
 			return this;
 		}
 
+		public Builder setOptional(boolean value) {
+			this.optional = value;
+			return this;
+		}
+
 		public Builder setNullable() {
 			this.nullable = true;
 			return this;

@@ -123,6 +123,8 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 			eventLog.startBlock("Validating response, expecting 422 jwt with code: CONSENTIMENTO_INVALIDO");
 			callAndContinueOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureCodeIsInvalidConsent.class);
+
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		}
 		// if expecting pass
 		else {
@@ -139,6 +141,4 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 	@Override
 	protected void validateResponse() {
 	}
-
-
 }
