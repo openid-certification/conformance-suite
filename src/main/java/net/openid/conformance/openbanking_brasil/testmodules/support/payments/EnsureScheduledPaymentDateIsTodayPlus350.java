@@ -21,11 +21,11 @@ public class EnsureScheduledPaymentDateIsTodayPlus350  extends AbstractCondition
 			return env;
 		}
 
-		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(350L);
-		JsonObjectBuilder.addField(obj, "data.payment.schedule.single", currentDate.toString());
+		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(350L);
+		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
 
-		log("Setting scheduled payment date to current date +350: " + currentDate);
-		obj.addProperty("date", currentDate.toString());
+		log("Setting scheduled payment date to current date +350: " + scheduledDate);
+		obj.addProperty("date", scheduledDate.toString());
 		logSuccess("Successfully added current date +350 to payment schedule", obj);
 
 		return env;
