@@ -162,6 +162,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			throw error(ErrorMessagesUtils.createArrayClassCastExpMessage(objectArrayField.getPath(), getApiName()));
 		}
 		JsonArray array = elementByPath.getAsJsonArray();
+		if (objectArrayField.mustNotBeEmpty() & array.size() == 0) {
+			throw error(ErrorMessagesUtils.createArrayMustNotBeEmptyMessage(objectArrayField.getPath(), getApiName()));
+		}
 		parentPath +=  (parentPath.contains(field.getPath()))? "" : field.getPath() + ".";
 		assertMinAndMaxItems(array, objectArrayField);
 		if (field.getValidator() == null) {

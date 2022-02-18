@@ -37,6 +37,7 @@ public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingConditio
 			new ObjectArrayField
 				.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();

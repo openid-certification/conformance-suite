@@ -22,6 +22,7 @@ public abstract class Field {
 	protected int minLength;
 	protected int maxItems;
 	protected int minItems;
+	protected boolean mustNotBeEmpty;
 	protected BigDecimal maxValue;
 	protected BigDecimal minValue;
 	protected Consumer<JsonObject> validator;
@@ -127,5 +128,9 @@ public abstract class Field {
 
 	public Set<String> getEnums() {
 		return enums;
+	}
+
+	public boolean mustNotBeEmpty() {
+		return mustNotBeEmpty;
 	}
 }

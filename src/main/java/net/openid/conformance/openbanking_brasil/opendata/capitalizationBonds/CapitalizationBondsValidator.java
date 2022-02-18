@@ -42,6 +42,7 @@ public class CapitalizationBondsValidator extends AbstractJsonAssertingCondition
 		assertField(body,
 			new ObjectArrayField.Builder("data")
 				.setMinItems(1)
+				.mustNotBeEmpty()
 				.setValidator(data -> {
 					assertField(data,
 						new ObjectField

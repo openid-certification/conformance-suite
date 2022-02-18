@@ -61,7 +61,7 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 							.build());
 
 
-				}).build());
+				}).mustNotBeEmpty().build());
 
 		logFinalStatus();
 		return environment;

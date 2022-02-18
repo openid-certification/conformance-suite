@@ -42,6 +42,7 @@ public class GetFundsValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();
