@@ -36,6 +36,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -48,6 +49,7 @@ import java.util.function.Supplier;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
+	FAPI2SenderConstrainMethod.class,
 	FAPI1FinalOPProfile.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
