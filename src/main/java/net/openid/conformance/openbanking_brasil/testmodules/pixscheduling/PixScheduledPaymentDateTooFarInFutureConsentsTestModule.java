@@ -10,9 +10,9 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-pixscheduling-in-past",
-	displayName = "Pix scheduled payment date in past",
-	summary = "Attempts to create a payment consent scheduled for a day in the future, with a payment date of tomorrow, and expects a 422 response with the error NAO_INFORMADIO",
+	testName = "payments-consents-api-pixscheduling-future-date",
+	displayName = "Pix scheduled payment date in future",
+	summary = "Attempts to create a payment consent scheduled for a day too far in the future, with a payment date of today + 370 days, and expects a 422 response with the error NAO_INFORMADIO",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilOrganizationId"
 	}
 )
-public class PixScheduledPaymentDateIsPastConsentsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PixScheduledPaymentDateTooFarInFutureConsentsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
@@ -46,7 +46,7 @@ public class PixScheduledPaymentDateIsPastConsentsTestModule extends AbstractCli
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilGeneratePaymentConsentRequest.class);
 			eventLog.startBlock("Setting payment schedule date to be in the past");
-			callAndStopOnFailure(EnsurePixScheduleDateIsInPast.class);
+			callAndStopOnFailure(EnsurePixScheduleDateIsTooFarInFuture.class);
 			callAndStopOnFailure(RemovePaymentDateFromConsentRequest.class);
 
 			call(new SignedPaymentConsentSequence()
