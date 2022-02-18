@@ -38,7 +38,7 @@ public class CheckForClientCertificate_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		certificate = new JsonParser().parse("{\"subject\":{\"dn\":\"CN=example.org\"}}").getAsJsonObject();
+		certificate = JsonParser.parseString("{\"subject\":{\"dn\":\"CN=example.org\"}}").getAsJsonObject();
 
 	}
 

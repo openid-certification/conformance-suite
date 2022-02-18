@@ -59,7 +59,7 @@ public class ValidateClientRegistrationRequestSectorIdentifierUri extends Abstra
 				throw error("Invalid sector_identifier_uri. When fetching sector_identifier_uri " +
 							"the server returned an empty body", args("uri", sectorIdentifierUri));
 			}
-			JsonArray jsonArray = new JsonParser().parse(responseBody).getAsJsonArray();
+			JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
 			JsonArray redirectUris = null;
 			try {
 				redirectUris = getRedirectUris();

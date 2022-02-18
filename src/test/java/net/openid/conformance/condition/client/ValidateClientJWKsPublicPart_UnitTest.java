@@ -36,7 +36,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 
 	@Test
 	public void testEvaluate_RSAPublicKeyNoError() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -56,7 +56,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 
 	@Test
 	public void testEvaluate_ECKeyNoError() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"EC\"," +
@@ -93,7 +93,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_x5cMismatch() {
 
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -133,7 +133,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingE() {
 
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -153,7 +153,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingN() {
 
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -171,7 +171,7 @@ public class ValidateClientJWKsPublicPart_UnitTest {
 
 	@Test
 	public void testEvaluate_twoKeys() {
-		client.add("jwks", new JsonParser().parse("{" +
+		client.add("jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +

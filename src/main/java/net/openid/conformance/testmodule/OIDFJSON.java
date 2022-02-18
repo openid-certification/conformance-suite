@@ -72,13 +72,6 @@ public final class OIDFJSON {
 		return json.getAsLong();
 	}
 
-	public static char getCharacter(JsonElement json) {
-		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) {
-			throw new UnexpectedJsonTypeException("getCharacter called on something that is not a string: " + json);
-		}
-		return json.getAsCharacter();
-	}
-
 	public static String getString(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) {
 			throw new UnexpectedJsonTypeException("getString called on something that is not a string: " + json);

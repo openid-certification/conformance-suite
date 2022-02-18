@@ -50,7 +50,7 @@ public class SerializeRequestObjectWithNullAlgorithm_UnitTest {
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 
-		requestObjectClaims = new JsonParser().parse(
+		requestObjectClaims = JsonParser.parseString(
 				"  {\n" +
 				"   \"iss\": \"s6BhdRkqt3\",\n" +
 				"   \"aud\": \"https://server.example.com\",\n" +

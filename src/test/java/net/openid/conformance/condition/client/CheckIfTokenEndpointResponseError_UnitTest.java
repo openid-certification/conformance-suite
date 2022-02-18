@@ -43,7 +43,7 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		successParams = new JsonParser().parse("{"
+		successParams = JsonParser.parseString("{"
 			+ "\"accessToken\":\"2YotnFZFEjr1zCsicMWpAA\","
 			+ "\"token_type\":\"example\","
 			+ "\"expires_in\":3600,"
@@ -51,7 +51,7 @@ public class CheckIfTokenEndpointResponseError_UnitTest {
 			+ "\"example_parameter\":\"example_value\""
 			+ "}").getAsJsonObject();
 
-		errorParams = new JsonParser().parse("{"
+		errorParams = JsonParser.parseString("{"
 			+ "\"error\":\"invalid_request\""
 			+ "}").getAsJsonObject();
 	}

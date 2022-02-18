@@ -43,7 +43,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 
 		// Good sample from OpenID Connect Core spec
 
-		JsonObject goodClaims = new JsonParser().parse("{\n" +
+		JsonObject goodClaims = JsonParser.parseString("{\n" +
 			" \"iss\": \"http://server.example.com\",\n" +
 			" \"sub\": \"248289761001\",\n" +
 			" \"aud\": \"s6BhdRkqt3\",\n" +
@@ -98,7 +98,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueNull() {
 
-		JsonObject nullClaims = new JsonParser().parse("{\n" +
+		JsonObject nullClaims = JsonParser.parseString("{\n" +
 			" \"iss\": \"http://server.example.com\",\n" +
 			" \"sub\": null,\n" +
 			" \"aud\": \"s6BhdRkqt3\",\n" +

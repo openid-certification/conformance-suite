@@ -32,7 +32,7 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		userInfo = new JsonParser().parse("{"
+		userInfo = JsonParser.parseString("{"
 			+ "\"_claim_names\": {"
 				+ "\"payment_info\":\"src1\","
 				+ "\"shipping_address\":\"src1\","
@@ -59,7 +59,7 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 	@Test
 	public void testEvaluateAggregatedClaims_noError() {
 		// example from https://openid.net/specs/openid-connect-core-1_0.html#AggregatedExample
-		userInfo = new JsonParser().parse("{\n" +
+		userInfo = JsonParser.parseString("{\n" +
 			"   \"name\": \"Jane Doe\",\n" +
 			"   \"given_name\": \"Jane\",\n" +
 			"   \"family_name\": \"Doe\",\n" +
@@ -81,7 +81,7 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 	@Test
 	public void testEvaluateDistributedClaims_noError() {
 		// example from https://openid.net/specs/openid-connect-core-1_0.html#DistributedExample
-		userInfo = new JsonParser().parse("{\n" +
+		userInfo = JsonParser.parseString("{\n" +
 			"   \"name\": \"Jane Doe\",\n" +
 			"   \"given_name\": \"Jane\",\n" +
 			"   \"family_name\": \"Doe\",\n" +
@@ -124,7 +124,7 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalid() {
 
-		JsonObject claimSources = new JsonParser().parse("{"
+		JsonObject claimSources = JsonParser.parseString("{"
 			+ "\"payment_info\":\"src1\","
 			+ "\"shipping_address\":\"src2\","
 			+ "\"credit_score\":\"src3\""

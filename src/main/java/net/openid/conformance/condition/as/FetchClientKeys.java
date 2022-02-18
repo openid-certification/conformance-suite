@@ -44,7 +44,7 @@ public class FetchClientKeys extends AbstractCondition {
 
 				log("Found JWK set string", args("jwk_string", jwkString));
 
-				JsonObject jwkSet = new JsonParser().parse(jwkString).getAsJsonObject();
+				JsonObject jwkSet = JsonParser.parseString(jwkString).getAsJsonObject();
 
 				client.add("jwks", jwkSet);
 				env.putObject("client", client);

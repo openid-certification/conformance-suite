@@ -33,12 +33,12 @@ public class CallProtectedResourceWithBearerToken_UnitTest {
 
 	// Examples from RFC 6749
 
-	private static JsonObject bearerToken = new JsonParser().parse("{"
+	private static JsonObject bearerToken = JsonParser.parseString("{"
 		+ "\"value\":\"mF_9.B5f-4.1JqM\","
 		+ "\"type\":\"Bearer\""
 		+ "}").getAsJsonObject();
 
-	private static JsonObject exampleToken = new JsonParser().parse("{"
+	private static JsonObject exampleToken = JsonParser.parseString("{"
 		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
 		+ "\"type\":\"example\""
 		+ "}").getAsJsonObject();

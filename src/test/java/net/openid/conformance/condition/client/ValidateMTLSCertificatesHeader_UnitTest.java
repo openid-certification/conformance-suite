@@ -595,7 +595,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noCert() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
 
@@ -606,7 +606,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 	@Test
 	public void testEvaluate_certPKCS8Valid() {
 		// normal successful PKCS8 case
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + certPEMPKCS8 + "\","
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
@@ -618,7 +618,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 	@Test
 	public void testEvaluate_certPKCS1Valid() {
 		// normal successful PKCS1 case
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + certPEMPKCS1 + "\","
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
@@ -629,7 +629,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_certInvalid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + certInvalid + "\","
 			+ "\"key\":\"" + key + "\""
 			+ "}}").getAsJsonObject();
@@ -640,7 +640,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noKey() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\""
 			+ "}}").getAsJsonObject();
 
@@ -650,7 +650,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test
 	public void testEvaluate_keyPKCS8Valid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + keyPEMPKCS8 + "\""
 			+ "}}").getAsJsonObject();
@@ -661,7 +661,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test
 	public void testEvaluate_keyPKCS1Valid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + keyPEMPKCS1 + "\""
 			+ "}}").getAsJsonObject();
@@ -672,7 +672,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_keyInvalid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"cert\":\"" + keyInvalid + "\""
 			+ "}}").getAsJsonObject();
@@ -683,7 +683,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test
 	public void testEvaluate_caPKCS8Valid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caPEMPKCS8 + "\""
@@ -695,7 +695,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test
 	public void testEvaluate_caPKCS1Valid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caPEMPKCS1 + "\""
@@ -707,7 +707,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caInvalid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + caInvalid + "\""
@@ -719,7 +719,7 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Test
 	public void testEvaluate_DERCaseValid() {
-		JsonObject config = new JsonParser().parse("{\"mtls\":{"
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
 			+ "\"cert\":\"" + cert + "\","
 			+ "\"key\":\"" + key + "\","
 			+ "\"ca\":\"" + ca + "\""

@@ -38,7 +38,7 @@ public class CheckServerKeysIsValid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithUnsupportedServerJWKs() {
 
-		JsonObject serverJWKs = new JsonParser().parse("{"
+		JsonObject serverJWKs = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"crv\":\"P-256K\","
@@ -58,7 +58,7 @@ public class CheckServerKeysIsValid_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject serverJWKs = new JsonParser().parse("{"
+		JsonObject serverJWKs = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"crv\":\"secp256k1\","

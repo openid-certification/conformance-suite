@@ -32,7 +32,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Test
 	public void testEvaluate_noError() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"flibble_endpoint\": \"https://www.example.com/endpoint\""
 			+ "}")
 			.getAsJsonObject();
@@ -42,7 +42,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Test
 	public void testEvaluate_noErrorOtherTypes () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"flibble_endpoint\": \"https://www.example.com/endpoint\","
 			+ "\"flibble\" : true,"
 			+ "\"flibble2\" : 0.9,"
@@ -56,7 +56,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notHttps() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"flibble_endpoint\": \"http://www.example.com/endpoint\""
 			+ "}")
 			.getAsJsonObject();
@@ -66,7 +66,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notUrl() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"flibble_endpoint\": \"flibble\""
 			+ "}")
 			.getAsJsonObject();
@@ -76,7 +76,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorArray() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"flibble_endpoint\": ["
 			+ "\"https://www.example.com/endpoint\""
 			+ "]}")

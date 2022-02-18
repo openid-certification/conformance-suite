@@ -102,7 +102,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 					args("backchannel_authentication_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 						throw error("Backchannel Authentication Endpoint did not return a JSON object");
 					}

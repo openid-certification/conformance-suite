@@ -39,7 +39,7 @@ public class ValidateRefreshTokenNotRotated_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC6750
-		tokenResponse = new JsonParser().parse("{" +
+		tokenResponse = JsonParser.parseString("{" +
 			"\"access_token\":\"mF_9.B5f-4.1JqM\"," +
 			"\"token_type\":\"Bearer\"," +
 			"\"expires_in\":3600," +

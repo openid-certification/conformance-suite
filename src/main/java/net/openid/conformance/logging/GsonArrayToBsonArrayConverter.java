@@ -43,16 +43,16 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, Basic
 					// letting this through to the default mongo converter results in stackoverflows if the jwk
 					// contains an x5c entry; explicitly convert it to it's more helpful JSON representation
 					String json = ((JWK) value).toJSONString();
-					convertedMap.put(key, new JsonParser().parse(json));
+					convertedMap.put(key, JsonParser.parseString(json));
 				} else if (value instanceof JWKSet) {
 					String json = ((JWKSet) value).toString();
-					convertedMap.put(key, new JsonParser().parse(json));
+					convertedMap.put(key, JsonParser.parseString(json));
 				} else if (value instanceof JWTClaimsSet) {
 					String json = ((JWTClaimsSet) value).toString();
-					convertedMap.put(key, new JsonParser().parse(json));
+					convertedMap.put(key, JsonParser.parseString(json));
 				} else if (value instanceof JWSHeader) {
 					String json = ((JWSHeader) value).toString();
-					convertedMap.put(key, new JsonParser().parse(json));
+					convertedMap.put(key, JsonParser.parseString(json));
 				} else {
 					convertedMap.put(key, value);
 				}

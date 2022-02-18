@@ -44,7 +44,7 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		jwks = new JsonParser().parse("{\n" +
+		jwks = JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -58,7 +58,7 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 			"  ]\n" +
 			"}").getAsJsonObject();
 
-		jwks = new JsonParser().parse("{\n" +
+		jwks = JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -71,7 +71,7 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 			"  ]\n" +
 			"}").getAsJsonObject();
 
-		client = new JsonParser().parse("{\n" +
+		client = JsonParser.parseString("{\n" +
 			"  \"jwks\": " + jwks.toString() + "\n" +
 			"}").getAsJsonObject();
 

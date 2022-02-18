@@ -44,7 +44,7 @@ public class CallProtectedResourceWithBearerTokenExpectingError extends Abstract
 			throw error("Empty success response from the resource endpoint");
 		} else {
 			try {
-				JsonElement jsonRoot = new JsonParser().parse(responseBody);
+				JsonElement jsonRoot = JsonParser.parseString(responseBody);
 				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 					throw error("Resource endpoint indicated success and did not return a JSON object");
 				}

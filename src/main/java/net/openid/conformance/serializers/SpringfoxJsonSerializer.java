@@ -12,8 +12,7 @@ public class SpringfoxJsonSerializer implements JsonSerializer<Json> {
 
 	@Override
 	public JsonElement serialize(Json json, Type type, JsonSerializationContext context) {
-		JsonParser parser = new JsonParser();
-		return parser.parse(json.value());
+		return JsonParser.parseString(json.value());
 	}
 
 }

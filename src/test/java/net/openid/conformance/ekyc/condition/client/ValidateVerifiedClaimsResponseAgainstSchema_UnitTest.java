@@ -38,7 +38,7 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	public void testEvaluate_validateVerifiedClaimsSimple() {
 		JsonObject verifiedClaimsResponse = new JsonObject();
 		String claimsJson = "{\"claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
-		JsonObject parsedClaims = new JsonParser().parse(claimsJson).getAsJsonObject();
+		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 		verifiedClaimsResponse.add("id_token", parsedClaims);
 		env.putObject("verified_claims_response", verifiedClaimsResponse);
 		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
@@ -49,7 +49,7 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	public void testEvaluate_validateVerifiedClaimsError() {
 		JsonObject verifiedClaimsResponse = new JsonObject();
 		String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
-		JsonObject parsedClaims = new JsonParser().parse(claimsJson).getAsJsonObject();
+		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 		verifiedClaimsResponse.add("id_token", parsedClaims);
 		env.putObject("verified_claims_response", verifiedClaimsResponse);
 		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);

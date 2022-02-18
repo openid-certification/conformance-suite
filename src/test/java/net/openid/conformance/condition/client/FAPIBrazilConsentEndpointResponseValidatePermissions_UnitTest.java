@@ -41,7 +41,7 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions_UnitTest {
 	public void success() {
 		String response = "{\"data\":{\"consentId\":\"urn:raidiambank:58fff674-fb3a-4e45-bd10-7153d71d176c\",\"creationDateTime\":\"2021-07-13T12:07:47Z\",\"status\":\"AWAITING_AUTHORISATION\",\"statusUpdateDateTime\":\"2021-07-13T12:07:47Z\",\"permissions\":[\"RESOURCES_READ\",\"ACCOUNTS_BALANCES_READ\",\"ACCOUNTS_READ\"],\"expirationDateTime\":\"2021-07-13T14:07:46Z\"},\"links\":{\"self\":\"/\"},\"meta\":{\"totalRecords\":1,\"totalPages\":1,\"requestDateTime\":\"2021-07-13T12:07:47Z\"}}\n";
 
-		JsonObject o = new JsonParser().parse(response).getAsJsonObject();
+		JsonObject o = JsonParser.parseString(response).getAsJsonObject();
 
 		env.putObject("consent_endpoint_response", o);
 
@@ -61,7 +61,7 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions_UnitTest {
 	public void successDifferentOrder() {
 		String response = "{\"data\":{\"consentId\":\"urn:raidiambank:58fff674-fb3a-4e45-bd10-7153d71d176c\",\"creationDateTime\":\"2021-07-13T12:07:47Z\",\"status\":\"AWAITING_AUTHORISATION\",\"statusUpdateDateTime\":\"2021-07-13T12:07:47Z\",\"permissions\":[\"RESOURCES_READ\",\"ACCOUNTS_BALANCES_READ\",\"ACCOUNTS_READ\"],\"expirationDateTime\":\"2021-07-13T14:07:46Z\"},\"links\":{\"self\":\"/\"},\"meta\":{\"totalRecords\":1,\"totalPages\":1,\"requestDateTime\":\"2021-07-13T12:07:47Z\"}}\n";
 
-		JsonObject o = new JsonParser().parse(response).getAsJsonObject();
+		JsonObject o = JsonParser.parseString(response).getAsJsonObject();
 
 		env.putObject("consent_endpoint_response", o);
 
@@ -82,7 +82,7 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions_UnitTest {
 	public void extraGranted() {
 		String response = "{\"data\":{\"consentId\":\"urn:raidiambank:58fff674-fb3a-4e45-bd10-7153d71d176c\",\"creationDateTime\":\"2021-07-13T12:07:47Z\",\"status\":\"AWAITING_AUTHORISATION\",\"statusUpdateDateTime\":\"2021-07-13T12:07:47Z\",\"permissions\":[\"RESOURCES_READ\",\"ACCOUNTS_BALANCES_READ\",\"ACCOUNTS_READ\",\"FLIBBLE\"],\"expirationDateTime\":\"2021-07-13T14:07:46Z\"},\"links\":{\"self\":\"/\"},\"meta\":{\"totalRecords\":1,\"totalPages\":1,\"requestDateTime\":\"2021-07-13T12:07:47Z\"}}\n";
 
-		JsonObject o = new JsonParser().parse(response).getAsJsonObject();
+		JsonObject o = JsonParser.parseString(response).getAsJsonObject();
 
 		env.putObject("consent_endpoint_response", o);
 
@@ -103,7 +103,7 @@ public class FAPIBrazilConsentEndpointResponseValidatePermissions_UnitTest {
 	public void grantedFewerThanRequested() {
 		String response = "{\"data\":{\"consentId\":\"urn:raidiambank:58fff674-fb3a-4e45-bd10-7153d71d176c\",\"creationDateTime\":\"2021-07-13T12:07:47Z\",\"status\":\"AWAITING_AUTHORISATION\",\"statusUpdateDateTime\":\"2021-07-13T12:07:47Z\",\"permissions\":[\"RESOURCES_READ\",\"ACCOUNTS_BALANCES_READ\",\"ACCOUNTS_READ\"],\"expirationDateTime\":\"2021-07-13T14:07:46Z\"},\"links\":{\"self\":\"/\"},\"meta\":{\"totalRecords\":1,\"totalPages\":1,\"requestDateTime\":\"2021-07-13T12:07:47Z\"}}\n";
 
-		JsonObject o = new JsonParser().parse(response).getAsJsonObject();
+		JsonObject o = JsonParser.parseString(response).getAsJsonObject();
 
 		env.putObject("consent_endpoint_response", o);
 

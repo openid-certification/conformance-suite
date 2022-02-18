@@ -88,7 +88,7 @@ public class FetchServerKeys_UnitTest {
 	@Test
 	public void testEvaluate_dynamic() {
 
-		JsonObject jwks = new JsonParser().parse(jwksStr).getAsJsonObject();
+		JsonObject jwks = JsonParser.parseString(jwksStr).getAsJsonObject();
 
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://good.example.com/jwks.json");
@@ -104,7 +104,7 @@ public class FetchServerKeys_UnitTest {
 	@Test
 	public void testEvaluate_dynamicWithUnsupportedServerJWKs() {
 
-		JsonObject jwks = new JsonParser().parse(unsupportedJwksStr).getAsJsonObject();
+		JsonObject jwks = JsonParser.parseString(unsupportedJwksStr).getAsJsonObject();
 
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://good.example1.com/jwks.json");

@@ -35,7 +35,7 @@ public class VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		idToken = new JsonParser().parse("{"
+		idToken = JsonParser.parseString("{"
 			+ "\"claims\":{"
 				+ "\"sub\":\"1001\","
 				+ "\"s_hash\":\"uPd-19KwcgDsqixsclXUjA\","
@@ -43,7 +43,7 @@ public class VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub_UnitTest {
 				+ "\"aud\":\"899532949009612\""
 			+ "}}").getAsJsonObject();
 
-		userInfo = new JsonParser().parse("{"
+		userInfo = JsonParser.parseString("{"
 				+ "\"sub\":\"1001\","
 				+ "\"email\":\"john@example.com\","
 				+ "\"iss\":\"https://fapidev-as.authlete.net/\""

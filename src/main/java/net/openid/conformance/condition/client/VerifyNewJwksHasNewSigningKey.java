@@ -27,7 +27,7 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 		return inputKeys.stream().map(key -> {
 			try {
 				JWK jwk = JWK.parse(key.toString());
-				var requiredParamsJson = (JsonObject) new JsonParser().parse(JSONObjectUtils.toJSONString(jwk.getRequiredParams()));
+				var requiredParamsJson = (JsonObject) JsonParser.parseString(JSONObjectUtils.toJSONString(jwk.getRequiredParams()));
 				requiredParamsJson.addProperty("kid", jwk.getKeyID());
 				return requiredParamsJson;
 			} catch (ParseException  e) {

@@ -41,7 +41,7 @@ public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractValidat
 					jsonErrors.add(error.toString());
 				}
 				throw error("Failed to validate verified_claims against schema",
-					args("verified_claims", new JsonParser().parse(claimsJson),
+					args("verified_claims", JsonParser.parseString(claimsJson),
 						"errors", jsonErrors));
 			}
 		} catch (IOException e) {

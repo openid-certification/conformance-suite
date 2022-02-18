@@ -43,7 +43,7 @@ public class CheckForScopesInTokenResponse_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodResponse = new JsonParser().parse("{"
+		goodResponse = JsonParser.parseString("{"
 			+ "\"access_token\":\"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3\","
 			+ "\"token_type\":\"bearer\","
 			+ "\"expires_in\":3600,"
@@ -52,7 +52,7 @@ public class CheckForScopesInTokenResponse_UnitTest {
 			+ "\"state\":\"12345678\""
 			+ "}").getAsJsonObject();
 
-		badResponse = new JsonParser().parse("{"
+		badResponse = JsonParser.parseString("{"
 			+ "\"access_token\":\"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3\","
 			+ "\"token_type\":\"bearer\","
 			+ "\"expires_in\":3600,"

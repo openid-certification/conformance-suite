@@ -70,7 +70,7 @@ public class FAPIEnsureMinimumServerKeyLength_UnitTest {
 		JsonObject jwks = new JsonObject();
 		JsonArray keys = new JsonArray();
 		for (String keyString : keyStrings) {
-			keys.add(new JsonParser().parse(keyString));
+			keys.add(JsonParser.parseString(keyString));
 		}
 		jwks.add("keys", keys);
 		return jwks;
