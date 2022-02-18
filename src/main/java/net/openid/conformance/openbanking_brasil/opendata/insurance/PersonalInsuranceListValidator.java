@@ -62,6 +62,7 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 		assertField(body,
 			new ObjectArrayField.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();

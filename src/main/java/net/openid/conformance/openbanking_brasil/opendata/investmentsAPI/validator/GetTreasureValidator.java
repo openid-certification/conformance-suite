@@ -37,6 +37,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();
