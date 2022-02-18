@@ -18,11 +18,11 @@ public class PlanNames {
 	public static final String PRODUCTS_N_SERVICES_API_TEST_PLAN  = "Functional tests for " +
 		"ProductsNServices API - based on Swagger version: 1.0.0";
 	public static final String BANKING_AGENTS_API_TEST_PLAN = "Functional tests for Channels - BankingAgents API - based on Swagger version: 1.0.3 (WIP)";
-	public static final String BRANCHES_API_TEST_PLAN = "Functional tests for Channels - Branches API - based on Swagger version: 1.0.2";
-	public static final String ELECTRONIC_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Electronic Channels API - based on Swagger version: 1.0.2";
-	public static final String PHONE_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Phone Channels API - based on Swagger version: 1.0.2";
+	public static final String BRANCHES_API_TEST_PLAN = "Functional tests for Channels - Branches API - based on Swagger version: 1.0.3 (WIP)";
+	public static final String ELECTRONIC_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Electronic Channels API - based on Swagger version: 1.0.3 (WIP)";
+	public static final String PHONE_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Phone Channels API - based on Swagger version: 1.0.3 (WIP)";
 	public static final String SHARED_AUTOMATED_TELLER_MACHINES_API_TEST_PLAN = "Functional tests for Channels - Shared Automated Teller Machines API - based on Swagger version: 1.0.3 (WIP)";
-	public static final String ADMIN_API_TEST_PLAN  = "Functional tests for Admin API - based on Swagger version: 1.0.2";
+	public static final String ADMIN_API_TEST_PLAN  = "Functional tests for Admin API - based on Swagger version: 1.0.1 (WIP)";
 	public static final String COMMON_API_TEST_PLAN  = "Functional tests for Common API - based on Swagger version: 1.0.2 (WIP)";
 	public static final String BUSINESS_ACCOUNTS_API_TEST_PLAN = "Functional tests for ProductsNServices - BusinessAccounts API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String BUSINESS_CREDIT_CARD_API_TEST_PLAN = "Functional tests for ProductsNServices - BusinessCreditCard API - based on Swagger version: 1.0.0 (WIP)";
@@ -36,10 +36,17 @@ public class PlanNames {
 	public static final String PERSONAL_LOANS_API_TEST_PLAN = "Functional tests for ProductsNServices - PersonalLoans API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String UNARRANGED_ACCOUNT_BUSINESS_OVERDRAFT_API_TEST_PLAN = "Functional tests for ProductsNServices - UnarrangedAccountBusinessOverdraft API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String UNARRANGED_ACCOUNT_PERSONAL_OVERDRAFT_API_TEST_PLAN = "Functional tests for ProductsNServices - UnarrangedAccountPersonalOverdraft API - based on Swagger version: 1.0.0 (WIP)";
-	public static final String PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN  = "Functional tests for ProductsNServices - Person API - based on Swagger version: 1.0.0";
-	public static final String PERSON_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Pension Plan API - based on Swagger version: 1.0.2";
-	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.2";
-	public static final String HOME_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Home Insurance API - based on Swagger version: 1.0.0";
-	public static final String CAPITALIZATION_TITLE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Capitalization Title API - based on Swagger version: 1.0.2";
-	public static final String LIFE_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Life Pension API - based on Swagger version: 1.0.3";
+
+	//OPIN Phase 1
+	public static final String PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN  = "Functional tests for ProductsNServices - Person API - based on Swagger version: 1.0.0"; // Person 
+	public static final String PERSON_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Pension Plan API - based on Swagger version: 1.0.2"; // Pension Plan
+	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.2"; // Auto Insurance
+	public static final String HOME_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Home Insurance API - based on Swagger version: 1.0.2"; // Home Insurance
+	public static final String CAPITALIZATION_TITLE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Capitalization Title API - based on Swagger version: 1.0.2"; // Capitalization Title
+	public static final String LIFE_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Life Pension API - based on Swagger version: 1.0.2"; // Life Pension
+	public static final String OPIN_CHANNELS_BRANCHES_API_TEST_PLAN = "Functional tests for Channels - Branches API - based on Swagger version: 1.0.2"; // Channel Branches
+	public static final String OPIN_ELECTRONIC_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Electronic Channels API - based on Swagger version: 1.0.2"; // Electronic Channel
+	public static final String OPIN_PHONE_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Phone Channels API - based on Swagger version: 1.0.2"; // Phone Channels
+	public static final String OPIN_ADMIN_API_TEST_PLAN = "Functional tests for Admin API - based on Swagger version: 1.0.2"; // Admin
+	public static final String OPIN_DISCOVERY_TEST_PLAN = "Functional tests for Discovery API - based on Swagger version: 1.0.0"; // Discovery
 }
