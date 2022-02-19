@@ -16,6 +16,11 @@ public class CallProtectedResourceWithBearerToken extends AbstractCallProtectedR
 	@PostEnvironment(required = "resource_endpoint_response_headers", strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+		if (requestHeaders != null) {
+			throw error("WIP: CallProtectedResourceWithBearerToken called with custom headers in environment");
+		}
+
 		return callProtectedResource(env);
 	}
 
