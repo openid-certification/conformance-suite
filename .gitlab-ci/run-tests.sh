@@ -22,15 +22,6 @@ echo
 # 3. do "source demo-environ.sh" (or whichever environment you want to run against)
 # (to run against your local deployment, just don't do the 'source' command)
 
-export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
-export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
-export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
-export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
-export BRAZIL_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/consents/v1/consents'
-export BRAZIL_PAYMENTS_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/payments/v1/consents'
-export BRAZIL_ACCOUNTS_ENDPOINT='test-mtls/a/fintech-clienttest/accounts/v1/accounts'
-export BRAZIL_PAYMENT_INIT_ENDPOINT='test-mtls/a/fintech-clienttest/payments/v1/pix/payments'
-
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
