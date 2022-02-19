@@ -433,8 +433,6 @@ def show_plan_results(plan_result, analyzed_result):
 
     counts_unexpected = detail_plan_result['counts_unexpected']
 
-    print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
-
     for moduledict in plan_modules:
         module_name = get_string_name_for_module_with_variant(moduledict)
         if module_name in ignored_modules:
@@ -1095,6 +1093,7 @@ async def main():
     did_not_complete = False
     failed_plan_results = []
     for result in results:
+        print('\n\nResults for {} with configuration {}:'.format(plan_result['test_plan'], plan_result['config_file']))
         plan_result = analyze_plan_results(result, expected_failures_list, expected_skips_list)
         show_plan_results(result, plan_result)
         plan_did_not_complete = plan_result['plan_did_not_complete']
