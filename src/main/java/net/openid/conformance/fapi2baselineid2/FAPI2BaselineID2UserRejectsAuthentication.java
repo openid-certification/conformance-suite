@@ -52,6 +52,9 @@ public class FAPI2BaselineID2UserRejectsAuthentication extends AbstractFAPI2Base
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+		if (isSecondClient()) {
+			env.putBoolean(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.expectDummy1Dummy2Key, true);
+		}
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(ExpectAccessDeniedErrorFromAuthorizationEndpointDueToUserRejectingRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6", "RFC6749-4.1.2.1");
 

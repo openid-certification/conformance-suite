@@ -2,6 +2,8 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddExpToRequestObject;
+import net.openid.conformance.condition.client.AddExpValueIs70MinutesInFutureToRequestObject;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
@@ -12,14 +14,15 @@ import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RemoveAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
 import net.openid.conformance.condition.common.ExpectResponseTypeErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-ensure-response-type-code-fails",
-	displayName = "FAPI2-Baseline-ID2: ensure response_type code fails",
-	summary = "This test uses response_type=code in the authorization request, which (as a JARM response has not been requested) is not permitted in FAPI1-Advanced - only the hybrid flow ('response_type=code id_token') or JARM ('response_type=code&response_mode=jwt') is allowed. The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response, or an error could be returned from the PAR endpoint.",
+	testName = "fapi2-baseline-id2-ensure-response-type-code-idtoken-fails",
+	displayName = "FAPI2-Baseline-ID2: ensure response_type code id_token fails",
+	summary = "This test uses response_type=code id_token in the authorization request, which is not permitted in FAPI2-Baseline as it would return an id_token via the browser where it may be leaked - only the authorization code flow ('response_type=code'). The authorization server should show an error message that the response type is unsupported or the request is invalid (a screenshot of which should be uploaded) or the user should be redirected back to the conformance suite with a correct error response, or an error could be returned from the PAR endpoint.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -38,20 +41,21 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureResponseTypeCodeFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI1-ADV-5.2.2-2");
+		// see https://bitbucket.org/openid/fapi/issues/476/is-response_type-code-id_token-permitted
+		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI2-BASE-4.3.1-3");
 
 		env.putString("error_callback_placeholder", env.getString("response_type_error"));
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return super.makeCreateAuthorizationRequestObjectSteps()
-				.butFirst(condition(SetAuthorizationEndpointRequestResponseTypeToCode.class),
-						condition(RemoveAuthorizationEndpointRequestResponseMode.class));
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		return super.makeCreateAuthorizationRequestSteps()
+			.replace(SetAuthorizationEndpointRequestResponseTypeToCode.class,
+				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2BASE-4.3.1-3"));
 	}
 
 	@Override

@@ -80,23 +80,6 @@ public abstract class AbstractFAPI2BaselineID2EnsureRequestObjectWithoutState ex
 
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		if (!jarm) {
-			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
-
-			// save the id_token returned from the authorization endpoint
-			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
-
-			performIdTokenValidation();
-
-			// s_hash must not be returned, as AS must ignore the state parameter outside the request object
-			callAndContinueOnFailure(VerifyNoSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-10");
-
-			callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		}
-
 		performPostAuthorizationFlow();
 	}
 }

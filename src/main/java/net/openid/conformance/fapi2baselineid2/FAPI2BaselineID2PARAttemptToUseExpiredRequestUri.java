@@ -34,12 +34,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2BaselineID2PARAttemptToUseExpiredRequestUri extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		super.onConfigure(config, baseUrl);
-		allowPlainErrorResponseForJarm = true;
-	}
-
-	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectInvalidRequestUriErrorPage.class, "PAR-2.2");
 

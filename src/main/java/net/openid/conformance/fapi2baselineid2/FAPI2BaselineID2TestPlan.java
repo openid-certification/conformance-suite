@@ -18,12 +18,11 @@ import java.util.Map;
 		FAPI2BaselineID2UserRejectsAuthentication.class,
 		FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
 
 		// Possible failure case
-		FAPI2BaselineID2EnsureResponseModeQuery.class,
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
-		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
 		FAPI2BaselineID2EnsureRequestObjectWithLongNonce.class,
 		FAPI2BaselineID2EnsureRequestObjectWithLongState.class,
 
@@ -32,7 +31,6 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutScopeFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutState.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutNonceFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI2BaselineID2EnsureExpiredRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithBadAudFails.class,
@@ -44,9 +42,10 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class,
 
 		// Negative tests for authorization request
+		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
-		FAPI2BaselineID2EnsureResponseTypeCodeFails.class,
+		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
 
 		// Negative tests for token endpoint
 		FAPI2BaselineID2EnsureClientIdInTokenEndpoint.class,
@@ -85,8 +84,6 @@ import java.util.Map;
 		FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected.class,
 		FAPI2BaselineID2PAREnsurePlainPKCERejected.class,
 
-		FAPI2BaselineID2PARRejectInvalidAudienceInRequestObject.class,
-		FAPI2BaselineID2PARRejectInvalidRedirectUri.class,
 		FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest.class,
 
 		FAPI2BaselineID2ParWithoutDuplicateParameters.class
@@ -102,8 +99,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String responseMode = v.get("fapi_response_mode");
-		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
 		switch (profile) {
@@ -112,19 +107,11 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in UK",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -143,15 +130,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				certProfile += " MTLS";
 				break;
 		}
-		switch (responseMode) {
-			case "plain_response":
-				// nothing
-				break;
-			case "jarm":
-				certProfile += ", JARM";
-				break;
-		}
-
 
 		return certProfile;
 	}

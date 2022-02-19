@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectErro
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-signed-request-object-with-RS256-fails",
@@ -34,6 +36,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2EnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
@@ -45,9 +48,6 @@ public class FAPI2BaselineID2EnsureSignedRequestObjectWithRS256Fails extends Abs
 		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
 			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
-		}
-		if(isPar) {
-			allowPlainErrorResponseForJarm = true;
 		}
 	}
 

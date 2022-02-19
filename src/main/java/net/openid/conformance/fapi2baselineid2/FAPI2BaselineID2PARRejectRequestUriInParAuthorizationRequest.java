@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
@@ -31,6 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override

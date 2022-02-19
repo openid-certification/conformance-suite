@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2baselineid2;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
@@ -52,6 +53,13 @@ public class FAPI2BaselineID2EnsureRequestObjectWithoutScopeFails extends Abstra
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
 						condition(RemoveScopeFromRequestObject.class));
+	}
+
+	@Override
+	protected void performParAuthorizationRequestFlow() {
+		JsonObject o = env.getObject("pushed_authorization_request_form_parameters");
+		o.remove("scope");
+		super.performParAuthorizationRequestFlow();
 	}
 
 	@Override

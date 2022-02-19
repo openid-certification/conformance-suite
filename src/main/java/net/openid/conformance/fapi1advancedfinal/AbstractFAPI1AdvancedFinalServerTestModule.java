@@ -75,11 +75,11 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
-	protected boolean jarm = false;
+	protected Boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
-	protected boolean isPar = false;
-	protected boolean isBrazil = false;
-	protected boolean brazilPayments = false; // whether using Brazil payments APIs
+	protected Boolean isPar;
+	protected Boolean isBrazil;
+	protected Boolean brazilPayments; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -157,9 +157,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		configureClient();
 		setupResourceEndpoint();
 
-		if (isBrazil) {
-			brazilPayments = scopeContains("payments");
-		}
+		brazilPayments = isBrazil && scopeContains("payments");
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
