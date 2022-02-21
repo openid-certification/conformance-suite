@@ -20,7 +20,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Open Insurance - Channels - Electronic Channels API test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = PlanNames.ELECTRONIC_CHANNELS_API_TEST_PLAN,
+	displayName = PlanNames.OPIN_ELECTRONIC_CHANNELS_API_TEST_PLAN,
 	summary = "Structural and logical tests for Channels - Electronic Channels API"
 )
 public class ElectronicChannelsApiTestPlan implements TestPlan {

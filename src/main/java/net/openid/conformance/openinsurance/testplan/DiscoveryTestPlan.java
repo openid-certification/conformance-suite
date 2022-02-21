@@ -2,6 +2,7 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.discovery.OutagesListValidator;
@@ -19,7 +20,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Open Insurance - Discovery API test plan",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = "Functional tests for Discovery API - based on Swagger version: 1.0.0",
+	displayName = PlanNames.OPIN_DISCOVERY_TEST_PLAN,
 	summary = "Structural and logical tests for Discovery API"
 )
 public class DiscoveryTestPlan implements TestPlan {
