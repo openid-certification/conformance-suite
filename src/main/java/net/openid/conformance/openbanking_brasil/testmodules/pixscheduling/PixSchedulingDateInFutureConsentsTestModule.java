@@ -10,9 +10,9 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-pixscheduling-in-future",
-	displayName = "Pix scheduled payment date in future",
-	summary = "Attempts to create a payment consent scheduled for a day in the future, with a payment date of tomorrow, and expects a 422 response with the error NAO_INFORMADIO",
+	testName = "payments-consents-api-pixscheduling-date-schedulefuture",
+	displayName = "Pix scheduled payment which also sends data.date field",
+	summary = "Attempts to create a payment consent scheduled with the date element present together with schedule.single.date, and expects a 422 response with the error NAO_INFORMADO",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-pixscheduling-today-date",
 	displayName = "Pix scheduled for today",
-	summary = "Attempts to create a payment consent scheduled for today, and expects a 422 response with the error AGENDAMENTO_INVALIDO",
+	summary = "Attempts to create a payment consent scheduled for today, and expects a 422 response with the error INVALID_SCHEDULE",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
