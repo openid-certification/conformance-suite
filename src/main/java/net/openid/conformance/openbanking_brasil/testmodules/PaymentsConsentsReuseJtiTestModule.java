@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
@@ -57,7 +58,13 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
+			eventLog.startBlock("Checking the self endpoint - Expecting 200, validating response");
 			call(new ValidateSelfEndpoint()
+				.insertAfter(
+					EnsureResponseCodeWas200.class, sequenceOf(
+						condition(EnsureResponseWasJwt.class),
+						condition(PaymentFetchPixPaymentsValidator.class)
+					))
 				.replace(
 					CallProtectedResourceWithBearerToken.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
