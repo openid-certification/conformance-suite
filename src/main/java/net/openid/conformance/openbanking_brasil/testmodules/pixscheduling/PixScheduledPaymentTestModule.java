@@ -13,11 +13,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "Scheduled Payment API basic test module",
 	summary = "This test is the core happy path scheduled payments test.\n\n" +
 		"Flow:\n" +
-		"Creates a payment consent scheduled for today + 350 days, POSTs to the the payment endpoint, validates the payment returned in the self object can be reached\n\n" +
+		"Creates a payment consent scheduled for today + 350 days, POSTs to the the payment endpoint, validates the payment returned in the self object can be reached, validates that the Payment will arrived at a scheduled payment confirmed status \n\n" +
 		"Required:\n" +
 		"Consent url pointing at the consent endpoint.\n" +
 		"Resource url pointing at the base url. The test appends on the required payment endpoints\n\n" +
-		"A screenshot should be uploaded showing the user is not presented with an option to select an account at the bank.",
+		"A screenshot should be uploaded showing the user is presented the information that his payment will be scheduled for 350 in the future.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -79,7 +79,9 @@ public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTe
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
+		env.putString("proceed_with_test", "true");
 		ConditionSequence preauthSteps = super.createOBBPreauthSteps()
+			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class))
 			.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
 		return preauthSteps;
 	}

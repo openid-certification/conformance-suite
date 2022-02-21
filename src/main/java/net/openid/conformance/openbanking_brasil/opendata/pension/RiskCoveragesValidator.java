@@ -60,6 +60,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new ObjectArrayField.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();

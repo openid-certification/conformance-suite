@@ -1,800 +1,111 @@
 {
     "data": {
         "brand": {
-            "name": "Bradesco Seguros S/A",
+            "name": "Organização A",
             "companies": [
                 {
-                    "name": "Bradesco Capitalização S/A",
-                    "cnpjNumber": "33010851000174",
-                    "phoneChannels": [
-                        {
-                            "identification": {
-                                "type": "OUVIDORIA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "OUVIDORIA_RECEPCAO_SUGESTOES_ELOGIOS",
-                                    "code": "11"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "OUVIDORIA_TRATAMENTO_INSATISFACAO_CONSUMIDOR_RELACAO_ATENDIMENTO_RECEBIDO_CANAIS_REGULARES_ATENDIMENTO",
-                                    "code": "13"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "OUVIDORIA_TRATAMENTO_RECLAMACOES_SOBRE_IRREGULARDADES_CONDUTA_COMPANHIA",
-                                    "code": "14"
-                                },
-                                {
-                                    "name": "OUVIDORIA_SOLUCAO_EVENTUAIS_DIVERGENCIAS_SOBRE_CONTRATO_SEGURO_CAPITALIZAÇÃO_PREVIDÊNCIA_APOS_ESGOTADOS_CANAIS_REGULARES_ATENDIMENTO_AQUELAS_ORIUNDAS_ORGAOS_REGULADORES_OU_INTEGRANTES_SISTEMA_NACIONAL_DEFESA_CONSUMIDOR",
-                                    "code": "12"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CENTRAL_TELEFONICA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
-                                    },
-                                    {
-                                        "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "RESGATE",
-                                    "code": "17"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "07:30:00",
-                                        "closingTime": "19:30:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "07:30:00",
-                                        "closingTime": "19:30:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "07:30:00",
-                                        "closingTime": "19:30:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "07:30:00",
-                                        "closingTime": "19:30:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "07:30:00",
-                                        "closingTime": "19:30:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "SAC",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Bradesco Auto/RE Cia de Seguros",
-                    "cnpjNumber": "92682038000100",
+                    "name": "Empresa A1",
+                    "cnpjNumber": "45086338000178",
+                    "urlComplementaryList": "https://empresaa1.com/branches-insurance",
                     "phoneChannels": [
                         {
                             "identification": {
                                 "type": "CENTRAL_TELEFONICA",
                                 "phones": [
                                     {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "35721199"
                                     },
                                     {
                                         "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
+                                        "areaCode": "14",
+                                        "number": "997865532"
                                     }
                                 ]
                             },
                             "services": [
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "ENDOSSO",
-                                    "code": "05"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                },
-                                {
-                                    "name": "AVISO_SINISTRO",
-                                    "code": "02"
-                                },
-                                {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
-                                {
-                                    "name": "INFORMACOES_INTERMEDIARIOS",
-                                    "code": "08"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS",
-                                    "code": "09"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CENTRAL_TELEFONICA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
-                                    },
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
-                                {
-                                    "name": "INFORMACOES_INTERMEDIARIOS",
-                                    "code": "08"
-                                },
-                                {
-                                    "name": "AVISO_SINISTRO",
-                                    "code": "02"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS",
-                                    "code": "09"
-                                },
-                                {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
-                                },
-                                {
-                                    "name": "INFORMACOES_SOBRE_SORTEIOS",
-                                    "code": "10"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "07:40:00",
-                                        "closingTime": "20:20:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CENTRAL_TELEFONICA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
-                                    },
-                                    {
-                                        "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS",
-                                    "code": "09"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CENTRAL_TELEFONICA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA", "number": "NA"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
-                                },
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Bradesco Vida e Previdência S/A",
-                    "cnpjNumber": "51990695000137",
-                    "phoneChannels": [
-                        {
-                            "identification": {
-                                "type": "SAC",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA", "number": "NA"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
-                                },
-                                {
-                                    "name": "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO",
-                                    "code": "03"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "SABADO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    },
-                                    {
-                                        "weekday": "DOMINGO",
-                                        "openingTime": "00:00:00",
-                                        "closingTime": "23:59:00"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "identification": {
-                                "type": "CENTRAL_TELEFONICA",
-                                "phones": [
-                                    {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA", "number": "NA"
-                                    },
-                                    {
-                                        "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
-                                    }
-                                ]
-                            },
-                            "services": [
-                                {
-                                    "name": "RECLAMACAO",
-                                    "code": "16"
-                                },
-                                {
-                                    "name": "SUGESTOES_ELOGIOS",
-                                    "code": "19"
-                                },
                                 {
                                     "name": "ALTERACOES_FORMA_PAGAMENTO",
                                     "code": "01"
                                 },
                                 {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
+                                    "name": "AVISO_SINISTRO",
+                                    "code": "02"
                                 },
                                 {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
-                                },
-                                {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
-                                {
-                                    "name": "RESGATE",
-                                    "code": "17"
+                                    "name": "ENDOSSO",
+                                    "code": "05"
                                 }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    }
-                                ]
-                            }
+                            ]
                         },
                         {
                             "identification": {
-                                "type": "CENTRAL_TELEFONICA",
+                                "type": "SAC",
                                 "phones": [
                                     {
-                                        "countryCallingCode": "NA",
-                                        "areaCode": "NA",
-                                        "number": "NA"
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "40044828"
                                     },
                                     {
                                         "countryCallingCode": "55",
-                                        "areaCode": "55",
-                                        "number": "08007787788"
+                                        "areaCode": "14",
+                                        "number": "40044828"
+                                    },
+                                    {
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "40044828"
                                     }
                                 ]
                             },
                             "services": [
                                 {
-                                    "name": "EFETIVACAO_APORTE",
-                                    "code": "04"
-                                },
-                                {
-                                    "name": "ENVIO_DOCUMENTOS",
-                                    "code": "06"
-                                },
-                                {
-                                    "name": "INFORMACOES_GERAIS_DUVIDAS",
-                                    "code": "07"
+                                    "name": "RECLAMACAO",
+                                    "code": "16"
                                 },
                                 {
                                     "name": "PORTABILIDADE",
                                     "code": "15"
                                 },
                                 {
-                                    "name": "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS",
-                                    "code": "18"
-                                },
+                                    "name": "ENDOSSO",
+                                    "code": "05"
+                                }
+                            ]
+                        },
+                        {
+                            "identification": {
+                                "type": "OUVIDORIA",
+                                "phones": [
+                                    {
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "40045555"
+                                    },
+                                    {
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "40045555"
+                                    },
+                                    {
+                                        "countryCallingCode": "55",
+                                        "areaCode": "14",
+                                        "number": "40045555"
+                                    }
+                                ]
+                            },
+                            "services": [
                                 {
                                     "name": "RECLAMACAO",
                                     "code": "16"
+                                },
+                                {
+                                    "name": "PORTABILIDADE",
+                                    "code": "15"
                                 }
-                            ],
-                            "availability": {
-                                "standards": [
-                                    {
-                                        "weekday": "SEGUNDA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "TERCA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUARTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "QUINTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    },
-                                    {
-                                        "weekday": "SEXTA_FEIRA",
-                                        "openingTime": "08:00:00",
-                                        "closingTime": "18:00:00"
-                                    }
-                                ]
-                            }
+                            ]
                         }
                     ]
                 }
@@ -802,14 +113,14 @@
         }
     },
     "links": {
-        "self": "http://localhost:8080/open-insurance/channels/v1/phone-channels?page=1&page-size=10",
-        "first": "http://localhost:8080/open-insurance/channels/v1/phone-channels?page=1&page-size=10",
-        "prev": "",
-        "next": "http://localhost:8080/open-insurance/channels/v1/phone-channels?page=2&page-size=10",
-        "last": "http://localhost:8080/open-insurance/channels/v1/phone-channels?page=2&page-size=10"
+        "self": "https://api.organizacao.com.br/open-insurance/channels/v1/phone-channels",
+        "first": "https://api.organizacao.com.br/open-insurance/channels/v1/phone-channels",
+        "prev": "null",
+        "next": "null",
+        "last": "https://api.organizacao.com.br/open-insurance/channels/v1/phone-channels"
     },
     "meta": {
-        "totalRecords": 18,
-        "totalPages": 2
+        "totalRecords": 1,
+        "totalPages": 1
     }
 }

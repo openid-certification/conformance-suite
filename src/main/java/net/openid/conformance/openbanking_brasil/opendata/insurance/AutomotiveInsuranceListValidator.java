@@ -57,6 +57,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 			new ObjectArrayField
 				.Builder("data")
 				.setValidator(this::assertData)
+				.mustNotBeEmpty()
 				.build());
 
 		logFinalStatus();

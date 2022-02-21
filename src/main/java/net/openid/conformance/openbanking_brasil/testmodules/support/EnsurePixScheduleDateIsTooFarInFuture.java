@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support.payments;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -9,26 +9,19 @@ import net.openid.conformance.util.JsonObjectBuilder;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
-public class EnsureScheduledPaymentDateIsToday extends AbstractCondition {
+public class EnsurePixScheduleDateIsTooFarInFuture extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonObject obj = env.getObject("consent_endpoint_request");
 
-		if(obj == null){
-			logFailure("Cannot find consent_endpoint_request object.");
-			return env;
-		}
-
-		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(370L);
 		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
 
-		log("Setting scheduled payment date to current date: " + scheduledDate);
+		log("Setting scheduled payment date to current date + 370 days: " + scheduledDate);
 		obj.addProperty("date", scheduledDate.toString());
-		logSuccess("Successfully added current date to payment schedule", obj);
-
-		return env;
+		logSuccess("Successfully created a scheduled payment date for one year and a month in the future", obj);
+		return null;
 	}
-
 }

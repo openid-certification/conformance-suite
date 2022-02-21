@@ -27,7 +27,6 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 		JsonObject paymentRequestObject = buildFromNewConfigFields(env);
 
 		env.putObject("consent_endpoint_request", paymentRequestObject);
-
 		logSuccess(args("consent_endpoint_request", paymentRequestObject));
 		return env;
 	}

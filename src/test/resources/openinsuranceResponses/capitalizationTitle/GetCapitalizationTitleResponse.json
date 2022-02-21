@@ -6,7 +6,7 @@
             {
                 "name": "ACME cap da ACME seguros",
                 "cnpjNumber": "12345678901234",
-                "product": [
+                "products": [
                     {
                         "name": "ACMEcap",
                         "code": "01234589_cap",
@@ -41,7 +41,7 @@
                             "updateIndex": [
                                 "IPCA"
                             ],
-                            "others": [
+                            "updateIndexOthers": [
                                 "Índice de atualização"
                             ],
                             "contributionAmount": {
@@ -51,7 +51,10 @@
                                 "value": 0
                             },
                             "earlyRedemption": [
-                                10
+                                {
+                                    "quota": 0,
+                                    "percentage": 0
+                                }
                             ],
                             "redemptionPercentageEndTerm": 100.002,
                             "gracePeriodRedemption": 48
@@ -67,7 +70,7 @@
                             "updateIndex": [
                                 "IPCA"
                             ],
-                            "others": [
+                            "updateIndexOthers": [
                                 "Índice de atualização"
                             ]
                         },

@@ -11,6 +11,12 @@ public class ErrorMessagesUtils {
 		return String.format("Class cast exception, expect JsonArray, but found JsonObject. " +
 			"Field: %s on the %s API response",	elementName, apiName);
 	}
+
+	public static String createArrayMustNotBeEmptyMessage(String elementName, String apiName) {
+		return String.format("Json Array must NOT be Empty." +
+				"Field: %s on the %s API response",	elementName, apiName);
+	}
+
 	public static String createQueryMessage(String elementName, String apiName) {
 		return String.format("Looking up %s on the %s API response", elementName, apiName);
 	}

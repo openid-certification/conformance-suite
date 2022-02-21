@@ -2,6 +2,7 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -17,7 +18,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Open Insurance - Channels - Branches API test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = "Functional tests for Channels - Branches API - based on Swagger version: 1.0.0",
+	displayName = PlanNames.OPIN_CHANNELS_BRANCHES_API_TEST_PLAN,
 	summary = "Structural and logical tests for Channels - Branches API"
 )
 public class BranchesTestPlan implements TestPlan {

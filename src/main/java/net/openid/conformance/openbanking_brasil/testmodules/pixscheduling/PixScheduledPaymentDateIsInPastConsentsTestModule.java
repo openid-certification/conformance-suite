@@ -1,7 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -10,9 +10,9 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "payments-consents-api-pixscheduling-date-schedulefuture",
-	displayName = "Pix scheduled payment which also sends data.date field",
-	summary = "Attempts to create a payment consent scheduled with the date element present together with schedule.single.date, and expects a 422 response with the error NAO_INFORMADO",
+	testName = "payments-consents-api-pixscheduling-in-past-date",
+	displayName = "Pix scheduled payment date in past",
+	summary = "Attempts to create a payment consent scheduled for a day in the past, with a payment date of yesterday, and expects a 422 response with the error INVALID_SCHEDULE",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -28,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilOrganizationId"
 	}
 )
-public class PixSchedulingDateInFutureConsentsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PixScheduledPaymentDateIsInPastConsentsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
@@ -45,15 +45,19 @@ public class PixSchedulingDateInFutureConsentsTestModule extends AbstractClientC
 		runInBlock("Validate payment initiation consent", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilGeneratePaymentConsentRequest.class);
-			callAndStopOnFailure(EnsurePaymentDateIsTomorrow.class);
-			callAndStopOnFailure(EnsureScheduledPaymentDateIsTomorrow.class);
+			eventLog.startBlock("Setting payment schedule date to be in the past");
+			callAndStopOnFailure(EnsurePixScheduleDateIsInPast.class);
+			callAndStopOnFailure(RemovePaymentDateFromConsentRequest.class);
 
 			call(new SignedPaymentConsentSequence()
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class)));
-
-			callAndStopOnFailure(EnsureConsentErrorWasNaoInformadio.class);
+				.replace(EnsureHttpStatusCodeIs201.class,
+					sequenceOf(
+						condition(EnsureConsentResponseCodeWas422.class),
+						condition(ValidateErrorAndMetaFieldNames.class),
+						condition(EnsureConsentErrorWasInvalid_Schedule.class)
+					))
+			);
 		});
 
 	}
-
 }

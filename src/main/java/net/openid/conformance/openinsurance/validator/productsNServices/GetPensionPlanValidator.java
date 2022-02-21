@@ -17,10 +17,10 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
 import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.EXCLUDED_RISKS;
 
 /**
- * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-pensionplan.yaml
+ * Api Source: swagger/openinsurance/swagger-productsnservices-pensionplan.yaml
  * Api endpoint: /pension-plan/
- * Api version: 1.0.0
- * Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.0.2
+ * Git Hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
 
 @ApiName("ProductsNServices PensionPlan")
@@ -32,7 +32,7 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> INDEMNIFIABLE_PERIOD = Sets.newHashSet("PRAZO", "ATE_FIM_CICLO_DETERMINADO");
 	private static final Set<String> COVERAGE = Sets.newHashSet("MORTE", "INVALIDEZ");
 	private static final Set<String> ADDITIONAL = Sets.newHashSet("SORTEIO", "OUTROS");
-	private static final Set<String> UPDATE_INDEX = Sets.newHashSet("FINANCEIRA", "IGPM", "INPC");
+	private static final Set<String> UPDATE_INDEX = Sets.newHashSet("IPCA", "IGPM", "INPC");
 	private static final Set<String> PREMIUM_UPDATE_INDEX = Sets.newHashSet("IPCA", "IGPM", "INPC");
 	private static final Set<String> REFRAMING_CRITERION = Sets.newHashSet("APOS_PERIODO_ANOS", "CADA_PERIODO_ANOS", "MUDANCA_FAIXA_ETARIA", "NAO_APLICAVEL");
 	private static final Set<String> FINANCIAL_REGIME_CONTRACT_TYPE = Sets.newHashSet("REPARTICAO_SIMPLES", "REPARTICAO_CAPITAIS_COBERTURA", "CAPITALIZACAO");
@@ -166,6 +166,7 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 						new StringField
 							.Builder("updateIndex")
 							.setEnums(UPDATE_INDEX)
+							.setOptional(parts.isOptionalFieldByFlag(products,"financialRegimeContractType","CAPITALIZACAO"))
 							.build());
 				})
 				.setOptional()
@@ -204,9 +205,29 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new ObjectField
 				.Builder("reclaim")
-				.setValidator(this::assertReclaim)
+				.setValidator(reclaim -> {
+					assertField(reclaim,
+						new ObjectArrayField
+							.Builder("reclaimTable")
+							.setValidator(this::assertReclaimTable)
+							.setOptional(parts.isOptionalFieldByFlag(products,"financialRegimeContractType","CAPITALIZACAO"))
+							.build());
+
+					assertField(reclaim,
+						new StringField
+							.Builder("differentiatedPercentage")
+							.setOptional()
+							.build());
+
+					assertField(reclaim,
+						new StringField
+							.Builder("gracePeriod")
+							.build());
+				})
 				.setOptional()
 				.build());
+
+
 
 		assertField(products,
 			new StringField
@@ -269,37 +290,20 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 				.build());
 	}
 
-	private void assertReclaim(JsonObject reclaim) {
-		assertField(reclaim,
-			new ObjectArrayField
-				.Builder("reclaimTable")
-				.setValidator(reclaimTable -> {
-					assertField(reclaimTable,
-						new IntField
-							.Builder("initialMonthRange")
-							.build());
-
-					assertField(reclaimTable,
-						new IntField
-							.Builder("finalMonthRange")
-							.build());
-
-					assertField(reclaimTable,
-						new StringField
-							.Builder("percentage")
-							.build());
-				})
+	private void assertReclaimTable(JsonObject reclaimTable) {
+		assertField(reclaimTable,
+			new IntField
+				.Builder("initialMonthRange")
 				.build());
 
-		assertField(reclaim,
-			new StringField
-				.Builder("differentiatedPercentage")
-				.setOptional()
+		assertField(reclaimTable,
+			new IntField
+				.Builder("finalMonthRange")
 				.build());
 
-		assertField(reclaim,
+		assertField(reclaimTable,
 			new StringField
-				.Builder("gracePeriod")
+				.Builder("percentage")
 				.build());
 	}
 
@@ -378,6 +382,5 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("excludedRiskURL")
 				.build());
-
 	}
 }
