@@ -31,14 +31,13 @@ public class GeneratePaymentRequestEntityClaims extends AbstractCondition {
 	}
 
 	private JsonObject buildFromNewConfigFields(Environment env) {
-		String remittanceInformation = extractOrDie(env, "resource", "brazilPixPayment.data.remittanceInformation");
 		String cnpjInitiator = extractOrDie(env, "resource", "brazilPixPayment.data.cnpjInitiator");
 		String paymentAmount = extractOrDie(env, "resource", "brazilPixPayment.data.payment.amount");
 
 		JsonObjectBuilder paymentRequestObject = new JsonObjectBuilder()
 			.addField("data.proxy", DictHomologKeys.PROXY_EMAIL)
 			.addField("data.localInstrument", DictHomologKeys.PROXY_EMAIL_STANDARD_LOCALINSTRUMENT)
-			.addField("data.remittanceInformation", remittanceInformation)
+			.addField("data.remittanceInformation", DictHomologKeys.PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION)
 
 			.addFields( "data.creditorAccount",
 				Map.of("ispb", DictHomologKeys.PROXY_EMAIL_ISPB,
