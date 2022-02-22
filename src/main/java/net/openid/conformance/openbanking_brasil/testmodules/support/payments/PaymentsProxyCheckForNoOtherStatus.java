@@ -8,13 +8,13 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.List;
 import java.util.Map;
 
-public class PaymentsProxyCheckForScheduledAcceptedStatus extends AbstractJsonAssertingCondition {
+public class PaymentsProxyCheckForNoOtherStatus extends AbstractJsonAssertingCondition {
 
 	private static final List<String> ACCEPTED_STATUSES = List.of(
 		"SASC",
-		"SASP",
-		"ACCC",
-		"PNDG"
+		"PNDG",
+		"PART",
+		"SASP"
 	);
 
 	@Override
@@ -23,13 +23,8 @@ public class PaymentsProxyCheckForScheduledAcceptedStatus extends AbstractJsonAs
 		JsonObject data = responseBody.getAsJsonObject("data");
 		String status = OIDFJSON.getString(data.get("status"));
 
-		boolean checkStatus = env.getBoolean("payment_proxy_check_for_reject");
-
-		log(checkStatus ? "Configured to check status" : "Not configured to check status", Map.of("status", status));
-		if (checkStatus) {
-			if (ACCEPTED_STATUSES.contains(status)) {
-				env.putBoolean("payment_accepted", true);
-			}
+		if (!ACCEPTED_STATUSES.contains(status)) {
+			throw error("Unaccaptable status returned", Map.of("status", status));
 		}
 		return env;
 	}

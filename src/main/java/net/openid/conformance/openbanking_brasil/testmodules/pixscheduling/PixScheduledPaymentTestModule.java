@@ -1,10 +1,15 @@
 package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureScheduledPaymentDateIsTodayPlus350;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.FAPIBrazilGeneratePaymentConsentRequest;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GeneratePaymentRequestEntityClaims;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -35,7 +40,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilOrganizationId"
 	}
 )
-public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTestModule {
+public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule {
 
 	@Override
 	protected void validateClientConfiguration() {
@@ -62,9 +67,6 @@ public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTe
 				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
 				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
-			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
-			});
 			call(pixSequence);
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();
@@ -73,14 +75,9 @@ public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTe
 	}
 
 	@Override
-	protected void configureDictInfo() {
-
-	}
-
-	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps = super.createOBBPreauthSteps()
+		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication)
 			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class))
 			.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
 		return preauthSteps;
@@ -115,10 +112,17 @@ public class PixScheduledPaymentTestModule extends AbstractDictVerifiedPaymentTe
 	}
 
 	@Override
-	protected ConditionSequence statusValidationSequence() {
-		return sequenceOf(
-			condition(PaymentsProxyCheckForScheduledAcceptedStatus.class),
-			condition(PaymentsProxyCheckForInvalidStatus.class));
+	protected void validateResponse() {
+		repeatSequence(() -> new PollForScheduledPaymentChangeSequence())
+			.untilTrue("payment_accepted")
+			.trailingPause(30)
+			.times(10)
+			.onTimeout(sequenceOf(
+					condition(TestTimedOut.class),
+					condition(ChuckWarning.class)))
+			.run();
+
+		fireTestFinished();
 	}
 
 }

@@ -8,8 +8,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JsonObjectBuilder;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,7 +38,6 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 		String debtorAccountIssuer = extractOrDie(env, "resource", "brazilPaymentConsent.data.debtorAccount.issuer");
 		String debtorAccountNumber = extractOrDie(env, "resource", "brazilPaymentConsent.data.debtorAccount.number");
 		String debtorAccountType = extractOrDie(env, "resource", "brazilPaymentConsent.data.debtorAccount.accountType");
-		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 
 		JsonObjectBuilder consentRequestObject = new JsonObjectBuilder()
 			.addFields( "data.loggedUser.document", Map.of("identification", identification, "rel", rel))
@@ -56,8 +53,8 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 
 
 			.addFields( "data.payment", Map.of("type", "PIX",
-				"date", currentDate.toString(),
 				"currency", "BRL",
+				"igbeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE,
 				"amount", paymentAmount))
 
 			.addFields( "data.payment.details", Map.of("localInstrument", DictHomologKeys.PROXY_EMAIL_STANDARD_LOCALINSTRUMENT,
