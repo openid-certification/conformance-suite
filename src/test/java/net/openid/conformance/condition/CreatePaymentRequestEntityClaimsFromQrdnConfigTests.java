@@ -55,9 +55,9 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfigTests {
 	}
 
 	@Test
-	public void igbeTownIsCopiedIfPresent() throws IOException {
+	public void ibgeTownIsCopiedIfPresent() throws IOException {
 
-		String rawJson = IOUtils.resourceToString("qrdn_consent_config_igbe.json", Charset.defaultCharset(), getClass().getClassLoader());
+		String rawJson = IOUtils.resourceToString("qrdn_consent_config_ibge.json", Charset.defaultCharset(), getClass().getClassLoader());
 
 		JsonObject qrdnConsentConfig = new JsonParser().parse(rawJson).getAsJsonObject();
 

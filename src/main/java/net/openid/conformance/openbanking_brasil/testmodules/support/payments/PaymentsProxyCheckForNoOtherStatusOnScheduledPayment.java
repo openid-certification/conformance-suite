@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.List;
 import java.util.Map;
 
-public class PaymentsProxyCheckForNoOtherStatus extends AbstractJsonAssertingCondition {
+public class PaymentsProxyCheckForNoOtherStatusOnScheduledPayment extends AbstractJsonAssertingCondition {
 
 	private static final List<String> ACCEPTED_STATUSES = List.of(
 		"SASC",

@@ -11,10 +11,7 @@ import java.util.Map;
 public class PaymentsProxyCheckForScheduledAcceptedStatus extends AbstractJsonAssertingCondition {
 
 	private static final List<String> ACCEPTED_STATUSES = List.of(
-		"SASC",
-		"SASP",
-		"ACCC",
-		"PNDG"
+		"SASC"
 	);
 
 	@Override
