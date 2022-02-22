@@ -232,7 +232,7 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 				.setOptional()
 				.build());
 
-		assertField(identification, Fields.name().setMaxLength(100).build());
+		assertField(identification, Fields.name().setMaxLength(100).setOptional().build());
 
 	}
 
