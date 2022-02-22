@@ -257,7 +257,6 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 							.setEnums(CONTRIBUTION_PERIODICITY)
 							.build());
 				})
-				.setOptional()
 				.build());
 
 		assertField(products,
