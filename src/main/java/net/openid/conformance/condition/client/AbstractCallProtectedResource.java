@@ -9,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -69,6 +71,10 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		return new HttpHeaders();
 	}
 
+	protected boolean treatAllHttpStatusAsSuccess() {
+		return false;
+	}
+
 	protected MediaType getMediaType(Environment env) {
 
 		return MediaType.APPLICATION_FORM_URLENCODED;
@@ -84,6 +90,17 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
+
+			if (treatAllHttpStatusAsSuccess()) {
+				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+					@Override
+					public boolean hasError(ClientHttpResponse response) throws IOException {
+						// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+						// status code meaning the rest of our code can handle http status codes how it likes
+						return false;
+					}
+				});
+			}
 
 			HttpMethod method = getMethod(env);
 			HttpHeaders headers = getHeaders(env);
