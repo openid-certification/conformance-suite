@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForNoOtherStatus;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForNoOtherStatusOnScheduledPayment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForScheduledAcceptedStatus;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -42,7 +42,7 @@ public class PollForScheduledPaymentChangeSequence extends AbstractConditionSequ
 
 		callAndContinueOnFailure(CheckPollStatus.class);
 		callAndContinueOnFailure(PaymentsProxyCheckForScheduledAcceptedStatus.class);
-		callAndContinueOnFailure(PaymentsProxyCheckForNoOtherStatus.class);
+		callAndContinueOnFailure(PaymentsProxyCheckForNoOtherStatusOnScheduledPayment.class);
 	}
 
 }

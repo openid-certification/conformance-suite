@@ -54,7 +54,7 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 
 			.addFields( "data.payment", Map.of("type", "PIX",
 				"currency", "BRL",
-				"igbeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE,
+				"ibgeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE,
 				"amount", paymentAmount))
 
 			.addFields( "data.payment.details", Map.of("localInstrument", DictHomologKeys.PROXY_EMAIL_STANDARD_LOCALINSTRUMENT,

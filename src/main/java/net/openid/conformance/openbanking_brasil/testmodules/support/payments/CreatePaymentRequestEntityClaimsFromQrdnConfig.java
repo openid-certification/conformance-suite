@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -33,9 +32,9 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 		JsonObject data = new JsonObject();
 		data.addProperty("localInstrument", "QRDN");
 		data.addProperty("cnpjInitiator", cnpj);
-		JsonElement igbeTownCodeElement = paymentObject.get("ibgeTownCode");
-		if(igbeTownCodeElement != null) {
-			data.add("ibgeTownCode", igbeTownCodeElement);
+		JsonElement ibgeTownCodeElement = paymentObject.get("ibgeTownCode");
+		if(ibgeTownCodeElement != null) {
+			data.add("ibgeTownCode", ibgeTownCodeElement);
 		}
 		data.add("proxy", get(paymentDetails, "proxy"));
 		data.add("qrCode", get(paymentDetails, "qrCode"));
