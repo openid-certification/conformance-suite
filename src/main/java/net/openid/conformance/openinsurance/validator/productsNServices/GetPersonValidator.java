@@ -19,8 +19,8 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
 /**
  * Api Source: swagger/openinsurance/swagger-productsnservices-person.yaml
  * Api endpoint: /person/
- * Api version: 1.0.2
- * Git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.0.3
+ * Git hash: b62c9f60c0df42cb67387ec0dd0b6d0fd986478a
  */
 
 @ApiName("ProductsNServices Person")
@@ -188,6 +188,7 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 						new StringField
 							.Builder("benefitUpdateIndex")
 							.setEnums(PMBAC_UPDATE_INDEX)
+							.setOptional()
 							.build());
 				})
 				.setOptional()

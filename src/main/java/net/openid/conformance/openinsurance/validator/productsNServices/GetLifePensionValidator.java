@@ -16,8 +16,8 @@ import java.util.Set;
 /**
  * Api Source: swagger/openinsurance/swagger-productsnservices-lifepension.yaml
  * Api endpoint: /life-pension/
- * Api version: 1.0.2
- * Api Git Hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.0.3
+ * Api Git Hash: b62c9f60c0df42cb67387ec0dd0b6d0fd986478a
  */
 
 @ApiName("ProductsNServices Life Pension")
@@ -272,7 +272,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("updateIndex")
 				.setEnums(UPDATE_INDEX)
-				.setMaxLength(12)
+				.setMaxLength(13)
 				.build());
 
 		assertField(defferalPeriod,
