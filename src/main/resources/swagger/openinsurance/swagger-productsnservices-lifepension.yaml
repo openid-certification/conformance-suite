@@ -3,7 +3,7 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description:
     API de informações de Planos de Previdência e Seguros de Pessoas ambos com cobertura por sobrevivência (excluindo seguros Dotais). Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.1 do manual de escopo de dados.
-  version: 1.0.2
+  version: 1.0.3
   contact:
     url: 'https://openinsurance.susep.gov.br'
 servers:
@@ -212,7 +212,7 @@ components:
           type: string
           description: Indice garantido que remunera o plano durante a fase de diferimento/ acumulação.
           example: IPCA
-          maxLength: 12
+          maxLength: 13
           enum: [IPCA,IGP-M,INPC, NAO_SE_APLICA]
         otherMinimumPerformanceGarantees:
           type: string

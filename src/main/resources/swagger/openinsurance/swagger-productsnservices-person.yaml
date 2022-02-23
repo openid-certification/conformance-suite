@@ -1,16 +1,16 @@
 openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
-  description: 
+  description:
     Obtém a lista dos produtos Seguros de Pessoas – Coberturas de Risco (excluindo VGBL).
-  version: 1.0.2
+  version: 1.0.3
   contact:
     url: 'https://http://novosite.susep.gov.br'
 servers:
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
     description: Servidor de Produção
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-    description: Servidor de Homologação  
+    description: Servidor de Homologação
 tags:
 - name: "person"
 paths:
@@ -18,7 +18,7 @@ paths:
     get:
       tags:
         - person
-      summary: Obtém a lista dos produtos do tipo seguro de pessoas. 
+      summary: Obtém a lista dos produtos do tipo seguro de pessoas.
       description: "Obtém a lista dos produtos do tipo seguro de pessoas."
       operationId: "getPerson"
       parameters:
@@ -54,7 +54,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
         default:
-          $ref: '#/components/schemas/ResponsePersonList'               
+          $ref: '#/components/schemas/ResponsePersonList'
 components:
   schemas:
     ResponsePersonList:
@@ -64,7 +64,7 @@ components:
        - links
        - meta
       properties:
-       data: 
+       data:
         type: object
         required:
           - brand
@@ -87,7 +87,7 @@ components:
           description: Nome da marca reportada pelo participante do Open Insurance. O conceito a que se refere a marca é em essência uma promessa das sociedades sob ela em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes.
           example: Marca
         companies:
-            $ref: '#/components/schemas/PersonCompany'  
+            $ref: '#/components/schemas/PersonCompany'
     PersonCompany:
       type: array
       items:
@@ -105,7 +105,7 @@ components:
             type: string
             description: CNPJ da sociedade pertencente à marca.
             example: 45086338000178
-          products:          
+          products:
             $ref: '#/components/schemas/PersonProducts'
     PersonProducts:
       type: array
@@ -116,7 +116,7 @@ components:
           - name
           - code
           - category
-          - insuranceModality 
+          - insuranceModality
           - coverages
           - additional
           - termsAndConditions
@@ -145,7 +145,7 @@ components:
           insuranceModality:
             type: string
             example: FUNERAL
-            enum: [FUNERAL, PRESTAMISTA, VIAGEM, EDUCACIONAL, DOTAL, ACIDENTES_PESSOAIS, VIDA, PERDA_CERTIFICADO_HABILITACAOO_VOO, DOENCAS_GRAVES_DOENCA_TERMINAL, DESEMPREGO_PERDA_RENDA, EVENTOS_ALEATORIOS] 
+            enum: [FUNERAL, PRESTAMISTA, VIAGEM, EDUCACIONAL, DOTAL, ACIDENTES_PESSOAIS, VIDA, PERDA_CERTIFICADO_HABILITACAOO_VOO, DOENCAS_GRAVES_DOENCA_TERMINAL, DESEMPREGO_PERDA_RENDA, EVENTOS_ALEATORIOS]
           coverages:
             type: array
             items:
@@ -202,17 +202,17 @@ components:
                         TRANSLADO_MEDICO,
                         TRANSLADO_CORPO,
                         VERBA_RESCISORIA,
-                        OUTRAS]                
+                        OUTRAS]
                 coverageOthers:
                   type: array
                   items:
                     type: string
                 coverageAttributes:
                   $ref: '#/components/schemas/PersonCoverageAttributes'
-          assistanceType:        
+          assistanceType:
             type: array
-            description: Listagem dos serviços de assistências complementares disponíveis vinculados ao produto. Deve ser padronizada na proposta técnica submetida pela Estrutura Inicial de  Governança para observância comum por todas as sociedades participantes 
-            items:  
+            description: Listagem dos serviços de assistências complementares disponíveis vinculados ao produto. Deve ser padronizada na proposta técnica submetida pela Estrutura Inicial de  Governança para observância comum por todas as sociedades participantes
+            items:
               type: string
               enum: [ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA,
 ARQUITETO_VIRTUAL,
@@ -269,21 +269,21 @@ SUSTENTAVEL_DESCARTE_ECOLOGICO,
 TELEMEDICINA,
 VIAGEM,
 VITIMA,
-OUTROS]  
-          additional:         
+OUTROS]
+          additional:
             type: array
             items:
               type: string
-              enum: [SORTEIO , SERVICOS_ASSISTENCIAS_COMPLEMENTARES_PAGO , SERVICOS_ASSISTENCIA_COMPLEMENTARES_GRATUITO, OUTROS, NAO_HA] 
+              enum: [SORTEIO , SERVICOS_ASSISTENCIAS_COMPLEMENTARES_PAGO , SERVICOS_ASSISTENCIA_COMPLEMENTARES_GRATUITO, OUTROS, NAO_HA]
           assistanceTypeOthers:
             type: array
             items:
               type: string
-              description: Campo a ser preenchido pelas participantes quando houver ‘Outros’ no campo ‘Tipo de Assistência’   
+              description: Campo a ser preenchido pelas participantes quando houver ‘Outros’ no campo ‘Tipo de Assistência’
           termsAndConditions:
             type: array
             items:
-              $ref: '#/components/schemas/PersonTermsAndCondition' 
+              $ref: '#/components/schemas/PersonTermsAndCondition'
           globalCapital:
             type: boolean
             description: Seguro de pessoas com capital global modalidade de contratação coletiva da cobertura de risco, respeitados os critérios técnico-operacionais, forma e limites fixados pela SUSEP, segundo a qual o valor do capital segurado referente a cada componente sofrerá variações decorrentes de mudanças na composição do grupo segurado
@@ -291,7 +291,7 @@ OUTROS]
             type: array
             items:
               type: string
-              enum: [VITALICIA, TEMPORARIA_PRAZO_FIXO, TEMPORARIA_INTERMITENTE]  
+              enum: [VITALICIA, TEMPORARIA_PRAZO_FIXO, TEMPORARIA_INTERMITENTE]
           pmbacRemuneration:
             $ref: '#/components/schemas/PersonPmbacRemuneration'
           benefitRecalculation:
@@ -300,8 +300,8 @@ OUTROS]
             $ref: '#/components/schemas/PersonAgeAdjustment'
           contractType:
             type: string
-            description: Regime Financeiro  
-            enum: [REPARTICAO_SIMPLES, REPARTICAO_CAPITAIS, CAPITALIZACAO ] 
+            description: Regime Financeiro
+            enum: [REPARTICAO_SIMPLES, REPARTICAO_CAPITAIS, CAPITALIZACAO ]
           reclaim:
             $ref: '#/components/schemas/PersonReclaim'
           otherGuaranteedValues:
@@ -315,10 +315,10 @@ OUTROS]
             description: Prazo de carência em dias para Portabilidade
           indemnityPaymentMethod:
             type: array
-            items:  
+            items:
               type: string
               description: Modalidade de pagamento da indenização
-              enum: [UNICO, SOB_FORMA_DE_RENDA]  
+              enum: [UNICO, SOB_FORMA_DE_RENDA]
           indemnityPaymentIncome:
             type: array
             items:
@@ -340,10 +340,10 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           targetAudience:
             type: string
             enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
-    PersonTermsAndCondition:     
+    PersonTermsAndCondition:
       type: object
       required:
-        - susepProcessNumber    
+        - susepProcessNumber
         - definition
       properties:
         susepProcessNumber:
@@ -358,11 +358,11 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
         - code
         - description
       properties:
-        code: 
+        code:
           type: string
           description: Tipo unidade de medida.
           example: R$
-        description: 
+        description:
           type: string
           description: Descrição da unidade de medida
           example: description
@@ -407,31 +407,31 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
     PersonCoverageAttributes:
       type: object
       required:
-        - indemnityPaymentMethod    
+        - indemnityPaymentMethod
         - indemnityPaymentFrequency
         - minValue
         - maxValue
         - indemnifiablePeriod
         - maximumQtyIndemnifiableInstallments
         - currency
-        - gracePeriod  
-        - deductibleDays 
-        - deductibleBRL    
+        - gracePeriod
+        - deductibleDays
+        - deductibleBRL
         - excludedRisks
-        - coverageGroup      
+        - coverageGroup
         - allowApartPurchase
         - minCoverageGroupRequired
       properties:
         indemnityPaymentMethod:
            type: array
            description: Listagem da forma de pagamento da indenização para cada combinação de  modalidade/cobertura do produto
-           items:  
+           items:
             type: string
             example: PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO
             enum: [PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO, REEMBOLSO_DESPESAS, PRESTACAO_SERVICOS]
         indemnityPaymentFrequency:
           type: array
-          description: Listagem de tipos de frequência de pagamento de indenização para cada combinação de modalidade/cobertura do produto 
+          description: Listagem de tipos de frequência de pagamento de indenização para cada combinação de modalidade/cobertura do produto
           items:
            type: string
            example: INDENIZACAO_UNICA
@@ -448,7 +448,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
            $ref: '#/components/schemas/PersonCoverageAttibutesDetails'
         indemnifiablePeriod:
           type: array
-          description: Listagem de período indenizável para cada combinação de modalidade/cobertura do produto 
+          description: Listagem de período indenizável para cada combinação de modalidade/cobertura do produto
           items:
            type: string
            example: ATE_FIM_CICLO_DETERMINADO
@@ -459,7 +459,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           type: string
           description: Moeda sobre a qual a cobertura se refere. De acordo com ISO-4217.
           example: BRL
-          enum: [AFN,ALL,DZD,USD,EUR,AOA,XCD,XCD,ARS,AMD,AWG,AUD,EUR,AZN,BSD,BHD,BDT,BBD,BYN,EUR,BZD,XOF,BMD,BTN,BOB,BOV,USD,BAM,BWP,NOK,BRL,USD,BND,BGN,XOF,BIF,CVE,KHR,XAF,CAD,KYD,XAF,XAF,CLF,CLP,CNY,AUD,AUD,COP,COU,KMF,CDF,XAF,NZD,CRC,HRK,CUC,CUP,ANG,EUR,CZK,XOF,DKK,DJF,XCD,DOP,USD,EGP,SVC,USD,XAF,ERN,EUR,ETB,EUR,FKP,DKK,FJD,EUR,EUR,EUR,XPF,EUR,XAF,GMD,GEL,EUR,GHS,GIP,EUR,DKK,XCD,EUR,USD,GTQ,GBP,GNF,XOF,GYD,HTG,USD,AUD,EUR,HNL,HKD,HUF,ISK,INR,IDR,XDR,IRR,IQD,EUR,GBP,ILS,EUR,JMD,JPY,GBP,JOD,KZT,KES,AUD,KPW,KRW,KWD,KGS,LAK,EUR,LBP,LSL,ZAR,LRD,LYD,CHF,EUR,EUR,MOP,MGA,MWK,MYR,MVR,XOF,EUR,USD,EUR,MRU,MUR,EUR,XUA,MXN,MXV,USD,MDL,EUR,MNT,EUR,XCD,MAD,MZN,MMK,NAD,ZAR,AUD,NPR,EUR,XPF,NZD,NIO,XOF,NGN,NZD,AUD,USD,NOK,OMR,PKR,USD,PAB,USD,PGK,PYG,PEN,PHP,NZD,PLN,EUR,USD,QAR,MKD,RON,RUB,RWF,EUR,EUR,SHP,XCD,XCD,EUR,EUR,XCD,WST,EUR,STN,SAR,XOF,RSD,SCR,SLL,SGD,ANG,XSU,EUR,EUR,SBD,SOS,ZAR,SSP,EUR,LKR,SDG,SRD,NOK,SZL,SEK,CHE,CHF,CHW,SYP,TWD,TJS,TZS,THB,USD,XOF,NZD,TOP,TTD,TND,TRY,TMT,USD,AUD,UGX,UAH,AED,GBP,USD,USD,USN,UYI,UYU,UZS,VUV,VEF,VND,USD,USD,XPF,MAD,YER,ZMW,ZWL]   
+          enum: [AFN,ALL,DZD,USD,EUR,AOA,XCD,XCD,ARS,AMD,AWG,AUD,EUR,AZN,BSD,BHD,BDT,BBD,BYN,EUR,BZD,XOF,BMD,BTN,BOB,BOV,USD,BAM,BWP,NOK,BRL,USD,BND,BGN,XOF,BIF,CVE,KHR,XAF,CAD,KYD,XAF,XAF,CLF,CLP,CNY,AUD,AUD,COP,COU,KMF,CDF,XAF,NZD,CRC,HRK,CUC,CUP,ANG,EUR,CZK,XOF,DKK,DJF,XCD,DOP,USD,EGP,SVC,USD,XAF,ERN,EUR,ETB,EUR,FKP,DKK,FJD,EUR,EUR,EUR,XPF,EUR,XAF,GMD,GEL,EUR,GHS,GIP,EUR,DKK,XCD,EUR,USD,GTQ,GBP,GNF,XOF,GYD,HTG,USD,AUD,EUR,HNL,HKD,HUF,ISK,INR,IDR,XDR,IRR,IQD,EUR,GBP,ILS,EUR,JMD,JPY,GBP,JOD,KZT,KES,AUD,KPW,KRW,KWD,KGS,LAK,EUR,LBP,LSL,ZAR,LRD,LYD,CHF,EUR,EUR,MOP,MGA,MWK,MYR,MVR,XOF,EUR,USD,EUR,MRU,MUR,EUR,XUA,MXN,MXV,USD,MDL,EUR,MNT,EUR,XCD,MAD,MZN,MMK,NAD,ZAR,AUD,NPR,EUR,XPF,NZD,NIO,XOF,NGN,NZD,AUD,USD,NOK,OMR,PKR,USD,PAB,USD,PGK,PYG,PEN,PHP,NZD,PLN,EUR,USD,QAR,MKD,RON,RUB,RWF,EUR,EUR,SHP,XCD,XCD,EUR,EUR,XCD,WST,EUR,STN,SAR,XOF,RSD,SCR,SLL,SGD,ANG,XSU,EUR,EUR,SBD,SOS,ZAR,SSP,EUR,LKR,SDG,SRD,NOK,SZL,SEK,CHE,CHF,CHW,SYP,TWD,TJS,TZS,THB,USD,XOF,NZD,TOP,TTD,TND,TRY,TMT,USD,AUD,UGX,UAH,AED,GBP,USD,USD,USN,UYI,UYU,UZS,VUV,VEF,VND,USD,USD,XPF,MAD,YER,ZMW,ZWL]
         gracePeriod:
           $ref: '#/components/schemas/PersonGracePeriodUnit'
         differentiatedGracePeriod:
@@ -467,7 +467,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           description: Detalhamento do período de carência diferentes para cada cobertura que exista alguma especificidade. Caso a seguradora não tenha essa diferenciação, não retornará nada no campo
         deductibleDays:
           type: integer
-          description: Listagem de franquia em dias para cada combinação de modalidade/cobertura do produto.         
+          description: Listagem de franquia em dias para cada combinação de modalidade/cobertura do produto.
         differentiatedDeductibleDays:
           type: number
           description: Detalhamento da franquia em dias diferentes para cada cobertura que exista alguma especificidade. Caso a seguradora não tenha essa diferenciação, não retornará nada no campo.
@@ -485,11 +485,11 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
            enum: [ATO_RECONHECIMENTO_PERIGOSO, ATO_ILICITO_DOLOSO_PRATICADO_SEGURADO, OPERACOES_DE_GUERRA, FURACOES_CICLONES_TERREMOTOS, MATERIAL_NUCLEAR, DOENCAS_LESOES_PREEXISTENTES, EPIDEMIAS_PANDEMIAS, SUICIDIO, ATO_ILICITO_DOLOSO_PRATICADO_CONTROLADOR, OUTROS]
         excludedRisksURL:
           type: string
-          description: Campo aberto (possibilidade de incluir URL).        
+          description: Campo aberto (possibilidade de incluir URL).
         allowApartPurchase:
           type: boolean
           description: Indicar se a cobertura pode ser contratada isoladamente ou não.
-          example: true      
+          example: true
     PersonPmbacRemuneration:
       type: object
       properties:
@@ -500,12 +500,11 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           type: string
           description: Índice utilizado na atualização da PMBaC.
           example: IPCA
-          enum: [IPCA, IGP-M,INPC]          
+          enum: [IPCA, IGP-M,INPC]
     PersonBenefitRecalculation:
       type: object
       required:
         - benefitRecalculationCriteria
-        - benefitUpdateIndex
       properties:
         benefitRecalculationCriteria:
           type: string
@@ -513,7 +512,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           enum: [INDICE, VINCULADO_SALDO_DEVEDOR, VARIAVEL_ACORDO_CRITERIO_ESPECIFICO]
         benefitUpdateIndex:
           type: string
-          description: Índice utilizado na atualização do prêmio/contribuição e do capital segurado/ benefício,  caso critério de atualização por meio de índice  
+          description: Índice utilizado na atualização do prêmio/contribuição e do capital segurado/ benefício,  caso critério de atualização por meio de índice
           enum: [IPCA, IGP-M ,INPC]
     PersonAgeAdjustment:
       type: object
@@ -573,14 +572,14 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           type: array
           items:
             type: string
-            description: Meio(s) de pagamento do Prêmio disponíveis 
+            description: Meio(s) de pagamento do Prêmio disponíveis
             example: CARTAO_CREDITO
             enum: [CARTAO_CREDITO , DEBITO_CONTA, DEBITO_CONTA_POUPANCA, BOLETO_BANCARIO, PIX, CARTAO_DEBITO, REGRA_PARCEIRO, CONSIGNACAO_FOLHA_PAGAMENTO, PONTOS_PROGRAMAS_BENEFICIO]
         frequency:
           type: array
           items:
             type: string
-            description: Periodicidade de pagamento do prêmio 
+            description: Periodicidade de pagamento do prêmio
             example: DIARIA
             enum: [DIARIA  , MENSAL , UNICA, ANUAL, TRIMESTRAL , SEMESTRAL , FRACIONADO, OUTRA]
         premiumTax:
@@ -597,7 +596,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
              enum: [COLETIVO, INDIVIDUAL]
           contractingMinRequirement:
             type: string
-    LinksPaginated: 
+    LinksPaginated:
       type: object
       properties:
         self:
@@ -668,13 +667,13 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
                 description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
                 type: string
                 pattern: '[\w\W\s]*'
-                maxLength: 2048  
+                maxLength: 2048
                 format: date-time
                 example: '2021-08-20T08:30:00Z'
             additionalProperties: false
         meta:
           $ref: '#/components/schemas/MetaPaginated'
-      additionalProperties: false    
+      additionalProperties: false
   parameters:
     page:
       name: page
@@ -691,7 +690,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
       schema:
         type: integer
         default: 10
-        minimum: 1  
+        minimum: 1
     cnpjNumber:
       name: cnpjNumber
       in: path
@@ -704,7 +703,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
       in: header
       description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
       required: true
-      schema: 
+      schema:
         type: string
         pattern: '[\w\W\s]*'
     content-Security-Policy:
@@ -754,7 +753,7 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
           authorizationUrl: 'https://authserver.example/authorization'
           tokenUrl: 'https://authserver.example/token'
           scopes:
-            financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.    
+            financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
   responses:
 
     BadRequest:
@@ -804,4 +803,4 @@ VITALICIA_REVERSIVEL_MINIMO_GARANTIDO
       content:
         application/json; charset=utf-8:
           schema:
-            $ref: '#/components/schemas/ResponseError'          
+            $ref: '#/components/schemas/ResponseError'
