@@ -27,7 +27,7 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		String endpointName = env.getString("endpoint_response", "endpoint_name");
 
 		if(statusCode == HttpStatus.SC_UNPROCESSABLE_ENTITY) {
-			logSuccess(endpointName + " endpoint returned an http status of 422 - ending test now", args("http_status", statusCode));
+			logSuccess(endpointName + " endpoint returned an http status of 422 - validating response and ending test now", args("http_status", statusCode));
 			validateErrorAndMetaFieldNames(env);
 		}
 
@@ -47,13 +47,12 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	}
 
 	private void validateErrorAndMetaFieldNames(Environment env) {
-		JsonElement apiResponse = bodyFrom(env);
-		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response_full");
-		}
 
-		if(OIDFJSON.getInt(apiResponse.getAsJsonObject().get("status")) != HttpStatus.SC_UNPROCESSABLE_ENTITY){
-			apiResponse = env.getObject("resource_endpoint_response_full");
+		JsonObject apiResponse = env.getObject("resource_endpoint_response_full");
+		log("Validating API response:", apiResponse);
+		if(OIDFJSON.getInt(apiResponse.get("status")) != 422){
+			logFailure("Couldn't find a 422 response on API response");
+			log("Additional info (consent endpoint response):", env.getObject("consent_endpoint_response_full"));
 		}
 
 		JsonObject decodedJwt;
