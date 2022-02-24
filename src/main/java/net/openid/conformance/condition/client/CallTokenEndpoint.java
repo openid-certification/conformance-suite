@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -67,8 +68,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 			// extract the headers for use (below)
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 

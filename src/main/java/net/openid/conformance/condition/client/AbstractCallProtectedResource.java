@@ -106,8 +106,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			HttpHeaders headers = getHeaders(env);
 
 			if (headers.getAccept().isEmpty()) {
-				headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			}
 
 			if (method == HttpMethod.POST && headers.getContentType() == null) {

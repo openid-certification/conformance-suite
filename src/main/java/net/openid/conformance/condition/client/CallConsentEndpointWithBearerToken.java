@@ -12,6 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -72,9 +73,8 @@ public class CallConsentEndpointWithBearerToken extends AbstractCondition {
 
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("Authorization", "Bearer " + accessToken);
 
 			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);

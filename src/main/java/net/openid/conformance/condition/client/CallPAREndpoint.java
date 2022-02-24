@@ -55,9 +55,8 @@ public class CallPAREndpoint extends AbstractCondition {
 			RestTemplate restTemplate = createRestTemplate(env);
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
 			HttpEntity <MultiValueMap <String, String>> request = new HttpEntity <>(form, headers);
 
