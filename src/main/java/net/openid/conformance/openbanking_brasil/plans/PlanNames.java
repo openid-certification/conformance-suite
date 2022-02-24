@@ -36,7 +36,7 @@ public class PlanNames {
 	public static final String PERSONAL_LOANS_API_TEST_PLAN = "Functional tests for ProductsNServices - PersonalLoans API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String UNARRANGED_ACCOUNT_BUSINESS_OVERDRAFT_API_TEST_PLAN = "Functional tests for ProductsNServices - UnarrangedAccountBusinessOverdraft API - based on Swagger version: 1.0.0 (WIP)";
 	public static final String UNARRANGED_ACCOUNT_PERSONAL_OVERDRAFT_API_TEST_PLAN = "Functional tests for ProductsNServices - UnarrangedAccountPersonalOverdraft API - based on Swagger version: 1.0.0 (WIP)";
-	public static final String PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN  = "Functional tests for ProductsNServices - Person API - based on Swagger version: 1.0.3"; // OPIN Person 
+	public static final String PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN  = "Functional tests for ProductsNServices - Person API - based on Swagger version: 1.0.3"; // OPIN Person
 	public static final String PERSON_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Pension Plan API - based on Swagger version: 1.0.2"; // OPIN Pension Plan
 	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.2"; // OPIN Auto Insurance
 	public static final String HOME_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Home Insurance API - based on Swagger version: 1.0.2"; // OPIN Home Insurance
@@ -47,4 +47,6 @@ public class PlanNames {
 	public static final String OPIN_PHONE_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Phone Channels API - based on Swagger version: 1.0.2"; // OPIN Phone Channels
 	public static final String OPIN_ADMIN_API_TEST_PLAN = "Functional tests for Admin API - based on Swagger version: 1.0.2"; // OPIN Admin
 	public static final String OPIN_DISCOVERY_TEST_PLAN = "Functional tests for Discovery API - based on Swagger version: 1.0.0"; // OPIN Discovery
+	public static final String OPIN_DISCOVERY_STATUS_TEST_PLAN = "Functional tests for Discovery Status API - based on Swagger version: 1.0.0"; // OPIN Discovery
+	public static final String OPIN_DISCOVERY_OUTAGES_TEST_PLAN = "Functional tests for Discovery  Outages API - based on Swagger version: 1.0.0"; // OPIN Discovery
 }
