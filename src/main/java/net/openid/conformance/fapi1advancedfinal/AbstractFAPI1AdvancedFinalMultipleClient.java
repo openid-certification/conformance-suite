@@ -55,7 +55,9 @@ public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractF
 		unmapClient();
 
 		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2", "RFC6750-3.1", "RFC8705-3");
+		call(exec().unmapKey("endpoint_response"));
 
 		eventLog.endBlock();
 	}
