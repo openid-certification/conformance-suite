@@ -26,7 +26,7 @@ public class DiscoveryStatusTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					DiscoveryTestPlan.DiscoveryStatusTestModule.class
+					DiscoveryStatusTestPlan.DiscoveryStatusTestModule.class
 				),
 				List.of(new Variant(ClientAuthType.class, "none"))
 			)
