@@ -50,6 +50,7 @@ public class LogEntryHelper {
 		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
+		specLinks.put("RFC6750-", "https://tools.ietf.org/html/rfc6750#section-");
 		specLinks.put("RFC6819-", "https://tools.ietf.org/html/rfc6819#section-");
 		specLinks.put("RFC7231-", "https://tools.ietf.org/html/rfc7231#section-");
 		specLinks.put("RFC7517-", "https://tools.ietf.org/html/rfc7517#section-");

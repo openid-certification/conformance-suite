@@ -446,6 +446,7 @@ var FAPI_UI = {
 			"OAuth2-iss" : "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
+			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",
 			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
 			"RFC7231-" : "https://tools.ietf.org/html/rfc7231#section-",
 			"RFC7517-" : "https://tools.ietf.org/html/rfc7517#section-",
