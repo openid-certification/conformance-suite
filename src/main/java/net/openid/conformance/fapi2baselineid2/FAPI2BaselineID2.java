@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpo
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
+import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;

@@ -1,4 +1,4 @@
-package net.openid.conformance.fapi1advancedfinal;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
