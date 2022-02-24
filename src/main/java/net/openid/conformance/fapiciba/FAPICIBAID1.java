@@ -18,7 +18,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.FAPICIBAAddAcrValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenACRClaims;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -116,7 +116,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	protected void verifyAccessTokenWithResourceEndpointDifferentAcceptHeader() {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
 		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
-		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
+		callAndStopOnFailure(SetUtf8JsonAcceptHeadersForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
 		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");

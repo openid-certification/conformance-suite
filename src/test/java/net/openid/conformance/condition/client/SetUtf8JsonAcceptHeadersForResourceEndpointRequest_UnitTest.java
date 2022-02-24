@@ -14,7 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
+public class SetUtf8JsonAcceptHeadersForResourceEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,16 +22,16 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private SetPlainJsonAcceptHeaderForResourceEndpointRequest cond;
+	private SetUtf8JsonAcceptHeadersForResourceEndpointRequest cond;
 
-	private final String expectedHeader = "application/json";
+	private final String expectedHeader = "application/json;charset=UTF-8";
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		cond = new SetPlainJsonAcceptHeaderForResourceEndpointRequest();
+		cond = new SetUtf8JsonAcceptHeadersForResourceEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -43,6 +43,7 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 		cond.execute(env);
 
 		assertThat(env.getString("resource_endpoint_request_headers", "Accept")).isEqualTo(expectedHeader);
+		assertThat(env.getString("resource_endpoint_request_headers", "Accept-Charset")).isEqualTo("UTF-8");
 	}
 
 	@Test
@@ -55,6 +56,7 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest_UnitTest {
 		cond.execute(env);
 
 		assertThat(env.getString("resource_endpoint_request_headers", "Accept")).isEqualTo(expectedHeader);
+		assertThat(env.getString("resource_endpoint_request_headers", "Accept-Charset")).isEqualTo("UTF-8");
 	}
 
 }
