@@ -49,6 +49,10 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	private void validateErrorAndMetaFieldNames(Environment env) {
 
 		JsonObject apiResponse = env.getObject("resource_endpoint_response_full");
+		if(apiResponse == null) {
+			log("resource endpoint response was null, fetch consent endpoint response");
+			apiResponse = env.getObject("consent_endpoint_response_full");
+		}
 		log("Validating API response:", apiResponse);
 		if(OIDFJSON.getInt(apiResponse.get("status")) != 422){
 			logFailure("Couldn't find a 422 response on API response");
