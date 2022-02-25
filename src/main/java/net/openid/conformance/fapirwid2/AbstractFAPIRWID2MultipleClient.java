@@ -49,7 +49,7 @@ public abstract class AbstractFAPIRWID2MultipleClient extends AbstractFAPIRWID2S
 		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
 		unmapClient();
 
-		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2", "RFC6750-3.1", "RFC8705-3");
 		call(exec().unmapKey("endpoint_response"));

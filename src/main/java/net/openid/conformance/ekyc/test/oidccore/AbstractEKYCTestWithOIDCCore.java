@@ -1,7 +1,8 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
@@ -66,7 +67,10 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTe
 	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 		processVerifiedClaimsInUserinfo();
 		eventLog.endBlock();
 	}

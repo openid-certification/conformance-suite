@@ -46,6 +46,18 @@ public class CallProtectedResource extends AbstractCallProtectedResourceWithBear
 
 		env.putObject("resource_endpoint_response_full", fullResponse);
 
+		// Temporarily store to "old" environment locations; these are deprecated and we
+		// should change conditions to use resource_endpoint_response_full to avoid
+		// having the same information stored in different places.
+		env.putString("resource_endpoint_response", responseBody);
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
+
+		// Once we've done the above, we should make this condition explicitly remove
+		// the old locations, as other conditions may still be writing to them and we
+		// don't want to accidentally use data from other responses:
+//		env.removeNativeValue("resource_endpoint_response");
+//		env.removeObject("resource_endpoint_response_headers");
+
 		logSuccess("Got a response from the resource endpoint", fullResponse);
 		return env;
 	}
