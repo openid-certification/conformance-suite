@@ -43,5 +43,32 @@
         "condition": "EnsureResponseCodeWas422",
         "expected-result": "failure",
         "comment": "Mock bank not compliant"
+    },
+    {
+        "test-name": "payments-consents-api-bad-payment-type-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "EnsureContentTypeApplicationJwt",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
+    },
+    {
+        "test-name": "payments-consents-api-bad-payment-type-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "EnsureConsentResponseCodeWas422",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
+    },
+    {
+        "test-name": "payments-consents-api-bad-payment-type-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "",
+        "condition": "ExtractSignedJwtFromResourceResponse",
+        "expected-result": "failure",
+        "comment": "Mock bank not compliant"
     }
 ]
