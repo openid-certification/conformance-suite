@@ -6,10 +6,7 @@ import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.discovery.OutagesListValidator;
-import net.openid.conformance.openinsurance.discovery.StatusListValidator;
-import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetDiscoveryOpenInsuranceApi;
-import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -18,40 +15,21 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Open Insurance - Discovery API test plan",
+	testPlanName = "Open Insurance - Discovery Outages API test plan",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = PlanNames.OPIN_DISCOVERY_TEST_PLAN,
+	displayName = PlanNames.OPIN_DISCOVERY_OUTAGES_TEST_PLAN,
 	summary = "Structural and logical tests for Discovery API"
 )
-public class DiscoveryTestPlan implements TestPlan {
+public class DiscoveryOutagesTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					DiscoveryStatusTestModule.class,
-					DiscoveryOutagesTestModule.class
+					DiscoveryOutagesTestPlan.DiscoveryOutagesTestModule.class
 				),
 				List.of(new Variant(ClientAuthType.class, "none"))
 			)
 		);
-	}
-
-	@PublishTestModule(
-		testName = "Discovery - Status API test module",
-		displayName = "Validate structure of Discovery - Status response",
-		summary = "Validate structure of Discovery - Status response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
-	)
-	public static class DiscoveryStatusTestModule extends AbstractNoAuthFunctionalTestModule {
-		@Override
-		protected void runTests() {
-			runInBlock("Validate Discovery Status response", () -> {
-				callAndStopOnFailure(PrepareToGetDiscoveryOpenInsuranceApi.class, "status");
-				preCallResource();
-				callAndContinueOnFailure(DoNotStopOnFailure.class);
-				callAndContinueOnFailure(StatusListValidator.class, Condition.ConditionResult.FAILURE);
-			});
-		}
 	}
 
 	@PublishTestModule(
@@ -72,3 +50,5 @@ public class DiscoveryTestPlan implements TestPlan {
 		}
 	}
 }
+
+
