@@ -55,8 +55,13 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		}
 		log("Validating API response:", apiResponse);
 		if(OIDFJSON.getInt(apiResponse.get("status")) != 422){
-			logFailure("Couldn't find a 422 response on API response");
+			logFailure("Couldn't find a 422 response on API response, setting it to consent response");
 			log("Additional info (consent endpoint response):", env.getObject("consent_endpoint_response_full"));
+			apiResponse = env.getObject("consent_endpoint_response_full");
+			if(OIDFJSON.getInt(apiResponse.get("status")) != 422){
+				log("Consent endpoint response is also not 422");
+				log(apiResponse);
+			}
 		}
 
 		JsonObject decodedJwt;
