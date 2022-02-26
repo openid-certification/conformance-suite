@@ -42,7 +42,7 @@ import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS2
 import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -928,7 +928,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 

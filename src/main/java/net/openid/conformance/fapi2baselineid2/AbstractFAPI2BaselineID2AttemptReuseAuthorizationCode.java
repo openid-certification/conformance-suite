@@ -1,12 +1,13 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
@@ -22,7 +23,7 @@ public abstract class AbstractFAPI2BaselineID2AttemptReuseAuthorizationCode exte
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 
-		eventLog.startBlock("Attempting reuse of authorisation code & testing if access token is revoked");
+		eventLog.startBlock("Attempting reuse of authorisation code");
 
 		waitForAmountOfTime();
 
@@ -36,8 +37,13 @@ public abstract class AbstractFAPI2BaselineID2AttemptReuseAuthorizationCode exte
 
 		verifyError();
 
-		// The AS 'SHOULD' have revoked the access token; try it again".
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
+		eventLog.startBlock("Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)");
+		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2", "RFC6750-3.1");
+
+		call(exec().unmapKey("endpoint_response"));
 
 		eventLog.endBlock();
 

@@ -2,13 +2,11 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
@@ -111,14 +109,14 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		} else {
 			callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
 		}
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}

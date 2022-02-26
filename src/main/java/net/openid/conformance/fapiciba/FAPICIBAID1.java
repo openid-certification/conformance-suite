@@ -4,8 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
+import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateLongRandomClientNotificationToken;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.FAPICIBAAddAcrValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenACRClaims;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
@@ -116,9 +117,9 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-4");
 		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI-R-6.2.2-4");
 		callAndStopOnFailure(SetPlainJsonAcceptHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "RFC7231-5.3.2");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "RFC7231-5.3.2");
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
 
@@ -149,7 +150,10 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 			unmapClient();
 
 			// Try client 2's access token with client 1's keys
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2", "RFC6750-3.1", "RFC8705-3");
+			call(exec().unmapKey("endpoint_response"));
 
 			eventLog.endBlock();
 

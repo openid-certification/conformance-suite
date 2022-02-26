@@ -2,8 +2,9 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRedirectUriQuerySuffix;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -53,7 +54,10 @@ public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractF
 		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
 		unmapClient();
 
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2", "RFC6750-3.1", "RFC8705-3");
+		call(exec().unmapKey("endpoint_response"));
 
 		eventLog.endBlock();
 	}

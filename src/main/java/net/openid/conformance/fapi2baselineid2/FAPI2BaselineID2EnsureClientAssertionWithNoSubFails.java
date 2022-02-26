@@ -53,7 +53,7 @@ public class FAPI2BaselineID2EnsureClientAssertionWithNoSubFails extends Abstrac
 	}
 
 	@Override
-	protected void requestAuthorizationCode() {
+	protected void exchangeAuthorizationCode() {
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' or 'invalid_request' error
 		 */

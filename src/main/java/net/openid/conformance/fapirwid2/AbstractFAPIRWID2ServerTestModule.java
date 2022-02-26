@@ -25,7 +25,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
@@ -38,8 +38,8 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.CheckIfPAREndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -727,7 +727,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 

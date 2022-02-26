@@ -435,7 +435,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
-		requestAuthorizationCode();
+		exchangeAuthorizationCode();
 		requestProtectedResource();
 		onPostAuthorizationFlowComplete();
 	}
@@ -464,7 +464,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void requestAuthorizationCode() {
+	protected void exchangeAuthorizationCode() {
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -636,7 +636,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			}
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 
