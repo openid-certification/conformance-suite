@@ -36,26 +36,10 @@ import javax.servlet.http.HttpSession;
 @VariantParameters({
 	ClientAuthType.class,
 	CIBAMode.class,
-	FAPI1FinalOPProfile.class,
-	FAPIAuthRequestMethod.class,
-	FAPIResponseMode.class,
-	FAPIJARMType.class
+	FAPI1FinalOPProfile.class // TODO: Keeping this rn because there are so many branches below that depend on it
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
-})
-@VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
-	"client2.client_id",
-	"client2.scope",
-	"client2.redirect_uri",
-	"client2.certificate",
-	"client2.jwks",
-	"client2.id_token_encrypted_response_alg",
-	"client2.id_token_encrypted_response_enc",
-})
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.scope",
-	"client2.scope"
 })
 public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
@@ -72,13 +56,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	// Controls which endpoints we should expose to the client
 	protected FAPI1FinalOPProfile profile;
 
-	protected FAPIAuthRequestMethod authRequestMethod;
-
-	protected FAPIResponseMode responseMode;
-
 	protected ClientAuthType clientAuthType;
 
-	protected FAPIJARMType jarmType;
+	protected CIBAMode cibaMode;
 
 	protected boolean startingShutdown = false;
 
@@ -111,10 +91,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI1FinalOPProfile.class);
-		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
-		responseMode = FAPIResponseMode.PLAIN_RESPONSE; //getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
-		jarmType = getVariant(FAPIJARMType.class);
+		cibaMode = getVariant(CIBAMode.class);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
@@ -146,6 +124,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			call(sequence(configureAuthRequestMethodSteps));
 		}
 
+		// TODO: I'm putting this here now, so ofc the if condition will always be true
+		// This was previously part of the @VariantSetup for response mode (see setupResponseModePlain())
+		setupResponseModePlain();
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
@@ -167,10 +148,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
-		}
-
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			exposeMtlsPath("par_endpoint", "par");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -295,18 +272,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
-					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
-			}
-			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
-			}
-			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -337,9 +302,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			return parEndpoint(requestId);
 		}
+
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
@@ -730,10 +694,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
-		}
-
 		issueAccessToken();
 
 		issueRefreshToken();
@@ -777,11 +737,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		}
 
-		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
+		if(true) { // TODO: Was: if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE)
 			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
@@ -800,6 +757,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+
+		/* TODO: I guess this block can be removed for CIBA but let's leave it here for the time being
 		if("yes".equals(isOpenIdScopeRequested)) {
 			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
@@ -816,6 +775,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			//issueAccessToken();
 			issueIdToken(true);
 		}
+		*/
 
 		/*
 		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
@@ -843,6 +803,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
+		/* TODO: JARM isn't applicable but I'll have to analyze later what these blocks do
 		if(jarmType==FAPIJARMType.OIDC) {
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
@@ -852,6 +813,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
 			}
 		}
+		*/
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
@@ -867,7 +829,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
+		if(false) { // TODO: Was: if(authRequestMethod==FAPIAuthRequestMethod.PUSHED)
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
 				"FAPI1-ADV-5.2.3-16");
 		} else {
@@ -876,7 +838,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
 				"OIDCC-6.1", "OIDCC-6.2");
-			if(responseMode!=FAPIResponseMode.JARM) {
+			if(true) { // TODO: Was: if(responseMode!=FAPIResponseMode.JARM)
 				callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
 					"OIDCC-6.1", "OIDCC-6.2");
 			}
@@ -895,9 +857,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
-		if(responseMode==FAPIResponseMode.JARM) {
+		if(false) { // TODO: Was: if(responseMode==FAPIResponseMode.JARM)
 			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADV-5.2.2-2");
-		} else if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
+		} else if(true) { // TODO: Was: if(responseMode==FAPIResponseMode.PLAIN_RESPONSE)
 			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
 			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
@@ -994,12 +956,12 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 
-		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
+		if(true) { // TODO: Was: if(responseMode==FAPIResponseMode.PLAIN_RESPONSE)
 			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 
 			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
 		}
-		if(responseMode==FAPIResponseMode.JARM) {
+		if(false) { // TODO: Was if(responseMode==FAPIResponseMode.JARM)
 			createJARMResponse();
 			//send via redirect
 			callAndStopOnFailure(SendJARMResponseWitResponseModeQuery.class, "OIDCC-3.3.2.5", "JARM-4.3.1");
@@ -1142,6 +1104,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
+	/* TODO: Remove
 	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "by_value")
 	public void setupAuthRequestMethodByValue() {
 		configureAuthRequestMethodSteps = null;
@@ -1152,15 +1115,22 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		configureAuthRequestMethodSteps = AddPARToServerConfiguration.class;
 	}
 
-	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
-	public void setupResponseModePlain() {
-		configureResponseModeSteps = AddPlainFAPIToServerConfiguration.class;
-	}
-
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "jarm")
 	public void setupResponseModeJARM() {
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
 	}
+	*/
+
+	/* TODO: Atm the FAPIResponseMode variant is removed but I might need to do this setup anyway so will call it manually in configure()
+	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
+	public void setupResponseModePlain() {
+		configureResponseModeSteps = AddPlainFAPIToServerConfiguration.class;
+	}
+	*/
+	public void setupResponseModePlain() {
+		configureResponseModeSteps = AddPlainFAPIToServerConfiguration.class;
+	}
+
 
 	protected void startWaitingForTimeout() {
 		this.startingShutdown = true;
