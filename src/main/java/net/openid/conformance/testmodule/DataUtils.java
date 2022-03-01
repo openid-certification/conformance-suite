@@ -153,8 +153,7 @@ public interface DataUtils {
 		return event;
 	}
 
-	public default HttpHeaders headersFromJson(JsonObject headerJson) {
-		HttpHeaders headers = new HttpHeaders();
+	public default HttpHeaders headersFromJson(JsonObject headerJson, HttpHeaders headers) {
 		if (headerJson != null) {
 			for (String header : headerJson.keySet()) {
 				headers.set(header, OIDFJSON.getString(headerJson.get(header)));
@@ -163,4 +162,8 @@ public interface DataUtils {
 		return headers;
 	}
 
+	public default HttpHeaders headersFromJson(JsonObject headerJson) {
+		HttpHeaders headers = new HttpHeaders();
+		return headersFromJson(headerJson, headers);
+	}
 }

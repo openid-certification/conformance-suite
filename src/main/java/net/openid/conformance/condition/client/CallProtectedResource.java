@@ -33,10 +33,11 @@ public class CallProtectedResource extends AbstractCallProtectedResourceWithBear
 	@Override
 	protected HttpHeaders getHeaders(Environment env) {
 
-		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
-		HttpHeaders headers = headersFromJson(requestHeaders);
+		HttpHeaders headers = super.getHeaders(env);
 
-		headers.set("Authorization", "Bearer " + getAccessToken(env));
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+
+		headers = headersFromJson(requestHeaders, headers);
 
 		return headers;
 	}
