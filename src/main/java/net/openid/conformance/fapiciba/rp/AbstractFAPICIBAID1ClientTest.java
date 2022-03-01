@@ -61,6 +61,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
+	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
@@ -119,7 +120,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
 			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
 			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
-			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
+			callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
 		} else {
 			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
 			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -132,9 +133,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
+			callAndStopOnFailure(FAPICIBAID1SetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
-			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+			callAndStopOnFailure(FAPICIBAID1AddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
@@ -1111,12 +1112,14 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
+		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
