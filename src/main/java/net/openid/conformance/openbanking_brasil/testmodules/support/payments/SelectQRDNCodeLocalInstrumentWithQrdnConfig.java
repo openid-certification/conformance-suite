@@ -23,6 +23,7 @@ public class SelectQRDNCodeLocalInstrumentWithQrdnConfig extends AbstractPayment
 				throw error(massage, args("brazilQrdnPaymentConsent", brazilQrdnPaymentConsent.toString()));
 			}
 		}
+
 		String massage = "brazilQrdnPaymentConsent must be present in the config not null";
 		throw error(massage);
 	}
