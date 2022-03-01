@@ -121,7 +121,13 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();
 			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-			JsonObject fullResponse = convertResponseForEnvironment("resource", response);
+			JsonObject fullResponse;
+
+			if (requireJsonResponseBody()) {
+				fullResponse = convertJsonResponseForEnvironment("resource", response);
+			} else {
+				fullResponse = convertResponseForEnvironment("resource", response);
+			}
 
 			return handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
 		} catch (RestClientResponseException e) {
@@ -135,6 +141,10 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			}
 			throw error(msg, e);
 		}
+	}
+
+	protected boolean requireJsonResponseBody() {
+		return false;
 	}
 
 	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse);
