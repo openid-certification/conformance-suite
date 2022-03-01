@@ -38,7 +38,8 @@ import javax.servlet.http.HttpSession;
 	FAPI1FinalOPProfile.class,
 	FAPIAuthRequestMethod.class,
 	FAPIResponseMode.class,
-	FAPIJARMType.class
+	FAPIJARMType.class,
+	CIBAMode.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -55,6 +56,9 @@ import javax.servlet.http.HttpSession;
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope",
 	"client2.scope"
+})
+@VariantNotApplicable(parameter = CIBAMode.class, values = {
+	"push"
 })
 public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 

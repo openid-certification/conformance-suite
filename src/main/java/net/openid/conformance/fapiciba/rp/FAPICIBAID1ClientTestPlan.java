@@ -17,6 +17,7 @@ import java.util.Map;
 	}
 )
 public class FAPICIBAID1ClientTestPlan implements TestPlan {
+
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
@@ -27,6 +28,7 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
 		String jarmType = v.get("fapi_jarm_type");
+		String cibaMode = v.get("ciba_mode");
 		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
@@ -57,14 +59,14 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 				return "Not a conformance profile. Please use 'FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 		}
 
-		certProfile += " Adv. RP w/";
+		certProfile += "-CIBA RP " + cibaMode;
 
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += " w/ Private Key";
 				break;
 			case "mtls":
-				certProfile += " MTLS";
+				certProfile += " w/ MTLS";
 				break;
 		}
 		switch (requestMethod) {
