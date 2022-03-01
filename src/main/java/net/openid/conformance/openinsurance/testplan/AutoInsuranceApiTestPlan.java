@@ -71,8 +71,11 @@ public class AutoInsuranceApiTestPlan implements TestPlan {
 			String commercializationArea =  env.getString("config", "resource.commercializationArea");
 			String fipeCode =  env.getString("config", "resource.fipeCode");
 			String year =  env.getString("config", "resource.year");
-			String protectedUrl = String.format("%s/%s/%s/%s",
-				baseURL, commercializationArea, fipeCode, year);
+			String protectedUrl = baseURL;
+			if (commercializationArea != null || fipeCode != null || year != null){
+				protectedUrl = String.format("%s/%s/%s/%s",
+					baseURL, commercializationArea, fipeCode, year);
+			}
 			env.putString("protected_resource_url", protectedUrl);
 			return env;
 		}
