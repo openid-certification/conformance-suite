@@ -16,10 +16,12 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.*;
+import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.*;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.*;
@@ -145,6 +147,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		callAndStopOnFailure(addBackchannelEndpointAuthMethodSupported);
 
 		if(configureAuthRequestMethodSteps!=null) {
 			call(sequence(configureAuthRequestMethodSteps));
@@ -280,6 +283,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return authorizationEndpoint(requestId);
+		} else if (path.equals("backchannel")) {
+			return backchannelEndpoint(requestId);
 		} else if (path.equals("token")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -774,6 +779,45 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 	}
 
+	protected ResponseEntity<?> backchannelEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		Command backchannelBlock = exec().startBlock("RP calls the backchannel endpoint");
+		backchannelBlock.mapKey("backchannel_endpoint_http_request", requestId);
+		call(backchannelBlock);
+
+		callAndContinueOnFailure(BackchannelRequestIsPostedCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestIsFormDataCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+
+		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
+		// call(sequence(validateClientAuthenticationSteps));
+
+		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+
+		JsonObject backchannelResponse = new JsonObject();
+		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);
+		backchannelResponse.addProperty("auth_req_id", authReqId);
+		backchannelResponse.addProperty("interval", 5);
+
+		String requestedExpiryString = env.getString("backchannel_endpoint_http_request", "body_form_params.requested_expiry");
+		int expiresIn = getIntValueOrDefault(requestedExpiryString, 180);
+		backchannelResponse.addProperty("expires_in", expiresIn);
+
+		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
+
+		return new ResponseEntity<>(backchannelResponse, HttpStatus.OK);
+	}
+
+	protected static int getIntValueOrDefault(String intString, int defaultValue) {
+		try {
+			return Integer.parseInt(intString);
+		} catch (NumberFormatException nfe) {
+			return defaultValue;
+		}
+	}
+
 	@UserFacing
 	protected Object authorizationEndpoint(String requestId) {
 
@@ -1117,14 +1161,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
+		//validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
+		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
+		// validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
