@@ -90,9 +90,6 @@ public class CallTokenEndpoint extends AbstractCondition {
 			if (Strings.isNullOrEmpty(jsonString)) {
 				throw error("Didn't get back a response from the token endpoint");
 			} else {
-				log("Token endpoint response",
-					args("token_endpoint_response", jsonString));
-
 				try {
 					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
