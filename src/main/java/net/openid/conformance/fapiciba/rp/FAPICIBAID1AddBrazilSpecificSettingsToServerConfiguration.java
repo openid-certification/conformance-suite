@@ -53,11 +53,14 @@ public class FAPICIBAID1AddBrazilSpecificSettingsToServerConfiguration extends A
 			server.add("request_object_signing_alg_values_supported", algs);
 		}
 
+		// TODO: This isn't "brazil specific" and shouldn't be here but right now anything goes
 		{
 			JsonArray algs = new JsonArray();
 			algs.add("PS256");
 			server.add("backchannel_authentication_request_signing_alg_values_supported", algs);
 		}
+		server.addProperty("tls_client_certificate_bound_access_tokens", true);
+
 		{
 			JsonArray scopes = new JsonArray();
 			scopes.add("openid");

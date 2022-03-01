@@ -9,7 +9,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @PublishTestPlan (
-	testPlanName = "fapi-ciba-id01-client-test-plan",
+	testPlanName = "fapi-ciba-id1-client-test-plan",
 	displayName = "FAPI-CIBA-ID1: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
