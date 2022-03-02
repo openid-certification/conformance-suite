@@ -19,10 +19,10 @@ import java.util.List;
 public class BackchannelRequestRequestedExpiryCondition extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "backchannel_endpoint_http_request")
+	@PreEnvironment(required = "backchannel_request_object")
 	public Environment evaluate(Environment env) {
 
-		String requestedExpiryString = env.getString("backchannel_endpoint_http_request", "body_form_params.requested_expiry");
+		String requestedExpiryString = env.getString("backchannel_request_object", "claims.requested_expiry");
 
 		if(requestedExpiryString == null) {
 			logSuccess("Backchannel authentication request does not contain optional parameter 'requested_expiry'");

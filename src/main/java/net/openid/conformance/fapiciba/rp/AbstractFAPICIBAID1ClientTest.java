@@ -790,8 +790,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(BackchannelRequestIsFormDataCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 
 		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
-		// call(sequence(validateClientAuthenticationSteps));
+		call(sequence(validateClientAuthenticationSteps));
 
+		// TODO: Obviously the requirements here can't be "PAR"
+		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "PAR-2.1");
+		// TODO: Not sure if jwe applies here
+		skipIfElementMissing("backchannel_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
+
+		// TODO: Complete the validation, f ex the PAR endpoint does this:
+		// validateRequestObjectCommonChecks();
+		// callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADV-5.2.3-15");
 		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
@@ -806,7 +814,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		backchannelResponse.addProperty("expires_in", expiresIn);
 
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
-
+		setStatus(Status.WAITING);
+		
 		return new ResponseEntity<>(backchannelResponse, HttpStatus.OK);
 	}
 
@@ -1170,7 +1179,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
-		// validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
+		validateClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")

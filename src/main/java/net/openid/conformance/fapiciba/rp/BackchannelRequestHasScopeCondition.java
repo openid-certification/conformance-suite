@@ -13,10 +13,10 @@ import java.util.List;
 public class BackchannelRequestHasScopeCondition extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "backchannel_endpoint_http_request")
+	@PreEnvironment(required = "backchannel_request_object")
 	public Environment evaluate(Environment env) {
 
-		String scope = env.getString("backchannel_endpoint_http_request", "body_form_params.scope");
+		String scope = env.getString("backchannel_request_object", "claims.scope");
 		if(scope == null) {
 			throw error("The 'openid' scope parameter is required");
 		}
