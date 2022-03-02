@@ -732,14 +732,23 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object cibaGrantType(String requestId) {
-		// TODO: Do some stuff here, generate different token (error) responses etc. For now we say pending.
-
+		// TODO: Do some stuff here, generate different token (error) responses etc.
+		// For now we say pending a couple of times, then respond with a successful response.
+		// The poll count thing has to be cleaned up as well and follow the code patterns used elsewhere
 		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
+		int tokenPollCount = env.getInteger("token_poll_count");
+		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+		if(tokenPollCount > 1) {
+			issueIdToken(false);
+			callAndStopOnFailure(GenerateBearerAccessToken.class);
+			callAndStopOnFailure(CreateTokenEndpointWithExpiresInResponse.class);
+			statusCode = HttpStatus.OK;
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {

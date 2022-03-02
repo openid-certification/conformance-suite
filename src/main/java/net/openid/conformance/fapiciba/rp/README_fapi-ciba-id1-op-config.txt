@@ -62,7 +62,7 @@
             ]
         },
         "client_name": "test-client-id-346334adgdsfgdfg3425",
-        "scope": "openid",
+        "scope": "openid accounts",
         "hint_type": "login_hint_token",
         "hint_value": "abc"
     },
