@@ -17,10 +17,9 @@ public class EnsurePixScheduleDateIsTooFarInFuture extends AbstractCondition {
 		JsonObject obj = env.getObject("consent_endpoint_request");
 
 		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(370L);
-		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
-
 		log("Setting scheduled payment date to current date + 370 days: " + scheduledDate);
-		obj.addProperty("date", scheduledDate.toString());
+
+		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
 		logSuccess("Successfully created a scheduled payment date for one year and a month in the future", obj);
 		return null;
 	}
