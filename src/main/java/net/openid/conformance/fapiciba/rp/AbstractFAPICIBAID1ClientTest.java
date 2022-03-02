@@ -68,7 +68,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
-	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
+	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
@@ -275,7 +276,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		return handleClientRequestForPath(requestId, path);
 
 	}
-
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
@@ -585,7 +585,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2"))
 			);
 		} else {
-			call(sequence(validateClientAuthenticationSteps));
+			call(sequence(validateTokenEndpointClientAuthenticationSteps));
 		}
 		call(exec().unmapKey("token_endpoint_request"));
 	}
@@ -667,7 +667,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		checkMtlsCertificate();
 
-		call(sequence(validateClientAuthenticationSteps));
+		call(sequence(validateTokenEndpointClientAuthenticationSteps));
 
 		return handleTokenEndpointGrantType(requestId);
 
@@ -691,6 +691,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			}
 		} else if (grantType.equals("refresh_token")) {
 			return refreshTokenGrantType(requestId);
+		} else if (grantType.equals("urn:openid:params:grant-type:ciba")) {
+			return cibaGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
@@ -727,6 +729,17 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
+	}
+
+	protected Object cibaGrantType(String requestId) {
+		// TODO: Do some stuff here, generate different token (error) responses etc. For now we say pending.
+
+		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.BAD_REQUEST);
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
@@ -789,8 +802,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(BackchannelRequestIsPostedCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestIsFormDataCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 
-		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
-		call(sequence(validateClientAuthenticationSteps));
+		call(sequence(validateBackchannelClientAuthenticationSteps));
 
 		// TODO: Obviously the requirements here can't be "PAR"
 		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "PAR-2.1");
@@ -815,7 +827,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
 		setStatus(Status.WAITING);
-		
+
 		return new ResponseEntity<>(backchannelResponse, HttpStatus.OK);
 	}
 
@@ -1170,16 +1182,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
-		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
-		//validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		// TODO: Missing client authentication steps for MTLS backchannel
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		// TODO: Enable this one again, only problem is that the condition sequence wants token_endpoint_request, so it must be reworked
-		validateClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
+		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
+		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
