@@ -16,7 +16,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -75,7 +74,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		return false;
 	}
 
-	protected MediaType getMediaType(Environment env) {
+	protected MediaType getContentType(Environment env) {
 
 		return MediaType.APPLICATION_FORM_URLENCODED;
 	}
@@ -111,7 +110,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
 			if (method == HttpMethod.POST && headers.getContentType() == null) {
 				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
-				headers.setContentType(getMediaType(env));
+				headers.setContentType(getContentType(env));
 			}
 
 			HttpEntity<?> request = new HttpEntity<>(getBody(env), headers);

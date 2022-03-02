@@ -49,7 +49,7 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends CallPro
 	}
 
 	@Override
-	protected MediaType getMediaType(Environment env) {
+	protected MediaType getContentType(Environment env) {
 		return DATAUTILS_MEDIATYPE_APPLICATION_JWT;
 	}
 

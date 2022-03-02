@@ -53,7 +53,7 @@ public class CallConsentEndpointWithBearerToken extends CallProtectedResource {
 	}
 
 	@Override
-	protected MediaType getMediaType(Environment env) {
+	protected MediaType getContentType(Environment env) {
 		return MediaType.APPLICATION_JSON;
 	}
 
