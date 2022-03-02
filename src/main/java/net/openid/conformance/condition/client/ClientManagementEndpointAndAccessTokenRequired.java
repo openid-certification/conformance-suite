@@ -20,7 +20,7 @@ public class ClientManagementEndpointAndAccessTokenRequired extends AbstractCond
 			throw error("The authorization server did not return a client management endpoint and access token.");
 		}
 
-		// ExtractClientManagementCredentials already checked they're non null, so nothing further to do here.
+		// VerifyClientManagementCredentials already checked they're non null, so nothing further to do here.
 
 		logSuccess("Client management endpoint and access token were provided by the authorization server.",
 			args("registration_client_uri", registrationClientUri,

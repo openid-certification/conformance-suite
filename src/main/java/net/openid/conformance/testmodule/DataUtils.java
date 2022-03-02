@@ -22,11 +22,6 @@ import com.google.gson.JsonParser;
  */
 public interface DataUtils {
 
-	// The FAPI implementers draft 2 specs explicitly require the charset UTF8 header, but Spring have correctly
-	// deprecated this in their http module, so we have our own definition to ensure we follow the specs.
-	// https://github.com/spring-projects/spring-framework/issues/22788
-	// https://bitbucket.org/openid/fapi/issues/236/charset-not-needed-for-application-json
-	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8 = new MediaType("application", "jwt",StandardCharsets.UTF_8);
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JOSE = new MediaType("application", "jose");
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT = new MediaType("application", "jwt");
@@ -158,8 +153,7 @@ public interface DataUtils {
 		return event;
 	}
 
-	public default HttpHeaders headersFromJson(JsonObject headerJson) {
-		HttpHeaders headers = new HttpHeaders();
+	public default HttpHeaders headersFromJson(JsonObject headerJson, HttpHeaders headers) {
 		if (headerJson != null) {
 			for (String header : headerJson.keySet()) {
 				headers.set(header, OIDFJSON.getString(headerJson.get(header)));
@@ -168,4 +162,8 @@ public interface DataUtils {
 		return headers;
 	}
 
+	public default HttpHeaders headersFromJson(JsonObject headerJson) {
+		HttpHeaders headers = new HttpHeaders();
+		return headersFromJson(headerJson, headers);
+	}
 }

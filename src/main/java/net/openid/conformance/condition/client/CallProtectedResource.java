@@ -33,10 +33,11 @@ public class CallProtectedResource extends AbstractCallProtectedResourceWithBear
 	@Override
 	protected HttpHeaders getHeaders(Environment env) {
 
-		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
-		HttpHeaders headers = headersFromJson(requestHeaders);
+		HttpHeaders headers = super.getHeaders(env);
 
-		headers.set("Authorization", "Bearer " + getAccessToken(env));
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+
+		headers = headersFromJson(requestHeaders, headers);
 
 		return headers;
 	}
@@ -45,6 +46,18 @@ public class CallProtectedResource extends AbstractCallProtectedResourceWithBear
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
 		env.putObject("resource_endpoint_response_full", fullResponse);
+
+		// Temporarily store to "old" environment locations; these are deprecated and we
+		// should change conditions to use resource_endpoint_response_full to avoid
+		// having the same information stored in different places.
+		env.putString("resource_endpoint_response", responseBody);
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
+
+		// Once we've done the above, we should make this condition explicitly remove
+		// the old locations, as other conditions may still be writing to them and we
+		// don't want to accidentally use data from other responses:
+//		env.removeNativeValue("resource_endpoint_response");
+//		env.removeObject("resource_endpoint_response_headers");
 
 		logSuccess("Got a response from the resource endpoint", fullResponse);
 		return env;

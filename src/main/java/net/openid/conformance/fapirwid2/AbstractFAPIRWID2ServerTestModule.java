@@ -25,7 +25,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
@@ -49,6 +49,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -727,7 +728,10 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 

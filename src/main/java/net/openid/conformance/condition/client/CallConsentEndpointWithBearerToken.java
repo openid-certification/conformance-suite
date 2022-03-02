@@ -12,6 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -30,97 +31,70 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
 
-public class CallConsentEndpointWithBearerToken extends AbstractCondition {
+public class CallConsentEndpointWithBearerToken extends CallProtectedResource {
+
+	@Override
+	protected String getUri(Environment env) {
+		String consentUrl = env.getString("config", "resource.consentUrl");
+		if (Strings.isNullOrEmpty(consentUrl)) {
+			throw error("consent url missing from configuration");
+		}
+		return consentUrl;
+	}
+
+	@Override
+	protected HttpMethod getMethod(Environment env) {
+		return HttpMethod.POST;
+	}
+
+	@Override
+	protected Object getBody(Environment env) {
+		return env.getObject("consent_endpoint_request").toString();
+	}
+
+	@Override
+	protected MediaType getContentType(Environment env) {
+		return MediaType.APPLICATION_JSON;
+	}
+
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+		HttpHeaders headers = super.getHeaders(env);
+		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+		return headers;
+	}
+
+	@Override
+	protected boolean requireJsonResponseBody() {
+		return true;
+	}
+
+	@Override
+	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
+
+		env.putObject("consent_endpoint_response_full", fullResponse);
+
+		// Temporarily store to "old" environment locations; these are deprecated and we
+		// should change conditions to use resource_endpoint_response_full to avoid
+		// having the same information stored in different places.
+		env.putObject("consent_endpoint_response", fullResponse.get("body_json").getAsJsonObject());
+		env.putObject("resource_endpoint_response_headers", responseHeaders);
+
+		// Once we've done the above, we should make this condition explicitly remove
+		// the old locations, as other conditions may still be writing to them and we
+		// don't want to accidentally use data from other responses:
+//		env.removeNativeValue("consent_endpoint_response");
+//		env.removeObject("resource_endpoint_response_headers");
+
+		logSuccess("Got a response from the consent endpoint", fullResponse);
+		return env;
+	}
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response", "consent_endpoint_response_full" })
 	public Environment evaluate(Environment env) {
-
-		String accessToken = env.getString("access_token", "value");
-		if (Strings.isNullOrEmpty(accessToken)) {
-			throw error("Access token not found");
-		}
-
-		String tokenType = env.getString("access_token", "type");
-		if (Strings.isNullOrEmpty(tokenType)) {
-			throw error("Token type not found");
-		} else if (!tokenType.equalsIgnoreCase("Bearer")) {
-			throw error("Access token is not a bearer token", args("token_type", tokenType));
-		}
-
-		String resourceEndpoint = env.getString("config", "resource.consentUrl");
-		if (Strings.isNullOrEmpty(resourceEndpoint)) {
-			throw error("consent url missing from configuration");
-		}
-
-		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
-
-		JsonObject requestObject = env.getObject("consent_endpoint_request");
-
-		try {
-			RestTemplate restTemplate = createRestTemplate(env);
-
-			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-				@Override
-				public boolean hasError(ClientHttpResponse response) throws IOException {
-					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-					// status code meaning the rest of our code can handle http status codes how it likes
-					return false;
-				}
-			});
-
-			HttpHeaders headers = headersFromJson(requestHeaders);
-
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
-			headers.set("Authorization", "Bearer " + accessToken);
-
-			HttpEntity<String> request = new HttpEntity<>(requestObject.toString(), headers);
-
-			ResponseEntity<String> response = restTemplate.exchange(resourceEndpoint, HttpMethod.POST, request, String.class);
-
-			JsonObject fullObject = convertJsonResponseForEnvironment("consent", response);
-			env.putObject("consent_endpoint_response_full", fullObject);
-
-			String jsonString = response.getBody();
-
-			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Empty/missing response from the consent endpoint");
-			} else {
-				log("Consent endpoint response", args("consent_endpoint_response", jsonString));
-
-				try {
-					JsonElement jsonRoot = JsonParser.parseString(jsonString);
-					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-						throw error("Consent endpoint did not return a JSON object");
-					}
-
-					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
-
-					env.putObject("consent_endpoint_response", jsonRoot.getAsJsonObject());
-					env.putObject("resource_endpoint_response_headers", responseHeaders);
-
-					logSuccess("Parsed consent endpoint response", args("body", jsonString, "headers", responseHeaders));
-
-					return env;
-				} catch (JsonParseException e) {
-					throw error(e);
-				}
-			}
-		} catch (RestClientResponseException e) {
-			throw error("Error from the consent endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
-		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
-			throw error("Error creating HTTP Client", e);
-		} catch (RestClientException e) {
-			String msg = "Call to consent endpoint " + resourceEndpoint + " failed";
-			if (e.getCause() != null) {
-				msg += " - " +e.getCause().getMessage();
-			}
-			throw error(msg, e);
-		}
-
+		return callProtectedResource(env);
 	}
 
 }

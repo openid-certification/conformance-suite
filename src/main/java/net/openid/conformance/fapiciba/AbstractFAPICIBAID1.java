@@ -42,7 +42,7 @@ import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS2
 import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -78,6 +78,7 @@ import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -928,7 +929,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 

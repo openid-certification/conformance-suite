@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class ExtractClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {//FIXME rename to Verify instead of Extract
+public class VerifyClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {
 
 	@Override
 	@PreEnvironment(required = "client")

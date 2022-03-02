@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpHeaders;
 
-public class SetPlainJsonAcceptHeaderForResourceEndpointRequest extends AbstractCondition {
+public class SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_request_headers")
@@ -14,9 +14,9 @@ public class SetPlainJsonAcceptHeaderForResourceEndpointRequest extends Abstract
 
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
 
-		requestHeaders.addProperty(HttpHeaders.ACCEPT, "application/json");
+		requestHeaders.addProperty(HttpHeaders.ACCEPT, DATAUTILS_MEDIATYPE_APPLICATION_JWT_UTF8.toString());
 
-		logSuccess("Set Accept header", args("Accept", requestHeaders.get("Accept")));
+		logSuccess("Set Accept header", args("accept", requestHeaders.get(HttpHeaders.ACCEPT)));
 
 		return env;
 	}

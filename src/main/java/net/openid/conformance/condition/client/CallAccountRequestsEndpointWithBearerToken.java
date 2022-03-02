@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -94,9 +95,8 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 
 			HttpHeaders headers = headersFromJson(requestHeaders);
 
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("Authorization", "Bearer " + accessToken);
 
 
