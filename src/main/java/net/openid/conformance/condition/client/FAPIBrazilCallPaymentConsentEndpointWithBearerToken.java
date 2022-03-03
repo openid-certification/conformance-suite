@@ -81,6 +81,8 @@ public class FAPIBrazilCallPaymentConsentEndpointWithBearerToken extends Abstrac
 			String http_method = env.getString("http_method");
 			if (!Strings.isNullOrEmpty(http_method) && env.getString("http_method").equals("GET")) {
 				method = HttpMethod.GET;
+			} else if (env.getString("http_method").equals("PATCH")){
+				method = HttpMethod.PATCH;
 			} else {
 				method = HttpMethod.POST;
 			}
