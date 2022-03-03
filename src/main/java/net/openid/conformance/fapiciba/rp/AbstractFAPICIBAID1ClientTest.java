@@ -73,6 +73,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
+		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithMTLS.class;
 		// TODO: Missing client authentication steps for MTLS backchannel
 	}
 
@@ -116,28 +117,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	protected void validateClientConfiguration() { }
 
 	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
-		setStatus(Status.WAITING);
-	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		setStatus(Status.RUNNING);
-
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		call(exec().mapKey("client_request", requestId));
-
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
-
-		call(exec().unmapKey("client_request"));
-		setStatus(Status.WAITING);
-
-		return handleClientRequestForPath(requestId, path);
-	}
-
-	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
@@ -146,6 +125,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		clientAuthType = getVariant(ClientAuthType.class);
 		cibaMode = getVariant(CIBAMode.class);
 
+		// TODO: Can't I just have one server config regardless of profile?
+		callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
+		/*
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
 			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
@@ -156,6 +138,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		}
+		 */
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
@@ -206,6 +189,28 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	@Override
+	public void start() {
+		setStatus(Status.RUNNING);
+		setStatus(Status.WAITING);
+	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
+
+		call(exec().unmapKey("client_request"));
+		setStatus(Status.WAITING);
+
+		return handleClientRequestForPath(requestId, path);
+	}
+
+	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
@@ -220,6 +225,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
+		} else if (path.equals("backchannel")) {
+			return backchannelEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		}
