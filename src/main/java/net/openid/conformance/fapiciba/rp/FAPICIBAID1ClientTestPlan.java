@@ -25,11 +25,9 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
 		String jarmType = v.get("fapi_jarm_type");
 		String cibaMode = v.get("ciba_mode");
-		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
@@ -39,7 +37,7 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (par || jarm) {
+				if (jarm) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
@@ -67,14 +65,6 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 				break;
 			case "mtls":
 				certProfile += " w/ MTLS";
-				break;
-		}
-		switch (requestMethod) {
-			case "by_value":
-				// nothing
-				break;
-			case "pushed":
-				certProfile += ", PAR";
 				break;
 		}
 		switch (responseMode) {

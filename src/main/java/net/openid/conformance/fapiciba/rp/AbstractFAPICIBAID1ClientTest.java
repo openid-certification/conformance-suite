@@ -38,7 +38,6 @@ import javax.servlet.http.HttpSession;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI1FinalOPProfile.class,
-	FAPIAuthRequestMethod.class,
 	FAPIResponseMode.class,
 	FAPIJARMType.class,
 	CIBAMode.class
@@ -70,7 +69,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
@@ -78,8 +76,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	// Controls which endpoints we should expose to the client
 	protected FAPI1FinalOPProfile profile;
-
-	protected FAPIAuthRequestMethod authRequestMethod;
 
 	protected FAPIResponseMode responseMode;
 
@@ -89,12 +85,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	protected boolean startingShutdown = false;
 
-	/**
-	 * Exposes, in the web frontend, a path that the user needs to know
-	 *
-	 * @param name Name to use in the frontend
-	 * @param path Path, relative to baseUrl
-	 */
 	private void exposePath(String name, String path) {
 		env.putString(name, env.getString("base_url") + "/" + path);
 		exposeEnvString(name);
@@ -108,9 +98,13 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	protected abstract void addCustomValuesToIdToken();
 
-	protected void addCustomSignatureOfIdToken(){}
+	protected void addCustomSignatureOfIdToken() { }
 
-	protected void endTestIfRequiredParametersAreMissing(){}
+	protected void endTestIfRequiredParametersAreMissing(){ }
+
+	protected void onConfigurationCompleted() { }
+
+	protected void validateClientConfiguration() { }
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -118,7 +112,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI1FinalOPProfile.class);
-		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
@@ -150,10 +143,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 		callAndStopOnFailure(addBackchannelEndpointAuthMethodSupported);
 
-		if(configureAuthRequestMethodSteps!=null) {
-			call(sequence(configureAuthRequestMethodSteps));
-		}
-
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
@@ -166,7 +155,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
@@ -175,10 +163,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
-		}
-
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			exposeMtlsPath("par_endpoint", "par");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -192,13 +176,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
-	}
-
-	/**
-	 * will be called at the end of configure
-	 */
-	protected void onConfigurationCompleted() {
-
 	}
 
 	protected void configureClients()
@@ -221,10 +198,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		unmapClient();
 		eventLog.endBlock();
 	}
-
-	protected void validateClientConfiguration() {
-	}
-
 
 	protected void switchToSecondClient() {
 		env.mapKey("client", "client2");
@@ -252,29 +225,23 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		// nothing to do here
 		setStatus(Status.WAITING);
 	}
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
-
 		env.putObject(requestId, requestParts);
-
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
 
 		call(exec().unmapKey("client_request"));
-
 		setStatus(Status.WAITING);
 
 		return handleClientRequestForPath(requestId, path);
-
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path){
@@ -304,18 +271,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
-					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
-			}
-			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
-			}
-			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -327,28 +282,23 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
-
 		env.putObject(requestId, requestParts);
-
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
 
 		call(exec().unmapKey("client_request"));
-
 		setStatus(Status.WAITING);
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			return parEndpoint(requestId);
 		}
+
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
@@ -376,8 +326,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
 			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
 	}
+
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
 		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
 		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class, ConditionResult.FAILURE,  "FAPI1-BASE-6.2.2-1");
@@ -552,12 +502,12 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void resourceEndpointCallComplete() {
-		// at this point we can assume the test is fully done
 		fireTestFinished();
 	}
 
 	protected Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
+
 		JsonObject serverConfiguration = env.getObject("server");
 
 		setStatus(Status.WAITING);
@@ -569,58 +519,11 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
-	protected void authenticateParEndpointRequest(String requestId) {
-		call(exec().mapKey("token_endpoint_request", requestId));
-
-		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
-			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
-			// required to bind the issued access token to.)
-			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
-			checkMtlsCertificate();
-		}
-
-		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
-			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
-				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2"))
-			);
-		} else {
-			call(sequence(validateTokenEndpointClientAuthenticationSteps));
-		}
-		call(exec().unmapKey("token_endpoint_request"));
-	}
-
-	protected void extractParEndpointRequest() {
-		callAndStopOnFailure(ExtractRequestObjectFromPAREndpointRequest.class, "PAR-2.1");
-		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
-		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
-	}
-
-	protected Object parEndpoint(String requestId) {
-		setStatus(Status.RUNNING);
-		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId));
-
-		authenticateParEndpointRequest(requestId);
-		extractParEndpointRequest();
-		validateRequestObjectForPAREndpointRequest();
-
-		JsonObject parResponse = createPAREndpointResponse();
-		setStatus(Status.WAITING);
-		return new ResponseEntity<Object>(parResponse, HttpStatus.CREATED);
-	}
-
-	protected JsonObject createPAREndpointResponse() {
-		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
-		JsonObject parResponse = env.getObject("par_endpoint_response");
-		return parResponse;
-	}
 
 	protected Object userinfoEndpoint(String requestId) {
-
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Userinfo endpoint")
-			.mapKey("incoming_request", requestId));
+		call(exec().startBlock("Userinfo endpoint").mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
@@ -639,66 +542,57 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().unmapKey("incoming_request").endBlock());
-
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
-
 	}
 
 	protected Object jwksEndpoint() {
-
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.getObject("server_public_jwks");
 
+		JsonObject jwks = env.getObject("server_public_jwks");
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	protected Object tokenEndpoint(String requestId) {
-
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId));
+		call(exec().startBlock("Token endpoint").mapKey("token_endpoint_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		checkMtlsCertificate();
-
 		call(sequence(validateTokenEndpointClientAuthenticationSteps));
 
 		return handleTokenEndpointGrantType(requestId);
-
 	}
 
 	protected Object handleTokenEndpointGrantType(String requestId){
-
-		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
-
-		if (grantType.equals("authorization_code")) {
-			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials")) {
-			if( profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
-				// we're doing the client credentials grant for initial token access
-				return clientCredentialsGrantType(requestId);
-			} else if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-				return clientCredentialsGrantType(requestId);
-			}
-		} else if (grantType.equals("refresh_token")) {
-			return refreshTokenGrantType(requestId);
-		} else if (grantType.equals("urn:openid:params:grant-type:ciba")) {
-			return cibaGrantType(requestId);
+		switch (grantType) {
+			case "authorization_code":
+				// we're doing the authorization code grant for user access
+				return authorizationCodeGrantType(requestId);
+			case "client_credentials":
+				if (profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+					// we're doing the client credentials grant for initial token access
+					return clientCredentialsGrantType(requestId);
+				} else if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+					return clientCredentialsGrantType(requestId);
+				}
+				break;
+			case "refresh_token":
+				return refreshTokenGrantType(requestId);
+			case "urn:openid:params:grant-type:ciba":
+				return cibaGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
 
 	protected Object refreshTokenGrantType(String requestId) {
-
 		callAndStopOnFailure(ValidateRefreshToken.class);
 
 		issueAccessToken();
@@ -707,7 +601,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
-
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
@@ -715,20 +608,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object clientCredentialsGrantType(String requestId) {
-
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
-
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
 	}
 
 	protected Object cibaGrantType(String requestId) {
@@ -738,7 +627,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
 		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
-		if(tokenPollCount > 1) {
+		if(tokenPollCount > 2) {
 			issueIdToken(false);
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
 			callAndStopOnFailure(CreateTokenEndpointWithExpiresInResponse.class);
@@ -761,12 +650,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
-		}
-
 		issueAccessToken();
-
 		issueRefreshToken();
 
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
@@ -777,11 +661,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		createTokenEndpointResponse();
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
-
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
 	}
 
 	protected void createTokenEndpointResponse() {
@@ -855,16 +737,11 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		}
 
-		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
-			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
-				callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
-			}
+		callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
+			callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
 		}
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -908,12 +785,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
+		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 		setStatus(Status.WAITING);
 
-		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
-
 		return new RedirectView(redirectTo, false, false, false);
-
 	}
 
 	/**
@@ -945,20 +820,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-16");
-		} else {
-			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
-			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
-				"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
-			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
+		validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
+		callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
+			"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
+		callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
+			"OIDCC-6.1", "OIDCC-6.2");
+		if(responseMode!=FAPIResponseMode.JARM) {
+			callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
 				"OIDCC-6.1", "OIDCC-6.2");
-			if(responseMode!=FAPIResponseMode.JARM) {
-				callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
-					"OIDCC-6.1", "OIDCC-6.2");
-			}
 		}
+
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
@@ -983,16 +854,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 	}
 
-	protected void validateRequestObjectForPAREndpointRequest() {
-		validateRequestObjectCommonChecks();
-		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADV-5.2.3-15");
-	}
-
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
 		prepareIdTokenClaims(isAuthorizationEndpoint);
-
 		signIdToken();
-
 		encryptIdToken(isAuthorizationEndpoint);
 	}
 
@@ -1006,7 +870,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
-
 		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
 		//TODO skip or add?
 		if(isAuthorizationEndpoint) {
@@ -1046,12 +909,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		}
-
-
 	}
 	protected void signIdToken() {
 		callAndStopOnFailure(SignIdToken.class);
-
 		addCustomSignatureOfIdToken();
 	}
 
@@ -1064,12 +924,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
 	 * @param isAuthorizationEndpoint
 	 */
-	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
-	}
+	protected void encryptIdToken(boolean isAuthorizationEndpoint) { }
 
 	protected void createAuthorizationEndpointResponse() {
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
-
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
@@ -1077,6 +935,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
 		}
+
 		if(responseMode==FAPIResponseMode.JARM) {
 			createJARMResponse();
 			//send via redirect
@@ -1110,11 +969,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	 * @return
 	 */
 	protected Object accountRequestsEndpoint(String requestId) {
-
 		setStatus(Status.RUNNING);
-
-		call(exec().startBlock("Account request endpoint")
-			.mapKey("incoming_request", requestId));
+		call(exec().startBlock("Account request endpoint").mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
@@ -1137,7 +993,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().unmapKey("incoming_request").endBlock());
-
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
@@ -1145,15 +1000,12 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	protected Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
-
 		call(exec().startBlock("Accounts endpoint"));
-
 		call(exec().mapKey("token_endpoint_request", requestId));
 
 		checkMtlsCertificate();
 
 		call(exec().unmapKey("token_endpoint_request"));
-
 		call(exec().mapKey("incoming_request", requestId));
 
 		checkResourceEndpointRequest(false);
@@ -1167,7 +1019,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
-
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
 		if (accountsEndpointProfileSteps != null) {
@@ -1181,7 +1032,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
-		// at this point we can assume the test is fully done
 		resourceEndpointCallComplete();
 
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
@@ -1224,16 +1074,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "by_value")
-	public void setupAuthRequestMethodByValue() {
-		configureAuthRequestMethodSteps = null;
-	}
-
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "pushed")
-	public void setupAuthRequestMethodPushed() {
-		configureAuthRequestMethodSteps = AddPARToServerConfiguration.class;
-	}
-
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
 	public void setupResponseModePlain() {
 		configureResponseModeSteps = AddPlainFAPIToServerConfiguration.class;
@@ -1253,9 +1093,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				//As the client hasn't called the token endpoint after 5 seconds, assume it has correctly detected the error and aborted.
 				fireTestFinished();
 			}
-
 			return "done";
-
 		});
 	}
 }
