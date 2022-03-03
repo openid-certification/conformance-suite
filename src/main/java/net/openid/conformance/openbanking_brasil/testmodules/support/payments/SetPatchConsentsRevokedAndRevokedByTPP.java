@@ -18,6 +18,7 @@ public class SetPatchConsentsRevokedAndRevokedByTPP extends AbstractCondition {
 		obj.addProperty("status","REVOKED");
 		logSuccess("Set PATCH status type to REVOKED");
 
+		obj = obj.getAsJsonObject("revocation");
 		obj.addProperty("revokedBy","TPP");
 		logSuccess("Set PATCH revokedBy  to TPP");
 
