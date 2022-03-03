@@ -11,6 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.jwks",
 		"client.client_id",
 		"client.scope",
+		"client.backchannel_client_notification_endpoint",
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",

@@ -38,7 +38,8 @@
                     "n": "3IXVqA9zCrmaz30WWjzZexdSuhagP_oVfgB-Y5S7XXeHhU4tho7c3wcNhsrGCKLYSf_47rV78-2OfhPY9WrSJVyqIXoaniwoTnD9splF90J7yog9LgP4kqkWl6wm8gdR5C-UC4Gnl0D2cZKnE6MZ7k_b5nM0ZfC-7H_bO13B4aYpu069th7hFWGK7ps65uiDxcQGYP3oSeqahE5qwfUef2QMkhyVtM_nWP9OVAzOGtJ8km4TdCrq9aF78No9u2YQuaUOJgeOnwKMBjmgEwcuaQe9DEQFXhzBtRmPlml2pTy2QDvxe1HgOTOsnh9igFvX70AGroY3PFY-lJAxC4Fd2w"
                 }
             ]
-        }
+        },
+        "backchannel_client_notification_endpoint": "https://localhost:8443/test/a/fapi-ciba-id1-op/ciba-notification-endpoint "
     },
     "client2": {
         "client_id": "lvfVldjz2Q6pSMOMoXh1l",

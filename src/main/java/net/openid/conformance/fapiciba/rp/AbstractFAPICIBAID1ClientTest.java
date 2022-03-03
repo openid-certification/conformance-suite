@@ -43,6 +43,9 @@ import javax.servlet.http.HttpSession;
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
 })
+@VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
+	"client.backchannel_client_notification_endpoint"
+})
 public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
