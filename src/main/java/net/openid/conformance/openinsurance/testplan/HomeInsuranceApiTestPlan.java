@@ -65,8 +65,10 @@ public class HomeInsuranceApiTestPlan implements TestPlan {
 			String baseURL = env.getString("config", "resource.resourceUrl");
 			baseURL = StringUtils.removeEnd(baseURL, "/");
 			String commercializationArea =  env.getString("config", "resource.commercializationArea");
-
-			String protectedUrl = String.format("%s/%s", baseURL, commercializationArea);
+			String protectedUrl = baseURL;
+			if (commercializationArea != null){
+				protectedUrl = String.format("%s/%s", baseURL, commercializationArea);
+			}
 			env.putString("protected_resource_url", protectedUrl);
 			return env;
 		}
