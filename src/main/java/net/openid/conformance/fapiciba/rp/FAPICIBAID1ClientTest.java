@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba.rp;
 
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

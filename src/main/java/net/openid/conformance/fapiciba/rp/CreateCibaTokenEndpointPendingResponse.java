@@ -1,10 +1,8 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 public class CreateCibaTokenEndpointPendingResponse extends AbstractCondition {

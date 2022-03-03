@@ -1,20 +1,8 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.base.Splitter;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.openqa.selenium.json.Json;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import java.nio.charset.Charset;
-import java.util.List;
 
 public class BackchannelRequestRequestedExpiryCondition extends AbstractCondition {
 

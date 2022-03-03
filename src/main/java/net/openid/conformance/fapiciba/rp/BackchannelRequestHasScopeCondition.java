@@ -1,10 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 

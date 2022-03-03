@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.*;
+import net.openid.conformance.condition.as.ValidateClientAssertionSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class BackchannelValidateClientAuthenticationWithPrivateKeyJWT extends AbstractConditionSequence {

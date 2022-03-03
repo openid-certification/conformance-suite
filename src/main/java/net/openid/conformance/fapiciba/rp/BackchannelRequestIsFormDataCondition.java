@@ -2,12 +2,10 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.google.common.base.Joiner;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 public class BackchannelRequestIsFormDataCondition extends AbstractCondition {
 

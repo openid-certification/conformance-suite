@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba.rp;
 
-import net.openid.conformance.fapi1advancedfinal.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
@@ -56,7 +55,7 @@ public class FAPICIBAID1ClientTestPlan implements TestPlan {
 				certProfile += " w/ MTLS";
 				break;
 		}
-		
+
 		return certProfile;
 	}
 }
