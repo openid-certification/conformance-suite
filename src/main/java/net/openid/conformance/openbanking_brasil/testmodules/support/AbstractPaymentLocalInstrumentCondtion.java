@@ -15,24 +15,25 @@ public abstract class AbstractPaymentLocalInstrumentCondtion extends AbstractCon
 		log("Setting local instrument to a new value");
 		JsonObject obj = env.getObject("resource");
 
-		final String errorMessage = "Configuration is malformed. Missing an expected JSON field" +
-			"- brazilQrdnPaymentConsent > data > payment > details.";
+		final String errorMessage = "Configuration is malformed. Missing an expected JSON field - ";
+		StringBuilder missingMember = new StringBuilder("brazilQrdnPaymentConsent");
 
 		if (obj.has("brazilQrdnPaymentConsent")) {
 			obj = getPaymentConsentObject(obj);
 			List<String> members = new LinkedList<>(Arrays.asList("data", "payment", "details"));
 			for (String member : members) {
+				missingMember.append(" > ").append(member);
 				if (obj.has(member)) {
 					obj = obj.getAsJsonObject(member);
 				} else {
-					throw error(errorMessage);
+					throw error(errorMessage + missingMember);
 				}
 			}
 			obj.addProperty("localInstrument", getLocalInstrument());
 			log(obj);
 			return env;
 		}
-		throw error(errorMessage);
+		throw error(errorMessage + missingMember);
 	}
 
 	protected JsonObject getPaymentConsentObject(JsonObject resourceConfig) {
