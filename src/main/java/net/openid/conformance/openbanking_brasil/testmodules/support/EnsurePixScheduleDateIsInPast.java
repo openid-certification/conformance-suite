@@ -17,10 +17,9 @@ public class EnsurePixScheduleDateIsInPast extends AbstractCondition {
 		JsonObject obj = env.getObject("consent_endpoint_request");
 
 		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo")).minusDays(1L);
-		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
-
 		log("Setting scheduled payment date to current date - 1 day: " + scheduledDate);
-		obj.addProperty("date", scheduledDate.toString());
+
+		JsonObjectBuilder.addField(obj, "data.payment.schedule.single.date", scheduledDate.toString());
 		logSuccess("Successfully created a scheduled payment date for yesterday", obj);
 		return null;
 	}
