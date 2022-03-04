@@ -4,7 +4,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-@CallProtectedResource.FixMe
 public class ValidateSelfEndpoint extends AbstractConditionSequence {
 
 	@Override
@@ -15,10 +14,7 @@ public class ValidateSelfEndpoint extends AbstractConditionSequence {
 		callAndStopOnFailure(SetProtectedResourceUrlToSelfEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		// TODO port to ysing CallProtectedResource
-//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndStopOnFailure(LoadOldValues.class);
 	}

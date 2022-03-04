@@ -30,7 +30,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-@CallProtectedResource.FixMe
 public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override

@@ -30,7 +30,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-@CallProtectedResource.FixMe
 public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
@@ -46,7 +45,6 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 	@Override
 	protected void runTests() {
 		runInBlock("Create a payment consent", () -> {
-			eventLog.startBlock("Setting date to today");
 			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
@@ -57,18 +55,8 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-			// TODO port to using CallProtectedResource
-//			call(new ValidateSelfEndpoint()
-//				.replace(
-//					CallProtectedResourceWithBearerToken.class,
-//					condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
-//				));
-//			});
-			call(new ValidateSelfEndpoint()
-			.replace(
-				CallProtectedResource.class,
-				condition(CallProtectedResource.class)
-			));
+			call(new ValidateSelfEndpoint());
+
 	});
 
 		runInBlock("Create a payment consent re-using jti", () -> {
