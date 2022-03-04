@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;

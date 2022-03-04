@@ -16,6 +16,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenI
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
 		super.issueIdToken(isAuthorizationEndpoint);
 		startWaitingForTimeout();
+		issueIdTokenCalled = true;
 	}
 
 	@Override

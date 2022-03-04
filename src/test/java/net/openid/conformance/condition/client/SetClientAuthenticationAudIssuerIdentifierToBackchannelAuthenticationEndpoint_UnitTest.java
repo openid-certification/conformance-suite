@@ -38,7 +38,7 @@ public class SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticati
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"294570236252\","
 			+ "\"exp\":\"1557395297\","
 			+ "\"iat\":\"1557394997\""
@@ -46,7 +46,7 @@ public class SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticati
 
 		env.putObject("client_assertion_claims", claims);
 
-		server = new JsonParser().parse("{"
+		server = JsonParser.parseString("{"
 			+ "\"issuer\":\"https://fapidev-as.authlete.net/\""
 			+ "}").getAsJsonObject();
 

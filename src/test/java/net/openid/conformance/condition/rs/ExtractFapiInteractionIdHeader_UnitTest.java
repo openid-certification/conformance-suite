@@ -46,14 +46,14 @@ public class ExtractFapiInteractionIdHeader_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodRequest = new JsonParser().parse("{\"headers\":{"
+		goodRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-interaction-id\": \"" + id + "\""
 			+ "}}").getAsJsonObject();
-		altRequest = new JsonParser().parse("{\"headers\":{"
+		altRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-interaction-id\": \"" + altId + "\""
 			+ "}}").getAsJsonObject();
-		missingHeader = new JsonParser().parse("{\"headers\":{}}").getAsJsonObject();
-		noHeaders = new JsonParser().parse("{}").getAsJsonObject();
+		missingHeader = JsonParser.parseString("{\"headers\":{}}").getAsJsonObject();
+		noHeaders = JsonParser.parseString("{}").getAsJsonObject();
 
 	}
 

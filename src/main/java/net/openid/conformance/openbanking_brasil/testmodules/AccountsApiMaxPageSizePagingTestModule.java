@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -34,14 +34,16 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void validateResponse() {
-		
+
 		preCallProtectedResource("Prepare to Fetch Account Transactions");
 		callAndStopOnFailure(AccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
@@ -54,7 +56,8 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(SetProtectedResourceUrlToNextEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);

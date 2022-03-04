@@ -2,9 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.test
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.creditCard.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -27,6 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@CallProtectedResource.FixMe
 public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -37,13 +37,15 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 
 	@Override
 	protected void validateResponse() {
-		
+
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions");
 		callAndStopOnFailure(CardAccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		// TODO yse CallProtectedResource
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
@@ -56,7 +58,9 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(SetProtectedResourceUrlToNextEndpoint.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(SetResourceMethodToGet.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.WARNING);
+		// TODO use CallProtectedResouce
+//		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractResponseCodeFromFullResponse.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);

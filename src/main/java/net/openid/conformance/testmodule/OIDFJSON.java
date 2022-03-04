@@ -11,6 +11,10 @@ import java.util.List;
 /**
  * Wrappers around the GSON getAsXXXX methods
  *
+ * These should generally not be called directly from TestConditions (although there are a lot of historical uses)
+ * as the errors they end up providing to the user are at best unhelpful - instead use AbstractCondition's
+ * getStringFromEnvironment and similar.
+ *
  * The 'getAs' methods automatically coerce types, for example if 'getAsNumber' finds a string, it will automatically
  * convert it to a number. This is not desirable behaviour when we're trying to write a conformance suite that
  * checks if the returned values are actually the correct type (for example it's pretty wrong to return 'expires_in'
@@ -97,13 +101,6 @@ public final class OIDFJSON {
 			throw new UnexpectedJsonTypeException("getLong called on something that is not a Long: " + json);
 		}
 		return json.getAsLong();
-	}
-
-	public static char getCharacter(JsonElement json) {
-		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) {
-			throw new UnexpectedJsonTypeException("getCharacter called on something that is not a string: " + json);
-		}
-		return json.getAsCharacter();
 	}
 
 	public static String getString(JsonElement json) {

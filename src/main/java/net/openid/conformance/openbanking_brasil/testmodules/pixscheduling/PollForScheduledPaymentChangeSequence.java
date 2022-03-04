@@ -10,13 +10,17 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 public class PollForScheduledPaymentChangeSequence extends AbstractConditionSequence {
 
 	@Override
+	@CallProtectedResource.FixMe
 	public void evaluate() {
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		call(new ValidateSelfEndpoint()
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			// TODO fix CallProtectedResource
+//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			))
 			.skip(SaveOldValues.class, "Not saving old values")
 			.skip(LoadOldValues.class, "Not loading old values")

@@ -55,11 +55,13 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void requestProtectedResource() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		call(new CallPixPaymentsEndpointSequence()
-			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class))
+//			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class))
+			.replace(CallProtectedResource.class, condition(CallProtectedResourceAndExpectFailure.class))
 			.skip(EnsureHttpStatusCodeIs201.class, "Expecting error here")
 			.skip(ExtractSignedJwtFromResourceResponse.class, "Signed jwt will be decoded elsewhere")
 		);

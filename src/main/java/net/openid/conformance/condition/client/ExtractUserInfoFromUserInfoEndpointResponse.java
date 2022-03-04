@@ -21,7 +21,7 @@ public class ExtractUserInfoFromUserInfoEndpointResponse extends AbstractConditi
 
 		String userInfoStr = env.getString("userinfo_endpoint_response");
 		try {
-			JsonElement elt = new JsonParser().parse(userInfoStr);
+			JsonElement elt = JsonParser.parseString(userInfoStr);
 			JsonObject userInfo = elt.getAsJsonObject();
 			env.putObject("userinfo", userInfo);
 			logSuccess("Extracted user info", args("userinfo", userInfo));

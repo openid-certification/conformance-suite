@@ -63,7 +63,7 @@ public class SignRequestObject_UnitTest {
 
 		// Sample values from OpenID Connect Core 1.0 § 6.1
 
-		requestObjectClaims = new JsonParser().parse(
+		requestObjectClaims = JsonParser.parseString(
 				"  {\n" +
 				"   \"iss\": \"s6BhdRkqt3\",\n" +
 				"   \"aud\": \"https://server.example.com\",\n" +
@@ -96,7 +96,7 @@ public class SignRequestObject_UnitTest {
 
 		// Generated key (since the sample in the OpenID spec does not include the private key)
 
-		jwks = new JsonParser().parse("{"
+		jwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","

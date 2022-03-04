@@ -46,7 +46,7 @@ public class GetStaticServerConfiguration_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		server = new JsonParser().parse("{"
+		server = JsonParser.parseString("{"
 			+ "\"authorization_endpoint\":\"https://example.com/oauth/authorize\","
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
 			+ "\"issuer\":\"ExampleApp\""

@@ -1,13 +1,11 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -81,7 +79,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 	@PostEnvironment(strings = {"consent_id"}, required = {"consent_response", "consent_response_headers"})
 	public Environment evaluate(Environment env) {
 
-		String consentId = "urn:conformance.oidf:" + RandomStringUtils.randomAlphanumeric(10);
+		String consentId = "urn:conformance:oidf:" + RandomStringUtils.randomAlphanumeric(10);
 
 		env.putString("consent_id", consentId);
 		JsonObject consentResponse = new JsonObject();
@@ -104,7 +102,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + AbstractFAPI1AdvancedFinalClientTest.BRAZIL_PAYMENTS_CONSENTS_PATH);
+		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 		dataElement.add("links", links);
 
 		JsonObject meta = new JsonObject();

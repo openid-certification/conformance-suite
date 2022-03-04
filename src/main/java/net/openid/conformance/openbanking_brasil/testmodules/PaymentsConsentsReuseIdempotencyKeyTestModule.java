@@ -3,8 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
@@ -32,6 +30,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@CallProtectedResource.FixMe
 public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -137,7 +136,9 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 		callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		// TODO port to using CallProtectedResource
+//		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 	}
 
 }

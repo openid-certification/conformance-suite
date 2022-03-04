@@ -3,8 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
@@ -35,6 +33,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 		"resource.resourceUrl"
 	}
 )
+@CallProtectedResource.FixMe
 public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunctionalTestModule {
 	@Override
 	protected void validateClientConfiguration() {
@@ -70,6 +69,7 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 
 	}
 
+	@CallProtectedResource.FixMe
 	protected void makeRequest(boolean fail){
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		if (isSecondClient()) {
@@ -128,7 +128,9 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 		}
 		// if expecting pass
 		else {
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			// TODO port to using call protected resource
+//			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			callAndContinueOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 			callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 			if (!isSecondClient()) {

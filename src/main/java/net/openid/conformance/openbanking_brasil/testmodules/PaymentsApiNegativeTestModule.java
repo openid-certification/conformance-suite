@@ -3,8 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureNoRejectionReasonIFStatusIsNotRJCT;
@@ -154,6 +152,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 			callAndContinueOnFailure(Ensure422ResponseCodeWasPAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO_OR_NAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		} else if (!finalAuth) {
+			// TODO stop using that
 			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
@@ -161,7 +160,9 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		}
 		else {
-			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+			// TODO port to using CallProtectedResource
+//			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+			callAndStopOnFailure(CallProtectedResource.class);
 			callAndContinueOnFailure(EnsureResponseCodeWas201.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureNoRejectionReasonIFStatusIsNotRJCT.class, Condition.ConditionResult.FAILURE);
 

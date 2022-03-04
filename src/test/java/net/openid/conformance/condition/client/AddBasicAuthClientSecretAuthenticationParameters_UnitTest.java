@@ -49,7 +49,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 
 		// Example values from RFC 6749
 
-		client = new JsonParser().parse("{"
+		client = JsonParser.parseString("{"
 			+ "\"client_id\":\"s6BhdRkqt3\","
 			+ "\"client_secret\":\"7Fjfp0ZBr1KtDRbnfVdmIw\""
 			+ "}").getAsJsonObject();
@@ -75,7 +75,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters_UnitTest {
 
 	@Test
 	public void testEvaluate_noErrorUrlEncoding() {
-		JsonObject clientWithSpecialChars = new JsonParser().parse("{"
+		JsonObject clientWithSpecialChars = JsonParser.parseString("{"
 			+ "\"client_id\":\"s6BhdRkqt3%\","
 			+ "\"client_secret\":\"7Fjfp0Z%Br1KtDRbnfVdmIw%\""
 			+ "}").getAsJsonObject();

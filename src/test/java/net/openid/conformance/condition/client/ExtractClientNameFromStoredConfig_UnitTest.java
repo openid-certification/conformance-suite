@@ -48,7 +48,7 @@ public class ExtractClientNameFromStoredConfig_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_ClientNameInConfig() {
-		JsonObject config = new JsonParser().parse("{" +
+		JsonObject config = JsonParser.parseString("{" +
 			"\"client_name\":\"foo\"" +
 			"}").getAsJsonObject();
 		env.putObject("original_client_config", config);

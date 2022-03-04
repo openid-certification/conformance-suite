@@ -8,12 +8,15 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 import springfox.documentation.spring.web.json.Json;
-
+@CallProtectedResource.FixMe
+// TODO replace usages with CallProtectedResource
+@Deprecated
 public class CallProtectedResourceAndExpectFailure extends AbstractCallProtectedResourceWithBearerToken {
 
 	@Override

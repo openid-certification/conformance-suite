@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptNoneToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointIsOneThatRequiredAUserInterface;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-prompt-none-NotLoggedIn.json
@@ -15,13 +16,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCPromptNoneNotLoggedIn extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
+	protected ConditionSequence createAuthorizationRequestSequence() {
 		// use a longer state value to check OP doesn't corrupt it in the error response
 		env.putInteger("requested_state_length", 128);
 
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
-
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1"));
 	}
 
 	@Override

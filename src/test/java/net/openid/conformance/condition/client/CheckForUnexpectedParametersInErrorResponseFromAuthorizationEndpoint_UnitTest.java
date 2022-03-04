@@ -44,7 +44,7 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 	}
 
 	private void doTestString(String stringToTest) {
-		JsonObject jsonErrorNoneNoOptionalFields = new JsonParser().parse(stringToTest).getAsJsonObject();
+		JsonObject jsonErrorNoneNoOptionalFields = JsonParser.parseString(stringToTest).getAsJsonObject();
 		env.putObject("authorization_endpoint_response", jsonErrorNoneNoOptionalFields);
 		cond.execute(env);
 	}

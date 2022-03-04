@@ -10,10 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -33,7 +30,8 @@ import java.util.Optional;
 
 
 public class CallConsentApiWithBearerToken extends AbstractCondition {
-
+	// TODO figure out why that constant was deleted from DataUtils
+	private static final MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
 	private static final Logger logger = LoggerFactory.getLogger(net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken.class);
 
 	@Override

@@ -34,7 +34,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 	public void setUp() throws Exception {
 		cond = new OIDCCCheckScopesSupportedContainScopeTest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
-		serverObj = new JsonParser().parse(
+		serverObj = JsonParser.parseString(
 			"{" +
 				"\"scopes_supported\": [" +
 					"\"email\"," +
@@ -50,7 +50,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 				"}")
 			.getAsJsonObject();
 
-		clientObj = new JsonParser().parse(
+		clientObj = JsonParser.parseString(
 			"{\"scope\": \"email profile phone address\"}")
 			.getAsJsonObject();
 	}

@@ -10,6 +10,7 @@ public class ValidateSelfEndpointPaymentConsent extends AbstractConditionSequenc
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
+	@CallProtectedResource.FixMe
 	public void evaluate() {
 		callAndStopOnFailure(SaveOldValues.class);
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
@@ -21,7 +22,8 @@ public class ValidateSelfEndpointPaymentConsent extends AbstractConditionSequenc
 		callAndStopOnFailure(AddIdempotencyKeyHeader.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		callAndStopOnFailure(AddJWTAcceptHeaderRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+//		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseWasJwt.class);
 		callAndContinueOnFailure(ThrowWarningFor406.class, Condition.ConditionResult.WARNING);

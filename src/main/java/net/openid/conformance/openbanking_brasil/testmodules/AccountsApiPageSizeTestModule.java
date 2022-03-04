@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -34,12 +34,15 @@ public class AccountsApiPageSizeTestModule extends AbstractOBBrasilFunctionalTes
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		// TOOD use CallProtectedResource
+//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);

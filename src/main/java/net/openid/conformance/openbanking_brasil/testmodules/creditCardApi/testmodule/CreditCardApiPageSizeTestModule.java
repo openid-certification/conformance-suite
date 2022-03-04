@@ -1,7 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -33,12 +33,15 @@ public class CreditCardApiPageSizeTestModule extends AbstractOBBrasilFunctionalT
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		// TODO use CallProtectedResource
+//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndStopOnFailure(EnsureResponseHasLinks.class);

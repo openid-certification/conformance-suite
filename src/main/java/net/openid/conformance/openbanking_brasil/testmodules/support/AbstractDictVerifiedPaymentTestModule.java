@@ -10,6 +10,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 import java.util.Optional;
 
+@CallProtectedResource.FixMe
 public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -55,12 +56,13 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
+			// TODO backport all of this to use CallProtectedResource
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
+				.replace(CallProtectedResource.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
 				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
 			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
+				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 			});
 			call(pixSequence);
 			eventLog.startBlock(currentClientString() + "Validate response");
@@ -93,10 +95,11 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(WaitFor30Seconds.class);
+				// TODO use CallProtectedResource
 				call(new ValidateSelfEndpoint()
-					.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+					.replace(CallProtectedResource.class, sequenceOf(
 						condition(AddJWTAcceptHeader.class),
-						condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+						condition(CallProtectedResource.class)
 					))
 					.skip(SaveOldValues.class, "Not saving old values")
 					.skip(LoadOldValues.class, "Not loading old values")

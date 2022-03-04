@@ -38,6 +38,7 @@ public class LogEntryHelper {
 		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
 		specLinks.put("FAPI1-BASE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI1-ADV-", "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.");
+		specLinks.put("FAPI2-BASE-", "https://openid.bitbucket.io/fapi/fapi-2_0-baseline.html#section."); // not a stable version - update to implementers draft 2 when available
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
 		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");
@@ -49,6 +50,7 @@ public class LogEntryHelper {
 		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
+		specLinks.put("RFC6750-", "https://tools.ietf.org/html/rfc6750#section-");
 		specLinks.put("RFC6819-", "https://tools.ietf.org/html/rfc6819#section-");
 		specLinks.put("RFC7231-", "https://tools.ietf.org/html/rfc7231#section-");
 		specLinks.put("RFC7517-", "https://tools.ietf.org/html/rfc7517#section-");
@@ -70,6 +72,7 @@ public class LogEntryHelper {
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("BCLOG-F02-", "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#");
+		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();

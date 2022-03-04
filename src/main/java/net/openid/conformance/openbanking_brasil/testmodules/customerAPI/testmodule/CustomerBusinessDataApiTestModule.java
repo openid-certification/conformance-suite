@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmo
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
@@ -30,6 +30,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@CallProtectedResource.FixMe
 public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -42,19 +43,25 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void validateResponse() {
 		runInBlock("Validating corporate relationship response", () ->{
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			// TODO use CallProtectedResource
+//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			// TODO use CallProtectedResource
+//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessIdentificationValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			// TODO use CallProtectedResource
+//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 

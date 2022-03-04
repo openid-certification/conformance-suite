@@ -76,7 +76,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// VerifyState() covered by OIDCCServerTest
 					OIDCCAuthCodeReuse.class, // OP-OAuth-2nd
 					OIDCCAuthCodeReuseAfter30Seconds.class, // OP-OAuth-2nd-30s
-					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds / CallProtectedResourceWithBearerTokenExpectingError
+					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds
 					// OP-OAuth-2nd-30s is already covered
 					OIDCCEnsureRegisteredRedirectUri.class // OP-redirect_uri-NotReg
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
@@ -140,7 +140,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// VerifyState() covered by OIDCCServerTest
 					OIDCCAuthCodeReuse.class, // OP-OAuth-2nd
 					OIDCCAuthCodeReuseAfter30Seconds.class, // OP-OAuth-2nd-30s
-					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds / CallProtectedResourceWithBearerTokenExpectingError
+					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds
 					// OP-OAuth-2nd-30s is already covered
 					OIDCCEnsureRegisteredRedirectUri.class // OP-redirect_uri-NotReg
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
@@ -203,7 +203,7 @@ public class OIDCCHybridTestPlan implements TestPlan {
 					// VerifyState() covered by OIDCCServerTest
 					OIDCCAuthCodeReuse.class, // OP-OAuth-2nd
 					OIDCCAuthCodeReuseAfter30Seconds.class, // OP-OAuth-2nd-30s
-					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds / CallProtectedResourceWithBearerTokenExpectingError
+					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds
 					// OP-OAuth-2nd-30s is already covered
 					OIDCCEnsureRegisteredRedirectUri.class // OP-redirect_uri-NotReg
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest

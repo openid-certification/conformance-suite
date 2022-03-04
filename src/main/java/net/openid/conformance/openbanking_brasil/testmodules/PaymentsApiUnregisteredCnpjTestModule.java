@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
@@ -45,10 +45,13 @@ public class PaymentsApiUnregisteredCnpjTestModule extends AbstractOBBrasilFunct
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void requestProtectedResource() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class)));
+		// TODO CallProtectedResoure
+//		call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class)));
+		call(new CallPixPaymentsEndpointSequence().replace(CallProtectedResource.class, condition(CallProtectedResourceAndExpectFailure.class)));
 		validateResponse();
 	}
 

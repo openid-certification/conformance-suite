@@ -59,12 +59,14 @@ public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule 
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
 				.replace(CreatePaymentRequestEntityClaims.class, condition(GeneratePaymentRequestEntityClaims.class))
-				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
+//				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
+				.replace(CallProtectedResource.class,
 					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
 				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
 			call(pixSequence);

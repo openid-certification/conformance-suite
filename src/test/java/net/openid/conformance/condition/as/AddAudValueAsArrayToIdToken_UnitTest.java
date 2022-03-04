@@ -41,7 +41,7 @@ public class AddAudValueAsArrayToIdToken_UnitTest {
 
 		aud = "test-client-id-123";
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"https://localhost:8443/test/a/fintech-clienttest\","
 			+ "\"sub\":\"user-subject-12345431\","
 			+ "\"nonce\":\"123abcdef\","

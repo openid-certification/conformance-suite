@@ -9,12 +9,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -69,7 +70,11 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		return new HttpHeaders();
 	}
 
-	protected MediaType getMediaType(Environment env) {
+	protected boolean treatAllHttpStatusAsSuccess() {
+		return false;
+	}
+
+	protected MediaType getContentType(Environment env) {
 
 		return MediaType.APPLICATION_FORM_URLENCODED;
 	}
@@ -85,17 +90,27 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
+			if (treatAllHttpStatusAsSuccess()) {
+				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+					@Override
+					public boolean hasError(ClientHttpResponse response) throws IOException {
+						// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+						// status code meaning the rest of our code can handle http status codes how it likes
+						return false;
+					}
+				});
+			}
+
 			HttpMethod method = getMethod(env);
 			HttpHeaders headers = getHeaders(env);
 
 			if (headers.getAccept().isEmpty()) {
-				headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			}
 
 			if (method == HttpMethod.POST && headers.getContentType() == null) {
 				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
-				headers.setContentType(getMediaType(env));
+				headers.setContentType(getContentType(env));
 			}
 
 			HttpEntity<?> request = new HttpEntity<>(getBody(env), headers);
@@ -105,7 +120,13 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			responseCode.addProperty("code", response.getStatusCodeValue());
 			String responseBody = response.getBody();
 			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-			JsonObject fullResponse = convertResponseForEnvironment("resource", response);
+			JsonObject fullResponse;
+
+			if (requireJsonResponseBody()) {
+				fullResponse = convertJsonResponseForEnvironment("resource", response);
+			} else {
+				fullResponse = convertResponseForEnvironment("resource", response);
+			}
 
 			return handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
 		} catch (RestClientResponseException e) {
@@ -119,6 +140,10 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			}
 			throw error(msg, e);
 		}
+	}
+
+	protected boolean requireJsonResponseBody() {
+		return false;
 	}
 
 	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse);

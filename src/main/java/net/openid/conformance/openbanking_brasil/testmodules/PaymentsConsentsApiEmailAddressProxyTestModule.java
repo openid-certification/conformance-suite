@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;

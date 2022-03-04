@@ -583,10 +583,11 @@ upload:
 
   function set_up_for_running_test_plan() {
     install_test_dependencies
-    pip install requests
+    pip install httpx
   }
 
   function run_client_test_plan() {
+    apk add nodejs npm
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
   }

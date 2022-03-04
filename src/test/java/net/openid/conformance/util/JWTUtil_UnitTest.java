@@ -134,8 +134,8 @@ public class JWTUtil_UnitTest {
 			"    }\n" +
 			"  ]\n" +
 			"}";
-		JsonObject clientJsonObject = new JsonParser().parse(client).getAsJsonObject();
-		JsonObject jwksJsonObject = new JsonParser().parse(serverJwks).getAsJsonObject();
+		JsonObject clientJsonObject = JsonParser.parseString(client).getAsJsonObject();
+		JsonObject jwksJsonObject = JsonParser.parseString(serverJwks).getAsJsonObject();
 		try {
 			JsonObject jsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObject,clientJsonObject, jwksJsonObject);
 			assertNotNull(jsonObject);
@@ -230,8 +230,8 @@ public class JWTUtil_UnitTest {
 			"    }\n" +
 			"  ]\n" +
 			"}";
-		JsonObject clientJsonObject = new JsonParser().parse(client).getAsJsonObject();
-		JsonObject jwksJsonObject = new JsonParser().parse(serverJwks).getAsJsonObject();
+		JsonObject clientJsonObject = JsonParser.parseString(client).getAsJsonObject();
+		JsonObject jwksJsonObject = JsonParser.parseString(serverJwks).getAsJsonObject();
 		try {
 			JsonObject jsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(requestObject,clientJsonObject, jwksJsonObject);
 			assertNotNull(jsonObject);

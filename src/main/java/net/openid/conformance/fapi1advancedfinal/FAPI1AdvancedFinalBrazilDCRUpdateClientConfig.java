@@ -119,8 +119,8 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 	}
 
 	protected void updateClientConfigWithBadAccessToken() {
-		String accessToken = env.getString("registration_access_token");
-		env.putString("registration_access_token", "ivegotthisterriblepaininallthediodesdownmyleftside");
+		String accessToken = env.getString("client", "registration_access_token");
+		env.putString("client", "registration_access_token", "ivegotthisterriblepaininallthediodesdownmyleftside");
 
 		eventLog.startBlock("Calling PUT on configuration endpoint with invalid access token");
 
@@ -131,7 +131,7 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 		callAndContinueOnFailure(CheckNoClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 
-		env.putString("registration_access_token", accessToken);
+		env.putString("client", "registration_access_token", accessToken);
 	}
 
 	protected void updateClientConfigWithNoSsa() {

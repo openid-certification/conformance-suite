@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddMultipleRedirectUriToDynamicRe
 import net.openid.conformance.condition.client.AuthorizationEndpointRedirectedBackUnexpectedly;
 import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage;
 import net.openid.conformance.condition.client.RemoveRedirectUriFromAuthorizationEndpointRequest;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -34,9 +35,9 @@ public class OIDCCEnsureRedirectUriInAuthorizationRequest extends AbstractOIDCCS
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-				.then(condition(RemoveRedirectUriFromAuthorizationEndpointRequest.class)));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(RemoveRedirectUriFromAuthorizationEndpointRequest.class));
 	}
 
 	@Override

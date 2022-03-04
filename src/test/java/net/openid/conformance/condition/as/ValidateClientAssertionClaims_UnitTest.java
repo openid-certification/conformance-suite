@@ -56,14 +56,14 @@ public class ValidateClientAssertionClaims_UnitTest {
 		audience = "https://localhost:8443/test/a/fintech-clienttest/token";
 		audienceMtls = "https://localhost:8443/test-mtls/a/fintech-clienttest/token";
 
-		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
+		client = JsonParser.parseString("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
-		server = new JsonParser().parse("{"
+		server = JsonParser.parseString("{"
 			+ "\"issuer\":\"" + audience + "\","
 			+ "\"token_endpoint\":\"" + audience + "\""
 			+ "}").getAsJsonObject();
 
-		serverMtls = new JsonParser().parse("{"
+		serverMtls = JsonParser.parseString("{"
 			+ "\"issuer\":\"" + audience + "\","
 			+ "\"token_endpoint\":\"" + audience + "\","
 			+ "\"mtls_endpoint_aliases\": {"
@@ -71,7 +71,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 			+ "}"
 			+ "}").getAsJsonObject();
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"" + clientId + "\","
 			+ "\"sub\":\"" + clientId + "\","
 			+ "\"aud\":\"" + audience + "\","

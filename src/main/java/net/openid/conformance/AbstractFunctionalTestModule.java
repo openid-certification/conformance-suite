@@ -43,6 +43,7 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 			eventLog.endBlock();
 	}
 
+	@CallProtectedResource.FixMe
 	protected void preCallProtectedResource() {
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
@@ -55,7 +56,9 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		// TODO backport to CallProtectedResource
+//		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 

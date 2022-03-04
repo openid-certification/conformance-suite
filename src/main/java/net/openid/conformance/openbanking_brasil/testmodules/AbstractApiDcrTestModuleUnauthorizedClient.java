@@ -1,49 +1,8 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddOpenIdPaymentsScopeToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddOpenIdResourcesScopeToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddScopeOpenIdPaymentsToClientConfigurationRequest;
-import net.openid.conformance.condition.client.AddScopeOpenIdResourcesToClientConfigurationRequest;
-import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
-import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
-import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
-import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidScope;
-import net.openid.conformance.condition.client.CheckNoClientIdFromDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckNoErrorFromDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
-import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
-import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointDoesNotContainPayments;
-import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointDoesNotContainResources;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
-import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.ExtractClientManagementCredentials;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SetResourcesScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
+import net.openid.conformance.condition.client.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
 
@@ -115,7 +74,10 @@ public abstract class AbstractApiDcrTestModuleUnauthorizedClient extends Abstrac
                 callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
                 callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
                 callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-                callAndContinueOnFailure(ExtractClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+				// TODO figure out how to cope with that being deleted
+				// suspect it was replaced by the condition I use below but need to check
+//                callAndContinueOnFailure(ExtractClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+                callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
                 callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 
                 validateDcrResponseScope();

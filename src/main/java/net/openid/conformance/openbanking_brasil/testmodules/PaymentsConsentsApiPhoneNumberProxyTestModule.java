@@ -66,6 +66,7 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 	}
 
 	@Override
+	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureNoRejectionReasonIFStatusIsNotRJCT.class, Condition.ConditionResult.FAILURE);
@@ -79,9 +80,12 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 					condition(EnsureResponseWasJwt.class),
 					condition(PaymentFetchPixPaymentsValidator.class)
 				))
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			// TODO use CallProtectedResource
+//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			)));
 		ensurePaymentIsAcceptedOrRejected();
 
@@ -115,11 +119,15 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 		}
 	}
 
+	@CallProtectedResource.FixMe
 	protected void pollPayment() {
 		call(new ValidateSelfEndpoint()
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			// TODO use CallProtectedResource
+//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			))
 			.skip(
 				LoadOldValues.class, "skipping load old values - first check"

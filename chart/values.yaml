@@ -22,13 +22,13 @@ service:
   internalPort: 8080
 resources:
   limits:
-    memory: 1.5Gi
+    memory: 2Gi
   requests:
     cpu: 100m
 # showing the external IP address uses an external server to retrieve
 # the external API; this is useful on the cloud production
 # environments but you may want to disable it if deploying internally
-javaArgs: "-Xmx512M -Dfintechlabs.show_external_ip_address=true"
+javaArgs: "-Xmx724M -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
   image:
     tag: 3.6

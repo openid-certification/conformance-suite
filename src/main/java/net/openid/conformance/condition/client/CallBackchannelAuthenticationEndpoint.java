@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
@@ -67,8 +68,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 			HttpHeaders headers = headersFromJson(env.getObject("backchannel_authentication_endpoint_request_headers"));
 
-			headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 
@@ -102,7 +102,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 					args("backchannel_authentication_endpoint_response", jsonString));
 
 				try {
-					JsonElement jsonRoot = new JsonParser().parse(jsonString);
+					JsonElement jsonRoot = JsonParser.parseString(jsonString);
 					if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 						throw error("Backchannel Authentication Endpoint did not return a JSON object");
 					}
