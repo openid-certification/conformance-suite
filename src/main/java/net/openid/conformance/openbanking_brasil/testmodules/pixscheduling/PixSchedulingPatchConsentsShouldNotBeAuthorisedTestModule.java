@@ -45,10 +45,9 @@ public class PixSchedulingPatchConsentsShouldNotBeAuthorisedTestModule extends A
 		runInBlock("Validate payment initiation consent", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
-			callAndStopOnFailure(EnsureScheduledPaymentDateIsTomorrow.class);
+			callAndStopOnFailure(FAPIBrazilGeneratePaymentConsentRequest.class);
 			callAndStopOnFailure(RemovePaymentDateFromConsentRequest.class);
-			callAndStopOnFailure(EnforcePaymentConsentFieldsForPatch.class);
-			callAndStopOnFailure(EnforceCnpjInitiatorOnPayment.class);
+			callAndStopOnFailure(EnsureScheduledPaymentDateIsTomorrow.class);
 
 			call(sequence(SignedPaymentConsentSequence.class));
 
@@ -62,6 +61,7 @@ public class PixSchedulingPatchConsentsShouldNotBeAuthorisedTestModule extends A
 			callAndStopOnFailure(PaymentConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToPatchConsentRequest.class);
 			callAndStopOnFailure(SetPatchConsentsRevokedAndRevokedByTPP.class);
+			callAndStopOnFailure(SetPatchConsentLoggedUser.class);
 			callAndStopOnFailure(FAPIBrasilCreatePatchPaymentConsentRequest.class);
 			call(new SignedPaymentConsentSequence()
 				.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
