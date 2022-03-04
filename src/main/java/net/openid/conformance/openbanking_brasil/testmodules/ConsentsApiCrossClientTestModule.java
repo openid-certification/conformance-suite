@@ -21,7 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 2nd client\n" +
 		"\u2022 Expects the test to return a 403 - Forbidden\n" +
 		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 1st client\n" +
-		"\u2022 Expects a success on the Delete 20x\n" +
+		"\u2022 Expects success on the Delete 20x\n" +
 		"\u2022 Calls the GET Consents with the 1st Consent ID created\n" +
 		"\u2022 Confirms that the Consent has been sent to a Rejected state",
 	profile = OBBProfile.OBB_PROFILE,

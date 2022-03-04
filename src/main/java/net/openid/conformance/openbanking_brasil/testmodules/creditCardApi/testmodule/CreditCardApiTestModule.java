@@ -17,7 +17,21 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "credit-card-api-test",
 	displayName = "Validate structure of all credit card API resources",
-	summary = "Validates the structure of all credit card API resources",
+	summary = "Validates the structure of all credit card API resources\n" +
+		"\u2022 Creates a Consent with the complete set of the credit cards permission group ([\"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_LIMITS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\"])\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Credit Cards Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Credit Cards Accounts API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Limits API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -10,7 +10,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consent-api-status-declined-test",
 	displayName = "Validate that consents are rejected on decline",
-	summary = "Validate that consents are rejected on decline",
+	summary = "Validates that consents are rejected on the decline\n" +
+		"\u2022 Creates a Consent with all of the existing permissions\n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Expects a valid consent creation 201\n" +
+		"\u2022 Redirects the User to Reject the Consent\n" +
+		"\u2022 Checks if rejection resulted in an error message on the redirect\n" +
+		"\u2022 Calls the GET Consents endpoint\n" +
+		"\u2022 Expects a 200 with the Consent being on a rejected status",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

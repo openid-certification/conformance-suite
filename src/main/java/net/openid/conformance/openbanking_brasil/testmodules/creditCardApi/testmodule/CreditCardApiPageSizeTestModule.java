@@ -10,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "credit-card-api-page-size-test",
 	displayName = "Validate that we can request credit card accounts with a page-size specified",
-	summary = "Validate that we can request credit card accounts with a page-size specified",
+	summary = "Validates that we can request credit card accounts with a page-size specified\n" +
+		"\u2022 Creates a Consent with the complete set of the credit cards permission group ([\"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_LIMITS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\"])\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Credit Cards Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Credit Cards Transactions API with page size=1000\n" +
+		"\u2022 Expects a 200 response - Validates that the answer is compliant with the paging rules set",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

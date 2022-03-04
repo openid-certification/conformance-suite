@@ -19,7 +19,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "resources-api-test",
 	displayName = "Validate structure of all resources API resources",
-	summary = "Validates the structure of all resources API resources",
+	summary = "Validates the structure of all resources API resources\n" +
+		"\u2022 Creates a Consent will all of the existing permissions \n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Calls the GET resources API\n" +
+		"\u2022 Expects a 200",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
