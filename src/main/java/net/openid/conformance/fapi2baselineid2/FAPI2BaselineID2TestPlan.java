@@ -49,7 +49,7 @@ import java.util.Map;
 
 		// Negative tests for token endpoint
 		FAPI2BaselineID2EnsureClientIdInTokenEndpoint.class,
-		FAPI2BaselineID2EnsureMTLSHolderOfKeyRequired.class,
+		FAPI2BaselineID2EnsureHolderOfKeyRequired.class,
 		FAPI2BaselineID2EnsureAuthorizationCodeIsBoundToClient.class,
 		FAPI2BaselineID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
 
