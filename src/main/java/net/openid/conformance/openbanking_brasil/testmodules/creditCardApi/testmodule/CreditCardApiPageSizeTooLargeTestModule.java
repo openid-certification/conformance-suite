@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -37,8 +38,7 @@ public class CreditCardApiPageSizeTooLargeTestModule extends AbstractOBBrasilFun
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1001.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 
 	}

@@ -10,7 +10,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 import java.util.Optional;
 
-@CallProtectedResource.FixMe
 public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -56,15 +55,10 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
-			// TODO backport all of this to use CallProtectedResource
-			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-				.replace(CallProtectedResource.class,
-					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
-			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
-			});
+			eventLog.startBlock("initiate payment");
+			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence();
 			call(pixSequence);
+			eventLog.endBlock();
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();
 			eventLog.endBlock();

@@ -351,6 +351,23 @@ public class TestRunner implements DataUtils {
 
 			alias = OIDFJSON.getString(config.get("alias"));
 
+			// This is unfortunately needed for now to allow these tests to pass
+			List<String> needsAccountAlias = List.of(
+				"payments-api-dcr-test-unauthorized-client",
+				"resources-api-dcr-happyflow",
+				"resources-api-dcr-test-attempt-client-takeover",
+				"resources-api-dcr-subjectdn");
+			if (needsAccountAlias.contains(testName)) {
+				// These tests use a hardcoded client that needs a particular redirect url
+				alias = "raidiam-client-accounts-only";
+			}
+			else if (testName.equals("payments-api-dcr-happyflow") ||
+				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
+				testName.equals("payments-api-dcr-subjectdn") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client")) {
+				alias = "raidiam-client-payments-only";
+			}
+
 			try {
 				// create an alias for the test
 				createTestAlias(alias, id);

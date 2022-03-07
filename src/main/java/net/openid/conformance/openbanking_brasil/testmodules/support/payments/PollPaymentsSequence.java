@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-@CallProtectedResource.FixMe
 public class PollPaymentsSequence extends AbstractConditionSequence {
 
 	@Override
@@ -15,11 +14,10 @@ public class PollPaymentsSequence extends AbstractConditionSequence {
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(WaitFor30Seconds.class);
 		call(new ValidateSelfEndpoint()
-//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
-				condition(CallProtectedResource.class)
+				condition(CallProtectedResource.class),
+				condition(EnsureResponseCodeWas200.class)
 			))
 			.skip(SaveOldValues.class, "Not saving old values")
 			.skip(LoadOldValues.class, "Not loading old values")

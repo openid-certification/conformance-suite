@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -31,7 +32,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-@CallProtectedResource.FixMe
 public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -44,27 +44,24 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void validateResponse() {
 		runInBlock("Validating personal financial relationship response", () -> {
-			// TODO use CallProtectedResource
-//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
-			// TODO use CallProtectedResource
-//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating personal qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
-			// TODO use CallProtectedResource
-//			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});

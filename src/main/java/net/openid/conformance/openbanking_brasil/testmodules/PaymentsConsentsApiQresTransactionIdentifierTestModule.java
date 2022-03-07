@@ -57,13 +57,12 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 	}
 
 	@Override
-	@CallProtectedResource.FixMe
 	protected void requestProtectedResource() {
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(AddTransactionIdentification.class);
 		call(new CallPixPaymentsEndpointSequence()
-			.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusIs422.class))
+			.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class))
 		);
 		validateResponse();
 	}

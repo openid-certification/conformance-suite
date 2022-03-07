@@ -26,7 +26,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-@CallProtectedResource.FixMe
 public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
@@ -43,10 +42,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		// TODO yse CallProtectedResource
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -58,10 +54,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(SetProtectedResourceUrlToNextEndpoint.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(SetResourceMethodToGet.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class, Condition.ConditionResult.WARNING);
-		// TODO use CallProtectedResouce
-//		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractResponseCodeFromFullResponse.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);

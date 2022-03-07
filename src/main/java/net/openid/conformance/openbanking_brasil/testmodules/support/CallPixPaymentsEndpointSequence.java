@@ -4,7 +4,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-@CallProtectedResource.FixMe
 public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 
 	@Override
@@ -47,9 +46,8 @@ public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 
 		callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 
-		// TODO backfill this with relevant steps to ensure continuity
-//		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(EnsureResponseCodeWas201.class);
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
@@ -61,8 +59,6 @@ public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 
 		callAndStopOnFailure(EnsureContentTypeApplicationJwt.class);
-
-		callAndStopOnFailure(EnsureHttpStatusCodeIs201.class);
 
 		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class);
 

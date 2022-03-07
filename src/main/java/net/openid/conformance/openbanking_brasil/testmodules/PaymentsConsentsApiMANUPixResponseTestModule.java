@@ -55,7 +55,6 @@ public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBras
 	}
 
 	@Override
-	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -68,10 +67,8 @@ public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBras
 					condition(EnsureResponseWasJwt.class),
 					condition(PaymentFetchPixPaymentsValidator.class)
 				))
-//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
 				condition(CallProtectedResource.class)
 			)));
 

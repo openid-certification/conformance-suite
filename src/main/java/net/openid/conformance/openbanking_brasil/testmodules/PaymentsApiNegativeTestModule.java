@@ -146,22 +146,20 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 			}
 		}
 		if(!finalAuth && !secondTest) {
-			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndStopOnFailure(CallProtectedResource.class);
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
 			callAndContinueOnFailure(Ensure422ResponseCodeWasPAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO_OR_NAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		} else if (!finalAuth) {
 			// TODO stop using that
-			callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndStopOnFailure(CallProtectedResource.class);
 			callAndStopOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureResponseWasJwt.class);
 			callAndContinueOnFailure(EnsurePaymentCodeIsCorrect.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 		}
 		else {
-			// TODO port to using CallProtectedResource
-//			callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
 			callAndStopOnFailure(CallProtectedResource.class);
 			callAndContinueOnFailure(EnsureResponseCodeWas201.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureNoRejectionReasonIFStatusIsNotRJCT.class, Condition.ConditionResult.FAILURE);

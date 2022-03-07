@@ -21,17 +21,6 @@ import java.lang.annotation.Target;
  */
 public class CallProtectedResource extends AbstractCallProtectedResourceWithBearerToken {
 
-	@Target({ElementType.TYPE, ElementType.METHOD, ElementType.LOCAL_VARIABLE})
-	@Retention(RetentionPolicy.SOURCE)
-	/**
-	 * Anything annotated with this needs to be modified to use
-	 * CallProtectedResource instead of whatever derivative it was using
-	 *
-	 */
-	public @interface FixMe {
-
-	}
-
 	@Override
 	protected boolean treatAllHttpStatusAsSuccess() {
 		// Treat all http status codes as 'not an error', so spring never throws an exception due to the http

@@ -511,7 +511,7 @@ upload:
   function install_build_dependencies() {
     apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip
     update-ca-certificates
-    pip3 -q install docker-compose==1.23.2 awscli==1.19.76
+    pip3 -q install docker-compose==1.23.2 awscli==1.19.76 httpx
     docker-compose --version
   }
 

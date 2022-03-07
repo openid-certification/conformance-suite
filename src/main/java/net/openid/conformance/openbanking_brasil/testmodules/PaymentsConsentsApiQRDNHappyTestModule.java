@@ -33,7 +33,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilQrdnRemittance"
 	}
 )
-@CallProtectedResource.FixMe
 public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCodePaymentFunctionalTestModule {
 
 	private boolean secondAuthCodeFlow = false;
@@ -115,13 +114,9 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 
 	protected void requestProtectedResourceAgain() {
 		ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-			// TODO use CallProtectedResource
-			.replace(CallProtectedResource.class,
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-			.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
+			.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
 		postProcessResourceSequence(pixSequence);
 		resourceCreationErrorMessageCondition().ifPresent(c -> {
-//			pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
 			pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 		});
 		call(pixSequence);

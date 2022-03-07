@@ -33,16 +33,12 @@ public class CreditCardApiPageSizeTestModule extends AbstractOBBrasilFunctionalT
 	}
 
 	@Override
-	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		// TODO use CallProtectedResource
-//		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndStopOnFailure(EnsureResponseHasLinks.class);
 		callAndStopOnFailure(ValidateResponseMetaData.class);

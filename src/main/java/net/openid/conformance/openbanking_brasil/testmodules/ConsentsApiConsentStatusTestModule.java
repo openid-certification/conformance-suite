@@ -30,7 +30,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.customerUrl"
 	}
 )
-@CallProtectedResource.FixMe
 public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override
@@ -56,10 +55,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 			String logMessage = String.format("Call personal endpoint");
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-//				callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-				// TODO backpoort to CallProtectedResource
 				callAndStopOnFailure(CallProtectedResource.class);
-				callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
 				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 			});
 		}

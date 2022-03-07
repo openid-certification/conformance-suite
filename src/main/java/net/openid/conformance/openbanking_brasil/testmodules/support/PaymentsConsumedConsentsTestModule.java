@@ -68,7 +68,6 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 
 	}
 
-	@CallProtectedResource.FixMe
 	protected void makeRequest(boolean fail){
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		if (isSecondClient()) {

@@ -52,18 +52,14 @@ public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBras
 	}
 
 	@Override
-	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		// TODO use CallProtectedResource
 		call(new ValidateSelfEndpoint()
-//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
 				condition(CallProtectedResource.class)
 			)));
 

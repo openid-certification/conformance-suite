@@ -7,7 +7,6 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.En
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForAcceptedStatus;
 import net.openid.conformance.sequence.ConditionSequence;
 
-@CallProtectedResource.FixMe
 public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends AbstractDictVerifiedPaymentTestModule {
 
 	@Override
@@ -37,7 +36,6 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence();
 			postProcessResourceSequence(pixSequence);
 			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				// TODO backport - may not actually need any work
 				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 			});
 			call(pixSequence);

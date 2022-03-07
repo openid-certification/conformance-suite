@@ -30,8 +30,6 @@ import java.util.Optional;
 
 
 public class CallConsentApiWithBearerToken extends AbstractCondition {
-	// TODO figure out why that constant was deleted from DataUtils
-	private static final MediaType DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8 = new MediaType("application", "json",StandardCharsets.UTF_8);
 	private static final Logger logger = LoggerFactory.getLogger(net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken.class);
 
 	@Override
@@ -94,7 +92,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 
 			String acceptType = env.getString("accept_type");
 			if (Strings.isNullOrEmpty(acceptType)) {
-				headers.setAccept(Collections.singletonList(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8));
+				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 				headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			} else {
 				headers.set("accept", acceptType);
@@ -112,7 +110,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				request = new HttpEntity<>(null, headers);
 			} else {
 				request = new HttpEntity<>(requestObject.toString(), headers);
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+				headers.setContentType(MediaType.APPLICATION_JSON);
 			}
 
 

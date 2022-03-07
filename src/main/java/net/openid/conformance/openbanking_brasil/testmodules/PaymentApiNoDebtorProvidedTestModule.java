@@ -61,7 +61,6 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 	}
 
 	@Override
-	@CallProtectedResource.FixMe
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -74,11 +73,8 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 					condition(EnsureResponseWasJwt.class),
 					condition(PaymentFetchPixPaymentsValidator.class)
 				))
-			// TODO use CallProtectedResource
-//			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
 			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-//				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
 				condition(CallProtectedResource.class)
 			)));
 	}
