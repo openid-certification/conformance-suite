@@ -20,8 +20,8 @@ public class GenerateDpopKey extends AbstractGenerateClientJWKs {
 	@Override
 	@PreEnvironment(required = {"client"})
 	public Environment evaluate(Environment env) {
-		// We should allow some configuration of the algorithm used, or at least respect the server's metadata on
-		// what it supports.
+		// We should allow some configuration of the algorithm used, or at least respect the server's metadata
+		// (dpop_signing_alg_values_supported) on what it supports.
 		JWKGenerator<RSAKey> generator = new RSAKeyGenerator(DEFAULT_KEY_SIZE)
 				.algorithm(JWSAlgorithm.PS256);
 

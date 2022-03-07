@@ -81,6 +81,7 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		super.configure(config, baseUrl, externalUrlOverride);
 	}
 
@@ -104,8 +105,6 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
-
-		// TODO dpop_signing_alg_values_supported
 
 		call(sequence(profileSpecificChecks));
 	}

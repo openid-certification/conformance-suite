@@ -2,8 +2,6 @@ package net.openid.conformance.fapi2baselineid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
-import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
@@ -11,7 +9,10 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndp
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CheckDpopSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
+import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported;
@@ -35,6 +36,8 @@ import net.openid.conformance.variant.VariantSetup;
 public abstract class AbstractFAPI2BaselineID2DiscoveryEndpointVerification extends AbstractTestModule {
 	private Class<? extends ConditionSequence> variantAuthChecks;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+
+	protected Boolean isDpop;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -78,7 +81,11 @@ public abstract class AbstractFAPI2BaselineID2DiscoveryEndpointVerification exte
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
-		callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6", "RFC8705-3.3");
+		if (isDpop) {
+			callAndContinueOnFailure(CheckDpopSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9");
+		} else {
+			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9", "RFC8705-3.3");
+		}
 
 		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 
