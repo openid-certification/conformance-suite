@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupporte
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
@@ -17,16 +16,14 @@ import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrVal
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
-import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
+import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -93,6 +90,9 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
 		if (jarm) {
 			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+		} else {
+			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
+			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
 		}
 
 		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2BASE-4.3.1-4");
