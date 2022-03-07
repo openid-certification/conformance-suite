@@ -4,8 +4,8 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
@@ -37,6 +37,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -50,7 +51,8 @@ import java.util.function.Supplier;
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-	FAPI1FinalOPProfile.class
+	FAPI1FinalOPProfile.class,
+	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -75,6 +77,8 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
+	protected Boolean jarm;
+	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
 	protected Boolean isBrazil;
 	protected Boolean isSignedRequest;
@@ -119,6 +123,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			return;
 		}
 
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
@@ -281,13 +286,16 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
+		private boolean isJarm;
 		private boolean usePkce;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
+											   boolean isJarm,
 											   boolean usePkce,
 											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
+			this.isJarm = isJarm;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a condition within a sub-sequence nor a conditionsequence
 			// within a condition sequence
@@ -314,6 +322,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			if (isJarm) {
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+			}
 
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
@@ -327,7 +338,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), true, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, true, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
@@ -384,7 +395,11 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		if (jarm) {
+			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		} else {
+			callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		}
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
@@ -563,9 +578,12 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		// FAPI2 always requires the auth code flow, use the query as the response
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
-
+		if (jarm) {
+			processCallbackForJARM();
+		} else {
+			// FAPI2 always requires the auth code flow, use the query as the response
+			env.mapKey("authorization_endpoint_response", "callback_query_params");
+		}
 		callAndContinueOnFailure(RejectErrorInUrlFragment.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
@@ -574,6 +592,32 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		eventLog.endBlock();
 	}
+
+	/**
+	 * For error responses, we allow a JARM response, or an error page or a plain (non-jarm) error response
+	 * per https://gitlab.com/openid/conformance-suite/-/issues/860
+	 */
+	protected void processCallbackForJARM() {
+		String errorParameter = env.getString("callback_query_params", "error");
+		String responseParameter = env.getString("callback_query_params", "response");
+		if(allowPlainErrorResponseForJarm && responseParameter==null && errorParameter!=null) {
+			//plain error response, no jarm
+			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
+		} else {
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-4.3.4", "JARM-4.3.1");
+
+			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
+
+			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
+
+			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
+
+			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
+
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.WARNING, "JARM-4.4-6");
+		}
+	}
+
 
 	protected void performProfileIdTokenValidation() {
 		if (profileIdTokenValidationSteps != null) {

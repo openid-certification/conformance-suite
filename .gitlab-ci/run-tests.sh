@@ -73,8 +73,9 @@ makeClientTest() {
 
 makeServerTest() {
     # FAPI 2 baseline
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
     # We don't have access to a server that supports 'signed_non_repudiation' yet
     #TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
 
