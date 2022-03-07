@@ -14,7 +14,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consent-api-expired-consent-test",
 	displayName = "Validate that consents can expire",
-	summary = "A consent will be created with a 1 minute expiry, and the user will be sent to the authorization endpoint after the consent has expired. The authorization server must return the browser to the redirect url with a valid OAuth2 error response.",
+	summary = "Consent will be created with a 1-minute expiry, and the user will be sent to the authorization endpoint after the consent has expired. The authorization server must return the browser to the redirect URL with a valid OAuth2 error response.\n" +
+		"\u2022 Creates a Consent with all of the existing permissions\n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Expects a valid consent creation 201\n" +
+		"\u2022 Redirects the User - He should not accept the consent, waiting for the consent to reach an expired state\n" +
+		"\u2022 Verifies on the authorization endpoint response if the expiration of the consent resulted in an error message",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

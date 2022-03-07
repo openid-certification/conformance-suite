@@ -11,7 +11,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-page-size-test",
 	displayName = "Validate structure of all accounts API resources",
-	summary = "Validates the structure of all account API resources",
+	summary = "Validates paging rules on the account API\n" +
+		"\u2022 Creates a Consent with the complete set of the accounts permission group (\"ACCOUNTS_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts API with page size=1000\n" +
+		"\u2022 Expects a 200 response - Validates that the answer is compliant with the paging rules set",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

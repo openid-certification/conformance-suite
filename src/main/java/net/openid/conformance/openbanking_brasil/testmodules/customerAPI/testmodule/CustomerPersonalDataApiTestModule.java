@@ -17,7 +17,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "customer-personal-data-api-test",
 	displayName = "Validate structure of all personal customer data API resources",
-	summary = "Validates the structure of all personal customer data API resources",
+	summary = "Validates the structure of all personal customer data API resources\n" +
+		"\u2022 Creates a Consent will the customer personal permissions (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\",\"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
+		"\u2022 Calls GET Personal Qualifications resources\n" +
+		"\u2022 Expects a success 200",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

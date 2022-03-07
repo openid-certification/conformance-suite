@@ -10,7 +10,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-test",
 	displayName = "Validate structure of all accounts API resources",
-	summary = "Validates the structure of all account API resources",
+	summary = "Validates the structure of all account API resources\n" +
+		"\u2022 Cria Consentimento apenas com as Permissions necessárias para acessar os recursos da API de Accounts\n" +
+		"\u2022 Valida todos os campos enviados na API de consentimento\n" +
+		"\u2022 Chama todos os recursos da API de Accounts\n" +
+		"\u2022 Valida todos os campos dos recursos da API de Accounts",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
