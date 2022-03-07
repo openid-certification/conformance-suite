@@ -14,11 +14,13 @@ public class ExtractAuthorizationEndpointResponseFromJARMResponse extends Abstra
 	@PreEnvironment(required = "jarm_response")
 	public Environment evaluate(Environment env) {
 		// list of standard jwt claims as per RFC 7519-4.1
-		List<String> jwtClaims = ImmutableList.of("iss", "sub", "aud", "exp", "nbf", "iat", "jti");
+		List<String> jwtClaims = ImmutableList.of(/*"iss", */ "sub", "aud", "exp", "nbf", "iat", "jti");
 
 		JsonObject jarmClaims = (JsonObject) env.getElementFromObject("jarm_response", "claims");
 
-		// the JWT standard claims aren't part of the authorization response, so remove them
+		// the JWT standard claims aren't part of the authorization response, so remove them - except for iss
+		// which is also part of the response as per https://datatracker.ietf.org/doc/html/draft-ietf-oauth-iss-auth-resp
+		// and https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
 		JsonObject authResponse = jarmClaims.deepCopy();
 		for (String claim : jwtClaims) {
 			authResponse.remove(claim);
