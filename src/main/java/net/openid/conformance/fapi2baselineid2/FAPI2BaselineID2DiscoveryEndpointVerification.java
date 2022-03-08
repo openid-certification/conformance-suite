@@ -92,6 +92,8 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
+		// TODO dpop_signing_alg_values_supported
+
 		call(sequence(profileSpecificChecks));
 	}
 
