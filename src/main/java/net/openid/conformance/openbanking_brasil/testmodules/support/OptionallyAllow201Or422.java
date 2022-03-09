@@ -9,6 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.util.JsonUtils;
+import net.openid.conformance.util.field.DatetimeField;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
@@ -79,7 +80,9 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		}
 
 		if (JsonHelper.ifExists(claims, "meta")) {
-			assertAllowedMetaFields(claims.getAsJsonObject("meta"));
+			final JsonObject metaJson = claims.getAsJsonObject("meta");
+			assertAllowedMetaFields(metaJson);
+			validateMetaDateTimeFormat(metaJson);
 		}
 	}
 
@@ -105,6 +108,18 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 			if ( !ArrayUtils.contains( allowedMetaFields, meta) ) {
 				throw error("non-standard meta property '" + meta + "'' found in the error response");
 			}
+		}
+	}
+
+	private void validateMetaDateTimeFormat(JsonObject metaJson){
+		if (metaJson.has("requestDateTime")){
+			final JsonElement requestDateTimeJson = metaJson.get("requestDateTime");
+			if(!requestDateTimeJson.getAsString().matches(DatetimeField.ALTERNATIVE_PATTERN)){
+				throw error("requestDateTime field " + requestDateTimeJson + " is not compliant with the swagger format");
+			}
+			logSuccess("requestDateTime field " + requestDateTimeJson + " is compliant with the swagger format");
+		}else {
+			log("requestDateTime field is missing, skipping");
 		}
 	}
 

@@ -43,6 +43,12 @@ public class PaymentsConsentsApiEnforceQRESWrongAmountTestModule extends Abstrac
 	}
 
 	@Override
+	protected void validateResponse() {
+		super.validateResponse();
+		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class);
+	}
+
+	@Override
 	protected ConditionSequence statusValidationSequence() {
 		return sequenceOf(
 			condition(PaymentsProxyCheckForRejectedStatus.class),
