@@ -79,6 +79,10 @@ spec:
             secretKeyRef:
               name: oidc-gitlab-credentials
               key: secret
+        volumeMounts:
+            - name: dump-volume
+              mountPath:
+                /dump
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
@@ -116,4 +120,8 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+          - name: dump-volume
+            persistentVolumeClaim:
+                claimName: {{ template "trackableappnamepvc" . }}
 status: {}

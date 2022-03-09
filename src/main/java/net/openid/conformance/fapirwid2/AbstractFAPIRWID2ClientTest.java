@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResp
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -325,6 +326,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
+
+		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
 

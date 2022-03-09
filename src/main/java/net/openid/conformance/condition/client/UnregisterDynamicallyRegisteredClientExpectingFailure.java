@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -34,7 +35,7 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString( "registration_access_token");
+		String accessToken = env.getString( "client", "registration_access_token");
 		if (Strings.isNullOrEmpty(accessToken)){
 			throw error("Couldn't find registration_access_token.");
 		}
@@ -70,7 +71,8 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 			} catch (RestClientResponseException e) {
 				throw error("Error when calling registration_client_uri", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				if (e instanceof ResourceAccessException && e.getCause() instanceof SSLException) {
+				if (e instanceof ResourceAccessException &&
+					(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
 					logSuccess("Call to registration_client_uri failed due to a TLS issue as expected", ex(e));
 					return env;
 				}

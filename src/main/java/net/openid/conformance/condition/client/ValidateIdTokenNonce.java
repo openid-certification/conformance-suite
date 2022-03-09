@@ -12,8 +12,15 @@ public class ValidateIdTokenNonce extends AbstractCondition {
 
 		String incomingNonce = env.getString("id_token","claims.nonce");
 
-		if (!env.getString("nonce").equals(incomingNonce)) {
-			throw error("Nonce values mismatch", args("actual", incomingNonce, "expected", env.getString("nonce")));
+		String expectedNonce = env.getString("nonce");
+
+		if (incomingNonce == null && expectedNonce == null) {
+			logSuccess("nonce is not in id_token, as expected.");
+			return env;
+		}
+
+		if (!expectedNonce.equals(incomingNonce)) {
+			throw error("Nonce values mismatch", args("actual", incomingNonce, "expected", expectedNonce));
 		} else {
 			logSuccess("Nonce values match", args("nonce", incomingNonce));
 		}

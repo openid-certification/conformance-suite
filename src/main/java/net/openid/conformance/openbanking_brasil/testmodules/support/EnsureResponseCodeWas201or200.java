@@ -1,13 +1,16 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 
 public class EnsureResponseCodeWas201or200 extends AbstractCondition {
+
 	@Override
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
-		int statusCode = env.getInteger("resource_endpoint_response_status");
+		int statusCode = env.getInteger("resource_endpoint_response_full", "status");
 
 		if(statusCode == org.apache.http.HttpStatus.SC_OK) {
 			logSuccess("endpoint returned an http status of 200 - ending test now", args("http_status", statusCode));

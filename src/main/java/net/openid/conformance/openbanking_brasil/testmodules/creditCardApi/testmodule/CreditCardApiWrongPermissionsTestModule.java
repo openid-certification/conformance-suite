@@ -16,7 +16,35 @@ import net.openid.conformance.condition.Condition;
 @PublishTestModule(
 	testName = "CreditCard-Api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
-	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test",
+	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test\n" +
+		"\u2022 Create a Consent with the complete set of the credit cards permission group ([\"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_LIMITS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\"])\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Credit Cards Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Credit Cards Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Limits API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 200 response\n" +
+		"\u2022 Creates a Consent with customer business and customer personal API resources (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Credit Cards Accounts API \n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Credit Cards Accounts API with AccountID specified\n" +
+		"\u2022 Expects a 403 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Limits API with AccountID specified\n" +
+		"\u2022 Expects a 403 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 403 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills API with AccountID specified\n" +
+		"\u2022 Expects a 403 response\n" +
+		"\u2022 Calls GET Credit Cards Accounts Bills Transactions API with AccountID specified\n" +
+		"\u2022 Expects a 403 response",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

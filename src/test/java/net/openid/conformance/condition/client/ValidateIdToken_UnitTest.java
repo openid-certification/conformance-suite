@@ -57,13 +57,13 @@ public class ValidateIdToken_UnitTest {
 
 		clientId = "abc-client-id";
 
-		client = new JsonParser().parse("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
+		client = JsonParser.parseString("{ \"client_id\": \"" + clientId + "\" }").getAsJsonObject();
 
-		server = new JsonParser().parse("{"
+		server = JsonParser.parseString("{"
 			+ "\"issuer\":\"https://jwt-idp.example.com\""
 			+ "}").getAsJsonObject();
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"https://jwt-idp.example.com\","
 			+ "\"sub\":\"mailto:mike@example.com\","
 			+ "\"aud\":\"" + clientId + "\""
@@ -445,7 +445,7 @@ public class ValidateIdToken_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_acrArray() {
-		claims.add("acr", new JsonParser().parse("[ \"foo\" ]"));
+		claims.add("acr", JsonParser.parseString("[ \"foo\" ]"));
 
 		env.putObject("client", client);
 		env.putObject("server", server);

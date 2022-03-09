@@ -31,10 +31,10 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testEvaluate_caseGoodEmpty() {
-		JsonObject requestParameters = new JsonParser().parse("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
+		JsonObject requestParameters = JsonParser.parseString("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 
-		JsonObject claims = new JsonParser().parse("{\"claims\":{}}").getAsJsonObject();
+		JsonObject claims = JsonParser.parseString("{\"claims\":{}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
 		cond.execute(env);
@@ -43,10 +43,10 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 
 	@Test
 	public void testEvaluate_caseGood() {
-		JsonObject requestParameters = new JsonParser().parse("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
+		JsonObject requestParameters = JsonParser.parseString("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 
-		JsonObject claims = new JsonParser().parse("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}}").getAsJsonObject();
+		JsonObject claims = JsonParser.parseString("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
 		cond.execute(env);
@@ -55,10 +55,10 @@ public class FAPICIBAValidateIdTokenAuthRequestIdClaims_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseBad() {
-		JsonObject requestParameters = new JsonParser().parse("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
+		JsonObject requestParameters = JsonParser.parseString("{\"auth_req_id\":\"FlFNzv_88I2U4ELEhI3-STEtd-DDQFVD-_UqfRKgxrE\"}").getAsJsonObject();
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 
-		JsonObject claims = new JsonParser().parse("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\"}}").getAsJsonObject();
+		JsonObject claims = JsonParser.parseString("{\"claims\":{\"urn:openid:params:jwt:claim:auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\"}}").getAsJsonObject();
 		env.putObject("id_token", claims);
 
 		cond.execute(env);

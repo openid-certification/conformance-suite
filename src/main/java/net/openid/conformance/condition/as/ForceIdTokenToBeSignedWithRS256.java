@@ -47,7 +47,7 @@ public class ForceIdTokenToBeSignedWithRS256 extends AbstractCondition {
 			alg = JWSAlgorithm.RS256;
 
 			//Rebuild new header with alternated algorithm
-			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, idToken.getHeader().getKeyID(), null, null);
+			JWSHeader header = new JWSHeader(JWSAlgorithm.parse(alg.getName()), JOSEObjectType.JWT, null, null, null, null, null, null, null, null, idToken.getHeader().getKeyID(), true, null, null);
 
 			//Rebuild new token
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());

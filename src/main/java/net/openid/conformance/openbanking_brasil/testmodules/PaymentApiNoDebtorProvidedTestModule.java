@@ -2,8 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
@@ -74,9 +73,9 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 					condition(EnsureResponseWasJwt.class),
 					condition(PaymentFetchPixPaymentsValidator.class)
 				))
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			)));
 	}
 

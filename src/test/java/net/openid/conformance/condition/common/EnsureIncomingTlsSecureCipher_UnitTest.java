@@ -49,25 +49,25 @@ public class EnsureIncomingTlsSecureCipher_UnitTest {
 
 		hasTls = new ArrayList<>();
 
-		hasTls.add(new JsonParser().parse("{\"headers\": "
+		hasTls.add(JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"headers\": "
+		hasTls.add(JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"headers\": "
+		hasTls.add(JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DHE-RSA-AES256-GCM-SHA384\"}"
 			+ "}").getAsJsonObject());
-		hasTls.add(new JsonParser().parse("{\"headers\": "
+		hasTls.add(JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES256-GCM-SHA384\"}"
 			+ "}").getAsJsonObject());
-		wrongTls = new JsonParser().parse("{\"headers\": "
+		wrongTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"DUCK-TAPE-AND-A-PRAYER\"}"
 			+ "}").getAsJsonObject();
-		onlyTls = new JsonParser().parse("{\"headers\": "
+		onlyTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
-		missingTls = new JsonParser().parse("{\"headers\": "
+		missingTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 

@@ -1,0 +1,18 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+    name: {{ template "trackableappnamepvc" . }}
+    labels:
+        app: {{ template "appname" . }}
+        track: "{{ .Values.application.track }}"
+        tier: "{{ .Values.application.tier }}"
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    annotations:
+        app.gitlab.com/app: "{{ .Values.application.path_slug }}"
+        app.gitlab.com/env: "{{ .Values.application.env_slug }}"
+spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+        requests:
+            storage: "10G"

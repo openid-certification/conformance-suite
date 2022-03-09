@@ -38,14 +38,14 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 	@PostEnvironment(required = "registration_client_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("registration_access_token");
+		String accessToken = env.getString("client", "registration_access_token");
 		if (Strings.isNullOrEmpty(accessToken)){
-			throw error("Couldn't find registration_access_token.");
+			throw error("Couldn't find registration_access_token in client object.");
 		}
 
 		String registrationClientUri = env.getString("client", "registration_client_uri");
 		if (Strings.isNullOrEmpty(registrationClientUri)){
-			throw error("Couldn't find registration_client_uri.");
+			throw error("Couldn't find registration_client_uri in client object.");
 		}
 
 		try {

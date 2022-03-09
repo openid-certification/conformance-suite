@@ -30,7 +30,12 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends Abs
 
 		String certStr = env.getString("token_endpoint_request", "headers.x-ssl-cert");
 		if (certStr == null) {
-			throw error("Client certificate not found");
+			throw error("Client certificate not found; likely the non-mtls version of the endpoint was called");
+		}
+		if (certStr.equals("(null)")) {
+			// "(null)" is particular behaviour of apache's request header, as used in our ingress via:
+			// "RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
+			throw error("Client certificate not found; the client did not supply a MTLS certification to the endpoint. In some cases this may be because the client is, incorrectly, configured to supply a TLS certificate only if the server explicitly requires a certificate at the TLS level.");
 		}
 
 		try {

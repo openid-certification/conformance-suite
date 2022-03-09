@@ -153,7 +153,7 @@ public class EncryptIdToken_UnitTest
 	@Test
 	public void testEvaluate_success() {
 
-		JsonObject client = (JsonObject) new JsonParser().parse(clientWithRSAOAEP);
+		JsonObject client = (JsonObject) JsonParser.parseString(clientWithRSAOAEP);
 		env.putObject("client", client);
 		env.putString("id_token", "eyJraWQiOiIwNzk2Zjg2ZC01MmNkLTQwMTAtYWRjNS1hNjk1N2JhMTc0OGQiLCJhbGciOiJIUzUxMiJ9.eyJhdF9oYXNoIjoiOE5qdWludmR1VXpkZFowYmtHVW9OQ1UzWkhvNGgwWGFqd0ZyeUNGOFZJayIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiYXVkIjoiY2xpZW50X0taV1h5VmhDWnJIeUVDYTY5NDY4KiMrJSkiLCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0LmVtb2JpeC5jby51azo4NDQzXC90ZXN0XC9hXC9vcGVuaWQtY2xpZW50XC8iLCJleHAiOjE1NzkzMzA5NDEsImlhdCI6MTU3OTMzMDY0MX0.q9_V3Hxz74D2xvFgU0SLDmt7nz6UGzTwK3icoNdQJkARitdwKqG9PfoUdlZ4wQuOjiwFTcQQMt_u-ClMOoBPkA");
 		cond.execute(env);
@@ -164,7 +164,7 @@ public class EncryptIdToken_UnitTest
 	@Test
 	public void testEvaluate_A128KW() {
 
-		JsonObject client = (JsonObject) new JsonParser().parse(clientWithA128KW);
+		JsonObject client = (JsonObject) JsonParser.parseString(clientWithA128KW);
 		env.putObject("client", client);
 		String idToken = "eyJraWQiOiIwNzk2Zjg2ZC01MmNkLTQwMTAtYWRjNS1hNjk1N2JhMTc0OGQiLCJhbGciOiJIUzUxMiJ9.eyJhdF9oYXNoIjoiOE5qdWludmR1VXpkZFowYmtHVW9OQ1UzWkhvNGgwWGFqd0ZyeUNGOFZJayIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiYXVkIjoiY2xpZW50X0taV1h5VmhDWnJIeUVDYTY5NDY4KiMrJSkiLCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0LmVtb2JpeC5jby51azo4NDQzXC90ZXN0XC9hXC9vcGVuaWQtY2xpZW50XC8iLCJleHAiOjE1NzkzMzA5NDEsImlhdCI6MTU3OTMzMDY0MX0.q9_V3Hxz74D2xvFgU0SLDmt7nz6UGzTwK3icoNdQJkARitdwKqG9PfoUdlZ4wQuOjiwFTcQQMt_u-ClMOoBPkA";
 		env.putString("id_token", idToken);
@@ -193,7 +193,7 @@ public class EncryptIdToken_UnitTest
 	@Test
 	public void testEvaluate_DIR() {
 
-		JsonObject client = (JsonObject) new JsonParser().parse(clientWithDIR);
+		JsonObject client = (JsonObject) JsonParser.parseString(clientWithDIR);
 		env.putObject("client", client);
 		String idToken = "eyJraWQiOiIwNzk2Zjg2ZC01MmNkLTQwMTAtYWRjNS1hNjk1N2JhMTc0OGQiLCJhbGciOiJIUzUxMiJ9.eyJhdF9oYXNoIjoiOE5qdWludmR1VXpkZFowYmtHVW9OQ1UzWkhvNGgwWGFqd0ZyeUNGOFZJayIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiYXVkIjoiY2xpZW50X0taV1h5VmhDWnJIeUVDYTY5NDY4KiMrJSkiLCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0LmVtb2JpeC5jby51azo4NDQzXC90ZXN0XC9hXC9vcGVuaWQtY2xpZW50XC8iLCJleHAiOjE1NzkzMzA5NDEsImlhdCI6MTU3OTMzMDY0MX0.q9_V3Hxz74D2xvFgU0SLDmt7nz6UGzTwK3icoNdQJkARitdwKqG9PfoUdlZ4wQuOjiwFTcQQMt_u-ClMOoBPkA";
 		env.putString("id_token", idToken);
@@ -223,7 +223,7 @@ public class EncryptIdToken_UnitTest
 	@Test
 	public void testEvaluate_DIR2() {
 
-		JsonObject client = (JsonObject) new JsonParser().parse("{\n" +
+		JsonObject client = (JsonObject) JsonParser.parseString("{\n" +
 			"  \"id_token_encrypted_response_alg\": \"dir\",\n" +
 			"  \"id_token_encrypted_response_enc\": \"A128CBC-HS256\",\n" +
 			"  \"token_endpoint_auth_method\": \"client_secret_basic\",\n" +
@@ -286,7 +286,7 @@ public class EncryptIdToken_UnitTest
 	@Test
 	public void testEvaluate_A192KW() {
 
-		JsonObject client = (JsonObject) new JsonParser().parse("{\n" +
+		JsonObject client = (JsonObject) JsonParser.parseString("{\n" +
 			"  \"id_token_encrypted_response_alg\": \"A192KW\",\n" +
 			"  \"id_token_encrypted_response_enc\": \"A128CBC-HS256\",\n" +
 			"  \"token_endpoint_auth_method\": \"client_secret_basic\",\n" +

@@ -11,7 +11,16 @@ import net.openid.conformance.condition.Condition;
 @PublishTestModule(
 	testName = " Customer-api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
-	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test",
+	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test\n" +
+		"\u2022 Creates a Consent with the customer business permissions (\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\",\"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
+		"\u2022 Calls GET Personal Qualifications resources\n" +
+		"\u2022 Expects a success 200\n" +
+		"\u2022 Creates a Consent with all the permissions but the Customer Business ones - ( \"ACCOUNTS_READ\", \"ACCOUNTS_BALANCES_READ\", \"RESOURCES_READ\", \"ACCOUNTS_OVERDRAFT_LIMITS_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"LOANS_READ\", \"LOANS_WARRANTIES_READ\", \"LOANS_SCHEDULED_INSTALMENTS_READ\", \"LOANS_PAYMENTS_READ\", \"FINANCINGS_READ\", \"FINANCINGS_WARRANTIES_READ\", \"FINANCINGS_SCHEDULED_INSTALMENTS_READ\", \"FINANCINGS_PAYMENTS_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ\", \"INVOICE_FINANCINGS_READ\", \"INVOICE_FINANCINGS_WARRANTIES_READ\", \"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ\", \"INVOICE_FINANCINGS_PAYMENTS_READ\")\n" +
+		"\u2022 Calls the GET Customer Business Qualification Resource \n" +
+		"\u2022 Expects a 403\n" +
+		"\u2022 Calls the GET Customer Business Financial Relations Resource \n" +
+		"\u2022 Expects a 403",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

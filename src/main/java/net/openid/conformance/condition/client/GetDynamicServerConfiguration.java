@@ -77,11 +77,8 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			}
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
-				log("Downloaded server configuration",
-					args("server_config_string", jsonString));
-
 				try {
-					JsonObject serverConfig = new JsonParser().parse(jsonString).getAsJsonObject();
+					JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
 
 					logSuccess("Successfully parsed server configuration", serverConfig);
 
@@ -89,7 +86,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 
 					return env;
 				} catch (JsonSyntaxException e) {
-					throw error(e);
+					throw error(e, args("json", jsonString));
 				}
 
 			} else {

@@ -19,14 +19,7 @@ public class ConvertAuthorizationEndpointRequestToRequestObject extends Abstract
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		if (authorizationEndpointRequest == null) {
-			throw error("Couldn't find authorization endpoint request");
-		}
-
-		JsonObject requestObjectClaims = new JsonObject();
-		for (Map.Entry<String, JsonElement> entry : authorizationEndpointRequest.entrySet()) {
-			requestObjectClaims.add(entry.getKey(), entry.getValue());
-		}
+		JsonObject requestObjectClaims = authorizationEndpointRequest.deepCopy();
 
 		env.putObject("request_object_claims", requestObjectClaims);
 

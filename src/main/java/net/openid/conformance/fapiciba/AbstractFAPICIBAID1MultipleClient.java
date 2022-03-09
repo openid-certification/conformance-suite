@@ -1,12 +1,5 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
-import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
-import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetPlainJsonAcceptHeaderForResourceEndpointRequest;
-
 public abstract class AbstractFAPICIBAID1MultipleClient extends AbstractFAPICIBAID1 {
 
 	protected void switchToSecondClient() {

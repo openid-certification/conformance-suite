@@ -9,7 +9,31 @@ import net.openid.conformance.condition.Condition;
 @PublishTestModule(
 	testName = "account-api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
-	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test",
+	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test\n" +
+		"\u2022 Creates a Consent with the accounts permission group (\"ACCOUNTS_READ\", \"ACCOUNTS_BALANCES_READ\", \"RESOURCES_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"ACCOUNTS_OVERDRAFT_LIMITS_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts Balances API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts Limits API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts Transactions API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Creates a Consent with the customer business and personal permissions group (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Accounts API specifying an account ID\n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Accounts Balances API specifying an account ID\n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Accounts Limits API specifying an account ID\n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Accounts Transactions API specifying an account ID\n" +
+		"\u2022 Expects a 403 response ",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

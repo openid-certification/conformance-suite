@@ -32,7 +32,7 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		userInfo = new JsonParser().parse("{"
+		userInfo = JsonParser.parseString("{"
 			+ "\"sub\":\"248289761001\","
 			+ "\"name\":\"Jane Doe\","
 			+ "\"given_name\":\"Jane\","
@@ -77,7 +77,7 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test
 	public void testEvaluate_noError1() {
 
-		userInfo = new JsonParser().parse("{"
+		userInfo = JsonParser.parseString("{"
 			+ "\"sub\":\"248289761001\","
 			+ "\"name\":\"Jane Doe\","
 			+ "\"given_name\":\"Jane\","
@@ -94,7 +94,7 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test
 	public void testEvaluate_noError2() {
 
-		userInfo = new JsonParser().parse("{\n" +
+		userInfo = JsonParser.parseString("{\n" +
 			"  \"sub\": \"foo\",\n" +
 			"  \"address\": {\n" +
 			"    \"country\": \"000\",\n" +

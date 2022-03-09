@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -9,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "credit-card-api-page-size-too-big-test",
 	displayName = "Validate that a request for Credit Card Accounts with page-size > 1000 returns HTTP 422",
-	summary = "Validate that a request for Credit Card Accounts with page-size > 1000 returns HTTP 422",
+	summary = "Validates that a request for Credit Card Accounts with page-size > 1000 returns HTTP 422\n" +
+		"\u2022 Creates a Consent with the complete set of the credit cards permission group ([\"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_LIMITS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\"])\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Credit Cards Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Credit Cards Transactions API with page size=1001\n" +
+		"\u2022 Expects a 422 response",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -37,8 +44,7 @@ public class CreditCardApiPageSizeTooLargeTestModule extends AbstractOBBrasilFun
 		callAndStopOnFailure(SetProtectedResourceUrlPageSize1001.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceAndExpectFailure.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas422.class);
 
 	}

@@ -30,7 +30,7 @@ public class CheckErrorFromTokenEndpointResponseErrorInvalidGrant_UnitTest {
 	public void setUp() throws Exception {
 		cond = new CheckErrorFromTokenEndpointResponseErrorInvalidGrant();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-		tokenEndpointResponse = new JsonParser().parse("{"
+		tokenEndpointResponse = JsonParser.parseString("{"
 			+ "\"error_description\":\"[A200308] The end-user has not been authenticated yet.\","
 			+ "\"error\":\"invalid_grant\","
 			+ "\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A200308\"}").getAsJsonObject();

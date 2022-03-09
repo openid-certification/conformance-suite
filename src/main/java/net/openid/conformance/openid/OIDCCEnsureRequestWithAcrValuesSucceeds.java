@@ -3,6 +3,7 @@ package net.openid.conformance.openid;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.OIDCCAddAcrValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstAcrValuesRequest;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -20,9 +21,9 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 public class OIDCCEnsureRequestWithAcrValuesSucceeds extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-				.then(condition(OIDCCAddAcrValuesToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(OIDCCAddAcrValuesToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1"));
 	}
 
 	@Override

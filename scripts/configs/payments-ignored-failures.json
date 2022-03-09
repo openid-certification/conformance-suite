@@ -21,7 +21,7 @@
         "test-name": "payments-api-qres-mismatched-consent-payment-test",
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "",
+        "current-block": "Validate response",
         "condition": "VerifyErrorIfPixPostFailsOnQres",
         "expected-result": "failure",
         "comment": "Mock bank does not return the correct error"

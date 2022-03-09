@@ -7,6 +7,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
 import javax.net.ssl.SSLException;
+import java.net.SocketException;
 
 public class CallTokenEndpointAllowingTLSFailure extends CallTokenEndpointAndReturnFullResponse {
 
@@ -21,7 +22,8 @@ public class CallTokenEndpointAllowingTLSFailure extends CallTokenEndpointAndRet
 
 	@Override
 	protected Environment handleClientException(Environment env, RestClientException e) {
-		if (e instanceof ResourceAccessException && e.getCause() instanceof SSLException) {
+		if (e instanceof ResourceAccessException &&
+			(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
 			env.putBoolean("token_endpoint_response_ssl_error", true);
 			logSuccess("Call to token_endpoint failed due to a TLS issue", ex(e));
 			return env;

@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GenerateRS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdOfflineAccess;
 import net.openid.conformance.condition.client.WaitFor60Seconds;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -85,9 +86,9 @@ public class OIDCCRefreshTokenRPKeyRotation extends AbstractOIDCCServerTest {
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class).requirement("OIDCC-11")));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class).requirement("OIDCC-11"));
 	}
 
 	@Override

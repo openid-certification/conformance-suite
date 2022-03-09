@@ -44,16 +44,16 @@ public class EnsureIncomingTls12_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasTls = new JsonParser().parse("{\"headers\": "
+		hasTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
-		wrongTls = new JsonParser().parse("{\"headers\": "
+		wrongTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
-		missingTls = new JsonParser().parse("{\"headers\": "
+		missingTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
-		onlyTls = new JsonParser().parse("{\"headers\": "
+		onlyTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 

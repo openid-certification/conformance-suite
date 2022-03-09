@@ -41,6 +41,21 @@ public class PaymentsApiQRESMismatchConsentPaymentTestModule extends AbstractDic
 	}
 
 	@Override
+	protected void requestProtectedResource() {
+		if(!validationStarted) {
+			validationStarted = true;
+			eventLog.startBlock("initiate payment");
+			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
+				.skip(EnsureResponseCodeWas201.class, "Not needed here");
+			call(pixSequence);
+			eventLog.endBlock();
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
+	}
+
+	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		ConditionSequence preAuth = super.createOBBPreauthSteps();
 		preAuth.insertAfter(OptionallyAllow201Or422.class, condition(EnsureEndpointResponseWas201.class));

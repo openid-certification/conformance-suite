@@ -810,7 +810,7 @@ public class LogApi_UnitTest {
 			"xZsTf\",\"testId\":\"BeDwk5rd8H\",\"src\":\"TEST-RUNNER\",\"testOwner\":{\"sub\":\"developer\","+
 			"\"iss\":\"https://developer.com\"},\"time\":1590130874746}]}";
 
-		JsonObject parsed = new JsonParser().parse(jsonExport).getAsJsonObject();
+		JsonObject parsed = JsonParser.parseString(jsonExport).getAsJsonObject();
 		JsonArray results = parsed.get("results").getAsJsonArray();
 		int i=0;
 		for(JsonElement result : results) {

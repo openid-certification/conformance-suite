@@ -13,7 +13,7 @@ public class OIDCCValidateClientAuthenticationWithClientSecretBasic extends Abst
 	@Override
 	public void evaluate() {
 
-		callAndContinueOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
+		callAndStopOnFailure(ExtractClientCredentialsFromBasicAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 
 		callAndContinueOnFailure(ValidateClientIdAndSecret.class, Condition.ConditionResult.FAILURE, "RFC6749-2.3.1");
 	}

@@ -98,7 +98,7 @@ public class AbstractCondition_UnitTest {
 		optReqs = new AbstractConditionTester();
 		optReqs.setProperties(TEST_ID, eventLog, ConditionResult.WARNING, req1, req2);
 
-		obj = new JsonParser().parse("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
+		obj = JsonParser.parseString("{\"foo\": \"bar\", \"baz\": 1234}").getAsJsonObject();
 
 		map = ImmutableMap.of("foo", "bar", "baz", 1234);
 

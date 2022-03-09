@@ -80,7 +80,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 				"K1Nro7wlYqlyCm2GiyaUI2UgF9pv0Y3ao+91p/tAV341iEJZcg0r7+s6sTdRMf2V" +
 				"/z6+viXbPU8muS++t4RX+LqJZfCVM7HsnQ==";
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + cert + "\""
 			+ "}").getAsJsonObject();
 
@@ -139,7 +139,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 				"HSF7jldwtlW3Fy9alQEI5yNhkrGIHwz/EnBLjmZhqR/mrA5K8IdoyO9Q6tIJ2YZ/" +
 				"yNQ50KwYtTAV23CIMl5bOYQ=";
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + altCert + "\""
 			+ "}").getAsJsonObject();
 
@@ -200,7 +200,7 @@ public class FAPIBrazilExtractClientMTLSCertificateSubject_UnitTest {
 				"n54KdVk8vP6xud2MMY1COt+OY+EzC7bYMt+IvgCLadLrP0Q3TD0Ny10Oo3SaqDij" +
 				"+0KLn13iUIwuJajWqcce+fUC+7Nq11/9";
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"cert\":\"" + nonasciicertnewstyle + "\""
 			+ "}").getAsJsonObject();
 

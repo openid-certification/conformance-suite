@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.AddClaimsLocalesSeToAuthorizationEndpointRequest;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Req_claims_locales
@@ -13,9 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCClaimsLocales extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(AddClaimsLocalesSeToAuthorizationEndpointRequest.class).requirements("OIDCC-5.2", "OIDCC-15.1")));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddClaimsLocalesSeToAuthorizationEndpointRequest.class).requirements("OIDCC-5.2", "OIDCC-15.1"));
 	}
 
 }

@@ -29,7 +29,7 @@ public class ExtractClientCredentialsFromBasicAuthorizationHeader extends Abstra
 		String auth = env.getString("token_endpoint_request", "headers.authorization");
 
 		if (Strings.isNullOrEmpty(auth)) {
-			throw error("Couldn't find authorization header");
+			throw error("This test expected the client to perform client_secret_basic client authorization, but the incoming http request does not contain an authorization header");
 		}
 
 		if (!auth.toLowerCase().startsWith("basic")) {

@@ -42,7 +42,7 @@ import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS2
 import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
@@ -78,6 +78,7 @@ import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -484,10 +485,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		eventLog.startBlock("Unregister dynamically registered client");
 
 		// IF management interface, delete the client to clean up
-		skipIfMissing(new String[] {"client"},
-			new String[] {"registration_client_uri", "registration_access_token"},
-			Condition.ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(Condition.ConditionResult.INFO)
+			.onFail(Condition.ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		eventLog.endBlock();
 	}
@@ -497,10 +499,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		env.mapKey("client", "client2");
 
-		skipIfMissing(new String[] {"client2"},
-			new String[] {"registration_client_uri", "registration_access_token"},
-			Condition.ConditionResult.INFO,
-			UnregisterDynamicallyRegisteredClient.class);
+		call(condition(UnregisterDynamicallyRegisteredClient.class)
+			.skipIfObjectsMissing(new String[] {"client"})
+			.onSkip(Condition.ConditionResult.INFO)
+			.onFail(Condition.ConditionResult.WARNING)
+			.dontStopOnFailure());
 
 		env.unmapKey("client");
 
@@ -828,8 +831,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
 
 		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
@@ -927,7 +929,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 

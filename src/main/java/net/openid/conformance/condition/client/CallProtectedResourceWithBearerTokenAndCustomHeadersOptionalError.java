@@ -7,7 +7,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 
-public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError extends CallProtectedResourceWithBearerToken {
+@Deprecated
+// This class no longer functions as expected as the base class has changes
+// It should be deleted and replaced ith CallProtectedResource
+public class CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError extends AbstractCallProtectedResource {
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "resource_endpoint_request_headers" }, strings = "protected_resource_url")

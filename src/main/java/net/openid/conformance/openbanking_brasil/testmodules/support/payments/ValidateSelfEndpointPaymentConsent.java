@@ -21,8 +21,7 @@ public class ValidateSelfEndpointPaymentConsent extends AbstractConditionSequenc
 		callAndStopOnFailure(AddIdempotencyKeyHeader.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		callAndStopOnFailure(AddJWTAcceptHeaderRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseWasJwt.class);
 		callAndContinueOnFailure(ThrowWarningFor406.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);

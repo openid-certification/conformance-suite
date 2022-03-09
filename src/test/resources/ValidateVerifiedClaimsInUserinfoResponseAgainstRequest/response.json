@@ -1,0 +1,34 @@
+{
+  "claims": {
+    "place_of_birth": {
+      "locality": "Berlin",
+      "country": "DE"
+    },
+    "birthdate": "1950-01-01",
+    "address": {
+      "street_address": "Street1 1",
+      "country": "DE",
+      "formatted": "Street1 1\nBerlin\n10243\nDE",
+      "locality": "Berlin",
+      "region": "Berlin",
+      "postal_code": "10243"
+    },
+    "nationalities": [
+      "DE"
+    ],
+    "given_name": "Given001",
+    "family_name": "Family001"
+  },
+  "verification": {
+    "trust_framework": "de_aml",
+    "evidence": [
+      {
+        "document": {
+          "type": "idcard"
+        },
+        "type": "id_document"
+      }
+    ],
+    "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
+  }
+}

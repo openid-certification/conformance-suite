@@ -50,7 +50,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		claims = new JsonParser().parse("{" +
+		claims = JsonParser.parseString("{" +
 			"	\"iss\": \"client\"," +
 			"	\"sub\": \"client\"," +
 			"	\"aud\": \"https://server.example.com/token\"," +
@@ -59,7 +59,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			"	\"jti\": \"987yhjio8765rfghjkoi8ujlloi9876tgh\"" +
 			"}").getAsJsonObject();
 
-		rsaJwks = new JsonParser().parse("{" +
+		rsaJwks = JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -75,7 +75,7 @@ public class SignClientAuthenticationAssertion_UnitTest {
 			"  ]" +
 			"}").getAsJsonObject();
 
-		octJwks = new JsonParser().parse("{" +
+		octJwks = JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"oct\"," +

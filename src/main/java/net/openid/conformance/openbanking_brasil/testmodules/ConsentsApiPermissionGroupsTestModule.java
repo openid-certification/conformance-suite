@@ -14,7 +14,20 @@ import net.openid.conformance.testmodule.TestFailureException;
 @PublishTestModule(
 	testName = "consent-api-test-permission-groups",
 	displayName = "Validate that consent API accepts the consent groups",
-	summary = "Validate that consent API accepts the consent groups",
+	summary = "Validates that consent API accepts the consent groups\n" +
+		"\u2022 Creates a series of consent requests with valid permissions group and expect for each of them a 201 to be returned by the server\n" +
+		"\u2022 Validates consent API request for 'Personal Registration Data' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Personal Additional Information' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Business Registration Data' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Business Additional Information' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Accounts Balances' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Accounts Limits' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Credit Card Invoices' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Credit Operations' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Balances & Credit Card Limits' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Accounts Transactions' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Credit Card Limits' permission group(s)\n" +
+		"\u2022 Validates consent API request for 'Credit Card Transactions' permission group(s)\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

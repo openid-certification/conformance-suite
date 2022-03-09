@@ -1,18 +1,14 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalClientTest;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 
 public class FAPIBrazilGenerateGetConsentResponse extends AbstractCondition {
 

@@ -7,9 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
-import org.json.JSONString;
 
-import java.util.Arrays;
 import java.util.Base64;
 
 public class EnsureCodeIsInvalidConsent extends AbstractCondition {

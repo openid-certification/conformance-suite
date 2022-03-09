@@ -511,7 +511,7 @@ upload:
   function install_build_dependencies() {
     apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip
     update-ca-certificates
-    pip3 -q install docker-compose==1.23.2 awscli==1.19.76
+    pip3 -q install docker-compose==1.23.2 awscli==1.19.76 httpx
     docker-compose --version
   }
 
@@ -583,10 +583,11 @@ upload:
 
   function set_up_for_running_test_plan() {
     install_test_dependencies
-    pip install requests
+    pip install httpx
   }
 
   function run_client_test_plan() {
+    apk add nodejs npm
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
   }
