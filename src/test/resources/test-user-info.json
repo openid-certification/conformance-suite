@@ -1,0 +1,23 @@
+{
+    "sub": "f647f683-e46d-43bd-bc76-526d93429b86",
+    "verified_claims": {
+        "claims": {
+            "birthdate": "1950-01-01",
+            "given_name": "Given001",
+            "family_name": "Family001"
+        },
+        "verification": {
+            "evidence": [
+                {
+                    "method": "pipp",
+                    "type": "id_document"
+                },
+                {
+                    "method": "pipp",
+                    "type": "utility_bill"
+                }
+            ],
+            "trust_framework": "de_aml"
+        }
+    }
+}

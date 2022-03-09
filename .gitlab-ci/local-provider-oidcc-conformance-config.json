@@ -1,5 +1,4 @@
 {
-    "alias": "local-oidcc",
     "description": "oidc-provider OIDC",
     "server": {
         "discoveryUrl": "https://oidcc-provider:3000/.well-known/openid-configuration"
@@ -54,7 +53,7 @@
                 },
                 {
                     "task": "Verify Complete",
-                    "match": "*/test/a/local-oidcc/callback*",
+                    "match": "*/test/*/callback*",
                     "commands": [
                         [
                             "wait",
@@ -88,14 +87,14 @@
                         [
                             "wait",
                             "contains",
-                            "/test/a/local-oidcc/post",
+                            "/test/*/post",
                             10
                         ]
                     ]
                 },
                 {
                     "task": "Verify Complete",
-                    "match": "*/test/a/local-oidcc/post*"
+                    "match": "*/test/*/post*"
                 }
             ]
         }
@@ -155,7 +154,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -223,7 +222,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -450,7 +449,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -529,7 +528,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -608,7 +607,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -687,7 +686,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -766,7 +765,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -845,7 +844,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -935,7 +934,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",
@@ -1025,7 +1024,7 @@
                         },
                         {
                             "task": "Verify Complete",
-                            "match": "*/test/a/local-oidcc/callback*",
+                            "match": "*/test/*/callback*",
                             "commands": [
                                 [
                                     "wait",

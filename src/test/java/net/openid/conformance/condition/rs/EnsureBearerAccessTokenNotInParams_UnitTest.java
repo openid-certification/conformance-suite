@@ -43,15 +43,15 @@ public class EnsureBearerAccessTokenNotInParams_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasToken = new JsonParser().parse(
+		hasToken = JsonParser.parseString(
 			"{\"query_string_params\": " +
 				"{\"access_token\": \"foo123456\"}" +
 			"}").getAsJsonObject();
-		missingToken = new JsonParser().parse(
+		missingToken = JsonParser.parseString(
 			"{\"query_string_params\": " +
 				"{}" +
 			"}").getAsJsonObject();
-		missingParams = new JsonParser().parse(
+		missingParams = JsonParser.parseString(
 			"{}").getAsJsonObject();
 
 	}

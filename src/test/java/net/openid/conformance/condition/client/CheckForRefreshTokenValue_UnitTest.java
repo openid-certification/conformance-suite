@@ -43,7 +43,7 @@ public class CheckForRefreshTokenValue_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodResponse = new JsonParser().parse("{"
+		goodResponse = JsonParser.parseString("{"
 			+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","
 			+ "\"token_type\":\"example\","
 			+ "\"expires_in\":3600,"
@@ -51,7 +51,7 @@ public class CheckForRefreshTokenValue_UnitTest {
 			+ "\"example_parameter\":\"example_value\""
 			+ "}").getAsJsonObject();
 
-		badResponse = new JsonParser().parse("{"
+		badResponse = JsonParser.parseString("{"
 			+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","
 			+ "\"token_type\":\"example\","
 			+ "\"expires_in\":3600,"

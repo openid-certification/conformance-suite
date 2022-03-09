@@ -35,7 +35,7 @@ public class VerifyIdTokenSubConsistentHybridFlow_UnitTest {
 
 		// Good sample from OpenID Connect Core spec
 
-		JsonObject goodClaims = new JsonParser().parse("{\n" +
+		JsonObject goodClaims = JsonParser.parseString("{\n" +
 			" \"sub\": \"248289761001\"\n" +
 			"}").getAsJsonObject();
 

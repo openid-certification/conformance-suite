@@ -145,7 +145,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		String json = gson.toJson(dbConfig);
 
-		JsonObject config = new JsonParser().parse(json).getAsJsonObject();
+		JsonObject config = JsonParser.parseString(json).getAsJsonObject();
 
 		if (config.has("override")) {
 			JsonObject override = config.getAsJsonObject("override");

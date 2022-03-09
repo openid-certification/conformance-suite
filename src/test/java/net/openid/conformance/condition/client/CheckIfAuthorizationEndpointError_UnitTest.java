@@ -43,12 +43,12 @@ public class CheckIfAuthorizationEndpointError_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		successParams = new JsonParser().parse("{"
+		successParams = JsonParser.parseString("{"
 			+ "\"code\":\"SplxlOBeZQQYbYS6WxSbIA\","
 			+ "\"state\":\"xyz\""
 			+ "}").getAsJsonObject();
 
-		errorParams = new JsonParser().parse("{"
+		errorParams = JsonParser.parseString("{"
 			+ "\"error\":\"access_denied\","
 			+ "\"state\":\"xyz\""
 			+ "}").getAsJsonObject();

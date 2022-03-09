@@ -26,8 +26,7 @@ public class AddACRClaimToIdTokenClaims extends AbstractCondition {
 
 		String acr = env.getString("requested_id_token_acr_values");
 
-		JsonParser jsonParser = new JsonParser();
-		JsonArray acrValues = (JsonArray) jsonParser.parse(acr);
+		JsonArray acrValues = (JsonArray) JsonParser.parseString(acr);
 		if (acrValues == null || !acrValues.isJsonPrimitive()) {
 
 			String[] acrValuesString = new Gson().fromJson(acrValues, String[].class);

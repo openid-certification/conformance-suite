@@ -20,7 +20,7 @@ public class CreateBrazilAccountsEndpointResponse extends AbstractOpenBankingApi
 		String requestDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 
 		//Copied from https://openbanking-brasil.github.io/areadesenvolvedor/#lista-de-contas
-		JsonObject response = new JsonParser().parse(
+		JsonObject response = JsonParser.parseString(
 			"{\n" +
 				"  \"data\": [\n" +
 				"    {\n" +

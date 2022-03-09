@@ -1,0 +1,153 @@
+{
+  "authorization_endpoint": "https://testidpui.sandbox.yes.com/services/authz/10000002?n=true",
+  "token_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/token",
+  "registration_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/clients",
+  "introspection_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/token/introspect",
+  "revocation_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/token/revoke",
+  "pushed_authorization_request_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/par",
+  "issuer": "https://testidp.sandbox.yes.com/issuer/10000002",
+  "jwks_uri": "https://testidp.sandbox.yes.com/issuer/10000002/jwks.json",
+  "scopes_supported": [
+    "openid",
+    "email",
+    "phone",
+    "address"
+  ],
+  "response_types_supported": [
+    "code"
+  ],
+  "response_modes_supported": [
+    "query",
+    "fragment"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "refresh_token",
+    "client_credentials"
+  ],
+  "code_challenge_methods_supported": [
+    "S256",
+    "plain"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "self_signed_tls_client_auth"
+  ],
+  "request_object_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "request_object_encryption_alg_values_supported": [],
+  "request_object_encryption_enc_values_supported": [],
+  "ui_locales_supported": [
+    "en"
+  ],
+  "request_parameter_supported": true,
+  "require_request_uri_registration": true,
+  "tls_client_certificate_bound_access_tokens": true,
+  "verified_person_data_supported": [
+    "given_name",
+    "family_name",
+    "birthdate",
+    "https://www.yes.com/claims/place_of_birth",
+    "https://www.yes.com/claims/nationality",
+    "address"
+  ],
+  "request_uri_quota": 10,
+  "authorization_data_types_supported": [
+    "sign",
+    "payment_initiation"
+  ],
+  "verification_methods_supported": [
+    {
+      "identity_document": [
+        "Physical In-Person Proofing (bank)",
+        "Physical In-Person Proofing (shop)",
+        "Physical In-Person Proofing (courier)",
+        "Supervised remote In-Person Proofing"
+      ]
+    },
+    "qes",
+    "eID"
+  ],
+  "subject_types_supported": [
+    "public",
+    "pairwise"
+  ],
+  "userinfo_endpoint": "https://testidp.sandbox.yes.com/issuer/10000002/userinfo",
+  "acr_values_supported": [
+    "https://www.yes.com/acrs/online_banking_sca",
+    "https://www.yes.com/acrs/online_banking"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "userinfo_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "display_values_supported": [
+    "page",
+    "popup"
+  ],
+  "claim_types_supported": [
+    "normal"
+  ],
+  "claims_supported": [
+    "sub",
+    "email",
+    "email_verified",
+    "phone_number",
+    "phone_number_verified",
+    "given_name",
+    "family_name",
+    "birthdate",
+    "address",
+    "birth_family_name",
+    "birth_middle_name",
+    "birth_given_name",
+    "salutation",
+    "title",
+    "place_of_birth",
+    "gender",
+    "nationalities",
+    "https://www.yes.com/claims/salutation",
+    "https://www.yes.com/claims/title",
+    "https://www.yes.com/claims/place_of_birth",
+    "https://www.yes.com/claims/nationality",
+    "https://www.yes.com/claims/verified_person_data",
+    "https://www.yes.com/claims/transaction_id",
+    "https://www.yes.com/claims/tax_id",
+    "https://www.yes.com/claims/preferred_iban"
+  ],
+  "claims_parameter_supported": true,
+  "frontchannel_logout_supported": true,
+  "frontchannel_logout_session_supported": true,
+  "backchannel_logout_supported": true,
+  "backchannel_logout_session_supported": true,
+  "verified_claims_supported": true,
+  "trust_frameworks_supported": [
+    "de_aml"
+  ],
+  "evidence_supported": [
+    "id_document"
+  ],
+  "documents_supported": [
+    "idcard",
+    "passport",
+    "driving_permit"
+  ],
+  "documents_verification_methods_supported": [
+    "pipp",
+    "sripp",
+    "eid"
+  ],
+  "claims_in_verified_claims_supported": [
+    "given_name",
+    "family_name",
+    "birthdate",
+    "birth_family_name",
+    "birth_middle_name",
+    "birth_given_name",
+    "place_of_birth",
+    "nationalities",
+    "address"
+  ]
+}

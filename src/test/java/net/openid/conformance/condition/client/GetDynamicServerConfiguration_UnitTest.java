@@ -64,7 +64,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryUrl\":\"https://good.example.com/.well-known/openid-configuration\""
 			+ "}}").getAsJsonObject();
@@ -86,7 +86,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test
 	public void testEvaluate_fallbackToIssuer() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://good.example.com\""
 			+ "}}").getAsJsonObject();
@@ -101,7 +101,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_discoveryUrlTakesPriority() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryUrl\":\"https://good.example.com/not-here\","
 			+ "\"issuer\":\"https://good.example.com\""
@@ -117,7 +117,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noServer() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://nonexisting.example.com\""
 			+ "}}").getAsJsonObject();
@@ -132,7 +132,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badResponse() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://bad.example.com\""
 			+ "}}").getAsJsonObject();
@@ -147,7 +147,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_emptyResponse() {
 
-		JsonObject config = new JsonParser().parse("{"
+		JsonObject config = JsonParser.parseString("{"
 			+ "\"server\":{"
 			+ "\"discoveryIssuer\":\"https://empty.example.com\""
 			+ "}}").getAsJsonObject();
@@ -162,7 +162,7 @@ public class GetDynamicServerConfiguration_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingUrls() {
 
-		JsonObject config = new JsonParser().parse("{\"server\":{}}").getAsJsonObject();
+		JsonObject config = JsonParser.parseString("{\"server\":{}}").getAsJsonObject();
 		env.putObject("config", config);
 
 		cond.execute(env);

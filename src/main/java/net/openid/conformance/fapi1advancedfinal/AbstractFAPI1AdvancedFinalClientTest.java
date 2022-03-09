@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
@@ -58,6 +59,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequ
 import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
 import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -160,7 +162,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
-import net.openid.conformance.variant.FAPIProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -203,10 +204,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
-	public static final String BRAZIL_ACCOUNTS_PATH = "accounts/v1/accounts";
-	public static final String BRAZIL_PAYMENT_INITIATION_PATH = "payments/v1/pix/payments";
-	public static final String BRAZIL_CONSENTS_PATH = "consents/v1/consents";
-	public static final String BRAZIL_PAYMENTS_CONSENTS_PATH = "payments/v1/consents";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
@@ -225,6 +222,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected ClientAuthType clientAuthType;
 
 	protected FAPIJARMType jarmType;
+
+	protected boolean startingShutdown = false;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -266,6 +265,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
 			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
 		} else {
+			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
+			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 		}
 
@@ -302,10 +303,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			exposeMtlsPath("accounts_endpoint", BRAZIL_ACCOUNTS_PATH);
-			exposeMtlsPath("consents_endpoint", BRAZIL_CONSENTS_PATH);
-			exposeMtlsPath("payments_consents_endpoint", BRAZIL_PAYMENTS_CONSENTS_PATH);
-			exposeMtlsPath("payment_initiation_path", BRAZIL_PAYMENT_INITIATION_PATH);
+			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
+			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
+			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
@@ -414,8 +415,14 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
@@ -425,12 +432,28 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
+			}
+			if (clientAuthType == ClientAuthType.MTLS) {
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
 			return accountRequestsEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -455,23 +478,23 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH) || path.equals(BRAZIL_ACCOUNTS_PATH)) {
+		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			return parEndpoint(requestId);
 		}
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if(BRAZIL_CONSENTS_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
-			} else if(path.startsWith(BRAZIL_CONSENTS_PATH + "/")) {
+			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, false);
 			}
-			if(BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, true);
-			} else if(path.startsWith(BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, true);
 			}
-			if(BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
+			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
@@ -677,13 +700,19 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
+			// required to bind the issued access token to.)
+			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
+			checkMtlsCertificate();
+		}
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
@@ -767,6 +796,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
+
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		checkMtlsCertificate();
 
@@ -1196,7 +1227,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				throw new TestFailureException(getId(), BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
+				throw new TestFailureException(getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
 			}
 		}
 
@@ -1275,6 +1306,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected void startWaitingForTimeout() {
+		this.startingShutdown = true;
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(5 * 1000);
 			if (getStatus().equals(Status.WAITING)) {

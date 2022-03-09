@@ -79,9 +79,9 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 					condition(EnsureResponseWasJwt.class),
 					condition(PaymentFetchPixPaymentsValidator.class)
 				))
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			)));
 		ensurePaymentIsAcceptedOrRejected();
 
@@ -117,9 +117,9 @@ public class PaymentsConsentsApiPhoneNumberProxyTestModule extends AbstractOBBra
 
 	protected void pollPayment() {
 		call(new ValidateSelfEndpoint()
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			))
 			.skip(
 				LoadOldValues.class, "skipping load old values - first check"

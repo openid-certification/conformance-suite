@@ -30,14 +30,16 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 
-		String accessToken = env.getString("registration_access_token");
+		String accessToken = env.getString("client", "registration_access_token");
 		if (Strings.isNullOrEmpty(accessToken)){
-			throw error("Couldn't find registration_access_token.");
+			log("Couldn't find registration_access_token.");
+			return env;
 		}
 
 		String registrationClientUri = env.getString("client", "registration_client_uri");
 		if (Strings.isNullOrEmpty(registrationClientUri)){
-			throw error("Couldn't find registration_client_uri.");
+			log("Couldn't find registration_client_uri.");
+			return env;
 		}
 
 		try {
@@ -45,7 +47,6 @@ public class UnregisterDynamicallyRegisteredClient extends AbstractCondition {
 			RestTemplate restTemplate = createRestTemplate(env);
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.set("Authorization", "Bearer " + accessToken);
 
 			HttpEntity<?> request = new HttpEntity<>(headers);

@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
@@ -62,8 +62,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 			String logMessage = String.format("Call personal endpoint");
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-				callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-				callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+				callAndStopOnFailure(CallProtectedResource.class);
 				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 			});
 		}

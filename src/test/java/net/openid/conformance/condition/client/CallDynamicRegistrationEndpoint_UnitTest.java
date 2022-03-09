@@ -32,13 +32,13 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private static JsonObject requestParameters = new JsonParser().parse("{"
+	private static JsonObject requestParameters = JsonParser.parseString("{"
 		+ "\"client_name\":\"UNIT-TEST client São Paulo\","
 		+ "\"grant_types\":[\"authorization_code\"],"
 		+ "\"redirect_uris\":[\"https://redirecturi.com/\"]"
 		+ "}").getAsJsonObject();
 
-	private static JsonObject goodResponse = new JsonParser().parse("{" +
+	private static JsonObject goodResponse = JsonParser.parseString("{" +
 		"\"client_id\":\"UNIT-TEST-CLIENT-ID\"," +
 		"\"client_secret\":\"UNIT-TEST-CLIENT-SECRET\"," +
 		"\"client_secret_expires_at\":0," +
@@ -52,7 +52,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		"\"grant_types\":[\"authorization_code\"]," +
 		"\"response_types\":[\"code\"]} ").getAsJsonObject();
 
-	private static JsonObject goodResponseNoRegistrationAPI = new JsonParser().parse("{" +
+	private static JsonObject goodResponseNoRegistrationAPI = JsonParser.parseString("{" +
 		"\"client_id\":\"UNIT-TEST-CLIENT-ID\"," +
 		"\"client_secret\":\"UNIT-TEST-CLIENT-SECRET\"," +
 		"\"client_secret_expires_at\":0," +
@@ -108,7 +108,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -134,7 +134,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Test
 	public void testEvaluate_noError_noRegistrationClientUri() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://noregapi.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -159,7 +159,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_noServerRegistraitonEndpoint(){
-		JsonObject server = new JsonParser().parse("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
+		JsonObject server = JsonParser.parseString("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
 		env.putObject("server",server);
 		cond.execute(env);
 	}
@@ -170,7 +170,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testBadRequestResponseFromServer(){
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://error.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -185,7 +185,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testInvalidJsonReturnedFromServer(){
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -200,7 +200,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEmptyBodyReturnedFromServer(){
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);

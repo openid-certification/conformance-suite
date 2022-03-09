@@ -29,7 +29,7 @@ public class GetResourceEndpointConfiguration_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private static JsonObject resourceConfig = new JsonParser().parse("{" +
+	private static JsonObject resourceConfig = JsonParser.parseString("{" +
 		"\"resourceUrl\":\"https://example.com/\"" +
 		"}").getAsJsonObject();
 

@@ -112,10 +112,10 @@ public class BuildRequestObjectByValueRedirectToAuthorizationEndpoint_UnitTest {
 		server = new JsonObject();
 		server.addProperty("authorization_endpoint", "https://server.example.com/oauth/authorize");
 
-		authorizationEndpointRequest = new JsonParser().parse(requestObjectClaimsString).getAsJsonObject();
+		authorizationEndpointRequest = JsonParser.parseString(requestObjectClaimsString).getAsJsonObject();
 
 		// Alternate values to test override behavior
-		alternateAuthorizationEndpointRequest = new JsonParser().parse(requestObjectClaimsString).getAsJsonObject();
+		alternateAuthorizationEndpointRequest = JsonParser.parseString(requestObjectClaimsString).getAsJsonObject();
 		alternateAuthorizationEndpointRequest.remove("state");
 		alternateAuthorizationEndpointRequest.remove("nonce");
 		alternateAuthorizationEndpointRequest.addProperty("state", "abcdefghijk");

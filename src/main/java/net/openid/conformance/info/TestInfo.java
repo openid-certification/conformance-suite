@@ -3,6 +3,7 @@ package net.openid.conformance.info;
 import java.time.Instant;
 import java.util.Map;
 
+import com.google.gson.GsonBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -60,7 +61,7 @@ public class TestInfo {
 		this.testName = testName;
 		this.variant = variant;
 		this.started = started.toString();
-		this.config = org.bson.Document.parse(new Gson().toJson(
+		this.config = org.bson.Document.parse(new GsonBuilder().serializeNulls().create().toJson(
 				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
 		this.description = description;
 		this.alias = alias;

@@ -2,8 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -33,7 +32,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBrasilFunctionalTestModule {
 
-
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
@@ -60,9 +58,9 @@ public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBras
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		call(new ValidateSelfEndpoint()
-			.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+				condition(CallProtectedResource.class)
 			)));
 
 	}

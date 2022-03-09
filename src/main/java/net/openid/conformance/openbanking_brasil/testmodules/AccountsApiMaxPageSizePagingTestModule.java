@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -47,8 +47,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -60,8 +59,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(SetProtectedResourceUrlToNextEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);

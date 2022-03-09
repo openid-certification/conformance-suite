@@ -93,3 +93,4 @@ fabric.properties
 
 ## End of JetBrains section
 /enum-checker.log
+venv

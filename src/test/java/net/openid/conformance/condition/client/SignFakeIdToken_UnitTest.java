@@ -42,13 +42,13 @@ public class SignFakeIdToken_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 
-		idTokenClaims = new JsonParser().parse(
+		idTokenClaims = JsonParser.parseString(
 				"  {\n" +
 				"   \"foo\": \"bar\"\n" +
 				"  }")
 			.getAsJsonObject();
 
-		jwks = new JsonParser().parse("{"
+		jwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","

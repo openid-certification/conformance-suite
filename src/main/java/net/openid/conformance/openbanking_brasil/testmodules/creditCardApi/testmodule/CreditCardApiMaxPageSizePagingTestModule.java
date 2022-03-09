@@ -2,9 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.test
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.creditCard.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -49,8 +48,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -62,8 +60,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(SetProtectedResourceUrlToNextEndpoint.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(SetResourceMethodToGet.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractResponseCodeFromFullResponse.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);

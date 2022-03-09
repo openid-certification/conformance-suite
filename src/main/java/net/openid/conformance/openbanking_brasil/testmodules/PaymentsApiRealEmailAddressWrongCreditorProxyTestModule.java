@@ -7,6 +7,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.In
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.InjectInvalidCreditorAccountToPaymentConsent;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SetProxyToRealEmailAddressOnPayment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SetProxyToRealEmailAddressOnPaymentConsent;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -50,4 +51,20 @@ public class PaymentsApiRealEmailAddressWrongCreditorProxyTestModule extends Abs
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 
 	}
+
+	@Override
+	protected void requestProtectedResource() {
+		if(!validationStarted) {
+			validationStarted = true;
+			eventLog.startBlock("initiate payment");
+			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
+				.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class));
+			call(pixSequence);
+			eventLog.endBlock();
+			eventLog.startBlock(currentClientString() + "Validate response");
+			validateResponse();
+			eventLog.endBlock();
+		}
+	}
+
 }

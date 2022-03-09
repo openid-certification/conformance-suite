@@ -32,7 +32,7 @@ public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
 
 	@Test
 	public void testEvaluate_noError() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"grant_types_supported\": ["
 				+ "\"authorization_code\""
 			+ "]}")
@@ -43,7 +43,7 @@ public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
 
 	@Test
 	public void testEvaluate_missing () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "}")
 			.getAsJsonObject();
 		env.putObject("server", server);
@@ -52,7 +52,7 @@ public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_error () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"grant_types_supported\": ["
 			+ "\"authorization_codex\""
 			+ "]}")
@@ -63,7 +63,7 @@ public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorString () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"grant_types_supported\": \"authorization_code\""
 			+ "}")
 			.getAsJsonObject();

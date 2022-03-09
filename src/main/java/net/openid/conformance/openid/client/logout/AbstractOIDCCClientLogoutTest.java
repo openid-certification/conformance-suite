@@ -29,6 +29,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
@@ -208,7 +209,7 @@ public class AbstractOIDCCClientLogoutTest extends AbstractOIDCCClientTest {
 			receivedCheckSessionRequestBeforeLogout = true;
 		}
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		JsonObject body = env.getObject("session_state_data");
 
 		callAndStopOnFailure(LogGetSessionStateRequest.class);

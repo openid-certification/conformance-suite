@@ -51,12 +51,12 @@ public class CheckMatchingCallbackParameters_UnitTest {
 
 		uriWithSuffix = uriWithoutSuffix + "?dummy1=lorem&dummy2=ipsum";
 
-		goodParams = new JsonParser().parse("{"
+		goodParams = JsonParser.parseString("{"
 				+ "\"dummy1\":\"lorem\","
 				+ "\"dummy2\":\"ipsum\""
 				+ "}").getAsJsonObject();
 
-		badParams = new JsonParser().parse("{"
+		badParams = JsonParser.parseString("{"
 				+ "\"dummy1\":\"dolor\""
 				+ "}").getAsJsonObject();
 	}

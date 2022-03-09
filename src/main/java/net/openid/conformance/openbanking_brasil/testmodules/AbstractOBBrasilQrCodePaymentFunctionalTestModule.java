@@ -1,7 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenAndCustomHeaders;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForAcceptedStatus;
@@ -36,7 +36,7 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence();
 			postProcessResourceSequence(pixSequence);
 			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
+				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 			});
 			call(pixSequence);
 			eventLog.startBlock(currentClientString() + "Validate response");

@@ -46,7 +46,7 @@ public class FAPIValidateRequestObjectExp_UnitTest
 		long issuedAt = nowSeconds - 10; // pretend this came from a distant server
 
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"test-client-id-346334adgdsfgdfg3425\""
 			+ "}").getAsJsonObject();
 		claims.addProperty("exp", issuedAt + 300);

@@ -39,7 +39,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseJson() {
-		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":{\"value\": true}}").getAsJsonObject();
+		JsonObject server = JsonParser.parseString("{\"tls_client_certificate_bound_access_tokens\":{\"value\": true}}").getAsJsonObject();
 		env.putObject("server", server);
 
 		cond.execute(env);
@@ -47,7 +47,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseString() {
-		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":\"true\"}").getAsJsonObject();
+		JsonObject server = JsonParser.parseString("{\"tls_client_certificate_bound_access_tokens\":\"true\"}").getAsJsonObject();
 		env.putObject("server", server);
 
 		cond.execute(env);
@@ -55,7 +55,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 
 	@Test
 	public void testEvaluate_caseGood() {
-		JsonObject server = new JsonParser().parse("{\"tls_client_certificate_bound_access_tokens\":true}").getAsJsonObject();
+		JsonObject server = JsonParser.parseString("{\"tls_client_certificate_bound_access_tokens\":true}").getAsJsonObject();
 		env.putObject("server", server);
 
 		cond.execute(env);

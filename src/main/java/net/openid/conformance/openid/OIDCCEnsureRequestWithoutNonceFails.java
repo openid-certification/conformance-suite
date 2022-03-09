@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequest;
 import net.openid.conformance.condition.client.ExpectRequestMissingNonceErrorPage;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -25,10 +26,10 @@ public class OIDCCEnsureRequestWithoutNonceFails extends AbstractOIDCCServerTest
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-				.skip(AddNonceToAuthorizationEndpointRequest.class,
-						"NOT adding nonce to request object"));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.skip(AddNonceToAuthorizationEndpointRequest.class,
+				"NOT adding nonce to request object");
 	}
 
 	@Override

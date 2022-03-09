@@ -22,12 +22,12 @@ public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private static JsonObject dynamicRegistrationRequest = new JsonParser().parse("{"
+	private static JsonObject dynamicRegistrationRequest = JsonParser.parseString("{"
 		+ "\"client_name\":\"UNIT-TEST client\","
 		+ "\"grant_types\":[\"implicit\"]"
 		+ "}").getAsJsonObject();
 
-	private static JsonObject goodDynamicRegistrationRequest = new JsonParser().parse("{"
+	private static JsonObject goodDynamicRegistrationRequest = JsonParser.parseString("{"
 		+ "\"grant_types\":[\"implicit\"],"
 		+ "\"client_name\":\"UNIT-TEST client\","
 		+ "\"redirect_uris\":[\"https://example.org/redirect\"]"

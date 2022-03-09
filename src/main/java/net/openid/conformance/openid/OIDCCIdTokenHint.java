@@ -17,7 +17,7 @@ public class OIDCCIdTokenHint extends AbstractOIDCCSameAuthTwiceServerTest {
 
 	@Override
 	protected void createSecondAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
+		call(createAuthorizationRequestSequence()
 			.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1"))
 			.then(condition(AddIdTokenHintFromFirstLoginToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-3.1.2.2")));
 	}

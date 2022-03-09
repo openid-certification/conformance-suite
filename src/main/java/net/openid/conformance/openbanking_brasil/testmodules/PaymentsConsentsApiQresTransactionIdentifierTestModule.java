@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.EnsureHttpStatusIs422;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -61,8 +62,7 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(AddTransactionIdentification.class);
 		call(new CallPixPaymentsEndpointSequence()
-			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-			.skip(EnsureHttpStatusCodeIs201.class, "Expecting error here")
+			.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class))
 		);
 		validateResponse();
 	}
@@ -70,7 +70,6 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(EnsureResponseWasJwt.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(EnsureResponseCodeWas422.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(Ensure422ResponseCodeWasNAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResourceResponseReturnedJwtContentType.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);

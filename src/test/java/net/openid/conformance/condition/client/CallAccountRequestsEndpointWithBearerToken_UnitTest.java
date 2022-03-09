@@ -33,7 +33,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 
 	// Examples from OpenBanking spec
 
-	private static JsonObject requestObject = new JsonParser().parse("{\n" +
+	private static JsonObject requestObject = JsonParser.parseString("{\n" +
 		"  \"Data\": {\n" +
 		"    \"Permissions\": [\n" +
 		"      \"ReadAccountsDetail\",\n" +
@@ -51,7 +51,7 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		"  \"Risk\": {}\n" +
 		"}").getAsJsonObject();
 
-	private static JsonObject responseObject = new JsonParser().parse("{\n" +
+	private static JsonObject responseObject = JsonParser.parseString("{\n" +
 		"  \"Data\": {\n" +
 		"    \"AccountRequestId\": \"88379\",\n" +
 		"    \"Status\": \"AwaitingAuthorisation\",\n" +
@@ -78,12 +78,12 @@ public class CallAccountRequestsEndpointWithBearerToken_UnitTest {
 		"  }\n" +
 		"}").getAsJsonObject();
 
-	private static JsonObject bearerToken = new JsonParser().parse("{"
+	private static JsonObject bearerToken = JsonParser.parseString("{"
 		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
 		+ "\"type\":\"Bearer\""
 		+ "}").getAsJsonObject();
 
-	private static JsonObject exampleToken = new JsonParser().parse("{"
+	private static JsonObject exampleToken = JsonParser.parseString("{"
 		+ "\"value\":\"2YotnFZFEjr1zCsicMWpAA\","
 		+ "\"type\":\"example\""
 		+ "}").getAsJsonObject();
