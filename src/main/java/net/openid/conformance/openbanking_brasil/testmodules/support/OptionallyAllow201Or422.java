@@ -114,7 +114,7 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	private void validateMetaDateTimeFormat(JsonObject metaJson){
 		if (metaJson.has("requestDateTime")){
 			final JsonElement requestDateTimeJson = metaJson.get("requestDateTime");
-			if(!requestDateTimeJson.getAsString().matches(DatetimeField.ALTERNATIVE_PATTERN)){
+			if(!OIDFJSON.getString(requestDateTimeJson).matches(DatetimeField.ALTERNATIVE_PATTERN)){
 				throw error("requestDateTime field " + requestDateTimeJson + " is not compliant with the swagger format");
 			}
 			logSuccess("requestDateTime field " + requestDateTimeJson + " is compliant with the swagger format");
