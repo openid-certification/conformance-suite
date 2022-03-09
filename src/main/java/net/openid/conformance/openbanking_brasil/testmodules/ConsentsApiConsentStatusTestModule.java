@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
@@ -15,7 +15,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consent-api-status-test",
 	displayName = "Validate that consents are actually authorised on redirect",
-	summary = "Validate that consents are actually authorised on redirect",
+	summary = "Validates that consents are actually authorised on redirect\n" +
+		"\u2022 Creates a Consent with all of the existing permissions\n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Expects a valid consent creation 201\n" +
+		"\u2022 Calls the GET Resources endpoint\n" +
+		"\u2022 Expects either a 200 or an error\n" +
+		"\u2022 Calls the GET Consents endpoint\n" +
+		"\u2022 Expects a 200 with the Consent being authorised",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -55,8 +62,7 @@ public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunction
 			String logMessage = String.format("Call personal endpoint");
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-				callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-				callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+				callAndStopOnFailure(CallProtectedResource.class);
 				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 			});
 		}

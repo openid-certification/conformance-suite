@@ -3,8 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
@@ -119,7 +117,7 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 		}
 		// if expecting fail
 		if(fail){
-			callAndContinueOnFailure(CallProtectedResourceAndExpectFailure.class);
+			callAndContinueOnFailure(CallProtectedResource.class);
 			eventLog.startBlock("Validating response, expecting 422 jwt with code: CONSENTIMENTO_INVALIDO");
 			callAndContinueOnFailure(EnsureResponseCodeWas422.class);
 			callAndStopOnFailure(EnsureCodeIsInvalidConsent.class);
@@ -128,7 +126,8 @@ public class PaymentsConsumedConsentsTestModule extends AbstractOBBrasilFunction
 		}
 		// if expecting pass
 		else {
-			callAndContinueOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			callAndContinueOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			callAndContinueOnFailure(EnsureResponseCodeWas201.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 			callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 			if (!isSecondClient()) {

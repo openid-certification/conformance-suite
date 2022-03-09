@@ -48,17 +48,17 @@ public class ExtractFapiIpAddressHeader_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodRequest = new JsonParser().parse("{\"headers\":{"
+		goodRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-customer-ip-address\": \"" + addr + "\""
 			+ "}}").getAsJsonObject();
-		good6Request = new JsonParser().parse("{\"headers\":{"
+		good6Request = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-customer-ip-address\": \"" + addr6 + "\""
 			+ "}}").getAsJsonObject();
-		badRequest = new JsonParser().parse("{\"headers\":{"
+		badRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-customer-ip-address\": \"" + badAddr + "\""
 			+ "}}").getAsJsonObject();
-		missingHeader = new JsonParser().parse("{\"headers\":{}}").getAsJsonObject();
-		noHeaders = new JsonParser().parse("{}").getAsJsonObject();
+		missingHeader = JsonParser.parseString("{\"headers\":{}}").getAsJsonObject();
+		noHeaders = JsonParser.parseString("{}").getAsJsonObject();
 
 	}
 

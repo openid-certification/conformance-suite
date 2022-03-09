@@ -54,26 +54,26 @@ public class ExtractFapiDateHeader_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodRequest = new JsonParser().parse("{\"headers\":{"
+		goodRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + date + "\""
 			+ "}}").getAsJsonObject();
-		badRequest = new JsonParser().parse("{\"headers\":{"
+		badRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + badDate + "\""
 			+ "}}").getAsJsonObject();
-		oddRequest = new JsonParser().parse("{\"headers\":{"
+		oddRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + oddDate + "\""
 			+ "}}").getAsJsonObject();
-		oldRequest = new JsonParser().parse("{\"headers\":{"
+		oldRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + oldFormat + "\""
 			+ "}}").getAsJsonObject();
-		asciiRequest = new JsonParser().parse("{\"headers\":{"
+		asciiRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + asciiFormat + "\""
 			+ "}}").getAsJsonObject();
-		badFormatRequest = new JsonParser().parse("{\"headers\":{"
+		badFormatRequest = JsonParser.parseString("{\"headers\":{"
 			+ "\"x-fapi-auth-date\": \"" + badFormat + "\""
 			+ "}}").getAsJsonObject();
-		missingHeader = new JsonParser().parse("{\"headers\":{}}").getAsJsonObject();
-		noHeaders = new JsonParser().parse("{}").getAsJsonObject();
+		missingHeader = JsonParser.parseString("{\"headers\":{}}").getAsJsonObject();
+		noHeaders = JsonParser.parseString("{}").getAsJsonObject();
 
 	}
 

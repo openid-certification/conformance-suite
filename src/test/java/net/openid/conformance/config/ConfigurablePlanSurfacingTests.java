@@ -28,7 +28,7 @@ public class ConfigurablePlanSurfacingTests {
 			OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
 			OBBProfile.OBB_PROFIlE_PHASE1, OBBProfile.OBB_PROFIlE_PHASE2,
 			OBBProfile.OBB_PROFIlE_PHASE3, OBBProfile.OBB_PROFIlE_PHASE4, TestPlan.ProfileNames.optest,
-			TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest);
+			TestPlan.ProfileNames.rptest, TestPlan.ProfileNames.rplogouttest, TestPlan.ProfileNames.ekyctest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));

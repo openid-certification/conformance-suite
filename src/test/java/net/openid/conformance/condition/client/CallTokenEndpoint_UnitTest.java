@@ -35,15 +35,15 @@ public class CallTokenEndpoint_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private static JsonObject requestParameters = new JsonParser().parse("{"
+	private static JsonObject requestParameters = JsonParser.parseString("{"
 		+ "\"grant_type\":\"client_credentials\""
 		+ "}").getAsJsonObject();
 
-	private static JsonObject requestHeaders = new JsonParser().parse("{"
+	private static JsonObject requestHeaders = JsonParser.parseString("{"
 		+ "\"Authorization\":\"Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW\""
 		+ "}").getAsJsonObject();
 
-	private static JsonObject goodResponse = new JsonParser().parse("{"
+	private static JsonObject goodResponse = JsonParser.parseString("{"
 		+ "\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\","
 		+ "\"token_type\":\"example\","
 		+ "\"expires_in\":3600,"
@@ -90,7 +90,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -119,7 +119,7 @@ public class CallTokenEndpoint_UnitTest {
 
 		/* A normal server would refuse this request, but we want to make sure the condition doesn't fail */
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -136,7 +136,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_nonexistingServer() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://nonexisting.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -154,7 +154,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorResponse() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://error.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -172,7 +172,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badResponse() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://bad.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -190,7 +190,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_emptyResponse() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://empty.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);
@@ -208,7 +208,7 @@ public class CallTokenEndpoint_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_requestMissing() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
 			+ "}").getAsJsonObject();
 		env.putObject("server", server);

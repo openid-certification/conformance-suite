@@ -39,7 +39,7 @@ public class AddCHashToIdTokenClaims_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		claims = new JsonParser().parse("{"
+		claims = JsonParser.parseString("{"
 			+ "\"iss\":\"https://localhost:8443/test/a/fintech-clienttest\","
 			+ "\"sub\":\"user-subject-12345431\","
 			+ "\"aud\":\"test-clinet-id-123\","
@@ -47,7 +47,7 @@ public class AddCHashToIdTokenClaims_UnitTest {
 			+ "\"openbanking_intent_id\":\"ABC123DEF456\""
 			+ "}").getAsJsonObject();
 
-		hash = OIDFJSON.getString((new JsonParser().parse("40PTS2Jr3ezaQXA_T0BN_A")));
+		hash = OIDFJSON.getString((JsonParser.parseString("40PTS2Jr3ezaQXA_T0BN_A")));
 	}
 
 	@Test

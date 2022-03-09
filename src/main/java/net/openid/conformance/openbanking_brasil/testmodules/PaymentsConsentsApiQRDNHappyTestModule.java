@@ -114,12 +114,10 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 
 	protected void requestProtectedResourceAgain() {
 		ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
-				condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-			.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
+			.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
 		postProcessResourceSequence(pixSequence);
 		resourceCreationErrorMessageCondition().ifPresent(c -> {
-			pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
+			pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 		});
 		call(pixSequence);
 		pollForStatusChange();

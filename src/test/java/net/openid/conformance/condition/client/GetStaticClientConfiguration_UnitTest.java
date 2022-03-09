@@ -46,7 +46,7 @@ public class GetStaticClientConfiguration_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		client = new JsonParser().parse("{"
+		client = JsonParser.parseString("{"
 			+ "\"client_id\":\"client\","
 			+ "\"client_secret\":\"secret\""
 			+ "}").getAsJsonObject();

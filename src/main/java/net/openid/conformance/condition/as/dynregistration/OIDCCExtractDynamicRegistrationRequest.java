@@ -16,7 +16,7 @@ public class OIDCCExtractDynamicRegistrationRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String requestBody = OIDFJSON.getString(env.getObject("incoming_request").get("body"));
-		JsonObject requestJson = new JsonParser().parse(requestBody).getAsJsonObject();
+		JsonObject requestJson = JsonParser.parseString(requestBody).getAsJsonObject();
 		env.putObject("dynamic_registration_request", requestJson);
 		logSuccess("Extracted dynamic client registration request", args("request", requestJson));
 		return env;

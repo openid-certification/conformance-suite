@@ -36,7 +36,7 @@ public class FAPIValidateRequestObjectSigningAlg_UnitTest {
 		cond = new FAPIValidateRequestObjectSigningAlg();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		header = new JsonParser().parse("{"
+		header = JsonParser.parseString("{"
 			+ "\"iss\":\"test-client-id-346334adgdsfgdfg3425\""
 			+ "}").getAsJsonObject();
 		header.addProperty("alg", "PS256");

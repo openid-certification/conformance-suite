@@ -37,7 +37,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\","
 			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
 			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
@@ -63,7 +63,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 	@Test
 	public void testEvaluate_onlyInMtls() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\","
 			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
 			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
@@ -98,7 +98,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 	@Test
 	public void testEvaluate_notPresentMtlsEndpointAliases() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\""
 			+ "}").getAsJsonObject();
 
@@ -117,7 +117,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notObject() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\","
 			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
 			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
@@ -133,7 +133,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 	@Test
 	public void testEvaluate_authEndpointAliasedError() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\","
 			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
 			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
@@ -166,7 +166,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 	@Test
 	public void testEvaluate_NotEndpointAliasedError() {
 
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\": \"https://server.example.com/token\","
 			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
 			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","

@@ -1082,6 +1082,32 @@
                                 </div>
 
                             </div>
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">eKYC</h3>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">ekyc_verified_claims_request</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc_verified_claims_request"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">ekyc_userinfo</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc_userinfo"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
 
                         </div>
                         <div id="JSONInput" class="tab-pane fade">
@@ -1550,17 +1576,18 @@
         function walkJSON(element, root) {
 
             _.each(element, function(value, key, obj) {
-                var el = null;
-
-                if (_.isString(value) && root == undefined && key != undefined) {
-                    el = $(".config-form-element[data-json-target='" + key + "']");
+                var path;
+                if (root != undefined) {
+                    path = root + "." + key
                 } else {
-                    el = $(".config-form-element[data-json-target='" + root + "." + key + "']");
+                    path = key;
                 }
+
+                var el = $(".config-form-element[data-json-target='" + path + "']");
 
                 if (el && $(document).find(el).length) {
                     if (_.isArray(value) || _.isObject(value)) {
-                        el.val(JSON.stringify(value));
+                        el.val(JSON.stringify(value, null, 4));
                     } else {
                         el.val(value);
                     }
@@ -1581,13 +1608,17 @@
          */
 
         function populateJSON(key, val) {
-            // check to see if we have an "array string" or a "number string"
-            // i.e. something we want to parse as an array/object/number because the val parameter always comes through as a string from the text input
+            // preserve valid json objects and arrays as json values; store everything else as a string
+            // This has an odd side effect that (say) a jwks that is invalid json (e.g. extra or missing comma) is
+            // inserted as a string
             try {
                 var stringToJSON = JSON.parse(val); // an array, object or number ?
                 if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
                     FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
-                } else if (_.isNumber(stringToJSON)) {
+                } else {
+                    // something parseable as json but not an object/array (e.g. a number or boolean) - insert as a string
+                    // this makes sure that, e.g., fully numeric client ids are stored in the config as a string as the
+                    // code expects
                     FAPI_UI.prop(FAPI_UI.testJSON, key, val);
                 }
             } catch (e) { // a string

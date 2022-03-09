@@ -46,7 +46,7 @@ public class OIDCCMaxAge1 extends AbstractOIDCCServerTest {
 			// we're sending max_age=2, so after 1 second the previous authentication is just still valid - so wait for
 			// 2 seconds
 			callAndStopOnFailure(WaitFor2Seconds.class);
-			call(new CreateAuthorizationRequestSteps(formPost)
+			call(createAuthorizationRequestSequence()
 				.then(condition(AddMaxAge1ToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
 		}
 	}

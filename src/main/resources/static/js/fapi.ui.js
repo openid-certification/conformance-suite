@@ -447,12 +447,13 @@ var FAPI_UI = {
 	    // Each url must have the fragment necessary to form a link to a particular section of document
 		// When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 		specLinks : {
-			"BrazilOB-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID1.html#section-",
-			"BrazilOBDCR-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#section-",
+			"BrazilOB-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-",
+			"BrazilOBDCR-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-",
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
 			"FAPI1-BASE-" : "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.",
 			"FAPI1-ADV-" : "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.",
+			"FAPI2-BASE-" : "https://openid.bitbucket.io/fapi/fapi-2_0-baseline.html#section.", // not a stable version - update to implementers draft 2 when available
 			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
 			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
 			"JARM-" : "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.",
@@ -464,6 +465,7 @@ var FAPI_UI = {
 			"OAuth2-iss" : "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
+			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",
 			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
 			"RFC7231-" : "https://tools.ietf.org/html/rfc7231#section-",
 			"RFC7517-" : "https://tools.ietf.org/html/rfc7517#section-",
@@ -483,9 +485,9 @@ var FAPI_UI = {
 			"OIDCRIL-" : "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.",
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
-			"PAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-par#section-",
-			"JAR-" : "https://tools.ietf.org/html/draft-ietf-oauth-jwsreq#section-",
-			"BCLOG-F02-" : "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#"
+			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
+			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
+			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

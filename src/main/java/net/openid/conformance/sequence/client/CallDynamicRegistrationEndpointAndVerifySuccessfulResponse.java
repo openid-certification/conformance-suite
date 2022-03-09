@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckNoErrorFromDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.ExtractClientManagementCredentials;
+import net.openid.conformance.condition.client.VerifyClientManagementCredentials;
 import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -21,7 +21,7 @@ public class CallDynamicRegistrationEndpointAndVerifySuccessfulResponse extends 
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
 		callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 		callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-		callAndContinueOnFailure(ExtractClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+		callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 
 		call(exec().unmapKey("endpoint_response"));
 	}

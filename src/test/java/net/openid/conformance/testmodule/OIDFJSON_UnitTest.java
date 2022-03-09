@@ -13,7 +13,7 @@ public class OIDFJSON_UnitTest {
 
 	@Test
 	public void getFloat_number() {
-		JsonElement json = new JsonParser().parse("5.1");
+		JsonElement json = JsonParser.parseString("5.1");
 
 		float f = OIDFJSON.getFloat(json);
 
@@ -22,14 +22,14 @@ public class OIDFJSON_UnitTest {
 
 	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
 	public void getFloat_string() {
-		JsonElement json = new JsonParser().parse("\"5.1\"");
+		JsonElement json = JsonParser.parseString("\"5.1\"");
 
 		float f = OIDFJSON.getFloat(json);
 	}
 
 	@Test
 	public void forceConversionToString_number() {
-		JsonElement json = new JsonParser().parse("5.1");
+		JsonElement json = JsonParser.parseString("5.1");
 
 		String s = OIDFJSON.forceConversionToString(json);
 
@@ -38,7 +38,7 @@ public class OIDFJSON_UnitTest {
 
 	@Test
 	public void forceConversionToString_string() {
-		JsonElement json = new JsonParser().parse("\"flibble\"");
+		JsonElement json = JsonParser.parseString("\"flibble\"");
 
 		String s = OIDFJSON.forceConversionToString(json);
 
@@ -47,28 +47,28 @@ public class OIDFJSON_UnitTest {
 
 	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
 	public void forceConversionToString_bool() {
-		JsonElement json = new JsonParser().parse("true");
+		JsonElement json = JsonParser.parseString("true");
 
 		String s = OIDFJSON.forceConversionToString(json);
 	}
 
 	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
 	public void forceConversionToString_object() {
-		JsonElement json = new JsonParser().parse("{ \"foo\": 5 }");
+		JsonElement json = JsonParser.parseString("{ \"foo\": 5 }");
 
 		String s = OIDFJSON.forceConversionToString(json);
 	}
 
 	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
 	public void forceConversionToString_array() {
-		JsonElement json = new JsonParser().parse("[ 5 ]");
+		JsonElement json = JsonParser.parseString("[ 5 ]");
 
 		String s = OIDFJSON.forceConversionToString(json);
 	}
 
 	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
 	public void forceConversionToString_null() {
-		JsonElement json = new JsonParser().parse("null");
+		JsonElement json = JsonParser.parseString("null");
 
 		String s = OIDFJSON.forceConversionToString(json);
 	}

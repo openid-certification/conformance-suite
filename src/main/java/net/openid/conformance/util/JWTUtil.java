@@ -7,12 +7,12 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.security.core.parameters.P;
 
 import java.text.ParseException;
 import java.util.UUID;
@@ -57,7 +57,7 @@ public class JWTUtil {
 		if (jwtClaimsSet == null) {
 			throw new ParseException("Failed to extract JWT claims", 0);
 		}
-		JsonObject claims = new JsonParser().parse(jwtClaimsSet.toJSONObject(includeNullValues).toJSONString()).getAsJsonObject();
+		JsonObject claims = JsonParser.parseString(JSONObjectUtils.toJSONString(jwtClaimsSet.toJSONObject(includeNullValues))).getAsJsonObject();
 		return claims;
 	}
 
@@ -68,7 +68,7 @@ public class JWTUtil {
 	 * @return
 	 */
 	public static JsonObject jwtHeaderAsJsonObject(JWT jwt) {
-		JsonObject header = new JsonParser().parse(jwt.getHeader().toJSONObject().toJSONString()).getAsJsonObject();
+		JsonObject header = JsonParser.parseString(JSONObjectUtils.toJSONString(jwt.getHeader().toJSONObject())).getAsJsonObject();
 		return header;
 	}
 

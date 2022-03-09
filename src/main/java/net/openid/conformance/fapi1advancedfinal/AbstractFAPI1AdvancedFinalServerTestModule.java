@@ -60,6 +60,7 @@ import java.util.function.Supplier;
 	"resource.cdrVersion"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
@@ -72,11 +73,11 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
-	protected boolean jarm = false;
+	protected Boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
-	protected boolean isPar = false;
-	protected boolean isBrazil = false;
-	protected boolean brazilPayments = false; // whether using Brazil payments APIs
+	protected Boolean isPar;
+	protected Boolean isBrazil;
+	protected Boolean brazilPayments; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -154,9 +155,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		configureClient();
 		setupResourceEndpoint();
 
-		if (isBrazil) {
-			brazilPayments = scopeContains("payments");
-		}
+		brazilPayments = isBrazil && scopeContains("payments");
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -414,8 +413,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-4");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
@@ -535,8 +533,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
 
-		// This condition is a warning because we're not yet 100% sure of the code
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.WARNING, "FAPI1-BASE-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
 
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
@@ -704,7 +701,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			}
 		}
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 
@@ -854,7 +854,22 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	protected void performParAuthorizationRequestFlow() {
 
+		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
+		// there's no need to pass mtls auth when using private_key_jwt (except in some of the banking
+		// profiles that explicitly require TLS client certs for all endpoints).
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			getVariant(FAPI1FinalOPProfile.class) != FAPI1FinalOPProfile.PLAIN_FAPI;
+		JsonObject mtls = null;
+		if (!mtlsRequired) {
+			mtls = env.getObject("mutual_tls_authentication");
+			env.removeObject("mutual_tls_authentication");
+		}
+
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
+
+		if (!mtlsRequired) {
+			env.putObject("mutual_tls_authentication", mtls);
+		}
 
 		processParResponse();
 	}

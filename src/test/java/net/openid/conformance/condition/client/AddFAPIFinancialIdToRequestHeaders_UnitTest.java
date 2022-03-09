@@ -89,7 +89,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	public void testEvaluate_existingHeadersOverwrite() {
 
 		env.putObject("resource", resourceConfig);
-		env.putObject("resource_endpoint_request_headers",	new JsonParser().parse("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
+		env.putObject("resource_endpoint_request_headers",	JsonParser.parseString("{\"x-fapi-financial-id\":\"foo-bar\"}").getAsJsonObject());
 
 		cond.execute(env);
 

@@ -326,7 +326,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void log(String msg, JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("msg", msg);
 		log(copy);
 	}
@@ -338,7 +338,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void logSuccess(JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("result", ConditionResult.SUCCESS.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray arr = new JsonArray();
@@ -368,7 +368,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void logSuccess(String msg, JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("msg", msg);
 		copy.addProperty("result", ConditionResult.SUCCESS.toString());
 		if (!getRequirements().isEmpty()) {
@@ -401,7 +401,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	 */
 
 	protected void logFailure(JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("result", conditionResultOnFailure.toString());
 		if (!getRequirements().isEmpty()) {
 			JsonArray arr = new JsonArray();
@@ -431,7 +431,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void logFailure(String msg, JsonObject in) {
-		JsonObject copy = new JsonParser().parse(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
 		copy.addProperty("msg", msg);
 		copy.addProperty("result", conditionResultOnFailure.toString());
 		if (!getRequirements().isEmpty()) {
@@ -664,6 +664,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 		builder.setConnectionManager(ccm);
 
+		builder.disableRedirectHandling();
+
+		builder.disableAutomaticRetries();
+
 		HttpClient httpClient = builder.build();
 		return httpClient;
 	}
@@ -797,7 +801,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		}
 
 		try {
-			JsonElement jsonRoot = new JsonParser().parse(jsonString);
+			JsonElement jsonRoot = JsonParser.parseString(jsonString);
 			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
 				if (allowParseFailure) {
 					return responseInfo;

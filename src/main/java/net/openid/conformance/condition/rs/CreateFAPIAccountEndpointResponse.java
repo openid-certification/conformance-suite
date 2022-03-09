@@ -14,7 +14,7 @@ public class CreateFAPIAccountEndpointResponse extends AbstractOpenBankingApiRes
 	@PostEnvironment(required = {"accounts_endpoint_response", "accounts_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject response = new JsonParser().parse(
+		JsonObject response = JsonParser.parseString(
 			"{ \"conformance-test-finished\": \"true\"}").getAsJsonObject();
 
 		String fapiInteractionId = env.getString("fapi_interaction_id");

@@ -33,7 +33,7 @@ public class OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone_UnitTest {
 		cond = new OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		serverObj = new JsonParser().parse("{" +
+		serverObj = JsonParser.parseString("{" +
 				"\"id_token_signing_alg_values_supported\": [" +
 					"\"none\"," +
 					"\"PS384\"," +

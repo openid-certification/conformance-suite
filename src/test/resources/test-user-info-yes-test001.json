@@ -1,0 +1,77 @@
+{
+    "sub": "f647f683-e46d-43bd-bc76-526d93429b86",
+    "https://www.yes.com/claims/preferred_iban": "DE72100500000000000019",
+    "verified_claims": {
+        "claims": {
+            "place_of_birth": {
+                "locality": "Berlin",
+                "country": "DE"
+            },
+            "dogname": "Browser",
+            "birthdate": "1950-01-01",
+            "address": {
+                "street_address": "Street1 1",
+                "country": "DE",
+                "formatted": "Street1 1\nBerlin\n10243\nDE",
+                "locality": "Berlin",
+                "region": "Berlin",
+                "postal_code": "10243"
+            },
+            "nationalities": [
+                "DE"
+            ],
+            "given_name": "Given001",
+            "family_name": "Family001"
+        },
+        "verification": {
+            "trust_framework": "de_aml",
+            "time": "2012-04-23T18:25:43.511+01",
+            "evidence": [
+                {
+                    "method": "pipp",
+                    "document": {
+                        "number": "L3FY80139",
+                        "date_of_issuance": "2018-01-02",
+                        "date_of_expiry": "2028-01-02",
+                        "type": "idcard",
+                        "issuer": {
+                            "country": "DE",
+                            "name": "BA MITTE BÜA 1"
+                        }
+                    },
+                    "time": "2012-04-23T18:00:43.511+01",
+                    "type": "id_document"
+                }
+            ],
+            "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
+        }
+    },
+    "birthdate": "1950-01-01",
+    "address": {
+        "street_address": "Street1 1",
+        "country": "DE",
+        "formatted": "Street1 1\nBerlin\n10243\nDE",
+        "locality": "Berlin",
+        "region": "Berlin",
+        "postal_code": "10243"
+    },
+    "gender": "male",
+    "nationalities": [
+        "DE"
+    ],
+    "txn": "16fad355-7c41-44be-a09e-88372a6504c3",
+    "given_name": "Given001",
+    "title": "Dr.",
+    "https://www.yes.com/claims/tax_id": "1121081508150",
+    "birth_given_name": "Given001",
+    "place_of_birth": {
+        "locality": "Berlin",
+        "country": "DE"
+    },
+    "birth_family_name": "Family001",
+    "phone_number": "+49301111001",
+    "birth_middle_name": "Middle001",
+    "salutation": "Herr",
+    "family_name": "Family001",
+    "email": "test001@platform.yes.com"
+}

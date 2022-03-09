@@ -1,5 +1,6 @@
 package net.openid.conformance.logging;
 
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
@@ -30,10 +31,10 @@ import com.google.gson.JsonObject;
 @Component
 @WritingConverter
 public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, Bson> {
-
+	public static final String CONFORMANCE_SUITE_JSON_NULL_CONSTANT = "CONFORMANCE_SUITE_JSON_NULL";
 	private static final Logger log = LoggerFactory.getLogger(GsonObjectToBsonDocumentConverter.class);
 
-	private Gson gson = new GsonBuilder().create();
+	private Gson gson = new GsonBuilder().serializeNulls().create();
 
 	@Override
 	@SuppressWarnings("deprecation")
@@ -41,7 +42,9 @@ public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, 
 		if (source == null) {
 			return null;
 		} else {
-			return (Bson) com.mongodb.util.JSON.parse(gson.toJson(convertFieldsToStructure(source)));
+			String json = gson.toJson(convertFieldsToStructure(source));
+			Bson converted = (Bson) com.mongodb.util.JSON.parse(json);
+			return converted;
 		}
 	}
 
@@ -71,6 +74,8 @@ public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, 
 				converted.add(convertFieldsToStructure(element));
 			}
 			return converted;
+		} else if(source.isJsonNull()) {
+			return new JsonPrimitive(CONFORMANCE_SUITE_JSON_NULL_CONSTANT);
 		} else {
 			return source;
 		}

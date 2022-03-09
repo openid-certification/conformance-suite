@@ -3,11 +3,9 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
@@ -19,7 +17,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "resources-api-test",
 	displayName = "Validate structure of all resources API resources",
-	summary = "Validates the structure of all resources API resources",
+	summary = "Validates the structure of all resources API resources\n" +
+		"\u2022 Creates a Consent will all of the existing permissions \n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Calls the GET resources API\n" +
+		"\u2022 Expects a 200",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

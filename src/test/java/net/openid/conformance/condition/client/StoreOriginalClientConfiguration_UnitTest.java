@@ -46,7 +46,7 @@ public class StoreOriginalClientConfiguration_UnitTest {
 
 	@Test
 	public void testEvaluate_noClientNameInConfig() {
-		JsonObject config = new JsonParser().parse("{" +
+		JsonObject config = JsonParser.parseString("{" +
 			"\"client\":{}" +
 			"}").getAsJsonObject();
 		env.putObject("config", config);
@@ -62,7 +62,7 @@ public class StoreOriginalClientConfiguration_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_ClientNameInConfig() {
-		JsonObject config = new JsonParser().parse("{" +
+		JsonObject config = JsonParser.parseString("{" +
 			"\"client\":{\"client_name\":\"foo\"}" +
 			"}").getAsJsonObject();
 		env.putObject("config", config);

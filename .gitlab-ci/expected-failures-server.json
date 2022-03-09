@@ -14,8 +14,17 @@
         "test-name": "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",
         "variant": "*",
         "configuration-filename": "authlete*.json",
-        "current-block": "Attempting reuse of authorisation code & testing if access token is revoked",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "warning",
+        "comment": "known case where authlete doesn't implement a 'should'"
+    },
+    {
+        "test-name": "fapi2-baseline-id2-attempt-reuse-authorisation-code-after-one-second",
+        "variant": "*",
+        "configuration-filename": "authlete*.json",
+        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
+        "condition": "EnsureHttpStatusCodeIs4xx",
         "expected-result": "warning",
         "comment": "known case where authlete doesn't implement a 'should'"
     },
@@ -33,29 +42,11 @@
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
     {
-        "test-name": "fapi1-advanced-final",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi-brazil-*.json",
-        "current-block": "",
-        "condition": "FAPIBrazilMustTestUsingPayments",
-        "expected-result": "warning",
-        "comment": "The Authlete config we currently have is only good for accounts access"
-    },
-    {
-        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi-brazil-dcr.json",
-        "current-block": "",
-        "condition": "FAPIBrazilMustTestUsingPayments",
-        "expected-result": "warning",
-        "comment": "The Authlete config we currently have is only good for accounts access"
-    },
-    {
         "test-name": "oidcc-codereuse-30seconds",
         "variant": "*",
         "configuration-filename": "authlete-*.json",
-        "current-block": "Testing if access token was revoked after the authorization code was reused",
-        "condition": "CallProtectedResourceWithBearerTokenExpectingError",
+        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
+        "condition": "EnsureHttpStatusCodeIs4xx",
         "expected-result": "warning",
         "comment": "known case where authlete doesn't implement a 'should'"
     },
@@ -123,15 +114,6 @@
         "condition": "ValidateIdTokenACRClaimAgainstRequest",
         "expected-result": "failure",
         "comment": "RP tests currently don't return requested acr values"
-    },
-    {
-        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
-        "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json",
-        "current-block": "",
-        "condition": "FAPIBrazilMustTestUsingPayments",
-        "expected-result": "warning",
-        "comment": "This config uses accounts deliberately; the issue is only a warning"
     },
     {
         "test-name": "fapi1-advanced-final-brazildcr-happy-flow",

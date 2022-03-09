@@ -45,7 +45,7 @@ public class CheckIfAccountRequestsEndpointResponseError_UnitTest {
 
 		successParams = new JsonObject();
 
-		errorParams = new JsonParser().parse("{\"error\":\"access_denied\"}").getAsJsonObject();
+		errorParams = JsonParser.parseString("{\"error\":\"access_denied\"}").getAsJsonObject();
 
 	}
 

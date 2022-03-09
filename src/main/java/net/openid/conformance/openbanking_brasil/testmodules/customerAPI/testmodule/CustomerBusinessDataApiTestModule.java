@@ -2,7 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmo
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
@@ -11,12 +12,17 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessFinancialRelations;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "customer-business-data-api-test",
 	displayName = "Validate structure of all business customer data API resources",
-	summary = "Validates the structure of all business customer data API resources",
+	summary = "Validates the structure of all business customer data API resources\n" +
+		"\u2022 Creates a Consent with the customer business permissions (\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\",\"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
+		"\u2022 Calls GET Personal Qualifications resources\n" +
+		"\u2022 Expects a success 200",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -42,19 +48,22 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void validateResponse() {
 		runInBlock("Validating corporate relationship response", () ->{
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business identifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessIdentificationValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business qualifications response", () -> {
 			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
-			callAndContinueOnFailure(CallProtectedResourceWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 

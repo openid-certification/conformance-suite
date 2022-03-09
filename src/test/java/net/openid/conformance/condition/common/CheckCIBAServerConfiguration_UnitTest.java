@@ -45,23 +45,23 @@ public class CheckCIBAServerConfiguration_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		goodConfig = new JsonParser().parse("{"
+		goodConfig = JsonParser.parseString("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/backauth\","
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
 			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
-		badConfigWithoutAuthorizationEndpoint = new JsonParser().parse("{"
+		badConfigWithoutAuthorizationEndpoint = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\","
 			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
-		badConfigWithoutTokenEndpoint = new JsonParser().parse("{"
+		badConfigWithoutTokenEndpoint = JsonParser.parseString("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/backauth\","
 			+ "\"issuer\":\"https://example.com/\""
 			+ "}").getAsJsonObject();
 
-		badConfigWithoutIssuer = new JsonParser().parse("{"
+		badConfigWithoutIssuer = JsonParser.parseString("{"
 			+ "\"backchannel_authentication_endpoint\":\"https://example.com/oauth/authorize\","
 			+ "\"token_endpoint\":\"https://example.com/api/oauth/token\""
 			+ "}").getAsJsonObject();

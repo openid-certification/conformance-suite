@@ -51,19 +51,22 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		callAndStopOnFailure(ReplaceInitiatorCnpjWithBadValue.class);
-
+		eventLog.endBlock();
 	}
 
 	@Override
 	protected void requestProtectedResource() {
+		eventLog.startBlock("Initiating payment");
 		callAndStopOnFailure(SetResourceMethodToPost.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		call(new CallPixPaymentsEndpointSequence()
-			.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(CallProtectedResourceAndExpectFailure.class))
-			.skip(EnsureHttpStatusCodeIs201.class, "Expecting error here")
+			.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class))
 			.skip(ExtractSignedJwtFromResourceResponse.class, "Signed jwt will be decoded elsewhere")
 		);
+		eventLog.endBlock();
+		eventLog.startBlock("Validating payment response");
 		validateResponse();
+		eventLog.endBlock();
 	}
 
 	@Override

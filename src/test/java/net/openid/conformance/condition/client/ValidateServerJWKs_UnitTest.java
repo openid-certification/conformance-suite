@@ -30,7 +30,7 @@ public class ValidateServerJWKs_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -51,7 +51,7 @@ public class ValidateServerJWKs_UnitTest {
 
 	@Test
 	public void testEvaluate_twoKeys() {
-		env.putObject("server_jwks", new JsonParser().parse("{" +
+		env.putObject("server_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +

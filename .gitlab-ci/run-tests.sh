@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 cleanup() {
@@ -36,8 +36,8 @@ EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 makeClientTest() {
-    . node-client-setup.sh
-    . node-core-client-setup.sh
+    . ./node-client-setup.sh
+    . ./node-core-client-setup.sh
 
     #BRAZIL (note brazil_client_scope is not a variant but is used to pass scopes to tests. brazil_client_scope values use - instead of space)
     #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_jarm_type=oidc][brazil_client_scope=openid-payments] automated-brazil-client-test.json"
@@ -72,6 +72,8 @@ makeClientTest() {
 }
 
 makeServerTest() {
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
     TESTS="${TESTS} oidcc-implicit-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
@@ -263,6 +265,10 @@ makeCIBATest() {
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 }
 
+makeEkycTests() {
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -317,6 +323,7 @@ makeLocalProviderTests() {
 
 }
 
+TESTS="${TESTS} --verbose"
 if [ "$#" -eq 0 ]; then
     echo "Run all tests"
     makeServerTest
@@ -346,6 +353,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules server-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     echo "Run ciba tests"
     makeCIBATest
@@ -354,6 +362,16 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ciba"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel" # the authlete authentication device simulator doesn't seem to support parallel authorizations
+elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
+    echo "Run eKYC tests"
+    makeEkycTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ekyc.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ekyc.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     echo "Run local provider tests"
@@ -365,7 +383,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests||--ekyc-tests]"
     exit 1
 fi
 

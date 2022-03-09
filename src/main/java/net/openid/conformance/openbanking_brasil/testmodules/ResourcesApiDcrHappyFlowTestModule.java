@@ -14,7 +14,11 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @PublishTestModule(
 	testName = "resources-api-dcr-happyflow",
 	displayName = "Resources API Use payments after registering client via DCR",
-	summary = "Obtain a software statement from the Brazil sandbox directory (using a hardcoded client that has the DADOS role), register a new client on the target authorization server and perform an authorization flow. Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
+	summary = "Obtains a software statement from the Brazil sandbox directory (using a hardcoded client with the DADOS role), register a new client on the target authorization server and perform an authorization flow. Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.\n" +
+		"\u2022 Using a hardcoded client with only the DADOS role, retrieves from the directory its SSA\n" +
+		"\u2022 Performs a DCR on the provided authorization server -> Expects a successful registration which should also grant all Phase 2 scopes\n" +
+		"\u2022 Performs a POST on the open-banking/consents/v1/consents endpoint -> Expects a successful creation of the consent request\n" +
+		"\u2022 DELETEs the registered client from the authorization server",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -53,7 +57,7 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule
 		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");

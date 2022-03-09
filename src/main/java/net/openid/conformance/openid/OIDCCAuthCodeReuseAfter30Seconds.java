@@ -1,7 +1,8 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerTokenExpectingError;
+import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.WaitFor30Seconds;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -24,8 +25,12 @@ public class OIDCCAuthCodeReuseAfter30Seconds extends AbstractOIDCCAuthCodeReuse
 	protected void checkResponse() {
 		super.checkResponse();
 		eventLog.endBlock();
-		eventLog.startBlock("Testing if access token was revoked after the authorization code was reused");
-		// The AS 'SHOULD' have revoked the access token; try it again
-		callAndContinueOnFailure(CallProtectedResourceWithBearerTokenExpectingError.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2");
+		eventLog.startBlock("Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)");
+		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2", "RFC6750-3.1");
+
+		call(exec().unmapKey("endpoint_response"));
 	}
 }

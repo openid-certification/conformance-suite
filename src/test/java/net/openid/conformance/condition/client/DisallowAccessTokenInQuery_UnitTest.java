@@ -34,7 +34,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 
 	// Examples from RFC 6749
 
-	private static JsonObject bearerToken = new JsonParser().parse("{"
+	private static JsonObject bearerToken = JsonParser.parseString("{"
 		+ "\"value\":\"mF_9.B5f-4.1JqM\","
 		+ "\"type\":\"Bearer\""
 		+ "}").getAsJsonObject();

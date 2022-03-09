@@ -46,10 +46,10 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		hasNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}").getAsJsonObject();
-		noNonce = new JsonParser().parse("{\"state\": \"843192\"}").getAsJsonObject();
-		onlyNonce = new JsonParser().parse("{\"nonce\": \"" + nonce + "\"}").getAsJsonObject();
-		noParams = new JsonParser().parse("{}").getAsJsonObject();
+		hasNonce = JsonParser.parseString("{\"nonce\": \"" + nonce + "\", \"state\": \"843192\"}").getAsJsonObject();
+		noNonce = JsonParser.parseString("{\"state\": \"843192\"}").getAsJsonObject();
+		onlyNonce = JsonParser.parseString("{\"nonce\": \"" + nonce + "\"}").getAsJsonObject();
+		noParams = JsonParser.parseString("{}").getAsJsonObject();
 
 	}
 
