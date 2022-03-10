@@ -27,6 +27,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -50,11 +52,13 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
-	// Controls which endpoints we should expose to the client
+
 	protected FAPI1FinalOPProfile profile;
 	protected ClientAuthType clientAuthType;
 	protected CIBAMode cibaMode;
+
 	protected boolean startingShutdown = false;
+
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
@@ -604,15 +608,14 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		// TODO: Not sure if jwe applies here
 		skipIfElementMissing("backchannel_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
-		// TODO: Complete the validation, f ex the PAR endpoint does this:
-		// validateRequestObjectCommonChecks();
-		// callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADV-5.2.3-15");
+		// TODO: Complete the validations
 		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		JsonObject backchannelResponse = new JsonObject();
 		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);
+		env.putString("auth_req_id", authReqId); // Needed for the ping
 		backchannelResponse.addProperty("auth_req_id", authReqId);
 		backchannelResponse.addProperty("interval", 5);
 
@@ -620,10 +623,28 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		int expiresIn = getIntValueOrDefault(requestedExpiryString, 180);
 		backchannelResponse.addProperty("expires_in", expiresIn);
 
+		if(CIBAMode.PING.equals(cibaMode)) {
+			callAndStopOnFailure(BackchannelRequestHasNotificationTokenCondition.class, ConditionResult.FAILURE, "CIBA-10.2");
+			spawnThreadForPing();
+		}
+
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<>(backchannelResponse, HttpStatus.OK);
+	}
+
+	private void spawnThreadForPing() {
+		getTestExecutionManager().runInBackground(() -> {
+			int secondsUntilPing = 5;
+			Thread.sleep(secondsUntilPing * 1000L);
+
+			setStatus(Status.RUNNING);
+			callAndStopOnFailure(PingClientNotificationEndpoint.class, ConditionResult.FAILURE, "CIBA");
+			setStatus(Status.WAITING);
+
+			return "done";
+		});
 	}
 
 	protected void validateRequestObjectCommonChecks() {

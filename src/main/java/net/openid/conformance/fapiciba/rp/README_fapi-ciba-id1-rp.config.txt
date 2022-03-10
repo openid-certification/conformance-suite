@@ -39,7 +39,7 @@
                 }
             ]
         },
-        "backchannel_client_notification_endpoint": "https://localhost:8443/test/a/fapi-ciba-id1-op/ciba-notification-endpoint "
+        "backchannel_client_notification_endpoint": "https://localhost:8443/test/a/fapi-ciba-id1-op/ciba-notification-endpoint"
     },
     "client2": {
         "client_id": "lvfVldjz2Q6pSMOMoXh1l",
