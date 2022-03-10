@@ -49,4 +49,5 @@ public class PlanNames {
 	public static final String OPIN_DISCOVERY_TEST_PLAN = "Functional tests for Discovery API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_STATUS_TEST_PLAN = "Functional tests for Discovery Status API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_OUTAGES_TEST_PLAN = "Functional tests for Discovery  Outages API - based on Swagger version: 1.0.0"; // OPIN Discovery
+	public static final String OBB_DCR = "Open Banking Brazil - DCR";
 }
