@@ -7,13 +7,11 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
+import net.openid.conformance.util.field.DatetimeField;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.text.ParseException;
 import java.util.Map;
-
-import net.openid.conformance.util.field.DatetimeField;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.http.HttpStatus;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
 
@@ -23,10 +21,11 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject apiResponse = env.getObject("consent_endpoint_response_full");
-
-		if(OIDFJSON.getInt(apiResponse.get("status")) != HttpStatus.SC_UNPROCESSABLE_ENTITY){
+		JsonObject apiResponse;
+		if(env.getObject("resource_endpoint_response_full") != null){
 			apiResponse = env.getObject("resource_endpoint_response_full");
+		}else {
+			apiResponse = env.getObject("consent_endpoint_response_full");
 		}
 
 		JsonObject decodedJwt;
