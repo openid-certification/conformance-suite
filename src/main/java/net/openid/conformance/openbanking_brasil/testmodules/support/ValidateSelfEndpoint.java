@@ -17,5 +17,6 @@ public class ValidateSelfEndpoint extends AbstractConditionSequence {
 		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndStopOnFailure(LoadOldValues.class);
+		callAndStopOnFailure(ValidateErrorAndMetaFieldNames.class);
 	}
 }

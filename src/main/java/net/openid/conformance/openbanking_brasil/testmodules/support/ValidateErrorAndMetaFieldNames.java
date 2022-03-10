@@ -59,13 +59,13 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	}
 
 	private void assertAllowedMetaFields(JsonObject metaJson) {
-		log("Ensure that the 'meta' response " + metaJson + " only contains metadata fields that are defined in the swagger");
+		log("Ensure that the 'meta' response only contains metadata fields that are defined in the swagger", Map.of("meta", metaJson));
 
 		for (Map.Entry<String, JsonElement> meta : metaJson.entrySet())
 		{
 			log("Checking: " + meta.getKey());
 			if ( !ArrayUtils.contains( allowedMetaFields, meta.getKey() ) ) {
-				throw error("non-standard meta property '" + meta.getKey() + "'' found in the error response");
+				throw error("non-standard meta property found in the error response", Map.of("meta",  meta.getKey()));
 			}
 		}
 	}
@@ -74,22 +74,22 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		if (metaJson.has("requestDateTime")){
 			final JsonElement requestDateTimeJson = metaJson.get("requestDateTime");
 			if(!OIDFJSON.getString(requestDateTimeJson).matches(DatetimeField.ALTERNATIVE_PATTERN)){
-				throw error("requestDateTime field " + requestDateTimeJson + " is not compliant with the swagger format");
+				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
 			}
-			logSuccess("requestDateTime field " + requestDateTimeJson + " is compliant with the swagger format");
+			logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
 		}else {
 			log("requestDateTime field is missing, skipping");
 		}
 	}
 
 	private void assertNoAdditionalErrorFields(JsonObject field){
-		log("Ensure that the error response " + field + " only contains error fields that are defined in the swagger");
+		log("Ensure that the error response only contains error fields that are defined in the swagger", Map.of("error response", field));
 
 		for (Map.Entry<String, JsonElement> entry : field.entrySet())
 		{
 			log("Checking: " + entry.getKey());
 			if ( !ArrayUtils.contains( allowedErrors, entry.getKey() ) ) {
-				throw error("non-standard error property '" + entry.getKey() + "'' found in the error response");
+				throw error("non-standard error property found in the error response", Map.of("property",  entry.getKey()));
 			}
 		}
 	}

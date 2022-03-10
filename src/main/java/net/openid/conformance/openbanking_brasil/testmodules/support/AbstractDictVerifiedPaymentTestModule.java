@@ -134,6 +134,8 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 					count++;
 				}
 			}
+		}else {
+			callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class);
 		}
 		eventLog.endBlock();
 	}
