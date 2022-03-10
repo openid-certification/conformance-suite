@@ -30,7 +30,7 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureRequestObjectWithoutExpFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutScopeFails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutState.class,
+		FAPI2BaselineID2StateOnlyOutsideRequestObjectNotUsed.class,
 		FAPI2BaselineID2EnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI2BaselineID2EnsureExpiredRequestObjectFails.class,
 		FAPI2BaselineID2EnsureRequestObjectWithBadAudFails.class,
