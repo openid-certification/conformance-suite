@@ -16,6 +16,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
+import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -693,10 +694,12 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
+			CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		if (!isSecondClient()) {
-			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
+				EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
 		if (brazilPayments) {
