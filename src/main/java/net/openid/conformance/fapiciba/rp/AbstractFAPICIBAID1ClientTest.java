@@ -526,7 +526,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
-		// I tried setting tokenPollCount > 1 but the OP test doesn't like that
 		if(clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
 			issueIdToken(false);
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
@@ -613,12 +612,26 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
-		// TODO: Obviously the requirements here can't be "PAR"
-		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "PAR-2.1");
-		// TODO: Not sure if jwe applies here
+		// TODO: Begin copied validations
+		JsonObject httpRequestObj = env.getObject("backchannel_endpoint_http_request");
+		env.putObject("backchannel_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+
+		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "TODO");
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(EnsureBackchannelRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
+			callAndStopOnFailure(FAPIBrazilEnsureBackchannelRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
+		}
+
 		skipIfElementMissing("backchannel_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
-		// TODO: Complete the validations
+		validateRequestObjectForBackchannelEndpointRequest();
+
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
+		}
+		// TODO: End copied validations
+
+		// TODO: Additional validations
 		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
@@ -683,6 +696,26 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureMatchingRedirectUriInRequestObject.class, ConditionResult.FAILURE);
 	}
 
+	protected void validateBackchannelRequestObjectCommonChecks() {
+		callAndStopOnFailure(FAPIValidateBackchannelRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilValidateBackchannelRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
+				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
+		} else {
+			callAndContinueOnFailure(FAPIValidateBackchannelRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
+				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
+		}
+		callAndStopOnFailure(FAPIValidateBackchannelRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
+		callAndContinueOnFailure(FAPI1AdvancedValidateBackchannelRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
+		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
+		callAndContinueOnFailure(EnsureNumericBackchannelRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
+		callAndContinueOnFailure(EnsureBackchannelRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
+		callAndContinueOnFailure(EnsureBackchannelRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
+		callAndStopOnFailure(ValidateBackchannelRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
+
+		// TODO: Disabled callAndContinueOnFailure(EnsureMatchingRedirectUriInBackchannelRequestObject.class, ConditionResult.FAILURE);
+	}
+
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
 		validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
 		callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
@@ -707,6 +740,36 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+	}
+
+	protected void validateRequestObjectForBackchannelEndpointRequest() {
+		validateBackchannelRequestObjectCommonChecks();
+
+		// TODO: So CIBA-7.1.1 says that "authentication request parameters MUST NOT be present outside the JWT" etc but let's just leave it here right now
+		// The remainder of this method must be revisited line by line and verified against CIBA
+
+		// TODO: Disabling EnsureRequiredBackchannelRequestParametersMatchRequestObject as I think it's N/A
+		// TODO: Disabled callAndContinueOnFailure(EnsureRequiredBackchannelRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
+		// TODO: Disabled callAndContinueOnFailure(EnsureOptionalBackchannelRequestParametersMatchRequestObject.class, ConditionResult.WARNING,"OIDCC-6.1", "OIDCC-6.2");
+		// TODO: Disabled callAndContinueOnFailure(EnsureBackchannelHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,"OIDCC-6.1", "OIDCC-6.2");
+		// TODO: Disabled callAndStopOnFailure(ExtractBackchannelRequestedScopes.class);
+
+		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// TODO: Disabled callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
+			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
+			if(wasInitialConsentRequestToPaymentsEndpoint) {
+				// TODO: Disabled callAndStopOnFailure(EnsureScopeContainsPayments.class);
+			} else {
+				// TODO: Disabled callAndStopOnFailure(EnsureScopeContainsAccounts.class);
+			}
+		} else {
+			// TODO: Disabled callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+		}
+
+		// TODO: Disabled callAndStopOnFailure(EnsureBackchannelResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
+		// TODO: Disabled callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
+
+		// TODO: Disabled callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 	}
 
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
