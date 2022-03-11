@@ -646,13 +646,15 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 30;
+			int secondsUntilPing = 10; //TODO: Default 30?
 			Thread.sleep(secondsUntilPing * 1000L);
 
 			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
 
 			callAndStopOnFailure(PingClientNotificationEndpoint.class, ConditionResult.FAILURE, "CIBA");
+			callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, ConditionResult.FAILURE, "CIBA-10.2");
+			callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, ConditionResult.WARNING, "CIBA-10.2");
 
 			call(exec().endBlock());
 			setStatus(Status.WAITING);
