@@ -23,7 +23,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 @PublishTestModule(
 		testName = "fapi2-baseline-id2",
 		displayName = "FAPI2-Baseline-ID2",
-		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that TLS Certificate-Bound access tokens (required by the FAPI-RW spec) are correctly implemented.",
+		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
 		profile = "FAPI2-Baseline-ID2",
 		configurationFields = {
 			"server.discoveryUrl",
