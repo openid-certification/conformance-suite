@@ -525,8 +525,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
 		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+
 		// I tried setting tokenPollCount > 1 but the OP test doesn't like that
-		if(tokenPollCount > 2) {
+		if(clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
 			issueIdToken(false);
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
 			callAndStopOnFailure(CreateTokenEndpointWithExpiresInResponse.class);
@@ -537,6 +538,15 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
+	}
+
+	private boolean clientHasPolledEnough(int tokenPollCount) {
+		return tokenPollCount > 2;
+	}
+
+	private boolean clientWasPinged() {
+		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
+		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
@@ -594,9 +604,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	protected ResponseEntity<?> backchannelEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		Command backchannelBlock = exec().startBlock("RP calls the backchannel endpoint");
-		backchannelBlock.mapKey("backchannel_endpoint_http_request", requestId);
-		call(backchannelBlock);
+		call(exec()
+			.startBlock("RP calls the backchannel endpoint")
+			.mapKey("backchannel_endpoint_http_request", requestId));
 
 		callAndContinueOnFailure(BackchannelRequestIsPostedCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestIsFormDataCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
@@ -636,11 +646,15 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 5;
+			int secondsUntilPing = 30;
 			Thread.sleep(secondsUntilPing * 1000L);
 
+			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
+
 			callAndStopOnFailure(PingClientNotificationEndpoint.class, ConditionResult.FAILURE, "CIBA");
+
+			call(exec().endBlock());
 			setStatus(Status.WAITING);
 
 			return "done";
