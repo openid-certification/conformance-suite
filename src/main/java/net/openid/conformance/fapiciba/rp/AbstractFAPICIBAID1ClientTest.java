@@ -117,8 +117,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	protected void addCustomSignatureOfIdToken() { }
 
-	protected void endTestIfRequiredParametersAreMissing(){ }
-
 	protected void onConfigurationCompleted() { }
 
 	protected void validateClientConfiguration() { }
@@ -329,12 +327,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals("authorize")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			return authorizationEndpoint(requestId);
-		} else if (path.equals("backchannel")) {
+		if (path.equals("backchannel")) {
 			return backchannelEndpoint(requestId);
 		} else if (path.equals("token")) {
 			if(startingShutdown){
@@ -380,78 +373,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
-	}
-
-	@UserFacing
-	protected Object authorizationEndpoint(String requestId) {
-		setStatus(Status.RUNNING);
-		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
-
-		setAuthorizationEndpointRequestParamsForHttpMethod();
-
-		callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
-			callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
-		}
-
-		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
-
-		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
-		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
-
-		endTestIfRequiredParametersAreMissing();
-
-		validateRequestObjectForAuthorizationEndpointRequest();
-
-		callAndStopOnFailure(CreateAuthorizationCode.class);
-		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-		if("yes".equals(isOpenIdScopeRequested)) {
-			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASE-5.2.2.2");
-			issueIdToken(true);
-		} else {
-			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
-		}
-
-		/*
-		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
-			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
-				usuário na instituição transmissora dos dados.
-		 */
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
-		}
-
-		createAuthorizationEndpointResponse();
-
-		String redirectTo = env.getString("authorization_endpoint_response_redirect");
-
-		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
-		setStatus(Status.WAITING);
-
-		return new RedirectView(redirectTo, false, false, false);
-	}
-
-	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
-		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
-		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
-		if("POST".equals(httpMethod)) {
-			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
-		} else if("GET".equals(httpMethod)) {
-			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
-		} else {
-			//this should not happen?
-			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
-		}
-	}
-
-	protected void createAuthorizationEndpointResponse() {
-		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
-		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-		callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
-
-		exposeEnvString("authorization_endpoint_response_redirect");
 	}
 
 	protected Object tokenEndpoint(String requestId) {
@@ -676,26 +597,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		});
 	}
 
-	protected void validateRequestObjectCommonChecks() {
-		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
-		} else {
-			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
-		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
-		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
-		callAndStopOnFailure(ValidateRequestObjectClaims.class);
-		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
-
-		callAndContinueOnFailure(EnsureMatchingRedirectUriInRequestObject.class, ConditionResult.FAILURE);
-	}
-
 	protected void validateBackchannelRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateBackchannelRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
@@ -714,32 +615,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateBackchannelRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
 
 		// TODO: Disabled callAndContinueOnFailure(EnsureMatchingRedirectUriInBackchannelRequestObject.class, ConditionResult.FAILURE);
-	}
-
-	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
-		callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
-		callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,"OIDCC-6.1", "OIDCC-6.2");
-		callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,"OIDCC-6.1", "OIDCC-6.2");
-
-		callAndStopOnFailure(ExtractRequestedScopes.class);
-
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
-			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
-			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				callAndStopOnFailure(EnsureScopeContainsPayments.class);
-			} else {
-				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
-			}
-		} else {
-			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
-		}
-
-		callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
-		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
-
-		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 	}
 
 	protected void validateRequestObjectForBackchannelEndpointRequest() {
