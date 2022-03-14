@@ -56,7 +56,11 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 		if(!validationStarted) {
 			validationStarted = true;
 			eventLog.startBlock("initiate payment");
-			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence();
+			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
+				.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
+			resourceCreationErrorMessageCondition().ifPresent(c -> {
+				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
+			});
 			call(pixSequence);
 			eventLog.endBlock();
 			eventLog.startBlock(currentClientString() + "Validate response");

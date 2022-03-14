@@ -8,7 +8,7 @@ public class EnsureResponseCodeWas403 extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		int status = env.getInteger("resource_endpoint_response_status");
+		int status = env.getInteger("resource_endpoint_response_full", "status");
 		if(status != HttpStatus.FORBIDDEN.value()) {
 			throw error("Was expecting a 403 response");
 		} else {
