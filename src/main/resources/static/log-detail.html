@@ -449,7 +449,7 @@
                                     }
                                     _.each(planData.variant, removeUserConfiguredVariant);
                                     if (_.isEmpty(variant)) {
-                                        variant = undefined;
+                                        variant = null;
                                     }
                                     var thisModuleIndex = _.findIndex(planData.modules, function (module) {
                                         return module.testModule == data.testName && _.isEqual(module.variant, variant);
