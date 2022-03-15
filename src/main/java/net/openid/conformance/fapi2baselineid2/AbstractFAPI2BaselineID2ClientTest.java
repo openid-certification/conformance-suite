@@ -8,7 +8,7 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
@@ -1136,6 +1136,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-BASE-4.3.1-13");
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
