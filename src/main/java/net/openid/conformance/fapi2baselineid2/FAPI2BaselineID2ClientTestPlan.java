@@ -82,7 +82,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				return "Not a conformance profile. Please use 'FAPI2-Baseline-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 		}
 
-		certProfile += " Adv. RP w/";
+		certProfile += " FAPI2BaselineID2. RP w/";
 
 		switch (clientAuth) {
 			case "private_key_jwt":
