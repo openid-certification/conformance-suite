@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -28,6 +29,7 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 	public static final Set<String> TRANSANCTION_TYPE = Sets.newHashSet("COMPRA", "VENDA");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PF", "PJ");
 	public static final Set<String> TRANSANCTION_CATEGORY = Sets.newHashSet("COMERCIO_EXTERIOR","TRANSPORTE","SEGUROS","VIAGENS_INTERNACIONAIS","TRANSFERENCIAS_UNILATERAIS","SERVICOS_DIVERSOS","RENDAS_CAPITAIS","CAPITAIS_BRASILEIROS","CAPITAIS_ESTRANGEIROS","PRESTACAO_SERVICO_PAGAMENTO_OU_TRANSFERENCIA_INTERNACIONAL_EFX");
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -62,6 +64,8 @@ public class ExchangeOnlineRateValidator extends AbstractJsonAssertingCondition 
 
 
 				}).mustNotBeEmpty().build());
+
+		linksAndMetaValidator.assertMetaAndLinks(body);
 
 		logFinalStatus();
 		return environment;
