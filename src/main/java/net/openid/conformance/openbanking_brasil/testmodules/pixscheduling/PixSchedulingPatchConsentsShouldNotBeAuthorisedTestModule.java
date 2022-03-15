@@ -15,7 +15,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "patch-consents-api-pixscheduling-revoke-awaitingauth",
 	displayName = "Patch Consents API Test Module",
-	summary = "ask Erick",
+	summary = "This test is an unhappy path PATCH consents test module.\n\n" +
+		"Flow:\n" +
+		"Creates a payment consent scheduled for today + 350 days, does not re-direct the user, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERATION_NOT_ALLOWED_BY_STATUS \n\n" +
+		"Required:\n" +
+		"Consent url pointing at the consent endpoint.\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
