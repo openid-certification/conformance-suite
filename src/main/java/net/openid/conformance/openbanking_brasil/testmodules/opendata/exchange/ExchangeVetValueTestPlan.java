@@ -4,9 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.opendata.exchange.ExchangeVetValueValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.opendata.utils.PrepareToGetOpenDataApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
-import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -41,7 +41,7 @@ public class ExchangeVetValueTestPlan implements TestPlan {
 		@Override
 		protected void runTests() {
 			runInBlock("Validate ProductsNServices Exchange Vet Value response", () -> {
-				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
+				callAndStopOnFailure(PrepareToGetOpenDataApi.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
 				callAndContinueOnFailure(ExchangeVetValueValidator.class, Condition.ConditionResult.FAILURE);

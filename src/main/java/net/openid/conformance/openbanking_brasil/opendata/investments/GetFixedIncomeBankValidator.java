@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator;
+package net.openid.conformance.openbanking_brasil.opendata.investments;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -6,8 +6,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
@@ -16,16 +18,19 @@ import java.util.Set;
 
 /**
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_investments_apis.yaml
- * Api endpoint: /credit-fixed-incomes
+ * Api endpoint: /bank-fixed-incomes
  * Git hash: c90e531a2693825fe55fd28a076367cefcb01ad8
  */
 
-@ApiName("Investments Credit Fixed Incomes")
-public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingCondition {
+@ApiName("Investments Bank Fixed Incomes")
+public class GetFixedIncomeBankValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 
-	private static final Set<String> INVESTMENT_TYPE = Sets.newHashSet("DEBENTURES", "CRI", "CRA");
+	private static final Set<String> PRODUCT_TYPE = Sets.newHashSet("CDB", "RDB", "LCI", "LCA");
+	private static final Set<String> REDEMPTION_TERM = Sets.newHashSet("DIARIA", "DATA_VENCIMENTO", "DIARIA_PRAZO_CARENCIA");
+	private static final Set<String> INDEXER = Sets.newHashSet("CDI", "DI", "TR", "IPCA", "IGP_M", "IGP_DI", "INPC", "BCP", "TLC", "SELIC", "OUTROS");
 	private static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 	@Override
@@ -40,6 +45,7 @@ public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingConditio
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
@@ -49,32 +55,98 @@ public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingConditio
 			new ObjectField
 				.Builder("participant")
 				.setValidator(this::assertParticipant)
-				.setOptional()
 				.build());
 
 		assertField(data,
 			new StringField
-				.Builder("investmentType")
-				.setMaxLength(11)
-				.setEnums(INVESTMENT_TYPE)
+				.Builder("issuerInstitutionCnpjNumber")
+				.setMaxLength(14)
+				.setPattern("^\\d{14}$")
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("investimentType")
+				.setMaxLength(3)
+				.setEnums(PRODUCT_TYPE)
 				.build());
 
 		assertField(data,
 			new ObjectField
-				.Builder("custodyFee")
-				.setValidator(this::assertCustodyFee)
+				.Builder("index")
+				.setValidator(index -> {
+					assertField(index,
+						new StringField
+							.Builder("indexer")
+							.setMaxLength(6)
+							.setEnums(INDEXER)
+							.build());
+
+					assertField(index,
+						new StringField
+							.Builder("indexerAdditionalInfo")
+							.setMaxLength(50)
+							.setOptional()
+							.build());
+
+					assertField(index,
+						new ObjectField
+							.Builder("issueRemunerationRate")
+							.setValidator(this::assertIssueRemunerationRate)
+							.build());
+				})
 				.build());
 
 		assertField(data,
 			new ObjectField
-				.Builder("loadingRate")
-				.setValidator(this::assertCustodyFee)
+				.Builder("investmentConditions")
+				.setValidator(this::assertInvestmentConditions)
 				.build());
-
 	}
 
-	private void assertCustodyFee(JsonObject custodyFee) {
-		assertField(custodyFee,
+	private void assertInvestmentConditions(JsonObject investmentConditions) {
+		assertField(investmentConditions,
+			new StringField
+				.Builder("minimumAmount")
+				.setMinLength(4)
+				.setMaxLength(19)
+				.setPattern("^\\d{1,16}\\.\\d{2}$")
+				.build());
+
+		assertField(investmentConditions,
+			new StringField.
+				Builder("redemptionTerm")
+				.setMaxLength(29)
+				.setEnums(REDEMPTION_TERM)
+				.build());
+
+		assertField(investmentConditions,
+			new IntField
+				.Builder("minimumExpirationTerm")
+				.setMinValue(1)
+				.build());
+
+		assertField(investmentConditions,
+			new IntField
+				.Builder("maximumExpirationTerm")
+				.setMinValue(1)
+				.build());
+
+		assertField(investmentConditions,
+			new IntField
+				.Builder("minimumGracePeriod")
+				.setMinValue(0)
+				.build());
+
+		assertField(investmentConditions,
+			new IntField
+				.Builder("maximumGracePeriod")
+				.setMinValue(0)
+				.build());
+	}
+
+	private void assertIssueRemunerationRate(JsonObject issueRemunerationRate) {
+		assertField(issueRemunerationRate,
 			new ObjectArrayField
 				.Builder("prices")
 				.setValidator(this::assertPrices)
@@ -82,16 +154,16 @@ public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingConditio
 				.setMaxItems(4)
 				.build());
 
-		assertField(custodyFee,
-			new StringField.
-				Builder("minimum")
+		assertField(issueRemunerationRate,
+			new StringField
+				.Builder("minimum")
 				.setMaxLength(8)
 				.setPattern("^\\d{1}\\.\\d{1,6}$")
 				.build());
 
-		assertField(custodyFee,
-			new StringField.
-				Builder("maximum")
+		assertField(issueRemunerationRate,
+			new StringField
+				.Builder("maximum")
 				.setMaxLength(8)
 				.setPattern("^\\d{1}\\.\\d{1,6}$")
 				.build());

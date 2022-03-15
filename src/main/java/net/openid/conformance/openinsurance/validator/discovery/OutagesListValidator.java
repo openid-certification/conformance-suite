@@ -1,10 +1,11 @@
-package net.openid.conformance.openinsurance.discovery;
+package net.openid.conformance.openinsurance.validator.discovery;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
@@ -29,6 +30,7 @@ public class OutagesListValidator extends AbstractJsonAssertingCondition {
 				.setValidator(this::assertData)
 				.build());
 
+		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
