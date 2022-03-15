@@ -68,7 +68,7 @@ public class PixSchedulingPatchConsentsShouldNotBeAuthorisedTestModule extends A
 			callAndStopOnFailure(SetPatchConsentsRevokedAndRevokedByTPP.class);
 			call(new SignedPaymentConsentSequence()
 				.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
-				.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(SetConsentsRequestToPatch.class))
+				.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
 				.insertBefore(EnsureHttpStatusCodeIs201.class,condition(EnsurePatchPayment422ResponseCodeIsOperationNotAllowed.class))
 			);
 		});

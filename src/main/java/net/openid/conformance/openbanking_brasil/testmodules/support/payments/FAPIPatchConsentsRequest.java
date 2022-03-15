@@ -9,7 +9,7 @@ import org.springframework.http.HttpMethod;
 import java.util.Collections;
 
 
-public class SetConsentsRequestToPatch extends FAPIBrazilCallPaymentConsentEndpointWithBearerToken {
+public class FAPIPatchConsentsRequest extends FAPIBrazilCallPaymentConsentEndpointWithBearerToken {
 
 	@Override
 	protected HttpMethod getMethod(Environment env) {
