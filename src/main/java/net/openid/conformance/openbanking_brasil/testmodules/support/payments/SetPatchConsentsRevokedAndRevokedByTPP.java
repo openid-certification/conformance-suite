@@ -8,13 +8,13 @@ import net.openid.conformance.testmodule.Environment;
 
 public class SetPatchConsentsRevokedAndRevokedByTPP extends AbstractCondition {
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
-		JsonElement patchConsent = env.getElementFromObject("resource","brazilPatchPaymentConsent");
+		JsonElement patchConsent = env.getElementFromObject("consent_endpoint_request","data");
+		log(patchConsent.toString());
 
 		JsonObject obj = patchConsent.getAsJsonObject();
-		obj = obj.getAsJsonObject("data");
-
+		log(obj);
 		obj.addProperty("status","REVOKED");
 		logSuccess("Set PATCH status type to REVOKED");
 
