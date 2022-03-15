@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidatorParts;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
+import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
 import net.openid.conformance.util.field.NumberField;
@@ -67,7 +68,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 						.build());
 				})
 				.setOptional().build())).build());
-
+		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

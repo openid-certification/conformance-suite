@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator;
+package net.openid.conformance.openbanking_brasil.opendata.investments;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.IntField;
@@ -25,7 +26,7 @@ import java.util.Set;
 public class GetFundsValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
-
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 	private static final Set<String> ANBIMA_CATEGORY = Sets.newHashSet("RENDA_FIXA", "ACOES", "MULTIMERCADO", "CAMBIAL");
 	private static final Set<String> TAXATION = Sets.newHashSet("CURTO_PRAZO", "LONGO_PRAZO", "VARIAVEL");
 	private static final Set<String> REDEMPTION_QUOTATION_TERM = Sets.newHashSet("DIAS_CORRIDOS", "DIAS_UTEIS");
@@ -45,6 +46,7 @@ public class GetFundsValidator extends AbstractJsonAssertingCondition {
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

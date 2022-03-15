@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.opendata.CommonOpendataParts;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -35,7 +36,7 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 	public static final Set<String> INDEMNITY_PAYMENT_METHOD = Sets.newHashSet("PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO", "REEMBOLSO_DESPESAS", "PRESTACAO_SERVICOS");
 	public static final Set<String> INDEMNITY_PAYMENT_FREQUENCY = Sets.newHashSet("INDENIZACAO_UNICA", "DIARIA_OU_PARCELA");
 	public static final Set<String> INDEMNITY_PAYMENT_INCOME = Sets.newHashSet("CERTA", "TEMPORARIA", "TEMPORARIA_REVERSIVEL", "TEMPORARIO_MINIMO_GARANTIDO", "TEMPORARIA_REVERSIVEL_MINIMO_GARANTIDO", "VITALICIA", "VITALICIA_REVERSIVEL", "VITALICIA_MINIMO_GARANTIDO", "VITALICIA_REVERSIVEL_MINIMO_GARANTIDO");
-	public static final Set<String> PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "ATE_FIM_CICLO_DETERMINADO");
+	public static final Set<String> PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "FIM_CICLO_DETERMINADO");
 	public static final Set<String> UNITS = Sets.newHashSet("DIAS", "MESES", "NAO_APLICA");
 	public static final Set<String> RISKS = Sets.newHashSet("ATO_RECONHECIMENTO_PERIGOSO", "ATO_ILICITO_DOLOSO_PRATICADO_SEGURADO", "OPERACOES_DE_GUERRA", "FURACOES_CICLONES_TERREMOTOS", "MATERIAL_NUCLEAR", "DOENCAS_LESOES_PREEXISTENTES", "EPIDEMIAS_PANDEMIAS", "SUICIDIO", "ATO_ILICITO_DOLOSO_PRATICADO_CONTROLADOR", "OUTROS");
 	public static final Set<String> ASSISTANCE_TYPE = Sets.newHashSet("ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA", "ARQUITETO_VIRTUAL", "ASSESSORIA_FINANCEIRA", "AUTOMOVEL", "AUXILIO_NATALIDADE", "AVALIACAO_CLINICA_PREVENTIVA", "BOLSA_PROTEGIDA", "CESTA_BASICA", "CHECKUP_ODONTOLOGICO", "CLUBE_VANTAGENS_BENEFICIOS", "CONVALESCENCIA", "DECESSO", "DESCONTO_FARMACIAS_MEDICAMENTOS", "DESPESAS_FARMACEUTICAS_VIAGEM", "DIGITAL", "EDUCACIONAL", "EMPRESARIAL", "ENCANADOR", "ENTRETENIMENTO", "EQUIPAMENTOS_MEDICOS", "FIANCAS_DESPESAS_LEGAIS", "FISIOTERAPIA", "FUNERAL", "HELP_LINE", "HOSPEDAGEM_ACOMPANHANTE", "INTERRUPCAO_VIAGEM", "INVENTARIO", "MAIS_EM_VIDA", "MAMAE_BEBE", "MEDICA_ACIDENTE_DOENCA", "MOTOCICLETA", "MULHER", "NUTRICIONISTA", "ODONTOLOGICA", "ORIENTACAO_FITNESS", "ORIENTACAO_JURIDICA", "ORIENTACAO_NUTRICIONAL", "PERSONAL_FITNESS", "ORIENTACAO_PSICOSSOCIAL_FAMILIAR", "PERDA_ROUBO_CARTAO", "PET", "PRORROGACAO_ESTADIA", "PROTECAO_DADOS", "RECOLOCACAO_PROFISSIONAL", "REDE_DESCONTO_NUTRICIONAL", "RESIDENCIAL", "RETORNO_MENORES_SEGURADO", "SAQUE_COACAO", "SAUDE_BEM_ESTAR", "SEGUNDA_OPINIAO_MEDICA", "SENIOR", "SUSTENTAVEL_DESCARTE_ECOLOGICO", "TELEMEDICINA", "VIAGEM", "VITIMA", "OUTROS");
@@ -50,9 +51,10 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 	public static final Set<String> MODALITY = Sets.newHashSet("FUNERAL", "PRESTAMISTA", "VIAGEM", "EDUCACIONAL", "DOTAL", "ACIDENTES_PESSOAIS", "VIDA", "PERDA_CERTIFICADO_HABILITACAO_VOO", "DOENCAS_GRAVES_DOENCA_TERMINAL", "DESEMPREGO_PERDA_RENDA", "EVENTOS_ALEATORIOS");
 	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL", "MICROSSEGURO");
 	public static final Set<String> CRITERIAS = Sets.newHashSet("INDICE","VINCULADO_SALDO_DEVEDOR","VARIAVEL_ACORDO_CRITERIO_ESPECIFICO");
-	public static final Set<String> CRITERIAS_AGE_ADJ = Sets.newHashSet("APOS_PERIODO_ANOS","CADA_PERIODO_ANOS","MUDANCA_FAIXA_ETARIA","NAO_APLICAVE");
+	public static final Set<String> CRITERIAS_AGE_ADJ = Sets.newHashSet("APOS_PERIODO_ANOS","CADA_PERIODO_ANOS","MUDANCA_FAIXA_ETARIA","NAO_APLICAVEL");
 	public static final Set<String> FIN_REGIMES = Sets.newHashSet("REPARTICAO_SIMPLES", "REPARTICAO_CAPITAIS", "CAPITALIZACAO");
 	public static final Set<String> INDEMNITY_PAYMENT_METHODS = Sets.newHashSet("UNICO", "SOB_FORMA_DE_RENDA");
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -65,6 +67,7 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -24,7 +25,7 @@ import java.util.Set;
 @ApiName("Business Acquiring Services")
 public class BusinessAcquiringServicesValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields { }
-
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 	public static final Set<String> FEE_NAME = Sets.newHashSet(
 		"TAXA_DESCONTO_MODALIDADE_CREDITO", "TAXA_DESCONTO_MODALIDADE_DEBITO");
 	public static final Set<String> CODE = Sets.newHashSet("MDR_CREDITO", "MDR_DEBITO");
@@ -41,6 +42,7 @@ public class BusinessAcquiringServicesValidator extends AbstractJsonAssertingCon
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.opendata.investmentsAPI.validator;
+package net.openid.conformance.openbanking_brasil.opendata.investments;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -16,17 +17,17 @@ import java.util.Set;
 
 /**
  * Api url: https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/gh-pages/swagger/swagger_investments_apis.yaml
- * Api endpoint: /treasure-titles
+ * Api endpoint: /credit-fixed-incomes
  * Git hash: c90e531a2693825fe55fd28a076367cefcb01ad8
  */
 
-@ApiName("Investments Treasure Titles")
-public class GetTreasureValidator extends AbstractJsonAssertingCondition {
+@ApiName("Investments Credit Fixed Incomes")
+public class GetFixedIncomeCreditValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
-
-	private static final Set<String> INVESTMENT_TYPE = Sets.newHashSet("TESOURO_DIRETO");
-	private static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA","2_FAIXA","3_FAIXA","4_FAIXA");
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
+	private static final Set<String> INVESTMENT_TYPE = Sets.newHashSet("DEBENTURES", "CRI", "CRA");
+	private static final Set<String> INTERVAL = Sets.newHashSet("1_FAIXA", "2_FAIXA", "3_FAIXA", "4_FAIXA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -40,6 +41,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
@@ -55,7 +57,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new StringField
 				.Builder("investmentType")
-				.setMaxLength(14)
+				.setMaxLength(11)
 				.setEnums(INVESTMENT_TYPE)
 				.build());
 
@@ -70,6 +72,7 @@ public class GetTreasureValidator extends AbstractJsonAssertingCondition {
 				.Builder("loadingRate")
 				.setValidator(this::assertCustodyFee)
 				.build());
+
 	}
 
 	private void assertCustodyFee(JsonObject custodyFee) {
