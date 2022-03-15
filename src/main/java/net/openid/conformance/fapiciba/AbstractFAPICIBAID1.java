@@ -103,7 +103,7 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourc
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
-import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
+import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
@@ -838,7 +838,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 
 		// This is only required in push mode; but if the server for some reason includes it for ping/poll it shoud
 		// still be correct
