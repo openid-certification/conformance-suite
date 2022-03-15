@@ -405,6 +405,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected void performIdTokenValidation() {
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
@@ -525,6 +526,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
