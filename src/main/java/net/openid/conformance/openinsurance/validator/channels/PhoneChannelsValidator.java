@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
+import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -47,6 +48,7 @@ public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {
 							.build());}
 			).build())
 		).build());
+		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.opendata.CommonOpendataParts;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -47,7 +48,7 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> CONTRACTING_TYPES = Sets.newHashSet("COLETIVO", "INDIVIDUAL", "AMBAS");
 	public static final Set<String> BUILD_TYPES = Sets.newHashSet("ALVENARIA", "MADEIRA", "MISTA");
 	public static final Set<String> TARGET_AUDIENCES = Sets.newHashSet("PESSOA_NATURAL","PESSOA_JURIDICA","PESSOA_NATURAL_JURIDICA");
-
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -60,6 +61,7 @@ public class HomeInsuranceListValidator extends AbstractJsonAssertingCondition {
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
