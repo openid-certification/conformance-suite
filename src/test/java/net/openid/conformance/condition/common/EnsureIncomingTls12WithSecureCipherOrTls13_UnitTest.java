@@ -36,7 +36,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Test
 	public void testEvaluate_noErrorTls12() {
-		JsonObject hasTls12 = new JsonParser().parse("{\"headers\": "
+		JsonObject hasTls12 = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 
@@ -49,7 +49,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Test
 	public void testEvaluate_noErrorTls13() {
-		JsonObject hasTls12 = new JsonParser().parse("{\"headers\": "
+		JsonObject hasTls12 = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.3\", \"x-ssl-cipher\": \"flibble\"}"
 			+ "}").getAsJsonObject();
 
@@ -62,7 +62,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrong_tls11() {
-		JsonObject wrongTls = new JsonParser().parse("{\"headers\": "
+		JsonObject wrongTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 
@@ -73,7 +73,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingProtocol() {
-		JsonObject missingTls = new JsonParser().parse("{\"headers\": "
+		JsonObject missingTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
 			+ "}").getAsJsonObject();
 
@@ -84,7 +84,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingCipher() {
-		JsonObject onlyTls = new JsonParser().parse("{\"headers\": "
+		JsonObject onlyTls = JsonParser.parseString("{\"headers\": "
 			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
 			+ "}").getAsJsonObject();
 

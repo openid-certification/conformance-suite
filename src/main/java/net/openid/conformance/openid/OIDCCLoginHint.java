@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.AddLoginHintFromConfigurationToAuthorizationEndpointRequest;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Req_login_hint
@@ -17,9 +18,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OIDCCLoginHint extends AbstractOIDCCServerTest {
 
 	@Override
-	protected void createAuthorizationRequest() {
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(AddLoginHintFromConfigurationToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1")));
+	protected ConditionSequence createAuthorizationRequestSequence() {
+		return super.createAuthorizationRequestSequence()
+			.then(condition(AddLoginHintFromConfigurationToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1"));
 	}
 
 }

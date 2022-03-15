@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
@@ -16,6 +17,9 @@ import net.openid.conformance.util.field.*;
  */
 @ApiName("Admin Metrics")
 public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
+
+	private final OpenInsuranceLinksAndMetaValidator linksAndMetaValidator = new OpenInsuranceLinksAndMetaValidator(this);
+
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
@@ -47,6 +51,19 @@ public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
 				.setValidator(this::assertInvocation).build());
 
 		}).build());
+
+		assertField(body,
+				new ObjectField
+						.Builder("links")
+						.setValidator(linksAndMetaValidator::assertLinks)
+						.build());
+
+		assertField(body,
+				new ObjectField
+						.Builder("meta")
+						.setValidator(linksAndMetaValidator::assertMeta)
+						.setOptional()
+						.build());
 
 		logFinalStatus();
 		return environment;

@@ -1,0 +1,197 @@
+[
+    {
+        "test-name": "ekyc-server-long-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-long-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-long-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "RejectAuthCodeInAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-long-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureInvalidRequestError",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-short-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-short-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "RejectAuthCodeInAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-short-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureInvalidRequestError",
+        "expected-result": "failure",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-short-purpose-invalid-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "yes.com doesn't seem to check the length of 'purpose' resulting in the authorization succeeding"
+    },
+    {
+        "test-name": "ekyc-server-one-claim-with-random-value-omitted",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureIdTokenDoesNotContainVerifiedClaims",
+        "expected-result": "failure",
+        "comment": "yes.com seem to return the claim even though it didn't match"
+    },
+    {
+        "test-name": "ekyc-server-one-claim-with-random-value-omitted",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Userinfo endpoint tests",
+        "condition": "EnsureUserinfoDoesNotContainVerifiedClaims",
+        "expected-result": "failure",
+        "comment": "yes.com seem to return the claim even though it didn't match"
+    },
+    {
+        "test-name": "ekyc-server-testuserprovidedrequest",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "ValidateVerifiedClaimsInIdTokenAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "awaiting answer from yes.com on what's happening"
+    },
+    {
+        "test-name": "ekyc-server-testuserprovidedrequest",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Userinfo endpoint tests",
+        "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "awaiting answer from yes.com on what's happening"
+    },
+    {
+        "test-name": "ekyc-server-testbasedonuserinfo-defaults",
+        "variant": {
+            "client_auth_type": "mtls",
+            "server_metadata": "discovery",
+            "response_type": "code",
+            "client_registration": "static_client",
+            "response_mode": "default"
+        },
+        "configuration-filename": "yesdotcom-ekyc.json",
+        "current-block": "Userinfo endpoint tests",
+        "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "awaiting answer from yes.com on what's happening"
+    }
+]

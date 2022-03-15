@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -84,8 +85,9 @@ public class FAPI1AdvancedFinalBrazilDCRClientDeletion extends AbstractFAPI1Adva
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE);
 
 		// we already deregistered the client, so prevent cleanup from trying to do so again
-		env.removeNativeValue("registration_client_uri");
-		env.removeNativeValue("registration_access_token");
+		JsonObject client = env.getObject("client");
+		client.remove("registration_client_uri");
+		client.remove("registration_access_token");
 
 		fireTestFinished();
 	}

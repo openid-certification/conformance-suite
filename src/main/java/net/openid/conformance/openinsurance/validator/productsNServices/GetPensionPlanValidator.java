@@ -78,6 +78,18 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 					.setValidator(this::assertCompanies)
 					.build());
 			}).build());
+
+		assertField(body,
+				new ObjectField
+						.Builder("linksPaginated")
+						.setValidator(this::assertLinks)
+						.build());
+
+		assertField(body,
+				new ObjectField
+						.Builder("metaPaginated")
+						.setValidator(this::assertMeta)
+						.build());
 		logFinalStatus();
 		return environment;
 	}
@@ -381,5 +393,48 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("excludedRiskURL")
 				.build());
+	}
+
+	public void assertLinks(JsonObject links) {
+		assertField(links,
+				new StringField
+						.Builder("self")
+						.build());
+
+		assertField(links,
+				new StringField
+						.Builder("first")
+						.setOptional()
+						.build());
+
+		assertField(links,
+				new StringField
+						.Builder("prev")
+						.setOptional()
+						.build());
+
+		assertField(links,
+				new StringField
+						.Builder("next")
+						.setOptional()
+						.build());
+
+		assertField(links,
+				new StringField
+						.Builder("last")
+						.setOptional()
+						.build());
+	}
+
+	private void assertMeta(JsonObject meta) {
+		assertField(meta,
+				new IntField
+						.Builder("totalRecords")
+						.build());
+
+		assertField(meta,
+				new IntField
+						.Builder("totalPages")
+						.build());
 	}
 }

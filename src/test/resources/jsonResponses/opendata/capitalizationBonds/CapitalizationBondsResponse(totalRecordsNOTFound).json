@@ -1,0 +1,93 @@
+{
+  "data": [
+    {
+      "participant": {
+        "brand": "Organização",
+        "name": "Organização A1",
+        "cnpjNumber": "13456789000112",
+        "urlComplementaryList": "https://empresaa1.com/companies"
+      },
+      "society": {
+        "name": "Society A1",
+        "cnpjNumber": "13456789000112"
+      },
+      "name": "ACMEcap",
+      "code": "01234589_cap",
+      "modality": "TRADICIONAL",
+      "costType": "PAGAMENTO_UNICO",
+      "termsAndConditions": {
+        "susepProcessNumber": "15414.622222/2222-22",
+        "detail": "https://openinsurance.com.br/aaa"
+      },
+      "quotas": [
+        {
+          "quota": 10,
+          "capitalizationQuota": "0.000010",
+          "raffleQuota": "0.000010",
+          "chargingQuota": "0.000010"
+        }
+      ],
+      "validity": 48,
+      "serieSize": 5000000,
+      "capitalizationPeriod": {
+        "interestRate": "0.251231",
+        "updateIndex": "IPCA",
+        "updateIndexAdditionalInfo": "",
+        "contributionAmount": [
+          {
+            "periodicity": "UNICO",
+            "periodicityAdditionalInfo": "",
+            "minimum": "1.2222",
+            "maximum": "1.2222",
+            "allowedValue": 5000
+          }
+        ],
+        "earlyRedemptions": [
+          {
+            "quota": 10,
+            "rate": 10.000001
+          }
+        ],
+        "redemptionPercentageEndTerm": "1.00002",
+        "gracePeriodRedemption": 48
+      },
+      "latePayment": {
+        "suspensionMonths": 10,
+        "periodExtensionOption": true
+      },
+      "contributionPayment": {
+        "paymentMethod": "CARTAO_CREDITO",
+        "paymentMethodAdditionalInfo": "",
+        "updateIndex": "IPCA",
+        "updateIndexAdditionalInfo": ""
+      },
+      "redemptionPercentageEndTerm": "1.00002",
+      "finalRedemptionRate": "1.51",
+      "draws": [
+        {
+          "timeInterval": "UNICO",
+          "timeIntervalAdditionalInfo": "5",
+          "quantity": 10000,
+          "prizeMultiplier": 5,
+          "earlySettlementRaffle": true,
+          "mandatoryContemplation": true,
+          "ruleDescription": "Sorteios próprios às terças-feiras Toda quarta-feira sorteios através da loteria federal.",
+          "minimumContemplationProbability": "0.000002"
+        }
+      ],
+      "additionalInfo": "https://ACME.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais",
+      "minimumRequirementDetails": "https://ACME.exemplo/capitalizacao/tradicional/pdf/condicoes_gerais",
+      "targetAudience": "PESSOA_NATURAL"
+    }
+  ],
+  "links": {
+    "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+    "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+    "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+    "next": "https://api.banco.com.br/open-banking/api/v1/resource",
+    "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+  },
+  "meta": {
+    "totalPages": 1
+  }
+}

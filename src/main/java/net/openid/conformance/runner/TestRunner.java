@@ -99,10 +99,6 @@ public class TestRunner implements DataUtils {
 	@Value("${fintechlabs.external_url_override:}")
 	public String externalUrlOverride;
 
-
-	@Value("${fintechlabs.devmode:false}")
-	private boolean devMode;
-
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	@Autowired
@@ -355,6 +351,7 @@ public class TestRunner implements DataUtils {
 
 			alias = OIDFJSON.getString(config.get("alias"));
 
+			// This is unfortunately needed for now to allow these tests to pass
 			List<String> needsAccountAlias = List.of(
 				"payments-api-dcr-test-unauthorized-client",
 				"resources-api-dcr-happyflow",
@@ -376,6 +373,8 @@ public class TestRunner implements DataUtils {
 				createTestAlias(alias, id);
 			} catch (Exception e) {
 				// there was a failure in creating the test alias, return an error
+				logger.info(id + ": " + testName + "createTestAlias failed: " + e.getMessage());
+				support.removeRunningTest(id);
 				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
 			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
@@ -489,7 +488,7 @@ public class TestRunner implements DataUtils {
 
 				String message;
 				if (testHasStopped) {
-					message = devMode ? "\uD83E\uDD21 Alas, has now been claimed by another test" : "Alias has now been claimed by another test";
+					message = "Alias has now been claimed by another test";
 				} else {
 					message = "Stopping test due to alias conflict - before this test finished, ";
 					if (oldTestIsOwnedByCurrentUser) {

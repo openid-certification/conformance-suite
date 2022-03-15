@@ -10,9 +10,9 @@ import java.net.URL;
 
 public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
 
-	private static final String requiredProtocol = "https";
+	protected static final String requiredProtocol = "https";
 	private static final String errorMessageNotJsonPrimitive = "Specified value is not a Json primitive";
-	private static final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
+	protected static final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
 
 	private JsonElement ServerValue = null;
 	private URL extractedUrl = null;

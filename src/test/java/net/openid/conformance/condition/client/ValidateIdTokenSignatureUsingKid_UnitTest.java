@@ -45,13 +45,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test
 	public void testEvaluate_noError() {
 
-		JsonObject goodIdToken = new JsonParser().parse("{"
+		JsonObject goodIdToken = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL2p3dC1ycC5leGFtcGxlLm5ldCIsZXhwOjAsbmJmOjAsaWF0OjB9."
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwks = new JsonParser().parse("{"
+		JsonObject goodServerJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -78,13 +78,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badToken() {
 
-		JsonObject badIdToken = new JsonParser().parse("{"
+		JsonObject badIdToken = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL290aGVyLmV4YW1wbGUubmV0IixleHA6MCxuYmY6MCxpYXQ6MH0."
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwks = new JsonParser().parse("{"
+		JsonObject goodServerJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -111,7 +111,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingToken() {
 
-		JsonObject goodServerJwks = new JsonParser().parse("{"
+		JsonObject goodServerJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -137,13 +137,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongKeys() {
 
-		JsonObject goodIdToken = new JsonParser().parse("{"
+		JsonObject goodIdToken = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL2p3dC1ycC5leGFtcGxlLm5ldCIsZXhwOjAsbmJmOjAsaWF0OjB9."
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
 			+ "}").getAsJsonObject();
 
-		JsonObject wrongServerJwks = new JsonParser().parse("{"
+		JsonObject wrongServerJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -165,7 +165,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_badKeys() {
 
-		JsonObject goodIdToken = new JsonParser().parse("{"
+		JsonObject goodIdToken = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL2p3dC1ycC5leGFtcGxlLm5ldCIsZXhwOjAsbmJmOjAsaWF0OjB9."
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
@@ -184,7 +184,7 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingKeys() {
 
-		JsonObject goodIdToken = new JsonParser().parse("{"
+		JsonObject goodIdToken = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
 			+ "eyJpc3MiOiJodHRwczovL2p3dC1pZHAuZXhhbXBsZS5jb20iLCJhdWQiOiJodHRwczovL2p3dC1ycC5leGFtcGxlLm5ldCIsZXhwOjAsbmJmOjAsaWF0OjB9."
 			+ "fqJ5UNpPd47z9CO2u9DQBr+7bxS3PeAUzAV/C/3eGDY\""
@@ -203,13 +203,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid1() {
 
 		// { "kid": "authlete-fapidev-api-20180524", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid1 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid1 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJraWQiOiJhdXRobGV0ZS1mYXBpZGV2LWFwaS0yMDE4MDUyNCIsImFsZyI6IlBTMjU2In0."
 			+ "eyJzdWIiOiIxMDAxIiwiYXVkIjpbIjMwNDI1NTc0NzM5Il0sImFjciI6InVybjptYWNlOmluY29tbW9uOmlhcDpzaWx2ZXIiLCJjX2hhc2giOiJpekRMM0hBLTRRWHI1Y2U3cURPa2hBIiwic19oYXNoIjoiV2UxSlRaTkVxRld1WDM4d2pSdUpoUSIsImF1dGhfdGltZSI6MTU2NTA1OTQzNCwiaXNzIjoiaHR0cHM6Ly9mYXBpZGV2LWFzLmF1dGhsZXRlLm5ldC8iLCJleHAiOjE1NjUwNTk3MzQsImlhdCI6MTU2NTA1OTQzNCwibm9uY2UiOiJsU05tRExGeUtYIn0."
 			+ "d-IBbhQYUYixD9qT9bXG_0WWbUXp7T1O80_EtU12f1eGB_uD6sS0GuxEVrBK30hMuGHXRJ9wiPJfjiKirmdvj93x_IRJotS7Tf0YszM02Si307faVqtYiFwbC2oSRZDoRDyKYzLIFrxK7Ux2uDU7tIDF2d7vsbGobcQ0AqXJb8CTZzaL_sNi5w1tHISr5qjKyesl7piM12JmjyEsKe71oeJR-8H2VPrciIM1OtJqTM36cvea7NXt2Js_2F-PZtXq2ll2xRXv7VUNDfxJON-wmgsjE7GZi2CDdrsKdCRgBU0ignOLX1RhVCuJT_JmKcypC8q6ceUjSkEJMQdF0m153g\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid1 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid1 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"RSA\","
@@ -234,13 +234,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid2() {
 
 		// header: { "kid": "wU3ifIIaLOUAReRB/FG6eM1P1QM=", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid2 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid2 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJ0eXAiOiJKV1QiLCJraWQiOiJ3VTNpZklJYUxPVUFSZVJCL0ZHNmVNMVAxUU09IiwiYWxnIjoiUFMyNTYifQ."
 			+ "eyJzdWIiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsImF1ZGl0VHJhY2tpbmdJZCI6IjlhYmVjNzY0LTc0YmUtNDBiMy1hYWQ4LTY2NDFlZWIwZmMxMy0yMjkxNDEiLCJpc3MiOiJodHRwczovL29iLnVhdC5iZG4ucHVibGljLnNhaW5zYnVyeXNiYW5rLmNsb3VkOjQ0My9zc28vb2F1dGgyL3JlYWxtcy9yb290L3JlYWxtcy9nZW5lcmFsIiwidG9rZW5OYW1lIjoiaWRfdG9rZW4iLCJub25jZSI6IlZiUVcwMkxEUmUiLCJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpjYSIsImF1ZCI6IjhkNWNhNDY1LTEwZjEtNDk0OS05MGJjLTdmMTc1MWFlOGYxYSIsImNfaGFzaCI6Ii1TcW9nNnFzY0JIMURXa1B4Q1JmNGciLCJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsIm9yZy5mb3JnZXJvY2sub3BlbmlkY29ubmVjdC5vcHMiOiJUN2ROalhDV1BIYmFDZk5odUYyOS1ENHI4MnMiLCJzX2hhc2giOiJPRUM2MldSQjBIZzlVTXZVUm1mODNRIiwiYXpwIjoiOGQ1Y2E0NjUtMTBmMS00OTQ5LTkwYmMtN2YxNzUxYWU4ZjFhIiwiYXV0aF90aW1lIjoxNTY0NTI0Nzg3LCJyZWFsbSI6Ii9nZW5lcmFsIiwiZXhwIjoxNTY0NTI4NDAzLCJ0b2tlblR5cGUiOiJKV1RUb2tlbiIsImlhdCI6MTU2NDUyNDgwM30."
 			+ "orxSbO_yU8BsdIkLFsNoV7lJU403DIkSM8gh1EhXG_z4gm5CtnHVs3nYSOtRt21SrY6UepulH2O-kYQ8vgHG9-qOPxlJuW1CWd7I7sQIt5gBCC8-26Uv6QNbPB-qywgMQK1aYpRRNfPd6PCoK0RqzooQ5fJ_Sli5525vw_o-4-w7YmDgrYnp3201rjH6KE3X-wbaj9MhwXDEHKiLgMU36s0SiXGPIWUvfBZQ8bMWiAY7q5zbmlpFNHL9Q7kdPei_Paf1Z0MK__vJffnHFZoEnZmRGWgSjuCFU56QfcMu_ECeGUmn_9pthQRPoonQhVZJigKrydc58ub-43XfFcBfgA\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid2 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid2 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"EC\","
@@ -393,13 +393,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid3() {
 
 		// header: { "kid": "lqyzSEQSSpNQMNv6POwYgOtgo2Q", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid3 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid3 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJQUzI1NiIsImtpZCI6ImxxeXpTRVFTU3BOUU1OdjZQT3dZZ090Z28yUSJ9."
 			+ "ew0KICAic3ViIjogInZBLWE2eVZZT1k5OWs0Z3JJTDJhSkNDX3Z2akZJaVd2dWp6aU9KbWlzbE0iLA0KICAiYXVkIjogImEyZjczMjg4LWRjNjUtNGRmYi1hN2NlLWIxNWE2OTRlNGM1ZSIsDQogICJjX2hhc2giOiAiZzRiT3VQNW9KeGJjazhYVWxuZnZMZyIsDQogICJzX2hhc2giOiAiVHVDaHQ3cld3WGJ5S0gyYVAzVjNhdyIsDQogICJhY3IiOiAidXJuOm9wZW5iYW5raW5nOnBzZDI6c2NhIiwNCiAgImF6cCI6ICJhMmY3MzI4OC1kYzY1LTRkZmItYTdjZS1iMTVhNjk0ZTRjNWUiLA0KICAiYXV0aF90aW1lIjogMTU2NDY1Mzc3OCwNCiAgImlzcyI6ICJodHRwczovL2FwaXMudHNiLmNvLnVrL2FwaXMvb3Blbi1iYW5raW5nL3YzLjEvIiwNCiAgImV4cCI6IDE1NjQ3NDAxNzgsDQogICJpYXQiOiAxNTY0NjUzNzc4LA0KICAibm9uY2UiOiAibEc5WG5tV2h4ZSIsDQogICJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiAiYTA4YTdiZWItNGViYy00NjAyLWIwNTMtODY4NGZlMjllMjFmIg0KfQ."
 			+ "SdtaH4g1aQyTevJqoMLDcwqEq4uDvanmCesNLMIpQyaJ4pHAbAv6W5bmXD2j8UFVdql6RZzPPZc4D0fDTnxxHxmJy6Cg11jJ4SWRfMeNDhIqEDzq8nc7oUdpqzvrivOmadZjbVnX968o_pSAj1xLFFRAMa57yxQuyRMz4gL0LiALv_O06r6R3petYVLqfMGomBsZYbyNc3GpWfV3er5WlsDvITmf6jdcjchJMX3UhXa9_zb7TRwfaUlkmRbRA_oAYKi28-7JOUCmsINH5Kwzo1YkGJdWIUyI3PI6N7vKc27UZcKHbnq7MHCJdKgTPFn8h-tcBLp7DKSYB7SEFPzudw\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid3 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid3 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"e\":\"AQAB\","
@@ -440,13 +440,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid4() {
 
 		// header: { "kid": "6xnDk3QKSqHWmjNXPS1jZEMXrMc", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid4 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid4 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJQUzI1NiIsImtpZCI6IjZ4bkRrM1FLU3FIV21qTlhQUzFqWkVNWHJNYyIsInR5cCI6IkpXVCJ9."
 			+ "eyJhdWQiOiJvYXV0aDJjbGllbnRfMDAwMDlpQ2o2TjJGeDN5M2JwUVNYSiIsImV4cCI6MTU2NDg0MTgzNywiaWF0IjoxNTY0NzU1NDM3LCJpc3MiOiJodHRwczovL2FwaS5zMTAxLm5vbnByb2QtZmZzLmlvL29wZW4tYmFua2luZy8iLCJuYmYiOjE1NjQ3NTU0MzcsInN1YiI6Im9iYWlzcGFjY291bnRpbmZvcm1hdGlvbmNvbnNlbnRfMDAwMDlsVGhkRG02ZTNRaVBKeG96eCIsImF1dGhfdGltZSI6MTU2NDc1NTQzNywibm9uY2UiOiJWYkw4ZjJkQmZ1Iiwib3BlbmJhbmtpbmdfaW50ZW50X2lkIjoib2JhaXNwYWNjb3VudGluZm9ybWF0aW9uY29uc2VudF8wMDAwOWxUaGREbTZlM1FpUEp4b3p4IiwiYWNyIjoidXJuOm9wZW5iYW5raW5nOnBzZDI6c2NhIiwic19oYXNoIjoiUzdjREdNTV80MmhtTXoxY1poQmtwdyIsImNfaGFzaCI6ImNzYzZSbUF3cngxdF80V3Z4cmR3R1EifQ."
 			+ "LmW8pHfasMf24jyJnZSq-l03xd5XVFHAyV1YSNcooeD9D-OBOl8akiE5OokbUf4q2soBXgiBNKrttGIQZ_CxeEc6E9rhM6K66KZttIX0WcwFfM48nHHC9yoFD04pzkjOndYQa8MBYYQ9EfeplC97NVzNPAbViMMBzPVuyPbgECliQkQcp7--PKtYAWQgwImTKqGobUrjSgpd86EzR4yBKzS030NOQYnaBPB91Mr33a5sxOtmWeAf7UwwamjidesM0yA4TzthW4QeO-JMOlUk-qBgqRr1AspT2lxGYNnmy75euOpKIiyB3XIZZy5d3Oq4VwRNQAY3UCkMr7HKhjjb7A\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid4 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid4 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"e\":\"AQAB\","
@@ -487,13 +487,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid5() {
 
 		// header: { "kid": "CdVV3eCHr_fR6JFTJnGgOZ2z7ac", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid5 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid5 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJhbGciOiJQUzI1NiIsImtpZCI6IkNkVlYzZUNIcl9mUjZKRlRKbkdnT1oyejdhYyJ9."
 			+ "eyJpc3MiOiJodHRwczovLzE1OC4xNzUuOTUuMjUxIiwic3ViIjoiZWNhMmUxZTQtNzI2ZC01YmYzLWJmMWEtN2U2NDYxZTViZTk4IiwiYXVkIjoia0RORlRUY3FuNU5wN0JaT0xtRG5VZCIsImlhdCI6MTU2NTAxMDQ4NiwiZXhwIjoxNTY1MDEwNzg2LCJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiJlY2EyZTFlNC03MjZkLTViZjMtYmYxYS03ZTY0NjFlNWJlOTgiLCJub25jZSI6IjhXaTAyU2trR0ciLCJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpzY2EiLCJjX2hhc2giOiJjMlBVRTVWZjdZbUhvYkQ5ZzQ0MVB3Iiwic19oYXNoIjoiR1pEbEZRbnE5SlVGeEllN0c3WnNvUSJ9."
 			+ "f_5LQqir9jMczLyKx43miUk2-EhxxTM3FRVfStzRTYUJfdfqFGyYKqSkI5S17Pr6jPDDe8D8MUO_Rrdyfaa178dYfTLtrIQXchwlApSH9eo5OQeCvX71B7LYE9I7XXP6SklC4vQWCPzC9NBfEEWLP4DgzGYrhYeFGz70JpCEUDzWLBRV-xNJpwUyaZbZMXizuxuQPSCQoledix4nZjtThAU2ND_vW1RDHF_SXTepsYQj9RPn-t4ZjhS5CMcu36prz74H6MHxfLlgtBiJZhc0hJb6O88Ae3Y6ojuL-o-CziJP1J0kKpo-TGogRX23Stdn2Id38hYGpZan9T_BnhGCtA\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid5 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid5 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"e\":\"AQAB\","
@@ -727,13 +727,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_noErrorWithKid6() {
 
 		// header: { "kid": "QcJfxsS-m1hoWHzpI8Kbjdf3EFA", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid6 = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid6 = JsonParser.parseString("{"
 			+ "\"value\":\"eyJraWQiOiJRY0pmeHNTLW0xaG9XSHpwSThLYmpkZjNFRkEiLCJ0eXAiOiJKV1QiLCJhbGciOiJQUzI1NiJ9."
 			+ "eyJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpzY2EiLCJzdWIiOiJ1cm46aW52ZXN0ZWM6b2I6YWNjOmIwZDc5ZGVlLTQxMWEtNDI4ZC1hOWNkLWVhZDZhZDNmNmU3NCIsImF1ZCI6InBBWEFOS1FHSFFjNHphaU1BS1JGd01GVW5wU0JDeWkzIiwib3BlbmJhbmtpbmdfaW50ZW50X2lkIjoidXJuOmludmVzdGVjOm9iOmFjYzpiMGQ3OWRlZS00MTFhLTQyOGQtYTljZC1lYWQ2YWQzZjZlNzQiLCJpc3MiOiJodHRwczpcL1wvb3BlbmFwaXNhbmRib3hkZXYuaW52ZXN0ZWMuY29tIiwiZXhwIjoxNTY0NjU3NTA1LCJub25jZSI6Ikdjck55YlFoYmMiLCJpYXQiOjE1NjQ2NTM5MDV9."
 			+ "V1D1nCDIpLZXggb1snTnNSXiW0qc5E2_g-IvlBqEfi88vg-bAk0-Rr_8LqvbqvOjCudbWZ3ewNj2DR9mADH2bYdBCT3mW0qlxNqCZdPjAipswCQE1kThoKjsM5iQ8EIE63ZC62b4qeT6DQNHAQ-dtYmfrITxbJtNj84nHI3fqguMswdrU4qpJ6oBD9WjZtghmzeajNwQlU2GuGaQb9nhdSTXxAlf3znm-9Z5-7ldXiEJJNx6S9TTqYUrfIv4raOqtjEToJdCzg0xTrTmElAKRQZgm033aYWhwSyxu1li9FMgWCs4kVUhqw38DMhMHOZN-8MGhWrWxJmAs15Pbh7A2Q\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwksWithKid6 = new JsonParser().parse("{"
+		JsonObject goodServerJwksWithKid6 = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"e\":\"AQAB\","
@@ -834,13 +834,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_notFoundKeyWithKid() {
 
 		// header: { "kid": "wU3ifIIaLOUAReRB/FG6eM1P1QM=", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid = JsonParser.parseString("{"
 			+ "\"value\":\"eyJ0eXAiOiJKV1QiLCJraWQiOiJ3VTNpZklJYUxPVUFSZVJCL0ZHNmVNMVAxUU09IiwiYWxnIjoiUFMyNTYifQ."
 			+ "eyJzdWIiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsImF1ZGl0VHJhY2tpbmdJZCI6IjlhYmVjNzY0LTc0YmUtNDBiMy1hYWQ4LTY2NDFlZWIwZmMxMy0yMjkxNDEiLCJpc3MiOiJodHRwczovL29iLnVhdC5iZG4ucHVibGljLnNhaW5zYnVyeXNiYW5rLmNsb3VkOjQ0My9zc28vb2F1dGgyL3JlYWxtcy9yb290L3JlYWxtcy9nZW5lcmFsIiwidG9rZW5OYW1lIjoiaWRfdG9rZW4iLCJub25jZSI6IlZiUVcwMkxEUmUiLCJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpjYSIsImF1ZCI6IjhkNWNhNDY1LTEwZjEtNDk0OS05MGJjLTdmMTc1MWFlOGYxYSIsImNfaGFzaCI6Ii1TcW9nNnFzY0JIMURXa1B4Q1JmNGciLCJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsIm9yZy5mb3JnZXJvY2sub3BlbmlkY29ubmVjdC5vcHMiOiJUN2ROalhDV1BIYmFDZk5odUYyOS1ENHI4MnMiLCJzX2hhc2giOiJPRUM2MldSQjBIZzlVTXZVUm1mODNRIiwiYXpwIjoiOGQ1Y2E0NjUtMTBmMS00OTQ5LTkwYmMtN2YxNzUxYWU4ZjFhIiwiYXV0aF90aW1lIjoxNTY0NTI0Nzg3LCJyZWFsbSI6Ii9nZW5lcmFsIiwiZXhwIjoxNTY0NTI4NDAzLCJ0b2tlblR5cGUiOiJKV1RUb2tlbiIsImlhdCI6MTU2NDUyNDgwM30."
 			+ "orxSbO_yU8BsdIkLFsNoV7lJU403DIkSM8gh1EhXG_z4gm5CtnHVs3nYSOtRt21SrY6UepulH2O-kYQ8vgHG9-qOPxlJuW1CWd7I7sQIt5gBCC8-26Uv6QNbPB-qywgMQK1aYpRRNfPd6PCoK0RqzooQ5fJ_Sli5525vw_o-4-w7YmDgrYnp3201rjH6KE3X-wbaj9MhwXDEHKiLgMU36s0SiXGPIWUvfBZQ8bMWiAY7q5zbmlpFNHL9Q7kdPei_Paf1Z0MK__vJffnHFZoEnZmRGWgSjuCFU56QfcMu_ECeGUmn_9pthQRPoonQhVZJigKrydc58ub-43XfFcBfgA\""
 			+ "}").getAsJsonObject();
 
-		JsonObject goodServerJwks = new JsonParser().parse("{"
+		JsonObject goodServerJwks = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"oct\","
@@ -866,13 +866,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_foundKeyWithKidAndVerifyFailure() {
 
 		// header: { "kid": "wU3ifIIaLOUAReRB/FG6eM1P1QM=", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid = JsonParser.parseString("{"
 			+ "\"value\":\"eyJ0eXAiOiJKV1QiLCJraWQiOiJ3VTNpZklJYUxPVUFSZVJCL0ZHNmVNMVAxUU09IiwiYWxnIjoiUFMyNTYifQ."
 			+ "eyJzdWIiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsImF1ZGl0VHJhY2tpbmdJZCI6IjlhYmVjNzY0LTc0YmUtNDBiMy1hYWQ4LTY2NDFlZWIwZmMxMy0yMjkxNDEiLCJpc3MiOiJodHRwczovL29iLnVhdC5iZG4ucHVibGljLnNhaW5zYnVyeXNiYW5rLmNsb3VkOjQ0My9zc28vb2F1dGgyL3JlYWxtcy9yb290L3JlYWxtcy9nZW5lcmFsIiwidG9rZW5OYW1lIjoiaWRfdG9rZW4iLCJub25jZSI6IlZiUVcwMkxEUmUiLCJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpjYSIsImF1ZCI6IjhkNWNhNDY1LTEwZjEtNDk0OS05MGJjLTdmMTc1MWFlOGYxYSIsImNfaGFzaCI6Ii1TcW9nNnFzY0JIMURXa1B4Q1JmNGciLCJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsIm9yZy5mb3JnZXJvY2sub3BlbmlkY29ubmVjdC5vcHMiOiJUN2ROalhDV1BIYmFDZk5odUYyOS1ENHI4MnMiLCJzX2hhc2giOiJPRUM2MldSQjBIZzlVTXZVUm1mODNRIiwiYXpwIjoiOGQ1Y2E0NjUtMTBmMS00OTQ5LTkwYmMtN2YxNzUxYWU4ZjFhIiwiYXV0aF90aW1lIjoxNTY0NTI0Nzg3LCJyZWFsbSI6Ii9nZW5lcmFsIiwiZXhwIjoxNTY0NTI4NDAzLCJ0b2tlblR5cGUiOiJKV1RUb2tlbiIsImlhdCI6MTU2NDUyNDgwM30."
 			+ "orxSbO_yU8BsdIkLFsNoV7lJU403DIkSM8gh1EhXG_z4gm5CtnHVs3nYSOtRt21SrY6UepulH2O-kYQ8vgHG9-qOPxlJuW1CWd7I7sQIt5gBCC8-26Uv6QNbPB-qywgMQK1aYpRRNfPd6PCoK0RqzooQ5fJ_Sli5525vw_o-4-w7YmDgrYnp3201rjH6KE3X-wbaj9MhwXDEHKiLgMU36s0SiXGPIWUvfBZQ8bMWiAY7q5zbmlpFNHL9Q7kdPei_Paf1Z0MK__vJffnHFZoEnZmRGWgSjuCFU56QfcMu_ECeGUmn_9pthQRPoonQhVZJigKrydc58ub-43XfFcBfgA\""
 			+ "}").getAsJsonObject();
 
-		JsonObject wrongServerJwksWithKid = new JsonParser().parse("{"
+		JsonObject wrongServerJwksWithKid = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"EC\","
@@ -899,13 +899,13 @@ public class ValidateIdTokenSignatureUsingKid_UnitTest {
 	public void testEvaluate_foundMoreThanOneKeyWithRightKidKtyAlgAndUseSig() {
 
 		// header: { "kid": "wU3ifIIaLOUAReRB/FG6eM1P1QM=", "typ": "JWT", "alg": "PS256" }
-		JsonObject goodIdTokenWithKid = new JsonParser().parse("{"
+		JsonObject goodIdTokenWithKid = JsonParser.parseString("{"
 			+ "\"value\":\"eyJ0eXAiOiJKV1QiLCJraWQiOiJ3VTNpZklJYUxPVUFSZVJCL0ZHNmVNMVAxUU09IiwiYWxnIjoiUFMyNTYifQ."
 			+ "eyJzdWIiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsImF1ZGl0VHJhY2tpbmdJZCI6IjlhYmVjNzY0LTc0YmUtNDBiMy1hYWQ4LTY2NDFlZWIwZmMxMy0yMjkxNDEiLCJpc3MiOiJodHRwczovL29iLnVhdC5iZG4ucHVibGljLnNhaW5zYnVyeXNiYW5rLmNsb3VkOjQ0My9zc28vb2F1dGgyL3JlYWxtcy9yb290L3JlYWxtcy9nZW5lcmFsIiwidG9rZW5OYW1lIjoiaWRfdG9rZW4iLCJub25jZSI6IlZiUVcwMkxEUmUiLCJhY3IiOiJ1cm46b3BlbmJhbmtpbmc6cHNkMjpjYSIsImF1ZCI6IjhkNWNhNDY1LTEwZjEtNDk0OS05MGJjLTdmMTc1MWFlOGYxYSIsImNfaGFzaCI6Ii1TcW9nNnFzY0JIMURXa1B4Q1JmNGciLCJvcGVuYmFua2luZ19pbnRlbnRfaWQiOiJ1cm4tc2ItaW50ZW50LTAyMmJlYzVhLWE1MTgtNGQwYi1hMGNhLTY3OGZlNWM0MjJkZCIsIm9yZy5mb3JnZXJvY2sub3BlbmlkY29ubmVjdC5vcHMiOiJUN2ROalhDV1BIYmFDZk5odUYyOS1ENHI4MnMiLCJzX2hhc2giOiJPRUM2MldSQjBIZzlVTXZVUm1mODNRIiwiYXpwIjoiOGQ1Y2E0NjUtMTBmMS00OTQ5LTkwYmMtN2YxNzUxYWU4ZjFhIiwiYXV0aF90aW1lIjoxNTY0NTI0Nzg3LCJyZWFsbSI6Ii9nZW5lcmFsIiwiZXhwIjoxNTY0NTI4NDAzLCJ0b2tlblR5cGUiOiJKV1RUb2tlbiIsImlhdCI6MTU2NDUyNDgwM30."
 			+ "orxSbO_yU8BsdIkLFsNoV7lJU403DIkSM8gh1EhXG_z4gm5CtnHVs3nYSOtRt21SrY6UepulH2O-kYQ8vgHG9-qOPxlJuW1CWd7I7sQIt5gBCC8-26Uv6QNbPB-qywgMQK1aYpRRNfPd6PCoK0RqzooQ5fJ_Sli5525vw_o-4-w7YmDgrYnp3201rjH6KE3X-wbaj9MhwXDEHKiLgMU36s0SiXGPIWUvfBZQ8bMWiAY7q5zbmlpFNHL9Q7kdPei_Paf1Z0MK__vJffnHFZoEnZmRGWgSjuCFU56QfcMu_ECeGUmn_9pthQRPoonQhVZJigKrydc58ub-43XfFcBfgA\""
 			+ "}").getAsJsonObject();
 
-		JsonObject wrongServerJwksWithMultipleKidValid = new JsonParser().parse("{"
+		JsonObject wrongServerJwksWithMultipleKidValid = JsonParser.parseString("{"
 			+ "\"keys\":["
 			+ "{"
 			+ "\"kty\":\"RSA\","

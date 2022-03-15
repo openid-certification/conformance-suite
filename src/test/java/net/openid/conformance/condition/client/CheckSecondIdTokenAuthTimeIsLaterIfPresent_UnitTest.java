@@ -27,7 +27,7 @@ public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 	private CheckSecondIdTokenAuthTimeIsLaterIfPresent cond;
 
 	private JsonObject createToken(String json) {
-		var claims = new JsonParser().parse(json).getAsJsonObject();
+		var claims = JsonParser.parseString(json).getAsJsonObject();
 
 		JsonObject idToken = new JsonObject();
 		idToken.add("claims", claims);

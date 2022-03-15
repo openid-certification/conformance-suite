@@ -13,7 +13,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-permissions-restriction-test",
 	displayName = "Ensures permissions allow you to call only the correct resources",
-	summary = "Ensures permissions allow you to call only the correct resources - When completed, please upload a screenshot of the permissions being requested by the bank",
+	summary = "Ensures permissions allow you to call only the correct resources - When completed, please upload a screenshot of the permissions being requested by the bank\n" +
+		"\u2022 Creates a Consent with the incomplete set of the accounts permission group (\"ACCOUNTS_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts Transactions API specifying an account ID\n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts Balances API specifying an account ID\n" +
+		"\u2022 Expects a 403 response \n" +
+		"\u2022 Calls GET Accounts Limits API specifying an account ID\n" +
+		"\u2022 Expects a 403 response ",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

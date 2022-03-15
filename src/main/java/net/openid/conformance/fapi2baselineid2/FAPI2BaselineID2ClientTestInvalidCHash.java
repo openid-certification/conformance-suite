@@ -1,0 +1,36 @@
+package net.openid.conformance.fapi2baselineid2;
+
+import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
+
+@PublishTestModule(
+	testName = "fapi2-baseline-id2-client-test-invalid-chash",
+	displayName = "FAPI2-Baseline-ID2: client test - invalid c_hash in id_token from authorization_endpoint, should be rejected",
+	summary = "This test should end with the client displaying an error message that the c_hash value in the id_token from the authorization_endpoint does not match the c_hash value in the request object",
+	profile = "FAPI2-Baseline-ID2",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.scope",
+		"client.redirect_uri",
+		"client.certificate",
+		"client.jwks",
+		"directory.keystore"
+	}
+)
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
+public class FAPI2BaselineID2ClientTestInvalidCHash extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
+
+	@Override
+	protected void addCustomValuesToIdToken() {
+
+		callAndStopOnFailure(AddInvalidCHashValueToIdToken.class, "OIDCC-3.3.2-10");
+	}
+
+	@Override
+	protected String getIdTokenFaultErrorMessage() {
+		return "invalid c_hash value";
+	}
+}

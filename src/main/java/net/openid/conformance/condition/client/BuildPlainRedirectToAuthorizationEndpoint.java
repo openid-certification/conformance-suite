@@ -55,7 +55,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 
 		String redirectTo = builder.toUriString();
 
-		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo));
+		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo, "auth_request", authorizationEndpointRequest));
 
 		env.putString("redirect_to_authorization_endpoint", redirectTo);
 

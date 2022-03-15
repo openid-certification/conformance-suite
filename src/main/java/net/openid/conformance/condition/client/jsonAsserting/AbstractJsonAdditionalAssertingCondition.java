@@ -78,7 +78,9 @@ public abstract class AbstractJsonAdditionalAssertingCondition extends AbstractJ
 
 	protected void assertJsonField(JsonElement jsonObject, String path, Character expected) {
 		JsonElement actual = findByPath(jsonObject, path);
-		Character c = getOrFail(() -> OIDFJSON.getCharacter(actual));
+		// TODO the getCharacter method has been deleted upstream- probably as they never used it
+//		Character c = getOrFail(() -> OIDFJSON.getCharacter(actual));
+		Character c = getOrFail(() -> OIDFJSON.getString(actual)).charAt(0);
 		if (!c.equals(expected)) {
 			throw error(String.format("Path %s did not match %s", path, String.valueOf(expected)),
 				args("value", jsonObject));

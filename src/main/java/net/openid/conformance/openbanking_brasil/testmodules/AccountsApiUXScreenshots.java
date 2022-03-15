@@ -9,7 +9,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-ux-test",
 	displayName = "Verifies the screens implemented by the financial institution",
-	summary = "Verifies the screens implemented by the financial institution - Please upload screenshots of the login screen, MFA screen and consent screen when finished",
+	summary = "Verifies the screens implemented by the financial institution - Please upload screenshots of the login screen, MFA screen and consent screen when finished\n" +
+		"\u2022 Creates a Consent with the complete set of the accounts permission group (\"ACCOUNTS_READ\", \"ACCOUNTS_BALANCES_READ\", \"RESOURCES_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"ACCOUNTS_OVERDRAFT_LIMITS_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Requests the user to upload a series of pictures regarding the customer authorization flow",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

@@ -31,7 +31,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 
 	@Test
 	public void testEvaluate() {
-		env.putObject("original_jwks", new JsonParser().parse("{\n" +
+		env.putObject("original_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -42,7 +42,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 			"  ]\n" +
 			"}").getAsJsonObject());
 
-		env.putObject("new_jwks", new JsonParser().parse("{" +
+		env.putObject("new_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [" +
 			"    {" +
 			"      \"kty\": \"RSA\"," +
@@ -68,7 +68,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 	@Test
 	public void testOneKeyNoRotation() {
 		// This isn't a valid rotation as the key hasn't changed, but it is a pass for this test of retaining the old key
-		env.putObject("original_jwks", new JsonParser().parse("{\n" +
+		env.putObject("original_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -87,7 +87,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testOnlyKidChanged() {
 		// a "new" key with a new kid, but the 'n' exponent is the same so it's not actually a new key
-		env.putObject("original_jwks", new JsonParser().parse("{\n" +
+		env.putObject("original_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -98,7 +98,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 			"  ]\n" +
 			"}").getAsJsonObject());
 
-		env.putObject("new_jwks", new JsonParser().parse("{" +
+		env.putObject("new_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -116,7 +116,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 	public void testSameKidDifferentPublicExponent() {
 		// here the key ('n') has changed, but the kid is the same, which should be a fail as the kid has to change
 		// for the client to know it has to refetch the jwks
-		env.putObject("original_jwks", new JsonParser().parse("{\n" +
+		env.putObject("original_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -127,7 +127,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 			"  ]\n" +
 			"}").getAsJsonObject());
 
-		env.putObject("new_jwks", new JsonParser().parse("{" +
+		env.putObject("new_jwks", JsonParser.parseString("{" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"kty\": \"RSA\",\n" +
@@ -144,7 +144,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 	@Test
 	public void testLargeJwks() {
 		// taken from Filip's public node oidc provider
-		env.putObject("original_jwks", new JsonParser().parse("{\n" +
+		env.putObject("original_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"e\": \"AQAB\",\n" +
@@ -226,7 +226,7 @@ public class VerifyNewJwksStillHasOldSigningKey_UnitTest {
 			"}").getAsJsonObject());
 
 		// same as original but with 'foo' added manually to a few to make some keys different
-		env.putObject("new_jwks", new JsonParser().parse("{\n" +
+		env.putObject("new_jwks", JsonParser.parseString("{\n" +
 			"  \"keys\": [\n" +
 			"    {\n" +
 			"      \"e\": \"AQAB\",\n" +

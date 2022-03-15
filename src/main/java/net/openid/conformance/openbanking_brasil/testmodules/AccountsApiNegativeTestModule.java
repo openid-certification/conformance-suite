@@ -10,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-negative-test",
 	displayName = "Validate correct handling of errors for the account API resources",
-	summary = "Validate correct handling of errors for the account API resources",
+	summary = "Validates correct handling of errors for the account API resources\n" +
+		"\u2022 Creates a Consent with the complete set of the accounts permission group (\"ACCOUNTS_READ\",\"ACCOUNTS_BALANCES_READ\",\"RESOURCES_READ\", \"ACCOUNTS_TRANSACTIONS_READ\", \"ACCOUNTS_OVERDRAFT_LIMITS_READ\")\n" +
+		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 200 response \n" +
+		"\u2022 Calls GET Accounts API \n" +
+		"\u2022 Expects a 200 response",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

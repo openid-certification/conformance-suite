@@ -4,6 +4,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonNull;
+import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
 import net.openid.conformance.serializers.SpringfoxApiListingJsonSerializer;
 import net.openid.conformance.serializers.SpringfoxJsonSerializer;
 import net.openid.conformance.variant.VariantSelection;
@@ -61,7 +63,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 		GsonBuilder gsonBuilder = new GsonBuilder()
 			.registerTypeHierarchyAdapter(Document.class, new JsonSerializer<Document>() {
 
-				private Gson internalGson = new Gson();
+				private Gson internalGson = new GsonBuilder().serializeNulls().create();
 
 				@Override
 				public JsonElement serialize(Document src, Type typeOfSrc, JsonSerializationContext context) {
@@ -97,7 +99,11 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 						}
 						return converted;
 					} else {
-						return source;
+						if(GsonObjectToBsonDocumentConverter.CONFORMANCE_SUITE_JSON_NULL_CONSTANT.equals(source)){
+							return JsonNull.INSTANCE;
+						} else {
+							return source;
+						}
 					}
 				}
 			})
@@ -110,6 +116,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 		if(prettyPrint) {
 			gsonBuilder.setPrettyPrinting();
 		}
+		gsonBuilder.serializeNulls();
 		return gsonBuilder.create();
 	}
 

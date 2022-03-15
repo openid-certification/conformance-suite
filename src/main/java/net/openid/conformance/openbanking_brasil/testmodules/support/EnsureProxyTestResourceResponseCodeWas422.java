@@ -10,10 +10,12 @@ import org.springframework.http.HttpStatus;
 import java.util.Map;
 
 public class EnsureProxyTestResourceResponseCodeWas422 extends AbstractCondition {
+
 	@Override
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
 		if (!env.getBoolean("payments_proxy_run_poll")) {
-			Integer status = env.getInteger("resource_endpoint_response_status");
+			Integer status = env.getInteger("resource_endpoint_response_full", "status");
 			if (status != HttpStatus.UNPROCESSABLE_ENTITY.value()) {
 				log("Response status was not 422 as expected", Map.of("status", status));
 				throw error("Was expecting a 422 response");

@@ -3,7 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
-import net.minidev.json.JSONObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -27,9 +27,9 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 		return inputKeys.stream().map(key -> {
 			try {
 				JWK jwk = JWK.parse(key.toString());
-				JSONObject pubObj = new JSONObject(jwk.getRequiredParams());
-				pubObj.appendField("kid", jwk.getKeyID());
-				return (JsonObject) new JsonParser().parse(pubObj.toString());
+				var requiredParamsJson = (JsonObject) JsonParser.parseString(JSONObjectUtils.toJSONString(jwk.getRequiredParams()));
+				requiredParamsJson.addProperty("kid", jwk.getKeyID());
+				return requiredParamsJson;
 			} catch (ParseException  e) {
 				throw error("Error parsing JWK key", e, args("key", key));
 			}

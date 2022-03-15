@@ -2,8 +2,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
@@ -48,7 +46,8 @@ public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 
 		callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
 
-		callAndStopOnFailure(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		callAndStopOnFailure(EnsureResponseCodeWas201.class);
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
@@ -60,8 +59,6 @@ public class CallPixPaymentsEndpointSequence extends AbstractConditionSequence {
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 
 		callAndStopOnFailure(EnsureContentTypeApplicationJwt.class);
-
-		callAndStopOnFailure(EnsureHttpStatusCodeIs201.class);
 
 		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class);
 

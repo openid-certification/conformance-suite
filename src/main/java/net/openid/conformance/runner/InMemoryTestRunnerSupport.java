@@ -136,17 +136,30 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	private void expireOldTests() {
 		for (Map.Entry<String, TestModule> entry : new HashSet<>(runningTests.entrySet())) {
-			// if the test has been finished or interrupted, we check to see if it's timed out yet
-			if ((entry.getValue().getStatus().equals(Status.FINISHED)
-				|| entry.getValue().getStatus().equals(Status.INTERRUPTED))
-					&& entry.getValue().getStatusUpdated().plus(getClosedTestTimeout()).isBefore(Instant.now())) {
+			TestModule testModule = entry.getValue();
+			String testId = entry.getKey();
+			switch (testModule.getStatus()) {
+				case INTERRUPTED:
+				case FINISHED:
+					// if the test has been finished or interrupted, we check to see if it's timed out yet
+					if (testModule.getStatusUpdated().plus(getClosedTestTimeout()).isBefore(Instant.now())) {
+						removeRunningTest(testId);
+					}
+					break;
 
-				removeRunningTest(entry.getKey());
-
-			}
-			else if(entry.getValue().getStatus().equals(Status.WAITING)
-					&& entry.getValue().getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
-				removeRunningTest(entry.getKey());
+				case CREATED:
+				case WAITING:
+				case CONFIGURED:
+				case RUNNING:
+				case NOT_YET_CREATED:
+					if (testModule.getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
+						removeRunningTest(testId);
+						testModule.getTestExecutionManager().runInBackground(() -> {
+							testModule.stop(String.format("The test was idle for more than %s minutes.", waitingTestTimeout.getSeconds()/60));
+							return "stopped";
+						});
+					}
+					break;
 			}
 		}
 	}

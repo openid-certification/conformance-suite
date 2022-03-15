@@ -3,7 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
-import net.openid.conformance.fapi1advancedfinal.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -46,7 +45,6 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 	@Override
 	protected void runTests() {
 		runInBlock("Create a payment consent", () -> {
-			eventLog.startBlock("Setting date to today");
 			callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilCreatePaymentConsentRequest.class);
@@ -57,12 +55,9 @@ public class PaymentsConsentsReuseJtiTestModule extends AbstractClientCredential
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-			call(new ValidateSelfEndpoint()
-				.replace(
-					CallProtectedResourceWithBearerToken.class,
-					condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
-				));
-			});
+			call(new ValidateSelfEndpoint());
+
+	});
 
 		runInBlock("Create a payment consent re-using jti", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);

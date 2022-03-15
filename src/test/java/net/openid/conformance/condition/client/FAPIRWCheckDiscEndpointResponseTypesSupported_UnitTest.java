@@ -32,7 +32,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Test
 	public void testEvaluate_noError() {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"code id_token\""
@@ -44,7 +44,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Test
 	public void testEvaluate_noErrorWithReverseResponseTypes () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"id_token code\""
@@ -56,7 +56,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithResponseTypes2Spaces () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"code  id_token\""
@@ -68,7 +68,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithResponseTypesTabFormat () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"code\tid_token\""
@@ -87,7 +87,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithResponseTypesSupportedIsNotArray () {
-		JsonObject server = new JsonParser().parse("{"
+		JsonObject server = JsonParser.parseString("{"
 			+ "\"response_types_supported\": \"is not an array\"}")
 			.getAsJsonObject();
 		env.putObject("server", server);

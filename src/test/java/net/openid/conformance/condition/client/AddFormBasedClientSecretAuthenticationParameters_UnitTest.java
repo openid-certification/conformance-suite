@@ -42,12 +42,12 @@ public class AddFormBasedClientSecretAuthenticationParameters_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
-		client = new JsonParser().parse("{"
+		client = JsonParser.parseString("{"
 			+ "\"client_id\":\"client\","
 			+ "\"client_secret\":\"secret\""
 			+ "}").getAsJsonObject();
 
-		tokenEndpointRequestFormParameters = new JsonParser().parse("{"
+		tokenEndpointRequestFormParameters = JsonParser.parseString("{"
 			+ "\"grant_type\":\"unit_test\","
 			+ "\"scope\":\"address phone openid email profile\""
 			+ "}").getAsJsonObject();

@@ -55,14 +55,14 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 	protected void requestProtectedResource() {
 		if(!validationStarted) {
 			validationStarted = true;
+			eventLog.startBlock("initiate payment");
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
-					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
+				.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
 			resourceCreationErrorMessageCondition().ifPresent(c -> {
-				pixSequence.insertAfter(CallProtectedResourceWithBearerTokenAndCustomHeaders.class, condition(c));
+				pixSequence.insertAfter(CallProtectedResource.class, condition(c));
 			});
 			call(pixSequence);
+			eventLog.endBlock();
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();
 			eventLog.endBlock();
@@ -93,10 +93,11 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 				callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(WaitFor30Seconds.class);
+				// TODO use CallProtectedResource
 				call(new ValidateSelfEndpoint()
-					.replace(CallProtectedResourceWithBearerToken.class, sequenceOf(
+					.replace(CallProtectedResource.class, sequenceOf(
 						condition(AddJWTAcceptHeader.class),
-						condition(CallProtectedResourceWithBearerTokenAndCustomHeaders.class)
+						condition(CallProtectedResource.class)
 					))
 					.skip(SaveOldValues.class, "Not saving old values")
 					.skip(LoadOldValues.class, "Not loading old values")

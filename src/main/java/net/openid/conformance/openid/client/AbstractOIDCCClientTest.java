@@ -12,6 +12,7 @@ import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointRespon
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.ChangeTokenEndpointInServerConfigurationToMtls;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -705,6 +706,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 
 		validateTokenEndpointRequest();
+
+		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		if(validateClientAuthenticationSteps!=null) {
 			call(sequence(validateClientAuthenticationSteps));

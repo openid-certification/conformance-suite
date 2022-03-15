@@ -51,7 +51,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 		 * unreliable, we'll need to spin up a local server (or disable the test).
 		 */
 
-		JsonObject tls = new JsonParser().parse("{"
+		JsonObject tls = JsonParser.parseString("{"
 			+ "\"testHost\":\"example.com\","
 			+ "\"testPort\":443"
 			+ "}").getAsJsonObject();
@@ -70,7 +70,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_notTls() {
 
-		JsonObject tls = new JsonParser().parse("{"
+		JsonObject tls = JsonParser.parseString("{"
 			+ "\"testHost\":\"example.com\","
 			+ "\"testPort\":80"
 			+ "}").getAsJsonObject();
@@ -86,7 +86,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingHost() {
 
-		JsonObject tls = new JsonParser().parse("{"
+		JsonObject tls = JsonParser.parseString("{"
 			+ "\"testPort\":443"
 			+ "}").getAsJsonObject();
 
@@ -101,7 +101,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingPort() {
 
-		JsonObject tls = new JsonParser().parse("{"
+		JsonObject tls = JsonParser.parseString("{"
 			+ "\"testHost\":\"example.com\""
 			+ "}").getAsJsonObject();
 

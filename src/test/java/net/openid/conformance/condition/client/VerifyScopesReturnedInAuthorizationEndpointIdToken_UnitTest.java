@@ -36,7 +36,7 @@ public class VerifyScopesReturnedInAuthorizationEndpointIdToken_UnitTest {
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		authorizationEndpointIdToken = new JsonParser().parse("{"
+		authorizationEndpointIdToken = JsonParser.parseString("{"
 			+ "\"claims\":{"
 				+ "\"sub\":\"1001\","
 				+ "\"aud\":\"899532949009612\","
@@ -53,7 +53,7 @@ public class VerifyScopesReturnedInAuthorizationEndpointIdToken_UnitTest {
 				+ "\"email\":\"john@example.com\""
 			+ "}}").getAsJsonObject();
 
-		authorizationEndpointRequest = new JsonParser().parse("{"
+		authorizationEndpointRequest = JsonParser.parseString("{"
 				+ "\"scope\":\"openid address\""
 			+ "}").getAsJsonObject();
 	}

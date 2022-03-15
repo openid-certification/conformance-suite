@@ -64,9 +64,7 @@ public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule 
 			validationStarted = true;
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
 				.replace(CreatePaymentRequestEntityClaims.class, condition(GeneratePaymentRequestEntityClaims.class))
-				.replace(CallProtectedResourceWithBearerTokenAndCustomHeaders.class,
-					condition(CallProtectedResourceWithBearerTokenAndCustomHeadersOptionalError.class))
-				.skip(EnsureHttpStatusCodeIs201.class, "Skipping 201 check");
+				.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
 			call(pixSequence);
 			eventLog.startBlock(currentClientString() + "Validate response");
 			validateResponse();

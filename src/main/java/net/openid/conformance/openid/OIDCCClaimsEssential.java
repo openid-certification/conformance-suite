@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.AddUserInfoEssentialNameClaimToAu
 import net.openid.conformance.condition.client.EnsureIdTokenContainsName;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainName;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsName;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_claims_essential
@@ -22,15 +23,15 @@ public class OIDCCClaimsEssential extends AbstractOIDCCReturnedClaimsServerTest 
 	}
 
 	@Override
-	protected void createAuthorizationRequest() {
+	protected ConditionSequence createAuthorizationRequestSequence() {
 		Class<? extends Condition> addClaim = AddUserInfoEssentialNameClaimToAuthorizationEndpointRequest.class;
 
 		if (responseType.isIdToken()) {
 			addClaim = AddIdTokenEssentialNameClaimToAuthorizationEndpointRequest.class;
 		}
 
-		call(new CreateAuthorizationRequestSteps(formPost)
-			.then(condition(addClaim).requirements("OIDCC-5.5", "OIDCC-5.5.1")));
+		return super.createAuthorizationRequestSequence()
+			.then(condition(addClaim).requirements("OIDCC-5.5", "OIDCC-5.5.1"));
 	}
 
 	@Override

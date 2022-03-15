@@ -1,7 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.CallProtectedResourceWithBearerToken;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class ValidateSelfEndpoint extends AbstractConditionSequence {
@@ -14,8 +14,7 @@ public class ValidateSelfEndpoint extends AbstractConditionSequence {
 		callAndStopOnFailure(SetProtectedResourceUrlToSelfEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResourceWithBearerToken.class);
-		callAndStopOnFailure(ExtractResponseCodeFromFullResponse.class);
+		callAndStopOnFailure(CallProtectedResource.class);
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndStopOnFailure(LoadOldValues.class);
 	}

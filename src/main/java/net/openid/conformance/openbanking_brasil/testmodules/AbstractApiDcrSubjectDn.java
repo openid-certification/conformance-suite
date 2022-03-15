@@ -1,35 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddIatToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
-import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnWithBrazilShortnameToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
-import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
-import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
-import net.openid.conformance.condition.client.CheckNoClientIdFromDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckNoErrorFromDynamicRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
-import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
-import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
-import net.openid.conformance.condition.client.CopyScopeFromDynamicRegistrationTemplateToClientConfiguration;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
-import net.openid.conformance.condition.client.ExtractClientManagementCredentials;
-import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
-import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
-import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
@@ -143,7 +115,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
                 // this is all lifted out of 'super'
                 callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
                 callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-                callAndContinueOnFailure(ExtractClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+                callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
                 callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
                 validateDcrResponseScope();
                 // The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across

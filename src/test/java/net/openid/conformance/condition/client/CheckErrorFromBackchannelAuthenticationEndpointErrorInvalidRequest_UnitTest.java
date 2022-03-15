@@ -32,7 +32,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 
 	@Test
 	public void testEvaluate_caseGood() {
-		JsonObject response = new JsonParser().parse("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_request\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
+		JsonObject response = JsonParser.parseString("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_request\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
 
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
@@ -41,7 +41,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseWrongError() {
-		JsonObject response = new JsonParser().parse("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_client\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
+		JsonObject response = JsonParser.parseString("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_client\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
 
 		env.putObject("backchannel_authentication_endpoint_response", response);
 

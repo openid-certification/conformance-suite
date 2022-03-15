@@ -14,7 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consent-api-test",
 	displayName = "Validate the structure of all consent API resources",
-	summary = "Validates the structure of all consent API resources",
+	summary = "Validates the structure of all consent API resources\n" +
+		"\u2022 Creates a Consent with all of the existing permissions.\n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

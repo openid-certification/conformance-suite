@@ -1,8 +1,10 @@
 package net.openid.conformance.condition.common;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public abstract class AbstractCheckForKeyIdinJWKs extends AbstractCondition {
 
@@ -20,7 +22,8 @@ public abstract class AbstractCheckForKeyIdinJWKs extends AbstractCondition {
 				throw error("invalid key in JWKs, not a JSON object", args("key", key));
 			}
 
-			if (!key.getAsJsonObject().has("kid")) {
+			JsonObject keyObj = key.getAsJsonObject();
+			if (!keyObj.has("kid") || OIDFJSON.getString(keyObj.get("kid")).isBlank()) {
 				throw error("kid not found in key", args("key", key));
 			}
 		}
