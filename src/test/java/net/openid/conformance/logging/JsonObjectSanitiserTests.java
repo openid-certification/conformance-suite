@@ -29,7 +29,7 @@ public class JsonObjectSanitiserTests {
 		JsonObject expected = load("manyThingsSanitised.json");
 
 		JsonObjectSanitiser sanitiser = new JsonObjectSanitiser(Set.of(new JwksLeafNodeVisitor(), new PrivateKeyLeafVisitor()));
-		Set<JsonObjectSanitiser.LeafNode> leafNodes = sanitiser.findLeafNodes(jsonObject);
+		Set<JsonObjectSanitiser.LeafNode> leafNodes = sanitiser.findLeafNodes("test", jsonObject);
 
 		assertEquals(7, leafNodes.size());
 

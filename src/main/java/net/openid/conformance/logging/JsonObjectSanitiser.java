@@ -11,12 +11,14 @@ public class JsonObjectSanitiser {
 
 	public static class LeafNode {
 
+		private final String source;
 		private JsonObject owner;
 		private JsonElement property;
 		private String key;
 		private LeafType type;
 
-		public LeafNode(JsonObject owner, JsonElement property, String key, LeafType type) {
+		public LeafNode(String source, JsonObject owner, JsonElement property, String key, LeafType type) {
+			this.source = source;
 			this.owner = owner;
 			this.property = property;
 			this.key = key;
@@ -42,6 +44,10 @@ public class JsonObjectSanitiser {
 		public String getKey() {
 			return key;
 		}
+
+		public String getSource() {
+			return source;
+		}
 	}
 
 	private final Set<JsonLeafNodeVisitor> sanitisers;
@@ -50,8 +56,8 @@ public class JsonObjectSanitiser {
 		this.sanitisers = sanitisers;
 	}
 
-	public void sanitise(JsonObject jsonObject) {
-		Set<LeafNode> leafNodes = findLeafNodes(jsonObject);
+	public void sanitise(String source, JsonObject jsonObject) {
+		Set<LeafNode> leafNodes = findLeafNodes(source, jsonObject);
 		sanitise(leafNodes);
 	}
 
@@ -65,31 +71,31 @@ public class JsonObjectSanitiser {
 			.forEach(n -> n.visit(sanitiser));
 	}
 
-	public Set<LeafNode> findLeafNodes(JsonObject jsonObject) {
+	public Set<LeafNode> findLeafNodes(String source, JsonObject jsonObject) {
 		Set<LeafNode> leafNodes = new HashSet<>();
-		findLeafNodes(leafNodes, jsonObject);
+		findLeafNodes(source, leafNodes, jsonObject);
 		return leafNodes;
 	}
 
-	private void findLeafNodes(Set<LeafNode> leaves, JsonObject object) {
+	private void findLeafNodes(String source, Set<LeafNode> leaves, JsonObject object) {
 		for(String key: object.keySet()) {
 			JsonElement element = object.get(key);
 			if(element.isJsonObject()) {
 				JsonObject maybeJwks = element.getAsJsonObject();
 				if(probablyJwks(maybeJwks)) {
-					LeafNode wrapper = new LeafNode(object, element, key, LeafType.JWKS);
+					LeafNode wrapper = new LeafNode(source, object, element, key, LeafType.JWKS);
 					leaves.add(wrapper);
 					continue;
 				}
 				else {
-					findLeafNodes(leaves, element.getAsJsonObject());
+					findLeafNodes(source, leaves, element.getAsJsonObject());
 					continue;
 				}
 			}
 			if(element.isJsonPrimitive()) {
 				JsonPrimitive primitive = (JsonPrimitive) element;
 				if(primitive.isString()) {
-					LeafNode wrapper = new LeafNode(object, element, key, LeafType.PRIVATE_KEY);
+					LeafNode wrapper = new LeafNode(source, object, element, key, LeafType.PRIVATE_KEY);
 					leaves.add(wrapper);
 				}
 			}

@@ -12,12 +12,14 @@ public class MapSanitiser {
 
 	public static class LeafNode {
 
+		private final String source;
 		private Map<String, Object> owner;
 		private Object property;
 		private String key;
 		private LeafType type;
 
-		public LeafNode(Map<String, Object> owner, Object property, String key, LeafType type) {
+		public LeafNode(String source, Map<String, Object> owner, Object property, String key, LeafType type) {
+			this.source = source;
 			this.owner = owner;
 			this.property = property;
 			this.key = key;
@@ -44,6 +46,10 @@ public class MapSanitiser {
 			sanitiser.accept(this);
 		}
 
+		public String getSource() {
+			return source;
+		}
+
 	}
 
 	private final Set<MapLeafNodeVisitor> sanitisers;
@@ -53,14 +59,14 @@ public class MapSanitiser {
 		this.sanitisers = sanitisers;
 	}
 
-	public void sanitise(Map<String, Object> map) {
-		Set<LeafNode> leafNodes = findLeafNodes(map);
+	public void sanitise(String source, Map<String, Object> map) {
+		Set<LeafNode> leafNodes = findLeafNodes(source, map);
 		sanitise(leafNodes);
 	}
 
-	public Set<LeafNode> findLeafNodes(Map<String, Object> map) {
+	public Set<LeafNode> findLeafNodes(String source, Map<String, Object> map) {
 		Set<LeafNode> leafNodes = new HashSet<>();
-		findLeafNodes(leafNodes, map);
+		findLeafNodes(source, leafNodes, map);
 		return leafNodes;
 	}
 
@@ -75,27 +81,27 @@ public class MapSanitiser {
 	}
 
 
-	private void findLeafNodes(Set<LeafNode> leaves, Map<String, Object> object) {
+	private void findLeafNodes(String source, Set<LeafNode> leaves, Map<String, Object> object) {
 		for(String key: object.keySet()) {
 			Object element = object.get(key);
 			if(element instanceof JWKSet) {
-				LeafNode wrapper = new LeafNode(object, element, key, LeafType.JWKS);
+				LeafNode wrapper = new LeafNode(source, object, element, key, LeafType.JWKS);
 				leaves.add(wrapper);
 				continue;
 			}
 			if(element instanceof JsonObject) {
 				if(probablyJwks((JsonObject) element)){
-					LeafNode wrapper = new LeafNode(object, element, key, LeafType.JWKS);
+					LeafNode wrapper = new LeafNode(source, object, element, key, LeafType.JWKS);
 					leaves.add(wrapper);
 					continue;
 				}
 			}
 			if(element instanceof Map) {
-				findLeafNodes(leaves, (Map<String, Object>) element);
+				findLeafNodes(source, leaves, (Map<String, Object>) element);
 				continue;
 			}
 
-			LeafNode wrapper = new LeafNode(object, element, key, LeafType.PRIVATE_KEY);
+			LeafNode wrapper = new LeafNode(source, object, element, key, LeafType.PRIVATE_KEY);
 			leaves.add(wrapper);
 		}
 	}

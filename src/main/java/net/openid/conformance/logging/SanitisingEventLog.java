@@ -1,6 +1,5 @@
 package net.openid.conformance.logging;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.slf4j.Logger;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static net.openid.conformance.logging.MapCopy.deepCopy;
@@ -40,7 +38,7 @@ public class SanitisingEventLog implements EventLog {
 	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
 		JsonObject ret = new JsonParser().parse(obj.toString()).getAsJsonObject();
 		LOG.info("Sanitising JsonObject in condtion {} of test {}", source, testId);
-		jsonObjectSanitiser.sanitise(ret);
+		jsonObjectSanitiser.sanitise(source, ret);
 		delegate.log(testId, source, owner, ret);
 	}
 
@@ -48,34 +46,13 @@ public class SanitisingEventLog implements EventLog {
 	public void log(String testId, String source, Map<String, String> owner, Map<String, Object> map) {
 		map = deepCopy(map);
 		LOG.info("Sanitising Map in condtion {} of test {}", source, testId);
-		mapSanitiser.sanitise(map);
+		mapSanitiser.sanitise(source, map);
 		delegate.log(testId, source, owner, map);
 	}
 
 	@Override
 	public void createIndexes() {
 		delegate.createIndexes();
-	}
-
-	private Map<String, Object> sanitise(Map<String, Object> map) {
-		Map<String, Object> ret = new HashMap<>(map);
-		for(String k: ret.keySet()) {
-			if(k.endsWith("jwks")) {
-				JsonObject jwks = (JsonObject) ret.get(k);
-				jwks = new JsonParser().parse(jwks.toString()).getAsJsonObject();
-				ret.put(k, jwks);
-				JsonArray keys = jwks.getAsJsonArray("keys");
-				JsonArray sanitisedKeys = new JsonArray();
-				jwks.add("keys", sanitisedKeys);
-				keys.forEach(jwk -> {
-					JsonObject jwkObj = jwk.getAsJsonObject();
-					JsonObject sanitisedJwk = new JsonObject();
-					sanitisedJwk.add("kid", jwkObj.get("kid"));
-					sanitisedKeys.add(sanitisedJwk);
-				});
-			}
-		}
-		return ret;
 	}
 
 }

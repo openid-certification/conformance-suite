@@ -61,7 +61,7 @@ public class MapSanitiserTests {
 		Map<String, Object> interim;
 
 		MapSanitiser mapSanitiser = new MapSanitiser(Set.of(new PrivateKeyLeafVisitor(), new JwksLeafNodeVisitor()));
-		Set<MapSanitiser.LeafNode> leafNodes = mapSanitiser.findLeafNodes(messageMap);
+		Set<MapSanitiser.LeafNode> leafNodes = mapSanitiser.findLeafNodes("test", messageMap);
 
 		assertEquals(7, leafNodes.size());
 
@@ -89,14 +89,11 @@ public class MapSanitiserTests {
 		PublicKey sanitisedPrivateKey = (PublicKey) messageMap.get("actualKey");
 		assertEquals(fourthPair.getPublic(), sanitisedPrivateKey);
 
-
 	}
 
 	private JsonObject load(String name) throws IOException {
 		String jsonString = IOUtils.resourceToString("jsonEnvironmentObjects/".concat(name), Charset.defaultCharset(), getClass().getClassLoader());
 		return new JsonParser().parse(jsonString).getAsJsonObject();
 	}
-
-
 
 }
