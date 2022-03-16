@@ -44,6 +44,7 @@ import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthor
 import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
@@ -954,7 +955,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
 
 		endTestIfRequiredParametersAreMissing();
-
+		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-BASE-4.3.2-1");
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
@@ -1054,10 +1055,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
-		if(responseMode==FAPIResponseMode.JARM) {
-			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADV-5.2.2-2");
-		} else if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
+		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
 
@@ -1155,9 +1153,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-BASE-4.3.1-13");
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-
-			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
+			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
 		}
 		if(responseMode==FAPIResponseMode.JARM) {
 			createJARMResponse();
