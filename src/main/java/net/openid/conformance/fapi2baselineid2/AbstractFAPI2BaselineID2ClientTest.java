@@ -256,7 +256,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI1FinalOPProfile.class);
-		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
+		authRequestMethod = FAPIAuthRequestMethod.PUSHED;
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
@@ -939,14 +939,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		}
-
-		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
-			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
-				callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
-			}
+		} else {
+			throw new TestFailureException(getId(), "Only PAR requests are supported.");
 		}
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
