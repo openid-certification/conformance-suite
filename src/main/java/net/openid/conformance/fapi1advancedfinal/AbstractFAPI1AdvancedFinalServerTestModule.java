@@ -44,6 +44,7 @@ import net.openid.conformance.variant.VariantSetup;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -705,7 +706,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, ConditionResult.FAILURE);
+		Optional<ConditionSequence> statusCheckingSequence = getBrazilPaymentsStatusCodeCheck();
+		call(statusCheckingSequence.orElse(
+			sequenceOf(condition(EnsureHttpStatusCodeIs200or201.class).onFail(ConditionResult.FAILURE))
+		));
 		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
@@ -888,5 +892,13 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class, ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
 
 		performPARRedirectWithRequestUri();
+	}
+
+	/**
+	 * Subclasses may have more complex needs for this, so let them provide it as a sequence
+	 * @return
+	 */
+	protected Optional<ConditionSequence> getBrazilPaymentsStatusCodeCheck() {
+		return Optional.empty();
 	}
 }
