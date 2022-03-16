@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
@@ -10,6 +11,7 @@ public class ValidateIdTokenStandardClaims extends AbstractValidateOpenIdStandar
 
 	@Override
 	@PreEnvironment(required = "id_token")
+	@PostEnvironment(required = "id_token_unknown_claims")
 	public Environment evaluate(Environment env) {
 
 		JsonObject idTokenClaims = env.getElementFromObject("id_token", "claims").getAsJsonObject().deepCopy();
@@ -41,7 +43,9 @@ public class ValidateIdTokenStandardClaims extends AbstractValidateOpenIdStandar
 			idTokenClaims.remove(e);
 		}
 
-		if (new ObjectValidator(null, STANDARD_CLAIMS).isValid(idTokenClaims)) {
+		boolean result = new ObjectValidator(null, STANDARD_CLAIMS).isValid(idTokenClaims);
+		env.putObject("id_token_unknown_claims", unknownClaims);
+		if (result) {
 			logSuccess("id_token claims are valid");
 		} else {
 			throw error("id_token claims are not valid", idTokenClaims);

@@ -20,6 +20,7 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
+		FAPI2BaselineID2TestClaimsParameterIdTokenIdentityClaims.class,
 
 		// Possible failure case
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
