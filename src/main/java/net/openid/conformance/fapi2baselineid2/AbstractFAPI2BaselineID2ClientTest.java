@@ -735,6 +735,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId));
 
 		authenticateParEndpointRequest(requestId);
+		setParAuthorizationEndpointRequestParamsForHttpMethod();
 		extractParEndpointRequest();
 		validateRequestObjectForPAREndpointRequest();
 
@@ -910,6 +911,20 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		} else {
 			//this should not happen?
 			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
+		}
+	}
+
+	/**
+	 * Saves the PAR authorization request params in case it's unsigned/unencrypted
+	 */
+	protected void setParAuthorizationEndpointRequestParamsForHttpMethod() {
+		String httpMethod = env.getString("par_endpoint_http_request", "method");
+		JsonObject httpRequestObj = env.getObject("par_endpoint_http_request");
+		if("POST".equals(httpMethod)) {
+			env.putObject("par_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+		} else {
+			//this should not happen?
+			throw new TestFailureException(getId(), "Got unexpected HTTP method to par endpoint");
 		}
 	}
 
