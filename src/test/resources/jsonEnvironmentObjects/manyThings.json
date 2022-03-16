@@ -1,0 +1,67 @@
+{
+    "something": "Not relevant",
+    "other": {
+        "key": "value"
+    },
+    "foo": {
+        "bar": {
+            "wibble": "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCCXMLdn+BVVxNbEmfsBUrTa4ppCGfcZNzUJtWOb5xb9P/svYDZZg2u1YVAVid7hKL6czF1nU1LX5Rsjk1JPRZzCsQfC67UAtd6RtqtR7CWtfjUZ2x1eTq5qB3IHmOHt3uJuuGlaUgO/+b98JykM2sJdi2wJjxPhXjqEEWOq2ly1r0LP1u/dK8C3/pf7XlSA+a0/eK3GGhYVJhe4/m1cNSMdQcjkm3jNosr7Gz81UiSOTevibLzNtA8b/spFJ5AUR/uCAp3c0rcK8jQTwJE80sJK4dhsOtPV0DGT87g0UIDY/azcyjNVfZYlOv0Bimod6Qou7i5paYljvcAqPzVg3iZAgMBAAECggEAT20pJVMVoaluF5z9SGZpEquBJ0GB1lx116TZlPEXuUdq7tj/OnXdfFqH140mfTFxA1tQFTMENxpDGmkRWcAof2td1vSNTot0sgGdltoJE6pHs1JYWLLGPvvZOWaaicQXNvFwLhIZX1o3aR1CsyDI5HjmmV6SfHj8FNBZMPXrR5X+dOFbTPHjDdEDMwFvpFTG2F08njzHpZC2ZzI9uL4ibojvLnqNdLu2M1ymdQ58WrSTiQSJ1IxtBYaZrcEt4y6n0JWJzDEzT9NEgsB+KYqcU6iLgKwfILmiv22eCDokOw3gws7nIecPVqmdD2sp1Y/wWye+JAgkuVlff8ANQXYRoQKBgQDkHPzGvPYqcU4OMK+CA9NHAr0kluqEQuxdIaRmz45cfaqtYHEiwG36TJS5/e+0h2hrHnKAI5ZyeYX7RUxLgQXSQYZs8ijX/zFJFZHjasrM7Excf+TR3IXM3x9KsbG5SPY4ViOuvCCOHFQatytjPZktVt2iyWsAFUMDQKU+rqnw1QKBgQCSTJIAyxFpZlhbLOrIYHWQAdQUO1QGj5pKWDxFxwwvh57OtOYbBJD5gmz8UPeY++w80Sarc02gNSOGsJb/YuEdSW50xc6TA+qiq6PrJuH4VaTX9t3vy7lc3f5VMNpkf0cwDoGCpzEDkXPDPeeTn4T2yyXexxfHlbNipOXmBRRqtQKBgQCzrfmV+aXVTKZ1GvhD6wtytb+SoKVdRPG1chhzOy4hwIK+SmcTPoviSowj7NfxVW90YOlD8cRBq2NTxwQPvTN+qEpgamatrL9/l9PwVGAmBkMn4T216IQkGeQmC8236ra3LXKx4lGqXroIyRsN8qlDQ1cVMJ5t1FGSsEr5Es+deQKBgQCFlXcHVGScqf/pmLT0q+cMzC6bHqUVrJAEbFb0m9CLobknI1SsvNmniij7pu69+OH3kj5N9OWfcIX02U+299F3jXJXG7sI0F2xlSoCcKmKuKDhNZ/m8k1Z97XgkdAITZNx1Pz6kLEXgfuC/gZy7Ahb1JjKt14GNrHqU4k8I81FtQKBgQC12MNUY0wlCk0NNPNTMfpjJeikZ9TzLjLdEpO5ByJoh6pKPgcknG3HwJxPa5k/JgrDtuW/KtRiCsFshKoIFcSllQ5Lv1if5qmq3h3SRlpeGE0E9/jgzRempzbBYASkERw00moXUsQsizjWNG7iTbbp5QsVf4loGHrhi0knc4njPQ=="
+        }
+    },
+    "jwks": {
+        "keys": [
+            {
+                "kty": "RSA",
+                "n": "4S-TR1GHo0O3zDj9HYfh6Yad4TLeKOs2zhxJ4ZD-3tTXdrNx5rPYa9m4W1yyOqeWloXXE305BqzWfyiUzIZUl5FVX5l9TTVd2GloHWApp_3VjR-2cRU4Qh8IUn40Pwr9We2rHnaG0CoQrC3zCpwC2uxUIzoDOG2SIEfcqe8fLYU",
+                "e": "AQAB",
+                "d": "YMWVQVzkMWF0pysGe55dk4Hqb1Dw8BzFHKZDidBJ93D4d2Z-WGqJYy_ZbknTvikvKdiyqQlzbE7yjwrdh1djGkEg5okHkrZr5bBv3gP1lZYoaK_a4baVGm9Yo1XkwNgbIhVPWER_2gXTOv4zttpFt6JYoCVUQS0b7wDvP2aDD7E",
+                "p": "-3Z2kh73J3MTj3O2wsUJ8YWE3YnGvqoB1ysJA-tcwksGjAf56GeygvU1-EFmLS4IsCDlJyKgUdwceZAzD6rgMw",
+                "q": "5T-8Zj605T6cTwPLZu6C0WTNrr6qsDn2gVsGz0Du0eCXE6v2rBRwm4is1-_qL9EhttW-AF4CFK8Ic6xEEGgjZw",
+                "dp": "C1WZnph6t3J-bTbgBANxoUtNY9bz-GAdWR99donDUpajIuixIQKbjz-SQTBhdKPgjF_PNGZhJ49uUSRoyMoA9Q",
+                "dq": "G7_sUUAT64_5ocLm0y3Z3fjiwN1Jkg1iHmRjXaERh4w1HWd6c3gB7YHM0lKzOViKSTR0TF0UyWYqkr3ue0Hvzw",
+                "qi": "sWBWoweet-KgLacB9CSwaHsWuHvwsuxT1Y_fPllVj2ce62nXB_nHT8Ya_h82dgeRpOS9P5ku2G2QsJViiKXARw",
+                "kid": "o4h6_spSiKgZGeoWnLF1suTn-1o9PQSlCp3FDw_ONCs"
+            }
+        ]
+    },
+    "batman": {
+        "sharkspray": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "n": "4S-TR1GHo0O3zDj9HYfh6Yad4TLeKOs2zhxJ4ZD-3tTXdrNx5rPYa9m4W1yyOqeWloXXE305BqzWfyiUzIZUl5FVX5l9TTVd2GloHWApp_3VjR-2cRU4Qh8IUn40Pwr9We2rHnaG0CoQrC3zCpwC2uxUIzoDOG2SIEfcqe8fLYU",
+                    "e": "AQAB",
+                    "d": "YMWVQVzkMWF0pysGe55dk4Hqb1Dw8BzFHKZDidBJ93D4d2Z-WGqJYy_ZbknTvikvKdiyqQlzbE7yjwrdh1djGkEg5okHkrZr5bBv3gP1lZYoaK_a4baVGm9Yo1XkwNgbIhVPWER_2gXTOv4zttpFt6JYoCVUQS0b7wDvP2aDD7E",
+                    "p": "-3Z2kh73J3MTj3O2wsUJ8YWE3YnGvqoB1ysJA-tcwksGjAf56GeygvU1-EFmLS4IsCDlJyKgUdwceZAzD6rgMw",
+                    "q": "5T-8Zj605T6cTwPLZu6C0WTNrr6qsDn2gVsGz0Du0eCXE6v2rBRwm4is1-_qL9EhttW-AF4CFK8Ic6xEEGgjZw",
+                    "dp": "C1WZnph6t3J-bTbgBANxoUtNY9bz-GAdWR99donDUpajIuixIQKbjz-SQTBhdKPgjF_PNGZhJ49uUSRoyMoA9Q",
+                    "dq": "G7_sUUAT64_5ocLm0y3Z3fjiwN1Jkg1iHmRjXaERh4w1HWd6c3gB7YHM0lKzOViKSTR0TF0UyWYqkr3ue0Hvzw",
+                    "qi": "sWBWoweet-KgLacB9CSwaHsWuHvwsuxT1Y_fPllVj2ce62nXB_nHT8Ya_h82dgeRpOS9P5ku2G2QsJViiKXARw",
+                    "kid": "o4h6_spSiKgZGeoWnLF1suTn-1o9PQSlCp3FDw_ONCs"
+                }
+            ]
+        }
+    },
+    "pie": {
+        "chips": {
+            "keys": "notajwks"
+        },
+        "peas": {
+            "keys": [
+                {
+                    "beans": "heinz"
+                }
+            ],
+            "tins": [
+                {
+                    "cheese": "toast"
+                }
+            ]
+        },
+        "soup": {
+            "keys": [
+                "tomato"
+            ]
+        }
+    }
+}
