@@ -5,8 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPIValidateEncryptedIdTokenHasKid extends AbstractCondition {
-
+public class ValidateEncryptedIdTokenHasKid extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "id_token")
 	public Environment evaluate(Environment env) {

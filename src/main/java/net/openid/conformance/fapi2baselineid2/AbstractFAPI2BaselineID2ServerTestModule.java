@@ -414,35 +414,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		handleSuccessfulAuthorizationEndpointResponse();
 	}
 
-	// This is only used for the id token from the authorization endpoint, the token endpoint one is verified
-	// separately (I'm not sure why)
-	protected void performIdTokenValidation() {
-
-		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-
-		performProfileIdTokenValidation();
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
-		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
-			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
-		}
-	}
-
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 		performPostAuthorizationFlow();
 	}
@@ -543,7 +514,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}

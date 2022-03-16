@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-signed-request-object-with-RS256-fails",
 	displayName = "FAPI2-Baseline-ID2: ensure signed request object with RS256 fails",
-	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the authorization server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI specification. The test must end with the authorization server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",

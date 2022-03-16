@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
-import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
+import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.ValidateIdToken;
@@ -87,28 +87,6 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
 		}
 		call(sequence);
-	}
-
-	@Override
-	protected void performIdTokenValidation() {
-		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
-
-		performProfileIdTokenValidation();
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 	}
 
 	@Override
