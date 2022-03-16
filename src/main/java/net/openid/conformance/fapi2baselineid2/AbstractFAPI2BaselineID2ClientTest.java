@@ -727,7 +727,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void extractParEndpointRequest() {
-		callAndStopOnFailure(ExtractRequestObjectFromPAREndpointRequest.class, "PAR-2.1");
+		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
@@ -739,7 +739,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		authenticateParEndpointRequest(requestId);
 		setParAuthorizationEndpointRequestParamsForHttpMethod();
 		extractParEndpointRequest();
-		validateRequestObjectForPAREndpointRequest();
+
+		if(env.containsObject("authorization_request_object")) {
+			validateRequestObjectForPAREndpointRequest();
+		}
 
 		JsonObject parResponse = createPAREndpointResponse();
 		setStatus(Status.WAITING);
