@@ -1,0 +1,58 @@
+{
+    "something": "Not relevant",
+    "other": {
+        "key": "value"
+    },
+    "foo": {
+        "bar": {
+            "wibble": {
+                "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAglzC3Z/gVVcTWxJn7AVK02uKaQhn3GTc1CbVjm+cW/T/7L2A2WYNrtWFQFYne4Si+nMxdZ1NS1+UbI5NST0WcwrEHwuu1ALXekbarUewlrX41GdsdXk6uagdyB5jh7d7ibrhpWlIDv/m/fCcpDNrCXYtsCY8T4V46hBFjqtpcta9Cz9bv3SvAt/6X+15UgPmtP3itxhoWFSYXuP5tXDUjHUHI5Jt4zaLK+xs/NVIkjk3r4my8zbQPG/7KRSeQFEf7ggKd3NK3CvI0E8CRPNLCSuHYbDrT1dAxk/O4NFCA2P2s3MozVX2WJTr9AYpqHekKLu4uaWmJY73AKj81YN4mQIDAQAB",
+                "privateKey": "<obfuscated for security>"
+            }
+        }
+    },
+    "jwks": {
+        "keys": [
+            {
+                "kty": "RSA",
+                "e": "AQAB",
+                "kid": "o4h6_spSiKgZGeoWnLF1suTn-1o9PQSlCp3FDw_ONCs",
+                "n": "4S-TR1GHo0O3zDj9HYfh6Yad4TLeKOs2zhxJ4ZD-3tTXdrNx5rPYa9m4W1yyOqeWloXXE305BqzWfyiUzIZUl5FVX5l9TTVd2GloHWApp_3VjR-2cRU4Qh8IUn40Pwr9We2rHnaG0CoQrC3zCpwC2uxUIzoDOG2SIEfcqe8fLYU"
+            }
+        ]
+    },
+    "batman": {
+        "sharkspray": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "o4h6_spSiKgZGeoWnLF1suTn-1o9PQSlCp3FDw_ONCs",
+                    "n": "4S-TR1GHo0O3zDj9HYfh6Yad4TLeKOs2zhxJ4ZD-3tTXdrNx5rPYa9m4W1yyOqeWloXXE305BqzWfyiUzIZUl5FVX5l9TTVd2GloHWApp_3VjR-2cRU4Qh8IUn40Pwr9We2rHnaG0CoQrC3zCpwC2uxUIzoDOG2SIEfcqe8fLYU"
+                }
+            ]
+        }
+    },
+    "pie": {
+        "chips": {
+            "keys": "notajwks"
+        },
+        "peas": {
+            "keys": [
+                {
+                    "beans": "heinz"
+                }
+            ],
+            "tins": [
+                {
+                    "cheese": "toast"
+                }
+            ]
+        },
+        "soup": {
+            "keys": [
+                "tomato"
+            ]
+        }
+    }
+}
