@@ -28,7 +28,7 @@ public class LeafNodeVisitorTests {
 		owner.add("key", property);
 
 		JsonLeafNodeVisitor visitor = new PrivateKeyLeafVisitor();
-		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode(owner,property, "key", LeafType.PRIVATE_KEY);
+		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode("test", owner,property, "key", LeafType.PRIVATE_KEY);
 		visitor.accept(leafNode);
 
 		assertEquals("not a private key", OIDFJSON.getString(owner.get("key")));
@@ -45,7 +45,7 @@ public class LeafNodeVisitorTests {
 		owner.add("key", property);
 
 		JsonLeafNodeVisitor visitor = new PrivateKeyLeafVisitor();
-		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode(owner,property, "key", LeafType.PRIVATE_KEY);
+		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode("test", owner,property, "key", LeafType.PRIVATE_KEY);
 		visitor.accept(leafNode);
 
 		JsonObject sanitisedKey = owner.get("key").getAsJsonObject();
@@ -67,7 +67,7 @@ public class LeafNodeVisitorTests {
 		owner.add("jwks", property);
 
 		JsonLeafNodeVisitor visitor = new PrivateKeyLeafVisitor();
-		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode(owner,property, "key", LeafType.JWKS);
+		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode("test", owner,property, "key", LeafType.JWKS);
 		visitor.accept(leafNode);
 
 		JsonObject nested = owner.get("jwks").getAsJsonObject();
@@ -95,7 +95,7 @@ public class LeafNodeVisitorTests {
 		owner.add("jwks", property);
 
 		JsonLeafNodeVisitor visitor = new PrivateKeyLeafVisitor();
-		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode(owner,property, "key", LeafType.JWKS);
+		JsonObjectSanitiser.LeafNode leafNode = new JsonObjectSanitiser.LeafNode("test", owner,property, "key", LeafType.JWKS);
 		visitor.accept(leafNode);
 
 		JsonObject nested = owner.get("jwks").getAsJsonObject();

@@ -1,9 +1,6 @@
 package net.openid.conformance.configuration;
 
-import net.openid.conformance.logging.JsonObjectSanitiser;
-import net.openid.conformance.logging.JwksLeafNodeVisitor;
-import net.openid.conformance.logging.MapSanitiser;
-import net.openid.conformance.logging.PrivateKeyLeafVisitor;
+import net.openid.conformance.logging.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,7 +16,7 @@ public class BasicConfiguration {
 
 	@Bean
 	public MapSanitiser mapSanitiser() {
-		return new MapSanitiser(Set.of(new PrivateKeyLeafVisitor(), new JwksLeafNodeVisitor()));
+		return new MapSanitiser(Set.of(new PrivateKeyLeafVisitor(), new JwksLeafNodeVisitor(), new TestConfigLeafNodeVisitor()));
 	}
 
 }
