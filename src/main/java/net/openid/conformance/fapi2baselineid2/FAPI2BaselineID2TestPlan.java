@@ -20,6 +20,7 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
+		FAPI2BaselineID2TestClaimsParameterIdentityClaims.class,
 
 		// Possible failure case
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
@@ -69,6 +70,9 @@ import java.util.Map;
 
 		// OB Brazil specific tests
 		FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails.class,
+
+		// IDMVP specific tests
+		FAPI2BaselineID2IdmvpTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
 		FAPI2BaselineID2PARAttemptReuseRequestUri.class,

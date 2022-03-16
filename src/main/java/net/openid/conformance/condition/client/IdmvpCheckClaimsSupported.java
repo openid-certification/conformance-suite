@@ -9,7 +9,7 @@ public class IdmvpCheckClaimsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";
 
-	private static final String[] EXPECTED_VALUES = {
+	public static final String[] idmvpMandatoryToSupportClaims = {
 		"name",
 		"given_name",
 		"family_name",
@@ -19,14 +19,14 @@ public class IdmvpCheckClaimsSupported extends AbstractValidateJsonArray {
 		"address"
 	};
 
-	private static final int minimumMatchesRequired = EXPECTED_VALUES.length;
+	private static final int minimumMatchesRequired = idmvpMandatoryToSupportClaims.length;
 
 	private static final String errorMessageNotEnough = "The server does not support the required claims.";
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, Arrays.asList(EXPECTED_VALUES), minimumMatchesRequired, errorMessageNotEnough);
+		return validate(env, environmentVariable, Arrays.asList(idmvpMandatoryToSupportClaims), minimumMatchesRequired, errorMessageNotEnough);
 	}
 
 }
