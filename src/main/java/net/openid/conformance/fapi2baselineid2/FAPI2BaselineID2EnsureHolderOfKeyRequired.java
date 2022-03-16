@@ -24,9 +24,9 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-ensure-mtls-holder-of-key-required",
-	displayName = "FAPI2-Baseline-ID2: ensure mtls holder of key required",
-	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a TLS certificate.",
+	testName = "fapi2-baseline-id2-ensure-holder-of-key-required",
+	displayName = "FAPI2-Baseline-ID2: ensure holder of key required",
+	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a holder of key mechanism (i.e. without DPoP / MTLS).",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -45,7 +45,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 
@@ -114,7 +114,12 @@ public class FAPI2BaselineID2EnsureMTLSHolderOfKeyRequired extends AbstractFAPI2
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 
-		callAndStopOnFailure(RemoveMTLSCertificates.class);
+		if (isDpop) {
+			// nothing to do; creating the new request cleared out any previous
+			// dpop header
+		} else {
+			callAndStopOnFailure(RemoveMTLSCertificates.class);
+		}
 
 		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");

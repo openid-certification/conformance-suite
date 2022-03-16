@@ -1,6 +1,7 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -8,7 +9,9 @@ import net.openid.conformance.condition.client.CheckTokenEndpointCacheHeaders;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckTokenTypeIsBearer;
+import net.openid.conformance.condition.client.CheckTokenTypeIsDpop;
 import net.openid.conformance.condition.client.CompareIdTokenClaims;
+import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
@@ -19,6 +22,9 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenRespon
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
+import net.openid.conformance.condition.client.GenerateDpopKey;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -34,11 +40,17 @@ import net.openid.conformance.sequence.ConditionSequence;
 public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 	private boolean secondClient;
+	private boolean isDpop;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false);
+	}
+
+	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
 		this.secondClient = secondClient;
+		this.isDpop = isDpop;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
@@ -58,6 +70,16 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		//wait 1 second to make sure that iat values will be different
 		callAndStopOnFailure(WaitForOneSecond.class);
 
+		if (isDpop) {
+			// we generate a new key here, to check the server handles that correctly - so this isn't suitable for
+			// public clients where the refresh token is bound to the dpop key
+			callAndStopOnFailure(GenerateDpopKey.class);
+			callAndStopOnFailure(CreateDpopClaims.class);
+			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+			callAndStopOnFailure(SignDpopProof.class);
+			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+		}
+
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, ConditionResult.FAILURE, "RFC6749-5.1");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "RFC6749-5.1");
@@ -66,7 +88,11 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(CheckTokenTypeIsBearer.class, ConditionResult.FAILURE, "FAPI-R-6.2.2-1", "FAPI1-BASE-6.2.2-1");
+		if (isDpop) {
+			callAndContinueOnFailure(CheckTokenTypeIsDpop.class, ConditionResult.FAILURE, "DPOP-5");
+		} else {
+			callAndContinueOnFailure(CheckTokenTypeIsBearer.class, ConditionResult.FAILURE, "FAPI-R-6.2.2-1", "FAPI1-BASE-6.2.2-1");
+		}
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16", "FAPI1-BASE-5.2.2-16");
 		callAndContinueOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "RFC6749-A.12");
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-6", "RFC6749-5.1");
