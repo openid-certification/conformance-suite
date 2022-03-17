@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
+import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
@@ -944,6 +945,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		endTestIfRequiredParametersAreMissing();
 		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-BASE-4.3.2-1");
+		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-BASE-4.3.2-5");
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
