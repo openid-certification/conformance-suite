@@ -41,7 +41,7 @@ public class FAPI1AdvancedFinalBrazilDCRClientDeletion extends AbstractFAPI1Adva
 
 	protected void performClientCredentialsGrant() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
 		} else {
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
