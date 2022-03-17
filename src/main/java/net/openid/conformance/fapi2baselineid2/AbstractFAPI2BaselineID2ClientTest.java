@@ -158,6 +158,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -179,7 +181,9 @@ import javax.servlet.http.HttpSession;
 	ClientAuthType.class,
 	FAPI1FinalOPProfile.class,
 	FAPIResponseMode.class,
-	FAPIJARMType.class
+	FAPIJARMType.class,
+	FAPI2AuthRequestMethod.class,
+	FAPI2SenderConstrainMethod.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -219,6 +223,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected FAPIJARMType jarmType;
 
+	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
+
+	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
+
 	protected boolean startingShutdown = false;
 
 	/**
@@ -253,6 +261,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
+		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
+		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
