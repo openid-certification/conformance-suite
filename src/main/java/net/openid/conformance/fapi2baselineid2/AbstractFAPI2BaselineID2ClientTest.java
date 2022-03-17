@@ -972,11 +972,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
 		}
 
-		if(responseMode!=FAPIResponseMode.JARM && "yes".equals(isOpenIdScopeRequested)) {
-			//issueAccessToken();
-			issueIdToken(true);
-		}
-
 		/*
 		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
 			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
