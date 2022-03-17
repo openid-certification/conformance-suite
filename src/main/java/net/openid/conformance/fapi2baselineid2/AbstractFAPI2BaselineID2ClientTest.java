@@ -177,7 +177,6 @@ import javax.servlet.http.HttpSession;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI1FinalOPProfile.class,
-	FAPIAuthRequestMethod.class,
 	FAPIResponseMode.class,
 	FAPIJARMType.class
 })
@@ -203,7 +202,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
@@ -212,7 +210,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	// Controls which endpoints we should expose to the client
 	protected FAPI1FinalOPProfile profile;
 
-	protected FAPIAuthRequestMethod authRequestMethod;
+	protected boolean isPar = true;
 
 	protected FAPIResponseMode responseMode;
 
@@ -251,7 +249,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI1FinalOPProfile.class);
-		authRequestMethod = FAPIAuthRequestMethod.PUSHED;
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
@@ -281,9 +278,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
-
-		if(configureAuthRequestMethodSteps!=null) {
-			call(sequence(configureAuthRequestMethodSteps));
+		if(isPar) {
+			call(sequence(AddPARToServerConfiguration.class));
 		}
 
 		if(configureResponseModeSteps!=null) {
@@ -309,7 +305,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
 
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		if(isPar) {
 			exposeMtlsPath("par_endpoint", "par");
 		}
 
@@ -435,7 +431,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		} else if (path.equals("par") && isPar) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
@@ -477,7 +473,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		} else if (path.equals("par") && isPar) {
 			return parEndpoint(requestId);
 		}
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
@@ -874,7 +870,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
+		if(isPar) {
 			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
 		}
 
@@ -935,7 +931,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		if(isPar) {
 			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
 		} else {
 			throw new TestFailureException(getId(), "Only PAR requests are supported.");
@@ -1019,7 +1015,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
+		if(isPar) {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
 				"FAPI1-ADV-5.2.3-16");
 		} else {
@@ -1288,16 +1284,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		//authorizationCodeGrantTypeProfileSteps = null;
 		//authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
-	}
-
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "by_value")
-	public void setupAuthRequestMethodByValue() {
-		configureAuthRequestMethodSteps = null;
-	}
-
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "pushed")
-	public void setupAuthRequestMethodPushed() {
-		configureAuthRequestMethodSteps = AddPARToServerConfiguration.class;
 	}
 
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")

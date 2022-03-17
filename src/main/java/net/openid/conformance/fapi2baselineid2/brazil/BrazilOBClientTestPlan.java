@@ -120,18 +120,12 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		parModules.addAll(byValueModules);
 		parModules.add(FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR.class);
 
-		List<TestPlan.Variant> variantListByValue = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
-			new TestPlan.Variant(FAPIAuthRequestMethod.class, "by_value")
-		);
-		List<TestPlan.Variant> variantListPushed = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
-			new TestPlan.Variant(FAPIAuthRequestMethod.class, "pushed")
+		List<TestPlan.Variant> brazilVariant = List.of(
+			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
 		);
 
 		return List.of(
-			new TestPlan.ModuleListEntry(byValueModules, variantListByValue),
-			new TestPlan.ModuleListEntry(parModules, variantListPushed)
+			new TestPlan.ModuleListEntry(byValueModules, brazilVariant)
 		);
 
 	}
