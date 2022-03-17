@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpHeaders;
 
@@ -10,7 +11,23 @@ public abstract class AbstractCallProtectedResourceWithBearerToken extends Abstr
 
 		HttpHeaders headers = super.getHeaders(env);
 
-		headers.set("Authorization", "Bearer " + getAccessToken(env));
+
+		String accessToken = env.getString("access_token", "value");
+		if (Strings.isNullOrEmpty(accessToken)) {
+			throw error("Access token not found");
+		}
+
+		String tokenType = env.getString("access_token", "type");
+		if (Strings.isNullOrEmpty(tokenType)) {
+			throw error("Token type not found");
+		} else if (tokenType.equalsIgnoreCase("Bearer")) {
+			headers.set("Authorization", "Bearer " + accessToken);
+		} else if (tokenType.equalsIgnoreCase("DPoP")) {
+			headers.set("Authorization", "DPoP " + accessToken);
+		} else {
+			throw error("Access token is neither a bearer nor a dpop token", args("token_type", tokenType));
+		}
+
 
 		return headers;
 	}

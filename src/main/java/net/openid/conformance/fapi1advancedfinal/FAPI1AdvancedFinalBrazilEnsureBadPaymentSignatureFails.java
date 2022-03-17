@@ -44,7 +44,7 @@ public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends Abst
 		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, true);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments, true);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));
