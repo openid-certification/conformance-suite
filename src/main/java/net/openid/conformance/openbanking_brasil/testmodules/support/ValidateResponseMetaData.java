@@ -28,21 +28,13 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
 		JsonElement apiResponse = bodyFrom(env);
 
-
-
         if (!JsonHelper.ifExists(apiResponse, "$.data")) {
 			apiResponse = env.getObject("consent_endpoint_response");
 		}
 
-
-
-
-        log("Debug apiResponse:", Map.of("API response", apiResponse.toString()));
-
         JsonElement dataElement = findByPath(apiResponse, "$.data");
         int metaTotalRecords = 1;
         int metaTotalPages = 1;
-
 
         if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
             metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
