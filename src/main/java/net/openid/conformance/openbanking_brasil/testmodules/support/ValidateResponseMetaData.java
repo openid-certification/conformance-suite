@@ -2,9 +2,11 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.field.DatetimeField;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -17,6 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
@@ -25,12 +28,16 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
 		JsonElement apiResponse = bodyFrom(env);
 
+
+
         if (!JsonHelper.ifExists(apiResponse, "$.data")) {
 			apiResponse = env.getObject("consent_endpoint_response");
 		}
 
-        log("Debug apiResponse:");
-		log(apiResponse.toString());
+
+
+
+        log("Debug apiResponse:", Map.of("API response", apiResponse.toString()));
 
         JsonElement dataElement = findByPath(apiResponse, "$.data");
         int metaTotalRecords = 1;
@@ -59,6 +66,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             } catch (ParseException e) {
                 throw error("requestDateTime is not in valid RFC 3339 format.");
             }
+
+			validateMetaDateTimeFormat(metaRequestDateTime);
 
         }
 
@@ -188,6 +197,14 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
         }
 
         return env;
+	}
+
+
+	private void validateMetaDateTimeFormat(String requestDateTime){
+			if(!requestDateTime.matches(DatetimeField.ALTERNATIVE_PATTERN)){
+				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
+			}
+			logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
 	}
 
     protected MultiValueMap<String, String> convertQueryStringParamsToMap(List<NameValuePair> parameters) {

@@ -1,5 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support;
-
+package net.openid.conformance.openbanking_brasil.plans;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
