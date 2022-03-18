@@ -33,7 +33,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> MODALITY = Sets.newHashSet("FUNERAL", "PRESTAMISTA", "VIAGEM", "EDUCACIONAL", "DOTAL", "ACIDENTES_PESSOAIS", "VIDA", "PERDA_CERTIFICADO_HABILITACAO_VOO", "DOENCAS_GRAVES_DOENCA_TERMINAL", "DESEMPREGO_PERDA_RENDA", "EVENTOS_ALEATORIOS", "PECULIO", "PENSAO_PRAZO_CERTO", "PENSAO_MENORES_21", "PENSAO_MENORES_24", "PENSAO_CONJUGE_VITALICIA", "PENSAO_CONJUGE_TEMPORARIA");
 	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL", "MICROSSEGURO");
-	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "ATE_FIM_CICLO_DETERMINADO");
+	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "FIM_CICLO_DETERMINADO");
 	public static final Set<String> TYPE = Sets.newHashSet("MORTE", "INVALIDEZ");
 	public static final Set<String> UNIT = Sets.newHashSet("DIAS", "MESES", "NAO_APLICA");
 	public static final Set<String> INDEX = Sets.newHashSet("IPCA", "IGP_M", "INPC");
