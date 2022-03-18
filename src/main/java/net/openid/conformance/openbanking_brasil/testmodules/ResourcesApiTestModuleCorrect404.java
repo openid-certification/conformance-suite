@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
-import net.openid.conformance.openbanking_brasil.plans.PrepareAllCustomerRelatedConsentsForResource404HappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllCustomerRelatedConsentsForResource404HappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
