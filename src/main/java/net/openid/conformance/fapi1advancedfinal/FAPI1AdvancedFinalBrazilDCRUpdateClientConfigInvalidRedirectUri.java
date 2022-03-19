@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazildcr-update-client-config-invalid-redirect-uri",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config invalid redirect uri",
-	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. The test will then use a PUT to try and add a redirect uri not in the software statement, the server must return an 'invalid_client_metadata' error.",
+	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and then use a PUT to try and add a redirect uri not in the software statement, the server must return an 'invalid_client_metadata' error.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
