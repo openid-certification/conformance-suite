@@ -156,6 +156,7 @@ import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticati
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -824,23 +825,14 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
-		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2.1-6");
-		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
+		call(new PerformStandardIdTokenChecks());
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		performProfileIdTokenValidation();
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
-
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI-R-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 
 		// This is only required in push mode; but if the server for some reason includes it for ping/poll it shoud
 		// still be correct

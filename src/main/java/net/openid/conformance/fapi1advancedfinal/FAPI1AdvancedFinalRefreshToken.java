@@ -22,6 +22,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateRefreshTokenNotRotated;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -92,25 +93,15 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 
 	@Override
 	protected void performIdTokenValidation() {
-		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
+		call(new PerformStandardIdTokenChecks());
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
-
 		performProfileIdTokenValidation();
 
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 	}
 
 	@Override
