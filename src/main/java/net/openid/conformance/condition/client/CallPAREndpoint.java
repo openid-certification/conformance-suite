@@ -48,9 +48,6 @@ public class CallPAREndpoint extends AbstractCondition {
 			form.add(key, OIDFJSON.getString(formJson.get(key)));
 		}
 
-		//Subclasses may add additional form parameters if any
-		addAdditionalParams(form);
-
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
@@ -139,10 +136,6 @@ public class CallPAREndpoint extends AbstractCondition {
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
-	}
-
-	protected void addAdditionalParams(MultiValueMap <String, String> form) {
-		//do nothing by default
 	}
 
 	protected Environment handleClientException(Environment env, RestClientException e) {
