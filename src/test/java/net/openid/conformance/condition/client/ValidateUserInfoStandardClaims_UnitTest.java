@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
@@ -129,10 +130,37 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithEmptyName() {
+		userInfo.addProperty("name", "");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithBlankName() {
+		userInfo.addProperty("name", " ");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithNullName() {
+		userInfo.add("name", JsonNull.INSTANCE);
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithEmailVerifiedIsNotBoolean() {
 		userInfo.addProperty("email_verified", "true");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithEmailVerifiedIsNull() {
+		userInfo.add("email_verified", JsonNull.INSTANCE);
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
 	}

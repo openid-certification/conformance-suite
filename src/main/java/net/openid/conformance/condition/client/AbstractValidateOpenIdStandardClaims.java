@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,14 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 
 		@Override
 		public boolean isValid(JsonElement elt) {
-			return elt.isJsonPrimitive() && elt.getAsJsonPrimitive().isString();
+			// If a Claim is not returned, that Claim Name SHOULD be omitted from the JSON object representing the Claims; it SHOULD NOT be present with a null or empty string value.
+			if (!elt.isJsonPrimitive() || !elt.getAsJsonPrimitive().isString()) {
+				return false;
+			}
+			if (OIDFJSON.getString(elt).isBlank()) {
+				return false;
+			}
+			return true;
 		}
 	};
 	private static ElementValidator VALIDATE_BOOLEAN = new ElementValidator() {
