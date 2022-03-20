@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
@@ -132,6 +133,21 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithEmailVerifiedIsNotBoolean() {
 		userInfo.addProperty("email_verified", "true");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithAddress() {
+		userInfo.addProperty("address", "true");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithAddressCountry() {
+		JsonObject address = userInfo.get("address").getAsJsonObject();
+		address.addProperty("country", 3);
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
 	}

@@ -8,14 +8,6 @@ import java.util.Map;
 
 public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondition {
 	@SuppressWarnings("serial")
-	private static final Map<String, ElementValidator> ADDRESS_CLAIMS = new HashMap<>() {{
-		put("formatted", VALIDATE_STRING);
-		put("street_address", VALIDATE_STRING);
-		put("locality", VALIDATE_STRING);
-		put("region", VALIDATE_STRING);
-		put("postal_code", VALIDATE_STRING);
-		put("country", VALIDATE_STRING);
-	}};
 	private static ElementValidator VALIDATE_STRING = new ElementValidator() {
 		@Override
 		public String getDescription() {
@@ -60,6 +52,14 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 			return elt.isJsonObject();
 		}
 	};
+	private static final Map<String, ElementValidator> ADDRESS_CLAIMS = new HashMap<>() {{
+		put("formatted", VALIDATE_STRING);
+		put("street_address", VALIDATE_STRING);
+		put("locality", VALIDATE_STRING);
+		put("region", VALIDATE_STRING);
+		put("postal_code", VALIDATE_STRING);
+		put("country", VALIDATE_STRING);
+	}};
 	@SuppressWarnings("serial")
 	protected final Map<String, ElementValidator> STANDARD_CLAIMS = new HashMap<>() {{
 		put("sub", VALIDATE_STRING);
