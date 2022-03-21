@@ -15,6 +15,12 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (!isSecondClient()) {
 			// Try the second client
