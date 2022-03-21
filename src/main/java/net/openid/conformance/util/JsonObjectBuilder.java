@@ -16,6 +16,11 @@ public class JsonObjectBuilder {
 		return this;
 	}
 
+	public JsonObjectBuilder addField(String path, int value) {
+		addField(jsonObject, path, value);
+		return this;
+	}
+
 	public JsonObjectBuilder addFields(String path, Map<String, String> values) {
 		addFields(jsonObject, path, values);
 		return this;
@@ -25,18 +30,51 @@ public class JsonObjectBuilder {
 		return jsonObject;
 	}
 
-	public static void addField(JsonObject object, String path, String value) {
+	public static void addField(JsonObject object, String path, Object value) {
 		Iterable<String> parts = Splitter.on('.').split(path);
 		Iterator<String> it = parts.iterator();
 
 		while(it.hasNext()) {
 			String identifier = it.next();
 			if(!it.hasNext()) {
-				object.addProperty(identifier, value);
+				if(value instanceof Number) {
+					addProperty(object, identifier,(Number) value);
+					continue;
+				}
+				if(value instanceof Boolean) {
+					addProperty(object, identifier,(Boolean) value);
+					continue;
+				}
+				if(value instanceof String) {
+					addProperty(object, identifier,(String) value);
+					continue;
+				}
+				if(value instanceof Character) {
+					addProperty(object, identifier,(Character) value);
+					continue;
+				}
+				throw new RuntimeException("Unable to add property of type " + value.getClass());
+
 			} else {
 				object = getOrCreate(object, identifier);
 			}
 		}
+	}
+
+	private static void addProperty(JsonObject object, String identifier, String value) {
+		object.addProperty(identifier, value);
+	}
+
+	private static void addProperty(JsonObject object, String identifier, Number value) {
+		object.addProperty(identifier, value);
+	}
+
+	private static void addProperty(JsonObject object, String identifier, Boolean value) {
+		object.addProperty(identifier, value);
+	}
+
+	private static void addProperty(JsonObject object, String identifier, Character value) {
+		object.addProperty(identifier, value);
 	}
 
 	public static void addFields(JsonObject object, String path, Map<String, String> values) {
