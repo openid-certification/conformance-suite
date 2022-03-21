@@ -43,6 +43,7 @@ import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigning
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
+import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
@@ -1072,6 +1073,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
