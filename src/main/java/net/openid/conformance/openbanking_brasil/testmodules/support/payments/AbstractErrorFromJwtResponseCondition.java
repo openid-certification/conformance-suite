@@ -27,20 +27,7 @@ public abstract class AbstractErrorFromJwtResponseCondition extends AbstractCond
 					JsonArray errors = claims.getAsJsonArray("errors");
 					JsonObject meta = claims.getAsJsonObject("meta");
 					validateErrorAndMetaFields(errors, meta);
-					AtomicBoolean passed = new AtomicBoolean(false);
-					errors.forEach(e -> {
-						JsonObject error = (JsonObject) e;
-						String errorCode = OIDFJSON.getString(error.get("code"));
-						if(errorCode.equals(errorToExpect)) {
-							passed.set(true);
-						}
-						if(!passed.get()) {
-							throw error("Error code was not " + errorToExpect, Map.of("error", errorCode));
-						} else {
-							logSuccess("Successfully found error code  " + errorToExpect);
-						}
-					});
-
+					checkErrorPresent(errors, errorToExpect);
 				} catch (ParseException e) {
 					throw error("Could not parse JWT");
 				}
@@ -48,6 +35,23 @@ public abstract class AbstractErrorFromJwtResponseCondition extends AbstractCond
 			default:
 				log("Response status was not 422 - not taking any action", Map.of("status", status));
 				break;
+		}
+	}
+
+	private void checkErrorPresent(JsonArray errors, String errorToExpect) {
+		final AtomicBoolean found = new AtomicBoolean(false);
+		errors.forEach(e -> {
+			JsonObject error = (JsonObject) e;
+			String errorCode = OIDFJSON.getString(error.get("code"));
+			if(errorCode.equals(errorToExpect)) {
+				found.set(true);
+				return;
+			}
+		});
+		if(found.get()) {
+			logSuccess("Successfully found error code  " + errorToExpect);
+		} else{
+			throw error("Error code was not as expected", Map.of("expected", errorToExpect, "errors", errors));
 		}
 	}
 
