@@ -25,31 +25,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 				throw error("Unknown locationToRequestClaim value, this is a bug in the test condition");
 		}
 
-		JsonObject claims;
-		if (authorizationEndpointRequest.has("claims")) {
-			JsonElement claimsElement = authorizationEndpointRequest.get("claims");
-			if (claimsElement.isJsonObject()) {
-				claims = claimsElement.getAsJsonObject();
-			} else {
-				throw error("Invalid claims entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
-			}
-		} else {
-			claims = new JsonObject();
-			authorizationEndpointRequest.add("claims", claims);
-		}
-
-		JsonObject claimsIdToken;
-		if (claims.has(locationStr)) {
-			JsonElement idTokenElement = claims.get(locationStr);
-			if (idTokenElement.isJsonObject()) {
-				claimsIdToken = idTokenElement.getAsJsonObject();
-			} else {
-				throw error("Invalid "+locationStr+" entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
-			}
-		} else {
-			claimsIdToken = new JsonObject();
-			claims.add(locationStr, claimsIdToken);
-		}
+		JsonObject claimsIdToken = getClaimsForLocation(authorizationEndpointRequest, locationStr);
 
 		JsonObject claimBody = new JsonObject();
 		if (value != null) {
@@ -63,5 +39,34 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 		logSuccess("Added "+claim+" claim to authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
 
 		return env;
+	}
+
+	protected JsonObject getClaimsForLocation(JsonObject authorizationEndpointRequest, String locationStr) {
+		JsonObject claims;
+		if (authorizationEndpointRequest.has("claims")) {
+			JsonElement claimsElement = authorizationEndpointRequest.get("claims");
+			if (claimsElement.isJsonObject()) {
+				claims = claimsElement.getAsJsonObject();
+			} else {
+				throw error("Invalid claims entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
+			}
+		} else {
+			claims = new JsonObject();
+			authorizationEndpointRequest.add("claims", claims);
+		}
+
+		JsonObject identityClaimsForRequestedLocation;
+		if (claims.has(locationStr)) {
+			JsonElement idTokenElement = claims.get(locationStr);
+			if (idTokenElement.isJsonObject()) {
+				identityClaimsForRequestedLocation = idTokenElement.getAsJsonObject();
+			} else {
+				throw error("Invalid "+ locationStr +" entry in authorization_endpoint_request", args("authorization_endpoint_request", authorizationEndpointRequest));
+			}
+		} else {
+			identityClaimsForRequestedLocation = new JsonObject();
+			claims.add(locationStr, identityClaimsForRequestedLocation);
+		}
+		return identityClaimsForRequestedLocation;
 	}
 }
