@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-brazildcr-update-client-config-bad-jwks-uri",
 	displayName = "FAPI2-Baseline-ID2: Brazil DCR update client config",
-	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. The test will then use a PUT to try and change the jwks_uri to an invalid one, the server must return an 'invalid_client_metadata' error.",
+	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and then use a PUT to try and change the jwks_uri to an invalid one, the server must return an 'invalid_client_metadata' error.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",

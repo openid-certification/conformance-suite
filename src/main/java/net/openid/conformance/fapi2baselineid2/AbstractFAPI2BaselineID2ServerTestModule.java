@@ -509,7 +509,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
 
-		performTokenEndpointIdTokenExtraction();
+		// code flow - all hashes are optional.
+		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
 		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
 
 		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
@@ -584,14 +586,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		if (profileIdTokenValidationSteps != null) {
 			call(sequence(profileIdTokenValidationSteps));
 		}
-	}
-
-	protected void performTokenEndpointIdTokenExtraction() {
-		/* code id_token flow - we already had an id_token from the authorization endpoint,
-		 * so c_hash and s_hash are optional.
-		 */
-		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
-		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
 	}
 
 	protected void updateResourceRequest() {
@@ -683,10 +677,12 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-10");
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
+			CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		if (!isSecondClient()) {
-			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
+				EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
 		if (brazilPayments) {
