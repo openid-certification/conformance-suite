@@ -81,6 +81,7 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
         oidcc_test_config_json = json.loads(oidcc_test_config)
     all_plan_results = []
     overall_starttime = time.time()
+    parsed_config = json.loads(json_config)
 
     for test_plan_config in oidcc_test_config_json['tests']:
         client_metadata_defaults = test_plan_config['client_metadata_defaults']
@@ -130,7 +131,8 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
                 state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
                 if state == "WAITING":
-                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+                    alias = parsed_config["alias"]
+                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
                     print('ISSUER {}'.format(oidcc_issuer_str))
                     print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
 
@@ -256,7 +258,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
-        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope))
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config))
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
@@ -278,7 +280,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     return plan_results
 
 
-async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope):
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config):
     module=moduledict['testModule']
     module_with_variants = get_string_name_for_module_with_variant(moduledict)
     test_start_time = time.time()
@@ -315,7 +317,15 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                 if brazil_client_scope:
                     os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
                 profile = variant['fapi_profile']
-                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                alias = parsed_config["alias"]
+                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
+                os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
+                os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/consents/v1/consents'
+                os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
+                os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
+                os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
+
                 os.environ['FAPI_PROFILE'] = profile
                 if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
                     os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
