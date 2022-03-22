@@ -2,16 +2,23 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-client-test-plan",
 	displayName = "FAPI2-Baseline-ID2: Relying Party (client test) - INCORRECT/INCOMPLETE, DO NOT USE",
-	profile = TestPlan.ProfileNames.rptest,
-	testModules = {
+	profile = TestPlan.ProfileNames.rptest
+)
+public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
+
+	public static final List<Class<? extends TestModule>> testModules = List.of(
 		FAPI2BaselineID2ClientTest.class,
 		FAPI2BaselineID2ClientTestEncryptedIdToken.class,
 		FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15.class,
@@ -39,9 +46,8 @@ import java.util.Map;
 		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
 		FAPI2BaselineID2ClientRefreshTokenTest.class
-	}
-)
-public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
+	);
+
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
@@ -106,7 +112,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				break;
 			case "jarm":
 				certProfile += ", JARM";
-				switch(jarmType) {
+				switch (jarmType) {
 					case "oidc":
 						certProfile += " (OpenID Connect)";
 						break;
@@ -122,5 +128,15 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 
 
 		return certProfile;
+	}
+
+	public static List<ModuleListEntry> testModulesWithVariants() {
+		List<TestPlan.Variant> variant = List.of(
+		);
+
+		return List.of(
+			new TestPlan.ModuleListEntry(testModules, variant)
+		);
+
 	}
 }
