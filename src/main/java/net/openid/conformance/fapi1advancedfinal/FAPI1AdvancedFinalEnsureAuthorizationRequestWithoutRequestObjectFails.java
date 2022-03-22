@@ -52,7 +52,7 @@ public class FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutRequestObjectFai
 
 	@Override
 	protected void performAuthorizationFlow() {
-		isPar = false; // we're passing a non-request object to the authorization, so we never want to call par endpoint
+		isPar = Troolean.ISNT; // we're passing a non-request object to the authorization, so we never want to call par endpoint
 		super.performAuthorizationFlow();
 	}
 
