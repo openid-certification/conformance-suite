@@ -20,11 +20,6 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		FAPI2BaselineID2ClientTest.class,
-		FAPI2BaselineID2ClientTestEncryptedIdToken.class,
-		FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15.class,
-		FAPI2BaselineID2ClientTestInvalidSHash.class,
-		FAPI2BaselineID2ClientTestInvalidCHash.class,
-		FAPI2BaselineID2ClientTestInvalidNonce.class,
 		FAPI2BaselineID2ClientTestInvalidIss.class,
 		FAPI2BaselineID2ClientTestInvalidAud.class,
 		FAPI2BaselineID2ClientTestInvalidSecondaryAud.class,
@@ -36,13 +31,9 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestIatIsWeekInPast.class,
 		FAPI2BaselineID2ClientTestInvalidMissingAud.class,
 		FAPI2BaselineID2ClientTestInvalidMissingIss.class,
-		FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
-		FAPI2BaselineID2ClientTestInvalidMissingSHash.class,
 		FAPI2BaselineID2ClientTestValidAudAsArray.class,
-		FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse.class,
 		FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse.class,
 		// OB systems specific tests
-		FAPI2BaselineID2ClientTestNoAtHash.class,
 		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
 		FAPI2BaselineID2ClientRefreshTokenTest.class
