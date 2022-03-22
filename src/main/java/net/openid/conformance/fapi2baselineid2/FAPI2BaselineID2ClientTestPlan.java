@@ -50,8 +50,6 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 
-		String certProfile = null;
-
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
@@ -62,19 +60,20 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
+		String certProfile = "FAPI2BaselineID2 ";
+
 		switch (profile) {
 			case "plain_fapi":
-				certProfile = "FAPI";
 				break;
 			case "openbanking_uk":
-				certProfile = "UK-OB";
+				certProfile += " UK-OB";
 				if (par || jarm) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "consumerdataright_au":
-				certProfile = "AU-CDR";
+				certProfile += " AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -88,7 +87,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				return "Not a conformance profile. Please use 'FAPI2-Baseline-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 		}
 
-		certProfile += " FAPI2BaselineID2. RP w/";
+		certProfile += " RP w/";
 
 		switch (clientAuth) {
 			case "private_key_jwt":
@@ -125,7 +124,6 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				}
 				break;
 		}
-
 
 		return certProfile;
 	}

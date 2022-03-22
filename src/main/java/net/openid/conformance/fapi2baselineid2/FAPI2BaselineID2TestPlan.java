@@ -94,8 +94,6 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 
-		String certProfile = null;
-
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
@@ -105,9 +103,10 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
+		String certProfile = "FAPI2BaselineID2 ";
+
 		switch (profile) {
 			case "plain_fapi":
-				certProfile = "FAPI";
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
@@ -132,7 +131,7 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				break;
 		}
 
-		certProfile += " Adv. OP w/";
+		certProfile += " OP w/";
 
 		switch (clientAuth) {
 			case "private_key_jwt":
