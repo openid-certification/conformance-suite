@@ -25,6 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2{
 	@Override
 	public void start() {
-		fireTestFinished();
+		setStatus(Status.RUNNING);
+		super.onPostAuthorizationFlowComplete();
 	}
 }

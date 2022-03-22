@@ -25,6 +25,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth extends FAPI1AdvancedFin
 
 	@Override
 	public void start() {
-		fireTestFinished();
+		setStatus(Status.RUNNING);
+		super.onPostAuthorizationFlowComplete();
 	}
 }

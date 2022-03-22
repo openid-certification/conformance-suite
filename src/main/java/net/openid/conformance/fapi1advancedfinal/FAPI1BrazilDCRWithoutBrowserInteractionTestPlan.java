@@ -20,19 +20,19 @@ public class FAPI1BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth.class, //TODO Fields
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth.class, //TODO Fields
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth.class, //TODO Fields
+					FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth.class,
 					FAPI1AdvancedFinalBrazilDCRClientDeletion.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
 					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
 					FAPI1AdvancedFinalBrazilDCRNoMTLS.class,
 					FAPI1AdvancedFinalBrazilDCRBadMTLS.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth.class, //TODO Fields, Confirm Changes
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth.class,
 					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
 					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class, //TODO Ask Erick
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
