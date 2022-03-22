@@ -40,7 +40,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone ex
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if(isPar) {
+		if(isPar.isTrue()) {
 			allowPlainErrorResponseForJarm = true;
 		}
 	}

@@ -50,8 +50,8 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if (isBrazil) {
-			if (brazilPayments) {
+		if (isBrazil.isTrue()) {
+			if (brazilPayments.isTrue()) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 			}
 		}
@@ -81,7 +81,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 	}
 
 	protected void updateResourceRequest() {
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			// we use the idempotency header to allow us to make a request more than once; however it is required
 			// that a new jwt is sent in each retry, so update jti/iat & resign
 			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
@@ -105,7 +105,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 		// try different, valid accept headers to verify server accepts them
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			callAndStopOnFailure(SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest.class);
 			callAndStopOnFailure(SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest.class);
 		} else {
@@ -115,7 +115,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
 
@@ -125,7 +125,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
 

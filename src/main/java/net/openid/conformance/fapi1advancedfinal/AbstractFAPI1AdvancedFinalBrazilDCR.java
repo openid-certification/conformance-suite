@@ -138,7 +138,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
 
 		callAndStopOnFailure(AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest.class);
-		if (!jarm) {
+		if (!jarm.isTrue()) {
 			// implicit is only required when id_token is returned in frontchannel
 			callAndStopOnFailure(AddImplicitGrantTypeToDynamicRegistrationRequest.class);
 		}
@@ -151,7 +151,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 		addJwksToRequest();
 		callAndStopOnFailure(AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment.class);
-		if (jarm) {
+		if (jarm.isTrue()) {
 			callAndStopOnFailure(SetResponseTypeCodeInDynamicRegistrationRequest.class);
 		} else {
 			callAndStopOnFailure(SetResponseTypeCodeIdTokenInDynamicRegistrationRequest.class);

@@ -76,12 +76,31 @@ import java.util.function.Supplier;
 })
 public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends AbstractRedirectServerTestModule {
 
+	protected enum Troolean {
+
+		IS,
+		ISNT,
+		ISNT_CONFIGURED_YET;
+
+		boolean isTrue() {
+			if(this == ISNT_CONFIGURED_YET) {
+				throw new RuntimeException("This test should have configured a value but hasn't");
+			}
+			return this == IS;
+		}
+
+		static Troolean configure(boolean intent) {
+			return intent ? IS : ISNT;
+		}
+
+	}
+
 	protected int whichClient;
-	protected Boolean jarm;
+	protected Troolean jarm = Troolean.ISNT_CONFIGURED_YET;
 	protected boolean allowPlainErrorResponseForJarm = false;
-	protected Boolean isPar;
-	protected Boolean isBrazil;
-	protected Boolean brazilPayments; // whether using Brazil payments APIs
+	protected Troolean isPar = Troolean.ISNT_CONFIGURED_YET;
+	protected Troolean isBrazil = Troolean.ISNT_CONFIGURED_YET;
+	protected Troolean brazilPayments = Troolean.ISNT_CONFIGURED_YET; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -121,9 +140,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			return;
 		}
 
-		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
-		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		jarm = Troolean.configure(getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM);
+		isPar = Troolean.configure(getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED);
+		isBrazil = Troolean.configure(getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL);
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -159,7 +178,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		configureClient();
 		setupResourceEndpoint();
 
-		brazilPayments = isBrazil && scopeContains("payments");
+		brazilPayments = Troolean.configure(isBrazil.isTrue() && scopeContains("payments"));
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -253,7 +272,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		createAuthorizationRequestObject();
 
-		if (isPar) {
+		if (isPar.isTrue()) {
 			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
@@ -322,7 +341,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, isPar, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm.isTrue(), isPar.isTrue(), profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
@@ -380,7 +399,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		if (jarm) {
+		if (jarm.isTrue()) {
 			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
 		} else {
 			callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
@@ -420,7 +439,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 
-		if (!jarm) {
+		if (!jarm.isTrue()) {
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
 
 			// save the id_token returned from the authorization endpoint
@@ -460,7 +479,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		addClientAuthenticationToTokenEndpointRequest();
 
-		if (isPar) {
+		if (isPar.isTrue()) {
 			addPkceCodeVerifier();
 		}
 	}
@@ -543,7 +562,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		if (!jarm) {
+		if (!jarm.isTrue()) {
 			eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
 
 			env.mapKey("id_token", "authorization_endpoint_id_token");
@@ -564,7 +583,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		if (jarm) {
+		if (jarm.isTrue()) {
 			processCallbackForJARM();
 		} else {
 			// FAPI-RW otherwise always requires the hybrid flow, use the hash as the response
@@ -652,7 +671,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if (brazilPayments) {
+			if (brazilPayments.isTrue()) {
 				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
 				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
@@ -698,7 +717,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			validateBrazilPaymentInitiationSignedResponse();
 		} else {
 			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
@@ -823,11 +842,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected ConditionSequence createOBBPreauthSteps() {
-		if (brazilPayments) {
+		if (brazilPayments.isTrue()) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 			updatePaymentConsent();
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments, false);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), false);
 		return steps;
 	}
 

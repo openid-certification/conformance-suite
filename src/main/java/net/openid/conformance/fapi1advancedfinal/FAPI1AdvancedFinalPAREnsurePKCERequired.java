@@ -48,7 +48,7 @@ public class FAPI1AdvancedFinalPAREnsurePKCERequired extends AbstractFAPI1Advanc
 		// 'isPar' passed as false to skip SetupPkceAndAddToAuthorizationRequest, as it's currently not possible to use
 		// the 'skip' syntax to skip a condition within a sub-sequence nor a conditionsequence within a condition sequence
 		return new CreateAuthorizationRequestSteps(isSecondClient(),
-			jarm,
+			jarm.isTrue(),
 			false,
 			profileAuthorizationEndpointSetupSteps);
 	}
