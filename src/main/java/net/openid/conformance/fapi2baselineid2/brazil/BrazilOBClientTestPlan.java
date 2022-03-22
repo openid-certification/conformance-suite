@@ -24,7 +24,6 @@ import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalid
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSecondaryAud;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSignature;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestValidAudAsArray;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -116,9 +115,6 @@ public class BrazilOBClientTestPlan implements TestPlan {
 			FAPI2BaselineID2ClientRefreshTokenTest.class,
 			FAPI2BaselineID2BrazilClientDCRHappyPathTest.class
 		);
-		List<Class<? extends TestModule>> parModules = new LinkedList<>();
-		parModules.addAll(byValueModules);
-		parModules.add(FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR.class);
 
 		List<TestPlan.Variant> brazilVariant = List.of(
 			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
