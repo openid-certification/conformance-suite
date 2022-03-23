@@ -931,8 +931,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		if("POST".equals(httpMethod)) {
 			env.putObject("par_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
 		} else {
-			//this should not happen?
-			throw new TestFailureException(getId(), "Got unexpected HTTP method to par endpoint");
+			throw new TestFailureException(getId(), "Got unexpected HTTP method '" + httpMethod + "' to par endpoint");
 		}
 	}
 
