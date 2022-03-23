@@ -1,9 +1,9 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.openbanking_brasil.testmodules.DcrSubjectDnTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantSelection;
+import net.openid.conformance.variant.*;
 
 import java.util.List;
 
@@ -36,7 +36,8 @@ public class FAPI1BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan
 					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
+					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class,
+					DcrSubjectDnTestModule.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)
