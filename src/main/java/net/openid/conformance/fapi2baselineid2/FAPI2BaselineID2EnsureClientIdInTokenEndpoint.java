@@ -38,6 +38,12 @@ import net.openid.conformance.variant.ClientAuthType;
 public class FAPI2BaselineID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2BaselineID2PerformTokenEndpoint {
 
 	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 
 		// Switch to client 2 client

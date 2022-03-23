@@ -193,15 +193,15 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		exposeEnvString("client_id");
 
-		// Test won't pass without MATLS, but we'll try anyway (for now)
 		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		validateClientConfiguration();
+	}
 
+	protected void configureSecondClient() {
 		eventLog.startBlock("Verify configuration of second client");
 
-		// extract second client
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
