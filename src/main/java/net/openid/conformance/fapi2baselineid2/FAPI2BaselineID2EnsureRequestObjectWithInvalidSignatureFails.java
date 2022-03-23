@@ -41,6 +41,14 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2BaselineID2EnsureRequestObjectWithInvalidSignatureFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		if(isPar) {
+			allowPlainErrorResponseForJarm = true;
+		}
+	}
+
+	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectInvalidSignatureErrorPage.class);
 

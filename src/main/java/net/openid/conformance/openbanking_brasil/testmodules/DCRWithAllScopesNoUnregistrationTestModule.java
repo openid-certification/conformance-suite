@@ -17,8 +17,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	testName = "dcr-with-all-scopes-no-unregistration",
 	displayName = "Dynamic Client Registration with the full set of scopes without unregistering the client after the test completion. ",
 	summary = "Dynamic Client Registration with the full set of scopes without unregistering the client after the test completion.\n" +
-		"\u2022 Using a hardcoded client with only the DADOS role, retrieves from the directory its SSA\n" +
-		"\u2022 Performs a DCR on the provided authorization server -> Expects a successful registration which should also grant all Phase 2 scopes\n" +
+		"\u2022 Using the client provided on the configuration retrieves from the directory its SSA\n" +
+		"\u2022 Performs a DCR on the authorization server provided on the configuration using all the existing Phase 2 and 3 scopes\n" +
 		"\u2022 Displays 'client_id' and does not unregister the client after the test completion",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {

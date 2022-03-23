@@ -462,7 +462,7 @@ var FAPI_UI = {
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
 			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
 			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
-			"OAuth2-iss" : "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.",
+			"OAuth2-iss" : "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp#section.",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
 			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",
@@ -487,7 +487,8 @@ var FAPI_UI = {
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
-			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-"
+			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
+			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

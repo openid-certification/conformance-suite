@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class FAPIRWCheckTLSClientCertificateBoundAccessTokens extends AbstractCondition {
+public class CheckTLSClientCertificateBoundAccessTokensTrue extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -14,7 +14,7 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens extends AbstractCo
 
 		JsonElement element = env.getElementFromObject("server", "tls_client_certificate_bound_access_tokens");
 		if (element == null || element.isJsonObject()) {
-			throw error("FAPI-RW requires that certificate bound access tokens are used, so tls_client_certificate_bound_access_tokens must be present in the discovery document and contain true");
+			throw error("Certificate bound access tokens are used, so tls_client_certificate_bound_access_tokens must be present in the discovery document and contain true");
 		}
 
 		if (!element.getAsJsonPrimitive().isBoolean()) {

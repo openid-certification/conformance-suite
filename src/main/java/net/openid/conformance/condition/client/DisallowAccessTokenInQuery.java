@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +33,11 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	protected String getUri(Environment env) {
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(super.getUri(env));
-		builder.queryParam("access_token", getAccessToken(env));
+		String accessToken = env.getString("access_token", "value");
+		if (Strings.isNullOrEmpty(accessToken)) {
+			throw error("Access token not found");
+		}
+		builder.queryParam("access_token", accessToken);
 
 		return builder.toUriString();
 	}

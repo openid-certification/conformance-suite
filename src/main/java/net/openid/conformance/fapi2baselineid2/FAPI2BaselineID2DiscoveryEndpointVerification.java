@@ -21,13 +21,16 @@ import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupp
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
+import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
+import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -43,11 +46,14 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantParameters({
 	FAPI1FinalOPProfile.class,
 	FAPI2SenderConstrainMethod.class,
-	FAPI2AuthRequestMethod.class
+	FAPI2AuthRequestMethod.class,
+	FAPIResponseMode.class
 })
 public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2BaselineID2DiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
+
+	protected Boolean jarm;
 
 	protected boolean brazil = false;
 
@@ -74,6 +80,8 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		super.configure(config, baseUrl, externalUrlOverride);
 	}
 
@@ -81,6 +89,12 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 	protected void performEndpointVerification() {
 
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
+		if (jarm) {
+			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+		} else {
+			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
+			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
+		}
 
 		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2BASE-4.3.1-4");
 

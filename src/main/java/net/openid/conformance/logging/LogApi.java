@@ -98,7 +98,7 @@ public class LogApi {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		LOG.info("{} is an admin - returning CSV digest", username);
-		Instant startDate = Instant.now().minus(10, DAYS);
+		Instant startDate = Instant.now().minus(30, DAYS);
 
 		String start = startDate.toString();
 		Query query = new Query();

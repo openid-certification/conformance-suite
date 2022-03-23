@@ -1,12 +1,16 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -14,10 +18,16 @@ import net.openid.conformance.sequence.ConditionSequence;
 public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSequence {
 
 	private boolean secondClient;
+	private boolean isDpop;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public RefreshTokenRequestExpectingErrorSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false);
+	}
+
+	public RefreshTokenRequestExpectingErrorSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
 		this.secondClient = secondClient;
+		this.isDpop = isDpop;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
@@ -29,6 +39,13 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 		}
 
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+
+		if (isDpop) {
+			callAndStopOnFailure(CreateDpopClaims.class);
+			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+			callAndStopOnFailure(SignDpopProof.class);
+			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+		}
 
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);

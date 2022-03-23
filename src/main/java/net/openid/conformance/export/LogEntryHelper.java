@@ -47,7 +47,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");
 		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
-		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp-00#section.");
+		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp#section.");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
 		specLinks.put("RFC6750-", "https://tools.ietf.org/html/rfc6750#section-");
@@ -73,6 +73,7 @@ public class LogEntryHelper {
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("BCLOG-F02-", "https://openbanking-brasil.github.io/areadesenvolvedor/documents/problemas_conhecidos_fase02_v04.pdf#");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-");
+		specLinks.put("DPOP-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-");
 	}
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();
