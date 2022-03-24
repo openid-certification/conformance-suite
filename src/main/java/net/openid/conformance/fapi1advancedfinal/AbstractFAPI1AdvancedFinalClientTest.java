@@ -797,6 +797,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
+		if (env.getObject("client") == null) {
+			throw new TestFailureException(getId(), "The token endpoint has been called before the client has been registered.");
+		}
+
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		checkMtlsCertificate();
