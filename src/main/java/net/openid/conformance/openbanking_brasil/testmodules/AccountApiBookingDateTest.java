@@ -9,7 +9,6 @@ import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
-import org.apache.xpath.operations.Bool;
 
 @PublishTestModule(
 	testName = "account-api-bookingdate-test",

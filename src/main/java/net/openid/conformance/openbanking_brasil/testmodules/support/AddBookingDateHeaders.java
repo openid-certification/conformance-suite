@@ -26,7 +26,7 @@ public class AddBookingDateHeaders extends AbstractCondition {
 		//headers.addProperty("fromBookingDate", DateUtils.formatDate(fromDate));
 		LocalDateTime fromDate = LocalDateTime.now();
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
-		String fromDateF = fromDate.format(dateFormat) + " GMT"; //This will always say timezone is GMT even if it is not
+		String fromDateF = fromDate.format(dateFormat) + " GMT"; //This will always say timezone is GMT
 		headers.addProperty("fromBookingDate", fromDateF);
 
 
@@ -39,7 +39,7 @@ public class AddBookingDateHeaders extends AbstractCondition {
 		//----LocalDateTime works without depreciated functions but may cause logic issues----
 		LocalDateTime toDate = LocalDateTime.now().plusMonths(12); //This date will not always be valid for the tests
 		//DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
-		String toDateF = toDate.format(dateFormat) + " GMT";  //This will always say timezone is GMT even if it is not
+		String toDateF = toDate.format(dateFormat) + " GMT";  //This will always say timezone is GMT
 		headers.addProperty("toBookingDate", toDateF);
 
 		Duration duration = Duration.between(fromDate, toDate);
