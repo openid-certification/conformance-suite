@@ -36,6 +36,8 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 	}
 
+	Boolean keepHeaders = false;
+
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
@@ -48,28 +50,26 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 		callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-172");
+		eventLog.startBlock("Add booking date headers 1 year apart");
+		keepHeaders = true;
+		callAndContinueOnFailure(AddBookingDateHeaders.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions");
+		eventLog.startBlock("Set booking date headers as transaction date");
+		callAndContinueOnFailure(DateExtractor.class, Condition.ConditionResult.FAILURE);
+		preCallProtectedResource("Fetch Account transactions");
+		keepHeaders = false;
+		eventLog.startBlock("End of date tests");
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		call(sequence(ValidateSelfEndpoint.class));
-		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
-		preCallProtectedResource("Fetch Account limits");
-		callAndContinueOnFailure(AccountLimitsValidator.class, Condition.ConditionResult.FAILURE);
-		//TODO should the test go here
-		preCallProtectedResource("Check Booking Date");
-		//Is a validator class needed
-		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
-		callAndContinueOnFailure(AddBookingDateHeaders.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(AccountIdExtractor.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
 	protected void preCallProtectedResource() {
-		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-		callAndStopOnFailure(AddBookingDateHeaders.class);
-
+		if (!keepHeaders) {
+			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		}
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
 		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
@@ -79,6 +79,4 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 	}
-
-
 }
