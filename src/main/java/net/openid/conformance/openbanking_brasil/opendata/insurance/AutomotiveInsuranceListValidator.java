@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.opendata.CommonOpendataParts;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -27,6 +28,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 	private static class Fields extends ProductNServicesCommonFields {
 	}
 
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 	private final CommonOpendataParts parts;
 
 	public AutomotiveInsuranceListValidator() {
@@ -60,6 +62,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

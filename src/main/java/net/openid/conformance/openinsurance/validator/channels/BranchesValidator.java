@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
+import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
@@ -27,13 +28,13 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> CODES_ENUM = Sets.newHashSet("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19");
 
 	private static class Fields extends CommonFields { }
-
+	private final OpenInsuranceLinksAndMetaValidator linksAndMetaValidator = new OpenInsuranceLinksAndMetaValidator(this);
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
-			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
+			data -> { assertField(data, new ObjectField.Builder("brand").setValidator(
 				brand -> {
 					assertField(brand, Fields.name().build());
 					assertField(brand,
@@ -41,8 +42,26 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 							.setMinItems(1)
 							.setValidator(this::assertCompanies)
 							.build());}
-			).build())
+
+			).build());
+
+				assertField(data,
+						new ObjectField
+								.Builder("links")
+								.setValidator(linksAndMetaValidator::assertLinks)
+								.setOptional()
+								.build());
+
+				assertField(data,
+						new ObjectField
+								.Builder("meta")
+								.setValidator(linksAndMetaValidator::assertMeta)
+								.setOptional()
+								.build());
+
+			}
 		).build());
+
 		logFinalStatus();
 		return environment;
 	}

@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -42,22 +43,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI2BaselineID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPI2BaselineID2ServerTestModule {
-
-	@Override
-	protected void performIdTokenValidation() {
-
-		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, Condition.ConditionResult.FAILURE,"OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndStopOnFailure(CheckForSubjectInIdToken.class, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
-	}
 
 	@Override
 	protected void performPostAuthorizationFlow() {

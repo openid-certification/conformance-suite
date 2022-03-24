@@ -72,10 +72,15 @@ public class ValidateIdToken extends AbstractCondition {
 		Long iat = env.getLong("id_token", "claims.iat");
 		if (iat == null) {
 			throw error("'iat' claim missing");
-		} else {
-			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
-			}
+		}
+		if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
+			throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+		}
+		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
+			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
+			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
+			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
+			throw error("Token 'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
 
 		// auth_time - optional number

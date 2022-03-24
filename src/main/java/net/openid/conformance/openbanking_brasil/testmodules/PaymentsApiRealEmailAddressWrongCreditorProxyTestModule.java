@@ -58,7 +58,7 @@ public class PaymentsApiRealEmailAddressWrongCreditorProxyTestModule extends Abs
 			validationStarted = true;
 			eventLog.startBlock("initiate payment");
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-				.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class));
+				.replace(EnsureResponseCodeWas201.class, condition(EnsureResourceResponseCodeWas201Or422.class));
 			call(pixSequence);
 			eventLog.endBlock();
 			eventLog.startBlock(currentClientString() + "Validate response");

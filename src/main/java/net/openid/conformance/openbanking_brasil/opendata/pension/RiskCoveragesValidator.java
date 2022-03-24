@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.opendata.OpenDataLinksAndMetaValidator;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
@@ -23,7 +24,7 @@ import java.util.Set;
 public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
-
+	private final OpenDataLinksAndMetaValidator linksAndMetaValidator = new OpenDataLinksAndMetaValidator(this);
 	private final CommonOpenDataParts parts;
 
 	public RiskCoveragesValidator() {
@@ -32,7 +33,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> MODALITY = Sets.newHashSet("FUNERAL", "PRESTAMISTA", "VIAGEM", "EDUCACIONAL", "DOTAL", "ACIDENTES_PESSOAIS", "VIDA", "PERDA_CERTIFICADO_HABILITACAO_VOO", "DOENCAS_GRAVES_DOENCA_TERMINAL", "DESEMPREGO_PERDA_RENDA", "EVENTOS_ALEATORIOS", "PECULIO", "PENSAO_PRAZO_CERTO", "PENSAO_MENORES_21", "PENSAO_MENORES_24", "PENSAO_CONJUGE_VITALICIA", "PENSAO_CONJUGE_TEMPORARIA");
 	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL", "MICROSSEGURO");
-	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "ATE_FIM_CICLO_DETERMINADO");
+	public static final Set<String> IND_PERIOD = Sets.newHashSet("QUANTIDADE_DETERMINADA_PARCELAS", "FIM_CICLO_DETERMINADO");
 	public static final Set<String> TYPE = Sets.newHashSet("MORTE", "INVALIDEZ");
 	public static final Set<String> UNIT = Sets.newHashSet("DIAS", "MESES", "NAO_APLICA");
 	public static final Set<String> INDEX = Sets.newHashSet("IPCA", "IGP_M", "INPC");
@@ -63,6 +64,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 				.mustNotBeEmpty()
 				.build());
 
+		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}

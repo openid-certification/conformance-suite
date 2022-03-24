@@ -3,15 +3,12 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
@@ -26,7 +23,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 @PublishTestModule(
 		testName = "fapi2-baseline-id2",
 		displayName = "FAPI2-Baseline-ID2",
-		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that TLS Certificate-Bound access tokens (required by the FAPI-RW spec) are correctly implemented.",
+		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
 		profile = "FAPI2-Baseline-ID2",
 		configurationFields = {
 			"server.discoveryUrl",
@@ -78,19 +75,6 @@ public class FAPI2BaselineID2 extends AbstractFAPI2BaselineID2MultipleClient {
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.5-1");
-	}
-
-	protected void updateResourceRequest() {
-		if (brazilPayments) {
-			// we use the idempotency header to allow us to make a request more than once; however it is required
-			// that a new jwt is sent in each retry, so update jti/iat & resign
-			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-			call(exec().unmapKey("request_object_claims"));
-			callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-
-		}
 	}
 
 	protected void verifyAccessTokenWithResourceEndpoint() {

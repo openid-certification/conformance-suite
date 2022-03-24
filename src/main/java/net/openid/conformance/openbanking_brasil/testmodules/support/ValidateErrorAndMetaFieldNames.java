@@ -7,11 +7,11 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
+import net.openid.conformance.util.field.DatetimeField;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.text.ParseException;
 import java.util.Map;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.http.HttpStatus;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
 
@@ -21,10 +21,11 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject apiResponse = env.getObject("consent_endpoint_response_full");
-
-		if(OIDFJSON.getInt(apiResponse.get("status")) != HttpStatus.SC_UNPROCESSABLE_ENTITY){
+		JsonObject apiResponse;
+		if(env.getObject("resource_endpoint_response_full") != null){
 			apiResponse = env.getObject("resource_endpoint_response_full");
+		}else {
+			apiResponse = env.getObject("consent_endpoint_response_full");
 		}
 
 		JsonObject decodedJwt;
@@ -40,7 +41,9 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		}
 
 		if(JsonHelper.ifExists(claims, "meta")){
-			assertAllowedMetaFields(claims.getAsJsonObject("meta"));
+			final JsonObject metaJson = claims.getAsJsonObject("meta");
+			assertAllowedMetaFields(metaJson);
+			validateMetaDateTimeFormat(metaJson);
 		}
 
 		return env;
@@ -55,25 +58,37 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	}
 
 	private void assertAllowedMetaFields(JsonObject metaJson) {
-		log("Ensure that the 'meta' response " + metaJson + " only contains metadata fields that are defined in the swagger");
+		log("Ensure that the 'meta' response only contains metadata fields that are defined in the swagger", Map.of("meta", metaJson));
 
 		for (Map.Entry<String, JsonElement> meta : metaJson.entrySet())
 		{
 			log("Checking: " + meta.getKey());
 			if ( !ArrayUtils.contains( allowedMetaFields, meta.getKey() ) ) {
-				throw error("non-standard meta property '" + meta.getKey() + "'' found in the error response");
+				throw error("non-standard meta property found in the error response", Map.of("meta",  meta.getKey()));
 			}
 		}
 	}
 
+	private void validateMetaDateTimeFormat(JsonObject metaJson){
+		if (metaJson.has("requestDateTime")){
+			final JsonElement requestDateTimeJson = metaJson.get("requestDateTime");
+			if(!OIDFJSON.getString(requestDateTimeJson).matches(DatetimeField.ALTERNATIVE_PATTERN)){
+				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
+			}
+			logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
+		}else {
+			log("requestDateTime field is missing, skipping");
+		}
+	}
+
 	private void assertNoAdditionalErrorFields(JsonObject field){
-		log("Ensure that the error response " + field + " only contains error fields that are defined in the swagger");
+		log("Ensure that the error response only contains error fields that are defined in the swagger", Map.of("error response", field));
 
 		for (Map.Entry<String, JsonElement> entry : field.entrySet())
 		{
 			log("Checking: " + entry.getKey());
 			if ( !ArrayUtils.contains( allowedErrors, entry.getKey() ) ) {
-				throw error("non-standard error property '" + entry.getKey() + "'' found in the error response");
+				throw error("non-standard error property found in the error response", Map.of("property",  entry.getKey()));
 			}
 		}
 	}

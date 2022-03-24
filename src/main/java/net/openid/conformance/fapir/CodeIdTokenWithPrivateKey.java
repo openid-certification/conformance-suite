@@ -65,6 +65,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
@@ -215,6 +216,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
@@ -261,6 +263,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
 		callAndStopOnFailure(ValidateIdToken.class, "FAPI-R-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 

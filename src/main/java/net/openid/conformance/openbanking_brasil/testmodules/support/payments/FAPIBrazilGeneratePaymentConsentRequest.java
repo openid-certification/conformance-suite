@@ -21,7 +21,6 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 		if(paymentConsent == null) {
 			throw error("As 'payments' is included in the 'scope' within the test configuration, a payment consent request JSON object must also be provided in the test configuration.");
 		}
-
 		JsonObject paymentRequestObject = buildFromNewConfigFields(env);
 
 		env.putObject("consent_endpoint_request", paymentRequestObject);
