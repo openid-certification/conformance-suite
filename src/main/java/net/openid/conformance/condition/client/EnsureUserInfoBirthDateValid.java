@@ -1,13 +1,14 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class EnsureUserInfoBirthDateValid extends AbstractCondition {
@@ -32,26 +33,43 @@ public class EnsureUserInfoBirthDateValid extends AbstractCondition {
 		return env;
 	}
 
-	private boolean isValidBirthDate(String date) {
-
-		if (isValidDateWithFormat(date, "yyyy-MM-dd")
-			|| isValidDateWithFormat(date, "yyyy")
-			|| isValidDateWithFormat(date, "0000-MM-dd")) {
-			return  true;
-		}
-		return false;
+	public static boolean isValidBirthDate(String date) {
+		return isValidFullDate(date) || isValidYearOnly(date);
 	}
 
-	private boolean isValidDateWithFormat(String value, String dateFormat) {
+	private static boolean isValidFullDate(String date) {
 		// US used as per https://developer.android.com/reference/java/util/Locale.html#be-wary-of-the-default-locale
-		DateFormat sdf = new SimpleDateFormat(dateFormat, Locale.US);
-		sdf.setLenient(false);
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("uuuu-MM-dd", Locale.US);
 		try {
-			sdf.parse(value);
-		} catch (ParseException e) {
+			LocalDate parsedDate = LocalDate.parse(date, dateTimeFormatter.withResolverStyle(ResolverStyle.STRICT));
+			if (parsedDate.getYear() == 0) {
+				// as per OIDCC, the year can optionally be 0000 to indicate year not held/not released
+				return true;
+			}
+			int year = parsedDate.getYear();
+			if (!isSaneBirthYear(year)) {
+				return false;
+			}
+
+			return true;
+
+		} catch (DateTimeParseException e) {
 			return false;
 		}
-		return true;
+	}
+
+	// true if seems like a real date of birth, or at least a fake that results in a non-negative non-excessive age.
+	private static boolean isSaneBirthYear(int year) {
+		return year >= 1850 && year <= Calendar.getInstance().get(Calendar.YEAR);
+	}
+
+	private static boolean isValidYearOnly(String yearStr) {
+		try {
+			int year = Integer.parseInt(yearStr);
+			return isSaneBirthYear(year);
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 }

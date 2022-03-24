@@ -12,7 +12,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 	private static ElementValidator VALIDATE_STRING = new ElementValidator() {
 		@Override
 		public String getDescription() {
-			return "a string";
+			return "a string with content";
 		}
 
 		@Override
@@ -25,6 +25,20 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 				return false;
 			}
 			return true;
+		}
+	};
+	private static ElementValidator VALIDATE_BIRTHDATE = new ElementValidator() {
+		@Override
+		public String getDescription() {
+			return "a valid birthdate in the format stated in OpenID Connect Standard - YYYY-MM-DD, 0000-MM-DD or YYYY";
+		}
+
+		@Override
+		public boolean isValid(JsonElement elt) {
+			if (!VALIDATE_STRING.isValid(elt)) {
+				return false;
+			}
+			return EnsureUserInfoBirthDateValid.isValidBirthDate(OIDFJSON.getString(elt));
 		}
 	};
 	private static ElementValidator VALIDATE_BOOLEAN = new ElementValidator() {
@@ -83,7 +97,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 		put("email", VALIDATE_STRING);
 		put("email_verified", VALIDATE_BOOLEAN);
 		put("gender", VALIDATE_STRING);
-		put("birthdate", VALIDATE_STRING);
+		put("birthdate", VALIDATE_BIRTHDATE);
 		put("zoneinfo", VALIDATE_STRING);
 		put("locale", VALIDATE_STRING);
 		put("phone_number", VALIDATE_STRING);
@@ -111,7 +125,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 
 		@Override
 		public String getDescription() {
-			return "a valid object";
+			return "a valid object or contains invalid claims";
 		}
 
 		@Override

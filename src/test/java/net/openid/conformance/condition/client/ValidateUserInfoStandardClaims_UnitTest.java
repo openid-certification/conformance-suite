@@ -94,6 +94,17 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_noErrorOnlySub() {
+		// technically userinfo must contain sub; EnsureUserInfoContainsSub checks that separately
+		userInfo = JsonParser.parseString("{" +
+			"  \"sub\": \"foo\"\n" +
+			"}").getAsJsonObject();
+
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_noError2() {
 
 		userInfo = JsonParser.parseString("{\n" +
@@ -161,6 +172,13 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithEmailVerifiedIsNull() {
 		userInfo.add("email_verified", JsonNull.INSTANCE);
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithBirthDate() {
+		userInfo.addProperty("birthdate", "2022-14-22");
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
 	}
