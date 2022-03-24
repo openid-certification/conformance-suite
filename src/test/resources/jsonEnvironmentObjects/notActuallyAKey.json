@@ -1,0 +1,9 @@
+{
+    "foo": {
+        "bar": {
+            "wibble": {
+                "key": "this isn't really a private key"
+            }
+        }
+    }
+}

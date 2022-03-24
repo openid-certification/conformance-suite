@@ -4,8 +4,8 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
@@ -37,6 +37,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -50,7 +51,8 @@ import java.util.function.Supplier;
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-	FAPI1FinalOPProfile.class
+	FAPI1FinalOPProfile.class,
+	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -75,9 +77,12 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
+	protected Boolean jarm;
+	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
 	protected Boolean isBrazil;
 	protected Boolean isSignedRequest;
+	protected Boolean isDpop;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
@@ -118,8 +123,10 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			return;
 		}
 
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
 		isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
+		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 
 		callAndStopOnFailure(CreateRedirectUri.class);
@@ -279,13 +286,16 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
+		private boolean isJarm;
 		private boolean usePkce;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
+											   boolean isJarm,
 											   boolean usePkce,
 											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
+			this.isJarm = isJarm;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a condition within a sub-sequence nor a conditionsequence
 			// within a condition sequence
@@ -312,6 +322,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
+			if (isJarm) {
+				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
+			}
 
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
@@ -325,7 +338,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), true, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, true, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
@@ -382,7 +395,11 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		if (jarm) {
+			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		} else {
+			callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
+		}
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
@@ -395,35 +412,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
 		handleSuccessfulAuthorizationEndpointResponse();
-	}
-
-	// This is only used for the id token from the authorization endpoint, the token endpoint one is verified
-	// separately (I'm not sure why)
-	protected void performIdTokenValidation() {
-
-		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-
-		performProfileIdTokenValidation();
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
-
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6", "OB-5.2.2-8");
-		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
-		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
-			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
-		}
 	}
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
@@ -465,6 +453,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected void exchangeAuthorizationCode() {
+		if (isDpop) {
+			createDpopForTokenEndpoint(true);
+		}
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
 
@@ -501,6 +492,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI1-BASE-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
@@ -523,7 +515,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -543,14 +535,27 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 	}
 
+	protected void createDpopForTokenEndpoint(boolean createKey) {
+		if (createKey) {
+			callAndStopOnFailure(GenerateDpopKey.class);
+		}
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+	}
+
 	@Override
 	protected void processCallback() {
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		// FAPI2 always requires the auth code flow, use the query as the response
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
-
+		if (jarm) {
+			processCallbackForJARM();
+		} else {
+			// FAPI2 always requires the auth code flow, use the query as the response
+			env.mapKey("authorization_endpoint_response", "callback_query_params");
+		}
 		callAndContinueOnFailure(RejectErrorInUrlFragment.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
@@ -559,6 +564,32 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		eventLog.endBlock();
 	}
+
+	/**
+	 * For error responses, we allow a JARM response, or an error page or a plain (non-jarm) error response
+	 * per https://gitlab.com/openid/conformance-suite/-/issues/860
+	 */
+	protected void processCallbackForJARM() {
+		String errorParameter = env.getString("callback_query_params", "error");
+		String responseParameter = env.getString("callback_query_params", "response");
+		if(allowPlainErrorResponseForJarm && responseParameter==null && errorParameter!=null) {
+			//plain error response, no jarm
+			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
+		} else {
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-4.3.4", "JARM-4.3.1");
+
+			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
+
+			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
+
+			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
+
+			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
+
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.FAILURE, "JARM-4.4-6");
+		}
+	}
+
 
 	protected void performProfileIdTokenValidation() {
 		if (profileIdTokenValidationSteps != null) {
@@ -572,6 +603,22 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		 */
 		callAndContinueOnFailure(ExtractCHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
 		callAndContinueOnFailure(ExtractSHash.class, Condition.ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
+	}
+
+	protected void updateResourceRequest() {
+		if (isDpop) {
+			// generate new dpop proof
+			addDpopToResourceRequest();
+		}
+		if (brazilPayments) {
+			// we use the idempotency header to allow us to make a request more than once; however it is required
+			// that a new jwt is sent in each retry, so update jti/iat & resign
+			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+			call(exec().unmapKey("request_object_claims"));
+			callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+		}
 	}
 
 	protected void requestProtectedResource() {
@@ -636,6 +683,10 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			}
 		}
 
+		if (isDpop) {
+			addDpopToResourceRequest();
+		}
+
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -656,6 +707,14 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 
 		eventLog.endBlock();
+	}
+
+	private void addDpopToResourceRequest() {
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
+		callAndStopOnFailure(SetDpopAccessTokenHash.class);
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
 	}
 
 	protected void validateBrazilPaymentInitiationSignedResponse() {
@@ -778,7 +837,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 			updatePaymentConsent();
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication, brazilPayments, false);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(),  isDpop, addTokenEndpointClientAuthentication, brazilPayments, false);
 		return steps;
 	}
 

@@ -31,11 +31,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.util.matcher.*;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;

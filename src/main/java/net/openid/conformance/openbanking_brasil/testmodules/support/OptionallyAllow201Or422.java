@@ -9,10 +9,12 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.util.JsonUtils;
+import net.openid.conformance.util.field.DatetimeField;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpStatus;
 
 import java.text.ParseException;
+import java.util.Map;
 
 public class OptionallyAllow201Or422 extends AbstractCondition {
 
@@ -79,7 +81,9 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 		}
 
 		if (JsonHelper.ifExists(claims, "meta")) {
-			assertAllowedMetaFields(claims.getAsJsonObject("meta"));
+			final JsonObject metaJson = claims.getAsJsonObject("meta");
+			assertAllowedMetaFields(metaJson);
+			validateMetaDateTimeFormat(metaJson);
 		}
 	}
 
@@ -97,25 +101,37 @@ public class OptionallyAllow201Or422 extends AbstractCondition {
 	}
 
 	private void assertAllowedMetaFields(JsonObject metaJson) {
-		log("Ensure that the 'meta' response " + metaJson + " only contains metadata fields that are defined in the swagger");
+		log("Ensure that the 'meta' response only contains metadata fields that are defined in the swagger", Map.of("meta", metaJson));
 
 		for (String meta : metaJson.keySet())
 		{
 			log("Checking: " + meta);
 			if ( !ArrayUtils.contains( allowedMetaFields, meta) ) {
-				throw error("non-standard meta property '" + meta + "'' found in the error response");
+				throw error("non-standard meta property found in the error response", Map.of("meta",  meta));
 			}
 		}
 	}
 
+	private void validateMetaDateTimeFormat(JsonObject metaJson){
+		if (metaJson.has("requestDateTime")){
+			final JsonElement requestDateTimeJson = metaJson.get("requestDateTime");
+			if(!OIDFJSON.getString(requestDateTimeJson).matches(DatetimeField.ALTERNATIVE_PATTERN)){
+				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
+			}
+			logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTimeJson));
+		}else {
+			log("requestDateTime field is missing, skipping");
+		}
+	}
+
 	private void assertNoAdditionalErrorFields(JsonObject field){
-		log("Ensure that the error response " + field + " only contains error fields that are defined in the swagger");
+		log("Ensure that the error response only contains error fields that are defined in the swagger", Map.of("error response", field));
 
 		for (String entry : field.keySet())
 		{
 			log("Checking: " + entry);
 			if ( !ArrayUtils.contains( allowedErrors, entry ) ) {
-				throw error("non-standard error property '" + entry + "'' found in the error response");
+				throw error("non-standard error property found in the error response", Map.of("property",  entry));
 			}
 		}
 	}

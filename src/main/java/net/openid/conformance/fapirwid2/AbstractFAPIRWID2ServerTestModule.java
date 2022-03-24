@@ -77,7 +77,7 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
+import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
@@ -105,6 +105,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
@@ -470,6 +471,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 	protected void performIdTokenValidation() {
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-RW-5.2.2-3");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
@@ -488,7 +490,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -579,6 +581,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE, "FAPI-R-5.2.2.1-6");
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
@@ -597,7 +600,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.1");
 		if (getVariant(FAPIRWOPProfile.class) == FAPIRWOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -673,7 +676,7 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
 
-			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.WARNING, "JARM-4.4-6");
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.FAILURE, "JARM-4.4-6");
 		}
 	}
 

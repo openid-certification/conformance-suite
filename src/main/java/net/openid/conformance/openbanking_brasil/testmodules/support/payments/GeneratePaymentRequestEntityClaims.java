@@ -46,6 +46,7 @@ public class GeneratePaymentRequestEntityClaims extends AbstractCondition {
 					"accountType", DictHomologKeys.PROXY_EMAIL_ACCOUNT_TYPE))
 
 			.addField("data.cnpjInitiator", cnpjInitiator)
+			.addField( "data.ibgeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE)
 			.addField("data.payment.amount", paymentAmount)
 			.addField("data.payment.currency", "BRL");
 

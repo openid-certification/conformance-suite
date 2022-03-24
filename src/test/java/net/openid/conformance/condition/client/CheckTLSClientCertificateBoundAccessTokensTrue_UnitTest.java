@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
+public class CheckTLSClientCertificateBoundAccessTokensTrue_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,11 +22,11 @@ public class FAPIRWCheckTLSClientCertificateBoundAccessTokens_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private FAPIRWCheckTLSClientCertificateBoundAccessTokens cond;
+	private CheckTLSClientCertificateBoundAccessTokensTrue cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new FAPIRWCheckTLSClientCertificateBoundAccessTokens();
+		cond = new CheckTLSClientCertificateBoundAccessTokensTrue();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 

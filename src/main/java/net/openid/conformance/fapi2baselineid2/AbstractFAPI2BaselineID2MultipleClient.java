@@ -51,8 +51,14 @@ public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAP
 
 	protected void switchToClient1AndTryClient2AccessToken() {
 		// Switch back to client 1
-		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
 		unmapClient();
+
+		if (isDpop) {
+			eventLog.startBlock("Try Client1's DPoP key with Client2's access token");
+			updateResourceRequest();
+		} else {
+			eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
+		}
 
 		// As per https://datatracker.ietf.org/doc/html/rfc8705#section-3 :
 		//   If they do not match, the resource access attempt MUST

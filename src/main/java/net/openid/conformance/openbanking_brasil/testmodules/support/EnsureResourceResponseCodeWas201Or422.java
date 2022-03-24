@@ -15,13 +15,11 @@ public class EnsureResourceResponseCodeWas201Or422 extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject response = env.getObject("resource_endpoint_response_full");
 		Integer status = (Integer) OIDFJSON.getNumber(response.get("status"));
-		if(status != HttpStatus.UNPROCESSABLE_ENTITY.value() || status != HttpStatus.CREATED.value()) {
-			log("Response status was not 201 or 422 as expected", Map.of("status", status));
+		if(status != HttpStatus.UNPROCESSABLE_ENTITY.value() && status != HttpStatus.CREATED.value()) {
+			log("Response status was not 201 or 422 as expected", Map.of("Status", status));
 			throw error("Was expecting a 201 or 422 response");
-		} else if (status == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
-			logSuccess("422 response status, as expected");
 		} else {
-			logSuccess("201 response status, as expected");
+			logSuccess("Response status, as expected", Map.of("Status", status));
 		}
 		return env;
 	}

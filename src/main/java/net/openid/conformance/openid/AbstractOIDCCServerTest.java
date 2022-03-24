@@ -51,7 +51,7 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
-import net.openid.conformance.condition.client.FAPIValidateEncryptedIdTokenHasKid;
+import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -75,6 +75,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstReq
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
 import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
@@ -596,6 +597,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void performIdTokenValidation() {
 		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 
 		// Equivalent of https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#verify_nonce
 		// and https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#check_idtoken_nonce
@@ -607,7 +609,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "OIDCC-2");
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			FAPIValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.2", "OIDC-10.2.1");
+			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.2", "OIDC-10.2.1");
 	}
 
 	protected void performAuthorizationCodeValidation() {

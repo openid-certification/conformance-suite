@@ -29,6 +29,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
             callAndStopOnFailure(OverrideCNPJ.class);
             callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
         } else {
+			brazilPayments = false;
             callAndStopOnFailure(OverrideClientWithDadosClient.class);
             callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
         }

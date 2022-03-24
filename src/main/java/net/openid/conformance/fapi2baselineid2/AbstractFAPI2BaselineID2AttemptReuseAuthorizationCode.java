@@ -33,11 +33,15 @@ public abstract class AbstractFAPI2BaselineID2AttemptReuseAuthorizationCode exte
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
+		if (isDpop) {
+			createDpopForTokenEndpoint(false);
+		}
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-5.2.2-13");
 
 		verifyError();
 
 		eventLog.startBlock("Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)");
+		updateResourceRequest();
 		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
