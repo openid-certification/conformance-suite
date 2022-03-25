@@ -16,14 +16,16 @@ public class DateExtractor extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
 		JsonObject consent = new JsonParser().parse(entityString).getAsJsonObject();
-		//JsonObject data = consent.getAsJsonObject("data"); //This line is causing errors
 		JsonArray data = consent.getAsJsonArray("data");
 		var dataElement = data.get(0);
-		//String transactionDate = OIDFJSON.getString(data.get("transactionDate"));
 		JsonObject dataObject = dataElement.getAsJsonObject();
 		String transactionDate = OIDFJSON.getString(dataObject.get("transactionDate"));
 		env.putString("transactionDate", transactionDate);
 		logSuccess("Transaction Date", args("transactionDate", transactionDate));
+
+		String transactionId = OIDFJSON.getString(dataObject.get("transactionId"));
+		env.putString("transactionId", transactionId);
+		logSuccess("Transaction ID", args("transactionId", transactionId));
 
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 		headers.addProperty("fromBookingDate", transactionDate);

@@ -5,15 +5,10 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.http.client.utils.DateUtils;
 import org.springframework.http.HttpHeaders;
-
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Locale;
 
 
 public class AddBookingDateHeaders extends AbstractCondition {
@@ -22,26 +17,13 @@ public class AddBookingDateHeaders extends AbstractCondition {
 	@PreEnvironment(required = "resource_endpoint_request_headers" )
 	public Environment evaluate(Environment env){
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
-		//Date fromDate = new Date();
-		//headers.addProperty("fromBookingDate", DateUtils.formatDate(fromDate));
 		LocalDateTime fromDate = LocalDateTime.now();
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
-		String fromDateF = fromDate.format(dateFormat) + " GMT"; //This will always say timezone is GMT
+		String fromDateF = fromDate.format(dateFormat);
 		headers.addProperty("fromBookingDate", fromDateF);
-
-
-		//TODO This date needs to have different values for different tests
-		//----Using Date works best but uses depreciated functions----
-		//var toDate = new Date();
-		//toDate.setDate(toDate.getDate() + 365); //Is the fact these are depreciated an issue?
-		//headers.addProperty("toBookingDate", DateUtils.formatDate(toDate));
-
-		//----LocalDateTime works without depreciated functions but may cause logic issues----
-		LocalDateTime toDate = LocalDateTime.now().plusMonths(12); //This date will not always be valid for the tests
-		//DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
-		String toDateF = toDate.format(dateFormat) + " GMT";  //This will always say timezone is GMT
+		LocalDateTime toDate = LocalDateTime.now().plusMonths(12);
+		String toDateF = toDate.format(dateFormat);
 		headers.addProperty("toBookingDate", toDateF);
-
 		Duration duration = Duration.between(fromDate, toDate);
 		var days = duration.toDays();
 		if(days==365){
