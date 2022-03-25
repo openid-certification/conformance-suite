@@ -4,7 +4,13 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondition {
@@ -38,7 +44,46 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 			if (!VALIDATE_STRING.isValid(elt)) {
 				return false;
 			}
-			return EnsureUserInfoBirthDateValid.isValidBirthDate(OIDFJSON.getString(elt));
+			return isValidBirthDate(OIDFJSON.getString(elt));
+		}
+
+		public boolean isValidBirthDate(String date) {
+			return isValidFullDate(date) || isValidYearOnly(date);
+		}
+
+		private boolean isValidFullDate(String date) {
+			// US used as per https://developer.android.com/reference/java/util/Locale.html#be-wary-of-the-default-locale
+			DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("uuuu-MM-dd", Locale.US);
+			try {
+				LocalDate parsedDate = LocalDate.parse(date, dateTimeFormatter.withResolverStyle(ResolverStyle.STRICT));
+				if (parsedDate.getYear() == 0) {
+					// as per OIDCC, the year can optionally be 0000 to indicate year not held/not released
+					return true;
+				}
+				int year = parsedDate.getYear();
+				if (!isSaneBirthYear(year)) {
+					return false;
+				}
+
+				return true;
+
+			} catch (DateTimeParseException e) {
+				return false;
+			}
+		}
+
+		// true if seems like a real date of birth, or at least a fake that results in a non-negative non-excessive age.
+		private boolean isSaneBirthYear(int year) {
+			return year >= 1850 && year <= Calendar.getInstance().get(Calendar.YEAR);
+		}
+
+		private boolean isValidYearOnly(String yearStr) {
+			try {
+				int year = Integer.parseInt(yearStr);
+				return isSaneBirthYear(year);
+			} catch (NumberFormatException e) {
+				return false;
+			}
 		}
 	};
 	private static ElementValidator VALIDATE_BOOLEAN = new ElementValidator() {
