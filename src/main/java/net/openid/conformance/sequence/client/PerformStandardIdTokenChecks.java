@@ -2,6 +2,7 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
+import net.openid.conformance.condition.client.EnsureIdTokenUpdatedAtValid;
 import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
 import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstRequest;
@@ -33,6 +34,7 @@ public class PerformStandardIdTokenChecks extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+		callAndContinueOnFailure(EnsureIdTokenUpdatedAtValid.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 
 		call(condition(ValidateEncryptedIdTokenHasKid.class)
 			.skipIfElementMissing("id_token", "jwe_header")
