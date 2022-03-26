@@ -6,10 +6,10 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client2.org_jwks"
 })
 public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAPI2BaselineID2ServerTestModule {

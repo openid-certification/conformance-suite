@@ -19,6 +19,7 @@ import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
 @PublishTestModule(
 		testName = "fapi2-baseline-id2",
@@ -84,7 +85,7 @@ public class FAPI2BaselineID2 extends AbstractFAPI2BaselineID2MultipleClient {
 
 		updateResourceRequest();
 		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU) {
 			// CDR requires this header when the x-fapi-customer-ip-address header is present
 			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 		}

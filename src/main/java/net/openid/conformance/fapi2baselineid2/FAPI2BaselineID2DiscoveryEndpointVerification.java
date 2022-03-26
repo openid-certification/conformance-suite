@@ -27,8 +27,8 @@ import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseI
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
@@ -44,7 +44,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPI1FinalOPProfile.class,
+	FAPI2ID2OPProfile.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class
@@ -57,22 +57,22 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 	protected boolean brazil = false;
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
 		brazil = true;
