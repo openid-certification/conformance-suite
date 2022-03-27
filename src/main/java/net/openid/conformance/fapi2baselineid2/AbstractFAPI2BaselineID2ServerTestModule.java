@@ -933,6 +933,14 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		profileIdTokenValidationSteps = null;
 	}
 
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
+	public void setupIdmvp() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = null;
+		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
+	}
+
 	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("config", "client.scope");
 		if (Strings.isNullOrEmpty(scope)) {
@@ -963,10 +971,19 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected void performParAuthorizationRequestFlow() {
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
-		// there's no need to pass mtls auth when using private_key_jwt (except in some of the banking
-		// profiles that explicitly require TLS client certs for all endpoints).
-		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			getVariant(FAPI2ID2OPProfile.class) != FAPI2ID2OPProfile.PLAIN_FAPI;
+		// there's no need to pass mtls auth when using private_key_jwt
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS;
+
+		// except in some of the banking profiles that explicitly require TLS client certs for all endpoints).
+		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
+		if (variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
+		    variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
+		    variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
+		    variant == FAPI2ID2OPProfile.IDMVP // https://gitlab.com/idmvp/specifications/-/issues/29
+		) {
+			mtlsRequired = true;
+		}
+
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
 			mtls = env.getObject("mutual_tls_authentication");

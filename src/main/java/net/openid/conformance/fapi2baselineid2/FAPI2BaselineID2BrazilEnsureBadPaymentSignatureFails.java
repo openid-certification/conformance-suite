@@ -35,7 +35,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {
 	"plain_fapi",
 	"openbanking_uk",
-	"consumerdataright_au"
+	"consumerdataright_au",
+	"idmvp"
 })
 public class FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2BaselineID2ServerTestModule {
 
