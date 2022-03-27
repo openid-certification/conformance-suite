@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointGrantTypesSupported extends AbstractValidateJsonArray {
+public class CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode extends AbstractValidateJsonArray {
 
 	private static final String discoveryKey = "grant_types_supported";
 

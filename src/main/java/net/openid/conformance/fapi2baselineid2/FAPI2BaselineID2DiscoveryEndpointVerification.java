@@ -21,9 +21,9 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjec
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -96,7 +96,7 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
 		if (jarm) {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+			callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
 			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
 			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
@@ -119,16 +119,16 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 
 	public static class IdmvpDiscoveryEndpointChecks extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 			callAndContinueOnFailure(IdmvpCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
@@ -144,8 +144,8 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
 
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 

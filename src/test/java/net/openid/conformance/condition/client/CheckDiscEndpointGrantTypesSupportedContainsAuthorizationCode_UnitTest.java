@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
+public class CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,11 +22,11 @@ public class FAPIRWCheckDiscEndpointGrantTypesSupported_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private FAPIRWCheckDiscEndpointGrantTypesSupported cond;
+	private CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode cond;
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new FAPIRWCheckDiscEndpointGrantTypesSupported();
+		cond = new CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
