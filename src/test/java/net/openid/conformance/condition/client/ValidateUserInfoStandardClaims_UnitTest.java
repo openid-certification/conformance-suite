@@ -94,6 +94,17 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_noErrorOnlySub() {
+		// technically userinfo must contain sub; EnsureUserInfoContainsSub checks that separately
+		userInfo = JsonParser.parseString("{" +
+			"  \"sub\": \"foo\"\n" +
+			"}").getAsJsonObject();
+
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_noError2() {
 
 		userInfo = JsonParser.parseString("{\n" +
@@ -166,6 +177,13 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	}
 
 	@Test(expected = ConditionError.class)
+	public void testEvaluate_errorWithBirthDate() {
+		userInfo.addProperty("birthdate", "2022-14-22");
+		env.putObject("userinfo", userInfo);
+		cond.execute(env);
+	}
+
+	@Test(expected = ConditionError.class)
 	public void testEvaluate_errorWithAddress() {
 		userInfo.addProperty("address", "true");
 		env.putObject("userinfo", userInfo);
@@ -206,6 +224,201 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 		userInfo.add("address", new JsonObject());
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_birthDateWithFormat_yyyyMMdd() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "1992-01-01");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test
+	public void testEvaluate_birthDateWithFormat_0000MMdd() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "0000-03-22");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test
+	public void testEvaluate_birthDateWithFormat_yyyy() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "1992");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateEmpty() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalid() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "0000-13-32");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalid1() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "0000");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalid2() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "1648113552");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidWithTime() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "2000-01-01T00:00:00.000Z");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidMonth() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "2022-14-22");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidDay() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "2022-02-30");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidYear() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "12345-02-01");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidYearFuture() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "2400-02-01");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidYear2() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "20222");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidYear3() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "a2022");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
+	}
+
+	@Test(expected = ConditionError.class)
+	public void testEvaluate_birthDateInvalidYear4() {
+
+		JsonObject userInfo = new JsonObject();
+
+		userInfo.addProperty("birthdate", "2022a");
+
+		env.putObject("userinfo", userInfo);
+
+		cond.execute(env);
+
 	}
 
 }

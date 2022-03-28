@@ -4,7 +4,13 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondition {
@@ -12,7 +18,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 	private static ElementValidator VALIDATE_STRING = new ElementValidator() {
 		@Override
 		public String getDescription() {
-			return "a string";
+			return "a string with content";
 		}
 
 		@Override
@@ -25,6 +31,59 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 				return false;
 			}
 			return true;
+		}
+	};
+	private static ElementValidator VALIDATE_BIRTHDATE = new ElementValidator() {
+		@Override
+		public String getDescription() {
+			return "a valid birthdate in the format stated in OpenID Connect Standard - YYYY-MM-DD, 0000-MM-DD or YYYY";
+		}
+
+		@Override
+		public boolean isValid(JsonElement elt) {
+			if (!VALIDATE_STRING.isValid(elt)) {
+				return false;
+			}
+			return isValidBirthDate(OIDFJSON.getString(elt));
+		}
+
+		public boolean isValidBirthDate(String date) {
+			return isValidFullDate(date) || isValidYearOnly(date);
+		}
+
+		private boolean isValidFullDate(String date) {
+			// US used as per https://developer.android.com/reference/java/util/Locale.html#be-wary-of-the-default-locale
+			DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("uuuu-MM-dd", Locale.US);
+			try {
+				LocalDate parsedDate = LocalDate.parse(date, dateTimeFormatter.withResolverStyle(ResolverStyle.STRICT));
+				if (parsedDate.getYear() == 0) {
+					// as per OIDCC, the year can optionally be 0000 to indicate year not held/not released
+					return true;
+				}
+				int year = parsedDate.getYear();
+				if (!isSaneBirthYear(year)) {
+					return false;
+				}
+
+				return true;
+
+			} catch (DateTimeParseException e) {
+				return false;
+			}
+		}
+
+		// true if seems like a real date of birth, or at least a fake that results in a non-negative non-excessive age.
+		private boolean isSaneBirthYear(int year) {
+			return year >= 1850 && year <= Calendar.getInstance().get(Calendar.YEAR);
+		}
+
+		private boolean isValidYearOnly(String yearStr) {
+			try {
+				int year = Integer.parseInt(yearStr);
+				return isSaneBirthYear(year);
+			} catch (NumberFormatException e) {
+				return false;
+			}
 		}
 	};
 	private static ElementValidator VALIDATE_BOOLEAN = new ElementValidator() {
@@ -83,7 +142,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 		put("email", VALIDATE_STRING);
 		put("email_verified", VALIDATE_BOOLEAN);
 		put("gender", VALIDATE_STRING);
-		put("birthdate", VALIDATE_STRING);
+		put("birthdate", VALIDATE_BIRTHDATE);
 		put("zoneinfo", VALIDATE_STRING);
 		put("locale", VALIDATE_STRING);
 		put("phone_number", VALIDATE_STRING);
@@ -111,7 +170,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 
 		@Override
 		public String getDescription() {
-			return "a valid object";
+			return "a valid object or contains invalid claims";
 		}
 
 		@Override
