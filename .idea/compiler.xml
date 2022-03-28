@@ -2,9 +2,10 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile">
+      <profile name="Maven default annotation processors profile" enabled="$DEV_MACHINE$">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+		  <outputRelativeToContentRoot value="$DEV_MACHINE$" />
         <module name="fapi-conformance-suite" />
         <module name="conformance-omnigon" />
         <module name="conformance-suite" />
@@ -14,7 +15,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="certification" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
+		<module name="certification" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
       <module name="conformance-omnigon" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror" />
       <module name="conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
       <module name="fapi-conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation --add-exports java.base/sun.security.x509=ALL-UNNAMED" />
