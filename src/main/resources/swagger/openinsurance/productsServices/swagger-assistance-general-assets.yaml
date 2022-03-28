@@ -1,0 +1,649 @@
+openapi: 3.0.0
+info:
+    title: APIs Open Data do Open Insurance Brasil
+    description:
+        API de informaГ§Гµes de dados do produto Bens em geral. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
+    version: 1.0.0
+    contact:
+        url: 'https://http://novosite.susep.gov.br'
+servers:
+    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+      description: Servidor de Producao
+    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+      description: Servidor de Homologacao
+tags:
+    - name: "Bens em geral"
+
+paths:
+    /assistance-general-assets/:
+        get:
+            tags:
+                - AssistanceGeneralAssets
+            summary: Obtem a lista dos produtos do tipo Bens em geral
+            description: "Obtem a lista dos produtos do tipo Bens em geral"
+            operationId: "getAssistanceGeneralAssets"
+            parameters:
+                - $ref: "#/components/parameters/cache-Control"
+                - $ref: "#/components/parameters/content-Security-Policy"
+                - $ref: "#/components/parameters/content-Type"
+                - $ref: "#/components/parameters/strict-Transport-Security"
+                - $ref: "#/components/parameters/x-Content-Type-Options"
+                - $ref: "#/components/parameters/x-Frame-Options"
+                - $ref: "#/components/parameters/page"
+                - $ref: "#/components/parameters/pageSize"
+            responses:
+                '200':
+                    description: Dados dos produtos de Bens em geral
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseAssistanceGeneralAssetsList'
+                '204':
+                    $ref: '#/components/responses/NoContent'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Dados dos produtos de API de informaГ§Гµes de dados do produto Bens em geral. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseAssistanceGeneralAssetsList'
+
+components:
+    schemas:
+        ResponseAssistanceGeneralAssetsList:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    type: object
+                    required:
+                        - brand
+                    properties:
+                        brand:
+                            $ref: '#/components/schemas/AssistanceGeneralAssetsBrand'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        AssistanceGeneralAssetsBrand:
+            type: object
+            description: Organizacao controladora do grupo.
+            required:
+                - name
+                - companies
+            properties:
+                name:
+                    type: string
+                    description: Nome da Marca reportada pelo participante do Open Insurance. O conceito a que se refere a 'marca' Г© em essГЄncia uma promessa da empresa em fornecer uma sГ©rie especГ­fica de atributos, benefГ­cios e serviГ§os uniformes aos clientes.
+                    maxLength: 80
+                    example: ACME Group Seguros
+                companies:
+                    $ref: '#/components/schemas/AssistanceGeneralAssetsCompany'
+        AssistanceGeneralAssetsCompany:
+            type: array
+            items:
+                description: InformaГ§Гµes referente a sociedade a qual a marca pertence.
+                required:
+                    - name
+                    - cnpjNumber
+                    - products
+                properties:
+                    name:
+                        type: string
+                        description: Nome da sociedade pertencente Г  marca.
+                        maxLength: 80
+                        example: ACME Seguros
+                    cnpjNumber:
+                        type: string
+                        description: CNPJ da sociedade pertencente Г  marca.
+                        maxLength: 14
+                        example: "12345678901234"
+                    products:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsProduct'
+        AssistanceGeneralAssetsProduct:
+            type: array
+            description: Lista de produtos de uma empresa.
+            items:
+                type: object
+                required:
+                    - name
+                    - code
+                    - securityType
+                    - coverages
+                    - assistanceServices
+                    - traits
+                    - allowApartPurchase
+                    - insuredGoodsType
+                    - microInsurance
+                    - validity
+                    - premiumPayment
+                    - termsAndConditions
+                    - minimumRequirements
+                properties:
+                    name:
+                        type: string
+                        description: Nome comercial do produto, pelo qual Г© identificado nos canais de distribuiГ§ГЈo e atendimento da sociedade.
+                        maxLength: 80
+                        example: Produto de Seguro
+                    code:
+                        type: string
+                        description: CГіdigo Гєnico a ser definido pela sociedade.
+                        maxLength: 100
+                        example: "01234589-0"
+                    securityType:
+                        type: array
+                        description: Listagem de tipo de bem segurado
+                        items:
+                            type: string
+                            maxLength: 29
+                            enum: [SMARTPHONE,
+                                   NOTEBOOK,
+                                   TABLET,
+                                   EQUIPAMENTOS_PORTATEIS,
+                                   ELETRODOMESTICOS_LINHA_BRANCA,
+                                   ELETRODOMESTICOS_LINHA_MARROM,
+                                   AUTOMOVEL,
+                                   BICICLETA,
+                                   BICICLETA_ELETRICA,
+                                   EMPRESA,
+                                   RESIDENCIA,
+                                   OUTROS]
+                    securityTypeOthers:
+                        type: string
+                        maxLength: 3000
+                        description: Campo livre para descriГ§ГЈo, caso o valor do campo "Tipo de bem segurado" seja 12. Outros
+                    coverages:
+                        type: array
+                        items:
+                            type: object
+                            required:
+                                - coverage
+                                - coverageDescription
+                                - coverageAttributes
+                            properties:
+                                coverage:
+                                    description: Listagem de coberturas incluГ­das no produto que deve observar a relaГ§ГЈo discriminada de coberturas
+                                    type: string
+                                    maxLength: 24
+                                    enum: [SERVICOS_EMERGENCIAIS,
+                                           SERVICOS_DE_CONVENIENCIA,
+                                           OUTRAS]
+                                coverageDescription:
+                                    type: string
+                                    maxLength: 3000
+                                    description: Campo aberto para detalhamento de cada uma das coberturas possГ­veis dos produtos
+                                coverageAttributes:
+                                    $ref: '#/components/schemas/AssistanceGeneralAssetsCoverageAttributes'
+                    assistanceServices:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsAssistanceServices'
+                    traits:
+                        type: boolean
+                        description: IndicaГ§ГЈo se o produto Г© classificado como destinado para cobertura de grandes riscos, sendo tal classificaГ§ГЈo de acordo com regulamentaГ§ГЈo especГ­fica
+                        example: true
+                    allowApartPurchase:
+                        type: boolean
+                        description: IndicaГ§ГЈo se a cobertura permite contrataГ§ГЈo separada (por cobertura selecionada).
+                        example: true
+                    insuredGoodsType:
+                        type: array
+                        items:
+                            type: string
+                            maxLength: 15
+                            example: LINHA_BRANCA
+                            enum: [LINHA_BRANCA, LINHA_MARROM, INFORMATICA, TELEFONIA, MOVEIS, ELETROPORTATEIS, OUTROS]
+                    insuredGoodsTypeOthers:
+                        type: string
+                        maxLength: 3000
+                        description: Campo livre para descriГ§ГЈo, caso o valor do campo 'Tipo de bem segurado' seja 7. Outros
+                    microInsurance:
+                        type: boolean
+                        description: IndicaГ§ГЈo se o produto Г© classificado como microsseguro.
+                        example: true
+                    validity:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsValidity'
+                    customerServices:
+                        type: array
+                        items:
+                            type: string
+                            maxLength: 33
+                            enum: [REDE_REFERENCIADA,
+                                   LIVRE_ESCOLHA,
+                                   REDE_REFERENCIADA_E_LIVRE_ESCOLHA]
+                    premiumPayment:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsPremiumPayment'
+                    termsAndConditions:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsTerms'
+                    minimumRequirements:
+                        $ref: '#/components/schemas/AssistanceGeneralAssetsMinimumRequirements'
+
+        AssistanceGeneralAssetsAssistanceServices:
+            type: array
+            description: Agrupamento dos serviГ§os de assistГЄncias disponГ­veis vinculado ao produto.
+            items:
+                type: object
+                required:
+                    - assistanceServices
+                properties:
+                    assistanceServices:
+                        type: boolean
+                        description: IndicaГ§ГЈo se o produto possui serviГ§os de assistГЄncias complementares.
+                        example: true
+                    assistanceServicesPackage:
+                        type: array
+                        items:
+                            type: string
+                            description: Para efeitos de comparabilidade considerar agrupamentos de serviГ§os em 4 categorias, conforme os domГ­nios
+                            maxLength: 17
+                            example: ATE_10_SERVICOS
+                            enum: [ATE_10_SERVICOS, ATE_20_SERVICOS , ACIMA_20_SERVICOS, CUSTOMIZAVEL]
+                    complementaryAssistanceServicesDetail:
+                        type: string
+                        description: Campo livre para descriГ§ГЈo dos serviГ§os ofertados por cada sociedade participante, contendo minimamente cada um dos serviГ§os assistenciais complementares oferecidos e se o pacote se trata de uma cobertura de assistГЄncia securitГЎria ou se serviГ§os de assistГЄncia
+                        maxLength: 1000
+                        example: reboque pane seca
+                    chargeTypeSignaling:
+                        type: string
+                        description: IndicaГ§ГЈo se o pacote de AssistГЄncia Г© gratuita ou contratada/paga.
+                        maxLength: 8
+                        example: GRATUITO
+                        enum: [GRATUITO, PAGO]
+
+        AssistanceGeneralAssetsValidity:
+            type: object
+            required:
+                - term
+            properties:
+                term:
+                    type: array
+                    items:
+                        type: string
+                        maxLength: 23
+                        example: ANUAL
+                        enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+                termOthers:
+                    type: string
+                    description: Campo livre para descriГ§ГЈo por cada participante ao selecionar o domГ­nio вЂњOutrosвЂќ no campo Prazo (acima).
+                    maxLength: 100
+
+        AssistanceGeneralAssetsPremiumPayment:
+            type: array
+            items:
+                type: object
+                required:
+                    - paymentMethod
+                    - paymentType
+                properties:
+                    paymentMethod:
+                        type: string
+                        maxLength: 33
+                        description: Metodo de pagamento
+                        enum: [CARTAO_DE_CREDITO, CARTAO_DE_DEBITO, DEBITO_EM_CONTA_CORRENTE, DEBITO_EM_CONTA_POUPANCA, BOLETO_BANCARIO ,PIX, CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO, PONTOS_DE_PROGRAMA_DE_BENEFICIO, OUTROS]
+                    paymentDetail:
+                        type: string
+                        maxLength: 1024
+                        description: Campo livre para descriГ§ГЈo por cada participante ao selecionar o domГ­nio вЂњOutrosвЂќ no campo Meio de pagamento (acima)
+                    paymentType:
+                        type: array
+                        description: tipo de pagamento
+                        items:
+                            type: string
+                            maxLength: 9
+                            example: A_VISTA
+                            enum: [A_VISTA, PARCELADO]
+                    premiumRates:
+                        description: DistribuiГ§ГЈo de frequГЄncia relativa aos valores referentes Г s taxas cobradas, nos termos do Anexo III
+                        type: string
+                        maxLength: 1024
+
+        AssistanceGeneralAssetsTerms:
+            type: object
+            description: InformaГ§Гµes dos termos e condiГ§Гµes conforme nГєmero do processo SUSEP.
+            required:
+                - definition
+            properties:
+                susepProcessNumber:
+                    type: string
+                    description: NГєmero do processo SUSEP.
+                    maxLength: 20
+                    example: 15414.622222/2222-22
+                definition:
+                    type: string
+                    description: Campo aberto (possibilidade de incluir uma url).
+                    maxLength: 1024
+                    example: https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf
+
+
+        AssistanceGeneralAssetsMinimumRequirements:
+            type: object
+            description: Requisitos mГ­nimos.
+            required:
+                - contractType
+                - minimumRequirementDetails
+                - targetAudiences
+            properties:
+                contractType:
+                    type: array
+                    items:
+                        type: string
+                        maxLength: 10
+                        example: COLETIVO
+                        enum: [COLETIVO, INDIVIDUAL]
+                minimumRequirementDetails:
+                    type: string
+                    maxLength: 1024
+                    description: Campo aberto contendo todos os requisitos mГ­nimos para contrataГ§ГЈo (possibilidade de incluir URL).
+                targetAudiences:
+                    type: array
+                    items:
+                        type: string
+                        maxLength: 15
+                        example: PESSOA_NATURAL
+                        enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
+
+        AssistanceGeneralAssetsCoverageAttributes:
+            type: object
+            description: InformaГ§Гµes de cobertura do Seguro.
+            required:
+                - insuredParticipation
+                - insuredParticipationDescription
+                - maxLMI
+            properties:
+                maxLMI:
+                    description: Lista com valor de LMI aceito pela sociedade para cada cobertura.
+                    $ref: '#/components/schemas/AssistanceGeneralAssetsCoverageAttributesDetails'
+                insuredParticipation:
+                    type: array
+                    description: IndicaГ§ГЈo se a participaГ§ГЈo do segurado (por cobertura selecionada) Г© por
+                    items:
+                        type: string
+                        maxLength: 13
+                        example: FRANQUIA
+                        enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
+                insuredParticipationDescription:
+                    type: string
+                    maxLength: 1024
+                    description: Lista com descriГ§ГЈo referente ao campo вЂњParticipaГ§ГЈo do SeguradoвЂќ para cada cobertura.
+                insuredParticipationOthers:
+                    type: string
+                    maxLength: 100
+                    description: Campo livre para descriГ§ГЈo por cada participante ao selecionar o domГ­nio вЂњOutrosвЂќ no campo ParticipaГ§ГЈo do segurado
+
+        AssistanceGeneralAssetsCoverageAttributesDetails:
+            type: object
+            required:
+                - amount
+                - unit
+            properties:
+                amount:
+                    type: number
+                unit:
+                    $ref: '#/components/schemas/AssistanceGeneralAssetsCoverageAttributesDetailsUnit'
+
+        AssistanceGeneralAssetsCoverageAttributesDetailsUnit:
+            type: object
+            required:
+                - code
+                - description
+            properties:
+                code:
+                    type: string
+                    maxLength: 2
+                    example: R$
+                description:
+                    type: string
+                    maxLength: 5
+                    example: REAL
+
+        AssistanceGeneralAssetsCoverageAttributesPercentageDetails:
+            type: object
+            required:
+                - amount
+                - unit
+            properties:
+                amount:
+                    type: number
+                unit:
+                    $ref: '#/components/schemas/AssistanceGeneralAssetsCoverageAttributesPercentageDetailsUnit'
+
+        AssistanceGeneralAssetsCoverageAttributesPercentageDetailsUnit:
+            type: object
+            required:
+                - code
+                - description
+            properties:
+                code:
+                    type: string
+                    maxLength: 1
+                    example: '%'
+                description:
+                    type: string
+                    maxLength: 10
+                    example: PERCENTUAL
+
+        Links:
+            type: object
+            properties:
+                self:
+                    type: string
+                    description: URL da pГЎgina atualmente requisitada
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                first:
+                    type: string
+                    description: URL da primeira pГЎgina de registros
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                prev:
+                    type: string
+                    description: URL da pГЎgina anterior de registros
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                next:
+                    type: string
+                    description: URL da prГіxima pГЎgina de registros
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                last:
+                    type: string
+                    description: URL da Гєltima pГЎgina de registros
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+
+        Meta:
+            type: object
+            properties:
+                totalRecords:
+                    type: integer
+                    description: Total de registros encontrados
+                    example: 10
+                totalPages:
+                    type: integer
+                    description: Total de pГЎginas para os registros encontrados
+                    example: 1
+            required:
+                - totalRecords
+                - totalPages
+
+        ResponseError:
+            type: object
+            required:
+                - errors
+            properties:
+                errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 13
+                    items:
+                        type: object
+                        required:
+                            - code
+                            - title
+                            - detail
+                        properties:
+                            code:
+                                description: CГіdigo de erro especГ­fico do endpoint
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 255
+                            title:
+                                description: TГ­tulo legГ­vel por humanos deste erro especГ­fico
+                                type: string
+                                maxLength: 255
+                            detail:
+                                description: DescriГ§ГЈo legГ­vel por humanos deste erro especГ­fico
+                                type: string
+                                maxLength: 2048
+                            requestDateTime:
+                                description: 'Data e hora da consulta, conforme especificaГ§ГЈo RFC-3339, formato UTC.'
+                                type: string
+                                maxLength: 2048
+                                format: date-time
+                                example: '2021-08-20T08:30:00Z'
+                        additionalProperties: false
+                meta:
+                    $ref: '#/components/schemas/Meta'
+            additionalProperties: false
+
+    parameters:
+        page:
+            name: page
+            in: query
+            description: NГєmero da pГЎgina que estГЎ sendo requisitada (o valor da primeira pГЎgina Г© 1).
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+        pageSize:
+            name: page-size
+            in: query
+            description: Quantidade total de registros por pГЎginas.
+            schema:
+                type: integer
+                default: 10
+                minimum: 1
+        cache-Control:
+            name: cache-control
+            in: header
+            description: Controle de cache para evitar que informaГ§Гµes confidenciais sejam armazenadas em cache.
+            required: true
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        content-Security-Policy:
+            name: Content-Security-Policy
+            in: header
+            description: Campo para proteГ§ГЈo contra ataques clickjack do estilo - drag and drop.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        content-Type:
+            name: content-Type
+            in: header
+            description: Especificar o tipo de conteГєdo da resposta.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        strict-Transport-Security:
+            name: Strict-Transport-Security
+            in: header
+            description: Campo para exigir conexГµes por HTTPS e proteger contra certificados falsificados.
+            schema:
+                type: string
+                pattern:  '[\w\W\s]*'
+        x-Content-Type-Options:
+            name: X-Content-Type-Options
+            in: header
+            description: Campo para evitar que navegadores executem a detecГ§ГЈo de MIME e interpretem respostas como HTML de forma inadequada.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        x-Frame-Options:
+            name: X-Frame-Options
+            in: header
+            description: Campo indica se o navegador deve ou nГЈo renderizar um frame.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+
+    securitySchemes:
+        OpenId:
+            type: openIdConnect
+            openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
+        OAuth2Security:
+            type: oauth2
+            description: Fluxo OAuth necessГЎrio para que a receptora tenha acesso aos dados na instituiГ§ГЈo transmissora. Inclui o processo de redirecionamento e autenticaГ§ГЈo do usuГЎrio a que se referem os dados.
+            flows:
+                authorizationCode:
+                    authorizationUrl: 'https://authserver.example/authorization'
+                    tokenUrl: 'https://authserver.example/token'
+                    scopes:
+                        financings: Escopo necessГЎrio para acesso Г  API. O controle dos endpoints especГ­ficos Г© feito via permissions.
+
+    responses:
+        NoContent:
+            description: 'O recurso solicitado nГЈo existe ou nГЈo foi localizado.'
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        BadRequest:
+            description: 'A requisiГ§ГЈo foi malformada, omitindo atributos obrigatГіrios, seja no payload ou atravГ©s de atributos na URL.'
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Forbidden:
+            description: O token tem escopo incorreto ou uma polГ­tica de seguranГ§a foi violada
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        InternalServerError:
+            description: Ocorreu um erro no gateway da API ou no microsserviГ§o
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        MethodNotAllowed:
+            description: O consumidor tentou acessar o recurso com um mГ©todo nГЈo suportado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotAcceptable:
+            description: A solicitaГ§ГЈo continha um cabeГ§alho Accept diferente dos tipos de mГ­dia permitidos ou um conjunto de caracteres diferente de UTF-8
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotFound:
+            description: O recurso solicitado nГЈo existe ou nГЈo foi implementado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        TooManyRequests:
+            description: 'A operaГ§ГЈo foi recusada, pois muitas solicitaГ§Гµes foram feitas dentro de um determinado perГ­odo ou o limite global de requisiГ§Гµes concorrentes foi atingido'
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Unauthorized:
+            description: CabeГ§alho de autenticaГ§ГЈo ausente/invГЎlido ou token invГЎlido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
