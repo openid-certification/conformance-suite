@@ -2,11 +2,16 @@ package net.openid.conformance.fapi2baselineid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.IdmvpCheckClaimsSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
+import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
@@ -20,15 +25,12 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjec
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointJARMResponseModesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointScopesSupported;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
@@ -44,7 +46,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPI1FinalOPProfile.class,
+	FAPI2ID2OPProfile.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class
@@ -57,25 +59,30 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 	protected boolean brazil = false;
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
 		brazil = true;
+	}
+
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
+	public void setupIdmvp() {
+		profileSpecificChecks = IdmvpDiscoveryEndpointChecks.class;
 	}
 
 	@Override
@@ -90,7 +97,7 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
 		if (jarm) {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointJARMResponseModesSupported.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+			callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
 			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
 			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
@@ -113,8 +120,20 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+
+	public static class IdmvpDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
+
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
+			callAndContinueOnFailure(IdmvpCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
+			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise.class, Condition.ConditionResult.FAILURE, "IDMVP");
 		}
 	}
 
@@ -127,8 +146,8 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 
 			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
 
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIRWCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 

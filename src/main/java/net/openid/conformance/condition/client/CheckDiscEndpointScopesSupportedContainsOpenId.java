@@ -5,14 +5,14 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIRWCheckDiscEndpointScopesSupported extends AbstractValidateJsonArray {
+public class CheckDiscEndpointScopesSupportedContainsOpenId extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "scopes_supported";
 
 	private static final String EXPECTED_VALUE = "openid";
 	private static final int minimumMatchesRequired = 1;
 
-	private static final String errorMessageNotEnough = "The server does not support the required scopes";
+	private static final String errorMessageNotEnough = "scopes_supported in the server's discovery document does not contain 'openid'.";
 
 	@Override
 	@PreEnvironment(required = "server")
