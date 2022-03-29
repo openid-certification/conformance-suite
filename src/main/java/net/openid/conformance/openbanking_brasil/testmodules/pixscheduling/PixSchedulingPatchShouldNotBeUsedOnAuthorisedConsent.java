@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "patch-consents-api-pixscheduling-revoke-authorized",
 	displayName = "Patch Consents API Test Module",
-	summary = "ask Erick",
+	summary = "WIP",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -48,6 +48,9 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 
 	@Override
 	protected void requestProtectedResource() {
+		callAndStopOnFailure(SaveInitialRefreshToken.class);
+		call(verifyRefreshTokenRotationIsDisabled());
+		call(verifyRefreshTokenRotationIsDisabled());
 		callAndStopOnFailure(PaymentConsentIdExtractor.class);
 		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
 		callAndStopOnFailure(FAPIBrazilGeneratePatchPaymentConsentRequest.class);
@@ -74,6 +77,18 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 			condition(FAPIBrazilGeneratePaymentConsentRequest.class),
 			condition(RemovePaymentDateFromConsentRequest.class),
 			condition(EnsureScheduledPaymentDateIsTomorrow.class)
+		);
+	}
+
+	private ConditionSequence verifyRefreshTokenRotationIsDisabled(){
+		return sequenceOf(
+			condition(GenerateRefreshTokenRequest.class),
+			condition(SetPaymentsScopeOnTokenEndpointRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class),
+			condition(SignClientAuthenticationAssertion.class),
+			condition(AddClientAssertionToTokenEndpointRequest.class),
+			condition(CallTokenEndpoint.class),
+			condition(EnsureRefreshTokenHasNotRotated.class)
 		);
 	}
 
