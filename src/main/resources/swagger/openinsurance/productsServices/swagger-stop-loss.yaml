@@ -1,0 +1,500 @@
+ 
+openapi: 3.0.0
+info:
+  title: APIs Open Data do Open Insurance Brasil
+  description:
+    API de informações de dados do produto Stop Loss. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
+  version: 1.0.0
+  contact:
+    url: 'https://http://novosite.susep.gov.br'
+servers:
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Producao
+  - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    description: Servidor de Homologacao 
+tags:
+- name: "Stop Loss" 
+
+paths:
+  /stop-loss/:
+    get:
+      tags:
+        - StopLoss
+      summary: Obtem a lista dos produtos do tipo StopLoss
+      description: "Obtem a lista dos produtos do tipo StopLoss"
+      operationId: "getStopLoss"
+      parameters:
+        - $ref: "#/components/parameters/cache-Control"
+        - $ref: "#/components/parameters/content-Security-Policy"
+        - $ref: "#/components/parameters/content-Type"
+        - $ref: "#/components/parameters/strict-Transport-Security"
+        - $ref: "#/components/parameters/x-Content-Type-Options"
+        - $ref: "#/components/parameters/x-Frame-Options"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+      responses:
+        '200':
+          description: Dados dos produtos de StopLoss
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStopLossList'
+        '204':
+          $ref: '#/components/responses/NoContent'                
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          description: Dados dos produtos de API de informações de dados do produto Stop Loss. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStopLossList' 
+
+components:
+  schemas:
+    ResponseStopLossList:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: object
+          required:
+            - brand
+          properties:
+              brand:
+                $ref: '#/components/schemas/StopLossBrand'
+        links:
+            $ref: '#/components/schemas/Links'
+        meta:
+            $ref: '#/components/schemas/Meta'
+    StopLossBrand:
+      type: object
+      description: Organizacao controladora do grupo.
+      required:
+        - name
+        - companies
+      properties:
+        name:
+          type: string
+          description: Nome da Marca reportada pelo participante do Open Insurance. O conceito a que se refere a 'marca' é em essência uma promessa da empresa em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes.
+          maxLength: 80
+          example: ACME Group Seguros
+        companies:
+          $ref: '#/components/schemas/StopLossCompany'
+    StopLossCompany:
+      type: array
+      items:
+          description: Informações referente a sociedade a qual a marca pertence.
+          required:
+          - name
+          - cnpjNumber
+          - products
+          properties:
+            name:
+                type: string
+                description: Nome da sociedade pertencente à marca.
+                maxLength: 80
+                example: ACME Seguros
+            cnpjNumber:
+                type: string
+                description: CNPJ da sociedade pertencente à marca.
+                maxLength: 14
+                example: "12345678901234"
+            products:
+                $ref: '#/components/schemas/StopLossProduct'
+    StopLossProduct:
+      type: array
+      description: Lista de produtos de uma empresa.
+      items:
+        type: object
+        required:
+          - code
+          - coverages
+          - allowApartPurchase
+          - traits
+          - validity
+          - termsAndConditions
+          - minimumRequirements
+        properties:
+          name:
+            type: string
+            description: Nome comercial do produto, pelo qual é identificado nos canais de distribuição e atendimento da sociedade.
+            maxLength: 80
+            example: Produto de Seguro
+          code:
+            type: string
+            description: Código único a ser definido pela sociedade.
+            maxLength: 100
+            example: "01234589-0"
+          coverages:
+            type: array
+            items:
+              type: object
+              required:
+                - coverage
+                - coverageDescription
+              properties:
+                coverage:
+                  type: string
+                  maxLength: 500
+                  description: "Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
+                    Obs: lista de coberturas do ramo ainda não foi padronizada"
+                coverageDescription:
+                  type: string
+                  maxLength: 3000
+                  description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
+                coverageAttributes:
+                      $ref: '#/components/schemas/StopLossCoverageAttributes'
+          allowApartPurchase:
+            type: boolean
+            description: Permissão para Contratação Separada
+          traits:
+            type: boolean
+            description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
+            example: true
+          validity:
+            $ref: '#/components/schemas/StopLossValidity'
+          premiumRates:
+            type: array 
+            description: Distribuição de frequência relativa aos valores referentes às taxas cobradas
+            items:
+                type: string 
+                maxLength: 1024
+          termsAndConditions:
+            $ref: '#/components/schemas/StopLossTerms'
+          minimumRequirements:
+            $ref: '#/components/schemas/StopLossMinimumRequirements'
+    
+    StopLossValidity:
+      type: object
+      required:
+        - term
+      properties:
+        term:
+          type: array
+          items:
+            type: string
+            maxLength: 23
+            description: Prazo
+            example: ANUAL
+            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+        termOthers:
+          type: string
+          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+          maxLength: 100
+        
+    StopLossTerms:
+      type: object
+      description: Informações dos termos e condições conforme número do processo SUSEP.
+      required:
+        - definition
+      properties:
+        susepProcessNumber:
+          type: string
+          description: Número do processo SUSEP.
+          maxLength: 20
+          example: 15414.622222/2222-22
+        definition:
+          type: string
+          description: Campo aberto (possibilidade de incluir uma url).
+          maxLength: 1024
+          example: https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf   
+
+    
+    StopLossMinimumRequirements:
+      type: object
+      description: Requisitos mínimos.
+      required:
+        - targetAudiences
+      properties:
+        targetAudiences:
+          description: Público-alvo
+          type: array
+          items:
+            type: string
+            maxLength: 15
+            example: PESSOA_NATURAL
+            enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
+    
+    StopLossCoverageAttributes:
+      type: object
+      description: Informações de cobertura do Seguro.
+      properties:
+        maxLMI:
+          description: Lista com valor de LMI aceito pela sociedade para cada cobertura.
+          $ref: '#/components/schemas/StopLossCoverageAttributesDetails'
+    
+    StopLossCoverageAttributesDetails:
+        type: object
+        required:
+          - amount
+          - unit
+        properties:
+          amount:
+            type: number
+          unit:
+            $ref: '#/components/schemas/StopLossCoverageAttributesDetailsUnit'
+    
+    StopLossCoverageAttributesDetailsUnit:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code: 
+          type: string
+          example: R$
+        description: 
+          type: string
+          example: REAL
+    
+    StopLossCoverageAttributesPercentageDetails:
+        type: object
+        required:
+          - amount
+          - unit
+        properties:
+          amount:
+            type: number
+          unit:
+            $ref: '#/components/schemas/StopLossCoverageAttributesPercentageDetailsUnit'
+    
+    StopLossCoverageAttributesPercentageDetailsUnit:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code: 
+          type: string
+          example: '%'
+        description: 
+          type: string
+          example: PERCENTUAL
+    
+    Links:
+      type: object
+      properties:
+        self:
+          type: string
+          description: URL da página atualmente requisitada
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        first:
+          type: string
+          description: URL da primeira página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        prev:
+          type: string
+          description: URL da página anterior de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        next:
+          type: string
+          description: URL da próxima página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+        last:
+          type: string
+          description: URL da última página de registros
+          example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    
+    Meta:
+      type: object
+      properties:
+        totalRecords:
+          type: integer
+          description: Total de registros encontrados
+          example: 10
+        totalPages:
+          type: integer
+          description: Total de páginas para os registros encontrados
+          example: 1
+      required:
+        - totalRecords
+        - totalPages
+    
+    ResponseError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 13
+          items:
+            type: object
+            required:
+              - code
+              - title
+              - detail
+            properties:
+              code:
+                description: Código de erro específico do endpoint
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 255
+              title:
+                description: Título legível por humanos deste erro específico
+                type: string
+                maxLength: 255
+              detail:
+                description: Descrição legível por humanos deste erro específico
+                type: string
+                maxLength: 2048
+              requestDateTime:
+                description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                type: string
+                maxLength: 2048
+                format: date-time
+                example: '2021-08-20T08:30:00Z'
+            additionalProperties: false
+        meta:
+          $ref: '#/components/schemas/Meta'
+      additionalProperties: false
+    
+  parameters:
+      page:
+        name: page
+        in: query
+        description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+        schema:
+            type: integer
+            default: 1
+            minimum: 1
+      pageSize:
+        name: page-size
+        in: query
+        description: Quantidade total de registros por páginas.
+        schema:
+            type: integer
+            default: 10
+            minimum: 1
+      cache-Control:
+        name: cache-control
+        in: header
+        description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
+        required: true
+        schema:
+            type: string
+            pattern: '[\w\W\s]*'
+      content-Security-Policy:
+        name: Content-Security-Policy
+        in: header
+        description: Campo para proteção contra ataques clickjack do estilo - drag and drop.
+        schema:
+            type: string
+            pattern: '[\w\W\s]*'
+      content-Type:
+        name: content-Type
+        in: header
+        description: Especificar o tipo de conteúdo da resposta.
+        schema:
+            type: string
+            pattern: '[\w\W\s]*'
+      strict-Transport-Security:
+        name: Strict-Transport-Security
+        in: header
+        description: Campo para exigir conexões por HTTPS e proteger contra certificados falsificados.
+        schema:
+            type: string
+            pattern:  '[\w\W\s]*'
+      x-Content-Type-Options:
+        name: X-Content-Type-Options
+        in: header
+        description: Campo para evitar que navegadores executem a detecção de MIME e interpretem respostas como HTML de forma inadequada.
+        schema:
+            type: string
+            pattern: '[\w\W\s]*'
+      x-Frame-Options:
+        name: X-Frame-Options
+        in: header
+        description: Campo indica se o navegador deve ou não renderizar um frame.
+        schema:
+            type: string
+            pattern: '[\w\W\s]*'
+    
+  securitySchemes:
+    OpenId:
+      type: openIdConnect
+      openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
+    OAuth2Security:
+      type: oauth2
+      description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://authserver.example/authorization'
+          tokenUrl: 'https://authserver.example/token'
+          scopes:
+            financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
+    
+  responses:
+    NoContent:
+      description: 'O recurso solicitado não existe ou não foi localizado.'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'   
+    BadRequest:
+      description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Forbidden:
+      description: O token tem escopo incorreto ou uma política de segurança foi violada
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    InternalServerError:
+      description: Ocorreu um erro no gateway da API ou no microsserviço
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    MethodNotAllowed:
+      description: O consumidor tentou acessar o recurso com um método não suportado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotAcceptable:
+      description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    NotFound:
+      description: O recurso solicitado não existe ou não foi implementado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    TooManyRequests:
+      description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    Unauthorized:
+      description: Cabeçalho de autenticação ausente/inválido ou token inválido
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
