@@ -13,7 +13,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "account-api-bookingdate-test",
 	displayName = "Test the max date of a payment",
-	summary = "Test the max date of a payment",
+	summary = "Testing that the server is respecting the BookingDate filter rules\n" +
+		"\u2022 Creates a consent with only ACCOUNTS permissions\n" +
+		"\u2022 201 code and successful redirect\n" +
+		"\u2022 Using the consent created, call the Accounts API\n" +
+		"\u2022 Call GET Accounts Transactions API, send headers fromBookingDate and toBookingDate using the max period (12 months from exisiting date)\n" +
+		"\u2022 Expect success, fetch a transaction, get the transactionDate\n" +
+		"\u2022 Call GET Accounts Transactions API, send headers fromBookingDate and toBookingDate to be the transactionDate",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
