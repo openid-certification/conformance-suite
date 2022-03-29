@@ -48,18 +48,13 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 
 	@Override
 	protected void requestProtectedResource() {
-//		callAndStopOnFailure(PaymentConsentIdExtractor.class);
-//		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
-//		callAndStopOnFailure(SetPatchConsentsRevokedAndRevokedByTPP.class);
-//		callAndStopOnFailure(SetPatchConsentLoggedUser.class);
-//		callAndStopOnFailure(FAPIBrasilCreatePatchPaymentConsentRequest.class);
-		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication)
-			.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas201.class))
-			.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
-		call(preauthSteps);
-		performPostAuthorizationFlow();
+		callAndStopOnFailure(PaymentConsentIdExtractor.class);
+		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
+		callAndStopOnFailure(FAPIBrazilGeneratePatchPaymentConsentRequest.class);
+		callAndStopOnFailure(SetPatchConsentsRevokedAndRevokedByTPP.class);
 		call(new SignedPaymentConsentSequence()
 			.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
+			.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
 			.insertBefore(EnsureHttpStatusCodeIs201.class,condition(EnsurePatchPayment422ResponseCodeIsOperationNotAllowed.class))
 		);
 	}
