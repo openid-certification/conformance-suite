@@ -1,7 +1,8 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
+import net.openid.conformance.condition.client.CallUserInfoEndpoint;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsSub;
 import net.openid.conformance.condition.client.EnsureUserInfoUpdatedAtValid;
@@ -51,7 +52,10 @@ public class AbstractOIDCCReturnedClaimsServerTest extends AbstractOIDCCServerTe
 	}
 
 	protected void callUserInfoEndpoint() {
-		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, "OIDCC-5.3.1");
+		callAndStopOnFailure(CallUserInfoEndpoint.class, "OIDCC-5.3.1");
+		call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 	}
 
 	protected void validateUserInfoResponse() {

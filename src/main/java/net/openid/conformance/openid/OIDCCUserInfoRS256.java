@@ -4,7 +4,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddUserinfoSignedResponseAlgRS256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256;
-import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJwtContentType;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureUserInfoDoesNotContainNonce;
 import net.openid.conformance.condition.client.ExtractSignedUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.condition.client.ValidateSignedUserInfoResponseStandardJWTClaims;
@@ -42,7 +43,9 @@ public class OIDCCUserInfoRS256 extends AbstractOIDCCUserInfoTest {
 
 	@Override
 	protected void extractUserInfoResponse() {
-		callAndContinueOnFailure(CheckUserInfoEndpointReturnedJwtContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+		call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
+		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(ValidateUserInfoResponseSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
 		// should probably also use AbstractVerifyJwsSignatureUsingKid at some point
 		callAndStopOnFailure(ExtractSignedUserInfoFromUserInfoEndpointResponse.class);

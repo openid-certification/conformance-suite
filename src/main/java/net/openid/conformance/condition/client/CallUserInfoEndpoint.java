@@ -6,13 +6,32 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.http.HttpHeaders;
 
-public class CallUserInfoEndpointWithBearerToken extends AbstractCallProtectedResourceWithBearerToken {
+public class CallUserInfoEndpoint extends AbstractCallProtectedResourceWithBearerToken {
+
+	@Override
+	protected boolean treatAllHttpStatusAsSuccess() {
+		// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+		// status code meaning the rest of our code can handle http status codes how it likes
+		return true;
+	}
+
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+
+		HttpHeaders headers = super.getHeaders(env);
+
+		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
+
+		headers = headersFromJson(requestHeaders, headers);
+
+		return headers;
+	}
 
 	@Override
 	@PreEnvironment(required = { "access_token", "server" })
-	@PostEnvironment(required = "userinfo_endpoint_response_headers", strings = "userinfo_endpoint_response")
+	@PostEnvironment(required = {"userinfo_endpoint_response_full"})
 	public Environment evaluate(Environment env) {
 		return callProtectedResource(env);
 	}
@@ -31,9 +50,7 @@ public class CallUserInfoEndpointWithBearerToken extends AbstractCallProtectedRe
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
-		env.putInteger("userinfo_endpoint_response_code", OIDFJSON.getInt(responseCode.get("code")));
-		env.putString("userinfo_endpoint_response", responseBody);
-		env.putObject("userinfo_endpoint_response_headers", responseHeaders);
+		env.putObject("userinfo_endpoint_response_full", fullResponse);
 
 		logSuccess("Got a response from the userinfo endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
 		return env;
