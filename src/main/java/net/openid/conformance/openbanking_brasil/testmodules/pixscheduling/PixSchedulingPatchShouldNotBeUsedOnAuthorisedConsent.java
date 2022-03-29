@@ -2,7 +2,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -52,9 +51,11 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 
 	@Override
 	protected void requestProtectedResource() {
+		eventLog.startBlock("Calling Token Endpoint and validating refresh token is not rotated");
 		callAndStopOnFailure(SaveInitialRefreshToken.class);
 		call(verifyRefreshTokenRotationIsDisabled());
 		call(verifyRefreshTokenRotationIsDisabled());
+		eventLog.startBlock("Attempting to PATCH consents");
 		callAndStopOnFailure(PaymentConsentIdExtractor.class);
 		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
 		callAndStopOnFailure(FAPIBrazilGeneratePatchPaymentConsentRequest.class);
