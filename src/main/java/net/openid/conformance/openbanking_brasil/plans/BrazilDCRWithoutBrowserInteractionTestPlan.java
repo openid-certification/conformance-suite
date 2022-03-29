@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.fapi1advancedfinal.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.DcrAttemptClientTakeoverTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrSubjectDnTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -39,7 +40,8 @@ public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class,
-					DcrSubjectDnTestModule.class
+					DcrSubjectDnTestModule.class,
+					DcrAttemptClientTakeoverTestModule.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)
