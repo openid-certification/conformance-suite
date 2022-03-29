@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 
 public class EnsurePatchPayment422ResponseCodeIsOperationNotAllowed extends AbstractErrorFromJwtResponseCondition {
-	public static final String EXPECTED_ERROR = "OPERATION_NOT_ALLOWED_BY_STATUS";
+	public static final String EXPECTED_ERROR = "OPERACAO_NAO_PERMITIDA_STATUS";
 
 	@Override
 	public Environment evaluate(Environment env) {
