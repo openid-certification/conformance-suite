@@ -14,11 +14,10 @@ public class EnsureRefreshTokenHasNotRotated extends AbstractCondition {
 		String refreshToken = OIDFJSON.getString(tokenEndpointResponse.get("refresh_token"));
 		String initialToken = env.getString("initial_refresh_token");
 
-		if (!refreshToken.equals(initialToken)){
+		if (!refreshToken.equals(initialToken)) {
 			throw error("Refresh tokens rotated fail");
-		} else {
-			logSuccess("Refresh tokens not rotated");
 		}
+		logSuccess("Refresh tokens not rotated");
 		return env;
 	}
 }
