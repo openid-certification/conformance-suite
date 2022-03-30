@@ -65,9 +65,6 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 				callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 				callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-				// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
-//				callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
-//				callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
 			} else {
 				registrationFailed = true; // don't try to use/deregister this client
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
