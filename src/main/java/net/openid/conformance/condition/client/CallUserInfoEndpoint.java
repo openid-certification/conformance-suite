@@ -39,7 +39,14 @@ public class CallUserInfoEndpoint extends AbstractCallProtectedResourceWithBeare
 	@Override
 	protected String getUri(Environment env) {
 
-		String resourceUri = env.getString("server", "userinfo_endpoint");
+		String resourceUri = null;
+
+		if (env.containsObject("mutual_tls_authentication")) {
+			resourceUri = env.getString("server", "mtls_endpoint_aliases.userinfo_endpoint");
+		}
+		if (resourceUri == null) {
+			resourceUri = env.getString("server", "userinfo_endpoint");
+		}
 		if (Strings.isNullOrEmpty(resourceUri)){
 			throw error("\"userinfo_endpoint\" missing from server configuration");
 		}
