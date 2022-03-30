@@ -20,7 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
+public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlowVariant{
 
 	@Override
 	public void start() {
@@ -34,18 +34,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth extends FAPI1Adva
 	}
 
 	@Override
-	protected boolean scopeContains(String requiredScope) {
-		// Not needed as scope field is optional
-		return false;
-	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
-	@Override
 	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
+		// Not needed
 	}
 }

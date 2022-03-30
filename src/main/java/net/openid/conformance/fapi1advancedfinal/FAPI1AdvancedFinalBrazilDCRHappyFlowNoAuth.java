@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
+public class FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlow{
 
 	@Override
 	public void start() {
