@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddSupportedOpenIdScopesToClientConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -21,6 +22,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2{
+
+	@Override
+	protected void callRegistrationEndpoint() {
+		callAndStopOnFailure(AddSupportedOpenIdScopesToClientConfig.class);
+		super.callRegistrationEndpoint();
+	}
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
