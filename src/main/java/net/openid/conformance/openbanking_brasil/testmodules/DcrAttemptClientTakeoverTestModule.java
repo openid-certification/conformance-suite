@@ -29,8 +29,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.ca",
 		"directory.client_id",
 		"directory2.client_id",
-		"resource.resourceUrl",
-		"client2.scope",
 		"client2.jwks",
 		"client2.org_jwks",
 		"mtls2.key",
@@ -42,7 +40,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment"
+	"resource.brazilPixPayment",
+	"resource.consentUrl",
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
 })
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
@@ -103,5 +104,26 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 	@Override
 	public void start() {
 		fireTestFinished();
+	}
+
+	@Override
+	protected void setupResourceEndpoint() {
+		// not needed as resource endpoint won't be called
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		// Not needed as scope field is optional
+		return false;
+	}
+
+	@Override
+	protected void validateDcrResponseScope() {
+		// Not needed as scope field is optional
+	}
+
+	@Override
+	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
+		// Not needed as scope field is optional
 	}
 }

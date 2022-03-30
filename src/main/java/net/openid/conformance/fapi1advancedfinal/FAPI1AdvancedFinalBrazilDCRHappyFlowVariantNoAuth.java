@@ -11,22 +11,41 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlowVariant{
+public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
 
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 		super.onPostAuthorizationFlowComplete();
+	}
+
+	@Override
+	protected void setupResourceEndpoint() {
+		// not needed as resource endpoint won't be called
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		// Not needed as scope field is optional
+		return false;
+	}
+
+	@Override
+	protected void validateDcrResponseScope() {
+		// Not needed as scope field is optional
+	}
+
+	@Override
+	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
+		// Not needed as scope field is optional
 	}
 }

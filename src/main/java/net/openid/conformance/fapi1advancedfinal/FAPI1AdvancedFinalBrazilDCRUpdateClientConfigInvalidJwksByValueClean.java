@@ -3,12 +3,11 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazildcr-update-client-config-no-authorization-flow",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config without authentication flow",
+	testName = "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value-clean",
+	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config",
 	summary = "\u2022 Obtains a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration)\n" +
 		"\u2022 Registers a new client on the target authorization server.\n" +
-		"\u2022 After the registration, a PUT will be made to the RFC7592 client to change the redirect uri (both redirect uris must be present in the software on the Brazil directory), which must succeed.\n" +
-		"\u2022 The contents of the 'PUT' is the dynamic registration response the server supplied, so any problems with the PUT request are due to errors in the DCR response. PUTs to the client config url to change the redirect_uri with various bad authentication will then be tried, which should all be rejected. The test will then verify the redirect uri wasn't changed.",
+		"\u2022 The test will then use a PUT to try and add a jwks by value, the server must return an 'invalid_client_metadata' error.\n",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -21,12 +20,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfig{
-	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
-		super.onPostAuthorizationFlowComplete();
-	}
+public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValueClean
+	extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue{
 
 	@Override
 	protected void setupResourceEndpoint() {
@@ -48,5 +43,4 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth extends FAPI1Ad
 	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
 		// Not needed as scope field is optional
 	}
-
 }
