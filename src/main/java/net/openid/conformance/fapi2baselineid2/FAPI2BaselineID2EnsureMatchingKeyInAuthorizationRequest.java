@@ -37,6 +37,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI1-ADV-5.2.2-1", "OIDCC-6.3.2");
 
