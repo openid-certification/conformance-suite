@@ -15,7 +15,8 @@ public class EnsureIdentityClaimsContainRequestedClaims extends AbstractConditio
 	public Environment evaluate(Environment env) {
 		// assume we requested same claims in id_token and userinfo, as per
 		// AddAllSupportedStandardClaimsToAuthorizationEndpointRequestIdTokenAndUserinfoClaims
-		JsonObject requestedClaims = env.getElementFromObject("authorization_endpoint_request", "claims.id_token").getAsJsonObject();
+		// (but deliberately use userinfo, as none-identity claims like acr might have been requested for the id_token)
+		JsonObject requestedClaims = env.getElementFromObject("authorization_endpoint_request", "claims.userinfo").getAsJsonObject();
 
 		JsonObject identityClaims = env.getObject("identity_claims");
 

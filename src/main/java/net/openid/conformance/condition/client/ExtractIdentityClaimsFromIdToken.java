@@ -18,7 +18,7 @@ public class ExtractIdentityClaimsFromIdToken extends AbstractValidateOpenIdStan
 
 		env.putObject("identity_claims", idTokenClaims);
 
-		log("Extracted identity_claims from id_token", args("identity_clais", idTokenClaims));
+		log("Extracted identity_claims from id_token", args("identity_claims", idTokenClaims));
 
 		return env;
 	}
