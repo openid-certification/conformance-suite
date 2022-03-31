@@ -45,7 +45,13 @@ public class CallPAREndpoint extends AbstractCondition {
 		JsonObject formJson = env.getObject("pushed_authorization_request_form_parameters");
 		MultiValueMap <String, String> form = new LinkedMultiValueMap <>();
 		for (String key : formJson.keySet()) {
-			form.add(key, OIDFJSON.getString(formJson.get(key)));
+			JsonElement el = formJson.get(key);
+			if (el.isJsonObject()) {
+				// e.g. claims parameter
+				form.add(key, el.toString());
+			} else {
+				form.add(key, OIDFJSON.getString(el));
+			}
 		}
 
 		try {

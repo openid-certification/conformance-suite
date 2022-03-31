@@ -13,13 +13,13 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractUserInfoFromUserInfoEndpointResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "userinfo_endpoint_response")
+	@PreEnvironment(required = "userinfo_endpoint_response_full")
 	@PostEnvironment(required = "userinfo")
 	public Environment evaluate(Environment env) {
 
 		env.removeObject("userinfo");
 
-		String userInfoStr = env.getString("userinfo_endpoint_response");
+		String userInfoStr = env.getString("userinfo_endpoint_response_full", "body");
 		try {
 			JsonElement elt = JsonParser.parseString(userInfoStr);
 			JsonObject userInfo = elt.getAsJsonObject();

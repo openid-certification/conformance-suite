@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -153,6 +154,8 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 		put("_claim_sources", VALIDATE_JSON_OBJECT);
 	}};
 
+	protected JsonObject unknownClaims = new JsonObject();
+
 	interface ElementValidator {
 		String getDescription();
 
@@ -186,6 +189,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 				ElementValidator validator = claims.get(entry.getKey());
 				if (validator == null) {
 					log("Skipping unknown claim: " + name);
+					unknownClaims.add(name, entry.getValue());
 					continue;
 				}
 

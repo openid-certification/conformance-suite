@@ -817,7 +817,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		eventLog.endBlock();
 	}
 
-	private void addDpopToResourceRequest() {
+	protected void addDpopToResourceRequest() {
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 		callAndStopOnFailure(SetDpopAccessTokenHash.class);
