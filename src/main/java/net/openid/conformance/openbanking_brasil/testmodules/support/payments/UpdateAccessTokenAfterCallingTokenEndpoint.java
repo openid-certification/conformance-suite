@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonObjectBuilder;
 
 public class UpdateAccessTokenAfterCallingTokenEndpoint extends AbstractCondition {
@@ -15,8 +16,8 @@ public class UpdateAccessTokenAfterCallingTokenEndpoint extends AbstractConditio
 	@PostEnvironment(required = "access_token")
 	public Environment evaluate(Environment env) {
 		JsonObject tokenEndpointResponse = env.getObject("token_endpoint_response");
-		String accessToken = tokenEndpointResponse.get("access_token").getAsString();
-		String tokenType =  tokenEndpointResponse.get("token_type").getAsString();
+		String accessToken = OIDFJSON.getString(tokenEndpointResponse.get("access_token"));
+		String tokenType =  OIDFJSON.getString(tokenEndpointResponse.get("token_type"));
 		JsonObjectBuilder accessTokenObject = new JsonObjectBuilder()
 			.addField("value", accessToken)
 			.addField("type", tokenType);
