@@ -41,6 +41,7 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPI2BaselineID2EnsureRequestObjectWithInvalidSignatureFails.class,
 		FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class,
+		FAPI2BaselineID2EnsureUnsignedRequestAtParEndpointFails.class,
 
 		// Negative tests for authorization request
 		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
