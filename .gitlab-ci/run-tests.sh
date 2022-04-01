@@ -63,12 +63,14 @@ makeClientTest() {
 }
 
 makeServerTest() {
-    # FAPI 2 baseline
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    # FAPI2 baseline
+    TESTS="${TESTS} fapi2-baseline-id1-test-plan[client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
+    TESTS="${TESTS} fapi2-baseline-id1-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+
+    # FAPI2 advanced
+    TESTS="${TESTS} fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
     # We don't have access to a server that supports 'signed_non_repudiation' yet
-    #TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
 
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
@@ -226,8 +228,8 @@ makeServerTest() {
     # Brazil DCR payments (private_key_jwt)
     TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-payments-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json"
 
-    # FAPI2
-    TESTS="${TESTS} fapi2-baseline-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test{fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    # FAPI2 OP against RP
+    TESTS="${TESTS} fapi2-baseline-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
 
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=private_key_jwt] authlete-fapi-r-private-key.json"
