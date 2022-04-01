@@ -1,5 +1,8 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -40,7 +43,31 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUriClean
 	}
 
 	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
+	protected void callRegistrationEndpoint() {
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		validateDcrResponseScope();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Make PUT request to client configuration endpoint to change jwks uri to non-directory hosted one");
+		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
+		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
+		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
+
+		callAndStopOnFailure(CreateJwksUri.class);
+		env.mapKey("dynamic_registration_request", "registration_client_endpoint_request_body");
+		callAndStopOnFailure(AddJwksUriToDynamicRegistrationRequest.class);
+		env.unmapKey("dynamic_registration_request");
+
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
+
+		env.mapKey("endpoint_response", "registration_client_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2", "RFC7592-2.2");
+		env.mapKey("dynamic_registration_endpoint_response", "registration_client_endpoint_response");
+		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+		call(exec().unmapKey("endpoint_response"));
+		call(exec().unmapKey("dynamic_registration_endpoint_response"));
 	}
 }

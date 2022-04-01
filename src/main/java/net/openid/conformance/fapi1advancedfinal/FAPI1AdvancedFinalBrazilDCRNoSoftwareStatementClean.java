@@ -37,8 +37,4 @@ public class FAPI1AdvancedFinalBrazilDCRNoSoftwareStatementClean
 		// Not needed as scope field is optional
 	}
 
-	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
-	}
 }

@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWith2ndClientFull;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -50,7 +51,10 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 
 	@Override
 	protected void callRegistrationEndpoint() {
-		super.callRegistrationEndpoint();
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		validateDcrResponseScope();
+		eventLog.endBlock();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with no changes expecting success");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
@@ -122,8 +126,4 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		// Not needed as scope field is optional
 	}
 
-	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
-	}
 }

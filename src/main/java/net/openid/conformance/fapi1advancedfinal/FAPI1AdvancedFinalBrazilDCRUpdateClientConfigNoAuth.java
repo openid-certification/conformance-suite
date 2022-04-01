@@ -1,5 +1,8 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -45,8 +48,30 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth extends FAPI1Ad
 	}
 
 	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
+	protected void callRegistrationEndpoint() {
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		validateDcrResponseScope();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Make PUT request to client configuration endpoint to change redirect uri");
+		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
+		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
+		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
+		originalRedirectUri = env.getString("redirect_uri");
+		callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
+		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
+		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(AddRedirectUriToClientConfigurationRequest.class);
+
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 	}
 
 }

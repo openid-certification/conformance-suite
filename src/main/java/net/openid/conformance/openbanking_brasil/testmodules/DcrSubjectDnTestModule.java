@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -74,7 +75,10 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 
 			call(exec().unmapKey("endpoint_response"));
 		} else {
-			super.callRegistrationEndpoint();
+			call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+			callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+			validateDcrResponseScope();
+			eventLog.endBlock();
 		}
 	}
 
@@ -105,11 +109,6 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 
 	@Override
 	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
-	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
 		// Not needed as scope field is optional
 	}
 }

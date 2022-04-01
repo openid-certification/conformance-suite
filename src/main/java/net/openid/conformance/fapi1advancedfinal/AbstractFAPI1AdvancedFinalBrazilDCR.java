@@ -193,14 +193,9 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		validateDcrResponseScope();
 
 		// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
-		copyFromDynamicRegistrationTemplateToClientConfiguration();
-
-		eventLog.endBlock();
-	}
-
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
 		callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
 		callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
+		eventLog.endBlock();
 	}
 
 	protected void validateDcrResponseScope() {

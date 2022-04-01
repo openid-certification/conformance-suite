@@ -1,5 +1,8 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -38,7 +41,10 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessTokenClean
 	}
 
 	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
+	protected void callRegistrationEndpoint() {
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		validateDcrResponseScope();
+		eventLog.endBlock();
 	}
 }

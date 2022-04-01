@@ -31,9 +31,4 @@ public class FAPI1AdvancedFinalBrazilDCRNoRedirectUriClean extends FAPI1Advanced
 		// Not needed as scope field is optional
 	}
 
-	@Override
-	protected void copyFromDynamicRegistrationTemplateToClientConfiguration() {
-		// Not needed as scope field is optional
-	}
-
 }
