@@ -118,6 +118,7 @@ public class TestDispatcher implements DataUtils {
 			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
 			requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(req.getQueryString()), false));
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
+			requestParts.addProperty("request_url", req.getRequestURL().toString());
 
 			if (body != null) {
 				requestParts.addProperty("body", body);
