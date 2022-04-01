@@ -42,8 +42,6 @@ public class FAPI1AdvancedFinalBrazilDCRBadMTLSClean extends FAPI1AdvancedFinalB
 	protected void callRegistrationEndpoint() {
 		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
 
-		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
-
 		mapToWrongMTLS();
 
 		eventLog.startBlock("Call dynamic client registration endpoint with no/bad certificate");
