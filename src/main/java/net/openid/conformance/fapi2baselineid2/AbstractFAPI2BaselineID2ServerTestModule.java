@@ -254,7 +254,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		isPar = true; // This has been retained as we need to add a test to verify a non-PAR request is rejected
+		isPar = true;
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
