@@ -44,7 +44,7 @@ import java.util.Map;
 
 		// Negative tests for authorization request
 		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
-		FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
+		FAPI2BaselineID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
 		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
 
