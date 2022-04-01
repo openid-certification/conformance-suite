@@ -49,7 +49,23 @@ public class PlanNames {
 	public static final String OPIN_DISCOVERY_TEST_PLAN = "Functional tests for Discovery API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_STATUS_TEST_PLAN = "Functional tests for Discovery Status API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_OUTAGES_TEST_PLAN = "Functional tests for Discovery  Outages API - based on Swagger version: 1.0.0"; // OPIN Discovery
+	public static final String BUSINESS_API_TEST_PLAN = "Functional tests for ProductsServices - Business API - based on Swagger version: 1.0.0";
 	public static final String OBB_DCR = "Open Banking Brazil - DCR";
 	public static final String OBB_DCR_WITHOUT_BROWSER_INTERACTION_TEST_PLAN = "Brazil DCR Test without Browser Interaction";
 	public static final String AUTO_EXTENDED_WARRANTY_API_TEST_PLAN = "Functional tests for ProductsServices - Auto Extended Warranty API - based on Swagger version: 1.0.0";
+	public static final String ASSISTANCE_GENERAL_ASSETS_API_TEST_PLAN = "Functional tests for ProductsServices - Assistance General Assets API - based on Swagger version: 1.0.0";
+	public static final String GENERAL_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - General Liability API - based on Swagger version: 1.0.0";
+	public static final String EQUIPMENT_BREAKDOWN_API_TEST_PLAN = "Functional tests for ProductsServices - Equipment Breakdown API - based on Swagger version: 1.0.0";
+	public static final String LOST_PROFIT_API_TEST_PLAN = "Functional tests for ProductsServices - Lost Profit API - based on Swagger version: 1.0.0";
+	public static final String ENGINEERING_API_TEST_PLAN = "Functional tests for ProductsServices - Engineering API - based on Swagger version: 1.0.0";
+	public static final String PRIVATE_GUARANTEE_API_TEST_PLAN = "Functional tests for ProductsServices - Private Guarantee API - based on Swagger version: 1.0.0";
+	public static final String DOMESTIC_CREDIT_API_TEST_PLAN = "Functional tests for ProductsServices - Domestic Credit API - based on Swagger version: 1.0.0";
+	public static final String EXTENDED_WARRANTY_API_TEST_PLAN = "Functional tests for ProductsServices - Extended Warranty API - based on Swagger version: 1.0.0";
+	public static final String CYBER_RISK_API_TEST_PLAN = "Functional tests for ProductsServices - Cyber Risk Plan API - based on Swagger version: 1.0.2";
+	public static final String EXPORT_CREDIT_API_TEST_PLAN = "Functional tests for ProductsServices - Export Credit API - based on Swagger version: 1.0.0";
+	public static final String PUBLIC_GUARANTEE_API_TEST_PLAN = "Functional tests for ProductsServices - Public Guarantee API - based on Swagger version: 1.0.0";
+	public static final String NAMED_OPERATIONAL_RISKS_API_TEST_PLAN = "Functional tests for ProductsServices - Named Operational Risks API - based on Swagger version: 1.0.0";
+	public static final String FINANCIAL_RISK_API_TEST_PLAN = "Functional tests for ProductsServices - Financial Risk API - based on Swagger version: 1.0.0";
+	public static final String GLOBAL_BANKING_API_TEST_PLAN = "Functional tests for ProductsServices - Global Banking API - based on Swagger version: 1.0.0";
+	public static final String STOP_LOSS_API_TEST_PLAN = "Functional tests for ProductsServices - Stop Loss API - based on Swagger version: 1.0.0";
 }
