@@ -55,6 +55,7 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 		callAndStopOnFailure(SaveInitialRefreshToken.class);
 		call(verifyRefreshTokenRotationIsDisabled());
 		call(verifyRefreshTokenRotationIsDisabled());
+		callAndStopOnFailure(UpdateAccessTokenAfterCallingTokenEndpoint.class);
 		eventLog.startBlock("Attempting to PATCH consents");
 		callAndStopOnFailure(PaymentConsentIdExtractor.class);
 		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
