@@ -18,7 +18,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// Normal well behaved client cases
 		FAPI2BaselineID2DiscoveryEndpointVerification.class,
-		FAPI2BaselineID2.class,
+		FAPI2BaselineID2HappyFlow.class,
 		FAPI2BaselineID2UserRejectsAuthentication.class,
 		FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,

@@ -18,12 +18,11 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
 @PublishTestModule(
-		testName = "fapi2-baseline-id2",
-		displayName = "FAPI2-Baseline-ID2",
+		testName = "fapi2-baseline-id2-happy-flow",
+		displayName = "FAPI2-Baseline-ID2: Happy flow",
 		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
 		profile = "FAPI2-Baseline-ID2",
 		configurationFields = {
@@ -43,7 +42,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"resource.resourceUrl"
 		}
 	)
-public class FAPI2BaselineID2 extends AbstractFAPI2BaselineID2MultipleClient {
+public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleClient {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
