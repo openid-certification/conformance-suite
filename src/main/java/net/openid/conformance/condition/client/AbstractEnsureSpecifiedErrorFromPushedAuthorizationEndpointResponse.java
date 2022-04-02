@@ -22,7 +22,6 @@ public abstract class AbstractEnsureSpecifiedErrorFromPushedAuthorizationEndpoin
 	@PreEnvironment(required = {CallPAREndpoint.RESPONSE_KEY})
 	public Environment evaluate(Environment env) {
 
-		//if response code is not 400 then throw error
 		Integer status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (status != getExpectedResponseCode()) {
 			throw error("Invalid pushed authorization request endpoint response http status code",

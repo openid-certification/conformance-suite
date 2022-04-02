@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -10,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 /**
  * PAR-2.2.0 : This class checks for correct HTTP response status code from PAR endpoint
  */
-public class CheckIfPAREndpointResponseError extends AbstractCondition {
+public class CheckPAREndpointResponse201WithNoError extends AbstractCondition {
 
 	private static final int HTTP_STATUS_CREATED = 201;
 
