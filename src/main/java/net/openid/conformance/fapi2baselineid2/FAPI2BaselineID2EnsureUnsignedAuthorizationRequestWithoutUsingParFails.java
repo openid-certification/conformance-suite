@@ -10,8 +10,8 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-ensure-authorization-request-without-request-object-fails",
-	displayName = "FAPI2-Baseline-ID2: ensure authorization request without request_object fails",
+	testName = "fapi2-baseline-id2-ensure-unsigned-authorization-request-without-using-par-fails",
+	displayName = "FAPI2-Baseline-ID2: ensure unsigned authorization request without using PAR fails",
 	summary = "This test calls the authorization endpoint without using a request object (i.e. with all the parameters passed in the url query), and should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2BaselineID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -52,7 +52,7 @@ public class FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails
 
 	@Override
 	protected void performAuthorizationFlow() {
-		isPar = false; // we're passing a non-request object to the authorization, so we never want to call par endpoint
+		isPar = false; // we're passing a non-request object to the authorization endpoint, so we never want to call par endpoint
 		super.performAuthorizationFlow();
 	}
 

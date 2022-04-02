@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
+	displayName = "FAPI2-Baseline-ID2: Authorization server test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
@@ -41,10 +41,11 @@ import java.util.Map;
 		FAPI2BaselineID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPI2BaselineID2EnsureRequestObjectWithInvalidSignatureFails.class,
 		FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class,
+		FAPI2BaselineID2EnsureUnsignedRequestAtParEndpointFails.class,
 
 		// Negative tests for authorization request
 		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
-		FAPI2BaselineID2EnsureAuthorizationRequestWithoutRequestObjectFails.class,
+		FAPI2BaselineID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
 		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
 
