@@ -797,6 +797,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		String jsonString = response.getBody();
 		if (Strings.isNullOrEmpty(jsonString)) {
+			if (allowParseFailure) {
+				return responseInfo;
+			}
 			throw error("Empty response from the "+endpointName+" endpoint");
 		}
 

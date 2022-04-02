@@ -15,19 +15,18 @@ public class CheckIfPAREndpointResponseError extends AbstractCondition {
 	private static final int HTTP_STATUS_CREATED = 201;
 
 	@Override
-	@PreEnvironment(required = {"pushed_authorization_endpoint_response",
-		"pushed_authorization_endpoint_response_headers"})
+	@PreEnvironment(required = {CallPAREndpoint.RESPONSE_KEY})
 	public Environment evaluate(Environment env) {
 
 		//if response code is not 201 then throw error
-		Integer status = env.getInteger("pushed_authorization_endpoint_response_http_status");
+		Integer status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 
 		if (status != HTTP_STATUS_CREATED) {
 			throw error("Invalid pushed authorization request endpoint response http status code",
 				args("expected", HTTP_STATUS_CREATED, "actual", status));
 		}
 
-		JsonObject resp = env.getObject("pushed_authorization_endpoint_response").getAsJsonObject();
+		JsonObject resp = env.getElementFromObject(CallPAREndpoint.RESPONSE_KEY, "body_json").getAsJsonObject();
 
 		JsonElement errorResponse = resp.get("error");
 
