@@ -723,10 +723,11 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 	}
 
+	// Make any necessary updates to a resource request before we send it again
 	protected void updateResourceRequest() {
 		if (isDpop) {
 			// generate new dpop proof
-			addDpopToResourceRequest();
+			call(new CreateDpopSteps());
 		}
 		if (brazilPayments) {
 			// we use the idempotency header to allow us to make a request more than once; however it is required
@@ -802,7 +803,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 
 		if (isDpop) {
-			addDpopToResourceRequest();
+			call(new CreateDpopSteps());
 		}
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
@@ -829,12 +830,15 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		eventLog.endBlock();
 	}
 
-	protected void addDpopToResourceRequest() {
-		callAndStopOnFailure(CreateDpopClaims.class);
-		callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
-		callAndStopOnFailure(SetDpopAccessTokenHash.class);
-		callAndStopOnFailure(SignDpopProof.class);
-		callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+	public static class CreateDpopSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(CreateDpopClaims.class);
+			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
+			callAndStopOnFailure(SetDpopAccessTokenHash.class);
+			callAndStopOnFailure(SignDpopProof.class);
+			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+		}
 	}
 
 	protected void validateBrazilPaymentInitiationSignedResponse() {
