@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointRespon
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateDpopClaims;
+import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SignDpopProof;
@@ -41,6 +42,7 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
 
 		if (isDpop) {
+			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 			callAndStopOnFailure(SignDpopProof.class);

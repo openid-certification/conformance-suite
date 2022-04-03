@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CreateDpopClaims;
+import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
@@ -85,6 +86,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		if (dpop) {
 			callAndStopOnFailure(GenerateDpopKey.class);
+			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 			callAndStopOnFailure(SignDpopProof.class);
@@ -147,6 +149,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(ValidateOrganizationJWKsPrivatePart.class);
 
 			if (dpop) {
+				callAndStopOnFailure(CreateDpopHeader.class);
 				callAndStopOnFailure(CreateDpopClaims.class);
 				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
 				callAndStopOnFailure(SetDpopAccessTokenHash.class);
@@ -195,6 +198,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 
 			if (dpop) {
+				callAndStopOnFailure(CreateDpopHeader.class);
 				callAndStopOnFailure(CreateDpopClaims.class);
 				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
 				callAndStopOnFailure(SetDpopAccessTokenHash.class);

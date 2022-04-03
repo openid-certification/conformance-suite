@@ -53,6 +53,7 @@ import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkippe
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateDpopClaims;
+import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
@@ -114,6 +115,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
+import net.openid.conformance.condition.client.SetDpopHtmToPut;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -665,6 +667,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		if (createKey) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
+		callAndStopOnFailure(CreateDpopHeader.class);
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 		callAndStopOnFailure(SignDpopProof.class);
@@ -723,21 +726,40 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 	}
 
+	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
+
+		protected boolean isDpop;
+		protected boolean brazilPayments;
+
+		public UpdateResourceRequestSteps(boolean isDpop, boolean brazilPayments) {
+			this.isDpop = isDpop;
+			this.brazilPayments = brazilPayments;
+		}
+
+		@Override
+		public void evaluate() {
+			if (isDpop) {
+				call(sequence(CreateDpopSteps.class));
+			}
+			if (brazilPayments) {
+				// we use the idempotency header to allow us to make a request more than once; however it is required
+				// that a new jwt is sent in each retry, so update jti/iat & resign
+				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+				call(exec().unmapKey("request_object_claims"));
+				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+			}
+		}
+	}
+
+	protected ConditionSequence makeUpdateResourceRequestSteps() {
+		return new UpdateResourceRequestSteps(isDpop, brazilPayments);
+	}
+
 	// Make any necessary updates to a resource request before we send it again
 	protected void updateResourceRequest() {
-		if (isDpop) {
-			// generate new dpop proof
-			call(new CreateDpopSteps());
-		}
-		if (brazilPayments) {
-			// we use the idempotency header to allow us to make a request more than once; however it is required
-			// that a new jwt is sent in each retry, so update jti/iat & resign
-			call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-			callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-			callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-			call(exec().unmapKey("request_object_claims"));
-			callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-		}
+		call(makeUpdateResourceRequestSteps());
 	}
 
 	protected void requestProtectedResource() {
@@ -833,6 +855,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public static class CreateDpopSteps extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
+			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);

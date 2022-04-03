@@ -66,6 +66,8 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		FAPI2BaselineID2EnsureClientAssertionWithWrongAudFails.class,
 		FAPI2BaselineID2EnsureClientAssertionWithNoSubFails.class,
 
+		FAPI2BaselineID2DpopNegativeTests.class,
+
 		//Refresh token tests
 		FAPI2BaselineID2RefreshToken.class,
 
