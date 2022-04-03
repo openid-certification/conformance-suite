@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.ConditionSequenceCallBuilder;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.TestExecutionUnit;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +19,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
+
+	private static Function<TestExecutionUnit, Class<? extends Condition>> actionToConditionClass = action -> {
+		if (action instanceof ConditionCallBuilder) {
+			return ((ConditionCallBuilder) action).getConditionClass();
+		} else if (action instanceof Condition) {
+			return action.getClass().asSubclass(Condition.class);
+		} else {
+			return null;
+		}
+	};
+
 
 	private List<TestExecutionUnit> callables = new ArrayList<>();
 	private Map<Class<? extends Condition>, TestExecutionUnit> replacements = new HashMap<>();
@@ -76,21 +88,54 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		};
 	}
 
+	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+		try {
+			ConditionSequence conditionSequence = conditionSequenceClass
+				.getDeclaredConstructor()
+				.newInstance();
+
+			return conditionSequence;
+
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException("Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
+		}
+	}
+
+	private List<TestExecutionUnit> getCallablesWithSubSequencesExpanded() {
+		List<TestExecutionUnit> expandedUnits = new ArrayList<>();
+		for (TestExecutionUnit action: this.callables) {
+			ConditionSequence sequence = null;
+			if (action instanceof ConditionSequenceCallBuilder) {
+				ConditionSequenceCallBuilder builder = (ConditionSequenceCallBuilder) action;
+
+				if (builder.getConditionSequenceConstructor() != null) {
+					sequence = builder.getConditionSequenceConstructor().get();
+				} else {
+					sequence = createSequence(builder.getConditionSequenceClass());
+				}
+			} else if (action instanceof ConditionSequence) {
+				sequence = (ConditionSequence) action;
+			}
+
+			if (sequence != null) {
+				sequence.evaluate();
+				expandedUnits.addAll(sequence.getTestExecutionUnits());
+			} else {
+				expandedUnits.add(action);
+			}
+		}
+		return expandedUnits;
+	}
+
 	@Override
 	public List<TestExecutionUnit> getTestExecutionUnits() {
 
-		Function<TestExecutionUnit, Class<? extends Condition>> actionToConditionClass = action -> {
-			if (action instanceof ConditionCallBuilder) {
-				return ((ConditionCallBuilder) action).getConditionClass();
-			} else if (action instanceof Condition) {
-				return action.getClass().asSubclass(Condition.class);
-			} else {
-				return null;
-			}
-		};
+		// process any condition sequences this sequence calls, producing a flat list - this means that replace() etc
+		// can work on conditions within sub-sequences
+		List<TestExecutionUnit> expandedUnits = getCallablesWithSubSequencesExpanded();
 
 		// First check that all modifications refer to a condition in this sequence
-		Set<Class<? extends Condition>> conditionClasses = this.callables.stream()
+		Set<Class<? extends Condition>> conditionClasses = expandedUnits.stream()
 				.map(actionToConditionClass)
 				.filter(c -> c != null)
 				.collect(Collectors.toSet());
@@ -121,7 +166,7 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 
 		List<TestExecutionUnit> units = new ArrayList<>();
 		units.addAll(before);
-		units.addAll(this.callables.stream()
+		units.addAll(expandedUnits.stream()
 				.map((action) -> {
 					Class<? extends Condition> conditionClass = actionToConditionClass.apply(action);
 					if (conditionClass != null) {
