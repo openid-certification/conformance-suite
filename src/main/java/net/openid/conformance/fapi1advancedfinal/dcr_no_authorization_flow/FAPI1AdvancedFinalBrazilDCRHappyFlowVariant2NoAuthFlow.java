@@ -1,10 +1,11 @@
-package net.openid.conformance.fapi1advancedfinal;
+package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddScopeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.ReverseScopeOrderInDynamicRegistrationEndpointRequest;
+import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddSupportedOpenIdScopesToClientConfig;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -27,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth extends AbstractFAPI1AdvancedFinalBrazilDCR{
+public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuthFlow extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
 	@Override
 	protected void callRegistrationEndpoint() {

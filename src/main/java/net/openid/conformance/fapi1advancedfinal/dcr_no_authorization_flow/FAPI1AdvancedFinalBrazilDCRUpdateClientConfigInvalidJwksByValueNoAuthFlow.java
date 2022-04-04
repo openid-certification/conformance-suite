@@ -1,16 +1,18 @@
-package net.openid.conformance.fapi1advancedfinal;
+package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazildcr-update-client-config-invalid-redirect-uri-clean",
-	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config invalid redirect uri",
+	testName = "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value-no-authorization-flow",
+	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config",
 	summary = "\u2022 Obtains a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration)\n" +
 		"\u2022 Registers a new client on the target authorization server.\n" +
-		"\u2022 The test will then use a PUT to try and add a redirect uri not in the software statement, the server must return an 'invalid_client_metadata' error.",
+		"\u2022 The test will then use a PUT to try and add a jwks by value, the server must return an 'invalid_client_metadata' error.\n",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -23,8 +25,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUriClean
-	extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri{
+public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValueNoAuthFlow
+	extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue {
 
 	@Override
 	protected void setupResourceEndpoint() {
@@ -49,15 +51,18 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUriClea
 		validateDcrResponseScope();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Make PUT request to client configuration endpoint to change redirect uri to one not in software statement");
+		eventLog.startBlock("Make PUT request to client configuration endpoint to change jwks to one passed by value");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
 		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
 
-		callAndStopOnFailure(CreateBadRedirectUri.class);
-		exposeEnvString("redirect_uri");
-		callAndStopOnFailure(AddRedirectUriToClientConfigurationRequest.class);
+		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
+		env.mapKey("dynamic_registration_request", "registration_client_endpoint_request_body");
+		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class);
+		env.unmapKey("dynamic_registration_request");
+		JsonObject request = env.getObject("registration_client_endpoint_request_body");
+		request.remove("jwks_uri");
 
 		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
 
@@ -65,8 +70,9 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUriClea
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2", "RFC7592-2.2");
 		env.mapKey("dynamic_registration_endpoint_response", "registration_client_endpoint_response");
-		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidRedirectUriOrInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
+		callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("dynamic_registration_endpoint_response"));
+
 	}
 }

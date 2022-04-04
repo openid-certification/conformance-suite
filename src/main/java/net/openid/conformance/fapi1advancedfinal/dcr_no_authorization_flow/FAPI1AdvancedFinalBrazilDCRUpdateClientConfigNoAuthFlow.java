@@ -1,7 +1,8 @@
-package net.openid.conformance.fapi1advancedfinal;
+package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRUpdateClientConfig;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -24,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfig{
+public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuthFlow extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfig {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);

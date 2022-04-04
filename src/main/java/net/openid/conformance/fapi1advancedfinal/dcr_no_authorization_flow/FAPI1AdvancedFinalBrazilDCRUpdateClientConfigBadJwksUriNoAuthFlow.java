@@ -1,12 +1,13 @@
-package net.openid.conformance.fapi1advancedfinal;
+package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-brazildcr-update-client-config-bad-jwks-uri-clean",
+	testName = "fapi1-advanced-final-brazildcr-update-client-config-bad-jwks-uri-no-authorization-flow",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config",
 	summary = "\u2022 Obtains a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration).\n" +
 		"\u2022 Register a new client on the target authorization server.\n" +
@@ -23,8 +24,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"directory.apibase"
 	}
 )
-public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUriClean
-	extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri{
+public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUriNoAuthFlow
+	extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri {
 
 	@Override
 	protected void setupResourceEndpoint() {
