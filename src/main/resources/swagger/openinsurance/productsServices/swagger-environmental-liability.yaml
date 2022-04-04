@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - maxLMG
           - maxLMGDescription
@@ -153,6 +152,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
@@ -170,9 +170,9 @@ components:
                   example: descrição cobertura
                 coverageAttributes:
                    $ref: '#/components/schemas/EnvironmentalLiabilityCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica.
@@ -267,21 +267,23 @@ components:
             maxLength: 1024
     
     EnvironmentalLiabilityValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            example: ANUAL
-            enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     EnvironmentalLiabilityTerms:
       type: object
@@ -346,7 +348,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024
