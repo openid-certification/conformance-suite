@@ -1,7 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.client.GenerateFakeMTLSCertificate;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,34 +31,7 @@ public class FAPI1AdvancedFinalBrazilDCRBadMTLS extends AbstractFAPI1AdvancedFin
 	@Override
 	protected void callRegistrationEndpoint() {
 		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
-
-		mapToWrongMTLS();
-
-		eventLog.startBlock("Call dynamic client registration endpoint with no/bad certificate");
-
-		callAndStopOnFailure(CallDynamicRegistrationEndpointAllowingTLSFailure.class);
-
-		boolean sslError = env.getBoolean(CallDynamicRegistrationEndpointAllowingTLSFailure.RESPONSE_SSL_ERROR_KEY);
-		if (sslError) {
-			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
-			// is required, so there's no further checks to do
-		} else {
-			env.mapKey("endpoint_response", "dynamic_registration_endpoint_response");
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.WARNING, "RFC7591-3.2.2");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-			if (env.getBoolean(EnsureContentTypeJson.endpointResponseWasJsonKey)) {
-				// an error to be returned in this case doesn't really seem to be defined anywhere, so allow any error
-				callAndContinueOnFailure(CheckDynamicRegistrationEndpointReturnedError.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-				callAndContinueOnFailure(CheckNoClientIdFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-			}
-		}
-
-		env.unmapKey("mutual_tls_authentication");
-
-		eventLog.startBlock("Call dynamic client registration endpoint with correct certificate");
-
 		super.callRegistrationEndpoint();
-
 	}
 
 }
