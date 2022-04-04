@@ -11,101 +11,92 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
-import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
-import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
-import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
+import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
-import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
-import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
-import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
+import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.EnsureMatchingClientId;
+import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
+import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
+import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
+import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
+import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
+import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
+import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
+import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
+import net.openid.conformance.condition.as.ExtractRequestedScopes;
+import net.openid.conformance.condition.as.ExtractServerSigningAlg;
+import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
+import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
-import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
-import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
-import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
+import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
+import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
-import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
-import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
-import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
-import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
-import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
-import net.openid.conformance.condition.as.ValidateRefreshToken;
-import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
-import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
-import net.openid.conformance.condition.as.jarm.SignJARMResponse;
-import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
-import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
-import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
-import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
-import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
-import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
-import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
-import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
-import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
-import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
-import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
+import net.openid.conformance.condition.as.GenerateDpopAccessToken;
+import net.openid.conformance.condition.as.GenerateDpopRefreshToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateMtlsAccessToken;
+import net.openid.conformance.condition.as.GenerateMtlsRefreshToken;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
+import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
+import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
+import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
+import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
+import net.openid.conformance.condition.as.jarm.SignJARMResponse;
+import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
+import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
+import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
+import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
@@ -123,25 +114,44 @@ import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopRefreshTokenFromBody;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestJtiIsUUIDv4;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
 import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate;
 import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromServerJwks;
+import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
+import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
+import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
-import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopRefreshToken;
+import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsRefreshToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -152,6 +162,8 @@ import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.AddPlainFAPIToServerConfiguration;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
+import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -161,7 +173,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -212,6 +223,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+	private Class<? extends ConditionSequence> generateSenderConstrainedAccessTokenSteps;
+	private Class<? extends ConditionSequence> generateSenderConstrainedRefreshTokenSteps;
+	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
+	private Class<? extends ConditionSequence> validateSenderConstrainedRefreshTokenSteps;  // refresh tokens
+	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
 
 	// Controls which endpoints we should expose to the client
 	protected FAPI1FinalOPProfile profile;
@@ -518,12 +534,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
-		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class, Condition.ConditionResult.FAILURE,  "FAPI1-BASE-6.2.2-1");
+		checkSenderConstrainResourceRequest();
 		if(useClientCredentialsAccessToken) {
-			callAndContinueOnFailure(RequireBearerClientCredentialsAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 		} else {
-			callAndContinueOnFailure(RequireBearerAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedTokenSteps));
 		}
 		validateResourceEndpointHeaders();
 	}
@@ -708,6 +723,68 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
+
+	/**
+	 * Extracts and validates the information for DPOP token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainDpopTokenRequest(boolean isTokenRequest) {
+		callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+		if(isTokenRequest) {
+			call(sequence(PerformDpopProofTokenRequestChecks.class));
+		}
+		else {
+			// Need to also extract the DPoP Access token for resource requests
+			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+		}
+	}
+
+	/**
+	 * Extracts and validates the information for MTLS token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainMtlsTokenRequest(boolean isTokenRequest) {
+		if(!isTokenRequest) {  // no need to do anything on access  token requests
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		}
+	}
+
+	protected void checkSenderConstrainTokenRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(true);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(true);
+		}
+	}
+
+	protected void checkSenderConstrainMtlsRefreshTokenRequest() {
+	}
+
+	protected void checkSenderConstrainRefreshTokenRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+
+			// Need to also extract the DPoP Refresh token for resource requests
+			callAndStopOnFailure(ExtractDpopRefreshTokenFromBody.class, "DPOP-7");
+
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsRefreshTokenRequest();
+		}
+	}
+
+	protected void checkSenderConstrainResourceRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(false);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(false);
+		}
+	}
+
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
@@ -765,10 +842,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		checkSenderConstrainResourceRequest();
 
-		callAndStopOnFailure(RequireBearerAccessToken.class);
+		call(sequence(validateSenderConstrainedTokenSteps));
+
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
@@ -804,7 +881,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId));
+			.mapKey("token_endpoint_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -840,7 +918,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected Object refreshTokenGrantType(String requestId) {
 
-		callAndStopOnFailure(ValidateRefreshToken.class);
+		checkSenderConstrainRefreshTokenRequest();
+
+		call(sequence(validateSenderConstrainedRefreshTokenSteps));
 
 		issueAccessToken();
 		issueRefreshToken(); // rotate refresh token
@@ -857,12 +937,14 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected Object clientCredentialsGrantType(String requestId) {
 
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		checkSenderConstrainTokenRequest();
+		call(sequence(generateSenderConstrainedAccessTokenSteps));
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
@@ -877,6 +959,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
+		checkSenderConstrainTokenRequest();
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
@@ -1071,13 +1154,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void issueAccessToken() {
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		call(sequence(generateSenderConstrainedAccessTokenSteps));
 		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
 	protected void issueRefreshToken() {
-		callAndStopOnFailure(CreateRefreshToken.class);
+		call(sequence(generateSenderConstrainedRefreshTokenSteps));
 	}
 
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
@@ -1302,6 +1385,24 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "jarm")
 	public void setupResponseModeJARM() {
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
+	public void setupSenderConstrainMethodMTLS() {
+		generateSenderConstrainedAccessTokenSteps = GenerateMtlsAccessToken.class;
+		generateSenderConstrainedRefreshTokenSteps = GenerateMtlsRefreshToken.class;
+		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
+		validateSenderConstrainedRefreshTokenSteps = RequireMtlsRefreshToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireMtlsClientCredentialsAccessToken.class;
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
+	public void setupSenderConstrainMethodDPop() {
+		generateSenderConstrainedAccessTokenSteps = GenerateDpopAccessToken.class;
+		generateSenderConstrainedRefreshTokenSteps = GenerateDpopRefreshToken.class;
+		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;
+		validateSenderConstrainedRefreshTokenSteps = RequireDpopRefreshToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireDpopClientCredentialAccessToken.class;
 	}
 
 	protected void startWaitingForTimeout() {
