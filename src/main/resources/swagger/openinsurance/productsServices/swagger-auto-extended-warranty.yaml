@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - securityType
           - assistanceServices
           - customerServices
@@ -156,9 +155,10 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
-                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
+                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.8 do Anexo II.
                   type: string
                   example: GARANTIA_ESTENDIDA_ORIGINAL
                   enum: [GARANTIA_ESTENDIDA_ORIGINAL,
@@ -172,28 +172,32 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                    $ref: '#/components/schemas/AutoExtendedWarrantyCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).   
+
           securityType:
             type: array
             description: Tipo de bem segurado
             items:
               type: string
-              maxLength: 15
+              maxLength: 29
               example: LINHA_BRANCA
-              enum: [
-                LINHA_BRANCA,
-                LINHA_MARROM,
-                INFORMATICA,
-                TELEFONIA,
-                MÓVEIS,
-                ELETROPORTATEIS,
-                OUTROS
-              ]
+              enum: [SMARTPHONE,
+              NOTEBOOK,
+              TABLET,
+              EQUIPAMENTOS_PORTATEIS,
+              ELETRODOMESTICOS_LINHA_BRANCA,
+              ELETRODOMESTICOS_LINHA_MARROM,
+              AUTOMOVEL,
+              BICICLETA,
+              BICICLETA_ELETRICA,
+              EMPRESA,
+              RESIDENCIA,
+              OUTROS]
           securityTypeOthers:
             type: string
-            description: Campo livre para descrição, caso o valor do campo "Tipo de bem segurado" seja 7. Outros
+            description: Campo livre para descrição, caso o valor do campo "Tipo de bem" seja 12. Outros
           assistanceServices:
             $ref: '#/components/schemas/AutoExtendedWarrantyAssistanceServices'
           customerServices:
@@ -223,16 +227,13 @@ components:
       type: object
       required:
         - assistanceServices
-        - assistanceServicesPackage
-        - complementaryAssistanceServicesDetail
-        - chargeTypeSignaling
       properties: 
         assistanceServices:
           type: boolean
           description:  Indicação se o produto possui serviços de assistências complementares
         assistanceServicesPackage:
           type: array
-          description: Pacotes de Assistência 
+          description: Para efeitos de comparabilidade, considerar agrupamentos de serviços em 4 categorias
           items:
             type: string
             maxLength: 20
@@ -256,22 +257,24 @@ components:
 
     
     AutoExtendedWarrantyValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     AutoExtendedWarrantyPremiumPayment:
       type: array
@@ -340,7 +343,6 @@ components:
       properties:
         contractType:
           type: array
-          description: Tipo de contratação
           items:
             type: string
             maxLength: 10
@@ -352,12 +354,10 @@ components:
           maxLength: 1024
           example: https://openinsurance.com.br/aaa
         targetAudiences:
-          description: Público Alvo
           type: array
           items:
             type: string
             maxLength: 15
-            description: Público-alvo
             example: PESSOA_NATURAL
             enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
     
@@ -378,11 +378,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
-        insuredParticipationOthers:
-          type: string
-          maxLength: 100
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Participação do segurado
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024
