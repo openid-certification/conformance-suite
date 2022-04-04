@@ -15,12 +15,12 @@ import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
 
-@PublishTestPlan(
-	testPlanName = "Open Insurance - ProductsServices - Business API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = PlanNames.BUSINESS_API_TEST_PLAN,
-	summary = "Structural and logical tests for Business API"
-)
+//@PublishTestPlan(
+//	testPlanName = "Open Insurance - ProductsServices - Business API test plan",
+//	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+//	displayName = PlanNames.BUSINESS_API_TEST_PLAN,
+//	summary = "Structural and logical tests for Business API"
+//)
 public class BusinessTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
