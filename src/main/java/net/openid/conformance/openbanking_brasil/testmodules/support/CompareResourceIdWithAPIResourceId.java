@@ -17,7 +17,7 @@ public class CompareResourceIdWithAPIResourceId extends AbstractCondition {
 		JsonArray extractedResourcesIds = env.getElementFromObject("extracted_resource_id", "extractedResourceIds").getAsJsonArray();
 
 		if (extractedApiIds.size() == extractedResourcesIds.size()) {
-			logSuccess("Sizes are equal", Map.of("ApiIdsSize", extractedApiIds.size(), "ResourceIdsSize", extractedResourcesIds.size()));
+			log("Sizes are equal", Map.of("ApiIdsSize", extractedApiIds.size(), "ResourceIdsSize", extractedResourcesIds.size()));
 			for (JsonElement extractedResourcesId : extractedResourcesIds) {
 				if (!extractedApiIds.contains(extractedResourcesId)) {
 					throw error("API resources do not have a resource fetched from the resource endpoint response",
@@ -30,7 +30,7 @@ public class CompareResourceIdWithAPIResourceId extends AbstractCondition {
 
 			for (JsonElement extractedApiId : extractedApiIds) {
 				if (!extractedResourcesIds.contains(extractedApiId)) {
-					throw error("API resources do not have a resource fetched from the resource endpoint response",
+					throw error("Resource endpoint response resources do not have a resource fetched from the API",
 						Map.of("Missing ID", extractedApiId,
 							"extractedApiIds", extractedApiIds,
 							"extractedResourceIds", extractedResourcesIds)

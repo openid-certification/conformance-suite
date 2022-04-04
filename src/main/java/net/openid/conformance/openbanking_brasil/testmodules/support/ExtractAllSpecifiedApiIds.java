@@ -1,11 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 
 import java.util.Map;
@@ -24,8 +26,7 @@ public class ExtractAllSpecifiedApiIds extends AbstractCondition {
 		JsonArray data = accountList.getAsJsonArray("data");
 		for (JsonElement jsonElement : data) {
 			JsonObject jsonObject = jsonElement.getAsJsonObject();
-			String accountId = OIDFJSON.getString(jsonObject.get(specifiedApiIdName));
-			extractedApiIds.add(accountId);
+			extractedApiIds.add(jsonObject.get(specifiedApiIdName));
 		}
 		if(!extractedApiIds.isEmpty()){
 			JsonObject object = new JsonObject();

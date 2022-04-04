@@ -2,7 +2,9 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.*;
+import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -31,28 +33,29 @@ public class AccountsResourcesApiTestModule extends AccountApiTestModule{
 
 	private static final String API_RESOURCE_ID = "accountId";
 	private static final String RESOURCES_URL = "https://matls-api.mockbank.poc.raidiam.io/open-banking/resources/v1/resources";
+	private static final String RESOURCE_TYPE = EnumResourcesType.ACCOUNT.name();
 
 
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(AccountSelector.class);
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
 		env.putString("protected_resource_url", RESOURCES_URL);
-		preCallProtectedResource("Fetch Resources");
+		preCallProtectedResource("Call Resources API");
 
-		eventLog.startBlock("Validate Resources response");
-		callAndContinueOnFailure(ResourcesListValidator.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		eventLog.endBlock();
+		runInBlock("Validate Resources response", () -> {
+			callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
+		});
 
-		eventLog.startBlock("Compare active resourceId's with API resources ");
-		env.putString("resource_type", EnumResourcesType.ACCOUNT.name());
+		eventLog.startBlock("Compare active resourceId's with API resources");
+		env.putString("resource_type", RESOURCE_TYPE);
 		callAndStopOnFailure(ExtractResourceIdOfActiveResources.class);
 		callAndStopOnFailure(CompareResourceIdWithAPIResourceId.class);
 		eventLog.endBlock();
-
 	}
 
 }
