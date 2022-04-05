@@ -50,8 +50,6 @@ public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAP
 		}
 		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 
-		//exposeEnvString("client_id");
-
 		performAuthorizationFlow();
 	}
 
