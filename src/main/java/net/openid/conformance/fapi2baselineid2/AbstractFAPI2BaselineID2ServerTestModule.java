@@ -431,7 +431,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		public void evaluate() {
 			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-			call(sequence(profileAuthorizationEndpointSetupSteps));
+			if (profileAuthorizationEndpointSetupSteps != null) {
+				call(sequence(profileAuthorizationEndpointSetupSteps));
+			}
 
 			if (isSecondClient) {
 				exec().putInteger("requested_state_length", 128);
@@ -899,7 +901,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
-		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
 

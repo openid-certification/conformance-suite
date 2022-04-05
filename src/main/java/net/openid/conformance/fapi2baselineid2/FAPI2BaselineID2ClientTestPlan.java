@@ -44,10 +44,9 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
-		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
 		String jarmType = v.get("fapi_jarm_type");
-		boolean par = requestMethod.equals("pushed");
+		boolean par = true;
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
@@ -86,14 +85,6 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				break;
 			case "mtls":
 				certProfile += " MTLS";
-				break;
-		}
-		switch (requestMethod) {
-			case "by_value":
-				// nothing
-				break;
-			case "pushed":
-				certProfile += ", PAR";
 				break;
 		}
 		switch (responseMode) {
