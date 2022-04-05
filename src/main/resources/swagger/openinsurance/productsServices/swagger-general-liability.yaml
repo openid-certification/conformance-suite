@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - maxLMGDescription
           - maxLMG
@@ -155,6 +154,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.9 do Anexo II.
@@ -200,10 +200,10 @@ components:
                   example: descrição cobertura
                 coverageAttributes:
                    $ref: '#/components/schemas/GeneralLiabilityCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
-            example: true
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                  example: true
           traits: 
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica.
@@ -263,19 +263,23 @@ components:
             enum: [GRATUITO, PAGO]
     
     GeneralLiabilityValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: string
-          maxLength: 23
-          example: ANUAL
-          enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
+            type: string
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     GeneralLiabilityPremiumPayment:
       type: array  
@@ -303,6 +307,7 @@ components:
               example: A_VISTA
               enum: [A_VISTA, PARCELADO]
           premiumRates:
+            type: string
             description: Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III.
             maxLength: 1024
     
@@ -346,7 +351,7 @@ components:
           type: array
           items: 
             type: string
-            maxLength: 30
+            maxLength: 15
             example: PESSOA_NATURAL
             enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
     
@@ -355,12 +360,16 @@ components:
       description: Informações de cobertura do Seguro Residencial.
       required:
        - maxLMI
+       - maxLA
        - insuredParticipation
        - idenizationBasis
       properties:
         maxLMI:
           description: Lista com valor de LMI aceito pela sociedade para cada cobertura.
           $ref: '#/components/schemas/GeneralLiabilityCoverageAttributesDetails' 
+        maxLA:
+          description: Lista com valor máximo de LA aceito pela sociedade para cada cobertura.
+          $ref: '#/components/schemas/GeneralLiabilityCoverageAttributesDetails'   
         insuredParticipation:
           type: array
           description: Lista com indicativo do tipo de participação do segurado para cada cobertura.

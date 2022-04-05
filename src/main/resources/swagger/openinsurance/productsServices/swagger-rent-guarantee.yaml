@@ -129,7 +129,6 @@ components:
           - code
           - coverages
           - traits
-          - allowApartPurchase
           - assistanceServices
           - validity
           - premiumPayment
@@ -154,14 +153,13 @@ components:
                  - coverage
                  - coverageDescription
                  - coverageAttributes
+                 - allowApartPurchase
                properties:
                  coverage:
-                   type: array
-                   items:
-                     type: string
-                     maxLength: 32
-                     description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.10 do Anexo II."
-                     enum: [
+                   type: string
+                   maxLength: 32
+                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.10 do Anexo II."
+                   enum: [
                     NAO_PAGAMENTO_DE_13_ALUGUEL,
                     DANOS_A_MOVEIS,
                     DANOS_AO_IMOVEL,
@@ -182,10 +180,10 @@ components:
                    description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                  coverageAttributes:
                     $ref: '#/components/schemas/RentGuaranteeCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
-            example: true
+                 allowApartPurchase:
+                    type: boolean
+                    description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                    example: true
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
@@ -210,19 +208,23 @@ components:
             $ref: '#/components/schemas/RentGuaranteeMinimumRequirements'
     
     RentGuaranteeValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: string
-          maxLength: 23
-          example: ANUAL
-          enum: [ANUAL, ANUAL_INTERMITENTE , PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL, ANUAL_INTERMITENTE , PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
+            type: string
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     RentGuaranteePremiumPayment:
       type: array
@@ -296,11 +298,10 @@ components:
             maxLength: 1000
             example: reboque pane seca
           chargeTypeSignaling:
-            type: array
-            items:
-              description: Indicação se o pacote de assistência é gratuito ou contratado/pago.
-              example: GRATUITO
-              enum: [GRATUITO, PAGO]
+            type: string
+            description: Indicação se o pacote de assistência é gratuito ou contratado/pago.
+            example: GRATUITO
+            enum: [GRATUITO, PAGO]
     
     RentGuaranteeMinimumRequirements:
       type: object
@@ -322,7 +323,7 @@ components:
           description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).      
         targetAudiences:
           type: array
-          maxLength: 30
+          maxLength: 15
           items:
             type: string
             example: PESSOA_NATURAL
@@ -341,10 +342,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
-        insuredParticipationOthers:
-          type: string
-          maxLength: 100
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024

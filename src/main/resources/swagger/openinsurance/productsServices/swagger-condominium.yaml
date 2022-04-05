@@ -1,3 +1,4 @@
+ 
 openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
@@ -12,7 +13,7 @@ servers:
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
     description: Servidor de Homologacao
 tags:
-- name: "Condominio"
+- name: "Condominio" 
 
 paths:
   /condominium/:
@@ -39,7 +40,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseCondominiumList'
         '204':
-          $ref: '#/components/responses/NoContent'
+          $ref: '#/components/responses/NoContent'                
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -57,11 +58,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
         default:
-          description: Dados dos produtos de API de informações de dados do produto Condominio. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
+          description: Dados dos produtos de API de informações de dados do produto Condominio. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados. 
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ResponseCondominiumList'
+                $ref: '#/components/schemas/ResponseCondominiumList' 
 
 components:
   schemas:
@@ -127,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - propertyType
           - assistanceServices
           - microInsurance
@@ -147,7 +147,7 @@ components:
             description: Código único a ser definido pela sociedade.
             maxLength: 100
             example: "01234589-0"
-
+          
           coverages:
             type: array
             items:
@@ -155,6 +155,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.6 do Anexo II."
@@ -189,12 +190,13 @@ components:
                   example: descrição cobertura
                 coverageAttributes:
                    $ref: '#/components/schemas/CondominiumCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
-            example: true
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                  example: true   
+
           propertyType:
-            $ref: '#/components/schemas/CondominiumPropertyType'
+            $ref: '#/components/schemas/CondominiumPropertyType'  
           commercializationArea:
             type: number
             maxLength: 8
@@ -212,12 +214,12 @@ components:
           validity:
             $ref: '#/components/schemas/CondominiumValidity'
           premiumPayment:
-            $ref: '#/components/schemas/CondominiumPremiumPayment'
+            $ref: '#/components/schemas/CondominiumPremiumPayment' 
           termsAndConditions:
             $ref: '#/components/schemas/CondominiumTerms'
           minimumRequirements:
             $ref: '#/components/schemas/CondominiumMinimumRequirements'
-
+    
     CondominiumPropertyType:
       type: array
       items:
@@ -235,7 +237,7 @@ components:
             type: string
             maxLength: 21
             enum: [CONDOMINIO_HORIZONTAL, CONDOMINIO_VERTICAL]
-
+    
     CondominiumAssistanceServices:
       type: array
       description: Agrupamento dos serviços de assistências disponíveis vinculado ao produto.
@@ -267,24 +269,26 @@ components:
             maxLength: 8
             example: GRATUITO
             enum: [GRATUITO, PAGO]
-
+    
     CondominiumValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
-
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
+    
     CondominiumPremiumPayment:
       type: array
       items:
@@ -300,8 +304,8 @@ components:
             enum: [CARTAO_DE_CREDITO, CARTAO_DE_DEBITO, DEBITO_EM_CONTA_CORRENTE, DEBITO_EM_CONTA_POUPANCA, BOLETO_BANCARIO, PIX, CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO, PONTOS_DE_PROGRAMA_DE_BENEFICIO, OUTROS]
           paymentDetail:
             type: string
-            maxLength: 100
-            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Meio de pagamento (acima)
+            maxLength: 100 
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Meio de pagamento (acima) 
           paymentType:
             type: array
             description: Forma de pagamento
@@ -314,7 +318,7 @@ components:
               description: Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III
               type: string
               maxLength: 1024
-
+        
     CondominiumTerms:
       type: object
       description: Informações dos termos e condições conforme número do processo SUSEP.
@@ -332,7 +336,7 @@ components:
           maxLength: 1024
           example: https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf
 
-
+    
     CondominiumMinimumRequirements:
       type: object
       description: Requisitos mínimos.
@@ -351,15 +355,15 @@ components:
         minimumRequirementDetails:
           type: string
           maxLength: 1024
-          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).
+          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).      
         targetAudiences:
           type: array
           items:
             type: string
-            maxLength: 30
+            maxLength: 15
             example: PESSOA_NATURAL
-            enum: [PESSOA_NATURAL, PESSOA_NATURAL_ESTRANGEIRO]
-
+            enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
+    
     CondominiumCoverageAttributes:
       type: object
       description: Informações de cobertura do Seguro Residencial.
@@ -377,9 +381,13 @@ components:
             type: string
             maxLength: 13
             example: POS
-            enum: [POS, FRANQUIA, NAO_SE_APLICA]
+            enum: [POS, FRANQUIA, NAO_SE_APLICA] 
+        insuredParticipationDescription:
+          type: string
+          maxLength: 1024
+          description: Lista com descrição referente ao campo “Participação do Segurado” para cada cobertura.    
 
-
+    
     CondominiumCoverageAttributesDetails:
         type: object
         required:
@@ -390,22 +398,22 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/CondominiumCoverageAttributesDetailsUnit'
-
+    
     CondominiumCoverageAttributesDetailsUnit:
       type: object
       required:
         - code
         - description
       properties:
-        code:
+        code: 
           type: string
           maxLength: 2
           example: R$
-        description:
+        description: 
           type: string
           maxLength: 5
           example: REAL
-
+    
     CondominiumCoverageAttributesPercentageDetails:
         type: object
         required:
@@ -416,22 +424,22 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/CondominiumCoverageAttributesPercentageDetailsUnit'
-
+    
     CondominiumCoverageAttributesPercentageDetailsUnit:
       type: object
       required:
         - code
         - description
       properties:
-        code:
+        code: 
           type: string
           maxLength: 1
           example: '%'
-        description:
+        description: 
           type: string
           maxLength: 10
           example: PERCENTUAL
-
+    
     Links:
       type: object
       properties:
@@ -455,7 +463,7 @@ components:
           type: string
           description: URL da última página de registros
           example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-
+    
     Meta:
       type: object
       properties:
@@ -470,7 +478,7 @@ components:
       required:
         - totalRecords
         - totalPages
-
+    
     ResponseError:
       type: object
       required:
@@ -510,7 +518,7 @@ components:
         meta:
           $ref: '#/components/schemas/Meta'
       additionalProperties: false
-
+    
   parameters:
       page:
         name: page
@@ -571,7 +579,7 @@ components:
         schema:
             type: string
             pattern: '[\w\W\s]*'
-
+    
   securitySchemes:
     OpenId:
       type: openIdConnect
@@ -585,14 +593,14 @@ components:
           tokenUrl: 'https://authserver.example/token'
           scopes:
             financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
-
+    
   responses:
     NoContent:
       description: 'O recurso solicitado não existe ou não foi localizado.'
       content:
         application/json; charset=utf-8:
           schema:
-            $ref: '#/components/schemas/ResponseError'
+            $ref: '#/components/schemas/ResponseError'   
     BadRequest:
       description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
       content:
@@ -640,4 +648,4 @@ components:
       content:
         application/json; charset=utf-8:
           schema:
-            $ref: '#/components/schemas/ResponseError'
+            $ref: '#/components/schemas/ResponseError'    
