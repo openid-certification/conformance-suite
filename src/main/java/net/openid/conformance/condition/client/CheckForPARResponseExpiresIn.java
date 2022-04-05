@@ -9,9 +9,9 @@ import net.openid.conformance.testmodule.Environment;
 public class CheckForPARResponseExpiresIn extends AbstractCondition {
 	private static final int SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
 	@Override
-	@PreEnvironment(required = "pushed_authorization_endpoint_response")
+	@PreEnvironment(required = CallPAREndpoint.RESPONSE_KEY)
 	public Environment evaluate(Environment env) {
-		Long expiresIn = env.getLong("pushed_authorization_endpoint_response", "expires_in");
+		Long expiresIn = env.getLong(CallPAREndpoint.RESPONSE_KEY, "body_json.expires_in");
 		if (expiresIn == null) {
 			throw error("expires_in is missing or empty in pushed authorization response");
 		}
