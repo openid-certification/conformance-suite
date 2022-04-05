@@ -7,7 +7,7 @@ import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -75,7 +75,7 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		modules.add(FAPI2BaselineID2BrazilClientDCRHappyPathTest.class);
 
 		List<TestPlan.Variant> brazilVariant = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
+			new TestPlan.Variant(FAPI2ID2OPProfile.class, "openbanking_brazil")
 		);
 
 		return List.of(

@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"directory.keystore"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil" })
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_brazil", "idmvp" })
 public class FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
