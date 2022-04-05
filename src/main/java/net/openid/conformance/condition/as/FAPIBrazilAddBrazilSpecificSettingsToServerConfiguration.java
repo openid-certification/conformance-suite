@@ -42,12 +42,6 @@ public class FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration extends Ab
 		}
 
 		{
-			JsonArray idTokenSigAlgs = new JsonArray();
-			idTokenSigAlgs.add("PS256");
-			server.add("id_token_signing_alg_values_supported", idTokenSigAlgs);
-		}
-
-		{
 			JsonArray algs = new JsonArray();
 			algs.add("PS256");
 			server.add("request_object_signing_alg_values_supported", algs);
