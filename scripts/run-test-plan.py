@@ -202,6 +202,7 @@ async def queue_worker(q):
             # log and ignore all exceptions, as run_queue otherwise locks up
             print('Exception caught in queue_worker:')
             traceback.print_exc()
+            sys.exit(1)
         finally:
             q.task_done()
 

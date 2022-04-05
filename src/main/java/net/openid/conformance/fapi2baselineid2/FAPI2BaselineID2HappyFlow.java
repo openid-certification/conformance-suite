@@ -77,10 +77,9 @@ public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleC
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.5-1");
 	}
 
-	protected void verifyAccessTokenWithResourceEndpoint() {
+	protected void performAdditionalResourceEndpointTests() {
 		updateResourceRequest();
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-4");
-
 
 		updateResourceRequest();
 		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
@@ -126,7 +125,7 @@ public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleC
 		super.requestProtectedResource();
 
 		if (!isSecondClient()) {
-			verifyAccessTokenWithResourceEndpoint();
+			performAdditionalResourceEndpointTests();
 		}
 	}
 }
