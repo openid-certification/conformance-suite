@@ -13,7 +13,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-baseline-id2-client-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Relying Party (client test) - INCORRECT/INCOMPLETE, DO NOT USE",
+	displayName = "FAPI2-Baseline-ID2: Relying Party (client test) - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.rptest
 )
 public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
