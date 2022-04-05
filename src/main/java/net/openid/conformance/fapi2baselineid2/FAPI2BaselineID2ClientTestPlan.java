@@ -32,7 +32,6 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestInvalidMissingAud.class,
 		FAPI2BaselineID2ClientTestInvalidMissingIss.class,
 		FAPI2BaselineID2ClientTestValidAudAsArray.class,
-		FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse.class,
 		// OB systems specific tests
 		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
