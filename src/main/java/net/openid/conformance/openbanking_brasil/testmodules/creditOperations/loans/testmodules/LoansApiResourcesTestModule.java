@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.GetLoansResponseValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -35,7 +36,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class LoansApiResourcesTestModule extends LoansApiTestModule {
 
 	private static final String API_RESOURCE_ID = "contractId";
-	private static final String RESOURCES_URL = "https://matls-api.mockbank.poc.raidiam.io/open-banking/resources/v1/resources";
 	private static final String RESOURCE_TYPE = EnumResourcesType.LOAN.name();
 
 	@Override
@@ -50,7 +50,7 @@ public class LoansApiResourcesTestModule extends LoansApiTestModule {
 
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
-		env.putString("protected_resource_url", RESOURCES_URL);
+		callAndStopOnFailure(PrepareUrlForResourcesCall.class);
 		preCallProtectedResource("Call Resources API");
 
 		runInBlock("Validate Resources response", () -> {
