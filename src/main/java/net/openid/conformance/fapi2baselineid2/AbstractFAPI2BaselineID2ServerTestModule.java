@@ -932,7 +932,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public void setupIdmvp() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
-		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
 

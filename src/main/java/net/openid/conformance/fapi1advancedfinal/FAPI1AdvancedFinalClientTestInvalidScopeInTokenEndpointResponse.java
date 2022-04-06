@@ -14,8 +14,8 @@ import java.util.UUID;
  */
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-scope-in-token-endpoint-response",
-	displayName = "FAPI1-Advanced-Final: client test - token endpoint response will not contain a scope that was not requested, should be rejected",
-	summary = "A random scope value, which was not requested by the client, will be included in the scope value in the token endpoint response.",
+	displayName = "FAPI1-Advanced-Final: client test - token endpoint response will contain a scope that was not requested",
+	summary = "A random scope value, which was not requested by the client, will be included in the scope value returned in the token endpoint response. The client should detect this and not call the resource endpoint.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
