@@ -15,6 +15,7 @@ import net.openid.conformance.condition.as.AddRequestObjectSigningAlgsPS256ES256
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
+import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -80,6 +81,7 @@ import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
+import net.openid.conformance.condition.as.IdmvpAddClaimsSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
@@ -163,7 +165,6 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -294,6 +295,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "IDMVP");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "IDMVP");
+			callAndStopOnFailure(IdmvpAddClaimsSupportedToServerConfiguration.class, "IDMVP");
+			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "IDMVP");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
