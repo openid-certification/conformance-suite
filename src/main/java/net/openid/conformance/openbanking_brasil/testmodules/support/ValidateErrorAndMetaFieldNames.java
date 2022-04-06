@@ -38,6 +38,8 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 
 		if(JsonHelper.ifExists(claims, "errors")){
 			assertAllowedErrorFields(claims);
+		}else {
+			throw error("errors JSON Array field is missing in the response", Map.of("body", claims));
 		}
 
 		if(JsonHelper.ifExists(claims, "meta")){

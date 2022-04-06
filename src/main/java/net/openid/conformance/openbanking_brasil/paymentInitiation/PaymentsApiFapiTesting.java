@@ -1,6 +1,9 @@
 package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinal;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -44,6 +47,20 @@ public class PaymentsApiFapiTesting extends FAPI1AdvancedFinal {
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);
 		super.onConfigure(config, baseUrl);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+	}
+
+	@Override
+	protected void switchToClient1AndTryClient2AccessToken() {
+		// Switch back to client 1
+		eventLog.startBlock("Try Client1's MTLS client certificate with Client2's access token");
+		unmapClient();
+
+		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPIRW-5.2.2-5", "RFC8705-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2", "RFC6750-3.1", "RFC8705-3");
+		call(exec().unmapKey("endpoint_response"));
+		callAndStopOnFailure(ResourceErrorMetaValidator.class);
+		eventLog.endBlock();
 	}
 
 }

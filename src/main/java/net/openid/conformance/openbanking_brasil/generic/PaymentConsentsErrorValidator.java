@@ -46,6 +46,10 @@ public class PaymentConsentsErrorValidator extends AbstractJsonAssertingConditio
 
 	private JsonObject getBodyFromJwt(Environment environment) {
 		String response = environment.getString("consent_endpoint_response");
+
+		if(response == null){
+			response = environment.getString("consent_endpoint_response_full", "body");
+		}
 		Base64.Decoder decoder = Base64.getUrlDecoder();
 		String body = new String(decoder.decode(response.split("\\.")[1]));
 		Gson gson = JsonUtils.createBigDecimalAwareGson();

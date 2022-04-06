@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.InvalidateConsentEndpointRequestSignature;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentErrorMetaValidator;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -63,7 +64,7 @@ public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends Abst
 		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-
+		callAndStopOnFailure(ConsentErrorMetaValidator.class);
 		fireTestFinished();
 	}
 }
