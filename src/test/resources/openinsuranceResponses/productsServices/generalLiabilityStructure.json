@@ -22,16 +22,23 @@
                                                 "description": "REAL"
                                             }
                                         },
+                                        "maxLA": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        },
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string",
                                         "idenizationBasis": "POR_OCORRENCIA",
                                         "idenizationBasisOthers": "string"
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "traits": true,
                             "maxLMGDescription": "string",
                             "maxLMG": {
@@ -54,10 +61,14 @@
                             "customerServices": [
                                 "REDE_REFERENCIADA"
                             ],
-                            "validity": {
-                                "term": "ANUAL",
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumPayment": [
                                 {
                                     "paymentMethod": "CARTAO_DE_CREDITO",

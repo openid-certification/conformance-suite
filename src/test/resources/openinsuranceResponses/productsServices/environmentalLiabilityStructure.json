@@ -12,8 +12,8 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "ROUBO",
-                                    "coverageDescription": "string",
+                                    "coverage": "INSTALACOES_FIXAS",
+                                    "coverageDescription": "descrição cobertura",
                                     "coverageAttributes": {
                                         "maxLMI": {
                                             "amount": 0,
@@ -25,15 +25,16 @@
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationDescription": "string"
+                                        "insuredParticipationDescription": "string",
+                                        "idenizationBasis": "POR_OCORRENCIA",
+                                        "idenizationBasisOthers": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
-                            "securityType": [
-                                "SMARTPHONE"
-                            ],
-                            "securityTypeOthers": "string",
+                            "traits": true,
+                            "maxLMGDescription": "string",
+                            "maxLMG": 1000,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -44,23 +45,6 @@
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "customerServices": [
-                                "LIVRE_ESCOLHA"
-                            ],
-                            "microInsurance": true,
-                            "traits": true,
-                            "premiumPayment": {
-                                "paymentMethod": [
-                                    "CARTAO_DE_CREDITO"
-                                ],
-                                "paymentDetail": "string",
-                                "paymentType": [
-                                    "A_VISTA"
-                                ],
-                                "premiumRates": [
-                                    "string"
-                                ]
-                            },
                             "validity": [
                                 {
                                     "term": [
@@ -69,8 +53,21 @@
                                     "termOthers": "string"
                                 }
                             ],
+                            "customerServices": [
+                                "LIVRE_ESCOLHA"
+                            ],
+                            "premiumPayment": [
+                                {
+                                    "paymentMethod": "CARTAO_DE_CREDITO",
+                                    "paymentDetail": "string",
+                                    "paymentType": [
+                                        "A_VISTA"
+                                    ],
+                                    "premiumRates": "string"
+                                }
+                            ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {

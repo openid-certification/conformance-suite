@@ -12,8 +12,8 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "ROUBO",
-                                    "coverageDescription": "string",
+                                    "coverage": "COBERTURA_BASICA_AMPLA_COBERTURAS_PARA_QUAISQUER_EVENTOS_QUE_POSSAM_CAUSAR_DANOS_FISICOS_AO_IMOVEL_SEGURADO_EXCETO_OS_EXPRESSAMENTE_EXCLUIDOS",
+                                    "coverageDescription": "descrição cobertura",
                                     "coverageAttributes": {
                                         "maxLMI": {
                                             "amount": 0,
@@ -23,50 +23,48 @@
                                             }
                                         },
                                         "insuredParticipation": [
-                                            "FRANQUIA"
+                                            "POS"
                                         ],
                                         "insuredParticipationDescription": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
-                            "securityType": [
-                                "SMARTPHONE"
+                            "propertyType": [
+                                {
+                                    "insuredPropertyType": "CONDOMINIO_RESIDENCIAL",
+                                    "structuringType": "CONDOMINIO_HORIZONTAL"
+                                }
                             ],
-                            "securityTypeOthers": "string",
+                            "commercializationArea": 0,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
                                     "assistanceServicesPackage": [
                                         "ATE_10_SERVICOS"
                                     ],
-                                    "complementaryAssistanceServicesDetail": "string",
+                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "customerServices": [
-                                "LIVRE_ESCOLHA"
-                            ],
                             "microInsurance": true,
                             "traits": true,
-                            "premiumPayment": {
-                                "paymentMethod": [
-                                    "CARTAO_DE_CREDITO"
-                                ],
-                                "paymentDetail": "string",
-                                "paymentType": [
-                                    "A_VISTA"
-                                ],
-                                "premiumRates": [
-                                    "string"
-                                ]
-                            },
                             "validity": [
                                 {
                                     "term": [
                                         "ANUAL"
                                     ],
                                     "termOthers": "string"
+                                }
+                            ],
+                            "premiumPayment": [
+                                {
+                                    "paymentMethod": "CARTAO_DE_CREDITO",
+                                    "paymentDetail": "string",
+                                    "paymentType": [
+                                        "A_VISTA"
+                                    ],
+                                    "premiumRates": "string"
                                 }
                             ],
                             "termsAndConditions": {
@@ -77,7 +75,7 @@
                                 "contractType": [
                                     "COLETIVO"
                                 ],
-                                "minimumRequirementDetails": "https://openinsurance.com.br/aaa",
+                                "minimumRequirementDetails": "string",
                                 "targetAudiences": [
                                     "PESSOA_NATURAL"
                                 ]

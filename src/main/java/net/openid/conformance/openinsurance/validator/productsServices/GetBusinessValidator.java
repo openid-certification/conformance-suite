@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-business.yaml
  * Api endpoint: /business/
  * Api version: 1.0.0
+ * Git hash: 1f1b2984856259fb6f0097e7ddd94aae5fc089f3
  */
 
 @ApiName("ProductsServices Business")
@@ -28,7 +29,7 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
-	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_NATURAL_ESTRANGEIRO");
+	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO" );
 
@@ -64,7 +65,6 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 				.Builder("products")
 				.setValidator(this::assertProducts)
 				.build());
-
 	}
 
 	private void assertProducts(JsonObject products) {
@@ -75,11 +75,6 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("coverages")
 				.setValidator(this::assertCoverages)
-				.build());
-
-		assertField(products,
-			new BooleanField
-				.Builder("allowApartPurchase")
 				.build());
 
 		assertField(products,
@@ -99,7 +94,7 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -159,7 +154,7 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 						new StringArrayField
 							.Builder("targetAudiences")
 							.setEnums(TARGET_AUDIENCE)
-							.setMaxLength(30)
+							.setMaxLength(15)
 							.build());
 				}).build());
 	}
@@ -243,6 +238,11 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
+				.build());
 	}
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
@@ -257,6 +257,13 @@ public class GetBusinessValidator extends AbstractJsonAssertingCondition {
 				.Builder("insuredParticipation")
 				.setEnums(PARTICIPATION)
 				.setMaxLength(13)
+				.build());
+
+		assertField(coverageAttributes,
+			new StringField
+				.Builder("insuredParticipationDescription")
+				.setMaxLength(1024)
+				.setOptional()
 				.build());
 	}
 

@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-general-liability.yaml
  * Api endpoint: /general-liability/
  * Api version: 1.0.0
+ * Git hash: 1f1b2984856259fb6f0097e7ddd94aae5fc089f3
  */
 
 @ApiName("ProductsServices General Liability")
@@ -81,11 +82,6 @@ public class GetGeneralLiabilityValidator extends AbstractJsonAssertingCondition
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
@@ -116,10 +112,10 @@ public class GetGeneralLiabilityValidator extends AbstractJsonAssertingCondition
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
-						new StringField
+						new StringArrayField
 							.Builder("term")
 							.setEnums(TERM)
 							.setMaxLength(23)
@@ -176,7 +172,7 @@ public class GetGeneralLiabilityValidator extends AbstractJsonAssertingCondition
 						new StringArrayField
 							.Builder("targetAudiences")
 							.setEnums(TARGET_AUDIENCE)
-							.setMaxLength(30)
+							.setMaxLength(15)
 							.build());
 				}).build());
 
@@ -260,12 +256,23 @@ public class GetGeneralLiabilityValidator extends AbstractJsonAssertingCondition
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
 				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
+				.build());
 	}
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("maxLMI")
+				.setValidator(this::assertValue)
+				.build());
+
+		assertField(coverageAttributes,
+			new ObjectField
+				.Builder("maxLA")
 				.setValidator(this::assertValue)
 				.build());
 

@@ -13,19 +13,20 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api Source: swagger/openinsurance/productsServices/swagger-equipment-breakdown.yaml
- * Api endpoint: /equipment-breakdown/
+ * Api Source: swagger/openinsurance/productsServices/swagger-condominium.yaml
+ * Api endpoint: /condominium/
  * Api version: 1.0.0
  * Git hash: 1f1b2984856259fb6f0097e7ddd94aae5fc089f3
  */
 
-@ApiName("ProductsServices Equipment Breakdown")
-public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingCondition {
+@ApiName("ProductsServices Condominium")
+public class GetCondominiumValidator extends AbstractJsonAssertingCondition {
 	private static class Fields extends ProductNServicesCommonFields {
 	}
 
-	public static final Set<String> COVERAGE = Sets.newHashSet("DANOS_DE_CAUSA_EXTERNA", "DANOS_DE_CAUSA_EXTERNA_E_ROUBO", "ROUBO", "OUTRAS");
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
+	public static final Set<String> COVERAGE = Sets.newHashSet("COBERTURA_BASICA_AMPLA_COBERTURAS_PARA_QUAISQUER_EVENTOS_QUE_POSSAM_CAUSAR_DANOS_FISICOS_AO_IMOVEL_SEGURADO_EXCETO_OS_EXPRESSAMENTE_EXCLUIDOS", "COBERTURA_BASICA_SIMPLES_COBERTURAS_DE_INCENDIO_QUEDA_DE_RAIO_DENTRO_DO_TERRENO_SEGURADO_E_EXPLOSAO_DE_QUALQUER_NATUREZA", "ANUNCIOS_LUMINOSOS", "DANOS_AO_JARDIM", "DANOS_ELETRICOS", "DESMORONAMENTO", "DESPESAS_COM_ALUGUEL", "EQUIPAMENTOS", "FIDELIDADE_DE_EMPREGADOS", "IMPACTO_DE_VEICULOS", "VIDA_E_ACIDENTES_PESSOAIS_EMPREGADOS", "LUCROS_CESSANTES", "QUEBRA_DE_VIDROS_ESPELHOS_MARMORES_E_GRANITOS", "RESPONSABILIDADE_CIVIL", "ROUBO", "VALORES", "VAZAMENTO", "VENDAVAL", "ALAGAMENTO", "TUMULTO", "OUTRAS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("POS", "FRANQUIA", "NAO_SE_APLICA");
+	public static final Set<String> STRUCTURING_TYPE = Sets.newHashSet("CONDOMINIO_HORIZONTAL", "CONDOMINIO_VERTICAL");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
@@ -33,8 +34,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
-	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("SMARTPHONE", "NOTEBOOK", "TABLET", "EQUIPAMENTOS_PORTATEIS", "ELETRODOMESTICOS_LINHA_BRANCA", "ELETRODOMESTICOS_LINHA_MARROM", "AUTOMOVEL", "BICICLETA", "BICICLETA_ELETRICA", "EMPRESA", "RESIDENCIA", "OUTROS", "BOLSA", "CARTEIRA", "CARTAO_DE_CREDITO");
-	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_E_LIVRE_ESCOLHA");
+	public static final Set<String> INSURED_PROPERTY_TYPE = Sets.newHashSet("CONDOMINIO_RESIDENCIAL", "CONDOMINIO_COMERCIAL");
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -67,7 +67,6 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.Builder("products")
 				.setValidator(this::assertProducts)
 				.build());
-
 	}
 
 	private void assertProducts(JsonObject products) {
@@ -81,15 +80,29 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.build());
 
 		assertField(products,
-			new StringArrayField
-				.Builder("securityType")
-				.setMaxLength(29)
-				.setEnums(SECURITY_TYPE)
+			new ObjectArrayField
+				.Builder("propertyType")
+				.setValidator(propertyType -> {
+					assertField(propertyType,
+						new StringField
+							.Builder("insuredPropertyType")
+							.setEnums(INSURED_PROPERTY_TYPE)
+							.setMaxLength(22)
+							.build());
+
+					assertField(propertyType,
+						new StringField
+							.Builder("structuringType")
+							.setEnums(STRUCTURING_TYPE)
+							.setMaxLength(21)
+							.build());
+				})
 				.build());
 
 		assertField(products,
-			new StringField
-				.Builder("securityTypeOthers")
+			new NumberField
+				.Builder("commercializationArea")
+				.setMaxLength(8)
 				.setOptional()
 				.build());
 
@@ -97,15 +110,6 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 			new ObjectArrayField
 				.Builder("assistanceServices")
 				.setValidator(this::assertAssistanceServices)
-				.setOptional()
-				.build());
-
-		assertField(products,
-			new StringArrayField
-				.Builder("customerServices")
-				.setMaxLength(33)
-				.setEnums(CUSTOMER_SERVICES)
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -116,12 +120,6 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 		assertField(products,
 			new BooleanField
 				.Builder("traits")
-				.build());
-
-		assertField(products,
-			new ObjectField
-				.Builder("premiumPayment")
-				.setValidator(this::assertPremiumPayment)
 				.build());
 
 		assertField(products,
@@ -143,13 +141,19 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				}).build());
 
 		assertField(products,
+			new ObjectArrayField
+				.Builder("premiumPayment")
+				.setValidator(this::assertPremiumPayment)
+				.build());
+
+		assertField(products,
 			new ObjectField.Builder("termsAndConditions")
 				.setValidator(termsAndConditions -> {
 					assertField(termsAndConditions,
 						new StringField
 							.Builder("susepProcessNumber")
-							.setOptional()
 							.setMaxLength(20)
+							.setOptional()
 							.build());
 
 					assertField(termsAndConditions,
@@ -216,7 +220,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 
 	private void assertPremiumPayment(JsonObject premiumPayment) {
 		assertField(premiumPayment,
-			new StringArrayField
+			new StringField
 				.Builder("paymentMethod")
 				.setEnums(PAYMENT_METHOD)
 				.setMaxLength(33)
@@ -225,7 +229,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 		assertField(premiumPayment,
 			new StringField
 				.Builder("paymentDetail")
-				.setMaxLength(1024)
+				.setMaxLength(100)
 				.setOptional()
 				.build());
 
@@ -237,7 +241,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.build());
 
 		assertField(premiumPayment,
-			new StringArrayField
+			new StringField
 				.Builder("premiumRates")
 				.setMaxLength(1024)
 				.setOptional()
@@ -248,7 +252,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
-				.setMaxLength(30)
+				.setMaxLength(141)
 				.setEnums(COVERAGE)
 				.build());
 
@@ -310,11 +314,13 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 		assertField(unit,
 			new StringField
 				.Builder("code")
+				.setMaxLength(2)
 				.build());
 
 		assertField(unit,
 			new StringField
 				.Builder("description")
+				.setMaxLength(5)
 				.build());
 	}
 }
