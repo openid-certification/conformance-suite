@@ -5,7 +5,7 @@ import java.util.Arrays;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckDiscEndpointIdTokenSigningAlgValuesSupported extends AbstractValidateJsonArray {
+public class CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256 extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "id_token_signing_alg_values_supported";
 

@@ -3,7 +3,7 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
-import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
@@ -87,7 +87,7 @@ public abstract class AbstractFAPI2BaselineID2DiscoveryEndpointVerification exte
 			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9", "RFC8705-3.3");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 
 		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-14");
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
