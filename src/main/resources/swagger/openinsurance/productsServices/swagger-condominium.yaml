@@ -232,11 +232,11 @@ components:
             type: string
             maxLength: 22
             example: CONDOMINIO_RESIDENCIAL
-            enum: [CONDOMINIO_RESIDENCIAL, CONDOMINIO_COMERCIAL]
+            enum: [CONDOMINIO_RESIDENCIAL, CONDOMINIO_COMERCIAL, CONDOMINIO_MISTOS]
           structuringType:
             type: string
             maxLength: 21
-            enum: [CONDOMINIO_HORIZONTAL, CONDOMINIO_VERTICAL]
+            enum: [CONDOMINIO_HORIZONTAL, CONDOMINIO_VERTICAL, MISTO]
     
     CondominiumAssistanceServices:
       type: array
@@ -649,3 +649,4 @@ components:
         application/json; charset=utf-8:
           schema:
             $ref: '#/components/schemas/ResponseError'    
+            
