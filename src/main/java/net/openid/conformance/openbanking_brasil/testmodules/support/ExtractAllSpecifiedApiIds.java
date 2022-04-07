@@ -34,7 +34,7 @@ public class ExtractAllSpecifiedApiIds extends AbstractCondition {
 			env.putObject("extracted_api_ids", object);
 			logSuccess("Extracted all API IDs", Map.of("Extracted ID's", extractedApiIds));
 		}else {
-			throw error("No accounts were extracted", Map.of("data", data));
+			throw error("No API IDs were extracted", Map.of("data", data));
 		}
 
 		return env;
