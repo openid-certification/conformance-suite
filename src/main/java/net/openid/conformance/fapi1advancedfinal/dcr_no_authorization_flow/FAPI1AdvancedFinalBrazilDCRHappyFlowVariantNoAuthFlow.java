@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.ClientManagementEndpointAndAccess
 import net.openid.conformance.condition.client.ReorderGrantTypesInDynamicRegistrationRequest;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddSupportedOpenIdScopesToClientConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedOpenBankingScopes;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -43,7 +44,7 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuthFlow extends Abstr
 		validateDcrResponseScope();
 		eventLog.endBlock();
 
-		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-", "RFC7591-2", "RFC7591-3.2.1");
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedOpenBankingScopes.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-", "RFC7591-2", "RFC7591-3.2.1");
 	}
 
 	@Override
