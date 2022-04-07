@@ -1,3 +1,4 @@
+ 
 openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
@@ -10,9 +11,9 @@ servers:
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
     description: Servidor de Producao
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-    description: Servidor de Homologacao
+    description: Servidor de Homologacao 
 tags:
-- name: "Empresarial"
+- name: "Empresarial" 
 
 paths:
   /business/:
@@ -39,7 +40,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseBusinessList'
         '204':
-          $ref: '#/components/responses/NoContent'
+          $ref: '#/components/responses/NoContent'                
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -57,11 +58,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
         default:
-          description: Dados dos produtos de API de informações de dados do produto Empresarial. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
+          description: Dados dos produtos de API de informações de dados do produto Empresarial. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados. 
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ResponseBusinessList'
+                $ref: '#/components/schemas/ResponseBusinessList' 
 
 components:
   schemas:
@@ -127,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - assistanceServices
           - microInsurance
           - traits
@@ -146,7 +146,7 @@ components:
             description: Código único a ser definido pela sociedade.
             maxLength: 100
             example: "01234589-0"
-
+          
           coverages:
             type: array
             items:
@@ -155,6 +155,7 @@ components:
                 - coverage
                 - coverageDescription
                 - coverageAttributes
+                - allowApartPurchase
               properties:
                 coverage:
                   type: string
@@ -192,10 +193,11 @@ components:
                   example: descrição cobertura
                 coverageAttributes:
                    $ref: '#/components/schemas/BusinessCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
-            example: true
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                  example: true
+
           assistanceServices:
             $ref: '#/components/schemas/BusinessAssistanceServices'
           microInsurance:
@@ -209,19 +211,19 @@ components:
           validity:
             $ref: '#/components/schemas/BusinessValidity'
           premiumPayment:
-            $ref: '#/components/schemas/BusinessPremiumPayment'
+            $ref: '#/components/schemas/BusinessPremiumPayment'     
           termsAndConditions:
             $ref: '#/components/schemas/BusinessTerms'
           minimumRequirements:
             $ref: '#/components/schemas/BusinessMinimumRequirements'
-
+    
     BusinessAssistanceServices:
       type: array
       description: Agrupamento dos serviços de assistências disponíveis vinculado ao produto.
       items:
         type: object
         required:
-        - assistanceServices
+          - assistanceServices
         properties:
           assistanceServices:
             type: boolean
@@ -246,24 +248,26 @@ components:
             maxLength: 10
             example: GRATUITO
             enum: [GRATUITO, PAGO]
-
+    
     BusinessValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
-
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
+    
     BusinessPremiumPayment:
       type: array
       items:
@@ -280,10 +284,10 @@ components:
           paymentDetail:
             type: string
             maxLength: 100
-            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Meio de pagamento (acima)
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Meio de pagamento (acima) 
           paymentType:
             type: string
-            description: tipo de pagamento
+            description: tipo de pagamento  
             maxLength: 9
             example: A_VISTA
             enum: [A_VISTA, PARCELADO]
@@ -291,7 +295,7 @@ components:
               description: Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III"
               type: string
               maxLength: 1024
-
+        
     BusinessTerms:
       type: object
       description: Informações dos termos e condições conforme número do processo SUSEP.
@@ -309,7 +313,7 @@ components:
           maxLength: 1024
           example: https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf
 
-
+    
     BusinessMinimumRequirements:
       type: object
       description: Requisitos mínimos.
@@ -328,16 +332,16 @@ components:
         minimumRequirementDetails:
           type: string
           maxLength: 1024
-          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).
+          description: Campo aberto contendo todos os requisitos mínimos para contratação (possibilidade de incluir URL).        
         targetAudiences:
           description: Público Alvo
           type: array
           items:
             type: string
-            maxLength: 30
+            maxLength: 15
             example: PESSOA_NATURAL
-            enum: [PESSOA_NATURAL, PESSOA_NATURAL_ESTRANGEIRO]
-
+            enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
+    
     BusinessCoverageAttributes:
       type: object
       description: Informações de cobertura do Seguro Residencial.
@@ -347,7 +351,7 @@ components:
       properties:
         maxLMI:
           description: Lista com valor de LMI aceito pela sociedade para cada cobertura
-          $ref: '#/components/schemas/BusinessCoverageAttributesDetails'
+          $ref: '#/components/schemas/BusinessCoverageAttributesDetails'                                
         insuredParticipation:
           type: array
           description: Lista com indicativo do tipo de participação do segurado para cada cobertura
@@ -356,8 +360,12 @@ components:
             maxLength: 13
             example: POS
             enum: [POS, FRANQUIA, NAO_SE_APLICA, OUTROS]
+        insuredParticipationDescription:
+          type: string
+          maxLength: 1024
+          description: Lista com descrição referente ao campo “Participação do Segurado” para cada cobertura.      
 
-
+    
     BusinessCoverageAttributesDetails:
         type: object
         required:
@@ -368,22 +376,22 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/BusinessCoverageAttributesDetailsUnit'
-
+    
     BusinessCoverageAttributesDetailsUnit:
       type: object
       required:
         - code
         - description
       properties:
-        code:
+        code: 
           type: string
           maxLength: 2
           example: R$
-        description:
+        description: 
           type: string
           maxLength: 5
           example: REAL
-
+    
     BusinessCoverageAttributesPercentageDetails:
         type: object
         required:
@@ -394,22 +402,22 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/BusinessCoverageAttributesPercentageDetailsUnit'
-
+    
     BusinessCoverageAttributesPercentageDetailsUnit:
       type: object
       required:
         - code
         - description
       properties:
-        code:
+        code: 
           type: string
           maxLength: 1
           example: '%'
-        description:
+        description: 
           type: string
           maxLength: 10
           example: PERCENTUAL
-
+    
     Links:
       type: object
       properties:
@@ -433,7 +441,7 @@ components:
           type: string
           description: URL da última página de registros
           example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-
+    
     Meta:
       type: object
       properties:
@@ -448,7 +456,7 @@ components:
       required:
         - totalRecords
         - totalPages
-
+    
     ResponseError:
       type: object
       required:
@@ -488,7 +496,7 @@ components:
         meta:
           $ref: '#/components/schemas/Meta'
       additionalProperties: false
-
+    
   parameters:
       page:
         name: page
@@ -549,7 +557,7 @@ components:
         schema:
             type: string
             pattern: '[\w\W\s]*'
-
+    
   securitySchemes:
     OpenId:
       type: openIdConnect
@@ -563,14 +571,14 @@ components:
           tokenUrl: 'https://authserver.example/token'
           scopes:
             financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
-
+    
   responses:
     NoContent:
       description: 'O recurso solicitado não existe ou não foi localizado.'
       content:
         application/json; charset=utf-8:
           schema:
-            $ref: '#/components/schemas/ResponseError'
+            $ref: '#/components/schemas/ResponseError' 
     BadRequest:
       description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
       content:
@@ -618,4 +626,4 @@ components:
       content:
         application/json; charset=utf-8:
           schema:
-            $ref: '#/components/schemas/ResponseError'
+            $ref: '#/components/schemas/ResponseError'    

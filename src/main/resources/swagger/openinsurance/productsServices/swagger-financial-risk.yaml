@@ -127,7 +127,6 @@ components:
         required:
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - validity
           - termsAndConditions
@@ -151,10 +150,12 @@ components:
                 - coverage
                 - coverageDescription
                 - coverageAttributes
+                - allowApartPurchase
               properties:
                 coverage:
                   type: string
-                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
+                  maxLength: 24
+                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.12 do Anexo II
                   enum: [PROTECAO_DE_BENS,
                       PROTECAO_DE_DADOS_ONLINE,
                       SAQUE_COMPRA_SOB_COACAO,
@@ -168,9 +169,9 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                       $ref: '#/components/schemas/FinancialRiskCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Permissão para Contratação Separada
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
@@ -189,22 +190,24 @@ components:
             $ref: '#/components/schemas/FinancialRiskMinimumRequirements'
     
     FinancialRiskValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     FinancialRiskTerms:
       type: object

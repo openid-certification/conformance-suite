@@ -1,0 +1,65 @@
+{
+    "data": {
+        "brand": {
+            "name": "ACME Group Seguros",
+            "companies": [
+                {
+                    "name": "ACME Seguros",
+                    "cnpjNumber": "12345678901234",
+                    "products": [
+                        {
+                            "name": "Produto de Seguro",
+                            "code": "01234589-0",
+                            "coverages": [
+                                {
+                                    "coverage": "DANOS_MATERIAIS_CAUSADOS_AO_COFRE_FORTE",
+                                    "coverageDescription": "string",
+                                    "coverageAttributes": {
+                                        "maxLMI": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "allowApartPurchase": true,
+                            "traits": true,
+                            "validity": {
+                                "term": [
+                                    "ANUAL"
+                                ],
+                                "termOthers": "string"
+                            },
+                            "premiumRates": [
+                                "string"
+                            ],
+                            "termsAndConditions": {
+                                "susepProcessNumber": "15414622222222222",
+                                "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
+                            },
+                            "minimumRequirements": {
+                                "targetAudiences": [
+                                    "PESSOA_NATURAL"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/products-services/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

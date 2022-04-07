@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - securityType
           - assistanceServices
           - customerServices
@@ -156,6 +155,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
@@ -172,9 +172,9 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtosss
                 coverageAttributes:
                    $ref: '#/components/schemas/ExtendedWarrantyCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
           securityType:
             type: array
             description: Tipo de bem segurado
@@ -182,15 +182,18 @@ components:
               type: string
               maxLength: 15
               example: LINHA_BRANCA
-              enum: [
-                LINHA_BRANCA,
-                LINHA_MARROM,
-                INFORMATICA,
-                TELEFONIA,
-                MÓVEIS,
-                ELETROPORTATEIS,
-                OUTROS
-              ]
+              enum: [SMARTPHONE,
+                    NOTEBOOK,
+                    TABLET,
+                    EQUIPAMENTOS_PORTATEIS,
+                    ELETRODOMESTICOS_–_LINHA_BRANCA,
+                    ELETRODOMESTICOS_–_LINHA_MARROM,
+                    AUTOMOVEL,
+                    BICICLETA,
+                    BICICLETA_ELETRICA,
+                    EMPRESA,
+                    RESIDENCIA,
+                    OUTROS]
           securityTypeOthers:
             type: string
             description: Campo livre para descrição, caso o valor do campo "Tipo de bem segurado" seja 7. Outros
@@ -256,22 +259,24 @@ components:
 
     
     ExtendedWarrantyValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     ExtendedWarrantyPremiumPayment:
       type: array
@@ -378,11 +383,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
-        insuredParticipationOthers:
-          type: string
-          maxLength: 100
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Participação do segurado
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024

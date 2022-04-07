@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - securityType
           - microInsurance
           - traits
@@ -154,10 +153,12 @@ components:
               required:
                 - coverageDescription
                 - coverage
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.8 do Anexo II.
                   type: string
+                  maxLength: 30
                   example: ROUBO
                   enum: [DANOS_DE_CAUSA_EXTERNA,
                         DANOS_DE_CAUSA_EXTERNA_E_ROUBO,
@@ -169,27 +170,35 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                       $ref: '#/components/schemas/EquipmentBreakdownCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: "Indicação se a cobertura permite contratação separada (por cobertura selecionada)."
-            example: true
+                allowApartPurchase:
+                  type: boolean
+                  description: "Indicação se a cobertura permite contratação separada (por cobertura selecionada)."
+                  example: true
           securityType:
             type: array
             description: Tipo de bem segurado
             items:
               type: string
-              maxLength: 15
-              example: LINHA_BRANCA
-              enum: [LINHA_BRANCA,
-                    LINHA_MARROM,
-                    INFORMATICA,
-                    TELEFONIA,
-                    MÓVEIS,
-                    ELETROPORTÁTEIS,
-                    OUTROS]
+              maxLength: 29
+              example: SMARTPHONE
+              enum: [SMARTPHONE,
+                    NOTEBOOK,
+                    TABLET,
+                    EQUIPAMENTOS_PORTATEIS,       
+                    ELETRODOMESTICOS_LINHA_BRANCA,
+                    ELETRODOMESTICOS_LINHA_MARROM,
+                    AUTOMOVEL,
+                    BICICLETA,
+                    BICICLETA_ELETRICA,
+                    EMPRESA,
+                    RESIDENCIA,
+                    OUTROS,
+                    BOLSA,
+                    CARTEIRA,
+                    CARTAO_DE_CREDITO]
           securityTypeOthers:
             type: string
-            description: Campo livre para descrição, caso o valor do campo "Tipo de bem segurado" seja 7. Outros
+            description: Campo livre para descrição, caso o valor do campo "Tipo de bem" seja 12. Outros
           assistanceServices:
             $ref: '#/components/schemas/EquipmentBreakdownAssistanceServices'
           customerServices:
@@ -244,27 +253,29 @@ components:
             enum: [A_VISTA, PARCELADO]
         premiumRates:
           type: array
-          description: Faixa de Preço, conforme estabelecido no inciso VII do Art. 2º do Anexo III da Circular SUSEP 635/2021, inclusive sobre sua faculdade para alguns produtos
+          description: Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III
           items:
               type: string
               maxLength: 1024
     
     EquipmentBreakdownValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            example: ANUAL
-            enum: [ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     EquipmentBreakdownAssistanceServices:
       type: array
@@ -359,7 +370,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024

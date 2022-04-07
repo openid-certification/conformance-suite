@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -13,7 +12,6 @@ import java.util.Map;
 import static net.openid.conformance.logging.MapCopy.deepCopy;
 
 @Component
-@Primary
 public class SanitisingEventLog implements EventLog {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SanitisingEventLog.class);
