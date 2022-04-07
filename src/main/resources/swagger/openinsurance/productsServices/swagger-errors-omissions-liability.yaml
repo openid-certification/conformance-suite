@@ -133,7 +133,6 @@ components:
           - validity
           - maxLMG
           - maxLMGDescription
-          - allowApartPurchase
           - assistanceServices
           - premiumPayment
           - termsAndConditions
@@ -181,6 +180,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
@@ -194,6 +194,10 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                    $ref: '#/components/schemas/ErrorsOmissionsLiabilityCoverageAttributes'
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).   
+
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica.
@@ -205,9 +209,6 @@ components:
             type: string
             description: Descritivo da composição do Limite Máximo de Garantia (LMG) por cobertura
             maxLength: 1024
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
           customerServices:
             type: array
             description: Rede de Atendimento.
@@ -298,23 +299,25 @@ components:
               maxLength: 1024
     
     ErrorsOmissionsLiabilityValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              description: Prazo
+              maxLength: 23
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            description: Prazo
-            maxLength: 23
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
-
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
+  
     
     ErrorsOmissionsLiabilityTerms:
       type: object

@@ -1,3 +1,4 @@
+
 openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
@@ -10,9 +11,9 @@ servers:
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
     description: Servidor de Producao
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-    description: Servidor de Homologacao
+    description: Servidor de Homologacao 
 tags:
-- name: "RD D&O"
+- name: "RD D&O" 
 
 paths:
   /directors-officers-liability/:
@@ -61,7 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ResponseDirectorsOfficersLiabilityList'
+                $ref: '#/components/schemas/ResponseDirectorsOfficersLiabilityList' 
 
 components:
   schemas:
@@ -127,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - maxLMGDescription
           - maxLMG
           - traits
@@ -147,7 +147,7 @@ components:
             description: Código único a ser definido pela sociedade.
             maxLength: 100
             example: "01234589-0"
-
+          
           coverages:
             type: array
             items:
@@ -155,6 +155,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
@@ -168,9 +169,10 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                    $ref: '#/components/schemas/DirectorsOfficersLiabilityCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Indicação se a cobertura permite contratação separada
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada   
+
           maxLMGDescription:
             type: string
             maxLength: 1024
@@ -200,7 +202,7 @@ components:
             $ref: '#/components/schemas/DirectorsOfficersLiabilityTerms'
           minimumRequirements:
             $ref: '#/components/schemas/DirectorsOfficersLiabilityMinimumRequirements'
-
+    
     DirectorsOfficersLiabilityAssistanceServices:
       type: array
       description: Agrupamento dos serviços de assistências disponíveis vinculado ao produto.
@@ -230,7 +232,7 @@ components:
             example: GRATUITO
             maxLength: 8
             enum: [GRATUITO, PAGO]
-
+    
     DirectorsOfficersLiabilityPremiumPayment:
       type: array
       items:
@@ -253,12 +255,12 @@ components:
             PONTOS_DE_PROGRAMA_DE_BENEFICIO,
             OUTROS]
           paymentDetail:
-            type: string
+            type: string  
             maxLength: 1024
             description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Meio de pagamento (acima)
           paymentType:
             type: array
-            description: tipo de pagamento
+            description: tipo de pagamento  
             items:
               type: string
               maxLength: 9
@@ -268,26 +270,28 @@ components:
             description: Distribuição de frequência relativa aos valores referentes às taxas cobradas.
             type: string
             maxLength: 1024
-
+    
     DirectorsOfficersLiabilityValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
-          example: Cobertura XYZ com vigência diferente da vigência da apólice
-
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
+            example: Cobertura XYZ com vigência diferente da vigência da apólice
+    
     DirectorsOfficersLiabilityTerms:
       type: object
       description: Informações dos termos e condições conforme número do processo SUSEP.
@@ -304,7 +308,7 @@ components:
           description: Campo aberto (possibilidade de incluir uma url).
           maxLength: 1024
           example: https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf
-
+    
     DirectorsOfficersLiabilityMinimumRequirements:
       type: object
       description: Requisitos mínimos.
@@ -332,13 +336,13 @@ components:
             maxLength: 15
             example: PESSOA_NATURAL
             enum: [PESSOA_NATURAL, PESSOA_JURIDICA]
-
+    
     DirectorsOfficersLiabilityCoverageAttributes:
       type: object
       description: Informações de cobertura do Seguro Residencial.
       required:
        - maxLMI
-       - insuredParticipation
+       - insuredParticipation 
        - idenizationBasis
       properties:
         maxLMI:
@@ -367,8 +371,8 @@ components:
           type: string
           description: Campo livre para descrição, caso o valor do campo "Base de indenização" seja 3. Outros
           maxLength: 3000
-
-
+          
+    
     DirectorsOfficersLiabilityCoverageAttributesDetails:
         type: object
         required:
@@ -379,7 +383,7 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/DirectorsOfficersLiabilityCoverageAttributesDetailsUnit'
-
+    
     DirectorsOfficersLiabilityCoverageAttributesDetailsUnit:
       type: object
       required:
@@ -392,7 +396,7 @@ components:
         description:
           type: string
           example: REAL
-
+    
     DirectorsOfficersLiabilityCoverageAttributesPercentageDetails:
         type: object
         required:
@@ -403,7 +407,7 @@ components:
             type: number
           unit:
             $ref: '#/components/schemas/DirectorsOfficersLiabilityCoverageAttributesPercentageDetailsUnit'
-
+    
     DirectorsOfficersLiabilityCoverageAttributesPercentageDetailsUnit:
       type: object
       required:
@@ -416,7 +420,7 @@ components:
         description:
           type: string
           example: PERCENTUAL
-
+    
     Links:
       type: object
       properties:
@@ -440,7 +444,7 @@ components:
           type: string
           description: URL da última página de registros
           example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
-
+    
     Meta:
       type: object
       properties:
@@ -455,7 +459,7 @@ components:
       required:
         - totalRecords
         - totalPages
-
+    
     ResponseError:
       type: object
       required:
@@ -495,7 +499,7 @@ components:
         meta:
           $ref: '#/components/schemas/Meta'
       additionalProperties: false
-
+    
   parameters:
       page:
         name: page
@@ -556,7 +560,7 @@ components:
         schema:
             type: string
             pattern: '[\w\W\s]*'
-
+    
   securitySchemes:
     OpenId:
       type: openIdConnect
@@ -570,7 +574,7 @@ components:
           tokenUrl: 'https://authserver.example/token'
           scopes:
             financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
-
+    
   responses:
     NoContent:
       description: 'O recurso solicitado não existe ou não foi localizado.'

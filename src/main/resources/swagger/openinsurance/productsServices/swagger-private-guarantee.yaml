@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - validity
           - premiumPayment
@@ -153,6 +152,7 @@ components:
                  - coverage
                  - coverageDescription
                  - coverageAttributes
+                 - allowApartPurchase
                properties:
                  coverage:
                    type: string
@@ -173,9 +173,10 @@ components:
                    description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                  coverageAttributes:
                    $ref: '#/components/schemas/PrivateGuaranteeCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Permissão para Contratação Separada
+                 allowApartPurchase:
+                   type: boolean
+                   description: Permissão para Contratação Separada  
+
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
@@ -205,7 +206,7 @@ components:
             type: string
             maxLength: 13
             example: FRANQUIA
-            enum: [FRANQUIA, POS, NAO_SE_APLICA, OUTROS]
+            enum: [FRANQUIA, POS, NAO_SE_APLICA]
         insuredParticipationDescription:
           type: string
           maxLength: 1024
@@ -236,22 +237,24 @@ components:
           example: REAL
     
     PrivateGuaranteeValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     PrivateGuaranteePremiumPayment:
       type: array
@@ -282,6 +285,7 @@ components:
               type: string
               maxLength: 1024
               description: Distribuição de frequência relativa aos valores referentes às taxas cobradas
+              
     
     PrivateGuaranteeTerms:
       type: object
