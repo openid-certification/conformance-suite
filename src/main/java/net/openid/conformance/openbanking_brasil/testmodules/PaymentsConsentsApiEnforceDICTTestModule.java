@@ -53,6 +53,7 @@ public class PaymentsConsentsApiEnforceDICTTestModule extends AbstractClientCred
 
 			call(sequence(PaymentConsentErrorTestingSequence.class));
 			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
+			callAndStopOnFailure(ValidateErrorAndMetaFieldNames.class);
 
 		});
 	}

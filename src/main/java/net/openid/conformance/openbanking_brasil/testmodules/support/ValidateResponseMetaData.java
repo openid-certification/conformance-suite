@@ -36,32 +36,39 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
         int metaTotalRecords = 1;
         int metaTotalPages = 1;
 
-        if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
-            metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
-        }
+		if(JsonHelper.ifExists(apiResponse, "$.meta")){
+			if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
+				metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
+			}else {
+				throw error("totalRecords field is missing in meta");
+			}
 
-        if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
-            metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
-        }
+			if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
+				metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
+			}else {
+				throw error("totalPages field is missing in meta");
+			}
 
-        if (JsonHelper.ifExists(apiResponse, "$.meta.requestDateTime")) {
-            String metaRequestDateTime = OIDFJSON.getString(findByPath(apiResponse, "$.meta.requestDateTime"));
+			if (JsonHelper.ifExists(apiResponse, "$.meta.requestDateTime")) {
+				String metaRequestDateTime = OIDFJSON.getString(findByPath(apiResponse, "$.meta.requestDateTime"));
 
-            // Check that we have a Timezone element to this datetime object and that it is not longer than 20 chars
-            if (metaRequestDateTime.length() > 20) {
-                throw error("requestDateTime is more than 20 characters in length.");
-            }
+				// Check that we have a Timezone element to this datetime object and that it is not longer than 20 chars
+				if (metaRequestDateTime.length() > 20) {
+					throw error("requestDateTime is more than 20 characters in length.");
+				}
 
-            // Parse the dateTime as RFC3339 and check that we have the 'Z'
-            try {
-                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).parse(metaRequestDateTime);
-            } catch (ParseException e) {
-                throw error("requestDateTime is not in valid RFC 3339 format.");
-            }
+				// Parse the dateTime as RFC3339 and check that we have the 'Z'
+				try {
+					new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).parse(metaRequestDateTime);
+				} catch (ParseException e) {
+					throw error("requestDateTime is not in valid RFC 3339 format.");
+				}
+				validateMetaDateTimeFormat(metaRequestDateTime);
+			}else {
+				throw error("requestDateTime field is missing in meta");
+			}
+		}
 
-			validateMetaDateTimeFormat(metaRequestDateTime);
-
-        }
 
         Boolean isConsentRequest = false;
         Boolean isPaymentConsent = false;
