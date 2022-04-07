@@ -26,10 +26,55 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuthFlow extends FAPI1AdvancedFinalBrazilDCRUpdateClientConfig {
+
+	private String originalRedirectUri;
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		super.onPostAuthorizationFlowComplete();
+
+		// get a new SSA (there is already one, but they may be single use?)
+		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
+
+		// try negative tests changing redirect uri back to original
+		String currentRedirectUri = env.getString("redirect_uri");
+		env.putString("redirect_uri", this.originalRedirectUri);
+		callAndStopOnFailure(AddRedirectUriToClientConfigurationRequest.class);
+
+		eventLog.startBlock("Try to change redirect uri using bad MTLS certificate");
+		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
+		env.mapKey("mutual_tls_authentication", "fake_mutual_tls_authentication");
+		updateClientConfigWithTlsIssue();
+		env.unmapKey("mutual_tls_authentication");
+
+		eventLog.startBlock("Try to change redirect uri using no MTLS certificate");
+		env.mapKey("mutual_tls_authentication", "none_existent_key");
+		updateClientConfigWithTlsIssue();
+		env.unmapKey("mutual_tls_authentication");
+
+		updateClientConfigWithBadAccessToken();
+
+		updateClientConfigWithNoSsa();
+
+		updateClientConfigWithInvalidSsa();
+
+		// verify redirect uri and end test
+		env.putString("redirect_uri", currentRedirectUri);
+
+		eventLog.startBlock("Retrieve client configuration (twice)");
+
+		getClientDetails();
+
+		// a second call; if the client registration token was rotated this checks the new token works
+		// (and also matches the requirements of the RP DCR test so we can run RP tests against OP tests)
+		getClientDetails();
+
+		eventLog.startBlock("Delete client");
+
+		deleteClient();
+
+		fireTestFinished();
 	}
 
 	@Override
@@ -54,7 +99,7 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuthFlow extends FAP
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
 		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
-		originalRedirectUri = env.getString("redirect_uri");
+		this.originalRedirectUri = env.getString("redirect_uri");
 		callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
 		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
 		callAndContinueOnFailure(FapiBrazilVerifyRedirectUriContainedInSoftwareStatement.class, Condition.ConditionResult.FAILURE);

@@ -45,7 +45,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1AdvancedFinalBrazilDCR {
-	protected String originalRedirectUri;
+	String originalRedirectUri;
 
 	@Override
 	protected void callRegistrationEndpoint() {
