@@ -262,6 +262,14 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		"7+e2V9glTJo3xtFrQB+seQhlNMCop8VdC8tg1IDkk7GPXLhyjKejNgREN46o\\n" +
 		"-----END CERTIFICATE-----\\n";
 
+	private String altKeyConfig = "{\n" +
+		"    \"alternateKeystore\": {\n" +
+		"        \"provider\": \"altKey\",\n" +
+		"        \"key\": \"alias/test-mtls-key\"\n" +
+		"    }\n" +
+		"}";
+
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -287,7 +295,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
-		verify(env, atLeastOnce()).getString("config", "mtls.key");
+		verify(env, atLeastOnce()).getElementFromObject("config", "mtls.key");
 		verify(env, atLeastOnce()).getString("config", "mtls.ca");
 
 		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(cert);
@@ -308,7 +316,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
-		verify(env, atLeastOnce()).getString("config", "mtls.key");
+		verify(env, atLeastOnce()).getElementFromObject("config", "mtls.key");
 		verify(env, atLeastOnce()).getString("config", "mtls.ca");
 
 		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(cert);
@@ -366,7 +374,7 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("config", "mtls.cert");
-		verify(env, atLeastOnce()).getString("config", "mtls.key");
+		verify(env, atLeastOnce()).getElementFromObject("config", "mtls.key");
 
 		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(certExpected);
 		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo(keyExpected);
@@ -429,6 +437,29 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	public void testEvaluate_valueMissing() {
 
 		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_valuePresentAlternateKey() {
+
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
+			+ "\"cert\":\"" + certPEM + "\","
+			+ "\"key\":" + altKeyConfig + ","
+			+ "\"ca\":\"" + caPEM + "\""
+			+ "}}").getAsJsonObject();
+
+		env.putObject("config", config);
+
+		cond.execute(env);
+
+		verify(env, atLeastOnce()).getString("config", "mtls.cert");
+		verify(env, atLeastOnce()).getElementFromObject("config", "mtls.key");
+		verify(env, atLeastOnce()).getString("config", "mtls.ca");
+
+		assertThat(env.getString("mutual_tls_authentication", "cert")).isEqualTo(cert);
+		assertThat(env.getString("mutual_tls_authentication", "key")).isEqualTo("see.mtls_alternate_key");
+		JsonObject originalConfig = (JsonObject) JsonParser.parseString(altKeyConfig);
+		assertThat(env.getObject("mtls_alternate_key")).isEqualTo(originalConfig.getAsJsonObject("alternateKeystore"));
 	}
 
 }

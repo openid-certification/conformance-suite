@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.openid.conformance.condition.AbstractCondition;
@@ -8,6 +9,7 @@ import net.openid.conformance.condition.util.PEMFormatter;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
 
@@ -17,8 +19,18 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 	public Environment evaluate(Environment env) {
 		// mutual_tls_authentication
 
+		boolean usingAlternateKeyConfig = false;
 		String certString = env.getString("config", "mtls.cert");
-		String keyString = env.getString("config", "mtls.key");
+		String keyString = null;
+		JsonElement keyElement = env.getElementFromObject("config", "mtls.key");
+		if(keyElement instanceof JsonObject) {
+			JsonObject mtlsKey = (JsonObject) keyElement;
+			env.putObject("mtls_alternate_key", mtlsKey.getAsJsonObject("alternateKeystore"));
+			keyString = "see.mtls_alternate_key";
+			usingAlternateKeyConfig = true;
+		} else if(keyElement != null){
+			keyString = OIDFJSON.getString(keyElement);
+		}
 		String caString = env.getString("config", "mtls.ca");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
@@ -33,7 +45,9 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		try {
 			certString = PEMFormatter.stripPEM(certString);
 
-			keyString = PEMFormatter.stripPEM(keyString);
+			if(!usingAlternateKeyConfig){
+				keyString = PEMFormatter.stripPEM(keyString);
+			}
 
 			if (caString != null) {
 				caString = PEMFormatter.stripPEM(caString);

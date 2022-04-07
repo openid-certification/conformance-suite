@@ -1,13 +1,16 @@
 package net.openid.conformance.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import net.openid.conformance.extensions.AbstractKeystoreStrategy;
+import net.openid.conformance.extensions.AlternateKeystoreRegistry;
+import net.openid.conformance.extensions.DefaultMtlsStrategy;
+import net.openid.conformance.extensions.KeystoreStrategy;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -34,7 +37,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -49,11 +51,9 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -61,7 +61,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +68,6 @@ import java.util.Set;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-
-
 
 public abstract class AbstractCondition implements Condition, DataUtils {
 
@@ -596,34 +593,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
-
-			// TODO: move this to an extractor?
-			String clientCert = env.getString("mutual_tls_authentication", "cert");
-			String clientKey = env.getString("mutual_tls_authentication", "key");
-			String clientCa = env.getString("mutual_tls_authentication", "ca");
-
-			byte[] certBytes = Base64.getDecoder().decode(clientCert);
-			byte[] keyBytes = Base64.getDecoder().decode(clientKey);
-
-			X509Certificate cert = generateCertificateFromDER(certBytes);
-			RSAPrivateKey key = generatePrivateKeyFromDER(keyBytes);
-
-			ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
-			if (clientCa != null) {
-				byte[] caBytes = Base64.getDecoder().decode(clientCa);
-				chain.addAll(generateCertificateChainFromDER(caBytes));
+			KeystoreStrategy mtlsStrategy = null;
+			if(env.containsObject("mtls_alternate_key")) {
+				JsonObject alt = env.getObject("mtls_alternate_key");
+				mtlsStrategy = AlternateKeystoreRegistry.getINSTANCE()
+					.forName(OIDFJSON.getString(alt.get("provider")));
+			} else {
+				mtlsStrategy = new DefaultMtlsStrategy();
 			}
-
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			keystore.load(null);
-			keystore.setCertificateEntry("cert-alias", cert);
-			keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
-
-			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			keyManagerFactory.init(keystore, "changeit".toCharArray());
-
-			km = keyManagerFactory.getKeyManagers();
-
+			km = mtlsStrategy.process(env);
 		}
 
 		TrustManager[] trustAllCerts = {
@@ -646,7 +624,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
-
 		builder.setSSLContext(sc);
 
 		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
@@ -660,6 +637,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.register("https", sslConnectionSocketFactory)
 			.register("http", new PlainConnectionSocketFactory())
 			.build();
+
 
 		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 		builder.setConnectionManager(ccm);
