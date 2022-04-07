@@ -22,18 +22,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignatureNoAuthFlow
 	extends FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature {
 	@Override
-	protected void setupResourceEndpoint() {
-		// not needed as resource endpoint won't be called
-	}
-
-	@Override
 	protected boolean scopeContains(String requiredScope) {
 		// Not needed as scope field is optional
 		return false;
-	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
 	}
 }

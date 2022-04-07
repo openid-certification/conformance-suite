@@ -43,15 +43,9 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuthFlow extends FAPI1Advance
 	}
 
 	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
-	@Override
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		validateDcrResponseScope();
 		eventLog.endBlock();
 	}
 

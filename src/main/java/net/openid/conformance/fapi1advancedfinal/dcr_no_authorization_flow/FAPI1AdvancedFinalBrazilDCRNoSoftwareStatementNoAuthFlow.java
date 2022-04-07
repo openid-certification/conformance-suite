@@ -23,19 +23,8 @@ public class FAPI1AdvancedFinalBrazilDCRNoSoftwareStatementNoAuthFlow
 	extends FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement {
 
 	@Override
-	protected void setupResourceEndpoint() {
-		// not needed as resource endpoint won't be called
-	}
-
-	@Override
 	protected boolean scopeContains(String requiredScope) {
 		// Not needed as scope field is optional
 		return false;
 	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
 }

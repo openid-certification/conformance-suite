@@ -26,10 +26,4 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidRedirectUriNoAuthFlow extends FAP
 		// Not needed as scope field is optional
 		return false;
 	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
 }

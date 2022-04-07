@@ -77,7 +77,6 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 		} else {
 			call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 			callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-			validateDcrResponseScope();
 			eventLog.endBlock();
 		}
 	}
@@ -107,8 +106,4 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 		return false;
 	}
 
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
 }

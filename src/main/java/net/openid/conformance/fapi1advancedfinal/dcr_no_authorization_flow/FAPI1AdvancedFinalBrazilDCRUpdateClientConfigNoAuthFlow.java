@@ -44,15 +44,9 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuthFlow extends FAP
 	}
 
 	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
-	@Override
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		validateDcrResponseScope();
 		eventLog.endBlock();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint to change redirect uri");

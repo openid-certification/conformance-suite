@@ -23,20 +23,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalBrazilDCRNoMTLSNoAuthFlow extends FAPI1AdvancedFinalBrazilDCRNoMTLS {
-	@Override
-	protected void setupResourceEndpoint() {
-		// not needed as resource endpoint won't be called
-	}
 
 	@Override
 	protected boolean scopeContains(String requiredScope) {
 		// Not needed as scope field is optional
 		return false;
-	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
 	}
 
 	@Override
@@ -68,7 +59,6 @@ public class FAPI1AdvancedFinalBrazilDCRNoMTLSNoAuthFlow extends FAPI1AdvancedFi
 
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		validateDcrResponseScope();
 		eventLog.endBlock();
 	}
 }

@@ -53,7 +53,6 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		validateDcrResponseScope();
 		eventLog.endBlock();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with no changes expecting success");
@@ -119,11 +118,6 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 	protected boolean scopeContains(String requiredScope) {
 		// Not needed as scope field is optional
 		return false;
-	}
-
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
 	}
 
 }

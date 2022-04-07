@@ -27,9 +27,4 @@ public class FAPI1AdvancedFinalBrazilDCRInvalidJwksByValueNoAuthFlow extends FAP
 		return false;
 	}
 
-	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
 }

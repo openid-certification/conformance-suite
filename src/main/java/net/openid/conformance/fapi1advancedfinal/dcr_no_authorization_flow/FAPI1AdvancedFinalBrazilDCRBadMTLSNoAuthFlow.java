@@ -35,11 +35,6 @@ public class FAPI1AdvancedFinalBrazilDCRBadMTLSNoAuthFlow extends FAPI1AdvancedF
 	}
 
 	@Override
-	protected void validateDcrResponseScope() {
-		// Not needed as scope field is optional
-	}
-
-	@Override
 	protected void callRegistrationEndpoint() {
 		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
 
@@ -70,7 +65,6 @@ public class FAPI1AdvancedFinalBrazilDCRBadMTLSNoAuthFlow extends FAPI1AdvancedF
 
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		validateDcrResponseScope();
 		eventLog.endBlock();
 	}
 }
