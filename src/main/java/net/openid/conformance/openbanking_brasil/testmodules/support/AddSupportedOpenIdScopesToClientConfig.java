@@ -21,7 +21,7 @@ public class AddSupportedOpenIdScopesToClientConfig extends AbstractCondition {
 		String supportedOpenBankingScopes = "";
 		for (JsonElement scope : scopesSupported.getAsJsonArray()) {
 			String supportedScope = OIDFJSON.getString(scope);
-			if (OPEN_BANKING_SCOPES.contains(supportedScope)) {
+			if (OPEN_BANKING_SCOPES.contains(supportedScope)  && !supportedOpenBankingScopes.contains(supportedScope)) {
 				if (!supportedOpenBankingScopes.isEmpty()) {
 					supportedOpenBankingScopes += " " + supportedScope;
 				}else {
