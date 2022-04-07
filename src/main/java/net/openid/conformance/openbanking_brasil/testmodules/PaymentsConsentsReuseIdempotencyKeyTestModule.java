@@ -99,6 +99,8 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class);
 
+		callAndStopOnFailure(ResourceErrorMetaValidator.class);
+
 		if (env.getString("warning_message") != null){
 			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
 		}

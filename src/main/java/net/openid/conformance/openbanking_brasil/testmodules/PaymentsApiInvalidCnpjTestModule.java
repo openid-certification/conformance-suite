@@ -61,6 +61,7 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		call(new CallPixPaymentsEndpointSequence()
 			.replace(EnsureResponseCodeWas201.class, condition(EnsureResponseCodeWas422.class))
+			.insertAfter(EnsureResponseCodeWas201.class, condition(ValidateErrorAndMetaFieldNames.class))
 			.skip(ExtractSignedJwtFromResourceResponse.class, "Signed jwt will be decoded elsewhere")
 		);
 		eventLog.endBlock();

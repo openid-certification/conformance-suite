@@ -128,7 +128,6 @@ components:
           - name
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - validity
           - termsAndConditions
@@ -151,10 +150,12 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
-                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
+                  description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas, conforme Tabela II.12 do Anexo II
                   type: string
+                  maxLength: 49
                   example: NAO_PAGAMENTO_DA_CARTEIRA_DE_CLIENTES_DO_SEGURADO
                   enum: [
                 NAO_PAGAMENTO_DA_CARTEIRA_DE_CLIENTES_DO_SEGURADO,
@@ -165,9 +166,9 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                       $ref: '#/components/schemas/DomesticCreditCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Permissão para Contratação Separada
+                allowApartPurchase:
+                  type: boolean
+                  description: Indicação se a cobertura permite contratação separada (por cobertura selecionada).
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
@@ -176,7 +177,7 @@ components:
             $ref: '#/components/schemas/DomesticCreditValidity'
           premiumRates:
             type: array
-            description: Distribuição de frequência relativa aos valores referentes às taxas cobradas
+            description: Distribuição de frequência relativa aos valores referentes às taxas cobradas, nos termos do Anexo III
             items:
               type: string
               maxLength: 1024
@@ -186,22 +187,24 @@ components:
             $ref: '#/components/schemas/DomesticCreditMinimumRequirements'
     
     DomesticCreditValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     DomesticCreditTerms:
       type: object

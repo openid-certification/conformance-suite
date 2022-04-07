@@ -1,12 +1,13 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules.FinancingApiWrongPermissionsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules.FinancingsApiResourcesTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules.FinancingsApiTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -23,7 +24,8 @@ public class FinancingsApiTestPlan implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					FinancingsApiTestModule.class,
-					FinancingApiWrongPermissionsTestModule.class
+					FinancingApiWrongPermissionsTestModule.class,
+					FinancingsApiResourcesTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

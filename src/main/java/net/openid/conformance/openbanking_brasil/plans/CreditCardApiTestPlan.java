@@ -1,15 +1,11 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiWrongPermissionsTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiMaxPageSizePagingTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiPageSizeTooLargeTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.CreditCardApiPageSizeTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 
 import java.util.List;
 
@@ -29,7 +25,8 @@ public class CreditCardApiTestPlan implements TestPlan {
 					CreditCardApiWrongPermissionsTestModule.class,
 					CreditCardApiPageSizeTestModule.class,
 					CreditCardApiPageSizeTooLargeTestModule.class,
-					CreditCardApiMaxPageSizePagingTestModule.class
+					CreditCardApiMaxPageSizePagingTestModule.class,
+					CreditCardApiResourcesTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

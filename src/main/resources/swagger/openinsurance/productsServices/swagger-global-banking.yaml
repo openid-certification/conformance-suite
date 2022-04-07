@@ -127,7 +127,6 @@ components:
         required:
           - code
           - coverages
-          - allowApartPurchase
           - traits
           - validity
           - termsAndConditions
@@ -151,6 +150,7 @@ components:
               required:
                 - coverage
                 - coverageDescription
+                - allowApartPurchase
               properties:
                 coverage:
                   description: Listagem de coberturas incluídas no produto que deve observar a relação discriminada de coberturas
@@ -168,9 +168,9 @@ components:
                   description: Campo aberto para detalhamento de cada uma das coberturas possíveis dos produtos
                 coverageAttributes:
                    $ref: '#/components/schemas/GlobalBankingCoverageAttributes'
-          allowApartPurchase:
-            type: boolean
-            description: Permissão para Contratação Separada
+                allowApartPurchase:
+                  type: boolean
+                  description: Permissão para Contratação Separada
           traits:
             type: boolean
             description: Indicação se o produto é classificado como destinado para cobertura de grandes riscos, sendo tal classificação de acordo com regulamentação específica
@@ -188,22 +188,24 @@ components:
             $ref: '#/components/schemas/GlobalBankingMinimumRequirements'
     
     GlobalBankingValidity:
-      type: object
-      required:
-        - term
-      properties:
-        term:
-          type: array
-          items:
+      type: array
+      items:
+        type: object
+        required:
+          - term
+        properties:
+          term:
+            type: array
+            items:
+              type: string
+              maxLength: 23
+              description: Prazo de vigência do seguro contratado Intervalo contínuo de tempo durante o qual está em vigor o contrato de seguro. (RESOLUÇÃO CNSP Nº 341/2016).
+              example: ANUAL
+              enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
+          termOthers:
             type: string
-            maxLength: 23
-            description: Prazo de vigência do seguro contratado Intervalo contínuo de tempo durante o qual está em vigor o contrato de seguro. (RESOLUÇÃO CNSP Nº 341/2016).
-            example: ANUAL
-            enum: [ANUAL , ANUAL_INTERMITENTE , PLURIANUAL , PLURIANUAL_INTERMITENTE , MENSAL, MENSAL_INTERMITENTE , DIARIO , DIARIO_INTERMITENTE, OUTROS]
-        termOthers:
-          type: string
-          description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
-          maxLength: 100
+            description: Campo livre para descrição por cada participante ao selecionar o domínio “Outros” no campo Prazo (acima).
+            maxLength: 100
     
     GlobalBankingTerms:
       type: object

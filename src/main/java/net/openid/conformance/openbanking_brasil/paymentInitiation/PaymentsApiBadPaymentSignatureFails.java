@@ -1,9 +1,12 @@
 package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentErrorMetaValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -32,6 +35,21 @@ public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazi
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 
 		super.validateClientConfiguration();
+	}
+
+	@Override
+	protected void performAuthorizationFlow() {
+		if (!scopeContains("payments")) {
+			fireTestFinished();
+			return;
+		}
+		performPreAuthorizationSteps();
+
+		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
+		callAndStopOnFailure(ConsentErrorMetaValidator.class);
+		fireTestFinished();
 	}
 
 }
