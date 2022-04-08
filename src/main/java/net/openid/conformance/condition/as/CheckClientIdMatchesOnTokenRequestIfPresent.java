@@ -15,6 +15,7 @@ public class CheckClientIdMatchesOnTokenRequestIfPresent extends AbstractConditi
 		String expectedClientId = env.getString("client", "client_id");
 
 		if (Strings.isNullOrEmpty(clientId)) {
+			log("client_id not present, nothing to check");
 			return env;
 		}
 
