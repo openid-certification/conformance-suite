@@ -437,8 +437,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			this.isSecondClient = isSecondClient;
 			this.isJarm = isJarm;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
-			// currently not possible to use 'skip' to skip a condition within a sub-sequence nor a conditionsequence
-			// within a condition sequence
+			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
 			this.usePkce = usePkce;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
 		}
