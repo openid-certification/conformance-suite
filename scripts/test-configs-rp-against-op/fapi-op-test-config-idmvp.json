@@ -6,7 +6,6 @@
     },
     "client": {
         "client_id": "52480754053",
-        "scope": "openid accounts",
         "jwks": {
             "keys": [
                 {
@@ -22,7 +21,6 @@
     },
     "client2": {
         "client_id": "61732691006",
-        "scope": "openid accounts",
         "jwks": {
             "keys": [
                 {

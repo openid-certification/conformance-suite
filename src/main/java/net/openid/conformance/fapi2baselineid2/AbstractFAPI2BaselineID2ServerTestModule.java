@@ -119,6 +119,7 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccounts
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateAtHash;
@@ -205,7 +206,9 @@ import java.util.function.Supplier;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
-	"resource.resourceUrl" // the userinfo endpoint is always used
+	"resource.resourceUrl", // the userinfo endpoint is always used
+	"client.scope", // scope is always openid
+	"client2.scope"
 })
 public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractRedirectServerTestModule {
 
@@ -350,6 +353,9 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected void validateClientConfiguration() {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+		}
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
