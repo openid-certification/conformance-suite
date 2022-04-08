@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-rp-test",
-    "description": "FAPI RP test config for running against OP tests",
+    "description": "FAPI RP test config for running against OP tests (IDMVP)",
     "server": {
         "jwks": {
             "keys": [
@@ -23,7 +23,7 @@
     },
     "client": {
         "client_id": "52480754053",
-        "scope": "openid accounts",
+        "scope": "openid",
         "jwks": {
             "keys": [
                 {
@@ -40,7 +40,7 @@
     },
     "client2": {
         "client_id": "61732691006",
-        "scope": "openid accounts",
+        "scope": "openid",
         "jwks": {
             "keys": [
                 {
