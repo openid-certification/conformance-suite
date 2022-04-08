@@ -7,7 +7,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunct
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
-import net.openid.conformance.openinsurance.validator.productsServices.AssistanceGeneralAssets;
+import net.openid.conformance.openinsurance.validator.productsServices.GetAssistanceGeneralAssetsValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -20,7 +20,7 @@ import java.util.List;
 	displayName = PlanNames.ASSISTANCE_GENERAL_ASSETS_API_TEST_PLAN,
 	summary = "Structural and logical tests for ProductsServices - Assistance General Assets API"
 )
-public class AssistanceGeneralAssetsApiTestPlan implements TestPlan {
+public class AssistanceGeneralAssetsTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
@@ -48,7 +48,7 @@ public class AssistanceGeneralAssetsApiTestPlan implements TestPlan {
 				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
-				callAndContinueOnFailure(AssistanceGeneralAssets.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(GetAssistanceGeneralAssetsValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		}
 	}

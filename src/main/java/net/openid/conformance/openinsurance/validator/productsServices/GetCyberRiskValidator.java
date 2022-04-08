@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-cyber-risk.yaml
  * Api endpoint: /cyber-risk/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Cyber Risk")
@@ -24,7 +25,7 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 	}
 
 	public static final Set<String> COVERAGE = Sets.newHashSet("RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS", "PERDAS_DIRETAS_AO_SEGURADO", "GERENCIAMENTO_DE_CRISE", "OUTRAS");
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("POS", "FRANQUIA", "NAO_SE_APLICA", "OUTROS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
 	public static final Set<String> IDENIZATION_BASIS = Sets.newHashSet("POR_OCORRENCIA", "POR_RECLAMACAO", "OUTRAS");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
@@ -80,11 +81,6 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
 			new ObjectArrayField
 				.Builder("assistanceServices")
 				.setValidator(assistanceServices -> {
@@ -94,7 +90,7 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 							.build());
 
 					assertField(assistanceServices,
-						new StringField
+						new StringArrayField
 							.Builder("assistanceServicesPackage")
 							.setMaxLength(17)
 							.setEnums(ASSISTANCE_SERVICES_PACKAGE)
@@ -126,18 +122,8 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new ObjectField.Builder("maxLMG")
-				.setValidator(maxLMG -> {
-					assertField(maxLMG,
-						new NumberField
-							.Builder("amount")
-							.build());
-
-					assertField(maxLMG,
-						new ObjectField
-							.Builder("unit")
-							.setValidator(this::assertUnit)
-							.build());
-				}).build());
+				.setValidator(this::assertValue)
+				.build());
 
 		assertField(products,
 			new BooleanField
@@ -145,7 +131,7 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -268,12 +254,23 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
+				.build());
 	}
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("maxLMI")
+				.setValidator(this::assertValue)
+				.build());
+
+		assertField(coverageAttributes,
+			new ObjectField
+				.Builder("maxLA")
 				.setValidator(this::assertValue)
 				.build());
 

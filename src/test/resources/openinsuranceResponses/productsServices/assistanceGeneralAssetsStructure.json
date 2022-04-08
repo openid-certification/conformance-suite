@@ -29,9 +29,9 @@
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationDescription": "string",
-                                        "insuredParticipationOthers": "string"
-                                    }
+                                        "insuredParticipationDescription": "string"
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
                             "assistanceServices": [
@@ -45,18 +45,15 @@
                                 }
                             ],
                             "traits": true,
-                            "allowApartPurchase": true,
-                            "insuredGoodsType": [
-                                "LINHA_BRANCA"
-                            ],
-                            "insuredGoodsTypeOthers": "string",
                             "microInsurance": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "customerServices": [
                                 "REDE_REFERENCIADA"
                             ],

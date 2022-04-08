@@ -16,7 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-auto-extended-warranty.yaml
  * Api endpoint: /auto-extended-warranty/
  * Api version: 1.0.0
- * Api git hash: 66aee6938aca2007301b7f6eadb580b678f807a6
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Auto Extended Warranty")
@@ -25,17 +25,16 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 	}
 
 	public static final Set<String> COVERAGE = Sets.newHashSet("GARANTIA_ESTENDIDA_ORIGINAL", "GARANTIA_ESTENDIDA_AMPLIADA", "GARANTIA_ESTENDIDA_REDUZIDA", "COMPLEMENTACAO_DE_GARANTIA", "OUTRAS");
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA", "OUTROS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
-	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO;", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
+	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_DE_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
-	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("LINHA_BRANCA", "LINHA_MARROM", "INFORMATICA", "TELEFONIA", "MÓVEIS", "ELETROPORTATEIS", "OUTROS");
+	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("SMARTPHONE", "NOTEBOOK", "TABLET", "EQUIPAMENTOS_PORTATEIS", "ELETRODOMESTICOS_LINHA_BRANCA", "ELETRODOMESTICOS_LINHA_MARROM", "AUTOMOVEL", "BICICLETA", "BICICLETA_ELETRICA", "EMPRESA", "RESIDENCIA", "OUTROS");
 	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA");
-
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -82,14 +81,9 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.build());
 
 		assertField(products,
-			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
 			new StringArrayField
 				.Builder("securityType")
-				.setMaxLength(15)
+				.setMaxLength(29)
 				.setEnums(SECURITY_TYPE)
 				.build());
 
@@ -123,7 +117,7 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -186,7 +180,6 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 							.setMaxLength(15)
 							.build());
 				}).build());
-
 	}
 
 	private void assertAssistanceServices(JsonObject assistanceServices) {
@@ -200,12 +193,14 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.Builder("assistanceServicesPackage")
 				.setMaxLength(20)
 				.setEnums(SERVICES_PACKAGE)
+				.setOptional()
 				.build());
 
 		assertField(assistanceServices,
 			new StringField
 				.Builder("complementaryAssistanceServicesDetail")
 				.setMaxLength(1000)
+				.setOptional()
 				.build());
 
 		assertField(assistanceServices,
@@ -213,6 +208,7 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.Builder("chargeTypeSignaling")
 				.setMaxLength(8)
 				.setEnums(TYPE_SIGNALING)
+				.setOptional()
 				.build());
 	}
 
@@ -265,6 +261,11 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
 				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
+				.build());
 	}
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
@@ -279,13 +280,6 @@ public class GetAutoExtendedWarrantyValidator extends AbstractJsonAssertingCondi
 				.Builder("insuredParticipation")
 				.setEnums(PARTICIPATION)
 				.setMaxLength(13)
-				.build());
-
-		assertField(coverageAttributes,
-			new StringField
-				.Builder("insuredParticipationOthers")
-				.setMaxLength(100)
-				.setOptional()
 				.build());
 
 		assertField(coverageAttributes,

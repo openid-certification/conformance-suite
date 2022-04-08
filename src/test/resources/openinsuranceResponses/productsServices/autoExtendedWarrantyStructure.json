@@ -25,14 +25,13 @@
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationOthers": "string",
                                         "insuredParticipationDescription": "string"
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "securityType": [
-                                "LINHA_BRANCA"
+                                "ELETRODOMESTICOS_LINHA_BRANCA"
                             ],
                             "securityTypeOthers": "string",
                             "assistanceServices": {
@@ -46,12 +45,14 @@
                             "customerServices": "REDE_REFERENCIADA",
                             "microinsurance": true,
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumPayment": [
                                 {
                                     "paymentMethod": "CARTAO_DE_CREDITO",

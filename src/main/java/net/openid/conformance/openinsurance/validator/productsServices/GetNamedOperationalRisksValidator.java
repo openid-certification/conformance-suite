@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-named-operational-risks.yaml
  * Api endpoint: /named-operational-risks/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Named Operational Risks")
@@ -26,7 +27,6 @@ public class GetNamedOperationalRisksValidator extends AbstractJsonAssertingCond
 	public static final Set<String> COVERAGE = Sets.newHashSet("ALAGAMENTO_INUNDACAO", "ALUGUEL_PERDA_OU_PAGAMENTO", "ANUNCIOS_LUMINOSOS", "BAGAGEM", "BASICA_INCENDIO_RAIO_EXPLOSAO", "BASICA_DANOS_MATERIAIS", "BASICA_DE_OBRAS_CIVIS_EM_CONSTRUCAO_E_INSTALACOES_E_MONTAGENS", "BENS_DE_TERCEIROS_EM_PODER_DO_SEGURADO", "CARGA_DESCARGA_ICAMENTO_E_DESCIDA", "DANOS_ELETRICOS", "DANOS_NA_FABRICACAO", "DERRAME_D’AGUA_OU_OUTRA_SUBSTANCIA_LIQUIDA_DE_INSTALACOES_DE_CHUVEIROS_AUTOMATICOS_SPRINKLERS", "DESMORONAMENTO", "DESPESAS_ADICIONAIS_OUTRAS_DESPESAS", "DESPESAS_EXTRAORDINARIAS", "DESPESAS_FIXA", "DETERIORACAO_DE_MERCADORIAS_EM_AMBIENTES_FRIGORIFICADOS", "EQUIPAMENTOS_ARRENDADOS", "EQUIPAMENTOS_CEDIDOS_A_TERCEIROS", "EQUIPAMENTOS_CINEMATOGRAFICOS_FOTOGRAFICOS_DE_AUDIO_E_VIDEO", "EQUIPAMENTOS_ELETRONICOS", "EQUIPAMENTOS_DIVERSOS_OUTRAS_MODALIDADES", "EQUIPAMENTOS_ESTACIONARIOS", "EQUIPAMENTOS_MOVEIS", "EQUIPAMENTOS_PORTATEIS_", "FIDELIDADE_DE_EMPREGADOS", "HONORARIOS_DE_PERITOS", "IMPACTO_DE_VEICULOS_E_QUEDA_DE_AERONAVES", "IMPACTO_DE_VEICULOS_TERRESTRES", "LINHAS_DE_TRANSMISSAO_E_DISTRIBUICAO", "LUCROS_CESSANTES", "MOVIMENTACAO_INTERNA_DE_MERCADORIAS", "PATIOS", "QUEBRA_DE_MAQUINAS", "QUEBRA_DE_VIDROS_ESPELHOS_MARMORES_E_GRANITOS", "RECOMPOSICAO_DE_REGISTROS_E_DOCUMENTOS", "ROUBO_DE_BENS_DE_HOSPEDES", "ROUBO_DE_VALORES_EM_TRANSITO_EM_MAOS_DE_PORTADOR", "ROUBO_E_FURTO_MEDIANTE_ARROMBAMENTO", "ROUBO_E_OU_FURTO_QUALIFICADO_DE_VALORES_NO_INTERIOR_DO_ESTABELECIMENTO_DENTRO_E_OU_FORA_DE_COFRES_FORTES_OU_CAIXAS_FORTES", "TERRORISMO_E_SABOTAGEM", "TUMULTOS_GREVES_LOCKOUT_E_ATOS_DOLOSOS", "VAZAMENTO_DE_TUBULACOES_E_TANQUES", "VAZAMENTO_DE_TUBULACOES_HIDRAULICAS", "VENDAVAL_FURACAO_CICLONE_TORNADO_GRANIZO_QUEDA_DE_AERONAVES_OU_QUAISQUER_OUTROS_ENGENHOS_AEREOS_OU_ESPACIAIS_IMPACTO_DE_VEICULOS_TERRESTRES_E_FUMACA", "OUTRAS");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
-
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -59,11 +59,10 @@ public class GetNamedOperationalRisksValidator extends AbstractJsonAssertingCond
 				.Builder("products")
 				.setValidator(this::assertProducts)
 				.build());
-
 	}
 
 	private void assertProducts(JsonObject products) {
-		assertField(products, Fields.name().setMaxLength(80).build());
+		assertField(products, Fields.name().setMaxLength(80).setOptional().build());
 		assertField(products, Fields.code().setMaxLength(100).build());
 
 		assertField(products,
@@ -74,16 +73,11 @@ public class GetNamedOperationalRisksValidator extends AbstractJsonAssertingCond
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -104,6 +98,7 @@ public class GetNamedOperationalRisksValidator extends AbstractJsonAssertingCond
 			new StringArrayField
 				.Builder("premiumRates")
 				.setMaxLength(1024)
+				.setOptional()
 				.build());
 
 		assertField(products,
@@ -152,6 +147,11 @@ public class GetNamedOperationalRisksValidator extends AbstractJsonAssertingCond
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 
