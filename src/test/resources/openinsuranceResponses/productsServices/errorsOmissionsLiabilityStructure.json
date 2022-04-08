@@ -10,9 +10,11 @@
                         {
                             "name": "Produto de Seguro",
                             "code": "01234589-0",
+                            "professionalClass": "ADMINISTRADOR_IMOBILIARIO",
+                            "professionalClassOthers": "string",
                             "coverages": [
                                 {
-                                    "coverage": "ROUBO",
+                                    "coverage": "RESPONSABILIZACAO_CIVIL_VINCULADA_A_PRESTACAO_DE_SERVICOS_PROFISSIONAIS_OBJETO_DA_ATIVIDADE_DO_SEGURADO",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
                                         "maxLMI": {
@@ -25,15 +27,19 @@
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationDescription": "string"
+                                        "insuredParticipationDescription": "string",
+                                        "idenizationBasis": "POR_OCORRENCIA",
+                                        "idenizationBasisOthers": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
-                            "securityType": [
-                                "SMARTPHONE"
+                            "traits": true,
+                            "maxLMG": 0,
+                            "maxLMGDescription": "string",
+                            "customerServices": [
+                                "REDE_REFERENCIADA"
                             ],
-                            "securityTypeOthers": "string",
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -44,23 +50,16 @@
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "customerServices": [
-                                "LIVRE_ESCOLHA"
+                            "premiumPayment": [
+                                {
+                                    "paymentMethod": "CARTAO_DE_CREDITO",
+                                    "paymentDetail": "string",
+                                    "paymentType": [
+                                        "A_VISTA"
+                                    ],
+                                    "premiumRates": "string"
+                                }
                             ],
-                            "microInsurance": true,
-                            "traits": true,
-                            "premiumPayment": {
-                                "paymentMethod": [
-                                    "CARTAO_DE_CREDITO"
-                                ],
-                                "paymentDetail": "string",
-                                "paymentType": [
-                                    "A_VISTA"
-                                ],
-                                "premiumRates": [
-                                    "string"
-                                ]
-                            },
                             "validity": [
                                 {
                                     "term": [
@@ -70,7 +69,7 @@
                                 }
                             ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {

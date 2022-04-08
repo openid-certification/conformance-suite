@@ -12,28 +12,26 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "ROUBO",
+                                    "coverage": "DANOS_CAUSADOS_A_TERCEIROS_EM_CONSEQUENCIA_DE_ATOS_ILICITOS_CULPOSOS_PRATICADOS_NO_EXERCICIO_DAS_FUNCOES_PARA_AS_QUAIS_TENHA_SIDO_NOMEADO_ELEITO_OU_CONTRATADO_E_OBRIGADO_A_INDENIZA_LOS_POR_DECISAO_JUDICIAL_OU_DECISAO_EM_JUIZO_ARBITRAL_OU_POR_ACORDO_COM_OS_TERCEIROS_PREJUDICADOS_MEDIANTE_A_ANUENCIA_DA_SOCIEDADE_SEGURADORA_DESDE_QUE_ATENDIDAS_AS_DISPOSICOES_DO_CONTRATO",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
-                                        "maxLMI": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
+                                        "maxLMI": 0,
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationDescription": "string"
+                                        "insuredParticipationDescription": "string",
+                                        "idenizationBasis": "POR_OCORRENCIA",
+                                        "idenizationBasisOthers": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
-                            "securityType": [
-                                "SMARTPHONE"
+                            "maxLMGDescription": "string",
+                            "maxLMG": 0,
+                            "traits": true,
+                            "customerServices": [
+                                "REDE_REFERENCIADA"
                             ],
-                            "securityTypeOthers": "string",
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -44,33 +42,26 @@
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "customerServices": [
-                                "LIVRE_ESCOLHA"
+                            "premiumPayment": [
+                                {
+                                    "paymentMethod": "CARTAO_DE_CREDITO",
+                                    "paymentDetail": "string",
+                                    "paymentType": [
+                                        "A_VISTA"
+                                    ],
+                                    "premiumRates": "string"
+                                }
                             ],
-                            "microInsurance": true,
-                            "traits": true,
-                            "premiumPayment": {
-                                "paymentMethod": [
-                                    "CARTAO_DE_CREDITO"
-                                ],
-                                "paymentDetail": "string",
-                                "paymentType": [
-                                    "A_VISTA"
-                                ],
-                                "premiumRates": [
-                                    "string"
-                                ]
-                            },
                             "validity": [
                                 {
                                     "term": [
                                         "ANUAL"
                                     ],
-                                    "termOthers": "string"
+                                    "termOthers": "Cobertura XYZ com vigência diferente da vigência da apólice"
                                 }
                             ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {
