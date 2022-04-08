@@ -939,19 +939,21 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 
-		if (grantType.equals("authorization_code")) {
-			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials")) {
-			if( profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
-				// we're doing the client credentials grant for initial token access
-				return clientCredentialsGrantType(requestId);
-			} else if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-				return clientCredentialsGrantType(requestId);
-			}
-		} else if (grantType.equals("refresh_token")) {
-			return refreshTokenGrantType(requestId);
+		switch (grantType) {
+			case "authorization_code":
+				// we're doing the authorization code grant for user access
+				return authorizationCodeGrantType(requestId);
+			case "client_credentials":
+				if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+					// we're doing the client credentials grant for initial token access
+					return clientCredentialsGrantType(requestId);
+				} else if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+					return clientCredentialsGrantType(requestId);
+				}
+				break;
+			case "refresh_token":
+				return refreshTokenGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
