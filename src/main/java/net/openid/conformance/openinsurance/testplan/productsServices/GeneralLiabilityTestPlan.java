@@ -15,12 +15,12 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 	import java.util.List;
 
-//@PublishTestPlan(
-//	testPlanName = "Open Insurance - ProductsServices - General Liability API test plan",
-//	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-//	displayName = PlanNames.GENERAL_LIABILITY_API_TEST_PLAN,
-//	summary = "Structural and logical tests for General Liability API"
-//)
+@PublishTestPlan(
+	testPlanName = "Open Insurance - ProductsServices - General Liability API test plan",
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	displayName = PlanNames.GENERAL_LIABILITY_API_TEST_PLAN,
+	summary = "Structural and logical tests for General Liability API"
+)
 public class GeneralLiabilityTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
