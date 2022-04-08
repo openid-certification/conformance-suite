@@ -10,6 +10,8 @@ public class ClearAccessTokenFromRequest extends AbstractCondition {
 
 		env.removeNativeValue("incoming_access_token");
 
+		log("Removed incoming access token from environment");
+
 		return env;
 
 	}
