@@ -785,13 +785,17 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		setStatus(Status.RUNNING);
 
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		// FIXME the userinfo endpoint should be called over mtls, unless using dpop
+		//checkMtlsCertificate();
+
+		call(exec().unmapKey("token_endpoint_request"));
+
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-
-		callAndStopOnFailure(RequireBearerAccessToken.class);
+		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
