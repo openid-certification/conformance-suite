@@ -44,9 +44,9 @@ import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForRequestUriValue;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
-import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
+import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -117,6 +117,7 @@ import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -151,7 +152,6 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToToken
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
@@ -168,6 +168,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -202,6 +203,9 @@ import java.util.function.Supplier;
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+	"resource.resourceUrl" // the userinfo endpoint is always used
 })
 public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractRedirectServerTestModule {
 
@@ -298,11 +302,19 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		call(sequence(resourceConfiguration));
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class, "IDMVP");
+		} else {
+			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+			call(sequence(resourceConfiguration));
+		}
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, ConditionResult.INFO);
+
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_UK ||
+			getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, ConditionResult.INFO);
+		}
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
