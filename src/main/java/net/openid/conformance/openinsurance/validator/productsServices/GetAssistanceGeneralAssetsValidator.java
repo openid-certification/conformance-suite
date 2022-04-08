@@ -18,14 +18,13 @@ import java.util.Set;
  * Api source: swagger/openinsurance/productsServices/swagger-assistance-general-assets.yaml
  * Api endpoint: src/main/java/net/openid/conformance/openinsurance/validator/productsServices/assistance-general-assets
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
-
 @ApiName("ProductsServices Assistance General Assets")
-public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
+public class GetAssistanceGeneralAssetsValidator extends AbstractJsonAssertingCondition {
 
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA", "OUTROS");
-	public static final Set<String> GOODS_TYPE = Sets.newHashSet("LINHA_BRANCA", "LINHA_MARROM", "INFORMATICA", "TELEFONIA", "MOVEIS", "ELETROPORTATEIS", "OUTROS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
@@ -35,11 +34,10 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 	public static final Set<String> COVERAGE = Sets.newHashSet("SERVICOS_EMERGENCIAIS", "SERVICOS_DE_CONVENIENCIA", "OUTRAS");
 	public static final Set<String> ASSISTANCE_SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> CHARGE_TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
-	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_E_LIVRE_ESCOLHA");
+	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA");
 
 	private static class Fields extends ProductNServicesCommonFields {
 	}
-
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -52,7 +50,7 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 				assertField(data,
 					new ObjectField.Builder("brand")
 						.setValidator(brand -> {
-								assertField(brand, AssistanceGeneralAssets.Fields.name().setMaxLength(80).build());
+							assertField(brand, Fields.name().setMaxLength(80).build());
 							assertField(brand,
 								new ObjectArrayField
 									.Builder("companies")
@@ -66,8 +64,8 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertCompanies(JsonObject companies) {
-		assertField(companies, AssistanceGeneralAssets.Fields.name().setMaxLength(80).build());
-		assertField(companies, AssistanceGeneralAssets.Fields.cnpjNumber().setMaxLength(14).build());
+		assertField(companies, Fields.name().setMaxLength(80).build());
+		assertField(companies, Fields.cnpjNumber().setMaxLength(14).build());
 
 		assertField(companies,
 			new ObjectArrayField
@@ -77,8 +75,8 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertProducts(JsonObject products) {
-		assertField(products, AssistanceGeneralAssets.Fields.name().setMaxLength(80).build());
-		assertField(products, AssistanceGeneralAssets.Fields.code().setMaxLength(100).build());
+		assertField(products, Fields.name().setMaxLength(80).build());
+		assertField(products, Fields.code().setMaxLength(100).build());
 
 		assertField(products,
 			new StringArrayField
@@ -113,30 +111,11 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new StringArrayField
-				.Builder("insuredGoodsType")
-				.setEnums(GOODS_TYPE)
-				.setMaxLength(15)
-				.build());
-
-		assertField(products,
-			new StringField
-				.Builder("insuredGoodsTypeOthers")
-				.setMaxLength(3000)
-				.setOptional()
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("microInsurance")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -157,7 +136,7 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 			new StringArrayField
 				.Builder("customerServices")
 				.setEnums(CUSTOMER_SERVICES)
-				.setMaxLength(33)
+				.setMaxLength(17)
 				.setOptional()
 				.build());
 
@@ -258,6 +237,11 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
+				.build());
 	}
 
 	private void assertAssistanceServices(JsonObject assistanceServices) {
@@ -288,7 +272,6 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 				.setEnums(CHARGE_TYPE_SIGNALING)
 				.setOptional()
 				.build());
-
 	}
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
@@ -309,12 +292,6 @@ public class AssistanceGeneralAssets extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("insuredParticipationDescription")
 				.setMaxLength(1024)
-				.build());
-
-		assertField(coverageAttributes,
-			new StringField
-				.Builder("insuredParticipationOthers")
-				.setMaxLength(100)
 				.setOptional()
 				.build());
 	}

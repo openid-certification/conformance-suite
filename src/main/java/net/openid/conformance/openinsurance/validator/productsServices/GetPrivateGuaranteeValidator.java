@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-private-guarantee.yaml
  * Api endpoint: /private-guarantee/
  * Api version: 1.0.0
+ * Api git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Private Guarantee")
@@ -24,13 +25,12 @@ public class GetPrivateGuaranteeValidator extends AbstractJsonAssertingCondition
 	}
 
 	public static final Set<String> COVERAGE = Sets.newHashSet("CONSTRUCAO_OBRAS", "FORNECIMENTO", "PRESTACAO_DE_SERVICOS", "RETENCAO_DE_PAGAMENTOS", "ADIANTAMENTO_DE_PAGAMENTOS", "MANUTENCAO_CORRETIVA", "IMOBILIARIO", "FINANCEIRA", "ACOES_TRABALHISTAS_E_PREVIDENCIARIAS", "OUTRAS");
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA", "OUTROS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO;", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
-
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -77,16 +77,11 @@ public class GetPrivateGuaranteeValidator extends AbstractJsonAssertingCondition
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -149,7 +144,6 @@ public class GetPrivateGuaranteeValidator extends AbstractJsonAssertingCondition
 							.setMaxLength(15)
 							.build());
 				}).build());
-
 	}
 
 	private void assertPremiumPayment(JsonObject premiumPayment) {
@@ -199,6 +193,11 @@ public class GetPrivateGuaranteeValidator extends AbstractJsonAssertingCondition
 			new ObjectField
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 

@@ -22,17 +22,19 @@
                                                 "description": "REAL"
                                             }
                                         }
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumRates": [
                                 "string"
                             ],
@@ -42,7 +44,7 @@
                             },
                             "minimumRequirements": {
                                 "targetAudiences": [
-                                    "PESSOA_NATURAL"
+                                        "PESSOA_NATURAL"
                                 ]
                             }
                         }

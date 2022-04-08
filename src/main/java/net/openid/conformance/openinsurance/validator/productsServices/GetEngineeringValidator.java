@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/engineering.yaml
  * Api endpoint: /engineering/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Engineering")
@@ -74,11 +75,6 @@ public class GetEngineeringValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
@@ -88,7 +84,7 @@ public class GetEngineeringValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -158,6 +154,11 @@ public class GetEngineeringValidator extends AbstractJsonAssertingCondition {
 			new ObjectField
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 

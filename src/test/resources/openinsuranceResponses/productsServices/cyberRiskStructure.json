@@ -22,20 +22,29 @@
                                                 "description": "REAL"
                                             }
                                         },
+                                        "maxLA": {
+                                            "amount": 0,
+                                            "unit": {
+                                                "code": "R$",
+                                                "description": "REAL"
+                                            }
+                                        },
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string",
                                         "idenizationBasis": "POR_OCORRENCIA",
                                         "idenizationBasisOthers": "string"
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
-                                    "assistanceServicesPackage": "ATE_10_SERVICOS",
+                                    "assistanceServicesPackage": [
+                                        "ATE_10_SERVICOS"
+                                    ],
                                     "complementaryAssistanceServicesDetail": "string",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
@@ -49,12 +58,14 @@
                                 }
                             },
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "customerServices": [
                                 "REDE_REFERENCIADA"
                             ],

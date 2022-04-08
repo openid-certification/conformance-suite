@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-financial-risk.yaml
  * Api endpoint: /financial-risk/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Financial Risk")
@@ -26,7 +27,6 @@ public class GetFinancialRiskValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> COVERAGE = Sets.newHashSet("PROTECAO_DE_BENS", "PROTECAO_DE_DADOS_ONLINE", "SAQUE_COMPRA_SOB_COACAO", "GAP_TOTAL", "GAP_SALDO_DEVEDOR", "GAP_DESPESAS_ACESSORIAS", "OUTRAS");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
-
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -63,7 +63,7 @@ public class GetFinancialRiskValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertProducts(JsonObject products) {
-		assertField(products, Fields.name().setMaxLength(80).build());
+		assertField(products, Fields.name().setMaxLength(80).setOptional().build());
 		assertField(products, Fields.code().setMaxLength(100).build());
 
 		assertField(products,
@@ -74,16 +74,11 @@ public class GetFinancialRiskValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -132,13 +127,13 @@ public class GetFinancialRiskValidator extends AbstractJsonAssertingCondition {
 						.setEnums(TARGET_AUDIENCE)
 						.setMaxLength(15)
 						.build())).build());
-
 	}
 
 	private void assertCoverages(JsonObject coverages) {
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
+				.setMaxLength(24)
 				.setEnums(COVERAGE)
 				.build());
 
@@ -152,7 +147,11 @@ public class GetFinancialRiskValidator extends AbstractJsonAssertingCondition {
 			new ObjectField
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
-				.setOptional()
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 

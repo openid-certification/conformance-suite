@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-stop-loss.yaml
  * Api endpoint: /stop-loss/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Stop Loss")
@@ -25,6 +26,7 @@ public class GetStopLossValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+	public static final Set<String> COVERAGE = Sets.newHashSet("STOP_LOSS", "OUTRAS");
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -60,7 +62,7 @@ public class GetStopLossValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertProducts(JsonObject products) {
-		assertField(products, Fields.name().setMaxLength(80).build());
+		assertField(products, Fields.name().setMaxLength(80).setOptional().build());
 		assertField(products, Fields.code().setMaxLength(100).build());
 
 		assertField(products,
@@ -71,16 +73,11 @@ public class GetStopLossValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -135,7 +132,8 @@ public class GetStopLossValidator extends AbstractJsonAssertingCondition {
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
-				.setMaxLength(500)
+				.setMaxLength(9)
+				.setEnums(COVERAGE)
 				.build());
 
 		assertField(coverages,
@@ -149,6 +147,11 @@ public class GetStopLossValidator extends AbstractJsonAssertingCondition {
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 
