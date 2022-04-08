@@ -1148,8 +1148,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
 		if(isPar) {
-			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-16");
+			if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+				callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
+					"FAPI1-ADV-5.2.3-16");
+			}
 		} else {
 			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
 			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
