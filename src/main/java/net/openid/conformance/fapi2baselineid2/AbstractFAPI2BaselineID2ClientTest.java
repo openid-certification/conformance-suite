@@ -1314,8 +1314,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		//authorizationCodeGrantTypeProfileSteps = null;
-		//authorizationEndpointProfileSteps = null;
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
