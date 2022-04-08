@@ -24,6 +24,7 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -1007,9 +1008,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(isPar) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
-		}
+		call(sequence(CheckPkceCodeVerifier.class));
 
 		issueAccessToken();
 
