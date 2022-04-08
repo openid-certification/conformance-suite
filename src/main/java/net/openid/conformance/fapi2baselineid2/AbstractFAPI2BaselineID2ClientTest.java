@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
@@ -324,6 +325,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
 			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
+		} else if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
