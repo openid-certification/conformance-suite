@@ -457,6 +457,7 @@ var FAPI_UI = {
 			"RFC7591-" : "https://tools.ietf.org/html/rfc7591#section-",
 			"RFC7592-" : "https://tools.ietf.org/html/rfc7592#section-",
 			"RFC7592A-" : "https://tools.ietf.org/html/rfc7592#appendix-",
+			"RFC7636-" : "https://tools.ietf.org/html/rfc7636#section-",
 			"RFC8705-" : "https://tools.ietf.org/html/rfc8705#section-",
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
@@ -470,7 +471,7 @@ var FAPI_UI = {
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
 			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
-			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-"
+			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-",
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},
