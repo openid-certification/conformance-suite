@@ -1,5 +1,5 @@
-This is the main repository for the OpenID Foundation conformance
-suite, which covers OpenID Connect, FAPI and FAPI-CIBA.
+This is the OpenID Foundation conformance suite, which covers OpenID Connect,
+FAPI1-Advanced, FAPI2, FAPI-CIBA and OpenID for Identity Assurance (ekyc).
 
 The project is located at https://gitlab.com/openid/conformance-suite
 and all issues / merge requests should be submitted there.
@@ -28,7 +28,7 @@ Technology, for donating the prototype code that formed the basis of
 the FAPI conformance suite and some further enhancements.
 
 * Authlete, for providing ongoing access to test environments compliant with
-OpenID Connect, FAPI-R, FAPI-RW, FAPI-CIBA and PAR specifications.
+OpenID Connect, FAPI-R, FAPI-RW, FAPI1, FAPI2, FAPI-CIBA, PAR and DPoP specifications.
 
 * Authlete, for various contributions of code including additional
 PAR and FAPI tests
