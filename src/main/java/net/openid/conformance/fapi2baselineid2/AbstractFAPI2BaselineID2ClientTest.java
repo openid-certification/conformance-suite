@@ -358,10 +358,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
 
-		if(isPar) {
-			exposeMtlsPath("par_endpoint", "par");
-		}
-
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
