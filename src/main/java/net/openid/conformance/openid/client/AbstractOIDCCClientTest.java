@@ -527,25 +527,27 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
-
+			checkIfDiscoveryCalled(path);
 			receivedAuthorizationRequest = true;
 			return handleAuthorizationEndpointRequest(requestId);
 
 		} else if (path.equals("token")) {
-
+			checkIfDiscoveryCalled(path);
 			receivedTokenRequest = true;
 			return handleTokenEndpointRequest(requestId);
 
 		} else if (path.equals(getJwksPath())) {
-
+			checkIfDiscoveryCalled(path);
 			receivedJwksRequest = true;
 			return handleJwksEndpointRequest();
 
 		} else if (path.equals("userinfo")) {
+			checkIfDiscoveryCalled(path);
 			receivedUserinfoRequest = true;
 			return handleUserinfoEndpointRequest(requestId);
 
 		} else if (path.equals("register") && clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
+			checkIfDiscoveryCalled(path);
 			receivedRegistrationRequest = true;
 			return handleRegistrationEndpointRequest(requestId);
 
@@ -680,6 +682,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class, "OIDCC-5.3.1");
 	}
 
+
+	protected void checkIfDiscoveryCalled(String path) {
+
+	}
 	/**
 	 * Support any of
 	 * - Authorization Request Header Field

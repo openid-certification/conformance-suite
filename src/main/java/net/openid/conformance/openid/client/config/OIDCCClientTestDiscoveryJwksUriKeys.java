@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client.config;
 import net.openid.conformance.condition.as.AddRandomJwksUriToServerConfiguration;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import org.apache.commons.lang3.RandomStringUtils;
 
 
@@ -42,5 +43,13 @@ public class OIDCCClientTestDiscoveryJwksUriKeys extends AbstractOIDCCClientTest
 	@Override
 	protected String getJwksPath() {
 		return "jwks" + randomJwksUriSuffix;
+	}
+
+
+
+	protected void checkIfDiscoveryCalled(String path) {
+		if(!receivedDiscoveryRequest){
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path + " before the discovery endpoint call");
+		}
 	}
 }
