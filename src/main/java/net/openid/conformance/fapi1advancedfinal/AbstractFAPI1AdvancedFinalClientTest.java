@@ -341,14 +341,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	}
 
-	protected void configureClients()
-	{
+	protected void configureClients() {
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		validateClientJwks(false);
 		validateClientConfiguration();
+	}
 
+	protected void configureSecondClient() {
 		eventLog.startBlock("Verify configuration of second client");
 		// extract second client
 		switchToSecondClient();
