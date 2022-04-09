@@ -112,6 +112,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -220,6 +221,10 @@ import javax.servlet.http.HttpSession;
 })
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope",
+	"client2.scope"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+	"client.scope", // scope is always openid
 	"client2.scope"
 })
 public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestModule {
@@ -406,6 +411,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateClientConfiguration() {
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "IDMVP");
+		}
 	}
 
 
