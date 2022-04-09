@@ -397,6 +397,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+	}
+
+	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
+	// used the second client. We may want to delete it and all the associated references
+	// to the second client if we find no use.
+	protected void configureSecondClient() {
 		eventLog.startBlock("Verify configuration of second client");
 		// extract second client
 		switchToSecondClient();
