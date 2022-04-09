@@ -46,10 +46,17 @@ public class OIDCCClientTestDiscoveryJwksUriKeys extends AbstractOIDCCClientTest
 	}
 
 
-
+	@Override
 	protected void checkIfDiscoveryCalled(String path) {
 		if(!receivedDiscoveryRequest){
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path + " before the discovery endpoint call");
+		}
+	}
+
+	@Override
+	protected void checkIfJWKCalled(String path) {
+		if(!receivedJwksRequest){
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path + " before the jwks endpoint call");
 		}
 	}
 }

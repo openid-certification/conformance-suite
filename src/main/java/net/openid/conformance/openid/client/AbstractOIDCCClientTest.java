@@ -543,6 +543,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		} else if (path.equals("userinfo")) {
 			checkIfDiscoveryCalled(path);
+			checkIfJWKCalled(path);
 			receivedUserinfoRequest = true;
 			return handleUserinfoEndpointRequest(requestId);
 
@@ -684,6 +685,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 
 	protected void checkIfDiscoveryCalled(String path) {
+
+	}
+
+	protected void checkIfJWKCalled(String path) {
 
 	}
 	/**
