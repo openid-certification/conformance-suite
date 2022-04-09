@@ -70,8 +70,7 @@ import javax.servlet.http.HttpSession;
 		"If you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
-		"server.jwks",
-		"directory.keystore"
+		"server.jwks"
 	}
 )
 

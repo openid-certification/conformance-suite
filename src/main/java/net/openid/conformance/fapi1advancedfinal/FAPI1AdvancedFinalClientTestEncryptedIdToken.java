@@ -30,8 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client2.certificate",
 		"client2.jwks",
 		"client2.id_token_encrypted_response_alg",
-		"client2.id_token_encrypted_response_enc",
-		"directory.keystore"
+		"client2.id_token_encrypted_response_enc"
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
