@@ -23,8 +23,7 @@ import java.util.UUID;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
 public class FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse extends AbstractFAPI1AdvancedFinalClientTest {

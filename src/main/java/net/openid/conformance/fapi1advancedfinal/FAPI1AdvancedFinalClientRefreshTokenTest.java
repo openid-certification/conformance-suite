@@ -28,8 +28,7 @@ import org.springframework.http.ResponseEntity;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk"})
