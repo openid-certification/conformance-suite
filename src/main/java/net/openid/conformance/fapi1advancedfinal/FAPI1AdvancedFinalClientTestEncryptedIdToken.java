@@ -38,6 +38,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI1AdvancedFinalClientTestEncryptedIdToken extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override
+	protected void configureClients() {
+		super.configureClients();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void onConfigurationCompleted() {
 		//run the whole test with the second client
 		switchToSecondClient();
