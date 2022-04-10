@@ -11,7 +11,9 @@ import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResp
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.CheckAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -384,6 +386,10 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ValidateRedirectUri.class);
 
+		if(env.containsObject("code_challenge")) {
+			call(sequence(CheckPkceCodeVerifier.class));
+		}
+
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
@@ -462,6 +468,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
+
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, CheckAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.INFO);
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 

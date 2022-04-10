@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
@@ -23,7 +24,9 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
+import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
@@ -79,6 +82,7 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.IdmvpAddClaimsSupportedToServerConfiguration;
@@ -120,6 +124,8 @@ import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
@@ -148,8 +154,10 @@ import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRe
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
-import net.openid.conformance.condition.rs.RequireBearerAccessToken;
-import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -159,6 +167,8 @@ import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationE
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
+import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -222,6 +232,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+	private Class<? extends Condition> generateSenderConstrainedAccessToken;
+	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
+	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
+	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	// Controls which endpoints we should expose to the client
 	protected FAPI2ID2OPProfile profile;
@@ -316,6 +330,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
 			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
+		} else if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
@@ -545,12 +561,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
-		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class, Condition.ConditionResult.FAILURE,  "FAPI1-BASE-6.2.2-1");
+		senderConstrainTokenRequestHelper.checkResourceRequest();
 		if(useClientCredentialsAccessToken) {
-			callAndContinueOnFailure(RequireBearerClientCredentialsAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 		} else {
-			callAndContinueOnFailure(RequireBearerAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedTokenSteps));
 		}
 		validateResourceEndpointHeaders();
 	}
@@ -735,6 +750,85 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
+
+	private abstract class SenderContrainTokenRequestHelper {
+		public abstract void checkTokenRequest();
+		public abstract void checkResourceRequest();
+	}
+
+	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkTokenRequest() {
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			call(sequence(PerformDpopProofTokenRequestChecks.class));
+		}
+
+		@Override
+		public void checkResourceRequest() {
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			// Need to also extract the DPoP Access token for resource requests
+			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+		}
+	}
+
+	private class MtlsTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkTokenRequest() {
+		}
+
+		@Override
+		public void checkResourceRequest() {
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		}
+	}
+
+	/**
+	 * Extracts and validates the information for DPOP token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainDpopTokenRequest(boolean isTokenRequest) {
+		callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+		if(isTokenRequest) {
+			call(sequence(PerformDpopProofTokenRequestChecks.class));
+		}
+		else {
+			// Need to also extract the DPoP Access token for resource requests
+			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+		}
+	}
+
+	/**
+	 * Extracts and validates the information for MTLS token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainMtlsTokenRequest(boolean isTokenRequest) {
+		if(!isTokenRequest) {  // no need to do anything on access  token requests
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		}
+	}
+
+	protected void checkSenderConstrainTokenRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(true);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(true);
+		}
+	}
+
+	protected void checkSenderConstrainResourceRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(false);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(false);
+		}
+	}
+
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
@@ -792,10 +886,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		senderConstrainTokenRequestHelper.checkResourceRequest();
 
-		callAndStopOnFailure(RequireBearerAccessToken.class);
+		call(sequence(validateSenderConstrainedTokenSteps));
+
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
@@ -836,7 +930,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId));
+			.mapKey("token_endpoint_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -891,12 +986,17 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected Object clientCredentialsGrantType(String requestId) {
 
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		senderConstrainTokenRequestHelper.checkTokenRequest();
+		callAndStopOnFailure(generateSenderConstrainedAccessToken);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
-		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		} else  {
+			callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
@@ -911,14 +1011,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
+		senderConstrainTokenRequestHelper.checkTokenRequest();
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(isPar) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
-		}
+		call(sequence(CheckPkceCodeVerifier.class));
 
 		issueAccessToken();
 
@@ -1057,8 +1156,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
 		if(isPar) {
-			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-16");
+			if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+				callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
+					"FAPI1-ADV-5.2.3-16");
+			}
 		} else {
 			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
 			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
@@ -1105,7 +1206,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void issueAccessToken() {
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(generateSenderConstrainedAccessToken);
 		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
@@ -1224,10 +1325,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Account request endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		senderConstrainTokenRequestHelper.checkResourceRequest();
 
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+		call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 
 		// TODO: should we clear the old headers?
 		validateResourceEndpointHeaders();
@@ -1343,6 +1443,22 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "jarm")
 	public void setupResponseModeJARM() {
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
+	public void setupSenderConstrainMethodMTLS() {
+		generateSenderConstrainedAccessToken = GenerateBearerAccessToken.class;
+		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireMtlsClientCredentialsAccessToken.class;
+		senderConstrainTokenRequestHelper = new MtlsTokenRequestHelper();
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
+	public void setupSenderConstrainMethodDPop() {
+		generateSenderConstrainedAccessToken = GenerateDpopAccessToken.class;
+		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireDpopClientCredentialAccessToken.class;
+		senderConstrainTokenRequestHelper = new DPopTokenRequestHelper();
 	}
 
 	protected void startWaitingForTimeout() {

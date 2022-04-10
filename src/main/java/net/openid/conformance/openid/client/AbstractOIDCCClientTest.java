@@ -12,7 +12,9 @@ import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointRespon
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.ChangeTokenEndpointInServerConfigurationToMtls;
+import net.openid.conformance.condition.as.CheckAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -945,6 +947,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateAuthorizationCodeGrantType();
 
+		if(env.containsObject("code_challenge")) {
+			call(sequence(CheckPkceCodeVerifier.class));
+		}
+
 		generateAccessToken();
 
 		createIdToken(true);
@@ -1003,6 +1009,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
 		extractNonceFromAuthorizationEndpointRequestParameters();
+
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, CheckAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.INFO);
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
