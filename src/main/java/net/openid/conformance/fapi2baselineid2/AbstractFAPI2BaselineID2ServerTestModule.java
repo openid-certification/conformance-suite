@@ -118,8 +118,8 @@ import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmToPut;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.SignDpopProof;
@@ -308,7 +308,8 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.IDMVP) {
-			callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class, "IDMVP");
+			// always use the MTLS version if available, as IDMVP always uses mtls sender constraining
+			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "IDMVP");
 		} else {
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			call(sequence(resourceConfiguration));

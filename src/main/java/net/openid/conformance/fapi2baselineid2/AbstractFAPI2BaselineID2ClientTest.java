@@ -488,6 +488,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
+			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
+			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
@@ -533,6 +536,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
+		} else if (path.equals("userinfo")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+			return userinfoEndpoint(requestId);
 		} else if (path.equals("par") && isPar) {
 			return parEndpoint(requestId);
 		}
@@ -891,10 +899,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		senderConstrainTokenRequestHelper.checkResourceRequest();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			call(exec().mapKey("token_endpoint_request", requestId));
+			checkMtlsCertificate();
+			call(exec().unmapKey("token_endpoint_request"));
+		}
 
-		call(sequence(validateSenderConstrainedTokenSteps));
-
+		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
