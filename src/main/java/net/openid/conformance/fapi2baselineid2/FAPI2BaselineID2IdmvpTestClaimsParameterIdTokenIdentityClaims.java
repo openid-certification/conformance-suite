@@ -58,6 +58,8 @@ public class FAPI2BaselineID2IdmvpTestClaimsParameterIdTokenIdentityClaims exten
 
 	@Override
 	protected void requestProtectedResource() {
-		// not necessary in this test
+		// not strictly necessary in this test, but also does no harm, with the advantage that it means
+		// we can run this test against the rp tests (which require a userinfo call as the final step)
+		super.requestProtectedResource();
 	}
 }
