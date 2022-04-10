@@ -47,7 +47,6 @@ public class FAPIBrazilGenerateServerConfiguration extends AbstractCondition {
 
 		server.add("mtls_endpoint_aliases", mtlsAliases);
 
-		server.addProperty("request_parameter_supported", true);
 		// add this as the server configuration
 		env.putObject("server", server);
 

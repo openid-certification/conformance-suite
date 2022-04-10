@@ -80,13 +80,13 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
+import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
@@ -163,7 +163,6 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -276,6 +275,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
 			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		}
+
+		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
+			callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class);
 		}
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
