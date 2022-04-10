@@ -30,12 +30,17 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client2.certificate",
 		"client2.jwks",
 		"client2.id_token_encrypted_response_alg",
-		"client2.id_token_encrypted_response_enc",
-		"directory.keystore"
+		"client2.id_token_encrypted_response_enc"
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
 public class FAPI1AdvancedFinalClientTestEncryptedIdToken extends AbstractFAPI1AdvancedFinalClientTest {
+
+	@Override
+	protected void configureClients() {
+		super.configureClients();
+		configureSecondClient();
+	}
 
 	@Override
 	protected void onConfigurationCompleted() {

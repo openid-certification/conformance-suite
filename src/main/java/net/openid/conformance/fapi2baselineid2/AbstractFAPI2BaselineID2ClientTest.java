@@ -170,6 +170,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -194,6 +195,9 @@ import javax.servlet.http.HttpSession;
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
@@ -337,13 +341,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
+		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
+			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
-		}
-
-		if(isPar) {
-			exposeMtlsPath("par_endpoint", "par");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -808,7 +810,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		setStatus(Status.WAITING);
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
+			// for IDMVP we use the userinfo endpoint as the resource endpoint, so this is the end of the test
+			resourceEndpointCallComplete();
+		} else {
+			setStatus(Status.WAITING);
+		}
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
@@ -846,19 +853,21 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 
-		if (grantType.equals("authorization_code")) {
-			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials")) {
-			if( profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
-				// we're doing the client credentials grant for initial token access
-				return clientCredentialsGrantType(requestId);
-			} else if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-				return clientCredentialsGrantType(requestId);
-			}
-		} else if (grantType.equals("refresh_token")) {
-			return refreshTokenGrantType(requestId);
+		switch (grantType) {
+			case "authorization_code":
+				// we're doing the authorization code grant for user access
+				return authorizationCodeGrantType(requestId);
+			case "client_credentials":
+				if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+					// we're doing the client credentials grant for initial token access
+					return clientCredentialsGrantType(requestId);
+				} else if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+					return clientCredentialsGrantType(requestId);
+				}
+				break;
+			case "refresh_token":
+				return refreshTokenGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
@@ -1314,8 +1323,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		//authorizationCodeGrantTypeProfileSteps = null;
-		//authorizationEndpointProfileSteps = null;
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
