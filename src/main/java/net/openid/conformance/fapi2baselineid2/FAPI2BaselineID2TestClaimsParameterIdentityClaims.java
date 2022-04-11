@@ -87,7 +87,7 @@ public class FAPI2BaselineID2TestClaimsParameterIdentityClaims extends AbstractF
 
 			if (isDpop) {
 				callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class); // so the 'htu' value is correct
-				addDpopToResourceRequest();
+				call(sequence(CreateDpopSteps.class));
 			}
 
 			callAndStopOnFailure(CallUserInfoEndpoint.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
