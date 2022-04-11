@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddAudAsPaymentConsentUriToRequestObject;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
@@ -69,6 +70,7 @@ public class PixSchedulingPatchConsentsShouldNotBeAuthorisedTestModule extends A
 			call(new SignedPaymentConsentSequence()
 				.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
 				.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
+				.replace(AddAudAsPaymentConsentUriToRequestObject.class, condition(AddAudToPatchConsentRequest.class))
 				.insertBefore(EnsureHttpStatusCodeIs201.class,condition(EnsurePatchPayment422ResponseCodeIsOperationNotAllowed.class))
 			);
 		});
