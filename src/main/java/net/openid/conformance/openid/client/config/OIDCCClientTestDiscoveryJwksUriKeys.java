@@ -12,6 +12,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 	displayName = "OIDCC: Relying party discovery test, jwks_uri support",
 	summary = "The client is expected to retrieve OpenID Provider Configuration Information " +
 		"and send a request to jwks_uri obtained from OP configuration." +
+		"The jwks_uri endpoint changes every execution and retrieving the configuration is a requirement." +
 		"Corresponds to rp-discovery-jwks_uri-keys test in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {
