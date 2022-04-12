@@ -257,6 +257,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected boolean startingShutdown = false;
 
+	protected Boolean profileRequiresMtlsEverywhere;
+
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
@@ -291,6 +293,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		jarmType = getVariant(FAPIJARMType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
+
+		profileRequiresMtlsEverywhere =
+			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
+			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
+			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
+			profile == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -476,8 +484,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+			if (profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
 			} else {
 				return tokenEndpoint(requestId);
@@ -498,12 +506,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+			if(profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
 			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
@@ -845,11 +853,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
+			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
-			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
 			checkMtlsCertificate();
 		}
 
@@ -899,7 +906,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
 			call(exec().mapKey("token_endpoint_request", requestId));
 			checkMtlsCertificate();
 			call(exec().unmapKey("token_endpoint_request"));
@@ -951,7 +958,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(sequence(validateClientAuthenticationSteps));
 
@@ -1374,7 +1383,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(exec().unmapKey("token_endpoint_request"));
 
