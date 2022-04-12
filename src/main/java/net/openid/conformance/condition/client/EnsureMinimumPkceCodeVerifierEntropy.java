@@ -18,7 +18,7 @@ public class EnsureMinimumPkceCodeVerifierEntropy extends AbstractEnsureMinimumE
 	 * The actual amount of required entropy is 256 bits, but we can't accurately measure entropy so a bit of
 	 * slop is allowed for.
 	 */
-	private final double requiredEntropy = 192;
+	private final double requiredEntropy = 180;
 
 	/* (non-Javadoc)
 	 * @see Condition#evaluate(Environment)
