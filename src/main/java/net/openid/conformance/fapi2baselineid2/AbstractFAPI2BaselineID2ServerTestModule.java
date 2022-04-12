@@ -222,6 +222,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected Boolean isSignedRequest;
 	protected Boolean isDpop;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
+	protected Boolean profileRequiresMtlsEverywhere;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -266,6 +267,13 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+
+		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
+		profileRequiresMtlsEverywhere =
+			variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
+			variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
+			variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
+			variant == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -835,7 +843,19 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			call(new CreateDpopSteps());
 		}
 
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		JsonObject mtls = null;
+		if (!mtlsRequired) {
+			mtls = env.getObject("mutual_tls_authentication");
+			env.removeObject("mutual_tls_authentication");
+		}
+
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		if (!mtlsRequired) {
+			env.putObject("mutual_tls_authentication", mtls);
+		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, ConditionResult.FAILURE);
@@ -1012,17 +1032,8 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
 		// there's no need to pass mtls auth when using private_key_jwt
-		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS;
-
-		// except in some of the banking profiles that explicitly require TLS client certs for all endpoints).
-		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
-		if (variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
-		    variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
-		    variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-		    variant == FAPI2ID2OPProfile.IDMVP // https://gitlab.com/idmvp/specifications/-/issues/29
-		) {
-			mtlsRequired = true;
-		}
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
