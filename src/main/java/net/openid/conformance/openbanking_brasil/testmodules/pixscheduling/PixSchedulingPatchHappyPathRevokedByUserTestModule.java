@@ -9,16 +9,19 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-// TODO: change class name
+//TODO Alex: change class name
 @PublishTestModule(
-	testName = "patch-consents-api-pixscheduling-revoke-authorized",
+	testName = "patch-consents-api-pixscheduling-revoke-user",
+	//TODO Alex: Change displayname
 	displayName = "Patch Consents API Test Module",
+	//TODO Alex: Change summary description
 	summary = "This test is an unhappy path PATCH consents test module.\n\n" +
 		"Flow:\n" +
 		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, calls the token endpoint multiple times to validate refresh tokens are not being rotated, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERACAO_NAO_PERMITIDA_STATUS \n\n" +
 		"Required:\n" +
 		"Consent url pointing at the consent endpoint.\n",
 	profile = OBBProfile.OBB_PROFILE,
+	//TODO Alex: Should I change this config?
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
