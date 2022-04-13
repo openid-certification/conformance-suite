@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -20,8 +21,7 @@ import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSucces
 		" This is done twice - one where the Brazil specific OIDs are in numeric form (which must be accepted), and one with them in the string form (which should be accepted).\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.resourceUrl",
+		"server.discoveryUrl"
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" }) // only applicable for mtls client auth
@@ -66,10 +66,6 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 				callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 				callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-				validateDcrResponseScope();
-				// The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
-				callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
-				callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
 			} else {
 				registrationFailed = true; // don't try to use/deregister this client
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
@@ -79,7 +75,9 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 
 			call(exec().unmapKey("endpoint_response"));
 		} else {
-			super.callRegistrationEndpoint();
+			call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+			callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+			eventLog.endBlock();
 		}
 	}
 
@@ -96,4 +94,16 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 	public void start() {
 		fireTestFinished();
 	}
+
+	@Override
+	protected void setupResourceEndpoint() {
+		// not needed as resource endpoint won't be called
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		// Not needed as scope field is optional
+		return false;
+	}
+
 }

@@ -1,12 +1,13 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
-import net.openid.conformance.fapi1advancedfinal.*;
+import net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrAttemptClientTakeoverTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrSubjectDnTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.*;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -23,23 +24,23 @@ public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuth.class,
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuth.class,
-					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuth.class,
-					FAPI1AdvancedFinalBrazilDCRClientDeletion.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessToken.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignature.class,
-					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement.class,
-					FAPI1AdvancedFinalBrazilDCRNoMTLS.class,
-					FAPI1AdvancedFinalBrazilDCRBadMTLS.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuth.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
-					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRNoRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
-					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariantNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRHappyFlowVariant2NoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRClientDeletionNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidRegistrationAccessTokenNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidSoftwareStatementSignatureNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRNoSoftwareStatementNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRNoMTLSNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRBadMTLSNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigBadJwksUriNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidJwksByValueNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRUpdateClientConfigInvalidRedirectUriNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRNoRedirectUriNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidRedirectUriNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidJwksUriNoAuthFlow.class,
+					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValueNoAuthFlow.class,
 					DcrSubjectDnTestModule.class,
 					DcrAttemptClientTakeoverTestModule.class
 				),

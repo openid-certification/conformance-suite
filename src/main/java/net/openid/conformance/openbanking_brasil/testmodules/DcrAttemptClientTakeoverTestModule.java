@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWith2ndClientFull;
+import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -29,8 +30,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.ca",
 		"directory.client_id",
 		"directory2.client_id",
-		"resource.resourceUrl",
-		"client2.scope",
 		"client2.jwks",
 		"client2.org_jwks",
 		"mtls2.key",
@@ -42,14 +41,19 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment"
+	"resource.brazilPixPayment",
+	"resource.consentUrl",
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
 })
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
 
 	@Override
 	protected void callRegistrationEndpoint() {
-		super.callRegistrationEndpoint();
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with no changes expecting success");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
@@ -104,4 +108,16 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 	public void start() {
 		fireTestFinished();
 	}
+
+	@Override
+	protected void setupResourceEndpoint() {
+		// not needed as resource endpoint won't be called
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		// Not needed as scope field is optional
+		return false;
+	}
+
 }
