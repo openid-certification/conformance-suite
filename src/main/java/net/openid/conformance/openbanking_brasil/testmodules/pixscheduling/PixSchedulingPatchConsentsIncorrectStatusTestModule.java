@@ -14,7 +14,7 @@ import net.openid.conformance.variant.ClientAuthType;
 	displayName = "Patch Consents API Test Module",
 	summary = "This test is an unhappy path PATCH consents test module.\n\n" +
 		"Flow:\n" +
-		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, calls the token endpoint multiple times to validate refresh tokens are not being rotated, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERACAO_NAO_PERMITIDA_STATUS \n\n" +
+		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, POST a payment, attempts to PATCH the consent with status AUTHORISED, the test is expecting a 400 error being returned \n\n" +
 		"Required:\n" +
 		"Consent url pointing at the consent endpoint.\n",
 	profile = OBBProfile.OBB_PROFILE,
