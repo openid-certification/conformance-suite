@@ -231,7 +231,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
-		} else if (path.equals("backchannel")) {
+		} else if (path.equals(env.getString("backchannelpath"))) {
 			return backchannelEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
@@ -292,16 +292,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		validateClientJwks(false);
 		validateClientConfiguration();
 
-		eventLog.startBlock("Verify configuration of second client");
+		//eventLog.startBlock("Verify configuration of second client");
 		// extract second client
-		switchToSecondClient();
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		//switchToSecondClient();
+		//callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		validateClientJwks(true);
-		validateClientConfiguration();
+		//validateClientJwks(true);
+		//validateClientConfiguration();
 
 		//switch back to the first client
-		unmapClient();
+		//unmapClient();
 		eventLog.endBlock();
 	}
 
@@ -328,7 +328,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals("backchannel")) {
+		if (path.equals(env.getString("backchannelpath"))) {
 			return backchannelEndpoint(requestId);
 		} else if (path.equals("token")) {
 			if(startingShutdown){
