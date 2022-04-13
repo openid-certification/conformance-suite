@@ -12,8 +12,8 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS",
-                                    "coverageDescription": "string",
+                                    "coverage": "COBERTURA_BASICA_AMPLA_COBERTURAS_PARA_QUAISQUER_EVENTOS_QUE_POSSAM_CAUSAR_DANOS_FISICOS_AO_IMOVEL_SEGURADO_EXCETO_OS_EXPRESSAMENTE_EXCLUIDOS",
+                                    "coverageDescription": "descrição cobertura",
                                     "coverageAttributes": {
                                         "maxLMI": {
                                             "amount": 0,
@@ -22,41 +22,32 @@
                                                 "description": "REAL"
                                             }
                                         },
-                                        "maxLA": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
                                         "insuredParticipation": [
-                                            "FRANQUIA"
+                                            "POS"
                                         ],
-                                        "insuredParticipationDescription": "string",
-                                        "idenizationBasis": "POR_OCORRENCIA",
-                                        "idenizationBasisOthers": "string"
+                                        "insuredParticipationDescription": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
+                            "propertyType": [
+                                {
+                                    "insuredPropertyType": "CONDOMINIO_RESIDENCIAL",
+                                    "structuringType": "CONDOMINIO_HORIZONTAL"
+                                }
+                            ],
+                            "commercializationArea": 0,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
                                     "assistanceServicesPackage": [
                                         "ATE_10_SERVICOS"
                                     ],
-                                    "complementaryAssistanceServicesDetail": "string",
+                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "maxLMGDescription": "string",
-                            "maxLMG": {
-                                "amount": 0,
-                                "unit": {
-                                    "code": "R$",
-                                    "description": "REAL"
-                                }
-                            },
+                            "microInsurance": true,
                             "traits": true,
                             "validity": [
                                 {
@@ -65,9 +56,6 @@
                                     ],
                                     "termOthers": "string"
                                 }
-                            ],
-                            "customerServices": [
-                                "REDE_REFERENCIADA"
                             ],
                             "premiumPayment": [
                                 {

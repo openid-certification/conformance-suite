@@ -12,52 +12,32 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS",
+                                    "coverage": "NAO_PAGAMENTO_DE_13_ALUGUEL",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
-                                        "maxLMI": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
-                                        "maxLA": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string",
-                                        "idenizationBasis": "POR_OCORRENCIA",
-                                        "idenizationBasisOthers": "string"
+                                        "maxLMI": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
                             ],
+                            "traits": true,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
                                     "assistanceServicesPackage": [
                                         "ATE_10_SERVICOS"
                                     ],
-                                    "complementaryAssistanceServicesDetail": "string",
+                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "maxLMGDescription": "string",
-                            "maxLMG": {
-                                "amount": 0,
-                                "unit": {
-                                    "code": "R$",
-                                    "description": "REAL"
-                                }
-                            },
-                            "traits": true,
+                            "customerServices": [
+                                "LIVRE_ESCOLHA"
+                            ],
                             "validity": [
                                 {
                                     "term": [
@@ -65,9 +45,6 @@
                                     ],
                                     "termOthers": "string"
                                 }
-                            ],
-                            "customerServices": [
-                                "REDE_REFERENCIADA"
                             ],
                             "premiumPayment": [
                                 {

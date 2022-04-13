@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/swagger-equipment-breakdown.yaml
  * Api endpoint: /equipment-breakdown/
  * Api version: 1.0.0
+ * Git hash: 1f1b2984856259fb6f0097e7ddd94aae5fc089f3
  */
 
 @ApiName("ProductsServices Equipment Breakdown")
@@ -24,7 +25,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 	}
 
 	public static final Set<String> COVERAGE = Sets.newHashSet("DANOS_DE_CAUSA_EXTERNA", "DANOS_DE_CAUSA_EXTERNA_E_ROUBO", "ROUBO", "OUTRAS");
-	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA", "OUTROS");
+	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
@@ -32,7 +33,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
 	public static final Set<String> SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
-	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("LINHA_BRANCA", "LINHA_MARROM", "INFORMATICA", "TELEFONIA", "MÓVEIS", "ELETROPORTÁTEIS", "OUTROS");
+	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("SMARTPHONE", "NOTEBOOK", "TABLET", "EQUIPAMENTOS_PORTATEIS", "ELETRODOMESTICOS_LINHA_BRANCA", "ELETRODOMESTICOS_LINHA_MARROM", "AUTOMOVEL", "BICICLETA", "BICICLETA_ELETRICA", "EMPRESA", "RESIDENCIA", "OUTROS", "BOLSA", "CARTEIRA", "CARTAO_DE_CREDITO");
 	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA", "REDE_REFERENCIADA_E_LIVRE_ESCOLHA");
 
 	@Override
@@ -80,14 +81,9 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.build());
 
 		assertField(products,
-			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
 			new StringArrayField
 				.Builder("securityType")
-				.setMaxLength(15)
+				.setMaxLength(29)
 				.setEnums(SECURITY_TYPE)
 				.build());
 
@@ -129,7 +125,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -252,6 +248,7 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
+				.setMaxLength(30)
 				.setEnums(COVERAGE)
 				.build());
 
@@ -266,6 +263,11 @@ public class GetEquipmentBreakdownValidator extends AbstractJsonAssertingConditi
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 

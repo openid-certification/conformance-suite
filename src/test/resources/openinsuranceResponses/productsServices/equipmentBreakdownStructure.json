@@ -26,12 +26,12 @@
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string"
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "securityType": [
-                                "LINHA_BRANCA"
+                                "SMARTPHONE"
                             ],
                             "securityTypeOthers": "string",
                             "assistanceServices": [
@@ -61,12 +61,14 @@
                                     "string"
                                 ]
                             },
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "termsAndConditions": {
                                 "susepProcessNumber": "15414.622222/2222-22",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"

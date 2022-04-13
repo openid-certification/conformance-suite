@@ -24,11 +24,12 @@
                                         },
                                         "insuredParticipation": [
                                             "POS"
-                                        ]
-                                    }
+                                        ],
+                                        "insuredParticipationDescription": "string"
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -41,12 +42,14 @@
                             ],
                             "microInsurance": true,
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumPayment": [
                                 {
                                     "paymentMethod": "CARTAO_DE_CREDITO",

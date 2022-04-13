@@ -7,44 +7,48 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunct
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
-import net.openid.conformance.openinsurance.validator.productsServices.GetBusinessValidator;
+import net.openid.conformance.openinsurance.validator.productsServices.GetAssistanceGeneralAssetsValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Open Insurance - ProductsServices - Business API test plan",
+	testPlanName = "Open Insurance - ProductsServices - Assistance General Assets API test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
-	displayName = PlanNames.BUSINESS_API_TEST_PLAN,
-	summary = "Structural and logical tests for Business API"
+	displayName = PlanNames.ASSISTANCE_GENERAL_ASSETS_API_TEST_PLAN,
+	summary = "Structural and logical tests for ProductsServices - Assistance General Assets API"
 )
-public class BusinessTestPlan implements TestPlan {
+public class AssistanceGeneralAssetsTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
-				List.of(BusinessTestModule.class),
-				List.of(new Variant(ClientAuthType.class, "none"))
+				List.of(
+					AssistanceGeneralAssetsApiTestModule.class
+				),
+				List.of(
+					new Variant(ClientAuthType.class, "none")
+				)
 			)
 		);
 	}
 
 	@PublishTestModule(
-		testName = "Open Insurance - Business API test",
-		displayName = "Validate structure of Business response",
-		summary = "Validate structure of Business response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
-	)
-	public static class BusinessTestModule extends AbstractNoAuthFunctionalTestModule {
+		testName = "Open Insurance - ProductsServices - Assistance General Assets API test",
+		displayName = "Validate structure of ProductsServices - Assistance General Assets API Api resources",
+		summary = "Validate structure of ProductsServices - Assistance General Assets Api resources",
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE)
+
+	public static class AssistanceGeneralAssetsApiTestModule extends AbstractNoAuthFunctionalTestModule {
+
 		@Override
 		protected void runTests() {
-			runInBlock("Validate ProductsServices Business response", () -> {
+			runInBlock("Validate ProductsServices - Assistance General Assets response", () -> {
 				callAndStopOnFailure(PrepareToGetOpenInsuranceApi.class);
 				callAndStopOnFailure(CallNoCacheResource.class);
 				callAndContinueOnFailure(DoNotStopOnFailure.class);
-				callAndContinueOnFailure(GetBusinessValidator.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(GetAssistanceGeneralAssetsValidator.class, Condition.ConditionResult.FAILURE);
 			});
 		}
 	}

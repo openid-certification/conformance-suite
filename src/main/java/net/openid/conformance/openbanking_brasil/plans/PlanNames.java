@@ -68,4 +68,9 @@ public class PlanNames {
 	public static final String FINANCIAL_RISK_API_TEST_PLAN = "Functional tests for ProductsServices - Financial Risk API - based on Swagger version: 1.0.0";
 	public static final String GLOBAL_BANKING_API_TEST_PLAN = "Functional tests for ProductsServices - Global Banking API - based on Swagger version: 1.0.0";
 	public static final String STOP_LOSS_API_TEST_PLAN = "Functional tests for ProductsServices - Stop Loss API - based on Swagger version: 1.0.0";
+	public static final String RENT_GUARANTEE_API_TEST_PLAN = "Functional tests for ProductsServices - Rent Guarantee API - based on Swagger version: 1.0.0";
+	public static final String ENVIRONMENT_VARIABLE_API_TEST_PLAN = "Functional tests for ProductsServices - Environmental Liability API - based on Swagger version: 1.0.0";
+	public static final String CONDOMINIUM_API_TEST_PLAN =  "Functional tests for ProductsServices - Condominium API - based on Swagger version: 1.0.0";
+	public static final String ERRORS_OMISSIONS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Errors Omissions Liability API - based on Swagger version: 1.0.0";
+	public static final String DIRECTORS_OFFICERS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Directors Officers Liability API - based on Swagger version: 1.0.0";
 }

@@ -12,17 +12,10 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS",
-                                    "coverageDescription": "string",
+                                    "coverage": "INSTALACOES_FIXAS",
+                                    "coverageDescription": "descrição cobertura",
                                     "coverageAttributes": {
                                         "maxLMI": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
-                                        "maxLA": {
                                             "amount": 0,
                                             "unit": {
                                                 "code": "R$",
@@ -39,6 +32,9 @@
                                     "allowApartPurchase": true
                                 }
                             ],
+                            "traits": true,
+                            "maxLMGDescription": "string",
+                            "maxLMG": 1000,
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -49,15 +45,6 @@
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "maxLMGDescription": "string",
-                            "maxLMG": {
-                                "amount": 0,
-                                "unit": {
-                                    "code": "R$",
-                                    "description": "REAL"
-                                }
-                            },
-                            "traits": true,
                             "validity": [
                                 {
                                     "term": [
@@ -67,7 +54,7 @@
                                 }
                             ],
                             "customerServices": [
-                                "REDE_REFERENCIADA"
+                                "LIVRE_ESCOLHA"
                             ],
                             "premiumPayment": [
                                 {
@@ -80,14 +67,14 @@
                                 }
                             ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {
                                 "contractType": [
                                     "COLETIVO"
                                 ],
-                                "minimumRequirementDetails": "string",
+                                "minimumRequirementDetails": "https://openinsurance.com.br/aaa",
                                 "targetAudiences": [
                                     "PESSOA_NATURAL"
                                 ]

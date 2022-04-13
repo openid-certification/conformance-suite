@@ -26,17 +26,19 @@
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string"
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumPayment": [
                                 {
                                     "paymentMethod": "CARTAO_DE_CREDITO",

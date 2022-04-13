@@ -8,13 +8,14 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "patch-consents-api-pixscheduling-revoke-authorized",
 	displayName = "Patch Consents API Test Module",
 	summary = "This test is an unhappy path PATCH consents test module.\n\n" +
 		"Flow:\n" +
-		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, calls the token endpoint multiple times to validate refresh tokens are not being rotated, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERATION_NOT_ALLOWED_BY_STATUS \n\n" +
+		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, calls the token endpoint multiple times to validate refresh tokens are not being rotated, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERACAO_NAO_PERMITIDA_STATUS \n\n" +
 		"Required:\n" +
 		"Consent url pointing at the consent endpoint.\n",
 	profile = OBBProfile.OBB_PROFILE,
@@ -37,6 +38,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends AbstractFunctionalTestModule {
 
+	protected ClientAuthType clientAuthType;
+
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
@@ -47,6 +50,7 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
+		clientAuthType = getVariant(ClientAuthType.class);
 	}
 
 	@Override
@@ -64,6 +68,7 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 		call(new SignedPaymentConsentSequence()
 			.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
 			.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
+			.replace(AddAudAsPaymentConsentUriToRequestObject.class, condition(AddAudToPatchConsentRequest.class))
 			.insertBefore(EnsureHttpStatusCodeIs201.class,condition(EnsurePatchPayment422ResponseCodeIsOperationNotAllowed.class))
 		);
 	}
@@ -87,7 +92,7 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 	}
 
 	private ConditionSequence verifyRefreshTokenRotationIsDisabled(){
-		return sequenceOf(
+		ConditionSequence sequence = sequenceOf(
 			condition(GenerateRefreshTokenRequest.class),
 			condition(SetPaymentsScopeOnTokenEndpointRequest.class),
 			condition(CreateClientAuthenticationAssertionClaims.class),
@@ -96,6 +101,13 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 			condition(CallTokenEndpoint.class),
 			condition(EnsureRefreshTokenHasNotRotated.class)
 		);
+		if(clientAuthType == ClientAuthType.MTLS){
+			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
+				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
+		}
+		return sequence;
 	}
 
 	@Override

@@ -10,19 +10,14 @@
                         {
                             "name": "Produto de Seguro",
                             "code": "01234589-0",
+                            "professionalClass": "ADMINISTRADOR_IMOBILIARIO",
+                            "professionalClassOthers": "string",
                             "coverages": [
                                 {
-                                    "coverage": "RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS",
+                                    "coverage": "RESPONSABILIZACAO_CIVIL_VINCULADA_A_PRESTACAO_DE_SERVICOS_PROFISSIONAIS_OBJETO_DA_ATIVIDADE_DO_SEGURADO",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
                                         "maxLMI": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
-                                        "maxLA": {
                                             "amount": 0,
                                             "unit": {
                                                 "code": "R$",
@@ -39,6 +34,12 @@
                                     "allowApartPurchase": true
                                 }
                             ],
+                            "traits": true,
+                            "maxLMG": 0,
+                            "maxLMGDescription": "string",
+                            "customerServices": [
+                                "REDE_REFERENCIADA"
+                            ],
                             "assistanceServices": [
                                 {
                                     "assistanceServices": true,
@@ -48,26 +49,6 @@
                                     "complementaryAssistanceServicesDetail": "string",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
-                            ],
-                            "maxLMGDescription": "string",
-                            "maxLMG": {
-                                "amount": 0,
-                                "unit": {
-                                    "code": "R$",
-                                    "description": "REAL"
-                                }
-                            },
-                            "traits": true,
-                            "validity": [
-                                {
-                                    "term": [
-                                        "ANUAL"
-                                    ],
-                                    "termOthers": "string"
-                                }
-                            ],
-                            "customerServices": [
-                                "REDE_REFERENCIADA"
                             ],
                             "premiumPayment": [
                                 {
@@ -79,15 +60,23 @@
                                     "premiumRates": "string"
                                 }
                             ],
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {
                                 "contractType": [
                                     "COLETIVO"
                                 ],
-                                "minimumRequirementDetails": "string",
+                                "minimumRequirementDetails": "https://openinsurance.com.br/aaa",
                                 "targetAudiences": [
                                     "PESSOA_NATURAL"
                                 ]

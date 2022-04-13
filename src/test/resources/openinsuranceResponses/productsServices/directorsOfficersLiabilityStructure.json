@@ -10,29 +10,27 @@
                         {
                             "name": "Produto de Seguro",
                             "code": "01234589-0",
-                            "securityType": [
-                                "SMARTPHONE"
-                            ],
-                            "securityTypeOthers": "string",
                             "coverages": [
                                 {
-                                    "coverage": "SERVICOS_EMERGENCIAIS",
+                                    "coverage": "DANOS_CAUSADOS_A_TERCEIROS_EM_CONSEQUENCIA_DE_ATOS_ILICITOS_CULPOSOS_PRATICADOS_NO_EXERCICIO_DAS_FUNCOES_PARA_AS_QUAIS_TENHA_SIDO_NOMEADO_ELEITO_OU_CONTRATADO_E_OBRIGADO_A_INDENIZA_LOS_POR_DECISAO_JUDICIAL_OU_DECISAO_EM_JUIZO_ARBITRAL_OU_POR_ACORDO_COM_OS_TERCEIROS_PREJUDICADOS_MEDIANTE_A_ANUENCIA_DA_SOCIEDADE_SEGURADORA_DESDE_QUE_ATENDIDAS_AS_DISPOSICOES_DO_CONTRATO",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
-                                        "maxLMI": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
+                                        "maxLMI": 0,
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
                                         "insuredParticipationDescription": "string",
-                                        "insuredParticipationOthers": "string"
-                                    }
+                                        "idenizationBasis": "POR_OCORRENCIA",
+                                        "idenizationBasisOthers": "string"
+                                    },
+                                    "allowApartPurchase": true
                                 }
+                            ],
+                            "maxLMGDescription": "string",
+                            "maxLMG": 0,
+                            "traits": true,
+                            "customerServices": [
+                                "REDE_REFERENCIADA"
                             ],
                             "assistanceServices": [
                                 {
@@ -40,25 +38,9 @@
                                     "assistanceServicesPackage": [
                                         "ATE_10_SERVICOS"
                                     ],
-                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
+                                    "complementaryAssistanceServicesDetail": "string",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
-                            ],
-                            "traits": true,
-                            "allowApartPurchase": true,
-                            "insuredGoodsType": [
-                                "LINHA_BRANCA"
-                            ],
-                            "insuredGoodsTypeOthers": "string",
-                            "microInsurance": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
-                            "customerServices": [
-                                "REDE_REFERENCIADA"
                             ],
                             "premiumPayment": [
                                 {
@@ -70,15 +52,23 @@
                                     "premiumRates": "string"
                                 }
                             ],
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "Cobertura XYZ com vigência diferente da vigência da apólice"
+                                }
+                            ],
                             "termsAndConditions": {
-                                "susepProcessNumber": "15414.622222/2222-22",
+                                "susepProcessNumber": "15414622222222222",
                                 "definition": "https://www.seguradora.com.br/produto/tradicional/pdf/condicoes_gerais.pdf"
                             },
                             "minimumRequirements": {
                                 "contractType": [
                                     "COLETIVO"
                                 ],
-                                "minimumRequirementDetails": "string",
+                                "minimumRequirementDetails": "https://openinsurance.com.br/aaa",
                                 "targetAudiences": [
                                     "PESSOA_NATURAL"
                                 ]

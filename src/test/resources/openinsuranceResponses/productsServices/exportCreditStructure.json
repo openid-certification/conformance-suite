@@ -12,7 +12,7 @@
                             "code": "01234589-0",
                             "coverages": [
                                 {
-                                    "coverage": "OUTRAS",
+                                    "coverage": "NAO_PAGAMENTO_DA_CARTEIRA_DE_CLIENTES_DO_SEGURADO_INADIMPLENCIA_POR_QUESTAO_COMERCIAL",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
                                         "maxLMI": {
@@ -22,17 +22,19 @@
                                                 "description": "REAL"
                                             }
                                         }
-                                    }
+                                    },
+                                    "allowApartPurchase": true
                                 }
                             ],
-                            "allowApartPurchase": true,
                             "traits": true,
-                            "validity": {
-                                "term": [
-                                    "ANUAL"
-                                ],
-                                "termOthers": "string"
-                            },
+                            "validity": [
+                                {
+                                    "term": [
+                                        "ANUAL"
+                                    ],
+                                    "termOthers": "string"
+                                }
+                            ],
                             "premiumRates": [
                                 "string"
                             ],

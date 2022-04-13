@@ -10,9 +10,13 @@
                         {
                             "name": "Produto de Seguro",
                             "code": "01234589-0",
+                            "securityType": [
+                                "SMARTPHONE"
+                            ],
+                            "securityTypeOthers": "string",
                             "coverages": [
                                 {
-                                    "coverage": "RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS",
+                                    "coverage": "SERVICOS_EMERGENCIAIS",
                                     "coverageDescription": "string",
                                     "coverageAttributes": {
                                         "maxLMI": {
@@ -22,19 +26,10 @@
                                                 "description": "REAL"
                                             }
                                         },
-                                        "maxLA": {
-                                            "amount": 0,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "REAL"
-                                            }
-                                        },
                                         "insuredParticipation": [
                                             "FRANQUIA"
                                         ],
-                                        "insuredParticipationDescription": "string",
-                                        "idenizationBasis": "POR_OCORRENCIA",
-                                        "idenizationBasisOthers": "string"
+                                        "insuredParticipationDescription": "string"
                                     },
                                     "allowApartPurchase": true
                                 }
@@ -45,19 +40,12 @@
                                     "assistanceServicesPackage": [
                                         "ATE_10_SERVICOS"
                                     ],
-                                    "complementaryAssistanceServicesDetail": "string",
+                                    "complementaryAssistanceServicesDetail": "reboque pane seca",
                                     "chargeTypeSignaling": "GRATUITO"
                                 }
                             ],
-                            "maxLMGDescription": "string",
-                            "maxLMG": {
-                                "amount": 0,
-                                "unit": {
-                                    "code": "R$",
-                                    "description": "REAL"
-                                }
-                            },
                             "traits": true,
+                            "microInsurance": true,
                             "validity": [
                                 {
                                     "term": [

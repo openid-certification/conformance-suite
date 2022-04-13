@@ -1,8 +1,10 @@
 package net.openid.conformance.openinsurance.validator.productsServices;
 
+
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
@@ -13,46 +15,49 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api Source: swagger/openinsurance/productsServices/swagger-cyber-risk.yaml
- * Api endpoint: /cyber-risk/
+ * Api source: swagger/openinsurance/productsServices/swagger-assistance-general-assets.yaml
+ * Api endpoint: src/main/java/net/openid/conformance/openinsurance/validator/productsServices/assistance-general-assets
  * Api version: 1.0.0
  * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
-@ApiName("ProductsServices Cyber Risk")
-public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
-	private static class Fields extends ProductNServicesCommonFields {
-	}
+@ApiName("ProductsServices Assistance General Assets")
+public class GetAssistanceGeneralAssetsValidator extends AbstractJsonAssertingCondition {
 
-	public static final Set<String> COVERAGE = Sets.newHashSet("RESPONSABILIDADE_CIVIL_PERANTE_TERCEIROS", "PERDAS_DIRETAS_AO_SEGURADO", "GERENCIAMENTO_DE_CRISE", "OUTRAS");
 	public static final Set<String> PARTICIPATION = Sets.newHashSet("FRANQUIA", "POS", "NAO_SE_APLICA");
-	public static final Set<String> IDENIZATION_BASIS = Sets.newHashSet("POR_OCORRENCIA", "POR_RECLAMACAO", "OUTRAS");
 	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
 	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
 	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
 	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
+	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("SMARTPHONE", "NOTEBOOK", "TABLET", "EQUIPAMENTOS_PORTATEIS", "ELETRODOMESTICOS_LINHA_BRANCA", "ELETRODOMESTICOS_LINHA_MARROM", "AUTOMOVEL", "BICICLETA", "BICICLETA_ELETRICA", "EMPRESA", "RESIDENCIA", "OUTROS");
+	public static final Set<String> COVERAGE = Sets.newHashSet("SERVICOS_EMERGENCIAIS", "SERVICOS_DE_CONVENIENCIA", "OUTRAS");
 	public static final Set<String> ASSISTANCE_SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_20_SERVICOS", "CUSTOMIZAVEL");
 	public static final Set<String> CHARGE_TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
 	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA");
 
+	private static class Fields extends ProductNServicesCommonFields {
+	}
+
 	@Override
+	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
-		assertField(body, new ObjectField
-			.Builder("data")
-			.setValidator(data -> assertField(data, new ObjectField
-				.Builder("brand")
-				.setValidator(brand -> {
-					assertField(brand, Fields.name().setMaxLength(80).build());
-					assertField(brand,
-						new ObjectArrayField
-							.Builder("companies")
-							.setValidator(this::assertCompanies)
-							.build());
-				})
-				.build())).build());
+		assertField(body,
+			new ObjectField
+				.Builder("data").setValidator(data ->
+				assertField(data,
+					new ObjectField.Builder("brand")
+						.setValidator(brand -> {
+							assertField(brand, Fields.name().setMaxLength(80).build());
+							assertField(brand,
+								new ObjectArrayField
+									.Builder("companies")
+									.setValidator(this::assertCompanies)
+									.build());
+						}).build())
+			).build());
 		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
@@ -67,12 +72,25 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 				.Builder("products")
 				.setValidator(this::assertProducts)
 				.build());
-
 	}
 
 	private void assertProducts(JsonObject products) {
 		assertField(products, Fields.name().setMaxLength(80).build());
 		assertField(products, Fields.code().setMaxLength(100).build());
+
+		assertField(products,
+			new StringArrayField
+				.Builder("securityType")
+				.setEnums(SECURITY_TYPE)
+				.setMaxLength(29)
+				.build());
+
+		assertField(products,
+			new StringField
+				.Builder("securityTypeOthers")
+				.setMaxLength(3000)
+				.setOptional()
+				.build());
 
 		assertField(products,
 			new ObjectArrayField
@@ -83,51 +101,17 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new ObjectArrayField
 				.Builder("assistanceServices")
-				.setValidator(assistanceServices -> {
-					assertField(assistanceServices,
-						new BooleanField
-							.Builder("assistanceServices")
-							.build());
-
-					assertField(assistanceServices,
-						new StringArrayField
-							.Builder("assistanceServicesPackage")
-							.setMaxLength(17)
-							.setEnums(ASSISTANCE_SERVICES_PACKAGE)
-							.setOptional()
-							.build());
-
-					assertField(assistanceServices,
-						new StringField
-							.Builder("complementaryAssistanceServicesDetail")
-							.setMaxLength(1000)
-							.setOptional()
-							.build());
-
-					assertField(assistanceServices,
-						new StringField
-							.Builder("chargeTypeSignaling")
-							.setMaxLength(8)
-							.setEnums(CHARGE_TYPE_SIGNALING)
-							.setOptional()
-							.build());
-				})
-				.build());
-
-		assertField(products,
-			new StringField
-				.Builder("maxLMGDescription")
-				.setMaxLength(1024)
-				.build());
-
-		assertField(products,
-			new ObjectField.Builder("maxLMG")
-				.setValidator(this::assertValue)
+				.setValidator(this::assertAssistanceServices)
 				.build());
 
 		assertField(products,
 			new BooleanField
 				.Builder("traits")
+				.build());
+
+		assertField(products,
+			new BooleanField
+				.Builder("microInsurance")
 				.build());
 
 		assertField(products,
@@ -143,7 +127,7 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 					assertField(validity,
 						new StringField
 							.Builder("termOthers")
-							.setMaxLength(1024)
+							.setMaxLength(100)
 							.setOptional()
 							.build());
 				}).build());
@@ -151,8 +135,8 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 		assertField(products,
 			new StringArrayField
 				.Builder("customerServices")
-				.setMaxLength(17)
 				.setEnums(CUSTOMER_SERVICES)
+				.setMaxLength(17)
 				.setOptional()
 				.build());
 
@@ -160,7 +144,6 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("premiumPayment")
 				.setValidator(this::assertPremiumPayment)
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -216,7 +199,7 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 		assertField(premiumPayment,
 			new StringField
 				.Builder("paymentDetail")
-				.setMaxLength(100)
+				.setMaxLength(1024)
 				.setOptional()
 				.build());
 
@@ -239,8 +222,8 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
-				.setMaxLength(55)
 				.setEnums(COVERAGE)
+				.setMaxLength(24)
 				.build());
 
 		assertField(coverages,
@@ -261,16 +244,40 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 				.build());
 	}
 
+	private void assertAssistanceServices(JsonObject assistanceServices) {
+		assertField(assistanceServices,
+			new BooleanField
+				.Builder("assistanceServices")
+				.build());
+
+		assertField(assistanceServices,
+			new StringArrayField
+				.Builder("assistanceServicesPackage")
+				.setMaxLength(17)
+				.setEnums(ASSISTANCE_SERVICES_PACKAGE)
+				.setOptional()
+				.build());
+
+		assertField(assistanceServices,
+			new StringField
+				.Builder("complementaryAssistanceServicesDetail")
+				.setMaxLength(1000)
+				.setOptional()
+				.build());
+
+		assertField(assistanceServices,
+			new StringField
+				.Builder("chargeTypeSignaling")
+				.setMaxLength(8)
+				.setEnums(CHARGE_TYPE_SIGNALING)
+				.setOptional()
+				.build());
+	}
+
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
 		assertField(coverageAttributes,
 			new ObjectField
 				.Builder("maxLMI")
-				.setValidator(this::assertValue)
-				.build());
-
-		assertField(coverageAttributes,
-			new ObjectField
-				.Builder("maxLA")
 				.setValidator(this::assertValue)
 				.build());
 
@@ -285,20 +292,6 @@ public class GetCyberRiskValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("insuredParticipationDescription")
 				.setMaxLength(1024)
-				.setOptional()
-				.build());
-
-		assertField(coverageAttributes,
-			new StringField
-				.Builder("idenizationBasis")
-				.setEnums(IDENIZATION_BASIS)
-				.setMaxLength(14)
-				.build());
-
-		assertField(coverageAttributes,
-			new StringField
-				.Builder("idenizationBasisOthers")
-				.setMaxLength(100)
 				.setOptional()
 				.build());
 	}

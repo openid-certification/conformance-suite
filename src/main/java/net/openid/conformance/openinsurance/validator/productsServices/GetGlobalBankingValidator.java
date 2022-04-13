@@ -16,6 +16,7 @@ import java.util.Set;
  * Api Source: swagger/openinsurance/productsServices/globalBankingStructure.yaml
  * Api endpoint: /global-banking/
  * Api version: 1.0.0
+ * Git hash: 18b96a6de31ee788c0f2f06c609bcb6adcc926b3
  */
 
 @ApiName("ProductsServices Global Banking")
@@ -62,7 +63,7 @@ public class GetGlobalBankingValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertProducts(JsonObject products) {
-		assertField(products, Fields.name().setMaxLength(80).build());
+		assertField(products, Fields.name().setMaxLength(80).setOptional().build());
 		assertField(products, Fields.code().setMaxLength(100).build());
 
 		assertField(products,
@@ -73,16 +74,11 @@ public class GetGlobalBankingValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new BooleanField
-				.Builder("allowApartPurchase")
-				.build());
-
-		assertField(products,
-			new BooleanField
 				.Builder("traits")
 				.build());
 
 		assertField(products,
-			new ObjectField.Builder("validity")
+			new ObjectArrayField.Builder("validity")
 				.setValidator(validity -> {
 					assertField(validity,
 						new StringArrayField
@@ -131,7 +127,6 @@ public class GetGlobalBankingValidator extends AbstractJsonAssertingCondition {
 						.setEnums(TARGET_AUDIENCE)
 						.setMaxLength(15)
 						.build())).build());
-
 	}
 
 	private void assertCoverages(JsonObject coverages) {
@@ -152,6 +147,11 @@ public class GetGlobalBankingValidator extends AbstractJsonAssertingCondition {
 				.Builder("coverageAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
+				.build());
+
+		assertField(coverages,
+			new BooleanField
+				.Builder("allowApartPurchase")
 				.build());
 	}
 
