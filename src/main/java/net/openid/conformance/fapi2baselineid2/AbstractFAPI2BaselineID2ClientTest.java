@@ -803,51 +803,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 	}
 
-	/**
-	 * Extracts and validates the information for DPOP token/resource requests
-	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
-	 *                       a request to the resource endpoint
-	 */
-	protected void checkSenderConstrainDpopTokenRequest(boolean isTokenRequest) {
-		callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
-		if(isTokenRequest) {
-			call(sequence(PerformDpopProofTokenRequestChecks.class));
-		}
-		else {
-			// Need to also extract the DPoP Access token for resource requests
-			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
-			call(sequence(PerformDpopProofResourceRequestChecks.class));
-		}
-	}
-
-	/**
-	 * Extracts and validates the information for MTLS token/resource requests
-	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
-	 *                       a request to the resource endpoint
-	 */
-	protected void checkSenderConstrainMtlsTokenRequest(boolean isTokenRequest) {
-		if(!isTokenRequest) {  // no need to do anything on access  token requests
-			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-		}
-	}
-
-	protected void checkSenderConstrainTokenRequest() {
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
-			checkSenderConstrainDpopTokenRequest(true);
-		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
-			checkSenderConstrainMtlsTokenRequest(true);
-		}
-	}
-
-	protected void checkSenderConstrainResourceRequest() {
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
-			checkSenderConstrainDpopTokenRequest(false);
-		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
-			checkSenderConstrainMtlsTokenRequest(false);
-		}
-	}
-
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
