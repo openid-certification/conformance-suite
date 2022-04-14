@@ -37,7 +37,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 			restTemplate.setErrorHandler(new DefaultResponseErrorHandler());
 
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+			//headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
 			// TODO: Send invalid client tokens and check the SHOULDs in the response (CIBA-10.2)
 			headers.setBearerAuth(env.getString("client_notification_token"));
 
