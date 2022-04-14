@@ -84,7 +84,6 @@ public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends Abstra
 
 	private ConditionSequence paymentConsentEditingSequence() {
 		return sequenceOf(
-			condition(FAPIBrazilCreatePaymentConsentRequest.class),
 			condition(FAPIBrazilGeneratePaymentConsentRequest.class),
 			condition(RemovePaymentDateFromConsentRequest.class),
 			condition(EnsureScheduledPaymentDateIsTomorrow.class)
