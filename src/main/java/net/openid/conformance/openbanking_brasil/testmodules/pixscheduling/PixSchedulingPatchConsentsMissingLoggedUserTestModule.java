@@ -80,7 +80,6 @@ public class PixSchedulingPatchConsentsMissingLoggedUserTestModule extends Abstr
 
 	private ConditionSequence paymentConsentEditingSequence() {
 		return sequenceOf(
-			condition(FAPIBrazilCreatePaymentConsentRequest.class),
 			condition(FAPIBrazilGeneratePaymentConsentRequest.class),
 			condition(RemovePaymentDateFromConsentRequest.class),
 			condition(EnsureScheduledPaymentDateIsTomorrow.class)
