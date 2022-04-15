@@ -293,11 +293,11 @@ makeCIBATest() {
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 
     # FAPI CIBA OP against RP
-    # MTLS ${TESTS}
+    # MTLS
     TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1{fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_profile=plain_fapi]:fapi-ciba-id1-client-test}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json "
     # private_key_jwt
-    #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-client-test{fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+    TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
+
 
 }
 
