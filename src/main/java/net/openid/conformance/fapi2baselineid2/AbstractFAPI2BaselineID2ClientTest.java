@@ -70,7 +70,6 @@ import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
@@ -94,7 +93,6 @@ import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
@@ -112,6 +110,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -222,6 +221,10 @@ import javax.servlet.http.HttpSession;
 	"client.scope",
 	"client2.scope"
 })
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+	"client.scope", // scope is always openid
+	"client2.scope"
+})
 public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
@@ -253,6 +256,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
 
 	protected boolean startingShutdown = false;
+
+	protected Boolean profileRequiresMtlsEverywhere;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -289,16 +294,15 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
-			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
-			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
-			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
-		} else {
-			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
-			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
-		}
+		profileRequiresMtlsEverywhere =
+			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
+			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
+			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
+			profile == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
+
+		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
+		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
+		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
@@ -392,6 +396,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+	}
+
+	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
+	// used the second client. We may want to delete it and all the associated references
+	// to the second client if we find no use.
+	protected void configureSecondClient() {
 		eventLog.startBlock("Verify configuration of second client");
 		// extract second client
 		switchToSecondClient();
@@ -406,6 +416,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateClientConfiguration() {
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "IDMVP");
+		}
 	}
 
 
@@ -471,8 +484,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+			if (profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
 			} else {
 				return tokenEndpoint(requestId);
@@ -483,6 +496,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
+			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
+			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
@@ -490,12 +506,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+			if(profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
 			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
@@ -528,6 +544,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
+		} else if (path.equals("userinfo")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+			return userinfoEndpoint(requestId);
 		} else if (path.equals("par") && isPar) {
 			return parEndpoint(requestId);
 		}
@@ -832,11 +853,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
+			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
-			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
 			checkMtlsCertificate();
 		}
 
@@ -886,10 +906,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		senderConstrainTokenRequestHelper.checkResourceRequest();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			call(exec().mapKey("token_endpoint_request", requestId));
+			checkMtlsCertificate();
+			call(exec().unmapKey("token_endpoint_request"));
+		}
 
-		call(sequence(validateSenderConstrainedTokenSteps));
-
+		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
@@ -935,7 +958,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(sequence(validateClientAuthenticationSteps));
 
@@ -1358,7 +1383,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(exec().unmapKey("token_endpoint_request"));
 

@@ -65,7 +65,6 @@ import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
@@ -80,13 +79,13 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
+import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
@@ -163,7 +162,6 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -267,15 +265,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
-			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
-			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
-			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
-		} else {
-			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
-			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
+		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
+		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+
+		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
+			callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class);
 		}
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency

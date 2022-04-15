@@ -306,9 +306,17 @@ public class TestDispatcher implements DataUtils {
 			"x-forwarded-host", // automatically added by apache, but only acted upon by spring/tomcat
 			"x-forwarded-server", // automatically added by apache, but only acted upon by spring/tomcat
 			"X-Ssl-Cert",
-			"X-Ssl-Verify"); // this doesn't appear to be used so we don't log it
+			"X-Ssl-Verify"); // although we add this in apache, we don't setup any CAs, so it's not clear it has any value and we don't use it anywhere currently
 		for (String h : proxyHeaders) {
 			headers.remove(h.toLowerCase());
+		}
+
+		JsonArray tlsChain = new JsonArray();
+		for (int i = 0; i < 6; i++) {
+			String headerName = "x-ssl-cert-chain-" + i;
+			JsonElement tlsChainEl = originalHeaders.get(headerName);
+			tlsChain.add(tlsChainEl);
+			headers.remove(headerName);
 		}
 
 		eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
@@ -322,6 +330,7 @@ public class TestDispatcher implements DataUtils {
 			"incoming_tls_cipher", tlsCipher,
 			"incoming_tls_version", tlsVersion,
 			"incoming_tls_cert", tlsCert,
+			"incoming_tls_chain", tlsChain,
 			"incoming_body", requestParts.get("body"),
 			"incoming_body_json", requestParts.get("body_json")));
 	}

@@ -3,11 +3,9 @@ package net.openid.conformance.fapi2baselineid2;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +17,7 @@ import java.util.Map;
 public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
-		FAPI2BaselineID2ClientTest.class,
+		FAPI2BaselineID2ClientTestHappyPath.class,
 		FAPI2BaselineID2ClientTestInvalidIss.class,
 		FAPI2BaselineID2ClientTestInvalidAud.class,
 		FAPI2BaselineID2ClientTestInvalidSecondaryAud.class,
