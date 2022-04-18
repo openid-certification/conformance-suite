@@ -1,6 +1,6 @@
 {
-    "alias": "oidf-fapi-op-test",
-    "description": "FAPI OP test config for running against RP tests",
+    "alias": "oidf-fapi-ciba-op-test",
+    "description": "FAPI-CIBA OP test config for running against RP tests",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-ciba-rp-test/.well-known/openid-configuration"
     },
