@@ -8,20 +8,17 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-//TODO Alex: change class name
+
 @PublishTestModule(
 	testName = "patch-consents-api-pixscheduling-revoke-user",
-	//TODO Alex: Change displayname
 	displayName = "Patch Consents API Test Module",
-	//TODO Alex: Change summary description
-	summary = "This test is an unhappy path PATCH consents test module.\n\n" +
+	//TODO: Alex
+	summary = "This test is an happy path PATCH consents test module.\n\n" +
 		"Flow:\n" +
-		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, calls the token endpoint multiple times to validate refresh tokens are not being rotated, attempts to PATCH the consent with status REVOKED and revokedBy TPP, the test is expecting a 422 error being returned with the code OPERACAO_NAO_PERMITIDA_STATUS \n\n" +
+		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, POST a payment with the consent, attempts to PATCH the consent with status REVOKED, revokedBy USER,the test is expecting a 200 OK passing the test \n\n" +
 		"Required:\n" +
 		"Consent url pointing at the consent endpoint.\n",
 	profile = OBBProfile.OBB_PROFILE,
-	//TODO Alex: Should I change this config?
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -41,39 +38,18 @@ import net.openid.conformance.variant.ClientAuthType;
 )
 public class PixSchedulingPatchHappyPathRevokedByUserTestModule extends AbstractFunctionalTestModule {
 
-	protected ClientAuthType clientAuthType;
-
+	//Setup PaymentScope
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
 	}
 
+	//Setup POST Method in env object
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
-		clientAuthType = getVariant(ClientAuthType.class);
-	}
-
-	@Override
-	protected void requestProtectedResource() {
-		eventLog.startBlock("Calling Token Endpoint and validating refresh token is not rotated");
-		callAndStopOnFailure(SaveInitialRefreshToken.class);
-		call(verifyRefreshTokenRotationIsDisabled());
-		call(verifyRefreshTokenRotationIsDisabled());
-		callAndStopOnFailure(UpdateAccessTokenAfterCallingTokenEndpoint.class);
-		eventLog.startBlock("Attempting to PATCH consents");
-		callAndStopOnFailure(PaymentConsentIdExtractor.class);
-		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
-		callAndStopOnFailure(FAPIBrazilGeneratePatchPaymentConsentRequest.class);
-		callAndStopOnFailure(SetPatchConsentsRevokedAndRevokedByTPP.class);
-		call(new SignedPaymentConsentSequence()
-			.replace(EnsureHttpStatusCodeIs201.class,condition(EnsureConsentResponseCodeWas422.class))
-			.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
-			.replace(AddAudAsPaymentConsentUriToRequestObject.class, condition(AddAudToPatchConsentRequest.class))
-			.insertBefore(EnsureHttpStatusCodeIs201.class,condition(EnsurePatchPayment422ResponseCodeIsOperationNotAllowed.class))
-		);
 	}
 
 	@Override
@@ -87,32 +63,51 @@ public class PixSchedulingPatchHappyPathRevokedByUserTestModule extends Abstract
 
 	private ConditionSequence paymentConsentEditingSequence() {
 		return sequenceOf(
-			condition(FAPIBrazilCreatePaymentConsentRequest.class),
 			condition(FAPIBrazilGeneratePaymentConsentRequest.class),
 			condition(RemovePaymentDateFromConsentRequest.class),
 			condition(EnsureScheduledPaymentDateIsTomorrow.class)
 		);
 	}
 
-	private ConditionSequence verifyRefreshTokenRotationIsDisabled(){
-		ConditionSequence sequence = sequenceOf(
-			condition(GenerateRefreshTokenRequest.class),
-			condition(SetPaymentsScopeOnTokenEndpointRequest.class),
-			condition(CreateClientAuthenticationAssertionClaims.class),
-			condition(SignClientAuthenticationAssertion.class),
-			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class),
-			condition(EnsureRefreshTokenHasNotRotated.class)
+	@Override
+	protected void requestProtectedResource() {
+		eventLog.startBlock("POST Payment Request");
+		ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
+			.replace(CreatePaymentRequestEntityClaims.class, condition(GeneratePaymentRequestEntityClaims.class));
+		call(pixSequence);
+		//Make sure that the self links are correct and point to the created payment
+		call(new ValidateSelfEndpointPaymentConsent());
+
+		callAndStopOnFailure(SaveOldValues.class);
+
+		eventLog.startBlock("Attempting to PATCH consents");
+		callAndStopOnFailure(PaymentConsentIdExtractor.class);
+		callAndStopOnFailure(PrepareToPatchConsentRequest.class);
+		callAndStopOnFailure(FAPIBrazilGeneratePatchPaymentConsentRequest.class);
+		//Set Status to REVOKED
+		callAndStopOnFailure(SetPatchConsentsRevoked.class);
+		//Set RevokedBy to USER
+		callAndStopOnFailure(SetPatchConsentsRevokedByUser.class);
+		call(new SignedPaymentConsentSequence()
+			.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
+			.replace(AddAudAsPaymentConsentUriToRequestObject.class, condition(AddAudToPatchConsentRequest.class))
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs200.class))
+			//.insertBefore(EnsureHttpStatusCodeIs201.class,condition(Ensure422PatchErrorIsUserInfoRequired.class))
 		);
-		if(clientAuthType == ClientAuthType.MTLS){
-			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
-				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
-				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
-				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
-		}
-		return sequence;
+		//Check if Status is REVOKED
+		callAndStopOnFailure(EnsureStatusRevoked.class);
+
+		eventLog.startBlock("GET Payments Request");
+
+		callAndStopOnFailure(LoadOldValues.class);
+		ConditionSequence GetPaymentSequence = new CallGetPaymentEndpointSequence();
+		call(GetPaymentSequence);
+
+		//Check if Status is RJCT
+		callAndStopOnFailure(EnsureStatusRJCT.class);
 	}
 
+
 	@Override
-	protected void validateResponse() {}
+	protected void validateResponse() { }
 }
