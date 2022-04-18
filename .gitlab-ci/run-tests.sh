@@ -294,9 +294,9 @@ makeCIBATest() {
 
     # FAPI CIBA OP against RP
     # MTLS
-    TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
+    TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
     # private_key_jwt
-    TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
+    TESTS=" ${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_profile=plain_fapi]{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
 
 
 }
