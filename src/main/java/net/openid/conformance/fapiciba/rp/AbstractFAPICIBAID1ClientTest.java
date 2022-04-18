@@ -550,7 +550,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		// TODO: Additional validations
 		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasOpenIdScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		JsonObject backchannelResponse = new JsonObject();

@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class BackchannelRequestHasScopeCondition extends AbstractCondition {
+public class BackchannelRequestHasOpenIdScopeCondition extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")
