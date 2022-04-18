@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonObjectBuilder;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ public class EnsureStatusRevoked extends AbstractCondition {
 		}
 
 		log("Checking if Status is REVOKED");
-		if(status.getAsString().equals("REVOKED")){
+		if(OIDFJSON.getString(status).equals("REVOKED")){
 			logSuccess("Successfully verified Status as REVOKED");
 		} else {
 			logFailure("Expected REVOKED");

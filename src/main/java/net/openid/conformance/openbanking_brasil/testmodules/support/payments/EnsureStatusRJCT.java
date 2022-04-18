@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonObjectBuilder;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ public class EnsureStatusRJCT extends AbstractCondition {
 		}
 
 		log("Checking if Status is RJCT");
-		if(status.getAsString().equals("RJCT")){
+		if(OIDFJSON.getString(status).equals("RJCT")){
 			logSuccess("Successfully verified Status as RJCT");
 		} else {
 			logFailure("Expected RJCT");
