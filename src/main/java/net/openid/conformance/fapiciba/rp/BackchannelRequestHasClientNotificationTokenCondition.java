@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestHasNotificationTokenCondition extends AbstractCondition {
+public class BackchannelRequestHasClientNotificationTokenCondition extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")
@@ -17,7 +17,7 @@ public class BackchannelRequestHasNotificationTokenCondition extends AbstractCon
 		env.putString("client_notification_token", clientNotificationToken);
 
 		if(Strings.isNullOrEmpty(clientNotificationToken)) {
-			throw error("The client_notification_token is required in ping mode");
+			throw error("The client_notification_token is required.");
 		}
 
 		logSuccess("Backchannel authentication request contains the required client_notification_token");

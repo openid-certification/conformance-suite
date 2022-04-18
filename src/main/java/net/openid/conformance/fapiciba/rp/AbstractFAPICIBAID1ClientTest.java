@@ -14,21 +14,16 @@ import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.*;
 import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -556,7 +551,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		// TODO: Additional validations
 		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestHasScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestHasNotificationTokenOnPing.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		JsonObject backchannelResponse = new JsonObject();
@@ -570,7 +564,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		backchannelResponse.addProperty("expires_in", expiresIn);
 
 		if(CIBAMode.PING.equals(cibaMode)) {
-			callAndStopOnFailure(BackchannelRequestHasNotificationTokenCondition.class, ConditionResult.FAILURE, "CIBA-10.2");
+			call(sequence(ValidateClientNotificationToken.class));
 			spawnThreadForPing();
 		}
 

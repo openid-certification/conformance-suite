@@ -5,10 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -37,7 +34,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 			restTemplate.setErrorHandler(new DefaultResponseErrorHandler());
 
 			HttpHeaders headers = new HttpHeaders();
-			//headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JSON_UTF8);
+			headers.setContentType(MediaType.APPLICATION_JSON);
 			// TODO: Send invalid client tokens and check the SHOULDs in the response (CIBA-10.2)
 			headers.setBearerAuth(env.getString("client_notification_token"));
 
