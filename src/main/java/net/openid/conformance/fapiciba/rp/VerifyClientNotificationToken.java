@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-public class ValidateClientNotificationToken extends AbstractConditionSequence {
+public class VerifyClientNotificationToken extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {

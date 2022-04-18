@@ -524,8 +524,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			.startBlock("RP calls the backchannel endpoint")
 			.mapKey("backchannel_endpoint_http_request", requestId));
 
-		callAndContinueOnFailure(BackchannelRequestIsPosted.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestIsFormData.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		call(sequence(VerifyPostedFormData.class));
 
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
@@ -553,6 +552,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(BackchannelRequestHasOpenIdScope.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
+		// Begin ensure backchannel response
 		JsonObject backchannelResponse = new JsonObject();
 		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);
 		env.putString("auth_req_id", authReqId); // Needed for the ping
@@ -562,9 +562,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		String requestedExpiryString = env.getString("backchannel_endpoint_http_request", "body_form_params.requested_expiry");
 		int expiresIn = getIntValueOrDefault(requestedExpiryString, 180);
 		backchannelResponse.addProperty("expires_in", expiresIn);
+		// End ensure backchannel response
 
 		if(CIBAMode.PING.equals(cibaMode)) {
-			call(sequence(ValidateClientNotificationToken.class));
+			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
 		}
 
