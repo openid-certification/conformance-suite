@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestRequestedExpiryCondition extends AbstractCondition {
+public class BackchannelRequestRequestedExpiry extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")

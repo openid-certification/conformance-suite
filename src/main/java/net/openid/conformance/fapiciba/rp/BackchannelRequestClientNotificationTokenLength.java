@@ -1,12 +1,10 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestClientNotificationTokenLengthCondition extends AbstractCondition {
+public class BackchannelRequestClientNotificationTokenLength extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "client_notification_token")

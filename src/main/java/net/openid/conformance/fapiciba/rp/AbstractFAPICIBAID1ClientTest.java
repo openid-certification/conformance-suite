@@ -524,8 +524,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			.startBlock("RP calls the backchannel endpoint")
 			.mapKey("backchannel_endpoint_http_request", requestId));
 
-		callAndContinueOnFailure(BackchannelRequestIsPostedCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestIsFormDataCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestIsPosted.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestIsFormData.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
@@ -549,9 +549,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		// TODO: End copied validations
 
 		// TODO: Additional validations
-		callAndContinueOnFailure(BackchannelRequestHasHintCondition.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestHasOpenIdScopeCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiryCondition.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasOpenIdScope.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		JsonObject backchannelResponse = new JsonObject();
 		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);

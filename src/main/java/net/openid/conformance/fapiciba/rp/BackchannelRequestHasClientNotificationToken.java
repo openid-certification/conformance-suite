@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestHasClientNotificationTokenCondition extends AbstractCondition {
+public class BackchannelRequestHasClientNotificationToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")

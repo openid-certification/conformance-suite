@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class BackchannelRequestIsFormDataCondition extends AbstractCondition {
+public class BackchannelRequestIsFormData extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_endpoint_http_request")
