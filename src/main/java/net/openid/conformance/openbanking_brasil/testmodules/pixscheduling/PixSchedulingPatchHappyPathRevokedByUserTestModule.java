@@ -13,11 +13,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "patch-consents-api-pixscheduling-revoke-user",
 	displayName = "Patch Consents API Test Module",
 	//TODO: Alex
-	summary = "This test is an happy path PATCH consents test module.\n\n" +
-		"Flow:\n" +
-		"Creates a payment consent scheduled for today + 1 day, re-direct the user to authorize the consent, POST a payment with the consent, attempts to PATCH the consent with status REVOKED, revokedBy USER,the test is expecting a 200 OK passing the test \n\n" +
-		"Required:\n" +
-		"Consent url pointing at the consent endpoint.\n",
+	summary = "PATCH Payments happy path test that will revoke a created consent with revokedBy set for the USER\n\n" +
+		"	\u2022 Creates a payment consent scheduled for today + 1 day \n" +
+		"	\u2022 Re-directs the user to authorize the consent \n" +
+		"	\u2022 POST a payment with the consent \n" +
+		"	\u2022 Attempts to PATCH the consent with status REVOKED, revokedBy USER \n" +
+		"	\u2022 Expects a 200 - OK, with status set to Revoked \n" +
+		"	\u2022 Performs a GET on the created Payment \n" +
+		"	\u2022 Expects a 200 - OK, with status set to RJCT \n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
