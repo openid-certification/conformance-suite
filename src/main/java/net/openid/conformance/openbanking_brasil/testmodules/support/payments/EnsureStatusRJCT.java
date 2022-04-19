@@ -23,11 +23,12 @@ public class EnsureStatusRJCT extends AbstractCondition {
 		}
 
 		log("Checking if Status is RJCT");
-		if(OIDFJSON.getString(status).equals("RJCT")){
-			logSuccess("Successfully verified Status as RJCT");
-		} else {
+		if(!OIDFJSON.getString(status).equals("RJCT")){
 			logFailure("Expected RJCT");
 		}
+
+		logSuccess("Successfully verified Status as RJCT");
+
 
 		return env;
 	}

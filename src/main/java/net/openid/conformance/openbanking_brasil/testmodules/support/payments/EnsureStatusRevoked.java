@@ -23,11 +23,11 @@ public class EnsureStatusRevoked extends AbstractCondition {
 		}
 
 		log("Checking if Status is REVOKED");
-		if(OIDFJSON.getString(status).equals("REVOKED")){
-			logSuccess("Successfully verified Status as REVOKED");
-		} else {
+		if(!OIDFJSON.getString(status).equals("REVOKED")){
 			logFailure("Expected REVOKED");
 		}
+
+		logSuccess("Successfully verified Status as REVOKED");
 
 		return env;
 	}
