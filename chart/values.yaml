@@ -49,4 +49,4 @@ mongodb:
     requests:
       cpu: 100m
   persistence:
-    size: 200Gi
+    size: 250Gi
