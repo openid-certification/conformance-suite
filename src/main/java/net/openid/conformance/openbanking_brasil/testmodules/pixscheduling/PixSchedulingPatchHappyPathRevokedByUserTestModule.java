@@ -94,8 +94,7 @@ public class PixSchedulingPatchHappyPathRevokedByUserTestModule extends Abstract
 		call(new SignedPaymentConsentSequence()
 			.replace(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, condition(FAPIPatchConsentsRequest.class))
 			.replace(AddAudAsPaymentConsentUriToRequestObject.class, condition(AddAudToPatchConsentRequest.class))
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs200.class))
-			//.insertBefore(EnsureHttpStatusCodeIs201.class,condition(Ensure422PatchErrorIsUserInfoRequired.class))
+			.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureHttpStatusCodeIs200.class))
 		);
 		//Check if Status is REVOKED
 		callAndStopOnFailure(EnsureStatusRevoked.class);
