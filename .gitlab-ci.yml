@@ -63,6 +63,7 @@ test:
   <<: *maven
   stage: test
   needs: ["build"]
+  coverage: '/Unit test coverage (\d+\%)/'
   script:
     # Don't recompile the main app
     - mvn -B -Dmaven.main.skip test
