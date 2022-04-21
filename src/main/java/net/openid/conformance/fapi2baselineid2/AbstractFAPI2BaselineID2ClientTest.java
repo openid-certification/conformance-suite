@@ -363,9 +363,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
 			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
-		} else {
+		} else if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+		} else {
+			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);

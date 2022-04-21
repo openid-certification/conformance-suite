@@ -313,9 +313,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-		} else {
+		} else if (profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+		} else {
+			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
 
 		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
