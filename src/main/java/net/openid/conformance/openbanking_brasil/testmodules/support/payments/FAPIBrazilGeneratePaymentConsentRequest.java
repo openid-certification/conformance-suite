@@ -70,6 +70,17 @@ public class FAPIBrazilGeneratePaymentConsentRequest extends AbstractCondition {
 				"number", debtorAccountNumber,
 				"accountType", debtorAccountType));
 
+		JsonElement businessEntity =  env.getElementFromObject("resource","brazilPaymentConsent.data.businessEntity");
+
+		if (businessEntity != null){
+			String identificationBusiness = extractOrDie(env,"resource","brazilPaymentConsent.data.businessEntity.document.identification");
+			String relBusiness = extractOrDie(env,"resource","brazilPaymentConsent.data.businessEntity.document.rel");
+
+			consentRequestObject.addFields("data.businessEntity.document",
+				Map.of("identification", identificationBusiness,
+				"rel",relBusiness));
+		}
+
 		return consentRequestObject.build();
 	}
 
