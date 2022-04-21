@@ -23,14 +23,15 @@ public class DateExtractor extends AbstractCondition {
 		env.putString("transactionDate", transactionDate);
 		logSuccess("Transaction Date", args("transactionDate", transactionDate));
 
-		String transactionId = OIDFJSON.getString(dataObject.get("transactionId"));
-		env.putString("transactionId", transactionId);
-		logSuccess("Transaction ID", args("transactionId", transactionId));
+		if (dataObject.get("transactionId") != null) {
+			String transactionId = OIDFJSON.getString(dataObject.get("transactionId"));
+			env.putString("transactionId", transactionId);
+			logSuccess("Transaction ID", args("transactionId", transactionId));
+		}
 
-		JsonObject headers = env.getObject("resource_endpoint_request_headers");
-		headers.addProperty("fromBookingDate", transactionDate);
-		headers.addProperty("toBookingDate", transactionDate);
-		logSuccess("Headers", headers);
+		dataObject.addProperty("fromBookingDate", transactionDate);
+		dataObject.addProperty("toBookingDate", transactionDate);
+		logSuccess("Added fromBookingDate and toBookingDate query parameters " + data);
 
 		return env;
 	}

@@ -1,29 +1,35 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.http.HttpHeaders;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-
-public class AddBookingDateHeaders extends AbstractCondition {
-
+public class AddBookingDateParameters extends AbstractCondition {
 	@Override
-	@PreEnvironment(required = "resource_endpoint_request_headers" )
+	@PreEnvironment(strings = "resource_endpoint_response" )
 	public Environment evaluate(Environment env){
-		JsonObject headers = env.getObject("resource_endpoint_request_headers");
+		String request = env.getString("resource_endpoint_response");
+		JsonObject consent = new JsonParser().parse(request).getAsJsonObject();
+		JsonArray data = consent.getAsJsonArray("data");
+		var dataElement = data.get(0);
+		JsonObject dataObject = dataElement.getAsJsonObject();
+
 		LocalDateTime fromDate = LocalDateTime.now();
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
 		String fromDateF = fromDate.format(dateFormat);
-		headers.addProperty("fromBookingDate", fromDateF);
 		LocalDateTime toDate = LocalDateTime.now().plusMonths(12);
 		String toDateF = toDate.format(dateFormat);
-		headers.addProperty("toBookingDate", toDateF);
+
+		dataObject.addProperty("fromBookingDate",fromDateF);
+		dataObject.addProperty("toBookingDate", toDateF);
+		log("Added fromBookingDate and toBookingDate query parameters " + data);
+
 		Duration duration = Duration.between(fromDate, toDate);
 		var days = duration.toDays();
 		if(days==365){
@@ -32,15 +38,6 @@ public class AddBookingDateHeaders extends AbstractCondition {
 		else {
 			log("Payments are " + days + " days apart");
 		}
-		log("Added fromBookingDate and toBookingDate headers", headers);
 		return env;
-	}
-
-	protected HttpHeaders getHeaders(Environment env) {
-		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
-		log("Using request headers: " + requestHeaders);
-		HttpHeaders headers = headersFromJson(requestHeaders);
-		headers.set("fromBookingDate", "toBookingDate");
-		return headers;
 	}
 }
