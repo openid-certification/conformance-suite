@@ -15,10 +15,7 @@ public class RemovePatchConsentsLoggedUser extends AbstractCondition {
 
 		JsonObject obj = patchConsent.getAsJsonObject();
 		obj  = obj.getAsJsonObject("revocation");
-
 		obj.remove("loggedUser");
-		log(obj);
-
 		logSuccess("Logged User Removed");
 		return env;
 	}
