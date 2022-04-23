@@ -75,9 +75,6 @@ public class Application {
 
 		Security.addProvider(new BouncyCastleProvider());
 
-		// quiet down CSS errors/warnings in the parser selenium/htmlunit uses
-		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
-
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new EventListener());
 		springApplication.run(args);
