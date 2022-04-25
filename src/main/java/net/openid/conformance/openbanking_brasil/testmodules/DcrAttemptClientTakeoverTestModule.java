@@ -4,8 +4,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWith2ndClientFull;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -50,6 +52,13 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
+	protected ClientAuthType clientAuthType;
+
+	@Override
+	protected void configureClient() {
+		clientAuthType = getVariant(ClientAuthType.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void callRegistrationEndpoint() {
@@ -72,9 +81,7 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		eventLog.endBlock();
 
 		eventLog.startBlock("Use client_credentials grant to obtain a Valid Token");
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		call(getPreTokenCallSequence());
 		callAndStopOnFailure(CallTokenEndpoint.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 		eventLog.endBlock();
@@ -100,10 +107,7 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		eventLog.endBlock();
 
 		eventLog.startBlock("Make sure that the second client cannot request a Valid Token");
-
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		call(getPreTokenCallSequence());
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 		env.unmapKey("mutual_tls_authentication");
@@ -125,6 +129,25 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		env.unmapKey("client");
 		env.unmapKey("mtls");
 		deleteClient();
+	}
+
+	private ConditionSequence getPreTokenCallSequence() {
+		ConditionSequence sequence = sequenceOf(
+			condition(CreateTokenEndpointRequestForClientCredentialsGrant.class),
+			condition(SetConsentsScopeOnTokenEndpointRequest.class),
+			condition(AddClientIdToTokenEndpointRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class),
+			condition(SignClientAuthenticationAssertion.class),
+			condition(AddClientAssertionToTokenEndpointRequest.class)
+		);
+
+		if (clientAuthType == ClientAuthType.MTLS) {
+			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Not needed for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Not needed for MTLS");
+		}
+
+		return sequence;
 	}
 
 	@Override
