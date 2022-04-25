@@ -13,11 +13,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "accounts-resources-api-test",
 	displayName = "Validate structure of all accounts API resources",
-	summary = "Validates the structure of all account API resources\n" +
-		"\u2022 Cria Consentimento apenas com as Permissions necessárias para acessar os recursos da API de Accounts\n" +
-		"\u2022 Valida todos os campos enviados na API de consentimento\n" +
-		"\u2022 Chama todos os recursos da API de Accounts\n" +
-		"\u2022 Valida todos os campos dos recursos da API de Accounts",
+	summary = "Makes sure that the Resource API and the API that is the scope of this test plan are returning the same available IDs\n" +
+		"\u2022Create a consent with all the permissions needed to access the tested API\n" +
+		"\u2022 Expects server to create the consent with 201\n" +
+		"\u2022 Redirect the user to authorize at the financial institution\n" +
+		"\u2022 Call the tested resource API\n" +
+		"\u2022 Expect a success - Validate the fields of the response and Make sure that an id is returned - Fetch the id provided by this API\n" +
+		"\u2022 Call the resources API\n" +
+		"\u2022 Expect a success - Validate the fields of the response that are marked as AVAILABLE are exactly the ones that have been returned by the tested API",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

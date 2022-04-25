@@ -13,14 +13,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "credit-card-resources-api-test",
 	displayName = "Validate structure of Credit Card API and Resources API resources",
-	summary = "Validate structure of Credit Card API and Resources API resources\n" +
-		"\u2022 Creates a Consent with the complete set of the credit cards permission group ([\"CREDIT_CARDS_ACCOUNTS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_READ\", \"CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ\", \"CREDIT_CARDS_ACCOUNTS_LIMITS_READ\", \"CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ\", \"RESOURCES_READ\"])\n" +
-		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
-		"\u2022 Calls GET Credit Cards Accounts API \n" +
-		"\u2022 Expects a 200 response. Fetches all resources from the response\n" +
-		"\u2022 Calls GET Resources API. Expects a 200 response\n" +
-		"\u2022 Fetches all active and corresponding with Credit Cards Accounts API resources from the Resources API response\n" +
-		"\u2022 Compares Credit Cards Accounts API fetched resources with Resources API fetched resources",
+	summary = "Makes sure that the Resource API and the API that is the scope of this test plan are returning the same available IDs\n" +
+		"\u2022Create a consent with all the permissions needed to access the tested API\n" +
+		"\u2022 Expects server to create the consent with 201\n" +
+		"\u2022 Redirect the user to authorize at the financial institution\n" +
+		"\u2022 Call the tested resource API\n" +
+		"\u2022 Expect a success - Validate the fields of the response and Make sure that an id is returned - Fetch the id provided by this API\n" +
+		"\u2022 Call the resources API\n" +
+		"\u2022 Expect a success - Validate the fields of the response that are marked as AVAILABLE are exactly the ones that have been returned by the tested API",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",

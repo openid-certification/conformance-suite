@@ -13,14 +13,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "unarranged-overdraft-resources-api-test",
 	displayName = "Validate structure of unarranged overdraft API and Resources API resources",
-	summary = "Validate structure of unarranged overdraft API and Resources API resources\n" +
-		"\u2022 Creates a consent with all the permissions needed to access the Credit Operations API  (\"LOANS_READ\", \"LOANS_WARRANTIES_READ\", \"LOANS_SCHEDULED_INSTALMENTS_READ\", \"LOANS_PAYMENTS_READ\", \"FINANCINGS_READ\", \"FINANCINGS_WARRANTIES_READ\", \"FINANCINGS_SCHEDULED_INSTALMENTS_READ\", \"FINANCINGS_PAYMENTS_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ\", \"UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ\", \"INVOICE_FINANCINGS_READ\", \"INVOICE_FINANCINGS_WARRANTIES_READ\", \"INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ\", \"INVOICE_FINANCINGS_PAYMENTS_READ\", \"RESOURCES_READ\")\n" +
-		"\u2022 Expects 201 - Expects Success on Redirect - Validates all of the fields sent on the consents API\n" +
-		"\u2022 Calls GET Unarranged Overdraft Contracts API\n" +
-		"\u2022 Expects 200 - Fetches all returned IDs\n" +
-		"\u2022 Calls GET Resources API. Expects a 200 response\n" +
-		"\u2022 Fetches all active and corresponding with Unarranged Overdraft API resources from the Resources API response\n" +
-		"\u2022 Compares Unarranged Overdraft API fetched resources with Resources API fetched resources",
+	summary = "Makes sure that the Resource API and the API that is the scope of this test plan are returning the same available IDs\n" +
+		"\u2022Create a consent with all the permissions needed to access the tested API\n" +
+		"\u2022 Expects server to create the consent with 201\n" +
+		"\u2022 Redirect the user to authorize at the financial institution\n" +
+		"\u2022 Call the tested resource API\n" +
+		"\u2022 Expect a success - Validate the fields of the response and Make sure that an id is returned - Fetch the id provided by this API\n" +
+		"\u2022 Call the resources API\n" +
+		"\u2022 Expect a success - Validate the fields of the response that are marked as AVAILABLE are exactly the ones that have been returned by the tested API",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
