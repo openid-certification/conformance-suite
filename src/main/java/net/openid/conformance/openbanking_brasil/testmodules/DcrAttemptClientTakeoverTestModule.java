@@ -16,8 +16,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Retrieves from the directory its SSA\n" +
 		"\u2022 Performs a DCR on the provided authorization server -> Expects a success \n" +
 		"\u2022 Performs a PUT on the registration endpoint with the same configuration -> Expects a success\n" +
+		"\u2022 Performs a POST to the token endpoint to obtain a valid token -> Expects a success\n" +
 		"\u2022 Changes the certificates used to the second set of certificates that belong to a client from a different organization\n" +
 		"\u2022 Attempts 'GET' on client configuration endpoint using MTLS certificate for the second client -> Expects Failure\n" +
+		"\u2022 Attempts a POST to the token endpoint to obtain a valid token using the MTLS certificate for the second client -> Expects Failure\n" +
 		"\u2022 Using the second client, retrieves from the directory its SSA\n" +
 		"\u2022 Performs a PUT on the registration endpoint with the configuration from the second client -> Expects a failure\n" +
 		"\u2022 DELETEs the first registered client from the authorization server",
@@ -67,8 +69,19 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Use client_credentials grant to obtain a Valid Token");
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		eventLog.endBlock();
 
 		eventLog.startBlock("Attempt 'GET' on client configuration endpoint using MTLS certificate for different software, which must fail");
+
+		//switching to the second client
 
 		callAndStopOnFailure(OverrideClientWith2ndClientFull.class);
 
@@ -84,7 +97,17 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		call(exec().unmapKey("endpoint_response"));
 
 		getSsa();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Make sure that the second client cannot request a Valid Token");
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 		env.unmapKey("mutual_tls_authentication");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Calling PUT on configuration endpoint with SSA from another client");
 
