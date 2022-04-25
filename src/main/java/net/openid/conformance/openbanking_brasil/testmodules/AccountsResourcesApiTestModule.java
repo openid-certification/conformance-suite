@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
@@ -35,6 +36,11 @@ public class AccountsResourcesApiTestModule extends AccountApiTestModule{
 	private static final String API_RESOURCE_ID = "accountId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.ACCOUNT.name();
 
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddResourcesScope.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void validateResponse() {

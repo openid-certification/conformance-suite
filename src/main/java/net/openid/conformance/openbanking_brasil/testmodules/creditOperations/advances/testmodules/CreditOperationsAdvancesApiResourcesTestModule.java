@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.advances.AdvancesResponseValidator;
@@ -39,6 +40,12 @@ public class CreditOperationsAdvancesApiResourcesTestModule extends CreditOperat
 
 	private static final String API_RESOURCE_ID = "contractId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.UNARRANGED_ACCOUNT_OVERDRAFT.name();
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddResourcesScope.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void validateResponse() {

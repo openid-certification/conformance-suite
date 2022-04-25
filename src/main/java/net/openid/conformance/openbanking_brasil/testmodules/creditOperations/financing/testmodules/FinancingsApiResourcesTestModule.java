@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.FinancingResponseValidator;
@@ -36,6 +37,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FinancingsApiResourcesTestModule extends FinancingsApiTestModule {
 	private static final String API_RESOURCE_ID = "contractId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.FINANCING.name();
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddResourcesScope.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void validateResponse() {

@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
@@ -39,6 +40,11 @@ public class CreditCardApiResourcesTestModule extends CreditCardApiTestModule {
 	private static final String API_RESOURCE_ID = "creditCardAccountId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.CREDIT_CARD_ACCOUNT.name();
 
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddResourcesScope.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void validateResponse() {
