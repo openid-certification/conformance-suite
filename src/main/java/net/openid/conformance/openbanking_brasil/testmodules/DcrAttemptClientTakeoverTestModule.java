@@ -48,6 +48,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
+
 	@Override
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
