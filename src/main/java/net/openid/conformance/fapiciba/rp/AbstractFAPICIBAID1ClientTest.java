@@ -63,8 +63,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
-	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
 	protected static int getIntValueOrDefault(String intString, int defaultValue) {
@@ -94,15 +92,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		authorizationCodeGrantTypeProfileSteps = null;
-		authorizationEndpointProfileSteps = null;
-		accountsEndpointProfileSteps = null;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		//authorizationCodeGrantTypeProfileSteps = null;
-		//authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
@@ -379,9 +372,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	protected Object handleTokenEndpointGrantType(String requestId){
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 		switch (grantType) {
-			case "authorization_code":
-				// we're doing the authorization code grant for user access
-				return authorizationCodeGrantType(requestId);
 			case "client_credentials":
 				if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
@@ -433,7 +423,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
 		if(clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
-			issueIdToken(false);
+			issueIdToken();
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
 			callAndStopOnFailure(CreateTokenEndpointWithExpiresInResponse.class);
 			statusCode = HttpStatus.OK;
@@ -452,31 +442,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	private boolean clientWasPinged() {
 		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
 		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
-	}
-
-	protected Object authorizationCodeGrantType(String requestId) {
-		callAndStopOnFailure(ValidateAuthorizationCode.class);
-
-		callAndStopOnFailure(ValidateRedirectUri.class);
-
-		issueAccessToken();
-		issueRefreshToken();
-
-		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-		if("yes".equals(isOpenIdScopeRequested)) {
-			issueIdToken(false);
-		}
-
-		createTokenEndpointResponse();
-
-		call(exec().unmapKey("token_endpoint_request").endBlock());
-		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-	}
-
-	protected void createTokenEndpointResponse() {
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 	}
 
 	protected Object userinfoEndpoint(String requestId) {
@@ -633,10 +598,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		// TODO: Disabled callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
 	}
 
-	protected void issueIdToken(boolean isAuthorizationEndpoint) {
-		prepareIdTokenClaims(isAuthorizationEndpoint);
+	protected void issueIdToken() {
+		prepareIdTokenClaims();
 		signIdToken();
-		encryptIdToken(isAuthorizationEndpoint);
+		encryptIdToken();
 	}
 
 	protected void issueAccessToken() {
@@ -648,34 +613,12 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateRefreshToken.class);
 	}
 
-	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
-		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
-		//TODO skip or add?
-		if(isAuthorizationEndpoint) {
-			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
-			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
-				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
-		}
-
+	protected void prepareIdTokenClaims() {
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
 		}
 
-		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
-			call(sequence(authorizationCodeGrantTypeProfileSteps));
-		}
-
-		if (isAuthorizationEndpoint && authorizationEndpointProfileSteps != null) {
-			call(sequence(authorizationEndpointProfileSteps));
-		}
-
-		//TODO skip or add?
-		if(isAuthorizationEndpoint) {
-			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
-			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
-				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
-		}
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
@@ -702,9 +645,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
 	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
 	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
-	 * @param isAuthorizationEndpoint
 	 */
-	protected void encryptIdToken(boolean isAuthorizationEndpoint) { }
+	protected void encryptIdToken() { }
 
 	protected Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
