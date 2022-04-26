@@ -34,7 +34,7 @@ import javax.servlet.http.HttpSession;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk"
+	"openbanking_uk", "consumerdataright_au"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
