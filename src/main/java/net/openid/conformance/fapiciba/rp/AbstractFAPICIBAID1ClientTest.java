@@ -226,7 +226,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
-		} else if (path.equals(env.getString("backchannelpath"))) {
+		} else if (path.equals("backchannel")) {
 			return backchannelEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
@@ -323,7 +323,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals(env.getString("backchannelpath"))) {
+		if (path.equals("backchannel")) {
 			return backchannelEndpoint(requestId);
 		} else if (path.equals("token")) {
 			if(startingShutdown){

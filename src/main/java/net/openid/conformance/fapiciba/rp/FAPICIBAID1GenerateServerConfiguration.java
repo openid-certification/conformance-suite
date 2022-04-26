@@ -47,12 +47,8 @@ public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
 		mtlsAliases.addProperty("userinfo_endpoint", baseUrlMtls + "userinfo");
 
-		String backchannelpath = "backchannel"+ RandomStringUtils.randomAlphabetic(10);
-
-		env.putString("backchannelpath", backchannelpath);
-
-		server.addProperty("backchannel_authentication_endpoint", baseUrl + backchannelpath);
-		mtlsAliases.addProperty("backchannel_authentication_endpoint", baseUrlMtls + backchannelpath);
+		server.addProperty("backchannel_authentication_endpoint", baseUrl + "backchannel");
+		mtlsAliases.addProperty("backchannel_authentication_endpoint", baseUrlMtls + "backchannel");
 
 		server.add("mtls_endpoint_aliases", mtlsAliases);
 
