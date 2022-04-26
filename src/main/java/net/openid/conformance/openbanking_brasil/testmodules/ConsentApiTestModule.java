@@ -26,7 +26,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf"
+		"resource.brazilCpf",
+		"consent.productType"
 	}
 )
 public class ConsentApiTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {

@@ -34,7 +34,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.resourceUrl",
-		"resource.customerUrl"
+		"resource.customerUrl",
+		"consent.productType"
 	}
 )
 public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {

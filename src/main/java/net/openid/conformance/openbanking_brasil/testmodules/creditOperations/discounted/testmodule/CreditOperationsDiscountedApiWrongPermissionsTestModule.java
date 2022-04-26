@@ -53,7 +53,8 @@ import net.openid.conformance.condition.Condition;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"consent.productType"
 	}
 )
 public class CreditOperationsDiscountedApiWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
