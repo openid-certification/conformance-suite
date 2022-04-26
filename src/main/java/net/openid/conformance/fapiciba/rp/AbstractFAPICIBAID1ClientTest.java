@@ -33,19 +33,21 @@ import javax.servlet.http.HttpSession;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.scope",
-	"client2.scope"
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
+	"openbanking_uk"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
+})
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.scope",
+	"client2.scope"
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"
 })
 public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
-	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
 	protected FAPI1FinalOPProfile profile;
@@ -92,13 +94,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;
-	}
-
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
-	public void setupOpenBankingUk() {
-		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
-		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
-		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
@@ -173,7 +168,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -344,11 +338,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			return accountRequestsEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -391,10 +380,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				// we're doing the authorization code grant for user access
 				return authorizationCodeGrantType(requestId);
 			case "client_credentials":
-				if (profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
-					// we're doing the client credentials grant for initial token access
-					return clientCredentialsGrantType(requestId);
-				} else if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
 					return clientCredentialsGrantType(requestId);
 				}
@@ -754,42 +740,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		resourceEndpointCallComplete();
 
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
-	}
-
-	/**
-	 * OpenBanking account request API
-	 *
-	 * @param requestId
-	 * @return
-	 */
-	protected Object accountRequestsEndpoint(String requestId) {
-		setStatus(Status.RUNNING);
-		call(exec().startBlock("Account request endpoint").mapKey("incoming_request", requestId));
-
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
-
-		// TODO: should we clear the old headers?
-		validateResourceEndpointHeaders();
-
-		callAndStopOnFailure(GenerateAccountRequestId.class);
-		exposeEnvString("account_request_id");
-
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
-
-		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
-
-		JsonObject accountRequestResponse = env.getObject("account_request_response");
-		JsonObject headerJson = env.getObject("account_request_response_headers");
-
-		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
-
-		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected void validateResourceEndpointHeaders() {
