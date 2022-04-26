@@ -53,33 +53,6 @@ export BRAZIL_ACCOUNTS_ENDPOINT=test-mtls/a/fintech-clienttest/accounts/v1/accou
             ]
         }
     },
-    "client2": {
-        "client_id": "lvfVldjz2Q6pSMOMoXh1l",
-        "redirect_uri": "http://localhost:44444/",
-        "id_token_encrypted_response_alg": "RSA-OAEP",
-        "certificate": "-----BEGIN CERTIFICATE-----\n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\n-----END CERTIFICATE-----",
-        "jwks": {
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "e": "AQAB",
-                    "kid": "X5d4vFYfLxaG1gg8_l3bFYFhUaUVmE6PaEsRWX2EYqM",
-                    "alg": "PS256",
-                    "use": "sig",
-                    "n": "3IXVqA9zCrmaz30WWjzZexdSuhagP_oVfgB-Y5S7XXeHhU4tho7c3wcNhsrGCKLYSf_47rV78-2OfhPY9WrSJVyqIXoaniwoTnD9splF90J7yog9LgP4kqkWl6wm8gdR5C-UC4Gnl0D2cZKnE6MZ7k_b5nM0ZfC-7H_bO13B4aYpu069th7hFWGK7ps65uiDxcQGYP3oSeqahE5qwfUef2QMkhyVtM_nWP9OVAzOGtJ8km4TdCrq9aF78No9u2YQuaUOJgeOnwKMBjmgEwcuaQe9DEQFXhzBtRmPlml2pTy2QDvxe1HgOTOsnh9igFvX70AGroY3PFY-lJAxC4Fd2w"
-                },
-                {
-                    "kty": "RSA",
-                    "e": "AQAB",
-                    "use": "enc",
-                    "kid": "93427954-3d12-40db-879b-12e81d9010ab",
-                    "alg": "RSA-OAEP",
-                    "n": "l63nXyecIjxp_CdKYGJkyPxNHXtdEJuUjhuTOhOcirciTKKCtZ6VUrzJdyIt2OC43zF4Mz6WscD3YXaLgPtnXEyd-UkxNGifZQbfGhG_TjB25CFxfd7jkfpSCtpMn0fU6pGyoSdnuHy5_g0A-JsD3YSBs-ni_7axKakpMeCx6HE2IH6dwe3Kyc0JobkNhH_2J_1IrN5pPUe_fc_Y__6qDpvl1Sg6Vi--ERNq0DUZkJXVYDouDr4f5eYrTmCdhv3imskbgsAO7J9zg1HyxxeMQ-9rZL43PXhtOlfA2n_xkj32dQtkZ_HB1HNonWdWFUgj6-QXfAMcm4kQdLRaF4hKPw"
-                }
-            ]
-        },
-        "id_token_encrypted_response_enc": "A256GCM"
-    },
     "directory": {
         "keystore": "https://keystore.sandbox.directory.openbankingbrasil.org.br/"
     }

@@ -40,8 +40,7 @@ import javax.servlet.http.HttpSession;
 	"push"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.scope",
-	"client2.scope"
+	"client.scope"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
@@ -172,7 +171,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
-		configureClients();
+		configureClient();
 
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
@@ -270,30 +269,14 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		});
 	}
 
-	protected void configureClients() {
-		eventLog.startBlock("Verify configuration of first client");
+	protected void configureClient() {
+		eventLog.startBlock("Verify configuration of client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		validateClientJwks(false);
+		validateClientJwks();
 		validateClientConfiguration();
 
-		//eventLog.startBlock("Verify configuration of second client");
-		// extract second client
-		//switchToSecondClient();
-		//callAndStopOnFailure(GetStaticClient2Configuration.class);
-
-		//validateClientJwks(true);
-		//validateClientConfiguration();
-
-		//switch back to the first client
-		//unmapClient();
 		eventLog.endBlock();
-	}
-
-	protected void switchToSecondClient() {
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
 	}
 
 	protected void unmapClient() {
@@ -302,7 +285,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		env.unmapKey("client_public_jwks");
 	}
 
-	protected void validateClientJwks(boolean isSecondClient) {
+	protected void validateClientJwks() {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
