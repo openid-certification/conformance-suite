@@ -7,16 +7,11 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondition {
 
-	protected void validateCacheHeaders(JsonObject headers, String humanReadableResponseName, boolean cacheControlMustHaveNoCache) {
+	protected void validateCacheHeaders(JsonObject headers, String humanReadableResponseName) {
 		String noStore = "no-store";
-		String noCache = "no-cache";
 
 		if (!headers.has("cache-control")) {
 			throw error(humanReadableResponseName + " does not contain 'cache-control' header", args("response_headers", headers));
-		}
-
-		if (!headers.has("pragma")) {
-			throw error(humanReadableResponseName + " does not contain 'pragma' header", args("response_headers", headers));
 		}
 
 		JsonElement cacheControl = headers.get("cache-control");
@@ -25,22 +20,9 @@ public abstract class AbstractValidateResponseCacheHeaders extends AbstractCondi
 			throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
 				args("expected", noStore, "actual", cacheControl));
 		}
-		if (cacheControlMustHaveNoCache) {
-			// the backchannel logout specs require this, but RFC6749 does not
-			if (!doesHeaderContainExpectedValue(headers, "cache-control", noCache)) {
-				throw error("'cache-control' header in " + humanReadableResponseName + " does not contain expected value.",
-					args("expected", noCache, "actual", cacheControl));
-			}
-		}
 
-		JsonElement pragma = headers.get("pragma");
-		if (!doesHeaderContainExpectedValue(headers, "pragma", noCache)) {
-			throw error("'pragma' header in "+humanReadableResponseName+" does not contain expected value.",
-						args("expected", noCache, "actual", pragma));
-		}
-
-		logSuccess("'pragma' and 'cache-control' headers in " + humanReadableResponseName + " contain expected values.",
-					args("cache_control_header", cacheControl, "pragma_header", pragma));
+		logSuccess("'cache-control' header in " + humanReadableResponseName + " contains expected value.",
+					args("cache_control_header", cacheControl));
 	}
 
 	private boolean doesHeaderContainExpectedValue(String header, String expected) {
