@@ -43,6 +43,9 @@ import javax.servlet.http.HttpSession;
 	"client.scope",
 	"client2.scope"
 })
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.keystore"
+})
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"
 })

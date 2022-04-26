@@ -13,8 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.scope",
 		"client.backchannel_client_notification_endpoint",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
 
