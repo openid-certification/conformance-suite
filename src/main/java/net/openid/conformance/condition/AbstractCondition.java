@@ -726,32 +726,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return socket;
 	}
 
-	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-
-		KeyFactory factory = KeyFactory.getInstance("RSA");
-
-		return (RSAPrivateKey) factory.generatePrivate(spec);
-	}
-
-	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
-	}
-
-	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		ArrayList<X509Certificate> chain = new ArrayList<>();
-		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
-		while (in.available() > 0) {
-			chain.add((X509Certificate) factory.generateCertificate(in));
-		}
-
-		return chain;
-	}
-
 	protected JsonObject convertResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
 		JsonObject responseInfo = new JsonObject();
 		responseInfo.addProperty("status", response.getStatusCode().value());
