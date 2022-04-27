@@ -67,6 +67,9 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
+	@Value("${oidc.google.iss:https://accounts.google.com}")
+	private String googleIss;
+
 	// Static Client for gitlab
 	@Value("${oidc.gitlab.clientid}")
 	private String gitlabClientId;
@@ -205,14 +208,14 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
-		if (!Strings.isNullOrEmpty(adminGroup)) {
-			// use gitlab group for admin access
-			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(adminGroup, adminIss));
-		} else {
+		if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
 			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 			//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
 			//       Any users of a specific domain (fintechlabs.io)
 			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
+		} else if (!Strings.isNullOrEmpty(adminGroup)) {
+			// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure
+			authenticationProvider.setAuthoritiesMapper(new GroupsAdminAuthoritiesMapper(adminGroup, adminIss));
 		}
 
 		return authenticationProvider;
