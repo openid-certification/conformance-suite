@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 public class AddBookingDateParameters extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url"})
+	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
 	@PostEnvironment(strings = "base_resource_url")
 
 	public Environment evaluate(Environment env){
@@ -25,7 +25,8 @@ public class AddBookingDateParameters extends AbstractCondition {
 		LocalDateTime toDate = LocalDateTime.now().plusMonths(12);
 		String toDateF = toDate.format(dateFormat);
 
-		var url = String.format(request + "/291e5a29-49ed-401f-a583-193caa7aceee/transactions?fromBookingDate=%s&toBookingDate=%s",fromDateF, toDateF);
+		String accountId = env.getString("accountId");
+		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,fromDateF, toDateF);
 		log("Added fromBookingDate and toBookingDate query parameters to URL: " + url);
 
 		env.putString("base_resource_url", url);
