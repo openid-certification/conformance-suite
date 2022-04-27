@@ -147,11 +147,13 @@ public class FAPI2BaselineID2DpopNegativeTests extends AbstractFAPI2BaselineID2S
 		// 12.2 confirm that the public key to which the access token is bound matches the public key from the DPoP proof.
 		// FIXME
 
-		// try proof with unknown values in header/body
+		// try proof with unknown values in header/body (should succeed)
 		// FIXME
 
 		// Servers SHOULD employ Syntax-Based Normalization and Scheme-Based Normalization in accordance with Section 6.2.2. and Section 6.2.3. of [RFC3986] before comparing the htu claim.¶
 		// FIXME (only a 'should' so try de-normalizing url, maybe add port number to the real url (https://foo:443/...) and only warn if it fails)
+
+		// FIXME try without a dpop proof
 
 		// This is a final sanity check to make sure that all the above tests failed because of the invalid dpop proofs,
 		// and not because the access token had stopped working for some reason etc.
