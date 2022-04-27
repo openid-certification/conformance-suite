@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import java.time.Duration;
@@ -12,23 +13,25 @@ import java.time.format.DateTimeFormatter;
 
 public class AddBookingDateParameters extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = "resource_endpoint_response" )
+	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url"})
+	@PostEnvironment(strings = "base_resource_url")
+
 	public Environment evaluate(Environment env){
-		String request = env.getString("resource_endpoint_response");
-		JsonObject consent = new JsonParser().parse(request).getAsJsonObject();
-		JsonArray data = consent.getAsJsonArray("data");
-		var dataElement = data.get(0);
-		JsonObject dataObject = dataElement.getAsJsonObject();
+		String request = env.getString("base_resource_url");
 
 		LocalDateTime fromDate = LocalDateTime.now();
-		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss");
+		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String fromDateF = fromDate.format(dateFormat);
 		LocalDateTime toDate = LocalDateTime.now().plusMonths(12);
 		String toDateF = toDate.format(dateFormat);
 
-		dataObject.addProperty("fromBookingDate",fromDateF);
-		dataObject.addProperty("toBookingDate", toDateF);
-		log("Added fromBookingDate and toBookingDate query parameters " + data);
+		var url = String.format(request + "/291e5a29-49ed-401f-a583-193caa7aceee/transactions?fromBookingDate=%s&toBookingDate=%s",fromDateF, toDateF);
+		log("Added fromBookingDate and toBookingDate query parameters to URL: " + url);
+
+		env.putString("base_resource_url", url);
+
+		String data = env.getString("resource_endpoint_response");
+		log("Returned Transactions: " + data);
 
 		Duration duration = Duration.between(fromDate, toDate);
 		var days = duration.toDays();
