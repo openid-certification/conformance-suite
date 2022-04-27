@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -597,32 +598,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
 
-			// TODO: move this to an extractor?
-			String clientCert = env.getString("mutual_tls_authentication", "cert");
-			String clientKey = env.getString("mutual_tls_authentication", "key");
-			String clientCa = env.getString("mutual_tls_authentication", "ca");
-
-			byte[] certBytes = Base64.getDecoder().decode(clientCert);
-			byte[] keyBytes = Base64.getDecoder().decode(clientKey);
-
-			X509Certificate cert = generateCertificateFromDER(certBytes);
-			RSAPrivateKey key = generatePrivateKeyFromDER(keyBytes);
-
-			ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
-			if (clientCa != null) {
-				byte[] caBytes = Base64.getDecoder().decode(clientCa);
-				chain.addAll(generateCertificateChainFromDER(caBytes));
-			}
-
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			keystore.load(null);
-			keystore.setCertificateEntry("cert-alias", cert);
-			keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
-
-			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			keyManagerFactory.init(keystore, "changeit".toCharArray());
-
-			km = keyManagerFactory.getKeyManagers();
+			km = MtlsKeystoreBuilder.configureMtls(env);
 
 		}
 
@@ -748,32 +724,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			socket = new Socket(InetAddress.getByName(targetHost), targetPort);
 		}
 		return socket;
-	}
-
-	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-
-		KeyFactory factory = KeyFactory.getInstance("RSA");
-
-		return (RSAPrivateKey) factory.generatePrivate(spec);
-	}
-
-	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
-	}
-
-	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		ArrayList<X509Certificate> chain = new ArrayList<>();
-		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
-		while (in.available() > 0) {
-			chain.add((X509Certificate) factory.generateCertificate(in));
-		}
-
-		return chain;
 	}
 
 	protected JsonObject convertResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
