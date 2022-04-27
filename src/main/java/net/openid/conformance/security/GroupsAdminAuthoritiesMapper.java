@@ -2,6 +2,8 @@ package net.openid.conformance.security;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -19,10 +21,10 @@ import java.util.Set;
 
 /**
  * Simple mapper that adds ROLE_USER to the authorities map for all queries,
- * plus adds ROLE_ADMIN if the userInfo 'groups' member (provided by gitlab) contains a specific group name.
+ * plus adds ROLE_ADMIN if the userInfo or id_token 'groups' member (provided by gitlab or Azure) contains a specific group name.
  */
-public class GitlabAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-	private static final Logger logger = LoggerFactory.getLogger(GitlabAdminAuthoritiesMapper.class);
+public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
+	private static final Logger logger = LoggerFactory.getLogger(GroupsAdminAuthoritiesMapper.class);
 
 	private String ADMIN_GROUP;
 
@@ -37,10 +39,17 @@ public class GitlabAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 			JWTClaimsSet claims = idToken.getJWTClaimsSet();
 			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
 			out.add(authority);
-			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-				&& userInfo.getSource().has("groups"))
+			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER))
 			{
-				JsonElement groupsEl = userInfo.getSource().get("groups");
+				JsonElement groupsEl = null;
+				if (userInfo != null) {
+					groupsEl = userInfo.getSource().get("groups");
+				}
+				if (groupsEl == null) {
+					// if not in userinfo, check in id_token instead (azure can only put it here)
+					JsonObject idTokenClaims = JsonParser.parseString(claims.toString()).getAsJsonObject();
+					groupsEl = idTokenClaims.get("groups");
+				}
 				if (groupsEl.isJsonArray()) {
 					JsonArray groups = (JsonArray) groupsEl;
 					JsonElement adminGroup = new JsonPrimitive(ADMIN_GROUP);
@@ -56,7 +65,7 @@ public class GitlabAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 		return out;
 	}
 
-	public GitlabAdminAuthoritiesMapper(String adminGroup, String adminIss) {
+	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss) {
 
 		this.ADMIN_GROUP = adminGroup;
 		this.ADMIN_ISSUER = adminIss;
