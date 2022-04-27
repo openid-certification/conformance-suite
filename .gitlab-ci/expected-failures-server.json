@@ -152,5 +152,16 @@
         "condition": "EnsureIdTokenContainsRequestedClaims",
         "expected-result": "failure",
         "comment": "The RP tests currently don't return the required identity claims"
+    },
+    {
+        "test-name": "fapi2-baseline-id2-dpop-negative-tests",
+        "variant": {
+            "sender_constrain": "dpop"
+        },
+        "configuration-filename": "authlete-*.json",
+        "current-block": "Try DPoP proof where 'iat' is one hour in the past",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "failure",
+        "comment": "Authlete test system isn't currently making this check"
     }
 ]
