@@ -31,7 +31,8 @@ public class PixSchedulingTestPlan  implements TestPlan {
 					PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent.class,
 					PixSchedulingPatchHappyPathRevokedByUserTestModule.class,
 					PixSchedulingPatchHappyPathRevokedByTppTestModule.class,
-					PixSchedulingPatchConsentsIncorrectStatusTestModule.class
+					PixSchedulingPatchConsentsIncorrectStatusTestModule.class,
+					PixSchedulingPatchConsentsMissingLoggedUserTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
