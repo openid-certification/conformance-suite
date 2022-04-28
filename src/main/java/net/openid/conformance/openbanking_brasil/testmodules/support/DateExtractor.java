@@ -33,8 +33,6 @@ public class DateExtractor extends AbstractCondition {
 		String accountId = env.getString("accountId");
 		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,transactionDate, transactionDate);
 		logSuccess("Added fromBookingDate and toBookingDate query parameters " + url);
-
-		env.putString("base_resource_url", url);
 		log("Returned Transactions: " + entityString);
 
 		return env;
