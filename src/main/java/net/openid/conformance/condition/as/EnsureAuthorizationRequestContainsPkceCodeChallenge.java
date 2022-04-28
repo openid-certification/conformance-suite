@@ -16,10 +16,10 @@ public class EnsureAuthorizationRequestContainsPkceCodeChallenge extends Abstrac
 		String codeChallengeMethod = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.CODE_CHALLENGE_METHOD);
 
 		if (Strings.isNullOrEmpty(codeChallenge)) {
-			throw error("Missing required code_challenge parameter. PKCE is required when using PAR.");
+			throw error("Missing required code_challenge parameter.");
 		}
 		if (Strings.isNullOrEmpty(codeChallengeMethod)) {
-			throw error("Missing required code_challenge_method parameter. PKCE is required when using PAR.");
+			throw error("Missing required code_challenge_method parameter.");
 		}
 		if (!"S256".equals(codeChallengeMethod)) {
 			throw error("S256 is required for PKCE.", args("code_challenge_method", codeChallengeMethod));
