@@ -243,8 +243,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	// Controls which endpoints we should expose to the client
 	protected FAPI2ID2OPProfile profile;
 
-	protected boolean isPar = true;
-
 	protected FAPIResponseMode responseMode;
 
 	protected ClientAuthType clientAuthType;
@@ -339,9 +337,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
-		if(isPar) {
-			call(sequence(AddPARToServerConfiguration.class));
-		}
+		call(sequence(AddPARToServerConfiguration.class));
 
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
@@ -504,7 +500,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && isPar) {
+		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
@@ -551,7 +547,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return userinfoEndpoint(requestId);
-		} else if (path.equals("par") && isPar) {
+		} else if (path.equals("par")) {
 			return parEndpoint(requestId);
 		}
 		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
@@ -1102,11 +1098,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(isPar) {
-			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		} else {
-			throw new TestFailureException(getId(), "Only PAR requests are supported.");
-		}
+		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
@@ -1182,21 +1174,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(isPar) {
-			if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
-				callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-					"FAPI1-ADV-5.2.3-16");
-			}
-		} else {
-			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
-			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
-				"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
-			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
-				"OIDCC-6.1", "OIDCC-6.2");
-			if(responseMode!=FAPIResponseMode.JARM) {
-				callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
-					"OIDCC-6.1", "OIDCC-6.2");
-			}
+		if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
+				"FAPI1-ADV-5.2.3-16");
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
