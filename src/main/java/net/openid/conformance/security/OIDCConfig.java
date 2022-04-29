@@ -207,14 +207,14 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
-		if (adminIss.equals(gitlabIss) && !Strings.isNullOrEmpty(adminGroup)) {
-			// use gitlab group for admin access
-			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(adminGroup, adminIss));
-		} else if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
+		if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
 			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 			// Google account's userInfo. hd = Hosted Domain. Use this to filter to
 			// any users of a specific domain
 			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
+		} else if (!Strings.isNullOrEmpty(adminGroup)) {
+			// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
+			authenticationProvider.setAuthoritiesMapper(new GroupsAdminAuthoritiesMapper(adminGroup, adminIss));
 		}
 
 		return authenticationProvider;
