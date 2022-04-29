@@ -3,7 +3,6 @@ package net.openid.conformance.openid;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
@@ -13,10 +12,12 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndp
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
@@ -25,7 +26,6 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesS
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -148,7 +148,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		}
 
-		call(condition(OIDCCCheckDiscEndpointScopesSupported.class)
+		call(condition(CheckDiscEndpointScopesSupportedContainsOpenId.class)
 				.skipIfElementMissing("server", "scopes_supported")
 				.onFail(Condition.ConditionResult.FAILURE)
 				.onSkip(Condition.ConditionResult.WARNING)

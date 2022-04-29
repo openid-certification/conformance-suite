@@ -20,6 +20,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 		String idToken = env.getString("id_token");
 		String refreshToken = env.getString("refresh_token");
 		String scope = env.getString("scope");
+		String accessTokenExpiration = env.getString("access_token_expiration");
 
 		if (Strings.isNullOrEmpty(accessToken) || Strings.isNullOrEmpty(tokenType)) {
 			throw error("Missing required access_token or token_type");
@@ -40,6 +41,10 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 
 		if (!Strings.isNullOrEmpty(scope)) {
 			tokenEndpointResponse.addProperty("scope", scope);
+		}
+
+		if (!Strings.isNullOrEmpty(accessTokenExpiration)) {
+			tokenEndpointResponse.addProperty("expires_in", Integer.parseInt(accessTokenExpiration));
 		}
 
 		env.putObject("token_endpoint_response", tokenEndpointResponse);

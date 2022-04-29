@@ -2,13 +2,13 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CreatePlainCodeChallenge;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPlainPkceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-par-plain-pkce-rejected",
@@ -53,8 +53,7 @@ public class FAPI2BaselineID2PAREnsurePlainPKCERejected extends AbstractFAPI2Bas
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

@@ -34,7 +34,7 @@ public class OIDCCConfigTestPlan implements TestPlan {
 					// CheckEndpoint() included in OIDCCDiscoveryEndpointVerification, CheckDiscEndpointUserinfoEndpoint
 					// OP-Discovery-jwks_uri included in OIDCCDiscoveryEndpointVerification, CheckJwksUri
 					// OP-Discovery-JWKs - included in OIDCCDiscoveryEndpointVerification, ValidateServerJWKs
-					// CheckScopeSupport() - included in OIDCCDiscoveryEndpointVerification, OIDCCCheckDiscEndpointScopesSupported
+					// CheckScopeSupport() - included in OIDCCDiscoveryEndpointVerification, CheckDiscEndpointScopesSupportedContainsOpenId
 					// ProviderConfigurationResponse.verify() - included in OIDCCDiscoveryEndpointVerification, OIDCCCheckDiscEndpointResponseTypesSupported
 					// ProviderConfigurationResponse.verify() - included in OIDCCDiscoveryEndpointVerification, OIDCCCheckDiscEndpointSubjectTypesSupported
 					// ProviderConfigurationResponse.verify() - included in OIDCCDiscoveryEndpointVerification, OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported

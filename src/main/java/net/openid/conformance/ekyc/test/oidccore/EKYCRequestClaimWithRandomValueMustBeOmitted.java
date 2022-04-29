@@ -1,7 +1,8 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallUserInfoEndpoint;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.ekyc.condition.client.AddClaimWithRandomValueToAuthorizationEndpointRequest;
@@ -44,11 +45,11 @@ public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTe
 	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
-		callAndStopOnFailure(CallProtectedResource.class);
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndStopOnFailure(CallUserInfoEndpoint.class);
+		call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		env.putString("userinfo_endpoint_response", env.getString("resource_endpoint_response"));
 		callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
 
 		callAndContinueOnFailure(EnsureUserinfoDoesNotContainVerifiedClaims.class,  Condition.ConditionResult.FAILURE, "IA-7.7.3");

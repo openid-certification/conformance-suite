@@ -64,6 +64,8 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${oidc.redirecturi}")
 	private String redirectURI;
 
+	@Value("${oidc.google.iss:https://accounts.google.com}")
+	private String googleIss;
 
 	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
@@ -205,13 +207,13 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationProvider configureOIDCAuthenticationProvider() {
 		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
 
-		if (!Strings.isNullOrEmpty(adminGroup)) {
+		if (adminIss.equals(gitlabIss) && !Strings.isNullOrEmpty(adminGroup)) {
 			// use gitlab group for admin access
 			authenticationProvider.setAuthoritiesMapper(new GitlabAdminAuthoritiesMapper(adminGroup, adminIss));
-		} else {
+		} else if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
 			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-			//       Google account's userInfo. hd = Hosted Domain. Use this to filter to
-			//       Any users of a specific domain (fintechlabs.io)
+			// Google account's userInfo. hd = Hosted Domain. Use this to filter to
+			// any users of a specific domain
 			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
 		}
 

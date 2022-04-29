@@ -116,7 +116,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			if (brazilPayments) {
+			if (brazilPayments.isTrue()) {
 				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
 				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
@@ -188,7 +188,7 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 
-		if (!jarm) {
+		if (!jarm.isTrue()) {
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
 
 			// save the id_token returned from the authorization endpoint

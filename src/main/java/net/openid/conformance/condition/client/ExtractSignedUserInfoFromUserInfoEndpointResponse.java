@@ -13,17 +13,17 @@ import java.util.List;
 
 public class ExtractSignedUserInfoFromUserInfoEndpointResponse extends AbstractExtractJWT {
 
-	public static final String USERINFO_ENDPOINT_RESPONSE = "userinfo_endpoint_response";
+	private static final String USERINFO_ENDPOINT_RESPONSE = "userinfo_endpoint_response_full";
 
 	@Override
-	@PreEnvironment(strings = USERINFO_ENDPOINT_RESPONSE)
+	@PreEnvironment(required = USERINFO_ENDPOINT_RESPONSE)
 	@PostEnvironment(required = { "userinfo", "userinfo_object" } )
 	public Environment evaluate(Environment env) {
 
 		// Remove any old token
 		env.removeObject("userinfo");
 
-		String userInfoJws = env.getString(USERINFO_ENDPOINT_RESPONSE);
+		String userInfoJws = env.getString(USERINFO_ENDPOINT_RESPONSE, "body");
 
 		try {
 			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(userInfoJws);

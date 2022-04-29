@@ -4,28 +4,19 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
-import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
-import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
-import net.openid.conformance.condition.client.ValidateEncryptedIdTokenHasKid;
-import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
-import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.ValidateIdToken;
-import net.openid.conformance.condition.client.ValidateIdTokenNonce;
-import net.openid.conformance.condition.client.ValidateIdTokenSignature;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateRefreshTokenNotRotated;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-refresh-token",
@@ -67,11 +58,11 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 
 		//stop if no refresh token is returned
 		if(Strings.isNullOrEmpty(env.getString("refresh_token"))) {
-			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
+			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU) {
 				// this will always fail & stop
 				callAndStopOnFailure(CDRRefreshTokenRequiredWhenSharingDurationRequested.class, "CDR-requesting-sharing-duration");
 			}
-			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				// this will always fail & stop
 				callAndStopOnFailure(FAPIBrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-12");
 			}
@@ -83,7 +74,7 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
 		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop);
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
 		}

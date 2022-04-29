@@ -2,18 +2,14 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddIssToRequestObject;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
 
@@ -51,7 +47,7 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 			// This throws an exception: the test will stop here
 			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
 		}
-		if(isPar) {
+		if(isPar.isTrue()) {
 			allowPlainErrorResponseForJarm = true;
 		}
 	}
@@ -78,8 +74,7 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

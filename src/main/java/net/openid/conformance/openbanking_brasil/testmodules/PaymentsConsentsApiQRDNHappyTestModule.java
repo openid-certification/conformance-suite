@@ -91,7 +91,7 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 
 		createAuthorizationRequestObject();
 
-		if (isPar) {
+		if (isPar.isTrue()) {
 			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
