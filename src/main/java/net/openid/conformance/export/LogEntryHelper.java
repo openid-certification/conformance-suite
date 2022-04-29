@@ -39,6 +39,7 @@ public class LogEntryHelper {
 		specLinks.put("FAPI1-BASE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI1-ADV-", "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI2-BASE-", "https://openid.bitbucket.io/fapi/fapi-2_0-baseline.html#section."); // not a stable version - update to implementers draft 2 when available
+		specLinks.put("FAPI2-ADV-", "https://openid.bitbucket.io/fapi/fapi-2_0-advanced.html#section."); // not a stable version - update to implementers draft when available
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
 		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");
@@ -47,7 +48,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");
 		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
-		specLinks.put("OAuth2-iss", "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp#section.");
+		specLinks.put("OAuth2-iss", "ttps://tools.ietf.org/html/rfc9207#section-");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
 		specLinks.put("RFC6750-", "https://tools.ietf.org/html/rfc6750#section-");
@@ -59,6 +60,7 @@ public class LogEntryHelper {
 		specLinks.put("RFC7591-", "https://tools.ietf.org/html/rfc7591#section-");
 		specLinks.put("RFC7592-", "https://tools.ietf.org/html/rfc7592#section-");
 		specLinks.put("RFC7592A-", "https://tools.ietf.org/html/rfc7592#appendix-");
+		specLinks.put("RFC7636-", "https://tools.ietf.org/html/rfc7636#section-");
 		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");

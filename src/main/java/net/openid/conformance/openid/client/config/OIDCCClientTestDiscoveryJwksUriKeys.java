@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client.config;
 import net.openid.conformance.condition.as.AddRandomJwksUriToServerConfiguration;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import org.apache.commons.lang3.RandomStringUtils;
 
 
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 	displayName = "OIDCC: Relying party discovery test, jwks_uri support",
 	summary = "The client is expected to retrieve OpenID Provider Configuration Information " +
 		"and send a request to jwks_uri obtained from OP configuration." +
+		"The jwks_uri endpoint changes every execution and retrieving the configuration is a requirement." +
 		"Corresponds to rp-discovery-jwks_uri-keys test in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {
@@ -42,5 +44,20 @@ public class OIDCCClientTestDiscoveryJwksUriKeys extends AbstractOIDCCClientTest
 	@Override
 	protected String getJwksPath() {
 		return "jwks" + randomJwksUriSuffix;
+	}
+
+
+	@Override
+	protected void checkIfDiscoveryCalled(String path) {
+		if(!receivedDiscoveryRequest){
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path + " before the discovery endpoint call");
+		}
+	}
+
+	@Override
+	protected void checkIfJWKCalled(String path) {
+		if(!receivedJwksRequest){
+			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path + " before the jwks endpoint call");
+		}
 	}
 }

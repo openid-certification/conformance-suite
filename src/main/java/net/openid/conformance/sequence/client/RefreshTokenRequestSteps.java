@@ -12,6 +12,7 @@ import net.openid.conformance.condition.client.CheckTokenTypeIsBearer;
 import net.openid.conformance.condition.client.CheckTokenTypeIsDpop;
 import net.openid.conformance.condition.client.CompareIdTokenClaims;
 import net.openid.conformance.condition.client.CreateDpopClaims;
+import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
@@ -74,6 +75,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			// we generate a new key here, to check the server handles that correctly - so this isn't suitable for
 			// public clients where the refresh token is bound to the dpop key
 			callAndStopOnFailure(GenerateDpopKey.class);
+			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 			callAndStopOnFailure(SignDpopProof.class);

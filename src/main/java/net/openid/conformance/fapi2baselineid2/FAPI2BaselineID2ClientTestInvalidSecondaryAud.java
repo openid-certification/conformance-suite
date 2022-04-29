@@ -14,8 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
 

@@ -18,7 +18,9 @@ public class ValidateUserInfoStandardClaims extends AbstractValidateOpenIdStanda
 
 		JsonObject userInfo = env.getObject("userinfo");
 
-		if (new ObjectValidator(null, STANDARD_CLAIMS).isValid(userInfo)) {
+		boolean result = new ObjectValidator(null, STANDARD_CLAIMS).isValid(userInfo);
+		env.putObject("userinfo_unknown_claims", unknownClaims);
+		if (result) {
 			logSuccess("Userinfo is valid");
 		} else {
 			throw error("Userinfo is not valid");

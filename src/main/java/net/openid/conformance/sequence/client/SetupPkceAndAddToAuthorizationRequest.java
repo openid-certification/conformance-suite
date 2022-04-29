@@ -10,7 +10,7 @@ public class SetupPkceAndAddToAuthorizationRequest extends AbstractConditionSequ
     public void evaluate() {
         call(condition(CreateRandomCodeVerifier.class).requirement("RFC7636-4.1"));
         call(exec().exposeEnvironmentString("code_verifier"));
-        call(condition(CreateS256CodeChallenge.class).requirement("RFC7637-4.2"));
+        call(condition(CreateS256CodeChallenge.class).requirement("RFC7636-4.2"));
         call(exec()
             .exposeEnvironmentString("code_challenge")
             .exposeEnvironmentString("code_challenge_method"));

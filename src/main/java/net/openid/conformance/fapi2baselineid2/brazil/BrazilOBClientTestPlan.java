@@ -1,40 +1,18 @@
 package net.openid.conformance.fapi2baselineid2.brazil;
 
 
+import net.openid.conformance.fapi2baselineid2.FAPI2AdvancedID1ClientTestPlan;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2BrazilClientDCRHappyPathTest;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientRefreshTokenTest;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTest;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestEncryptedIdToken;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestIatIsWeekInPast;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidAlternateAlg;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidAud;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidCHash;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidExpiredExp;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidIss;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingAud;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingExp;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingIss;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingNonce;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidMissingSHash;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidNonce;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidNullAlg;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSHash;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSecondaryAud;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidSignature;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestValidAudAsArray;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId;
+import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -90,48 +68,19 @@ public class BrazilOBClientTestPlan implements TestPlan {
 	}
 
 	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
-		List<Class<? extends TestModule>> byValueModules = List.of(
-			FAPI2BaselineID2ClientTest.class,
-			FAPI2BaselineID2ClientTestEncryptedIdToken.class,
-			FAPI2BaselineID2ClientTestIdTokenEncryptedUsingRSA15.class,
-			FAPI2BaselineID2ClientTestInvalidSHash.class,
-			FAPI2BaselineID2ClientTestInvalidCHash.class,
-			FAPI2BaselineID2ClientTestInvalidNonce.class,
-			FAPI2BaselineID2ClientTestInvalidIss.class,
-			FAPI2BaselineID2ClientTestInvalidAud.class,
-			FAPI2BaselineID2ClientTestInvalidSecondaryAud.class,
-			FAPI2BaselineID2ClientTestInvalidSignature.class,
-			FAPI2BaselineID2ClientTestInvalidNullAlg.class,
-			FAPI2BaselineID2ClientTestInvalidAlternateAlg.class,
-			FAPI2BaselineID2ClientTestInvalidExpiredExp.class,
-			FAPI2BaselineID2ClientTestInvalidMissingExp.class,
-			FAPI2BaselineID2ClientTestIatIsWeekInPast.class,
-			FAPI2BaselineID2ClientTestInvalidMissingAud.class,
-			FAPI2BaselineID2ClientTestInvalidMissingIss.class,
-			FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
-			FAPI2BaselineID2ClientTestInvalidMissingSHash.class,
-			FAPI2BaselineID2ClientTestValidAudAsArray.class,
-			FAPI2BaselineID2ClientTestNoScopeInTokenEndpointResponse.class,
-			FAPI2BaselineID2ClientTestInvalidScopeInTokenEndpointResponse.class,
-			FAPI2BaselineID2ClientRefreshTokenTest.class,
-			FAPI2BaselineID2BrazilClientDCRHappyPathTest.class
-		);
-		List<Class<? extends TestModule>> parModules = new LinkedList<>();
-		parModules.addAll(byValueModules);
-		parModules.add(FAPI2BaselineID2ClientTestUnencryptedRequestObjectWithPAR.class);
+		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2AdvancedID1ClientTestPlan.testModules);
 
-		List<TestPlan.Variant> variantListByValue = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
-			new TestPlan.Variant(FAPIAuthRequestMethod.class, "by_value")
-		);
-		List<TestPlan.Variant> variantListPushed = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
-			new TestPlan.Variant(FAPIAuthRequestMethod.class, "pushed")
+		// this is marked with VariantNotApplicable for Brazil, we must remove it otherwise we get a startup error
+		modules.remove(FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class);
+
+		modules.add(FAPI2BaselineID2BrazilClientDCRHappyPathTest.class);
+
+		List<TestPlan.Variant> brazilVariant = List.of(
+			new TestPlan.Variant(FAPI2ID2OPProfile.class, "openbanking_brazil")
 		);
 
 		return List.of(
-			new TestPlan.ModuleListEntry(byValueModules, variantListByValue),
-			new TestPlan.ModuleListEntry(parModules, variantListPushed)
+			new TestPlan.ModuleListEntry(modules, brazilVariant)
 		);
 
 	}

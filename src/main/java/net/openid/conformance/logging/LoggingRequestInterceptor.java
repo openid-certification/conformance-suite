@@ -61,6 +61,9 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		}
 		o.addProperty("msg", "HTTP response");
 		o.addProperty("http", "response");
+		if (response.bodyException != null) {
+			o.addProperty("exception_reading_body", response.bodyException.getMessage());
+		}
 		log.log(source, o);
 	}
 

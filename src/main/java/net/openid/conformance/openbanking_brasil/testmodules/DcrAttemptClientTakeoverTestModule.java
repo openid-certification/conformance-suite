@@ -31,7 +31,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"directory.client_id",
 		"directory2.client_id",
 		"client2.jwks",
-		"client2.org_jwks",
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
@@ -39,6 +38,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 )
 // hide various config values from the FAPI base module we don't need
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment",

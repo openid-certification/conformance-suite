@@ -1,15 +1,15 @@
-This is the main repository for the Open Banking Brasil conformance suite, 
+This is the main repository for the Open Banking Brasil conformance suite,
 which covers Functional APIs published at https://openbanking-brasil.github.io/areadesenvolvedor/
 
-The project is located at https://gitlab.com/obb1/certification/ 
+The project is located at https://gitlab.com/obb1/certification/
 and all issues / merge requests should be submitted there.
 
-See the wiki for more info: https://gitlab.com/obb1/certification/-/wikis/home 
+See the wiki for more info: https://gitlab.com/obb1/certification/-/wikis/home
 
 Note that this Conformance Suite shares its core code with the OpenID Foundation's
 FAPI Conformance Suite, which is available at https://gitlab.com/openid/conformance-suite
 
-Many operations are also shared, meaning those instructions will be interchangeable. 
+Many operations are also shared, meaning those instructions will be interchangeable.
 https://gitlab.com/openid/conformance-suite/wikis/home
 
 For user instructions for testing please see:
