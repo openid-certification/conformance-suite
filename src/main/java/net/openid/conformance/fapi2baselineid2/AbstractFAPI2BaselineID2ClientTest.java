@@ -278,6 +278,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void addCustomSignatureOfIdToken(){}
 
+	protected void addCustomValuesToAuthorizationResponse(){};
+
 	protected void endTestIfRequiredParametersAreMissing(){}
 
 	@Override
@@ -1247,6 +1249,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-BASE-4.3.1-13");
+
+		addCustomValuesToAuthorizationResponse();
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
