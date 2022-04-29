@@ -906,8 +906,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId)
-			.mapKey("incoming_request", requestId));
+			.mapKey("token_endpoint_request", requestId));
+
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			call(exec().mapKey("incoming_request", requestId));
+		}
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
