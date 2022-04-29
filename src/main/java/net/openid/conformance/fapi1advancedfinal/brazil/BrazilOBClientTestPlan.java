@@ -20,7 +20,6 @@ import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInv
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidNonce;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidNullAlg;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidSHash;
-import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidSecondaryAud;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestInvalidSignature;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse;
@@ -112,7 +111,6 @@ public class BrazilOBClientTestPlan implements TestPlan {
 			FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
 			FAPI1AdvancedFinalClientTestValidAudAsArray.class,
 			FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
-			FAPI1AdvancedFinalClientTestInvalidScopeInTokenEndpointResponse.class,
 			FAPI1AdvancedFinalClientRefreshTokenTest.class,
 			FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class
 		);
