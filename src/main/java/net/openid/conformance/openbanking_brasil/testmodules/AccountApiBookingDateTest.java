@@ -2,8 +2,6 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
@@ -17,9 +15,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Creates a consent with only ACCOUNTS permissions\n" +
 		"\u2022 201 code and successful redirect\n" +
 		"\u2022 Using the consent created, call the Accounts API\n" +
-		"\u2022 Call GET Accounts Transactions API, send headers fromBookingDate and toBookingDate using the max period (12 months from exisiting date)\n" +
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using the max period (12 months from exisiting date)\n" +
 		"\u2022 Expect success, fetch a transaction, get the transactionDate\n" +
-		"\u2022 Call GET Accounts Transactions API, send headers fromBookingDate and toBookingDate to be the transactionDate",
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate to be the transactionDate",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -51,16 +49,14 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 		callAndContinueOnFailure(AccountIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
-		preCallProtectedResource("Fetch Account balance");
-		callAndContinueOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 		callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-172");
-		eventLog.startBlock("Add booking date headers 1 year apart");
-		keepHeaders = true;
-		callAndContinueOnFailure(AddBookingDateHeaders.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions");
-		eventLog.startBlock("Set booking date headers as transaction date");
+		eventLog.startBlock("Add booking date query parameters 1 year apart");
+		keepHeaders = true;
+		callAndContinueOnFailure(AddBookingDateParameters.class, Condition.ConditionResult.FAILURE);
+		preCallProtectedResource("Fetch Account transactions");
+		eventLog.startBlock("Set booking date query parameters as transaction date");
 		callAndContinueOnFailure(DateExtractor.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions");
 		keepHeaders = false;
