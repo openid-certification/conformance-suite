@@ -2,10 +2,10 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CreatePlainCodeChallenge;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
-import net.openid.conformance.condition.client.ExpectPkceMissingErrorPage;
 import net.openid.conformance.condition.client.ExpectPlainPkceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -58,8 +58,7 @@ public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1A
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

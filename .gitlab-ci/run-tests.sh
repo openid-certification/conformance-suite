@@ -22,15 +22,6 @@ echo
 # 3. do "source demo-environ.sh" (or whichever environment you want to run against)
 # (to run against your local deployment, just don't do the 'source' command)
 
-export TEST_CONFIG_ALIAS='test/a/fintech-clienttest/'
-export OIDCC_TEST_CONFIG_ALIAS='test/a/openidfoundationinternal-clienttest/'
-export ACCOUNTS='test-mtls/a/fintech-clienttest/open-banking/v1.1/accounts'
-export ACCOUNT_REQUEST='test/a/fintech-clienttest/open-banking/v1.1/account-requests'
-export BRAZIL_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/consents/v1/consents'
-export BRAZIL_PAYMENTS_CONSENT_REQUEST='test-mtls/a/fintech-clienttest/payments/v1/consents'
-export BRAZIL_ACCOUNTS_ENDPOINT='test-mtls/a/fintech-clienttest/accounts/v1/accounts'
-export BRAZIL_PAYMENT_INIT_ENDPOINT='test-mtls/a/fintech-clienttest/payments/v1/pix/payments'
-
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
@@ -72,12 +63,14 @@ makeClientTest() {
 }
 
 makeServerTest() {
-    # FAPI 2 baseline
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
-    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=plain_response][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    # FAPI2 baseline
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
+    TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+
+    # FAPI2 advanced
+    TESTS="${TESTS} fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
     # We don't have access to a server that supports 'signed_non_repudiation' yet
-    #TESTS="${TESTS} fapi2-baseline-id2-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
 
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
@@ -234,6 +227,36 @@ makeServerTest() {
     TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-accounts-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-accounts.json"
     # Brazil DCR payments (private_key_jwt)
     TESTS="${TESTS} fapi1-advanced-final-brazil-client-test-plan[client_auth_type=private_key_jwt][fapi_jarm_type=oidc][fapi_response_mode=plain_response]:fapi1-advanced-final-client-brazildcr-happypath-test[fapi_auth_request_method=by_value][fapi_profile=openbanking_brazil]{fapi1-advanced-final-brazil-dcr-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_response_mode=plain_response]:fapi1-advanced-final-brazildcr-happy-flow[fapi_profile=openbanking_brazil]}../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-op-test-config-payments-dcr.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json"
+
+    # FAPI2 Advanced OP against RP
+      # plain_fapi, signed_non_repudiation, plain_response
+         # client_auth=private_key, sender_constrain=mtls
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+         # client_auth=private_key, sender_constrain=dpop
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+
+        # client_auth=mtls, sender_constrain=mtls
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+        # client_auth=mtls, sender_constrain=dpop
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+
+      # idmvp, signed_non_repudiation, plain_response, mtls - idmvp discovery+happyflow
+    # idmvp discovery+happyflow
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=idmvp][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=idmvp][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config-idmvp.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config-idmvp.json"
+    # idmvp returning identity claims
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=idmvp][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=idmvp][fapi_response_mode=plain_response]:fapi2-baseline-id2-idmvp-test-claims-parameter-idtoken-identity-claims}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config-idmvp.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config-idmvp.json"
+
+      # FAPI2 baseline OP against RP
+      # These don't use the baseline test plans as currently the run-test-plan.py syntax for selecting individual models doesn't work for these plans, it ends up specifying extra unnecessary variants when scheduling the test
+         # client_auth=private_key, sender_constrain=mtls
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+         # client_auth=private_key, sender_constrain=dpop
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][fapi_jarm_type=oidc][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+        # client_auth=mtls, sender_constrain=mtls
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=mtls][fapi_request_method=unsigned][fapi_jarm_type=oidc][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=mtls][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+        # client_auth=mtls, sender_constrain=dpop
+    TESTS="${TESTS} fapi2-advanced-id1-client-test-plan[client_auth_type=mtls][fapi_request_method=unsigned][fapi_jarm_type=oidc][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-client-test-happy-path{fapi2-advanced-id1-test-plan[client_auth_type=mtls][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-baseline-id2-discovery-end-point-verification,fapi2-baseline-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
+
 
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"
     TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=private_key_jwt] authlete-fapi-r-private-key.json"

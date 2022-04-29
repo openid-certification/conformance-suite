@@ -15,7 +15,6 @@ import net.openid.conformance.condition.client.ExpectRequestObjectMissingStateEr
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.VerifyNoSHash;
@@ -81,7 +80,7 @@ public abstract class AbstractFAPI1AdvancedFinalEnsureRequestObjectWithoutState 
 
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		if (!jarm) {
+		if (!jarm.isTrue()) {
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
 
 			// save the id_token returned from the authorization endpoint

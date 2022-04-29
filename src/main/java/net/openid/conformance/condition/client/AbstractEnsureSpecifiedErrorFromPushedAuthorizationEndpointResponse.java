@@ -19,19 +19,16 @@ public abstract class AbstractEnsureSpecifiedErrorFromPushedAuthorizationEndpoin
 	}
 
 	@Override
-	@PreEnvironment(required = {"pushed_authorization_endpoint_response",
-		"pushed_authorization_endpoint_response_headers"})
+	@PreEnvironment(required = {CallPAREndpoint.RESPONSE_KEY})
 	public Environment evaluate(Environment env) {
 
-		//if response code is not 400 then throw error
-		Integer status = env.getInteger("pushed_authorization_endpoint_response_http_status");
-
+		Integer status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (status != getExpectedResponseCode()) {
 			throw error("Invalid pushed authorization request endpoint response http status code",
 				args("expected", getExpectedResponseCode(), "actual", status));
 		}
 
-		String error = env.getString("pushed_authorization_endpoint_response", "error");
+		String error = env.getString(CallPAREndpoint.RESPONSE_KEY, "body_json.error");
 		List<String> expected = Arrays.asList(getExpectedError());
 
 		if (Strings.isNullOrEmpty(error)) {

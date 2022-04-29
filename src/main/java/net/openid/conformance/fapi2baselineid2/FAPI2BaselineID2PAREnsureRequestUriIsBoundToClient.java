@@ -38,6 +38,12 @@ public class FAPI2BaselineID2PAREnsureRequestUriIsBoundToClient extends Abstract
 	}
 
 	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void performPARRedirectWithRequestUri() {
 		eventLog.startBlock("Attempting to send client2's clientId with request_uri to AS and expect it returns error in callback");
 

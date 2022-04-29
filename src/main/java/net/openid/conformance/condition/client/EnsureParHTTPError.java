@@ -11,10 +11,9 @@ public class EnsureParHTTPError extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer status = env.getInteger(key);
+		Integer status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (status == null) {
-			throw error("Integer '"+key + "' not found in environment");
+			throw error("PAR http status not found in environment");
 		}
 
 		if (status < 400 || status >= 600) {

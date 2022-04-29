@@ -8,110 +8,109 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
+import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddRequestObjectSigningAlgsPS256ES256ToServerConfiguration;
+import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
+import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
-import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
-import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
+import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
+import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
-import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectWasEncrypted;
-import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
-import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
+import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.EnsureMatchingClientId;
+import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
+import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
+import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
+import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
+import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
+import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
+import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
+import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
+import net.openid.conformance.condition.as.ExtractRequestedScopes;
+import net.openid.conformance.condition.as.ExtractServerSigningAlg;
+import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
+import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
-import net.openid.conformance.condition.as.FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM;
-import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilGenerateServerConfiguration;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
+import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
-import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
-import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
-import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
-import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
-import net.openid.conformance.condition.as.ValidateCodeVerifierWithS256;
-import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
-import net.openid.conformance.condition.as.ValidateRefreshToken;
-import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
-import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
-import net.openid.conformance.condition.as.jarm.SignJARMResponse;
-import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
-import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
-import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
-import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
-import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
-import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
-import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
-import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
-import net.openid.conformance.condition.as.ExtractRequestObject;
-import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
-import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
-import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
+import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
+import net.openid.conformance.condition.as.IdmvpAddClaimsSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.LoadServerJWKs;
-import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
+import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
+import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
+import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
+import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
+import net.openid.conformance.condition.as.jarm.SignJARMResponse;
+import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
+import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
+import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
+import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -124,25 +123,40 @@ import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestJtiIsUUIDv4;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
 import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate;
 import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromServerJwks;
+import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
+import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
+import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
+import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
-import net.openid.conformance.condition.rs.RequireBearerAccessToken;
-import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopAccessToken;
+import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
+import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -150,19 +164,22 @@ import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
-import net.openid.conformance.sequence.as.AddPlainFAPIToServerConfiguration;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
+import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
@@ -179,13 +196,17 @@ import javax.servlet.http.HttpSession;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPI1FinalOPProfile.class,
-	FAPIAuthRequestMethod.class,
+	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
-	FAPIJARMType.class
+	FAPIJARMType.class,
+	FAPI2AuthRequestMethod.class,
+	FAPI2SenderConstrainMethod.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
@@ -196,8 +217,12 @@ import javax.servlet.http.HttpSession;
 	"client2.id_token_encrypted_response_alg",
 	"client2.id_token_encrypted_response_enc",
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope",
+	"client2.scope"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+	"client.scope", // scope is always openid
 	"client2.scope"
 })
 public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestModule {
@@ -206,16 +231,19 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
 	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
 	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+	private Class<? extends Condition> generateSenderConstrainedAccessToken;
+	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
+	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
+	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	// Controls which endpoints we should expose to the client
-	protected FAPI1FinalOPProfile profile;
+	protected FAPI2ID2OPProfile profile;
 
-	protected FAPIAuthRequestMethod authRequestMethod;
+	protected boolean isPar = true;
 
 	protected FAPIResponseMode responseMode;
 
@@ -223,7 +251,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected FAPIJARMType jarmType;
 
+	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
+
+	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
+
 	protected boolean startingShutdown = false;
+
+	protected Boolean profileRequiresMtlsEverywhere;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -253,46 +287,66 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
-		profile = getVariant(FAPI1FinalOPProfile.class);
-		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
+		profile = getVariant(FAPI2ID2OPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		jarmType = getVariant(FAPIJARMType.class);
+		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
+		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
-			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
-			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
-			callAndStopOnFailure(FAPIBrazilGenerateServerConfiguration.class);
-		} else {
-			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
-			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
-		}
+		profileRequiresMtlsEverywhere =
+			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
+			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
+			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
+			profile == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
+
+		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
+		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
+		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-2"));
+		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-13"));
+		call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
+
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "IDMVP");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "IDMVP");
+			callAndStopOnFailure(IdmvpAddClaimsSupportedToServerConfiguration.class, "IDMVP");
+			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "IDMVP");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
 
-		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
 
-		if(configureAuthRequestMethodSteps!=null) {
-			call(sequence(configureAuthRequestMethodSteps));
+		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+			callAndStopOnFailure(AddRequestObjectSigningAlgsPS256ES256ToServerConfiguration.class);
+		}
+
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
+		} else if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
+		}
+
+		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		if(isPar) {
+			call(sequence(AddPARToServerConfiguration.class));
 		}
 
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		} else {
 			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
@@ -302,18 +356,16 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		exposeEnvString("issuer");
 
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
+		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
+			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
-		}
-
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
-			exposeMtlsPath("par_endpoint", "par");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -344,6 +396,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+	}
+
+	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
+	// used the second client. We may want to delete it and all the associated references
+	// to the second client if we find no use.
+	protected void configureSecondClient() {
 		eventLog.startBlock("Verify configuration of second client");
 		// extract second client
 		switchToSecondClient();
@@ -358,6 +416,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateClientConfiguration() {
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "IDMVP");
+		}
 	}
 
 
@@ -423,8 +484,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+			if (profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
 			} else {
 				return tokenEndpoint(requestId);
@@ -435,22 +496,25 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
+			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
+			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		} else if (path.equals("par") && isPar) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
+			if(profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
 			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection.");
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
 			}
 			return parEndpoint(requestId);
-		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
@@ -480,10 +544,15 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
-		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		} else if (path.equals("userinfo")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+			return userinfoEndpoint(requestId);
+		} else if (path.equals("par") && isPar) {
 			return parEndpoint(requestId);
 		}
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
@@ -513,12 +582,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
-		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
-		callAndContinueOnFailure(ExtractBearerAccessTokenFromHeader.class, Condition.ConditionResult.FAILURE,  "FAPI1-BASE-6.2.2-1");
+		senderConstrainTokenRequestHelper.checkResourceRequest();
 		if(useClientCredentialsAccessToken) {
-			callAndContinueOnFailure(RequireBearerClientCredentialsAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 		} else {
-			callAndContinueOnFailure(RequireBearerAccessToken.class, Condition.ConditionResult.FAILURE);
+			call(sequence(validateSenderConstrainedTokenSteps));
 		}
 		validateResourceEndpointHeaders();
 	}
@@ -703,14 +771,92 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
+
+	private abstract class SenderContrainTokenRequestHelper {
+		public abstract void checkTokenRequest();
+		public abstract void checkResourceRequest();
+	}
+
+	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkTokenRequest() {
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			call(sequence(PerformDpopProofTokenRequestChecks.class));
+		}
+
+		@Override
+		public void checkResourceRequest() {
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			// Need to also extract the DPoP Access token for resource requests
+			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+		}
+	}
+
+	private class MtlsTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkTokenRequest() {
+		}
+
+		@Override
+		public void checkResourceRequest() {
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		}
+	}
+
+	/**
+	 * Extracts and validates the information for DPOP token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainDpopTokenRequest(boolean isTokenRequest) {
+		callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+		if(isTokenRequest) {
+			call(sequence(PerformDpopProofTokenRequestChecks.class));
+		}
+		else {
+			// Need to also extract the DPoP Access token for resource requests
+			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+			call(sequence(PerformDpopProofResourceRequestChecks.class));
+		}
+	}
+
+	/**
+	 * Extracts and validates the information for MTLS token/resource requests
+	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
+	 *                       a request to the resource endpoint
+	 */
+	protected void checkSenderConstrainMtlsTokenRequest(boolean isTokenRequest) {
+		if(!isTokenRequest) {  // no need to do anything on access  token requests
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		}
+	}
+
+	protected void checkSenderConstrainTokenRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(true);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(true);
+		}
+	}
+
+	protected void checkSenderConstrainResourceRequest() {
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			checkSenderConstrainDpopTokenRequest(false);
+		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			checkSenderConstrainMtlsTokenRequest(false);
+		}
+	}
+
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if(clientAuthType == ClientAuthType.MTLS || profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			// there is no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
+		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
+			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
-			// The exception is Brazil, where a TLS client certificate must be presented to all endpoints in all cases.
 			checkMtlsCertificate();
 		}
 
@@ -725,7 +871,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void extractParEndpointRequest() {
-		callAndStopOnFailure(ExtractRequestObjectFromPAREndpointRequest.class, "PAR-2.1");
+		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
@@ -735,8 +881,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId));
 
 		authenticateParEndpointRequest(requestId);
+		setParAuthorizationEndpointRequestParamsForHttpMethod();
 		extractParEndpointRequest();
-		validateRequestObjectForPAREndpointRequest();
+
+		if(env.containsObject("authorization_request_object")) {
+			validateRequestObjectForPAREndpointRequest();
+		}
 
 		JsonObject parResponse = createPAREndpointResponse();
 		setStatus(Status.WAITING);
@@ -756,15 +906,18 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			call(exec().mapKey("token_endpoint_request", requestId));
+			checkMtlsCertificate();
+			call(exec().unmapKey("token_endpoint_request"));
+		}
 
-		callAndStopOnFailure(RequireBearerAccessToken.class);
+		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI1-BASE-5.2.3.1-1");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
 		}
 
@@ -774,7 +927,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		setStatus(Status.WAITING);
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
+			// for IDMVP we use the userinfo endpoint as the resource endpoint, so this is the end of the test
+			resourceEndpointCallComplete();
+		} else {
+			setStatus(Status.WAITING);
+		}
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 
@@ -795,11 +953,14 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId));
+			.mapKey("token_endpoint_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(sequence(validateClientAuthenticationSteps));
 
@@ -812,19 +973,21 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 
-		if (grantType.equals("authorization_code")) {
-			// we're doing the authorization code grant for user access
-			return authorizationCodeGrantType(requestId);
-		} else if (grantType.equals("client_credentials")) {
-			if( profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
-				// we're doing the client credentials grant for initial token access
-				return clientCredentialsGrantType(requestId);
-			} else if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-				return clientCredentialsGrantType(requestId);
-			}
-		} else if (grantType.equals("refresh_token")) {
-			return refreshTokenGrantType(requestId);
+		switch (grantType) {
+			case "authorization_code":
+				// we're doing the authorization code grant for user access
+				return authorizationCodeGrantType(requestId);
+			case "client_credentials":
+				if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+					// we're doing the client credentials grant for initial token access
+					return clientCredentialsGrantType(requestId);
+				} else if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+					return clientCredentialsGrantType(requestId);
+				}
+				break;
+			case "refresh_token":
+				return refreshTokenGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
@@ -848,12 +1011,17 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected Object clientCredentialsGrantType(String requestId) {
 
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		senderConstrainTokenRequestHelper.checkTokenRequest();
+		callAndStopOnFailure(generateSenderConstrainedAccessToken);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
-		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		} else  {
+			callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
@@ -868,14 +1036,13 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
+		senderConstrainTokenRequestHelper.checkTokenRequest();
 
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndStopOnFailure(ValidateCodeVerifierWithS256.class, "RFC7636-4.6", "FAPI1-ADV-5.2.3-15");
-		}
+		call(sequence(CheckPkceCodeVerifier.class));
 
 		issueAccessToken();
 
@@ -913,6 +1080,19 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 	}
 
+	/**
+	 * Saves the PAR authorization request params in case it's unsigned/unencrypted
+	 */
+	protected void setParAuthorizationEndpointRequestParamsForHttpMethod() {
+		String httpMethod = env.getString("par_endpoint_http_request", "method");
+		JsonObject httpRequestObj = env.getObject("par_endpoint_http_request");
+		if("POST".equals(httpMethod)) {
+			env.putObject("par_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP method '" + httpMethod + "' to par endpoint");
+		}
+	}
+
 	@UserFacing
 	protected Object authorizationEndpoint(String requestId) {
 
@@ -920,25 +1100,20 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+		if(isPar) {
 			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		}
-
-		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
-			callAndStopOnFailure(ExtractRequestObject.class, "FAPI1-ADV-5.2.2-10");
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(EnsureRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
-				callAndStopOnFailure(FAPIBrazilEnsureRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
-			}
+		} else {
+			throw new TestFailureException(getId(), "Only PAR requests are supported.");
 		}
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
-		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class);
+		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
 
 		endTestIfRequiredParametersAreMissing();
-
+		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-BASE-4.3.2-1");
+		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-BASE-4.3.2-5");
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
@@ -955,17 +1130,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
 		}
 
-		if(responseMode!=FAPIResponseMode.JARM && "yes".equals(isOpenIdScopeRequested)) {
-			//issueAccessToken();
-			issueIdToken(true);
-		}
-
 		/*
 		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
 			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
 				usuário na instituição transmissora dos dados.
 		 */
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
@@ -987,7 +1157,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(jarmType==FAPIJARMType.OIDC) {
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
 					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
 			} else {
@@ -1010,9 +1180,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(authRequestMethod==FAPIAuthRequestMethod.PUSHED) {
-			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-16");
+		if(isPar) {
+			if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+				callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
+					"FAPI1-ADV-5.2.3-16");
+			}
 		} else {
 			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
 			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
@@ -1026,7 +1198,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
@@ -1038,10 +1210,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
-		if(responseMode==FAPIResponseMode.JARM) {
-			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI1-ADV-5.2.2-2");
-		} else if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(EnsureResponseTypeIsCodeIdToken.class, "OIDCC-6.1", "FAPI1-ADV-5.2.2-1");
+		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
 
@@ -1062,7 +1231,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void issueAccessToken() {
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(generateSenderConstrainedAccessToken);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
@@ -1081,7 +1251,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
 		}
 
@@ -1104,7 +1274,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		addCustomValuesToIdToken();
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				FAPIBrazilAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		} else {
@@ -1136,11 +1306,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-BASE-4.3.1-13");
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(AddIdTokenToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-
-			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeFragment.class, "OIDCC-3.3.2.5");
+			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
 		}
 		if(responseMode==FAPIResponseMode.JARM) {
 			createJARMResponse();
@@ -1181,10 +1350,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		call(exec().startBlock("Account request endpoint")
 			.mapKey("incoming_request", requestId));
 
-		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+		senderConstrainTokenRequestHelper.checkResourceRequest();
 
-		callAndStopOnFailure(RequireBearerClientCredentialsAccessToken.class);
+		call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 
 		// TODO: should we clear the old headers?
 		validateResourceEndpointHeaders();
@@ -1215,7 +1383,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		checkMtlsCertificate();
+		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
 
 		call(exec().unmapKey("token_endpoint_request"));
 
@@ -1223,7 +1393,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		checkResourceEndpointRequest(false);
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
@@ -1264,45 +1434,58 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
 		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		//authorizationCodeGrantTypeProfileSteps = null;
-		//authorizationEndpointProfileSteps = null;
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "by_value")
-	public void setupAuthRequestMethodByValue() {
-		configureAuthRequestMethodSteps = null;
-	}
-
-	@VariantSetup(parameter = FAPIAuthRequestMethod.class, value = "pushed")
-	public void setupAuthRequestMethodPushed() {
-		configureAuthRequestMethodSteps = AddPARToServerConfiguration.class;
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
+	public void setupIdmvp() {
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
+		accountsEndpointProfileSteps = null;
 	}
 
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
 	public void setupResponseModePlain() {
-		configureResponseModeSteps = AddPlainFAPIToServerConfiguration.class;
+		configureResponseModeSteps = null;
 	}
 
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "jarm")
 	public void setupResponseModeJARM() {
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
+	public void setupSenderConstrainMethodMTLS() {
+		generateSenderConstrainedAccessToken = GenerateBearerAccessToken.class;
+		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireMtlsClientCredentialsAccessToken.class;
+		senderConstrainTokenRequestHelper = new MtlsTokenRequestHelper();
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
+	public void setupSenderConstrainMethodDPop() {
+		generateSenderConstrainedAccessToken = GenerateDpopAccessToken.class;
+		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;
+		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireDpopClientCredentialAccessToken.class;
+		senderConstrainTokenRequestHelper = new DPopTokenRequestHelper();
 	}
 
 	protected void startWaitingForTimeout() {

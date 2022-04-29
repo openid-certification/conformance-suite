@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
@@ -14,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-matching-key-in-authorization-request",
 	displayName = "FAPI2-Baseline-ID2: ensure matching key in authorization request",
-	summary = "This test sends a valid request object for client 1 but signed by client 2, and should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test sends a valid request object for client 1 but signed by client 2, and should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded), or with an error from the PAR endpoint, or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,6 +36,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
 
 	@Override
 	protected void createPlaceholder() {
@@ -59,8 +66,7 @@ public class FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest extends Abs
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

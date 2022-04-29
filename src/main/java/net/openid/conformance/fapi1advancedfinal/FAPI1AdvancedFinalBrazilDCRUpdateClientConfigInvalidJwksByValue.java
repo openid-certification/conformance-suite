@@ -16,9 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazildcr-update-client-config-invalid-jwks-by-value",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR update client config",
-	summary = "\u2022 Obtains a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration)\n" +
-		"\u2022 Registers a new client on the target authorization server.\n" +
-		"\u2022 The test will then use a PUT to try and add a jwks by value, the server must return an 'invalid_client_metadata' error.\n",
+	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server then use a PUT to try and add a jwks by value, the server must return an 'invalid_client_metadata' error.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

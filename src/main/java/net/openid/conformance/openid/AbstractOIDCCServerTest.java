@@ -92,6 +92,7 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToToken
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
+import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -596,20 +597,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void performIdTokenValidation() {
-		callAndContinueOnFailure(ValidateIdToken.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
-
-		// Equivalent of https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#verify_nonce
-		// and https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#check_idtoken_nonce
-		callAndContinueOnFailure(ValidateIdTokenNonce.class, ConditionResult.FAILURE, "OIDCC-2");
-
-		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
-
-		callAndContinueOnFailure(ValidateIdTokenSignature.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckForSubjectInIdToken.class, ConditionResult.FAILURE, "OIDCC-2");
-		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
-			ValidateEncryptedIdTokenHasKid.class, Condition.ConditionResult.FAILURE,"OIDCC-10.2", "OIDC-10.2.1");
+		call(new PerformStandardIdTokenChecks());
 	}
 
 	protected void performAuthorizationCodeValidation() {

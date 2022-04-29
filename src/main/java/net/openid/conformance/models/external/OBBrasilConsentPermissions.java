@@ -39,7 +39,7 @@ public enum OBBrasilConsentPermissions {
 	UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ("UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ"),
 	RESOURCES_READ("RESOURCES_READ");
 
-	private String value;
+	private final String value;
 
 	OBBrasilConsentPermissions(String value) {
 		this.value = value;

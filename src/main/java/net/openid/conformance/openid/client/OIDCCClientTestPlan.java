@@ -13,7 +13,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-test-plan",
-	displayName = "OpenID Connect Core Client Tests: Relying party tests (not currently part of certification program)",
+	displayName = "OpenID Connect Core Client Tests: Comprehensive client test (not part of certification program)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		OIDCCClientTest.class,
