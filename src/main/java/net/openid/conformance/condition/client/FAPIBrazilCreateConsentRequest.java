@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -9,10 +8,6 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.models.external.OpenBankingBrasilConsentRequest;
 import net.openid.conformance.testmodule.Environment;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
@@ -37,7 +32,6 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 			// however some banks don't support these, resulting in the tests failing.
 			// This set is as per https://gitlab.com/openid/conformance-suite/-/issues/927 albeit with one typo
 			// corrected to match https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_consents_apis.yaml
-
 			if (productType.equals("business")) {
 				permissions = new String[]{
 					"RESOURCES_READ",
@@ -103,6 +97,7 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 					"INVOICE_FINANCINGS_PAYMENTS_READ"
 				};
 			}
+
 		} else {
 			permissions = consentPermissions.split("\\W");
 		}
