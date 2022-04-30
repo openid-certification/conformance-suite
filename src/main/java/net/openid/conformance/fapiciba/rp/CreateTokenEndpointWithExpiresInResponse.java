@@ -9,6 +9,8 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CreateTokenEndpointWithExpiresInResponse extends AbstractCondition {
 
+	public static final int EXPIRES_IN = 600;
+
 	@Override
 	@PreEnvironment(strings = { "access_token", "token_type" }, required = "backchannel_request_object") // note the others are optional
 	@PostEnvironment(required = "token_endpoint_response")
@@ -40,6 +42,8 @@ public class CreateTokenEndpointWithExpiresInResponse extends AbstractCondition 
 		if (!Strings.isNullOrEmpty(scope)) {
 			tokenEndpointResponse.addProperty("scope", scope);
 		}
+
+		tokenEndpointResponse.addProperty("expires_in", EXPIRES_IN);
 
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 
