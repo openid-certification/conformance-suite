@@ -41,23 +41,6 @@ public class CreateTokenEndpointWithExpiresInResponse extends AbstractCondition 
 			tokenEndpointResponse.addProperty("scope", scope);
 		}
 
-		// TODO: Repeated code, plus seems like a poor idea to pack that in here as well, I should probably use conditions
-		// Also expires_in is optional, there should be tests without it as well ofc.
-		String requestedExpiryString = env.getString("backchannel_request_object", "claims.requested_expiry");
-		if(requestedExpiryString != null) {
-			try {
-				Integer requestedExpiryValue = Integer.parseInt(requestedExpiryString);
-				if(requestedExpiryValue <= 0) {
-					throw error("The 'requested_expiry' must be a positive integer when present.");
-				}
-				tokenEndpointResponse.addProperty("expires_in", requestedExpiryValue);
-			} catch (NumberFormatException nfe) {
-				throw error("The 'requested_expiry' must be a positive integer when present.");
-			}
-		} else{
-			tokenEndpointResponse.addProperty("expires_in", 180);
-		}
-
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 
 		logSuccess("Created token endpoint response", tokenEndpointResponse);
