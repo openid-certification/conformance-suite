@@ -27,13 +27,17 @@ public class EnsureRequiredAuthorizationRequestParametersMatchRequestObject exte
 
 	public static final Set<String> parametersThatMustMatch = Set.of("response_type", "client_id");
 
+	public Set<String> getParametersThatMustMatch() {
+		return parametersThatMustMatch;
+	}
+
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "authorization_request_object"})
 	public Environment evaluate(Environment env) {
 		Map<String, Object> failureLogArgs = new HashMap<>();
 		Map<String, Object> successLogArgs = new HashMap<>();
 
-		for(String paramName : parametersThatMustMatch) {
+		for(String paramName : getParametersThatMustMatch()) {
 			JsonElement valueFromHttpRequest = env.getElementFromObject("authorization_endpoint_http_request_params", paramName);
 			JsonElement valueFromRequestObject = env.getElementFromObject("authorization_request_object", "claims." + paramName);
 			if(valueFromHttpRequest==null) {
