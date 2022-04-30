@@ -452,24 +452,16 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
-		// TODO: Begin copied validations
 		JsonObject httpRequestObj = env.getObject("backchannel_endpoint_http_request");
 		env.putObject("backchannel_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
 
 		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "TODO");
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(EnsureBackchannelRequestObjectWasEncrypted.class, "BrazilOB-5.2.3-3");
-			callAndStopOnFailure(FAPIBrazilEnsureBackchannelRequestObjectEncryptedUsingRSAOAEPA256GCM.class, "BrazilOB-6.1.1-1");
-		}
-
-		skipIfElementMissing("backchannel_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
 		validateRequestObjectForBackchannelEndpointRequest();
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
-		// TODO: End copied validations
 
 		// TODO: Additional validations
 		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
