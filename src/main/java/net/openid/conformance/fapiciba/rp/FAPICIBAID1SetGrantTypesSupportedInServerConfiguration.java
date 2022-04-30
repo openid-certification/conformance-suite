@@ -14,8 +14,6 @@ public class FAPICIBAID1SetGrantTypesSupportedInServerConfiguration extends Abst
 	@PostEnvironment(required = {"server"})
 	public Environment evaluate(Environment env) {
 		JsonArray grantTypes = new JsonArray();
-		grantTypes.add("authorization_code");
-		grantTypes.add("implicit");
 		grantTypes.add("client_credentials");
 		grantTypes.add("refresh_token");
 		grantTypes.add("urn:openid:params:grant-type:ciba");

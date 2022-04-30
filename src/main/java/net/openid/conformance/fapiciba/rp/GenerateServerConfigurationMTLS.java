@@ -26,7 +26,6 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 		String baseUrlMtls = baseUrl.replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
 		JsonObject mtlsAliases = new JsonObject();
 		mtlsAliases.addProperty("token_endpoint", baseUrlMtls + "token");
-		mtlsAliases.addProperty("registration_endpoint", baseUrlMtls + "register");
 		mtlsAliases.addProperty("userinfo_endpoint", baseUrlMtls + "userinfo");
 		mtlsAliases.addProperty("backchannel_authentication_endpoint", baseUrlMtls + "backchannel");
 

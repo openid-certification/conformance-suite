@@ -126,12 +126,14 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if(FAPI1FinalOPProfile.OPENBANKING_BRAZIL.equals(profile)) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-			callAndStopOnFailure(FAPICIBAID1SetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
-			callAndStopOnFailure(FAPICIBAID1AddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
+
+		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
+		callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 		callAndStopOnFailure(addBackchannelEndpointAuthMethodSupported);

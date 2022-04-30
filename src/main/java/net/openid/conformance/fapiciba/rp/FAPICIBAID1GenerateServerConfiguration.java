@@ -31,9 +31,14 @@ public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
 		server.addProperty("authorization_endpoint", baseUrl + "authorize");
 		server.addProperty("token_endpoint", baseUrl + "token");
 		server.addProperty("jwks_uri", baseUrl + "jwks");
-		server.addProperty("registration_endpoint", baseUrl + "register");
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
 		server.addProperty("backchannel_authentication_endpoint", baseUrl + "backchannel");
+
+		JsonArray grantTypes = new JsonArray();
+		grantTypes.add("client_credentials");
+		grantTypes.add("refresh_token");
+		grantTypes.add("urn:openid:params:grant-type:ciba");
+		server.add("grant_types_supported", grantTypes);
 
 		final JsonArray values = new JsonArray();
 		values.add("poll");
@@ -43,9 +48,6 @@ public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
 		JsonArray algs = new JsonArray();
 		algs.add("PS256");
 		server.add("backchannel_authentication_request_signing_alg_values_supported", algs);
-
-		// Leaving this here since mtls client authentication and certificate-bound access tokens can be used independently of each other.
-		server.addProperty("tls_client_certificate_bound_access_tokens", true);
 
 		server.addProperty("request_parameter_supported", true);
 
