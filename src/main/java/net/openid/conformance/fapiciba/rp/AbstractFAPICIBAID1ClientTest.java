@@ -4,7 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.*;
-import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
@@ -12,7 +15,9 @@ import net.openid.conformance.condition.rs.*;
 import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.as.*;
+import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.*;
@@ -119,7 +124,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
-		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
@@ -225,11 +229,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			}
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
-	}
-
-	private void exposePath(String name, String path) {
-		env.putString(name, env.getString("base_url") + "/" + path);
-		exposeEnvString(name);
 	}
 
 	private void exposeMtlsPath(String name, String path) {

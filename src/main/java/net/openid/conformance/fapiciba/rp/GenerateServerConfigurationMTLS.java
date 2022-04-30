@@ -1,9 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.testmodule.Environment;

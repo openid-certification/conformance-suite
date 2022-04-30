@@ -40,7 +40,7 @@ public class CreateRandomClientNotificationToken_UnitTest {
 
 		assertThat(res1).isNotNull();
 		assertThat(res1).isNotEmpty();
-		assertThat(res1.length()).isEqualTo(21);
+		assertThat(res1.length()).isEqualTo(28);
 
 		// call it twice to make sure we get a different value
 		cond.execute(env);
