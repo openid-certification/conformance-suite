@@ -116,33 +116,21 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		cibaMode = getVariant(CIBAMode.class);
 		env.putString("ciba_mode", cibaMode.name());
 
-		// TODO: Can't I just have one server config regardless of profile?
 		callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
-		/*
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			//https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server
-			// shall advertise mtls_endpoint_aliases as per clause 5 RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and
-			// Certificate-Bound Access Tokens the token_endpoint, registration_endpoint and userinfo_endpoint;
-			callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
-		} else {
-			// We should really create the 'Brazil' configuration that contains mtls_endpoint_aliases in at least some
-			// cases - it's mandatory for clients to support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
-		}
-		 */
+		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
-//		if(true) { // TODO: WAS: profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL
+		if(FAPI1FinalOPProfile.OPENBANKING_BRAZIL.equals(profile)) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(FAPICIBAID1SetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPICIBAID1AddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
-//		} else {
-//			callAndStopOnFailure(ExtractServerSigningAlg.class);
-//		}
+		} else {
+			callAndStopOnFailure(ExtractServerSigningAlg.class);
+		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 		callAndStopOnFailure(addBackchannelEndpointAuthMethodSupported);

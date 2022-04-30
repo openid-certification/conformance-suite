@@ -11,8 +11,7 @@ import net.openid.conformance.testmodule.Environment;
 public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "base_url")
-	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
+	@PreEnvironment(required = "server", strings = "base_url")
 	public Environment evaluate(Environment env) {
 
 		String baseUrl = env.getString("base_url");
@@ -26,33 +25,17 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
-		// FIXME: we should inject a base_url_mtls as well instead of having to do this hack
 		String baseUrlMtls = baseUrl.replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
+		JsonObject mtlsAliases = new JsonObject();
+		mtlsAliases.addProperty("token_endpoint", baseUrlMtls + "token");
+		mtlsAliases.addProperty("registration_endpoint", baseUrlMtls + "register");
+		mtlsAliases.addProperty("userinfo_endpoint", baseUrlMtls + "userinfo");
+		mtlsAliases.addProperty("backchannel_authentication_endpoint", baseUrlMtls + "backchannel");
 
-		// create a base server configuration object based on the base URL
-		JsonObject server = new JsonObject();
+		JsonObject server = env.getObject("server");
+		server.add("mtls_endpoint_aliases", mtlsAliases);
 
-		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrlMtls + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
-
-		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
-		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
-		server.addProperty("backchannel_authentication_endpoint", baseUrl + "backchannel");
-
-		final JsonArray values = new JsonArray();
-		values.add("poll");
-		values.add("ping");
-		server.add("backchannel_token_delivery_modes_supported", values);
-
-		// add this as the server configuration
-		env.putObject("server", server);
-
-		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
-
-		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", baseUrl + ".well-known/openid-configuration"));
+		logSuccess("Added mtls_endpoint_aliases", args("mtls_endpoint_aliases", mtlsAliases));
 
 		return env;
 
