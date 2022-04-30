@@ -12,6 +12,6 @@ public class BackchannelValidateClientAuthenticationWithPrivateKeyJWT extends Ab
 		callAndContinueOnFailure(BackchannelEnsureClientAssertionSignatureAlgorithmMatchesRegistered.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndContinueOnFailure(ValidateClientAssertionSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-9");
 		callAndContinueOnFailure(BackchannelEnsureClientAssertionTypeIsJwt.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
-		callAndContinueOnFailure(BackchannelValidateClientAssertionClaims.class, Condition.ConditionResult.FAILURE, "RFC7523-3", "OIDCC-9");
+		callAndContinueOnFailure(ValidateClientAssertionClaimsForBackchannelEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7523-3", "OIDCC-9");
 	}
 }
