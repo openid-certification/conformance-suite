@@ -517,7 +517,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");
 
-		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key?
+		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key? (such as checking the iss in the JWT)
 		if(ClientAuthType.MTLS.equals(clientAuthType)) {
 			callAndContinueOnFailure(EnsureRequiredBackchannelRequestParametersMatchRequestObject.class, ConditionResult.FAILURE, "OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
@@ -539,7 +539,11 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
-		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+		
+		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key (such as checking the iss in the JWT)?
+		if(ClientAuthType.MTLS.equals(clientAuthType)) {
+			callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+		}
 
 		env.unmapKey("authorization_endpoint_http_request_params");
 	}
