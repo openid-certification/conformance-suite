@@ -6,6 +6,7 @@ import java.util.Set;
 
 public class EnsureRequiredBackchannelRequestParametersMatchRequestObject extends EnsureRequiredAuthorizationRequestParametersMatchRequestObject {
 
+	@Override
 	public Set<String> getParametersThatMustMatch() {
 		return Set.of("client_id");
 	}
