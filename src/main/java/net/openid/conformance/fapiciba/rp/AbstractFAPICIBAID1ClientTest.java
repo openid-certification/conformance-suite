@@ -66,14 +66,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
-	protected static int getIntValueOrDefault(String intString, int defaultValue) {
-		try {
-			return Integer.parseInt(intString);
-		} catch (NumberFormatException nfe) {
-			return defaultValue;
-		}
-	}
-
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
@@ -462,23 +454,11 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
-		// TODO: Additional validations
 		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestHasOpenIdScope.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
-		// Begin ensure backchannel response
-		JsonObject backchannelResponse = new JsonObject();
-		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);
-		env.putString("auth_req_id", authReqId); // Needed for the ping
-		backchannelResponse.addProperty("auth_req_id", authReqId);
-		backchannelResponse.addProperty("interval", 5);
-
-		String requestedExpiryString = env.getString("backchannel_endpoint_http_request", "body_form_params.requested_expiry");
-		int expiresIn = getIntValueOrDefault(requestedExpiryString, 180);
-		backchannelResponse.addProperty("expires_in", expiresIn);
-		// End ensure backchannel response
-
+		callAndStopOnFailure(CreateBackchannelEndpointResponse.class, ConditionResult.FAILURE);
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
@@ -487,7 +467,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<>(backchannelResponse, HttpStatus.OK);
+		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), HttpStatus.OK);
 	}
 
 	private void spawnThreadForPing() {
@@ -539,7 +519,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
-		
+
 		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key (such as checking the iss in the JWT)?
 		if(ClientAuthType.MTLS.equals(clientAuthType)) {
 			callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
