@@ -25,6 +25,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
+		String senderConstrain = v.get("sender_constrain");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
 		String certProfile = "FAPI2BaselineID2 ";
@@ -57,6 +58,14 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				break;
 			case "mtls":
 				certProfile += " MTLS";
+				break;
+		}
+		switch (senderConstrain) {
+			case "mtls":
+				certProfile += ", MTLS constrain";
+				break;
+			case "dpop":
+				certProfile += ", DPoP";
 				break;
 		}
 
