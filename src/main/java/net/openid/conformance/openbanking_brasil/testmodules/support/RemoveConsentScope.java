@@ -1,21 +1,21 @@
-package net.openid.conformance.condition.client;
+package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class FAPIBrazilAddConsentIdToClientScope extends AbstractCondition {
+public class RemoveConsentScope extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
-		String consentId = env.getString("consent_id");
 
 		JsonObject client = env.getObject("client");
 
@@ -29,14 +29,13 @@ public class FAPIBrazilAddConsentIdToClientScope extends AbstractCondition {
 			throw error("scope empty in client object");
 		}
 
-		scope += " consent:"+consentId;
-		//scope = "openid consent:"+consentId;
-
+		if(!scope.contains("consents")) {
+			throw error("consents is not in scope");
+		}
+		scope = scope.replace("consents ", "");
 		client.addProperty("scope", scope);
 
-		logSuccess("Added scope of '"+scope+"' to client's scope", client);
-
+		logSuccess("Removed scope of '"+scope+"' to client's scope", client);
 		return env;
 	}
-
 }
