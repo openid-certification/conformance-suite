@@ -21,62 +21,62 @@ public class OpenBankingBrazilPreAuthorizationConsentApi extends AbstractConditi
 	@Override
 	public void evaluate() {
 
-//		call(exec().startBlock("Use client_credentials grant to obtain Brazil consent"));
-//
-//		/* create client credentials request */
-//
-//		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-//
-//		call(sequence(addClientAuthenticationToTokenEndpointRequest));
-//
-//		/* get access token */
-//
-//		callAndStopOnFailure(CallTokenEndpoint.class);
-//
-//		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-//
-//		callAndStopOnFailure(CheckForAccessTokenValue.class);
-//
-//		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-//
-//		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-4.4.3", "RFC6749-5.1");
-//
-//		call(condition(ValidateExpiresIn.class)
-//			.skipIfObjectMissing("expires_in")
-//			.onSkip(Condition.ConditionResult.INFO)
-//			.requirements("RFC6749-5.1")
-//			.onFail(Condition.ConditionResult.FAILURE)
-//			.dontStopOnFailure());
-//
-//		/* create consent request */
-//
-//		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-//
-//		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
-//
-//		call(exec().startBlock("Validating create consent response"));
-//		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-//		//callAndStopOnFailure(AddConsentScope.class);
-//		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-//		callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-//		callAndStopOnFailure(SetContentTypeApplicationJson.class);
-//		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(CheckItemCountHasMin1.class);
-//
-//		call(exec().startBlock("Validating get consent response"));
-//		callAndStopOnFailure(ConsentIdExtractor.class);
-//		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-//		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-//		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-//
-//		callAndStopOnFailure(SaveAccessToken.class);
+		call(exec().startBlock("Use client_credentials grant to obtain Brazil consent"));
 
-		//callAndStopOnFailure(RemoveConsentScope.class);
+		/* create client credentials request */
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+
+		/* get access token */
+
+		callAndStopOnFailure(CallTokenEndpoint.class);
+
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		callAndStopOnFailure(CheckForAccessTokenValue.class);
+
+		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-4.4.3", "RFC6749-5.1");
+
+		call(condition(ValidateExpiresIn.class)
+			.skipIfObjectMissing("expires_in")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("RFC6749-5.1")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
+
+		/* create consent request */
+
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+
+		call(exec().startBlock("Validating create consent response"));
+		callAndStopOnFailure(PrepareToPostConsentRequest.class);
+		//callAndStopOnFailure(AddConsentScope.class);
+		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
+		callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
+		callAndStopOnFailure(SetContentTypeApplicationJson.class);
+		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(CheckItemCountHasMin1.class);
+
+		call(exec().startBlock("Validating get consent response"));
+		callAndStopOnFailure(ConsentIdExtractor.class);
+		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
+		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+		callAndStopOnFailure(AddAccountScope.class);
+		callAndStopOnFailure(SaveAccessToken.class);
+
+		callAndStopOnFailure(RemoveConsentScope.class);
 	}
 }
