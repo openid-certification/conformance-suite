@@ -1076,7 +1076,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 			}
-			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASE-5.2.2.2");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.NONCE, ConditionResult.INFO, ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OIDCC-3.2.2.1");
 		} else {
 			if(jarmType==FAPIJARMType.OIDC) {
 				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
