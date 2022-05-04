@@ -12,6 +12,8 @@ import org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationSe
 import org.mitre.openid.connect.client.service.impl.HybridClientConfigurationService;
 import org.mitre.openid.connect.client.service.impl.HybridIssuerService;
 import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService;
+import org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService;
+import org.mitre.openid.connect.client.service.impl.ThirdPartyIssuerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,11 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
-import org.springframework.security.web.util.matcher.*;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -42,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -56,18 +63,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
 
-	// Client name to use when dynamically registering as a client
-	@Value("${oidc.clientname}")
-	private String clientName;
-
 	// Redirect URI to use
 	@Value("${oidc.redirecturi}")
 	private String redirectURI;
 
 	@Value("${oidc.google.iss:https://accounts.google.com}")
 	private String googleIss;
-
-	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 	// Static Client for gitlab
 	@Value("${oidc.gitlab.clientid}")
@@ -119,20 +120,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		return rc;
 	}
 
-	// Create a partially filled in RegisteredClient to use as a template when performing Dynamic Registration
-	private RegisteredClient getClientTemplate() {
-		RegisteredClient clientTemplate = new RegisteredClient();
-		clientTemplate.setClientName(clientName);
-		clientTemplate.setScope(AuthRequestUrlBuilderWithFixedScopes.SCOPES);
-		clientTemplate.setTokenEndpointAuthMethod(authMethod);
-		clientTemplate.setRedirectUris(ImmutableSet.of(redirectURI));
-		return clientTemplate;
-	}
-
 	// Bean to set up the server configuration service. We're only doing dynamic setup.
 	@Bean
-	public DynamicServerConfigurationService serverConfigurationService() {
-		return new DynamicServerConfigurationService();
+	public DynamicServerConfigurationService serverConfigurationService(Map<String, RegisteredClient> clients) {
+		DynamicServerConfigurationService serverConfig = new DynamicServerConfigurationService();
+		serverConfig.setWhitelist(clients.keySet());
+		return serverConfig;
 	}
 
 	// Service to store/retrieve persisted information for dynamically registered clients.
@@ -143,20 +136,11 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		return registeredClientService;
 	}
 
-	// Client Configuration Service. We're using a Hybrid one to allow statically defined clients (i.e. Google)
-	//   and dynamically registered clients.
 	@Bean
-	public HybridClientConfigurationService clientConfigurationService() {
-		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
+	public StaticClientConfigurationService staticClientConfigurationService(Map<String, RegisteredClient> clients) {
+		StaticClientConfigurationService clientConfigService = new StaticClientConfigurationService();
 
-		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(obbrazilIss, obbrazilClientConfig(), gitlabIss, gitlabClientConfig() ));
-
-		// Setup template for dynamic registration
-		clientConfigService.setTemplate(getClientTemplate());
-
-		// set the RegisteredClientService for storing/retriving Dynamically created clients
-		clientConfigService.setRegisteredClientService(registeredClientService());
+		clientConfigService.setClients(clients);
 
 		return clientConfigService;
 	}
@@ -167,10 +151,10 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public HybridIssuerService issuerService() {
-		HybridIssuerService his = new HybridIssuerService();
-		his.setLoginPageUrl(baseURL + "/login.html");
-		return his;
+	public ThirdPartyIssuerService issuerService() {
+		ThirdPartyIssuerService is = new ThirdPartyIssuerService();
+		is.setAccountChooserUrl(baseURL + "/login.html");
+		return is;
 	}
 
 	@Bean
@@ -180,10 +164,12 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
+		Map<String, RegisteredClient> clients = ImmutableMap.of(obbrazilIss, obbrazilClientConfig(), gitlabIss, gitlabClientConfig());
+
 		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
 		oidcaf.setIssuerService(issuerService());
-		oidcaf.setServerConfigurationService(serverConfigurationService());
-		oidcaf.setClientConfigurationService(clientConfigurationService());
+		oidcaf.setServerConfigurationService(serverConfigurationService(clients));
+		oidcaf.setClientConfigurationService(staticClientConfigurationService(clients));
 		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
 		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
 		oidcaf.setAuthenticationManager(authenticationManager());
