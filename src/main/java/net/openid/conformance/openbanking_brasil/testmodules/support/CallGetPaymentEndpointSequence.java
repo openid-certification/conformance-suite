@@ -10,47 +10,47 @@ public class CallGetPaymentEndpointSequence extends AbstractConditionSequence {
 	@Override
 	public void evaluate(){
 
-		callAndContinueOnFailure(ClearRequestObjectFromEnvironment.class);
+		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 
-		callAndContinueOnFailure(SetProtectedResourceUrlToSelfEndpoint.class);
-		callAndContinueOnFailure(SetResourceMethodToGet.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToSelfEndpoint.class);
+		callAndStopOnFailure(SetResourceMethodToGet.class);
 
-		callAndContinueOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
+		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 
-		callAndContinueOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		callAndContinueOnFailure(CreateIdempotencyKey.class);
-		callAndContinueOnFailure(AddIdempotencyKeyHeader.class);
+		callAndStopOnFailure(CreateIdempotencyKey.class);
+		callAndStopOnFailure(AddIdempotencyKeyHeader.class);
 
-		callAndContinueOnFailure(CreateRandomFAPIInteractionId.class);
-		callAndContinueOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 
-		callAndContinueOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		callAndContinueOnFailure(AddJWTAcceptHeaderRequest.class);
-		callAndContinueOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(OptionallyAllow200or406.class);
+		callAndStopOnFailure(AddJWTAcceptHeaderRequest.class);
+		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class);
+		callAndStopOnFailure(EnsureMatchingFAPIInteractionId.class);
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 
-		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class);
+		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndContinueOnFailure(ExtractSignedJwtFromResourceResponse.class);
+		callAndContinueOnFailure(ExtractSignedJwtFromResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class);
+		callAndStopOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class);
+		callAndStopOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		call(exec().mapKey("server", "org_server"));
 		call(exec().mapKey("server_jwks", "org_server_jwks"));
-		callAndContinueOnFailure(FetchServerKeys.class);
+		callAndStopOnFailure(FetchServerKeys.class);
 		call(exec().unmapKey("server"));
 		call(exec().unmapKey("server_jwks"));
 
