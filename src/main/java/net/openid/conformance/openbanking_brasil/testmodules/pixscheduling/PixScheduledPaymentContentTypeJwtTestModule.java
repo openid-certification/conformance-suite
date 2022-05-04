@@ -71,32 +71,32 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 
 			eventLog.startBlock("Get Payments API with no accept header");
 			ConditionSequence GetPaymentNoAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
-				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
+				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class));
+				//.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
 
 			call(GetPaymentNoAcceptSequence);
 			callAndContinueOnFailure(EnsureStatusSASC.class);
 
 			eventLog.startBlock("Get Payments API with application/json accept header");
 			ConditionSequence GetPaymentJsonAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceJsonAcceptField.class))
-				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
+				.replace(CallProtectedResource.class, condition(CallProtectedResourceJsonAcceptField.class));
+				//.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
 			call(GetPaymentJsonAcceptSequence);
 			callAndContinueOnFailure(EnsureStatusSASC.class);
 
 			eventLog.startBlock("Get Consents API with no accept header");
 			callAndStopOnFailure(LoadOldValues.class);
 			ConditionSequence GetConsentNoAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
-				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
+				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class));
+				//.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
 			call(GetConsentNoAcceptSequence);
 			callAndContinueOnFailure(EnsureStatusCONSUMED.class);
 
 			eventLog.startBlock("Get Consents API with application/json accept header");
 			callAndStopOnFailure(LoadOldValues.class);
 			ConditionSequence GetConsentJsonAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
-				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
+				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class));
+				//.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class));
 			call(GetConsentJsonAcceptSequence);
 			callAndContinueOnFailure(EnsureStatusCONSUMED.class);
 

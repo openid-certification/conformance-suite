@@ -29,7 +29,7 @@ public class CallGetPaymentEndpointSequence extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(AddJWTAcceptHeaderRequest.class);
 		callAndContinueOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas200.class);
+		callAndContinueOnFailure(OptionallyAllow200or406.class);
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
