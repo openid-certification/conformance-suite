@@ -61,4 +61,8 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 		eventLog.endBlock();
 	}
 
+	@Override
+	public  void unregisterClient1(){
+
+	}
 }
