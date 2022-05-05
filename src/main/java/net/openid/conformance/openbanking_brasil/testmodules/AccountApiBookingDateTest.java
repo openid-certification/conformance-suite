@@ -17,7 +17,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Using the consent created, call the Accounts API\n" +
 		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using the max period (12 months from exisiting date)\n" +
 		"\u2022 Expect success, fetch a transaction, get the transactionDate\n" +
-		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate to be the transactionDate",
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate to be the transactionDate\n" +
+		"\u2022 To execute this test a data mass with at least two transactions, one older than 6 months and one 6 months or earlier must be set",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
