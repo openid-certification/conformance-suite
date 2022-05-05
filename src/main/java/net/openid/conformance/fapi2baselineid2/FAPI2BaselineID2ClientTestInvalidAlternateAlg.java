@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithRS256;
+import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithAltRS256;
+import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -22,18 +23,22 @@ public class FAPI2BaselineID2ClientTestInvalidAlternateAlg extends AbstractFAPI2
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-
 		//Do Nothing
 	}
 
 	@Override
 	protected void addCustomSignatureOfIdToken(){
+		callAndStopOnFailure(ForceIdTokenToBeSignedWithAltRS256.class,"OIDCC-3.1.3.7-8");
+	}
 
-		callAndStopOnFailure(ForceIdTokenToBeSignedWithRS256.class,"OIDCC-3.1.3.7-8");
+	@Override
+	protected void configureServerJWKS() {
+		super.configureServerJWKS();
+		callAndStopOnFailure(SetRsaAltServerJwks.class);
 	}
 
 	@Override
 	protected String getIdTokenFaultErrorMessage() {
-		return "signed using RS256 instead of PS256";
+		return "signed using alt RS256 alg.";
 	}
 }
