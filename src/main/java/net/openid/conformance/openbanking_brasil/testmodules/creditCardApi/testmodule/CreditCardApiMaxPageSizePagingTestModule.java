@@ -53,7 +53,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Credit Card Tansactions");
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
@@ -65,6 +65,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}
 

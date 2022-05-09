@@ -52,7 +52,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Account Tansactions");
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
@@ -64,6 +64,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}
 
