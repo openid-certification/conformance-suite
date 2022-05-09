@@ -12,6 +12,8 @@ import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidat
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureRefreshTokenHasNotRotated;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -60,7 +62,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 		callAndStopOnFailure(AddConsentScope.class);
 		JsonObject client = env.getObject("client");
 		JsonElement scopeElement = client.get("scope");
-		String scope = "openid consents";
+		String scope = "openid consents accounts";
 		client.addProperty("scope", scope);
 		super.validateClientConfiguration();
 	}
@@ -69,6 +71,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		//callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		//callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class); TODO: probably add something here
+		//TODO: set protected resourse to accounts
 		clientAuthType = getVariant(ClientAuthType.class);
 	}
 
@@ -84,9 +87,14 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	@Override
 	protected void requestProtectedResource(){
 		//callAndStopOnFailure(LoadOldAccessToken.class);
+		eventLog.startBlock("Try calling protected resource after user authentication");
+		callAndStopOnFailure(SaveProtectedResourceAccessToken.class);
+		callAndStopOnFailure(CallProtectedResource.class);
+		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
+//		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+//		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 		eventLog.startBlock("Deleting consent");
-		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(LoadConsentsAccessToken.class);
 		callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
@@ -96,6 +104,23 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 
 		callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(LoadProtectedResourceAccessToken.class);
+
+		eventLog.startBlock("Try calling protected resource after consent is deleted");
+		callAndStopOnFailure(CallProtectedResource.class);
+		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+
+		eventLog.startBlock("Trying issuing a refresh token");
+		ConditionSequence sequence = sequenceOf(
+			condition(GenerateRefreshTokenRequest.class),
+			condition(SetAccountScopeOnTokenEndpointRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class),
+			condition(SignClientAuthenticationAssertion.class),
+			condition(AddClientAssertionToTokenEndpointRequest.class),
+			condition(CallTokenEndpoint.class)
+			//condition(EnsureResponseCodeWas4xx.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
+		);
+		call(sequence);
 	}
 
 //	private ConditionSequence validateCreateConsentResponse(){
