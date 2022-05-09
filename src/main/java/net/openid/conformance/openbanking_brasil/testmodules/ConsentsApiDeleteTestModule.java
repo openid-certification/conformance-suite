@@ -61,7 +61,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddConsentScope.class);
 		JsonObject client = env.getObject("client");
-		JsonElement scopeElement = client.get("scope");
+		//JsonElement scopeElement = client.get("scope");
 		String scope = "openid consents accounts";
 		client.addProperty("scope", scope);
 		super.validateClientConfiguration();
