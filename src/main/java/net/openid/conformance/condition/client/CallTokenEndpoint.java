@@ -12,9 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -73,9 +71,10 @@ public class CallTokenEndpoint extends AbstractCondition {
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 
 			String jsonString = null;
-
+			ResponseEntity<String> response = null;
 			try {
-				jsonString = restTemplate.postForObject(tokenEndpoint, request, String.class);
+				response = restTemplate.exchange(tokenEndpoint, HttpMethod.POST, request, String.class);
+				jsonString = response.getBody();
 			} catch (RestClientResponseException e) {
 
 				throw error("Error from the token endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
@@ -86,6 +85,7 @@ public class CallTokenEndpoint extends AbstractCondition {
 				}
 				throw error(msg, e);
 			}
+
 
 			if (Strings.isNullOrEmpty(jsonString)) {
 				throw error("Didn't get back a response from the token endpoint");
@@ -99,7 +99,8 @@ public class CallTokenEndpoint extends AbstractCondition {
 					logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
 
 					env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
-
+					JsonObject fullResponse = convertJsonResponseForEnvironment("token", response);
+					env.putObject( "token_endpoint_response_full", fullResponse);
 					return env;
 				} catch (JsonParseException e) {
 					throw error(e);

@@ -79,9 +79,9 @@ public class OpenBankingBrazilPreAuthorizationConsentApi extends AbstractConditi
 //		callAndStopOnFailure(AddAccountScope.class);
 //		callAndContinueOnFailure(SaveAccessToken.class);
 
-		call(exec().startBlock("Try calling protected resource without user authentication"));
-		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+//		call(exec().startBlock("Try calling protected resource without user authentication"));
+//		callAndStopOnFailure(CallProtectedResource.class);
+//		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(RemoveConsentScope.class);
 	}
 }

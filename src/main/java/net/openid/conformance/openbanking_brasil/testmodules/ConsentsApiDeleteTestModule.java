@@ -1,40 +1,28 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
-import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
-import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureRefreshTokenHasNotRotated;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "consents-api-delete-test",
-	displayName = "Validate that clients cannot obtain one another's consents",
-	summary = "Validates that clients cannot obtain one another's consents\n" +
+	displayName = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token ",
+	summary = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token \n" +
 		"\u2022 Creates a Consent with all of the existing permissions \n" +
-		"\u2022 Calls the GET Consents with the Consent ID that has been created\n" +
-		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
-		"\u2022 Calls the Token endpoint using the 2nd client provided on the configuration file\n" +
-		"\u2022 Calls the GET Consents with the first Consent ID created\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n" +
-		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 2nd client\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n" +
-		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 1st client\n" +
-		"\u2022 Expects success on the Delete 20x\n" +
-		"\u2022 Calls the GET Consents with the 1st Consent ID created\n" +
-		"\u2022 Confirms that the Consent has been sent to a Rejected state",
+		"\u2022 Redirects the user\n" +
+		"\u2022 Calls the Token endpoint using the authorization code flow\n" +
+		"\u2022 Makes sure a valid access token has been created\n" +
+		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
+		"\u2022 Call the DELETE Consents API\n" +
+		"\u2022 Calls the Token endpoint to issue a new access token\n" +
+		"\u2022 Expects the test to return a 403 - Forbidden\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -59,12 +47,14 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 
 	@Override
 	protected void validateClientConfiguration() {
-		callAndStopOnFailure(AddConsentScope.class);
-		JsonObject client = env.getObject("client");
-		//JsonElement scopeElement = client.get("scope");
-		String scope = "openid consents accounts";
-		client.addProperty("scope", scope);
 		super.validateClientConfiguration();
+		callAndStopOnFailure(AddConsentScope.class);
+		callAndStopOnFailure(AddAccountScope.class);
+//		JsonObject client = env.getObject("client");
+//		JsonElement scopeElement = client.get("scope");
+//		String scope = "openid consents accounts";
+//		client.addProperty("scope", scope);
+
 	}
 
 	@Override
@@ -117,8 +107,8 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 			condition(CreateClientAuthenticationAssertionClaims.class),
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class)
-			//condition(EnsureResponseCodeWas4xx.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
+			condition(CallTokenEndpoint.class),
+			condition(EnsureTokenResponseCodeWas403or400.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
 		);
 		call(sequence);
 	}
