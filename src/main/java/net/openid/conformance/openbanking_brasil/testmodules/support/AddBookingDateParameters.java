@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 public class AddBookingDateParameters extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
+	@PostEnvironment(strings = "base_resource_url")
 
 	public Environment evaluate(Environment env){
 		String request = env.getString("base_resource_url");
@@ -30,10 +31,9 @@ public class AddBookingDateParameters extends AbstractCondition {
 		String accountId = env.getString("accountId");
 		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,fromDateF, toDateF);
 		log("Added fromBookingDate and toBookingDate query parameters to URL: " + url);
+		env.putString("base_resource_url", url);
 
 		String data = env.getString("resource_endpoint_response");
-		log("Returned Transactions: " + data);
-
 		JsonObject checkObject = new JsonParser().parse(data).getAsJsonObject();
 		JsonArray checkArray = checkObject.getAsJsonArray("data");
 		try {
