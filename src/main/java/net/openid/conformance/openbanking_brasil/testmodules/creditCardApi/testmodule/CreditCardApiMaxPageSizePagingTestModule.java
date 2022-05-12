@@ -18,7 +18,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Calls GET Accounts API \n" +
 		"\u2022 Expects a 200 response \n" +
 		"\u2022 Calls GET Accounts API with page size=1000\n" +
-		"\u2022 Expects a 200 response and expect that the links and meta attributes display the next page ",
+		"\u2022 Expects a 200 response and expect that the links and meta attributes display the next page \n" +
+		"\u2022 Validates the number of records being return",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -53,7 +54,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Credit Card Tansactions");
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
@@ -65,6 +66,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}
 
