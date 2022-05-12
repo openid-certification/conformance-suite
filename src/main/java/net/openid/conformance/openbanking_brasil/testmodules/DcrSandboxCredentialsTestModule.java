@@ -43,12 +43,6 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 
 	@Override
 	protected void callRegistrationEndpoint() {
-		callAndStopOnFailure(AddSupportedOpenIdScopesToClientConfig.class);
-
-		callAndStopOnFailure(ReorderGrantTypesInDynamicRegistrationRequest.class, "RFC7591-2");
-
-		callAndStopOnFailure(AddScopeToDynamicRegistrationRequest.class, "RFC7591-2");
-
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
 
 		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
@@ -59,10 +53,5 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 
 		fireTestFinished();
 		eventLog.endBlock();
-	}
-
-	@Override
-	public  void unregisterClient1(){
-
 	}
 }

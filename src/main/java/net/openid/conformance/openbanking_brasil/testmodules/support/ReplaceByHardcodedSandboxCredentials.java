@@ -45,13 +45,13 @@ public class ReplaceByHardcodedSandboxCredentials extends AbstractCondition {
 													"\"apibase\":\"https://matls-api.sandbox.directory.openbankingbrasil.org.br/\"," +
 													"\"keystore\":\"https://keystore.sandbox.directory.openbankingbrasil.org.br/\"}}";
 
-		JsonObject clientJson = new JsonParser().parse(clientString).getAsJsonObject();
+		JsonObject clientJson = JsonParser.parseString(clientString).getAsJsonObject();
 		JsonObject clientValues = (JsonObject) clientJson.get("client");
 
-		JsonObject mtlsJson = new JsonParser().parse(mtlsString).getAsJsonObject();
+		JsonObject mtlsJson = JsonParser.parseString(mtlsString).getAsJsonObject();
 		JsonObject mtlsValues = (JsonObject) mtlsJson.get("mtls");
 
-		JsonObject directoryJson = new JsonParser().parse(directoryString).getAsJsonObject();
+		JsonObject directoryJson = JsonParser.parseString(directoryString).getAsJsonObject();
 		JsonObject directoryValues = (JsonObject) directoryJson.get("directory");
 
 		env.putObject("config", "client", clientValues);
