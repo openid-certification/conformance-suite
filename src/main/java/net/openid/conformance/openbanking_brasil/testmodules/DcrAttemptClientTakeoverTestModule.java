@@ -1,11 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWith2ndClientFull;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -53,6 +55,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
 	protected ClientAuthType clientAuthType;
+	protected boolean isConsentsScopePresent;
 
 	@Override
 	protected void configureClient() {
@@ -65,6 +68,10 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 		eventLog.endBlock();
+
+		JsonObject client = env.getObject("client");
+		String scopes = OIDFJSON.getString(client.get("scope"));
+		isConsentsScopePresent = scopes.contains("consents");
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with no changes expecting success");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
@@ -140,6 +147,10 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class)
 		);
+
+		if(!isConsentsScopePresent){
+			sequence.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetPaymentsScopeOnTokenEndpointRequest.class));
+		}
 
 		if (clientAuthType == ClientAuthType.MTLS) {
 			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
