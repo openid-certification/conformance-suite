@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -14,21 +15,19 @@ public class CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayment
 	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("client");
-		if (client.has("scope")) {
+		if (client.has("scope") && !Strings.isNullOrEmpty(OIDFJSON.getString(client.get("scope")))) {
 			String scopes = OIDFJSON.getString(client.get("scope"));
-
-			if(scopes.contains("consents")){
+			if (scopes.contains("consents")) {
 				env.putString("scopeToBeUsed", "consents");
 			} else if (scopes.contains("payments")) {
 				env.putString("scopeToBeUsed", "payments");
-			}else {
+			} else {
 				logFailure("Required scopes are not present in the Dynamic Client Registration response",
 					Map.of("required", "consents or payments", "present", scopes));
 			}
-
-		}else {
+		} else {
 			logFailure("scope field is missing in Dynamic Client Registration response");
 		}
-		return null;
+		return env;
 	}
 }
