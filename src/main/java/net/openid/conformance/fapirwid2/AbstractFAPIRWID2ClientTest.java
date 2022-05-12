@@ -11,7 +11,9 @@ import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResp
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
+import net.openid.conformance.condition.as.CheckAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -327,6 +329,10 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
+		if (env.getObject("client") == null) {
+			throw new TestFailureException(getId(), "The token endpoint has been called before the client has been registered.");
+		}
+
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
@@ -379,6 +385,10 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateAuthorizationCode.class);
 
 		callAndStopOnFailure(ValidateRedirectUri.class);
+
+		if(env.containsObject("code_challenge")) {
+			call(sequence(CheckPkceCodeVerifier.class));
+		}
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
@@ -458,6 +468,8 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI-R-5.2.3-8");
+
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, CheckAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.INFO);
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 

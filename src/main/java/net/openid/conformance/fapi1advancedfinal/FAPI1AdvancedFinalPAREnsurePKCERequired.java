@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPkceMissingErrorPage;
@@ -48,7 +49,7 @@ public class FAPI1AdvancedFinalPAREnsurePKCERequired extends AbstractFAPI1Advanc
 		// 'isPar' passed as false to skip SetupPkceAndAddToAuthorizationRequest, as it's currently not possible to use
 		// the 'skip' syntax to skip a condition within a sub-sequence nor a conditionsequence within a condition sequence
 		return new CreateAuthorizationRequestSteps(isSecondClient(),
-			jarm,
+			jarm.isTrue(),
 			false,
 			profileAuthorizationEndpointSetupSteps);
 	}
@@ -56,8 +57,7 @@ public class FAPI1AdvancedFinalPAREnsurePKCERequired extends AbstractFAPI1Advanc
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

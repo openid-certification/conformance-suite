@@ -1,8 +1,6 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -32,14 +30,23 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 		// create a base server configuration object based on the base URL
 		JsonObject server = new JsonObject();
+		JsonObject mtlsAliases = new JsonObject();
 
 		server.addProperty("issuer", baseUrl);
 		server.addProperty("authorization_endpoint", baseUrl + "authorize");
-		server.addProperty("token_endpoint", baseUrlMtls + "token");
+
+		server.addProperty("token_endpoint", baseUrl + "token");
+		mtlsAliases.addProperty("token_endpoint", baseUrlMtls + "token");
+
 		server.addProperty("jwks_uri", baseUrl + "jwks");
 
 		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
+		mtlsAliases.addProperty("registration_endpoint", baseUrlMtls + "register");
+
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo"); // TODO: should this be pulled into an optional mix-in?
+		mtlsAliases.addProperty("userinfo_endpoint", baseUrlMtls + "userinfo");
+
+		server.add("mtls_endpoint_aliases", mtlsAliases);
 
 		// add this as the server configuration
 		env.putObject("server", server);

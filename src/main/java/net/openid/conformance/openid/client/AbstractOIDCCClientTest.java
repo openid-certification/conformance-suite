@@ -8,11 +8,14 @@ import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIssAndAudToUserInfoResponse;
+import net.openid.conformance.condition.as.OIDCCAddRequestObjectSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.ChangeTokenEndpointInServerConfigurationToMtls;
+import net.openid.conformance.condition.as.CheckAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -353,6 +356,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		switch(clientRequestType) {
 			case REQUEST_OBJECT:
 				callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.1");
+				callAndStopOnFailure(OIDCCAddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class, "OIDCC-6.1");
 				break;
 			case REQUEST_URI:
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
@@ -525,25 +529,28 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
-
+			checkIfDiscoveryCalled(path);
 			receivedAuthorizationRequest = true;
 			return handleAuthorizationEndpointRequest(requestId);
 
 		} else if (path.equals("token")) {
-
+			checkIfDiscoveryCalled(path);
 			receivedTokenRequest = true;
 			return handleTokenEndpointRequest(requestId);
 
 		} else if (path.equals(getJwksPath())) {
-
+			checkIfDiscoveryCalled(path);
 			receivedJwksRequest = true;
 			return handleJwksEndpointRequest();
 
 		} else if (path.equals("userinfo")) {
+			checkIfDiscoveryCalled(path);
+			checkIfJWKCalled(path);
 			receivedUserinfoRequest = true;
 			return handleUserinfoEndpointRequest(requestId);
 
 		} else if (path.equals("register") && clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
+			checkIfDiscoveryCalled(path);
 			receivedRegistrationRequest = true;
 			return handleRegistrationEndpointRequest(requestId);
 
@@ -678,6 +685,14 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class, "OIDCC-5.3.1");
 	}
 
+
+	protected void checkIfDiscoveryCalled(String path) {
+
+	}
+
+	protected void checkIfJWKCalled(String path) {
+
+	}
 	/**
 	 * Support any of
 	 * - Authorization Request Header Field
@@ -945,6 +960,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		validateAuthorizationCodeGrantType();
 
+		if(env.containsObject("code_challenge")) {
+			call(sequence(CheckPkceCodeVerifier.class));
+		}
+
 		generateAccessToken();
 
 		createIdToken(true);
@@ -1003,6 +1022,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
 		extractNonceFromAuthorizationEndpointRequestParameters();
+
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, CheckAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.INFO);
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {

@@ -20,7 +20,11 @@ public class ValidatePostLogoutRedirectUri extends AbstractCondition {
 			throw error("The client does not have any post_logout_redirect_uris");
 		}
 		JsonArray registeredUris = client.getAsJsonArray("post_logout_redirect_uris");
-		JsonElement jsonElementForUri = new JsonPrimitive(env.getString("end_session_endpoint_http_request_params", "post_logout_redirect_uri"));
+		String postLogoutRedirectUri = env.getString("end_session_endpoint_http_request_params", "post_logout_redirect_uri");
+		if (postLogoutRedirectUri == null) {
+			throw error("no post_logout_redirect_uri passed to end_session_endpoint");
+		}
+		JsonElement jsonElementForUri = new JsonPrimitive(postLogoutRedirectUri);
 		if(!registeredUris.contains(jsonElementForUri)) {
 			throw error("Invalid post_logout_redirect_uri in request", args("registered_uris", registeredUris, "actual", jsonElementForUri));
 		}

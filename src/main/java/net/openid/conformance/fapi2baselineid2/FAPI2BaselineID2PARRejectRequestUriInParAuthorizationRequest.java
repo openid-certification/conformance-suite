@@ -32,6 +32,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
+// there's a separate test that supplies request_uri outside the request object; this test is specific to when
+// a request object is in use and includes request_uri in the request object.
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest extends AbstractFAPI2BaselineID2ServerTestModule {
 

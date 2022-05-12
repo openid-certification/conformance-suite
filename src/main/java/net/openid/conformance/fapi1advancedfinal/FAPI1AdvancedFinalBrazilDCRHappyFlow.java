@@ -28,8 +28,8 @@ public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedF
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if (isBrazil) {
-			if (brazilPayments) {
+		if (isBrazil.isTrue()) {
+			if (brazilPayments.isTrue()) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 			}
 		}

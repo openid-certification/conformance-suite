@@ -56,6 +56,10 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 		config.add("resource", resourceConfig);
 		resourceConfig.addProperty("brazilCpf", "138830383");
 
+		JsonObject consentConfig = new JsonObject();
+		config.add("consent", consentConfig);
+		consentConfig.addProperty("productType", "business");
+
 		env.putObject("config", config);
 
 		JsonObject client = new JsonObject();
@@ -78,6 +82,10 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 		JsonObject resourceConfig = new JsonObject();
 		config.add("resource", resourceConfig);
 		resourceConfig.addProperty("brazilCpf", "138830383");
+
+		JsonObject consentConfig = new JsonObject();
+		config.add("consent", consentConfig);
+		consentConfig.addProperty("productType", "business");
 
 		env.putObject("config", config);
 

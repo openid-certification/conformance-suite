@@ -5,6 +5,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiBadScopeTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiNegativeTests;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ConsentApiBadConsentsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiConsentExpiredTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiConsentStatusIfDeclinedTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiConsentStatusTestModule;
@@ -33,6 +34,7 @@ public class ConsentsApiTestPlan implements TestPlan {
 					PreFlightCertCheckModule.class,
 					ConsentApiTestModule.class,
 					//ConsentApiBadScopeTestModule.class,
+					ConsentApiBadConsentsTestModule.class,
 					ConsentApiNegativeTests.class,
 					ConsentsApiPermissionGroupsTestModule.class,
 					ConsentsApiCrossClientTestModule.class,

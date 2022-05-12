@@ -21,9 +21,9 @@ public class EnsureMinimumRequestUriEntropy extends AbstractEnsureMinimumEntropy
 	 * @see Condition#evaluate(Environment)
 	 */
 	@Override
-	@PreEnvironment(required = "pushed_authorization_endpoint_response")
+	@PreEnvironment(required = CallPAREndpoint.RESPONSE_KEY)
 	public Environment evaluate(Environment env) {
-		String requestUri = env.getString("pushed_authorization_endpoint_response", "request_uri");
+		String requestUri = env.getString(CallPAREndpoint.RESPONSE_KEY, "body_json.request_uri");
 
 		if (Strings.isNullOrEmpty(requestUri)) {
 			throw error("Can't find requestUri ");

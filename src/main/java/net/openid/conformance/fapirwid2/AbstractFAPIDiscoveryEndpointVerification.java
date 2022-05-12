@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
-import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
@@ -14,7 +14,7 @@ import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -80,9 +80,9 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 		callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "RFC8705-3.3");
 
-		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
+		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
-		callAndContinueOnFailure(FAPIRWCheckDiscEndpointTokenEndpointAuthMethodsSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
 		call(condition(FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported.class)

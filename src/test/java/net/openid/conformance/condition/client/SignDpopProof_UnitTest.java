@@ -31,6 +31,7 @@ public class SignDpopProof_UnitTest {
 
 	private SignDpopProof cond;
 
+	private JsonObject header;
 	private JsonObject claims;
 
 	private JsonObject rsaJwks;
@@ -41,6 +42,11 @@ public class SignDpopProof_UnitTest {
 		cond = new SignDpopProof();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+
+		header = JsonParser.parseString("{" +
+			"  \"typ\": \"dpop+jwt\"," +
+			"  \"alg\": \"PS256\"" +
+			"}").getAsJsonObject();
 
 		claims = JsonParser.parseString("{" +
 			"	\"iss\": \"client\"," +
@@ -66,6 +72,7 @@ public class SignDpopProof_UnitTest {
 	@Test
 	public void testEvaluate_rsa() {
 
+		env.putObject("dpop_proof_header", header);
 		env.putObject("dpop_proof_claims", claims);
 		env.putObject("client", "dpop_private_jwk", rsaJwks);
 
