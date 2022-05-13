@@ -11,7 +11,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consent-api-bad-consents-test",
 	displayName = "Validate that requests with incompatible consents return HTTP 400",
-	summary = "Validate that requests with incompatible consents return HTTP 400",
+	summary = "Validate that requests with incompatible consents return HTTP 400" +
+	"\u2022 Calls the Token Endpoint using the consents scope \n" +
+		"\u2022 Creates a Consent with incompatible permissions\n" +
+		"\u2022 Checks if server returns 400 status code\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -35,6 +38,7 @@ public class ConsentApiBadConsentsTestModule extends AbstractClientCredentialsGr
 			callAndStopOnFailure(FAPIBrazilCreateBadConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
+			callAndStopOnFailure(IgnoreResponseError.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
