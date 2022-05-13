@@ -28,8 +28,8 @@ public class CallGetPaymentEndpointSequence extends AbstractConditionSequence {
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
 		callAndStopOnFailure(AddJWTAcceptHeaderRequest.class);
-		callAndStopOnFailure(CallProtectedResource.class);
-		callAndStopOnFailure(EnsureResponseCodeWas200.class);
+		callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
@@ -40,13 +40,13 @@ public class CallGetPaymentEndpointSequence extends AbstractConditionSequence {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 
-		callAndStopOnFailure(EnsureContentTypeApplicationJwt.class);
+		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class);
+		callAndContinueOnFailure(ExtractSignedJwtFromResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndStopOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class);
+		callAndStopOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
-		callAndStopOnFailure(FAPIBrazilValidateResourceResponseTyp.class);
+		callAndStopOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		call(exec().mapKey("server", "org_server"));
 		call(exec().mapKey("server_jwks", "org_server_jwks"));
