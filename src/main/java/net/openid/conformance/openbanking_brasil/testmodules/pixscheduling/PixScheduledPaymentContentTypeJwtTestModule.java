@@ -62,7 +62,7 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 		if(!validationStarted) {
 			validationStarted = true;
 			ConditionSequence pixSequence = new CallPixPaymentsEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
+				.replace(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class, condition(AddNoAcceptHeaderRequest.class))
 				.replace(CreatePaymentRequestEntityClaims.class, condition(GeneratePaymentRequestEntityClaims.class))
 				.skip(EnsureResponseCodeWas201.class, "Skipping 201 check");
 			call(pixSequence);
@@ -71,28 +71,28 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 
 			eventLog.startBlock("Get Payments API with no accept header");
 			ConditionSequence GetPaymentNoAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
+				.replace(AddJWTAcceptHeaderRequest.class, condition(AddNoAcceptHeaderRequest.class))
 				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure());
 
 			call(GetPaymentNoAcceptSequence);
 
 			eventLog.startBlock("Get Payments API with application/json accept header");
 			ConditionSequence GetPaymentJsonAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceJsonAcceptField.class))
+				.replace(AddJWTAcceptHeaderRequest.class, condition(AddJsonAcceptHeaderRequest.class))
 				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure());
 			call(GetPaymentJsonAcceptSequence);
 
 			eventLog.startBlock("Get Consents API with no accept header");
 			callAndStopOnFailure(LoadOldValues.class);
 			ConditionSequence GetConsentNoAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
+				.replace(AddJWTAcceptHeaderRequest.class, condition(AddNoAcceptHeaderRequest.class))
 				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure());
 			call(GetConsentNoAcceptSequence);
 
 			eventLog.startBlock("Get Consents API with application/json accept header");
 			callAndStopOnFailure(LoadOldValues.class);
 			ConditionSequence GetConsentJsonAcceptSequence = new CallGetPaymentEndpointSequence()
-				.replace(CallProtectedResource.class, condition(CallProtectedResourceNoAcceptField.class))
+				.replace(AddJWTAcceptHeaderRequest.class, condition(AddJsonAcceptHeaderRequest.class))
 				.replace(EnsureResponseCodeWas200.class, condition(OptionallyAllow200or406.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure());
 			call(GetConsentJsonAcceptSequence);
 
@@ -117,28 +117,6 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 			condition(EnsureScheduledPaymentDateIsTodayPlus350.class)
 		);
 	}
-
-//	@Override
-//	protected void createPlaceholder() {
-//		callAndStopOnFailure(AskForScreenshotWithNoAccountSelection.class);
-//
-//		env.putString("error_callback_placeholder", env.getString("payments_placeholder"));
-//	}
-
-
-//	@Override
-//	protected void performRedirect() {
-//		performRedirectWithPlaceholder();
-//	}
-//
-//	@Override
-//	protected void onPostAuthorizationFlowComplete() {
-//		waitForPlaceholders();
-//
-//		eventLog.log(getName(), "All test steps have run. The test will remaining in 'WAITING' state until the required screenshot is uploaded using the 'Upload Images' button at the top of the page. It may take upto 30 seconds for the test to move to 'FINISHED' after the upload.");
-//
-//	}
-
 	@Override
 	protected void validateResponse() {
 		repeatSequence(() -> new PollForScheduledPaymentChangeSequence())
@@ -148,8 +126,6 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 					condition(TestTimedOut.class),
 					condition(ChuckWarning.class)))
 			.run();
-
-//		fireTestFinished();
 	}
 
 }
