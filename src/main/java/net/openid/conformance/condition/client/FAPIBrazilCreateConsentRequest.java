@@ -23,6 +23,10 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 			throw error("A least one of CPF and CNPJ must be specified in the test configuration");
 		}
 
+		if (Strings.isNullOrEmpty(productType)) {
+			throw error("Product type (Business or Personal) must be specified in the test configuration");
+		}
+
 		String[] permissions;
 
 		String consentPermissions = env.getString("consent_permissions");

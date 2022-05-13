@@ -107,8 +107,13 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 
 		JsonObject config = new JsonObject();
 		JsonObject resourceConfig = new JsonObject();
-		config.add("resource", resourceConfig);
+		JsonObject consentConfig = new JsonObject();
+
 		resourceConfig.addProperty("brazilCpf", "138830383");
+		config.add("resource", resourceConfig);
+
+		consentConfig.addProperty("productType", "business");
+		config.add("consent", consentConfig);
 
 		String[] permissionsToSet = { "ACCOUNTS_READ_BALANCE" };
 		env.putString("consent_permissions", String.join(" ", permissionsToSet));
@@ -129,8 +134,13 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 
 		JsonObject config = new JsonObject();
 		JsonObject resourceConfig = new JsonObject();
-		config.add("resource", resourceConfig);
+		JsonObject consentConfig = new JsonObject();
+
 		resourceConfig.addProperty("brazilCpf", "138830383");
+		config.add("resource", resourceConfig);
+
+		consentConfig.addProperty("productType", "business");
+		config.add("consent", consentConfig);
 
 		String[] permissionsToSet = { "ACCOUNTS_READ_BALANCE", "ACCOUNTS_TRANSACTIONS_READ" };
 		env.putString("consent_permissions", String.join(" ", permissionsToSet));
