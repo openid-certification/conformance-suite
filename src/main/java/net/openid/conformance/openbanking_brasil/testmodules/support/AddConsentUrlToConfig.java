@@ -9,7 +9,8 @@ public class AddConsentUrlToConfig extends AbstractCondition {
 	@PreEnvironment(required = "config" )
 	public Environment evaluate(Environment env) {
 
-		String consentURL = "https://matls-api.mockbank.poc.raidiam.io/open-banking/consents/v1/consents";
+//		String consentURL = "https://matls-api.mockbank.poc.raidiam.io/open-banking/consents/v1/consents";
+		String consentURL = "https://obkhmo-mtls.brb.com.br/openbanking/payments/v1/consents";
 		env.putString("config", "resource.consentUrl", consentURL);
 		return env;
 	}

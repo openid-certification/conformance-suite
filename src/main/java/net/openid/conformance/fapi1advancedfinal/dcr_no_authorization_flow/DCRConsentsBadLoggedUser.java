@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
 import net.openid.conformance.condition.client.*;
@@ -23,7 +24,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase"
+		"directory.apibase",
+		"resource.consentUrl"
 	}
 )
 public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
@@ -65,25 +67,35 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		eventLog.startBlock("Configuring dummy data");
 		callAndStopOnFailure(AddDummyCPFToConfig.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
-		callAndStopOnFailure(AddConsentUrlToConfig.class);
 		eventLog.endBlock();
 
-		eventLog.startBlock("Calling Consents API");
-		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-		callAndStopOnFailure(AddConsentScope.class);
-		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
-		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-		callAndStopOnFailure(FAPIBrazilAddExpirationPlus30ToConsentRequest.class);
-		callAndStopOnFailure(SetContentTypeApplicationJson.class);
-		callAndStopOnFailure(IgnoreResponseError.class);
-		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(EnsureConsentHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
+		eventLog.startBlock("Checking consentURL");
+		callAndStopOnFailure(AddConsentUrlToConfig.class);
+		String consentUrl = env.getString("config", "resource.consentUrl");
+
+		if(consentUrl.matches("^(https://)(.*?)(consents/v[0-9]/consents)")) {
+			eventLog.startBlock("Calling Consents API");
+			callAndStopOnFailure(PrepareToPostConsentRequest.class);
+			callAndStopOnFailure(AddConsentScope.class);
+			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
+			callAndStopOnFailure(FAPIBrazilAddExpirationPlus30ToConsentRequest.class);
+			callAndStopOnFailure(SetContentTypeApplicationJson.class);
+			//callAndStopOnFailure(IgnoreResponseError.class);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.INFO);
+			callAndStopOnFailure(EnsureConsentApiResponseCodeWas400.class, Condition.ConditionResult.FAILURE);
+			//callAndStopOnFailure(EnsureResponseCodeWas403);
 //		callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
 //		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 //		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-		callAndContinueOnFailure(CheckItemCountHasMin1.class);
+			callAndContinueOnFailure(CheckItemCountHasMin1.class);
+		} else if(consentUrl.matches("^(https://)(.*?)(payments/v[0-9]/consents)")) {
+			eventLog.startBlock("Calling Payments Consents API");
+		}
+		eventLog.endBlock();
+
 	}
 
 	@Override
