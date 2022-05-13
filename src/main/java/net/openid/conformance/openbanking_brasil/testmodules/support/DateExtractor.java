@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class DateExtractor extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
-	@PostEnvironment(strings = "transactionDate")
+	@PostEnvironment(strings = {"transactionDate","base_resource_url"})
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
 		String request = env.getString("base_resource_url");
@@ -30,10 +30,15 @@ public class DateExtractor extends AbstractCondition {
 			logSuccess("Transaction ID", args("transactionId", transactionId));
 		}
 
-		String accountId = env.getString("accountId");
-		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,transactionDate, transactionDate);
-		logSuccess("Added fromBookingDate and toBookingDate query parameters " + url);
-		log("Returned Transactions: " + entityString);
+		String newRequest = null;
+		if (request.contains("fromBookingDate")) {
+			int oldUrl = request.indexOf("?");
+			newRequest = request.substring(0, oldUrl);
+		}
+
+		var url = String.format(newRequest + "?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate);
+		logSuccess("Added fromBookingDate and toBookingDate query parameters: " + url);
+		env.putString("base_resource_url", url);
 
 		return env;
 	}
