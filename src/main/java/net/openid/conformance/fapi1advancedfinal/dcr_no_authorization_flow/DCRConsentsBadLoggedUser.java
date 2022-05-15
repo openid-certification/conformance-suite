@@ -7,8 +7,12 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRHappyFlow;
 import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
@@ -28,6 +32,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl"
 	}
 )
+
 public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
 
 	@Override
@@ -53,51 +58,78 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Calling Token Endpoint using Client Credentials");
-		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
-		callAndContinueOnFailure(CreateClientAuthenticationAssertionClaims.class);
-		callAndContinueOnFailure(SignClientAuthenticationAssertion.class);
-		callAndContinueOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-		callAndStopOnFailure(CallTokenEndpoint.class);
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		eventLog.endBlock();
-
 		eventLog.startBlock("Configuring dummy data");
 		callAndStopOnFailure(AddDummyCPFToConfig.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
+		callAndStopOnFailure(AddDummyBrazilPaymentConsent.class); //TODO: (Alex) add logs
+		callAndStopOnFailure(ExtractResourceFromConfig.class);
 		eventLog.endBlock();
 
 		eventLog.startBlock("Checking consentURL");
-		callAndStopOnFailure(AddConsentUrlToConfig.class);
 		String consentUrl = env.getString("config", "resource.consentUrl");
 
 		if(consentUrl.matches("^(https://)(.*?)(consents/v[0-9]/consents)")) {
+			eventLog.startBlock("Calling Token Endpoint using Client Credentials");
+			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+
+			call(CallTokenEndpointShortVersion());
+			eventLog.endBlock();
+
 			eventLog.startBlock("Calling Consents API");
-			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(AddConsentScope.class);
-			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
-			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-			callAndStopOnFailure(FAPIBrazilAddExpirationPlus30ToConsentRequest.class);
-			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-			//callAndStopOnFailure(IgnoreResponseError.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.INFO);
-			callAndStopOnFailure(EnsureConsentApiResponseCodeWas400.class, Condition.ConditionResult.FAILURE);
-			//callAndStopOnFailure(EnsureResponseCodeWas403);
-//		callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-			callAndContinueOnFailure(CheckItemCountHasMin1.class);
+			call(ConsentsApiSequence());
+
 		} else if(consentUrl.matches("^(https://)(.*?)(payments/v[0-9]/consents)")) {
+			eventLog.startBlock("Calling Token Endpoint using Client Credentials");
+			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
+
+			call(CallTokenEndpointShortVersion());
+			eventLog.endBlock();
 			eventLog.startBlock("Calling Payments Consents API");
+			ConditionSequence paymentsConsentsStep  = new PaymentsConsentSteps()
+				.insertAfter(FAPIBrazilCreatePaymentConsentRequest.class, PaymentsConsentsAdditionalSteps())
+				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
+				.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas422.class));
+			call(paymentsConsentsStep);
+
 		}
 		eventLog.endBlock();
 
 	}
 
+	private ConditionSequence ConsentsApiSequence(){
+		return sequenceOf(
+			condition(PrepareToPostConsentRequest.class),
+			condition(AddConsentScope.class),
+			condition(GetResourceEndpointConfiguration.class),
+			condition(CreateEmptyResourceEndpointRequestHeaders.class),
+			condition(AddFAPIAuthDateToResourceEndpointRequest.class),
+			condition(FAPIBrazilCreateConsentRequest.class),
+			condition(FAPIBrazilAddExpirationPlus30ToConsentRequest.class),
+			condition(SetContentTypeApplicationJson.class),
+			condition(CallConsentApiWithBearerToken.class).dontStopOnFailure().onFail(Condition.ConditionResult.INFO),
+			condition(EnsureConsentApiResponseCodeWas400.class).dontStopOnFailure().onFail(Condition.ConditionResult.FAILURE)
+		);
+	}
+
+	private ConditionSequence CallTokenEndpointShortVersion(){
+		return sequenceOf(
+		condition(CreateClientAuthenticationAssertionClaims.class).dontStopOnFailure(),
+		condition(SignClientAuthenticationAssertion.class).dontStopOnFailure(),
+		condition(AddClientAssertionToTokenEndpointRequest.class).dontStopOnFailure(),
+		condition(CallTokenEndpoint.class),
+		condition(CheckIfTokenEndpointResponseError.class),
+		condition(ExtractAccessTokenFromTokenResponse.class)
+		);
+	}
+
+	private ConditionSequence PaymentsConsentsAdditionalSteps(){
+		return sequenceOf(
+			condition(RemovePaymentDateFromConsentRequest.class),
+		condition(EnsureScheduledPaymentDateIsToday.class)
+		);
+	}
 	@Override
 	protected void onPostAuthorizationFlowComplete(){
 		// not needed as resource endpoint won't be called

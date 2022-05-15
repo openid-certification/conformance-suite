@@ -12,6 +12,7 @@ public class AddDummyCPFToConfig extends AbstractCondition {
 
 		String dummyCPF = "11111111111";
 		env.putString("config", "resource.brazilCpf", dummyCPF);
+		logSuccess("Dummy CPF added successfully", args("dummy CPF", dummyCPF));
 		return env;
 	}
 }
