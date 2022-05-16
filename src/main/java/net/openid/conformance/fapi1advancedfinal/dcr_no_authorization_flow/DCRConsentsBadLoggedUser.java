@@ -1,18 +1,13 @@
 package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
-import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRHappyFlow;
-import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
@@ -73,22 +68,22 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 
-			call(CallTokenEndpointShortVersion());
+			call(callTokenEndpointShortVersion());
 			eventLog.endBlock();
 
 			eventLog.startBlock("Calling Consents API");
-			call(ConsentsApiSequence());
+			call(consentsApiSequence());
 
 		} else if(consentUrl.matches("^(https://)(.*?)(payments/v[0-9]/consents)")) {
 			eventLog.startBlock("Calling Token Endpoint using Client Credentials");
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
 
-			call(CallTokenEndpointShortVersion());
+			call(callTokenEndpointShortVersion());
 			eventLog.endBlock();
 			eventLog.startBlock("Calling Payments Consents API");
 			ConditionSequence paymentsConsentsStep  = new PaymentsConsentSteps()
-				.insertAfter(FAPIBrazilCreatePaymentConsentRequest.class, PaymentsConsentsAdditionalSteps())
+				.insertAfter(FAPIBrazilCreatePaymentConsentRequest.class, paymentsConsentsAdditionalSteps())
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
 				.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas422.class));
 			call(paymentsConsentsStep);
@@ -98,7 +93,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 
 	}
 
-	private ConditionSequence ConsentsApiSequence(){
+	private ConditionSequence consentsApiSequence(){
 		return sequenceOf(
 			condition(PrepareToPostConsentRequest.class),
 			condition(AddConsentScope.class),
@@ -113,7 +108,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		);
 	}
 
-	private ConditionSequence CallTokenEndpointShortVersion(){
+	private ConditionSequence callTokenEndpointShortVersion(){
 		return sequenceOf(
 		condition(CreateClientAuthenticationAssertionClaims.class).dontStopOnFailure(),
 		condition(SignClientAuthenticationAssertion.class).dontStopOnFailure(),
@@ -124,7 +119,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		);
 	}
 
-	private ConditionSequence PaymentsConsentsAdditionalSteps(){
+	private ConditionSequence paymentsConsentsAdditionalSteps(){
 		return sequenceOf(
 			condition(RemovePaymentDateFromConsentRequest.class),
 		condition(EnsureScheduledPaymentDateIsToday.class)
