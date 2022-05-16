@@ -12,8 +12,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "consents-bad-logged",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR happy flow without authentication flow",
-	summary = "\u2022 Obtains a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration).\n" +
-		"\u2022 Registers a new client on the target authorization server.",
+	summary = "This test will try to use the recently created DCR to access either a Consents or, " +
+		"if the server does not support Phase 2, a Payments Consent Call with a dummy, but well-formated payload to make sure " +
+		"that the server will read the request but won’t be able to process it. \n" +
+		"\u2022 Create a client by performing a DCR against the provided server - Expect Success \n" +
+		"\u2022 Generate a token with the client_id created \n " +
+		"\u2022 Use the token to call either the POST Consents or POST Payments Consents API, depending on the directory configuration provided \n" +
+		"\u2022 Expect server to accept the message  but return a failure because with either 400 or 422 because of well formatted but invalid payload sent"
+	,
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
