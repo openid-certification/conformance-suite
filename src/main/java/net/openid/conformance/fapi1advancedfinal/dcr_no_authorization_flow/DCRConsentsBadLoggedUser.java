@@ -56,7 +56,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		eventLog.startBlock("Configuring dummy data");
 		callAndStopOnFailure(AddDummyCPFToConfig.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
-		callAndStopOnFailure(AddDummyBrazilPaymentConsent.class); //TODO: (Alex) add logs
+		callAndStopOnFailure(AddDummyBrazilPaymentConsent.class);
 		callAndStopOnFailure(ExtractResourceFromConfig.class);
 		eventLog.endBlock();
 
