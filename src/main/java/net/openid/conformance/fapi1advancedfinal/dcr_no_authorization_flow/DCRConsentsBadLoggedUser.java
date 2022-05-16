@@ -67,6 +67,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		eventLog.endBlock();
 
 		eventLog.startBlock("Checking consentURL");
+		callAndStopOnFailure(EnsureConsentUrlIsNotNull.class);
 		String consentUrl = env.getString("config", "resource.consentUrl");
 
 		if(consentUrl.matches("^(https://)(.*?)(consents/v[0-9]/consents)")) {
