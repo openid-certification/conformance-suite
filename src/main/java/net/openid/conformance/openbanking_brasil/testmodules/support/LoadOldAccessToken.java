@@ -14,6 +14,7 @@ public class LoadOldAccessToken extends AbstractCondition {
 		JsonObject o = new JsonObject();
 		o.addProperty("value", env.getString("old_access_token", "value"));
 		o.addProperty("type", env.getString("old_access_token", "type"));
+		env.removeObject("old_access_token");
 
 		env.putObject("access_token", o);
 		return env;
