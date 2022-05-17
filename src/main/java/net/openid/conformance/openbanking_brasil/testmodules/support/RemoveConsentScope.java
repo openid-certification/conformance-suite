@@ -35,7 +35,7 @@ public class RemoveConsentScope extends AbstractCondition {
 		scope = scope.replace("consents ", "");
 		client.addProperty("scope", scope);
 
-		logSuccess("Removed scope of '"+scope+"' to client's scope", client);
+		logSuccess("Removed scope from client's scope", args("scope_removed", scope));
 		return env;
 	}
 }

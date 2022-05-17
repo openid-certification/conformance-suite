@@ -18,7 +18,7 @@ public class CreateTokenEndpointRequestForClientCredentialsGrant extends Abstrac
 		JsonObject o = new JsonObject();
 		o.addProperty("grant_type", "client_credentials");
 
-		// add the scope if it exists s
+		// add the scope if it exists
 		String scope = env.getString("client", "scope");
 		if (!Strings.isNullOrEmpty(scope)) {
 			o.addProperty("scope", scope);

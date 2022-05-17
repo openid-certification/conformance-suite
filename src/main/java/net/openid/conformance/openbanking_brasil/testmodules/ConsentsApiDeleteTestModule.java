@@ -49,19 +49,10 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	protected void validateClientConfiguration() {
 		super.validateClientConfiguration();
 		callAndStopOnFailure(AddConsentScope.class);
-		callAndStopOnFailure(AddAccountScope.class);
-//		JsonObject client = env.getObject("client");
-//		JsonElement scopeElement = client.get("scope");
-//		String scope = "openid consents accounts";
-//		client.addProperty("scope", scope);
-
 	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		//callAndStopOnFailure(PrepareToPostConsentRequest.class);
-		//callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class); TODO: probably add something here
-		//TODO: set protected resourse to accounts
 		clientAuthType = getVariant(ClientAuthType.class);
 	}
 
@@ -69,20 +60,19 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
 		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApi(addTokenEndpointClientAuthentication);
-//			.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
 
 		return preauthSteps;
 	}
 
 	@Override
 	protected void requestProtectedResource(){
-		//callAndStopOnFailure(LoadOldAccessToken.class);
+
 		eventLog.startBlock("Try calling protected resource after user authentication");
 		callAndStopOnFailure(SaveProtectedResourceAccessToken.class);
 		callAndStopOnFailure(CallProtectedResource.class);
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-//		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-//		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		eventLog.endBlock();
+
 		eventLog.startBlock("Deleting consent");
 		callAndContinueOnFailure(LoadConsentsAccessToken.class);
 		callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
@@ -113,132 +103,6 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 		call(sequence);
 	}
 
-//	private ConditionSequence validateCreateConsentResponse(){
-//		eventLog.startBlock("Validating create consent response");
-//		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-//		callAndStopOnFailure(AddConsentScope.class);
-//		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-//		callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-//		callAndStopOnFailure(SetContentTypeApplicationJson.class);
-//		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
-//		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-//		callAndContinueOnFailure(CheckItemCountHasMin1.class);
-//	}
-//	@Override
-//	protected void runTests() {
-//
-//		runInBlock("Validating create consent response", () -> {
-//			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-//			callAndStopOnFailure(AddConsentScope.class);
-//			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
-//			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-//			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-//			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(CreateNewConsentValidator.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-//			callAndContinueOnFailure(CheckItemCountHasMin1.class);
-//		});
-//
-//		runInBlock("Validating get consent response", () -> {
-//			callAndStopOnFailure(ConsentIdExtractor.class);
-//			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-//			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidator.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
-//			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
-//		});
-//
-////		runInBlock("Calling Token endpoint", () -> {
-////			callAndStopOnFailure(CreateRefreshToken.class);
-////			callAndStopOnFailure(CreateRefreshTokenRequest.class);
-////			callAndStopOnFailure(CallTokenEndpoint.class);
-////		});
-//
-////		runInBlock("Calling Token endpoint", () -> {
-////			createAuthorizationCodeRequest();
-////
-////			// Store the original access token and ID token separately (see RefreshTokenRequestSteps)
-////			env.mapKey("access_token", "first_access_token");
-////			env.mapKey("id_token", "first_id_token");
-////
-////			callAndStopOnFailure(CallTokenEndpoint.class);
-////			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-////			callAndStopOnFailure(CheckForAccessTokenValue.class);
-////			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-////
-////			// Set up the mappings for the refreshed access and ID tokens
-////			env.mapKey("access_token", "second_access_token");
-////			env.mapKey("id_token", "second_id_token");
-////
-////		});
-////		runInBlock("Calling Token endpoint BEFORE DELETE", () -> {
-////			ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationErrorAgnosticSteps(addTokenEndpointClientAuthentication)
-////				.replace(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddConsentScope.class));
-//////				.replace(FAPIBrazilCreatePaymentConsentRequest.class, paymentConsentEditingSequence());
-////			call(preauthSteps);
-////		});
-//
-//		runInBlock("Deleting consent", () -> {
-//			callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-//			callAndStopOnFailure(IgnoreResponseError.class);
-//			callAndStopOnFailure(SetResponseBodyOptional.class);
-//			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-//
-//			callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
-//			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
-//		});
-//
-////		runInBlock("Calling Token endpoint", () -> {
-////			callAndStopOnFailure(GetDynamicServerConfiguration.class);
-////			callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
-////			callAndStopOnFailure(AddMTLSEndpointAliasesToEnvironment.class);
-////			callAndStopOnFailure(GetStaticClientConfiguration.class);
-////			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-////
-////			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-////			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
-////			call(sequence(clientAuthSequence));
-////			callAndStopOnFailure(CallTokenEndpoint.class);
-////			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-////			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-////		});
-//	}
-//
-////	protected void createAuthorizationCodeRequest() {
-////		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-////		if (addTokenEndpointClientAuthentication != null) {
-////			call(sequence(addTokenEndpointClientAuthentication));
-////		}
-////	}
-//
-////	protected void requestAuthorizationCode() {
-////		callAndStopOnFailure(CallTokenEndpoint.class);
-////		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-////		callAndStopOnFailure(CheckForAccessTokenValue.class);
-////		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-////
-////		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.INFO, "RFC6749-5.1"); // this is 'recommended' by the RFC, but we don't want to raise a warning on every test
-////		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-////			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-////
-////		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
-////
-////		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
-////
-////		// save the id_token returned from the token endpoint
-////		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
-////
-////		additionalTokenEndpointResponseValidation();
-////
-////		if (responseType.includesIdToken()) {
-////			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
-////		}
-////	}
 	@Override
 	protected void validateResponse() {}
 }

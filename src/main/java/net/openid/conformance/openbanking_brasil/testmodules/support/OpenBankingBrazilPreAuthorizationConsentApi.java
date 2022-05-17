@@ -58,7 +58,6 @@ public class OpenBankingBrazilPreAuthorizationConsentApi extends AbstractConditi
 
 		call(exec().startBlock("Validating create consent response"));
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
-		//callAndStopOnFailure(AddConsentScope.class);
 		callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 		callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 		callAndStopOnFailure(SetContentTypeApplicationJson.class);
@@ -76,12 +75,7 @@ public class OpenBankingBrazilPreAuthorizationConsentApi extends AbstractConditi
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-//		callAndStopOnFailure(AddAccountScope.class);
-//		callAndContinueOnFailure(SaveAccessToken.class);
 
-//		call(exec().startBlock("Try calling protected resource without user authentication"));
-//		callAndStopOnFailure(CallProtectedResource.class);
-//		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(RemoveConsentScope.class);
 	}
 }

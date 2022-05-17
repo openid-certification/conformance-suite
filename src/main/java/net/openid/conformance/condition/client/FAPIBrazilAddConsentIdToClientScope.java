@@ -30,7 +30,6 @@ public class FAPIBrazilAddConsentIdToClientScope extends AbstractCondition {
 		}
 
 		scope += " consent:"+consentId;
-		//scope = "openid consent:"+consentId;
 
 		client.addProperty("scope", scope);
 
