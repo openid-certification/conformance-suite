@@ -27,7 +27,7 @@ public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
 
 		assertField(body, new ObjectField.Builder("data").setValidator(data -> {
 
-			assertField(data, new DatetimeField.Builder("requestTime").build());
+			assertField(data, new StringField.Builder("requestTime").build());
 
 			assertField(data, new ObjectField.Builder("availability")
 				.setValidator(this::assertAvailabilityMetrics).build());
