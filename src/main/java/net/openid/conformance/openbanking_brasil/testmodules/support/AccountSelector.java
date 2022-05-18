@@ -15,7 +15,12 @@ public class AccountSelector extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
 		JsonObject accountList = new JsonParser().parse(entityString).getAsJsonObject();
+
 		JsonArray data = accountList.getAsJsonArray("data");
+		if(data.size() <= 0) {
+			throw error("Data field is empty, no further processing required.");
+		}
+
 		JsonObject firstAccount = data.get(0).getAsJsonObject();
 		String accountId = OIDFJSON.getString(firstAccount.get("accountId"));
 		env.putString("accountId", accountId);

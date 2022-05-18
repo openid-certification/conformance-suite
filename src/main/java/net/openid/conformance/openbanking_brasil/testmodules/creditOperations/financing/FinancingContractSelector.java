@@ -16,6 +16,7 @@ public class FinancingContractSelector extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
 		JsonObject contractList = new JsonParser().parse(entityString).getAsJsonObject();
+
 		JsonArray data = contractList.getAsJsonArray("data");
 		if(data.size() <= 0) {
 			throw error("Data field is empty, no further processing required.");

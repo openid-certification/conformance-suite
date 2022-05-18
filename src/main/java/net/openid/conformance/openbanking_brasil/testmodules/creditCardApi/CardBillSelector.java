@@ -14,7 +14,12 @@ public class CardBillSelector extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
 		JsonObject accountList = new JsonParser().parse(entityString).getAsJsonObject();
+
 		JsonArray data = accountList.getAsJsonArray("data");
+		if(data.size() <= 0) {
+			throw error("Data field is empty, no further processing required.");
+		}
+
 		JsonObject firstAccount = data.get(0).getAsJsonObject();
 		String billId = OIDFJSON.getString(firstAccount.get("billId"));
 		env.putString("billId", billId);
