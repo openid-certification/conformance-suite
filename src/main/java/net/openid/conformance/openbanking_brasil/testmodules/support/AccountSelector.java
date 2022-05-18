@@ -14,7 +14,7 @@ public class AccountSelector extends AbstractCondition {
 	@PostEnvironment(strings = "accountId")
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
-		JsonObject accountList = new JsonParser().parse(entityString).getAsJsonObject();
+		JsonObject accountList = JsonParser.parseString(entityString).getAsJsonObject();
 
 		JsonArray data = accountList.getAsJsonArray("data");
 		if(data.size() <= 0) {

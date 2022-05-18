@@ -14,7 +14,7 @@ public class CreditDiscountedCreditRightsSelector extends AbstractCondition {
 	@PostEnvironment(strings = "contractId")
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
-		JsonObject contractList = new JsonParser().parse(entityString).getAsJsonObject();
+		JsonObject contractList = JsonParser.parseString(entityString).getAsJsonObject();
 
 		JsonArray data = contractList.getAsJsonArray("data");
 		if(data.size() <= 0) {
