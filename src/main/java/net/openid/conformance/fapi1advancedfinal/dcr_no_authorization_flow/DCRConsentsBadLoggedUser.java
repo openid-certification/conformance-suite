@@ -8,6 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
@@ -36,10 +37,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFlow {
 
+	protected ClientAuthType clientAuthType;
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 		super.onPostAuthorizationFlowComplete();
+	}
+
+	@Override
+	protected void configureClient() {
+		clientAuthType = getVariant(ClientAuthType.class);
+		super.configureClient();
 	}
 
 	@Override
@@ -90,7 +99,6 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			eventLog.endBlock();
 			eventLog.startBlock("Calling Payments Consents API");
 			ConditionSequence paymentsConsentsStep  = new PaymentsConsentSteps()
-				.insertAfter(FAPIBrazilCreatePaymentConsentRequest.class, paymentsConsentsAdditionalSteps())
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
 				.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas422.class));
 			call(paymentsConsentsStep);
@@ -116,22 +124,30 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 	}
 
 	private ConditionSequence callTokenEndpointShortVersion(){
-		return sequenceOf(
-		condition(CreateClientAuthenticationAssertionClaims.class).dontStopOnFailure(),
-		condition(SignClientAuthenticationAssertion.class).dontStopOnFailure(),
-		condition(AddClientAssertionToTokenEndpointRequest.class).dontStopOnFailure(),
-		condition(CallTokenEndpoint.class),
-		condition(CheckIfTokenEndpointResponseError.class),
-		condition(ExtractAccessTokenFromTokenResponse.class)
+		ConditionSequence sequence = sequenceOf(
+			condition(AddClientIdToTokenEndpointRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class).dontStopOnFailure(),
+			condition(SignClientAuthenticationAssertion.class).dontStopOnFailure(),
+			condition(AddClientAssertionToTokenEndpointRequest.class).dontStopOnFailure(),
+			condition(CallTokenEndpoint.class),
+			condition(CheckIfTokenEndpointResponseError.class),
+			condition(ExtractAccessTokenFromTokenResponse.class)
 		);
+
+		if (clientAuthType == ClientAuthType.MTLS) {
+			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Not needed for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Not needed for MTLS");
+		}
+		return sequence;
 	}
 
-	private ConditionSequence paymentsConsentsAdditionalSteps(){
-		return sequenceOf(
-			condition(RemovePaymentDateFromConsentRequest.class),
-		condition(EnsureScheduledPaymentDateIsToday.class)
-		);
-	}
+//	private ConditionSequence paymentsConsentsAdditionalSteps(){
+//		return sequenceOf(
+//			condition(RemovePaymentDateFromConsentRequest.class),
+//		condition(EnsureScheduledPaymentDateIsToday.class)
+//		);
+//	}
 	@Override
 	protected void onPostAuthorizationFlowComplete(){
 		// not needed as resource endpoint won't be called

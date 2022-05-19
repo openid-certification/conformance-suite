@@ -7,6 +7,10 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JsonObjectBuilder;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 public class AddDummyBrazilPaymentConsent extends AbstractCondition {
 	@Override
@@ -28,7 +32,8 @@ public class AddDummyBrazilPaymentConsent extends AbstractCondition {
 			"      \"personType\": \"PESSOA_NATURAL\"\n" +
 			"    },\n" +
 			"    \"payment\": {\n" +
-			"      \"date\": \"YYYY-MM-DD\",\n" +
+			"      \"date\": \"2022-06-18\",\n" +
+			"		\"type\": \"PIX\",\n"  +
 			"      \"amount\": \"0.01\",\n" +
 			"      \"currency\": \"BRL\",\n" +
 			"      \"details\": {\n" +
@@ -46,6 +51,10 @@ public class AddDummyBrazilPaymentConsent extends AbstractCondition {
 			"}";
 
 		JsonObject brazilPaymentConsentObject = JsonParser.parseString(brazilPaymentConsentString).getAsJsonObject();
+
+		LocalDate scheduledDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		JsonObjectBuilder.addField(brazilPaymentConsentObject, "data.payment.date", scheduledDate.toString());
+
 		env.putObject("config", "resource.brazilPaymentConsent", brazilPaymentConsentObject);
 		logSuccess("Dummy brazilPaymentConsent added successfully", brazilPaymentConsentObject);
 		return env;
