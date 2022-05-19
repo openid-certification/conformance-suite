@@ -23,10 +23,7 @@ public class CreditOperationsAdvancesApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
-					CreditOperationsAdvancesApiTestModule.class,
-					CreditOperationsAdvancesApiWrongPermissionsTestModule.class,
-					CreditOperationsAdvancesApiResourcesTestModule.class
+					PreFlightCertCheckModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
