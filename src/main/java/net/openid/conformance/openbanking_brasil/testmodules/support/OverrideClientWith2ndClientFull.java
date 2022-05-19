@@ -19,6 +19,7 @@ public class OverrideClientWith2ndClientFull extends AbstractCondition {
 		JsonElement client2 = config.get("client2");
 		if(client2 != null){
 			config.add("client", client2);
+			env.putObject("client_jwks", client2.getAsJsonObject().getAsJsonObject("jwks"));
 		}else {
 			throw error("Second client configuration is not provided");
 		}

@@ -2,10 +2,10 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.CallUserInfoEndpointWithBearerToken;
-import net.openid.conformance.condition.client.CheckUserInfoEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CallUserInfoEndpoint;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources;
-import net.openid.conformance.condition.client.EnsureUserInfoBirthDateValid;
 import net.openid.conformance.condition.client.EnsureUserInfoContainsSub;
 import net.openid.conformance.condition.client.EnsureUserInfoUpdatedAtValid;
 import net.openid.conformance.condition.client.ExtractUserInfoFromUserInfoEndpointResponse;
@@ -28,18 +28,22 @@ public abstract class AbstractOIDCCUserInfoTest extends AbstractOIDCCServerTest 
 	}
 
 	protected void extractUserInfoResponse() {
-		callAndContinueOnFailure(CheckUserInfoEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
+		call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
+		call(exec().unmapKey("endpoint_response"));
 		callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
 	}
 
 	protected void callUserInfoEndpoint() {
-		callAndStopOnFailure(CallUserInfoEndpointWithBearerToken.class, "OIDCC-5.3.1");
+		callAndStopOnFailure(CallUserInfoEndpoint.class, "OIDCC-5.3.1");
+		call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
 	}
 
 	protected void validateExtractedUserInfoResponse() {
 		callAndContinueOnFailure(ValidateUserInfoStandardClaims.class, ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureUserInfoContainsSub.class, ConditionResult.FAILURE, "OIDCC-5.3.2");
-		callAndContinueOnFailure(EnsureUserInfoBirthDateValid.class, ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureUserInfoUpdatedAtValid.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 		callAndContinueOnFailure(EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources.class, ConditionResult.FAILURE, "OIDCC-5.6.2");
 

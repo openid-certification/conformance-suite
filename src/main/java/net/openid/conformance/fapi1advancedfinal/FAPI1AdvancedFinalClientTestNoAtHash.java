@@ -17,8 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
 @VariantNotApplicable(parameter = FAPIJARMType.class, values = { "plain_oauth" })

@@ -5,6 +5,7 @@ import net.openid.conformance.condition.as.LogAccessTokenAlwaysRejectedToForceAR
 import net.openid.conformance.condition.as.RemoveIssuedAccessTokenFromEnvironment;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +29,10 @@ import org.springframework.http.ResponseEntity;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
-		"directory.keystore"
+		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk"})
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "idmvp"})
 public class FAPI2BaselineID2ClientRefreshTokenTest extends AbstractFAPI2BaselineID2ClientTest {
 	private int numberOfTimesRefreshTokenUsed = 0;
 

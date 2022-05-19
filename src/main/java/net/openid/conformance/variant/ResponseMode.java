@@ -13,7 +13,7 @@ public enum ResponseMode
 	DEFAULT("default"),
 	FORM_POST("form_post");
 
-	private String modeValue;
+	private final String modeValue;
 
 	private ResponseMode(String responseMode) {
 		modeValue = responseMode;

@@ -49,7 +49,7 @@ sys.stdout = timestamp_filter()
 # test_plan_name[variant=value][variant2=value2]:optional-run-only-module-named-test{optestplan}optestconfig
 # optestplan/config are only used when running the rp tests against the op tests
 def split_name_and_variant(test_plan):
-    module = None
+    modules = None
     op_test = None
     op_config = None
     if '{' in test_plan:
@@ -57,19 +57,20 @@ def split_name_and_variant(test_plan):
         (op_test, op_config) = op_test.split("}", 1)
     if ':' in test_plan:
         (test_plan, module) = test_plan.split(":", 1)
+        modules = module.split(",")
     if '[' in test_plan:
         name = re.match(r'^[^\[]*', test_plan).group(0)
         vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
         variant = { v.group(1) : v.group(2) for v in vs }
-        return (name, variant, module, op_test, op_config)
+        return (name, variant, modules, op_test, op_config)
     elif '(' in test_plan:
         #only for oidcc RP tests
         matches = re.match(r'(.*)\((.*)\)$', test_plan)
         name = matches.group(1)
         oidcc_configfile = matches.group(2)
-        return (name, oidcc_configfile, module, op_test, op_config)
+        return (name, oidcc_configfile, modules, op_test, op_config)
     else:
-        return (test_plan, None, module, op_test, op_config)
+        return (test_plan, None, modules, op_test, op_config)
 
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
@@ -81,6 +82,7 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
         oidcc_test_config_json = json.loads(oidcc_test_config)
     all_plan_results = []
     overall_starttime = time.time()
+    parsed_config = json.loads(json_config)
 
     for test_plan_config in oidcc_test_config_json['tests']:
         client_metadata_defaults = test_plan_config['client_metadata_defaults']
@@ -130,7 +132,8 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
                 state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
 
                 if state == "WAITING":
-                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + os.environ["OIDCC_TEST_CONFIG_ALIAS"]
+                    alias = parsed_config["alias"]
+                    oidcc_issuer_str = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
                     print('ISSUER {}'.format(oidcc_issuer_str))
                     print('CLIENT_METADATA_DEFAULTS {}'.format(client_metadata_defaults_str))
 
@@ -200,6 +203,7 @@ async def queue_worker(q):
             # log and ignore all exceptions, as run_queue otherwise locks up
             print('Exception caught in queue_worker:')
             traceback.print_exc()
+            sys.exit(1)
         finally:
             q.task_done()
 
@@ -219,7 +223,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
-    (test_plan_name, variant, selected_module, op_plan, op_config) = split_name_and_variant(test_plan)
+    (test_plan_name, variant, selected_modules, op_plan, op_config) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
         return await run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
@@ -240,10 +244,10 @@ async def run_test_plan(test_plan, config_file, output_dir):
     elif "alias" in parsed_config:
         parallel_jobs = 1
         print("{}: Config '{}' contains alias '{}' - not running tests in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
-    if selected_module == None:
+    if selected_modules == None:
         plan_modules = test_plan_info['modules']
     else:
-        plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) == selected_module]
+        plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in selected_modules]
     if len(plan_modules) == 0:
         raise Exception("No modules to test in " + test_plan_name)
 
@@ -256,7 +260,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
-        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope))
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config))
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
@@ -278,7 +282,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     return plan_results
 
 
-async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope):
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config):
     module=moduledict['testModule']
     module_with_variants = get_string_name_for_module_with_variant(moduledict)
     test_start_time = time.time()
@@ -315,7 +319,15 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                 if brazil_client_scope:
                     os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
                 profile = variant['fapi_profile']
-                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + os.environ["TEST_CONFIG_ALIAS"]
+                alias = parsed_config["alias"]
+                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
+                os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
+                os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/consents/v1/consents'
+                os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
+                os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
+                os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
+
                 os.environ['FAPI_PROFILE'] = profile
                 if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
                     os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']

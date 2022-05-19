@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
@@ -16,6 +17,10 @@ public class FinancingContractSelector extends AbstractCondition {
 		String entityString = env.getString("resource_endpoint_response");
 		JsonObject contractList = new JsonParser().parse(entityString).getAsJsonObject();
 		JsonArray data = contractList.getAsJsonArray("data");
+		if(data.size() <= 0) {
+			throw error("Data field is empty, no further processing required.");
+		}
+
 		JsonObject firstContract = data.get(0).getAsJsonObject();
 		String contractId = OIDFJSON.getString(firstContract.get("contractId"));
 		env.putString("contractId", contractId);

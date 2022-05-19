@@ -7,6 +7,9 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.PEMFormatter;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.util.Map;
 
 public class ExtractMTLSCertificates2FromConfiguration extends AbstractCondition {
 
@@ -20,6 +23,7 @@ public class ExtractMTLSCertificates2FromConfiguration extends AbstractCondition
 		String certString = env.getString("config", "mtls2.cert");
 		String keyString = env.getString("config", "mtls2.key");
 		String caString = env.getString("config", "mtls2.ca");
+		JsonObject alias = (JsonObject) env.getElementFromObject("config", "mtls2.mtls_alias");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
 			throw error("Couldn't find TLS client certificate or key for MTLS");
@@ -47,6 +51,10 @@ public class ExtractMTLSCertificates2FromConfiguration extends AbstractCondition
 		mtls.addProperty("key", keyString);
 		if (caString != null) {
 			mtls.addProperty("ca", caString);
+		}
+		if(alias != null) {
+			mtls.add("alias", alias);
+			log("Adding mtls alias", Map.of("alias", OIDFJSON.getString(alias.get("key"))));
 		}
 
 		env.putObject("mutual_tls_authentication2", mtls);

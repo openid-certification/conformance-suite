@@ -1,28 +1,17 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.crypto.factories.DefaultJWSSignerFactory;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.extensions.SmartJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
@@ -58,7 +47,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", signingJwk));
 			}
 
-			JWSSignerFactory jwsSignerFactory = new DefaultJWSSignerFactory();
+			JWSSignerFactory jwsSignerFactory = SmartJWSSignerFactory.getInstance();
 			JWSSigner signer = jwsSignerFactory.createJWSSigner(signingJwk, alg);
 
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);

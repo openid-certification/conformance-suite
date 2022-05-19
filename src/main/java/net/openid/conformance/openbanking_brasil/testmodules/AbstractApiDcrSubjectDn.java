@@ -23,13 +23,13 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
     @Override
     protected void configureClient() {
         if (isPaymentsApiTest()) {
-            brazilPayments = true;
+            brazilPayments = Troolean.IS;
             callAndStopOnFailure(EnsurePaymentDateIsToday.class);
             callAndStopOnFailure(OverrideClientWithPagtoClient.class);
             callAndStopOnFailure(OverrideCNPJ.class);
             callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
         } else {
-			brazilPayments = false;
+			brazilPayments = Troolean.IS;
             callAndStopOnFailure(OverrideClientWithDadosClient.class);
             callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
         }

@@ -6,12 +6,12 @@ import net.openid.conformance.testmodule.Environment;
 
 public class ValidateUserInfoResponseSignature extends AbstractVerifyJwsSignature {
 
-	public static final String USERINFO_ENDPOINT_RESPONSE = "userinfo_endpoint_response";
+	private static final String USERINFO_ENDPOINT_RESPONSE = "userinfo_endpoint_response_full";
 
 	@Override
-	@PreEnvironment(required = "server_jwks", strings= USERINFO_ENDPOINT_RESPONSE)
+	@PreEnvironment(required = {"server_jwks", USERINFO_ENDPOINT_RESPONSE})
 	public Environment evaluate(Environment env) {
-		String userInfoStr = env.getString(USERINFO_ENDPOINT_RESPONSE);
+		String userInfoStr = env.getString(USERINFO_ENDPOINT_RESPONSE, "body");
 
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 

@@ -23,10 +23,11 @@ public class TestConfigLeafNodeVisitor implements JsonLeafNodeVisitor, MapLeafNo
 			return;
 		}
 		JsonObject config = (JsonObject) leafNode.getProperty();
-		JsonObject newConfig = new JsonObjectBuilder()
-			.addField("server.discoveryUrl", OIDFJSON.getString(config.getAsJsonObject("server").get("discoveryUrl")))
-			.addField("restOfConfig", "obscured for security reasons")
-			.build();
-		leafNode.replace(newConfig);
+		JsonObjectBuilder newConfig = new JsonObjectBuilder();
+		newConfig.addField("restOfConfig", "obscured for security reasons");
+		if (config.getAsJsonObject("server") != null){
+			newConfig.addField("server.discoveryUrl", OIDFJSON.getString(config.getAsJsonObject("server").get("discoveryUrl")));
+		}
+		leafNode.replace(newConfig.build());
 	}
 }

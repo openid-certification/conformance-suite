@@ -27,7 +27,20 @@
 		<logback.version>1.2.8</logback.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>gitlab-maven</id>
+			<url>https://gitlab.com/api/v4/projects/35508163/packages/maven</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
+		<dependency>
+			<groupId>com.raidiam.conformance</groupId>
+			<artifactId>kms-jce-provider</artifactId>
+			<version>1.0.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -69,7 +82,7 @@
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>
 			<artifactId>archunit</artifactId>
-			<version>0.15.0</version>
+			<version>0.23.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -198,7 +211,7 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.24</version>
+			<version>2.0.25</version>
 		</dependency>
 
 		<dependency>
@@ -217,7 +230,7 @@
 		<dependency>
 			<groupId>com.networknt</groupId>
 			<artifactId>json-schema-validator</artifactId>
-			<version>1.0.64</version>
+			<version>1.0.67</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -234,6 +247,25 @@
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>com.raidiam.conformance</groupId>
+            <artifactId>kms-jce-util</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/kms -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>kms</artifactId>
+			<version>2.17.174</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/sts -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sts</artifactId>
+			<version>2.17.174</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<plugins>
@@ -387,7 +419,7 @@
 			<dependency>
 				<groupId>com.nimbusds</groupId>
 				<artifactId>nimbus-jose-jwt</artifactId>
-				<version>9.20</version>
+				<version>9.21</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.crypto.tink</groupId>

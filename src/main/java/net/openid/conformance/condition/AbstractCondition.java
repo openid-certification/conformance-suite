@@ -1,13 +1,17 @@
 package net.openid.conformance.condition;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
+import com.google.gson.*;
+import net.openid.conformance.condition.util.AbstractMtlsStrategy;
+import net.openid.conformance.condition.util.DefaultMtlsStrategy;
+import net.openid.conformance.condition.util.KeystoreStrategy;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -34,7 +38,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -47,28 +50,17 @@ import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
+import java.util.*;
 
 
 
@@ -596,34 +588,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
-
-			// TODO: move this to an extractor?
-			String clientCert = env.getString("mutual_tls_authentication", "cert");
-			String clientKey = env.getString("mutual_tls_authentication", "key");
-			String clientCa = env.getString("mutual_tls_authentication", "ca");
-
-			byte[] certBytes = Base64.getDecoder().decode(clientCert);
-			byte[] keyBytes = Base64.getDecoder().decode(clientKey);
-
-			X509Certificate cert = generateCertificateFromDER(certBytes);
-			RSAPrivateKey key = generatePrivateKeyFromDER(keyBytes);
-
-			ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
-			if (clientCa != null) {
-				byte[] caBytes = Base64.getDecoder().decode(clientCa);
-				chain.addAll(generateCertificateChainFromDER(caBytes));
-			}
-
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			keystore.load(null);
-			keystore.setCertificateEntry("cert-alias", cert);
-			keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
-
-			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			keyManagerFactory.init(keystore, "changeit".toCharArray());
-
-			km = keyManagerFactory.getKeyManagers();
-
+			km = MtlsKeystoreBuilder.configureMtls(env);
 		}
 
 		TrustManager[] trustAllCerts = {
@@ -645,7 +610,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		};
 
 		SSLContext sc = SSLContext.getInstance("TLS");
-		sc.init(km, trustAllCerts, new java.security.SecureRandom());
+		sc.init(km, trustAllCerts, new SecureRandom());
 
 		builder.setSSLContext(sc);
 
@@ -750,32 +715,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return socket;
 	}
 
-	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-
-		KeyFactory factory = KeyFactory.getInstance("RSA");
-
-		return (RSAPrivateKey) factory.generatePrivate(spec);
-	}
-
-	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
-	}
-
-	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		ArrayList<X509Certificate> chain = new ArrayList<>();
-		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
-		while (in.available() > 0) {
-			chain.add((X509Certificate) factory.generateCertificate(in));
-		}
-
-		return chain;
-	}
-
 	protected JsonObject convertResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
 		JsonObject responseInfo = new JsonObject();
 		responseInfo.addProperty("status", response.getStatusCode().value());
@@ -797,6 +736,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		String jsonString = response.getBody();
 		if (Strings.isNullOrEmpty(jsonString)) {
+			if (allowParseFailure) {
+				return responseInfo;
+			}
 			throw error("Empty response from the "+endpointName+" endpoint");
 		}
 

@@ -21,7 +21,7 @@ public class EnsureScopeContainsAccounts extends AbstractCondition {
 			logSuccess("Found accounts scope in request", args("actual", scopes));
 			return env;
 		} else {
-			throw error("Couldn't find accounts scope in request", args("expected", "payments", "actual", scopes));
+			throw error("Couldn't find accounts scope in request", args("expected", "accounts", "actual", scopes));
 		}
 	}
 

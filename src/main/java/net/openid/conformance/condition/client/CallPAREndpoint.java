@@ -35,21 +35,25 @@ import java.util.Collections;
 public class CallPAREndpoint extends AbstractCondition {
 
 	public static final String HTTP_METHOD_KEY = "par_endpoint_http_method";
+	public static final String RESPONSE_KEY = "pushed_authorization_endpoint_response";
 
 	@Override
 	@PreEnvironment(required = {"server", "pushed_authorization_request_form_parameters"})
-	@PostEnvironment(required = {"pushed_authorization_endpoint_response", "pushed_authorization_endpoint_response_headers"})
+	@PostEnvironment(required = {RESPONSE_KEY})
 	public Environment evaluate(Environment env) {
 
 		// build up the form
 		JsonObject formJson = env.getObject("pushed_authorization_request_form_parameters");
 		MultiValueMap <String, String> form = new LinkedMultiValueMap <>();
 		for (String key : formJson.keySet()) {
-			form.add(key, OIDFJSON.getString(formJson.get(key)));
+			JsonElement el = formJson.get(key);
+			if (el.isJsonObject()) {
+				// e.g. claims parameter
+				form.add(key, el.toString());
+			} else {
+				form.add(key, OIDFJSON.getString(el));
+			}
 		}
-
-		//Subclasses may add additional form parameters if any
-		addAdditionalParams(form);
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
@@ -60,7 +64,6 @@ public class CallPAREndpoint extends AbstractCondition {
 
 			HttpEntity <MultiValueMap <String, String>> request = new HttpEntity <>(form, headers);
 
-			String jsonString = null;
 			HttpMethod httpMethod = env.getString(HTTP_METHOD_KEY) == null ?
 				HttpMethod.POST : HttpMethod.valueOf(env.getString(HTTP_METHOD_KEY));
 
@@ -96,16 +99,8 @@ public class CallPAREndpoint extends AbstractCondition {
 				ResponseEntity <String> response = restTemplate
 					.exchange(parEndpointUri, httpMethod, request, String.class);
 
-				logSuccess("Storing pushed_authorization_endpoint_response_http_status " + response.getStatusCode().value());
-
-				env.putInteger("pushed_authorization_endpoint_response_http_status", response.getStatusCodeValue());
-
-				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-
-				env.putObject("pushed_authorization_endpoint_response_headers", responseHeaders);
-
-				jsonString = response.getBody();
-
+				JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", response, true);
+				env.putObject(RESPONSE_KEY, fullResponse);
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling pushed authorization request endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
@@ -114,35 +109,21 @@ public class CallPAREndpoint extends AbstractCondition {
 			}
 
 			if (!httpMethod.equals(HttpMethod.POST)) {
-				env.putObject("pushed_authorization_endpoint_response", new JsonObject());
+				// allow non-JSON responses when trying GET (which must be rejected)
 				return env;
 			}
 
-			if (Strings.isNullOrEmpty(jsonString)) {
-				throw error("Missing or empty response from the pushed authorization request endpoint");
+			JsonElement jsonRoot = env.getElementFromObject(RESPONSE_KEY, "body_json");
+			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				throw error("Pushed Authorization did not return a JSON object");
 			}
 
-			try {
-				JsonElement jsonRoot = JsonParser.parseString(jsonString);
-				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-					throw error("Pushed Authorization did not return a JSON object");
-				}
+			logSuccess("Parsed pushed authorization request endpoint response", jsonRoot.getAsJsonObject());
 
-				logSuccess("Parsed pushed authorization request endpoint response", jsonRoot.getAsJsonObject());
-
-				env.putObject("pushed_authorization_endpoint_response", jsonRoot.getAsJsonObject());
-
-				return env;
-			} catch (JsonParseException e) {
-				throw error(e);
-			}
+			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
-	}
-
-	protected void addAdditionalParams(MultiValueMap <String, String> form) {
-		//do nothing by default
 	}
 
 	protected Environment handleClientException(Environment env, RestClientException e) {

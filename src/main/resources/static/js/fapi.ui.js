@@ -454,6 +454,7 @@ var FAPI_UI = {
 			"FAPI1-BASE-" : "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.",
 			"FAPI1-ADV-" : "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.",
 			"FAPI2-BASE-" : "https://openid.bitbucket.io/fapi/fapi-2_0-baseline.html#section.", // not a stable version - update to implementers draft 2 when available
+			"FAPI2-ADV-" : "https://openid.bitbucket.io/fapi/fapi-2_0-advanced.html#section.", // not a stable version - update to implementers draft 2 when available
 			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
 			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
 			"JARM-" : "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.",
@@ -462,7 +463,7 @@ var FAPI_UI = {
 			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
 			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
 			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
-			"OAuth2-iss" : "https://tools.ietf.org/html/draft-ietf-oauth-iss-auth-resp#section.",
+			"OAuth2-iss" : "https://tools.ietf.org/html/rfc9207#section-",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
 			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",
@@ -475,6 +476,7 @@ var FAPI_UI = {
 			"RFC7591-" : "https://tools.ietf.org/html/rfc7591#section-",
 			"RFC7592-" : "https://tools.ietf.org/html/rfc7592#section-",
 			"RFC7592A-" : "https://tools.ietf.org/html/rfc7592#appendix-",
+			"RFC7636-" : "https://tools.ietf.org/html/rfc7636#section-",
 			"RFC8705-" : "https://tools.ietf.org/html/rfc8705#section-",
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
@@ -488,7 +490,7 @@ var FAPI_UI = {
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
 			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
-			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-"
+			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-",
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

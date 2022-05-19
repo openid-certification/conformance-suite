@@ -47,6 +47,8 @@ public class FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient extends Ab
 	@Override
 	protected void performIdTokenValidation() {
 
+		// This hasn't been changed to use PerformStandardIdTokenChecks as it's unclear what checks it's trying to do
+		// differently to super.
 		callAndContinueOnFailure(ValidateIdToken.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-4");
 		callAndContinueOnFailure(ValidateIdTokenStandardClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 

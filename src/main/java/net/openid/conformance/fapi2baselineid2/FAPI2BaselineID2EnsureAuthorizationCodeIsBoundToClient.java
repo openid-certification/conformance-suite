@@ -45,6 +45,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI2BaselineID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
+	protected void configureClient() {
+		super.configureClient();
+		configureSecondClient();
+	}
+
+	@Override
 	protected void performPostAuthorizationFlow() {
 
 		createAuthorizationCodeRequest();

@@ -1,6 +1,7 @@
 package net.openid.conformance.fapirwid2;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -47,8 +48,7 @@ public class FAPIRWID2EnsureRedirectUriInAuthorizationRequest extends AbstractFA
 	@Override
 	protected void processParResponse() {
 		// the server could reject this at the par endpoint, or at the authorization endpoint
-		String key = "pushed_authorization_endpoint_response_http_status";
-		Integer http_status = env.getInteger(key);
+		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
 		if (http_status >= 200 && http_status < 300) {
 			super.processParResponse();
 			return;

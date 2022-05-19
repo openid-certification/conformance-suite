@@ -201,8 +201,7 @@ for test_plan,modules in sorted(master_results.items()):
             print("Plan: "+test_plan)
             print("Module: "+module)
             print("Variant: "+pretty_variant(variant))
-            print("reference log: "+get_url(master_log))
-            print("new log: "+get_url(log))
+            print("reference log: "+get_url(log))
             print(red("** No result in new run\n"))
 
 if differences:

@@ -132,5 +132,25 @@
         "condition": "ExtractExpiresInFromTokenEndpointResponse",
         "expected-result": "warning",
         "comment": "RP tests currently don't return expires_in; it's optional, albeit recommended, in the specs"
+    },
+    {
+        "test-name": "fapi2-baseline-id2-test-claims-parameter-identity-claims",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "current-block": "",
+        "condition": "EnsureIdentityClaimsContainRequestedClaims",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't return all the claims currently"
+    },
+    {
+        "test-name": "fapi2-baseline-id2-idmvp-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "fapi_profile": "idmvp"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config-idmvp.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureIdTokenContainsRequestedClaims",
+        "expected-result": "failure",
+        "comment": "The RP tests currently don't return the required identity claims"
     }
 ]

@@ -3,9 +3,12 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
+import net.openid.conformance.openbanking_brasil.testmodules.support.CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWith2ndClientFull;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -16,8 +19,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Retrieves from the directory its SSA\n" +
 		"\u2022 Performs a DCR on the provided authorization server -> Expects a success \n" +
 		"\u2022 Performs a PUT on the registration endpoint with the same configuration -> Expects a success\n" +
+		"\u2022 Performs a POST to the token endpoint to obtain a valid token -> Expects a success\n" +
 		"\u2022 Changes the certificates used to the second set of certificates that belong to a client from a different organization\n" +
 		"\u2022 Attempts 'GET' on client configuration endpoint using MTLS certificate for the second client -> Expects Failure\n" +
+		"\u2022 Attempts a POST to the token endpoint to obtain a valid token using the MTLS certificate for the second client -> Expects Failure\n" +
 		"\u2022 Using the second client, retrieves from the directory its SSA\n" +
 		"\u2022 Performs a PUT on the registration endpoint with the configuration from the second client -> Expects a failure\n" +
 		"\u2022 DELETEs the first registered client from the authorization server",
@@ -31,7 +36,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"directory.client_id",
 		"directory2.client_id",
 		"client2.jwks",
-		"client2.org_jwks",
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
@@ -39,6 +43,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 )
 // hide various config values from the FAPI base module we don't need
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment",
@@ -48,11 +53,19 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
+	protected ClientAuthType clientAuthType;
+
+	@Override
+	protected void configureClient() {
+		clientAuthType = getVariant(ClientAuthType.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void callRegistrationEndpoint() {
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
 		eventLog.endBlock();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with no changes expecting success");
@@ -67,8 +80,17 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Use client_credentials grant to obtain a Valid Token");
+		call(getPreTokenCallSequence());
+		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		eventLog.endBlock();
 
 		eventLog.startBlock("Attempt 'GET' on client configuration endpoint using MTLS certificate for different software, which must fail");
+
+		//switching to the second client
 
 		callAndStopOnFailure(OverrideClientWith2ndClientFull.class);
 
@@ -84,7 +106,14 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		call(exec().unmapKey("endpoint_response"));
 
 		getSsa();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Make sure that the second client cannot request a Valid Token");
+		call(getPreTokenCallSequence());
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatusNot200.class);
 		env.unmapKey("mutual_tls_authentication");
+		eventLog.endBlock();
 
 		eventLog.startBlock("Calling PUT on configuration endpoint with SSA from another client");
 
@@ -102,6 +131,29 @@ public class DcrAttemptClientTakeoverTestModule extends AbstractFAPI1AdvancedFin
 		env.unmapKey("client");
 		env.unmapKey("mtls");
 		deleteClient();
+	}
+
+	private ConditionSequence getPreTokenCallSequence() {
+		ConditionSequence sequence = sequenceOf(
+			condition(CreateTokenEndpointRequestForClientCredentialsGrant.class),
+			condition(SetConsentsScopeOnTokenEndpointRequest.class),
+			condition(AddClientIdToTokenEndpointRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class),
+			condition(SignClientAuthenticationAssertion.class),
+			condition(AddClientAssertionToTokenEndpointRequest.class)
+		);
+
+		if (env.getString("scopeToBeUsed").equals("payments")) {
+			sequence.replace(SetConsentsScopeOnTokenEndpointRequest.class, condition(SetPaymentsScopeOnTokenEndpointRequest.class));
+		}
+
+		if (clientAuthType == ClientAuthType.MTLS) {
+			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Not needed for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Not needed for MTLS");
+		}
+
+		return sequence;
 	}
 
 	@Override

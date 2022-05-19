@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.AddJWTAcceptHeaderRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForNoOtherStatusOnScheduledPayment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.PaymentsProxyCheckForScheduledAcceptedStatus;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -15,7 +16,7 @@ public class PollForScheduledPaymentChangeSequence extends AbstractConditionSequ
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		call(new ValidateSelfEndpoint()
 			.replace(CallProtectedResource.class, sequenceOf(
-				condition(AddJWTAcceptHeader.class),
+				condition(AddJWTAcceptHeaderRequest.class),
 				condition(CallProtectedResource.class),
 				condition(EnsureResponseCodeWas200.class)
 			))

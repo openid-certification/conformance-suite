@@ -14,12 +14,12 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractTLSTestValuesFromResourceConfiguration extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "resource")
+	@PreEnvironment(strings = "protected_resource_url")
 	@PostEnvironment(required = "resource_endpoint_tls")
 	public Environment evaluate(Environment env) {
 
 		try {
-			String resourceEndpoint = env.getString("resource", "resourceUrl");
+			String resourceEndpoint = env.getString("protected_resource_url");
 			if (Strings.isNullOrEmpty(resourceEndpoint)) {
 				throw error("Resource endpoint not found");
 			}

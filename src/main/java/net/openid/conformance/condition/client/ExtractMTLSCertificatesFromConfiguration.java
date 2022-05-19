@@ -2,12 +2,14 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.util.PEMFormatter;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.PEMFormatter;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.util.Map;
 
 public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
 
@@ -19,6 +21,8 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 
 		String certString = env.getString("config", "mtls.cert");
 		String keyString = env.getString("config", "mtls.key");
+		JsonObject alias = (JsonObject) env.getElementFromObject("config", "mtls.mtls_alias");
+
 		String caString = env.getString("config", "mtls.ca");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
@@ -45,6 +49,10 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		JsonObject mtls = new JsonObject();
 		mtls.addProperty("cert", certString);
 		mtls.addProperty("key", keyString);
+		if(alias != null) {
+			mtls.add("alias", alias);
+			log("Adding mtls alias", Map.of("alias", OIDFJSON.getString(alias.get("key"))));
+		}
 		if (caString != null) {
 			mtls.addProperty("ca", caString);
 		}
