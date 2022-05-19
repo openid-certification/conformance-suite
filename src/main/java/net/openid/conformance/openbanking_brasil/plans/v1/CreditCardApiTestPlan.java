@@ -1,6 +1,7 @@
-package net.openid.conformance.openbanking_brasil.plans;
+package net.openid.conformance.openbanking_brasil.plans.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.testmodule.*;
 import net.openid.conformance.plan.PublishTestPlan;
