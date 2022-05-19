@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.plans;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.BusinessEntityWithPersonalPermissionsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.CustomerBusinessDataApiTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.CustomerBusinessWrongPermissionsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -23,7 +24,8 @@ public class CustomerBusinessDataApiTestPlan implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					CustomerBusinessDataApiTestModule.class,
-					CustomerBusinessWrongPermissionsTestModule.class
+					CustomerBusinessWrongPermissionsTestModule.class,
+					BusinessEntityWithPersonalPermissionsTestModule.class //TODO: ALex move it to v2
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
