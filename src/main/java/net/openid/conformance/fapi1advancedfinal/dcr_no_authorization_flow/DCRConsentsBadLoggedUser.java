@@ -98,10 +98,21 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			call(callTokenEndpointShortVersion());
 			eventLog.endBlock();
 			eventLog.startBlock("Calling Payments Consents API");
-			ConditionSequence paymentsConsentsStep  = new PaymentsConsentSteps()
+			ConditionSequence paymentsConsentsSequence = new SignedPaymentConsentSequence()
+				.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
-				.replace(OptionallyAllow201Or422.class, condition(EnsureConsentResponseCodeWas422.class));
-			call(paymentsConsentsStep);
+				.skip(EnsureContentTypeApplicationJwt.class, "Not necessary since failure is expected")
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class))
+				.skip(ExtractSignedJwtFromResourceResponse.class, "Not necessary since failure is expected")
+				.skip(FAPIBrazilValidateResourceResponseSigningAlg.class, "Not necessary since failure is expected")
+				.skip(FAPIBrazilValidateResourceResponseTyp.class, "Not necessary since failure is expected")
+				.skip(FAPIBrazilGetKeystoreJwksUri.class, "Not necessary since failure is expected")
+				.skip(FetchServerKeys.class, "Not necessary since failure is expected")
+				.skip(ValidateResourceResponseSignature.class, "Not necessary since failure is expected")
+				.skip(ValidateResourceResponseJwtClaims.class, "Not necessary since failure is expected");
+
+			call(paymentsConsentsSequence);
+
 
 		}
 		eventLog.endBlock();
@@ -142,12 +153,6 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		return sequence;
 	}
 
-//	private ConditionSequence paymentsConsentsAdditionalSteps(){
-//		return sequenceOf(
-//			condition(RemovePaymentDateFromConsentRequest.class),
-//		condition(EnsureScheduledPaymentDateIsToday.class)
-//		);
-//	}
 	@Override
 	protected void onPostAuthorizationFlowComplete(){
 		// not needed as resource endpoint won't be called
