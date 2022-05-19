@@ -72,7 +72,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		callAndStopOnFailure(AddDummyCPFToConfig.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
 		callAndStopOnFailure(AddDummyBrazilPaymentConsent.class);
-		callAndStopOnFailure(ExtractResourceFromConfig.class);
+		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 		eventLog.endBlock();
 
 		eventLog.startBlock("Checking consentURL");
