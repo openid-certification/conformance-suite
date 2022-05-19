@@ -44,6 +44,7 @@ public class BusinessEntityWithPersonalPermissionsTestModule extends AbstractCli
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
+			callAndStopOnFailure(EnsureBusinessEntityInConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.INFO);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
 		});
