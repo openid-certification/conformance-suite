@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,11 +13,14 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Set;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
 
 	private static final String[] allowedErrors = {"code","title","detail"};
 	private static final String[] allowedMetaFields = {"requestDateTime", "totalRecords", "totalPages"};
+
+	private Set<String> errorCodes;
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -24,8 +28,15 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		JsonObject apiResponse;
 		if(env.getObject("resource_endpoint_response_full") != null){
 			apiResponse = env.getObject("resource_endpoint_response_full");
+			errorCodes = Sets.newHashSet(
+				"SALDO_INSUFICIENTE", "BENEFICIARIO_INCOMPATIVEL", "VALOR_INCOMPATIVEL", "VALOR_ACIMA_LIMITE", "VALOR_INVALIDO",
+				"COBRANCA_INVALIDA", "CONSENTIMENTO_INVALIDO", "JANELA_OPER_INVALIDA", "NAO_INFORMADO", "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO"
+			);
 		}else {
 			apiResponse = env.getObject("consent_endpoint_response_full");
+			errorCodes = Sets.newHashSet(
+				"FORMA_PGTO_INVALIDA", "DATA_PGTO_INVALIDA", "DETALHE_PGTO_INVALIDO", "NAO_INFORMADO"
+			);
 		}
 
 		JsonObject decodedJwt;
@@ -83,14 +94,16 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		}
 	}
 
-	private void assertNoAdditionalErrorFields(JsonObject field){
+	private void assertNoAdditionalErrorFields(JsonObject field) {
 		log("Ensure that the error response only contains error fields that are defined in the swagger", Map.of("error response", field));
 
-		for (Map.Entry<String, JsonElement> entry : field.entrySet())
-		{
+		for (Map.Entry<String, JsonElement> entry : field.entrySet()) {
 			log("Checking: " + entry.getKey());
-			if ( !ArrayUtils.contains( allowedErrors, entry.getKey() ) ) {
-				throw error("non-standard error property found in the error response", Map.of("property",  entry.getKey()));
+			if (!ArrayUtils.contains(allowedErrors, entry.getKey())) {
+				throw error("non-standard error property found in the error response", Map.of("property", entry.getKey()));
+			}
+			if (entry.getKey().equals("code") && !errorCodes.contains(OIDFJSON.getString(entry.getValue()))) {
+				throw error("Code field in error object is not specification compliant ", Map.of("actual code", entry.getValue(), "expected code", errorCodes));
 			}
 		}
 	}
