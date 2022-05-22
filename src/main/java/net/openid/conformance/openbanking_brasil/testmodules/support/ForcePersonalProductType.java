@@ -9,11 +9,6 @@ public class ForcePersonalProductType extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate (Environment env) {
-//		String productType = env.getString("config", "resource.productType");
-//
-//		if(Strings.isNullOrEmpty(productType)) {
-//			throw error("productType is missing.");
-//		}
 		String productType = "personal";
 		env.putString("config", "consent.productType", productType);
 
