@@ -26,6 +26,7 @@ public class CreateBackchannelEndpointResponse extends AbstractCondition {
 		backchannelResponse.addProperty("expires_in", expiresIn);
 
 		env.putObject("backchannel_endpoint_response", backchannelResponse);
+		logSuccess("Created backchannel response", backchannelResponse);
 
 		return env;
 	}

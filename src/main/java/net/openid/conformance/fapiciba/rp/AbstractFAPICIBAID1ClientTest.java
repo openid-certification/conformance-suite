@@ -457,7 +457,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		}
 
 		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestHasOpenIdScope.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class, ConditionResult.FAILURE);
