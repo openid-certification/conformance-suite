@@ -16,7 +16,7 @@ public class CardBillSelector extends AbstractCondition {
 		JsonObject accountList = JsonParser.parseString(entityString).getAsJsonObject();
 
 		JsonArray data = accountList.getAsJsonArray("data");
-		if(data.size() <= 0) {
+		if(data.isEmpty()) {
 			throw error("Data field is empty, no further processing required.");
 		}
 

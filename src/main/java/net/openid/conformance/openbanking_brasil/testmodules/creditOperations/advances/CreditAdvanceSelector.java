@@ -17,7 +17,7 @@ public class CreditAdvanceSelector extends AbstractCondition {
 		JsonObject contractList = JsonParser.parseString(entityString).getAsJsonObject();
 
 		JsonArray data = contractList.getAsJsonArray("data");
-		if(data.size() <= 0) {
+		if(data.isEmpty()) {
 			throw error("Data field is empty, no further processing required.");
 		}
 
