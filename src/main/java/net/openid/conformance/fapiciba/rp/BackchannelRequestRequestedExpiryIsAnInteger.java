@@ -4,24 +4,19 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestRequestedExpiry extends AbstractCondition {
+public class BackchannelRequestRequestedExpiryIsAnInteger extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")
 	public Environment evaluate(Environment env) {
 
-		String requestedExpiryString = env.getString("backchannel_request_object", "claims.requested_expiry");
+		Integer requestedExpiry = env.getInteger("backchannel_request_object", "claims.requested_expiry");
 
-		if(requestedExpiryString == null) {
+		if(requestedExpiry == null) {
 			logSuccess("Backchannel authentication request does not contain optional parameter 'requested_expiry'");
 			return env;
 		} else {
-			try {
-				Integer requestedExpiryValue = Integer.parseInt(requestedExpiryString);
-				if(requestedExpiryValue <= 0) {
-					throw error("The 'requested_expiry' must be a positive integer when present.");
-				}
-			} catch (NumberFormatException nfe) {
+			if(requestedExpiry <= 0) {
 				throw error("The 'requested_expiry' must be a positive integer when present.");
 			}
 		}

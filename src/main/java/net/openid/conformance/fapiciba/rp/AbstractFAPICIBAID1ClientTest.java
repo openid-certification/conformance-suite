@@ -28,6 +28,8 @@ import org.springframework.http.ResponseEntity;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -387,20 +389,28 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	protected Object cibaGrantType(String requestId) {
 		callAndStopOnFailure(VerifyAuthReqId.class);
 
-		createIntermediateTokenResponse();
-		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
-		if(clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
-			issueIdToken();
-			callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
 
-			createFinalTokenResponse();
-			statusCode = HttpStatus.OK;
+		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
+			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
+			setStatus(Status.INTERRUPTED); // Just end it here, the auth_req_id is forever expired
+		} else {
+			createIntermediateTokenResponse();
+			int tokenPollCount = env.getInteger("token_poll_count");
+
+			if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+				issueIdToken();
+				callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+				createFinalTokenResponse();
+				statusCode = HttpStatus.OK;
+			}
+			setStatus(Status.WAITING);
 		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
-		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
 	}
@@ -463,8 +473,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
-		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasOneOfTheHintParameters.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
 		createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {

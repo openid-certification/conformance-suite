@@ -8,7 +8,6 @@ import net.openid.conformance.testmodule.Environment;
 public class CreateAuthorizationPendingResponse extends AbstractCondition {
 
 	@Override
-	//@PreEnvironment(strings = { "auth_req_id" }) // note the others are optional
 	@PostEnvironment(required = { "token_endpoint_response" })
 	public Environment evaluate(Environment env) {
 

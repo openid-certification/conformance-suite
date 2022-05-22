@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestHasHint extends AbstractCondition {
+public class BackchannelRequestHasOneOfTheHintParameters extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")
