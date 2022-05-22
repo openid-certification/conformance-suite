@@ -381,6 +381,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		// TODO: Do some stuff here, generate different token (error) responses etc.
 		// For now we say pending a couple of times, then respond with a successful response.
 		// The poll count thing has to be cleaned up as well and follow the code patterns used elsewhere
+		callAndStopOnFailure(VerifyAuthReqId.class);
+
 		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
 		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
@@ -490,7 +492,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		});
 	}
 
-	// This method is a copy of validateRequestObjectForBackchannelEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest,
+	// This method is a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest,
 	// which is why it maps the backchannel request to the authorization request object. Other than that, changes have
 	// been kept to a minimum.
 	protected void validateRequestObjectForBackchannelEndpointRequest() {
