@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateTokenEndpointWithExpiresInResponse extends AbstractCondition {
+public class CreateTokenEndpointResponse extends AbstractCondition {
 
 	public static final int EXPIRES_IN = 600;
 

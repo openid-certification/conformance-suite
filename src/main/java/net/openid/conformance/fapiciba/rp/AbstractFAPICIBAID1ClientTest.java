@@ -96,11 +96,18 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	protected abstract void addCustomValuesToIdToken();
 
+	protected abstract void createBackchannelResponse();
+
+	protected abstract void createIntermediateTokenResponse();
+
+	protected abstract void createFinalTokenResponse();
+
 	protected void addCustomSignatureOfIdToken() { }
 
 	protected void onConfigurationCompleted() { }
 
 	protected void validateClientConfiguration() { }
+
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -378,19 +385,17 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object cibaGrantType(String requestId) {
-		// TODO: Do some stuff here, generate different token (error) responses etc.
-		// For now we say pending a couple of times, then respond with a successful response.
-		// The poll count thing has to be cleaned up as well and follow the code patterns used elsewhere
 		callAndStopOnFailure(VerifyAuthReqId.class);
 
-		callAndStopOnFailure(CreateCibaTokenEndpointPendingResponse.class);
+		createIntermediateTokenResponse();
 		int tokenPollCount = env.getInteger("token_poll_count");
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
 		if(clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
 			issueIdToken();
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
-			callAndStopOnFailure(CreateTokenEndpointWithExpiresInResponse.class);
+
+			createFinalTokenResponse();
 			statusCode = HttpStatus.OK;
 		}
 
@@ -461,7 +466,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(BackchannelRequestHasHint.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
 		callAndContinueOnFailure(BackchannelRequestRequestedExpiry.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
 
-		callAndStopOnFailure(CreateBackchannelEndpointResponse.class, ConditionResult.FAILURE);
+		createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();

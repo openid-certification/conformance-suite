@@ -23,4 +23,19 @@ public class FAPICIBAID1ClientTest extends AbstractFAPICIBAID1ClientTest {
 	protected void addCustomValuesToIdToken(){
 		//Do nothing
 	}
+
+	@Override
+	protected void createBackchannelResponse() {
+		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
+	}
+
+	@Override
+	protected void createIntermediateTokenResponse() {
+		callAndStopOnFailure(CreateAuthorizationPendingResponse.class);
+	}
+
+	@Override
+	protected void createFinalTokenResponse() {
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+	}
 }

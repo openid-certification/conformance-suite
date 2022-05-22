@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateCibaTokenEndpointPendingResponse extends AbstractCondition {
+public class CreateAuthorizationPendingResponse extends AbstractCondition {
 
 	@Override
 	//@PreEnvironment(strings = { "auth_req_id" }) // note the others are optional
