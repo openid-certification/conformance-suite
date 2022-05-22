@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRHappyFlow;
@@ -7,8 +8,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
@@ -102,7 +105,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 				.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
 				.skip(EnsureContentTypeApplicationJwt.class, "Not necessary since failure is expected")
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureConsentResponseCodeWas422.class))
+				.skip(EnsureHttpStatusCodeIs201.class, "Not necessary since failure is expected")
 				.skip(ExtractSignedJwtFromResourceResponse.class, "Not necessary since failure is expected")
 				.skip(FAPIBrazilValidateResourceResponseSigningAlg.class, "Not necessary since failure is expected")
 				.skip(FAPIBrazilValidateResourceResponseTyp.class, "Not necessary since failure is expected")
@@ -112,9 +115,10 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 				.skip(ValidateResourceResponseJwtClaims.class, "Not necessary since failure is expected");
 
 			call(paymentsConsentsSequence);
-
-
 		}
+
+		validateError();
+
 		eventLog.endBlock();
 
 	}
@@ -129,8 +133,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			condition(FAPIBrazilCreateConsentRequest.class),
 			condition(FAPIBrazilAddExpirationPlus30ToConsentRequest.class),
 			condition(SetContentTypeApplicationJson.class),
-			condition(CallConsentApiWithBearerToken.class).dontStopOnFailure().onFail(Condition.ConditionResult.INFO),
-			condition(EnsureResponseCodeWas400.class).dontStopOnFailure().onFail(Condition.ConditionResult.FAILURE)
+			condition(CallConsentApiWithBearerToken.class).dontStopOnFailure().onFail(Condition.ConditionResult.INFO)
 		);
 	}
 
@@ -153,6 +156,46 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		return sequence;
 	}
 
+	protected void validateError(){
+		eventLog.startBlock("Validating Error Type");
+		int status;
+		try{
+			//For the case where the Consents API is used
+			status = env.getInteger("resource_endpoint_response_status");
+		}catch(NullPointerException e){
+			//For the case where the Payments Consents API is used
+			JsonObject responseObject = env.getObject("consent_endpoint_response_full");
+			status = (Integer) OIDFJSON.getNumber(responseObject.get("status"));
+		}
+
+		if(status == HttpStatus.BAD_REQUEST.value()){
+			eventLog.startBlock("Status code 400");
+			//For the case where the Payments Consents API is used
+			env.putInteger("resource_endpoint_response_status", HttpStatus.BAD_REQUEST.value());
+			callAndStopOnFailure(EnsureResponseCodeWas400.class);
+			eventLog.endBlock();
+
+		} else if(status == HttpStatus.UNPROCESSABLE_ENTITY.value()){
+			eventLog.startBlock("Status code 422");
+			callAndStopOnFailure(EnsureConsentResponseCodeWas422.class);
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndStopOnFailure(FAPIBrazilGetKeystoreJwksUri.class, Condition.ConditionResult.FAILURE);
+			call(exec().mapKey("server", "org_server"));
+			call(exec().mapKey("server_jwks", "org_server_jwks"));
+			callAndStopOnFailure(FetchServerKeys.class);
+			call(exec().unmapKey("server"));
+			call(exec().unmapKey("server_jwks"));
+			callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			call(exec().unmapKey("endpoint_response"));
+			call(exec().unmapKey("endpoint_response_jwt"));
+			eventLog.endBlock();
+		}
+		eventLog.endBlock();
+	}
 	@Override
 	protected void onPostAuthorizationFlowComplete(){
 		// not needed as resource endpoint won't be called
