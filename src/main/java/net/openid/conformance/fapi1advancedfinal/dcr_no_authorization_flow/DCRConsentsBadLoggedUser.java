@@ -162,7 +162,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		try{
 			//For the case where the Consents API is used
 			status = env.getInteger("resource_endpoint_response_status");
-		}catch(NullPointerException e){
+		}catch(Exception e){
 			//For the case where the Payments Consents API is used
 			JsonObject responseObject = env.getObject("consent_endpoint_response_full");
 			status = (Integer) OIDFJSON.getNumber(responseObject.get("status"));
