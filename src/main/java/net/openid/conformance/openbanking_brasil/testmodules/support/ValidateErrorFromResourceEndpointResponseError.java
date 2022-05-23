@@ -31,7 +31,7 @@ public class ValidateErrorFromResourceEndpointResponseError extends AbstractCond
 		JsonObject errorsField = errorsArray.get(0).getAsJsonObject();
 
 		Set<String> keySet = errorsField.keySet();
-		HashSet<String> referenceSet = new HashSet<String>(Arrays.asList("code", "title", "detail"));
+		HashSet<String> referenceSet = new HashSet<>(Arrays.asList("code", "title", "detail"));
 		if(!keySet.equals(referenceSet)){
 			referenceSet.removeAll(keySet);
 			throw error("One or more required fields are missing", args("missing fields", referenceSet));
