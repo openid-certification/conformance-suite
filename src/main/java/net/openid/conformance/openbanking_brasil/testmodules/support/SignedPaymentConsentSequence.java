@@ -23,19 +23,58 @@ public class SignedPaymentConsentSequence extends AbstractConditionSequence {
 		callAndStopOnFailure(FAPIBrazilCallPaymentConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
 		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndStopOnFailure(FAPIBrazilGetKeystoreJwksUri.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(EnsureContentTypeApplicationJwt.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
+		call(condition(ExtractSignedJwtFromResourceResponse.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
+		call(condition(FAPIBrazilValidateResourceResponseSigningAlg.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
+		call(condition(FAPIBrazilValidateResourceResponseTyp.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
+		call(condition(FAPIBrazilGetKeystoreJwksUri.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.skipIfStringMissing("proceed_with_test"));
+
 		call(exec().mapKey("server", "org_server"));
 		call(exec().mapKey("server_jwks", "org_server_jwks"));
-		callAndStopOnFailure(FetchServerKeys.class);
+
+		call(condition(FetchServerKeys.class)
+			.skipIfStringMissing("proceed_with_test"));
+
 		call(exec().unmapKey("server"));
 		call(exec().unmapKey("server_jwks"));
-		callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+
+		call(condition(ValidateResourceResponseSignature.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
+		call(condition(ValidateResourceResponseJwtClaims.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("BrazilOB-6.1")
+			.skipIfStringMissing("proceed_with_test"));
+
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("endpoint_response_jwt"));
 	}
