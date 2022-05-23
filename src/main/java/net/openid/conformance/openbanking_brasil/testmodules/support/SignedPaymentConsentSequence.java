@@ -8,6 +8,7 @@ public class SignedPaymentConsentSequence extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
+		callAndStopOnFailure(InsertProceedWithTestString.class);
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(CreateIdempotencyKey.class);
 		callAndStopOnFailure(AddIdempotencyKeyHeader.class);

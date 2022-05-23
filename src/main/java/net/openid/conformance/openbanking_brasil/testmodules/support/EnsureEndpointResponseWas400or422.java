@@ -22,6 +22,11 @@ public class EnsureEndpointResponseWas400or422 extends AbstractCondition {
 			env.putString("proceed_with_test", "true");
 		}
 
+		if(statusCode == HttpStatus.SC_BAD_REQUEST) {
+			if(env.getString("proceed_with_test") != null) {
+				env.removeNativeValue("proceed_with_test");
+			}
+		}
 		logSuccess(endpointName + " endpoint returned the expected http status", args("http_status", statusCode));
 
 		return env;
