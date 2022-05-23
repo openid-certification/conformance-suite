@@ -68,6 +68,14 @@ textarea {
 	margin: 5px 5px 5px 0;
 }
 
+.disclaimer {
+	border: 2px solid red;
+	background-color: rgba(255,0,0,0.2);
+	border-radius: 6px;
+	margin-bottom: 10px;
+	padding: 5px 5px;
+}
+
 .runningTest {
 	border-bottom: 1px #eee solid;
 	padding: 5px;
