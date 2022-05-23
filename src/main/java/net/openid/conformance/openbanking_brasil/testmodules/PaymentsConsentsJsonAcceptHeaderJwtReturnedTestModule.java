@@ -55,7 +55,11 @@ public class PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule extends Abstr
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
+
+			ConditionSequence validationSequence = new ValidateSelfEndpoint()
+				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas200or406.class).dontStopOnFailure().onFail(Condition.ConditionResult.FAILURE));
+
+			call(validationSequence);
 			callAndContinueOnFailure(EnsureResponseWasJwt.class);
 		});
 	}
