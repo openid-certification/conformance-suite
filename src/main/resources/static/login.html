@@ -27,9 +27,9 @@
 	<div class="clearfix"></div>
 
 	<div class="container-fluid">
-		<div class="row">
+		<div class="row disclaimer-wrapper">
 			<div class="col-xs-12 col-md-6 col-md-offset-3 center-block center-text">
-				<div class="disclaimer">
+				<div class="disclaimer-content">
 					We inform you that the Open Banking Conformance Suite access will require authentication with the OBB Sandbox after mid-june. Users that are currently using GitLab to authenticate should make sure that they have a valid account on the Sandbox Environment and are linked to an active Organisation to continue accessing the platform.
 				</div>
 			</div>
@@ -83,6 +83,12 @@
 	        }
 
 			loadServerInfo();
+
+			var urlHost = new URLSearchParams(window.location.host).toString();
+			if(!urlHost.includes("openbankingbrasil")){
+				$(".disclaimer-wrapper").hide();
+			}
+
 	    });
 
 		function loadServerInfo() {
@@ -97,9 +103,9 @@
 
 				// OCI-582 - uncommnent the code eblow when ready to release.
 				// if (data.brand.toLowerCase().includes("open banking brazil")) {
-				// 	$(".adminLogin").hide();	
+				// 	$(".adminLogin").hide();
 				// }
-				
+
 			});
 		}
 	</script>

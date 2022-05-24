@@ -68,7 +68,7 @@ textarea {
 	margin: 5px 5px 5px 0;
 }
 
-.disclaimer {
+.disclaimer-content {
 	border: 2px solid red;
 	background-color: rgba(255,0,0,0.2);
 	border-radius: 6px;
