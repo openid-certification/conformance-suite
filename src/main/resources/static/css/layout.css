@@ -76,6 +76,10 @@ textarea {
 	padding: 5px 5px;
 }
 
+.disclaimer-wrapper{
+	display: none;
+}
+
 .runningTest {
 	border-bottom: 1px #eee solid;
 	padding: 5px;
