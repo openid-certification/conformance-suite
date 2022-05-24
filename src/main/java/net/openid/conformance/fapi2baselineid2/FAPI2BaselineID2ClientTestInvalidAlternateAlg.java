@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-invalid-alternate-alg",
-	displayName = "FAPI2-Baseline-ID2: client test - if the alg of id_token is PS256, then sign with RS256 in the authorization endpoint, should be rejected",
+	displayName = "FAPI2-Baseline-ID2: client test - the id_token is signed with RS256, which the client should not accept as it is expecting PS256 or ES256",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
