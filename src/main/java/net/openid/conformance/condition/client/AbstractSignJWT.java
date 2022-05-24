@@ -23,6 +23,7 @@ import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
@@ -58,7 +59,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", signingJwk));
 			}
 
-			JWSSignerFactory jwsSignerFactory = new DefaultJWSSignerFactory();
+			JWSSignerFactory jwsSignerFactory = MultiJWSSignerFactory.getInstance();
 			JWSSigner signer = jwsSignerFactory.createJWSSigner(signingJwk, alg);
 
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
