@@ -74,7 +74,6 @@ public class CreateConsentWithInvalidFields  extends AbstractCondition {
 		env.putObject("consent_endpoint_request", requestObject);
 		logSuccess(args("consent_endpoint_request", requestObject));
 
-
 		//Add transactionFromDate and transactionToDate fields to request
 		LocalDateTime date = LocalDateTime.now().minusDays(80);
 		String formatDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
