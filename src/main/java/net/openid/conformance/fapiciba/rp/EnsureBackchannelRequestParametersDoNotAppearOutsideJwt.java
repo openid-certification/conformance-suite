@@ -27,10 +27,10 @@ public class EnsureBackchannelRequestParametersDoNotAppearOutsideJwt extends Ens
 			.collect(Collectors.toMap(p -> p, p -> env.getString("backchannel_endpoint_http_request", "body_form_params." + p)));
 
 		if(!disallowedParametersInHttpRequest.isEmpty()) {
-			throw error("Authentication request parameters are not allowed in the HTTP request.", disallowedParametersInHttpRequest);
+			throw error("Authentication request parameters are not allowed in the HTTP request", disallowedParametersInHttpRequest);
 		}
 
-		logSuccess("The HTTP request does not contain any of the authentication request parameters.");
+		logSuccess("The HTTP request does not contain any of the authentication request parameters");
 
 		return env;
 	}

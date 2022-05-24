@@ -464,7 +464,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		JsonObject httpRequestObj = env.getObject("backchannel_endpoint_http_request");
 		env.putObject("backchannel_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
 
-		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "TODO");
+		callAndStopOnFailure(EnsureBackchannelRequestObjectWasNotEncrypted.class, ConditionResult.FAILURE, "CIBA-7.1.1");
+		callAndStopOnFailure(ExtractRequestObjectFromBackchannelEndpointRequest.class, "FAPI-CIBA-5.2.3.1");
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 		validateRequestObjectForBackchannelEndpointRequest();
