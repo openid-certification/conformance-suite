@@ -5,7 +5,9 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelRequestHasOneOfTheHintParameters extends AbstractCondition {
+import java.util.stream.Stream;
+
+public class BackchannelRequestHasExactlyOneOfTheHintParameters extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_request_object")
@@ -15,8 +17,8 @@ public class BackchannelRequestHasOneOfTheHintParameters extends AbstractConditi
 		String idTokenHint = env.getString("backchannel_request_object", "claims.id_token_hint");
 		String loginHint = env.getString("backchannel_request_object", "claims.login_hint");
 
-		if(Strings.isNullOrEmpty(loginHintToken) && Strings.isNullOrEmpty(idTokenHint) && Strings.isNullOrEmpty(loginHint)) {
-			throw error("One of 'login_hint_token', 'id_token_hint' or 'login_hint' must be present in the request");
+		if(Stream.of(loginHintToken, idTokenHint, loginHint).filter(s -> !Strings.isNullOrEmpty(s)).count() != 1) {
+			throw error("Exactly one of 'login_hint_token', 'id_token_hint' or 'login_hint' must be present in the request");
 		}
 
 		logSuccess("Backchannel authentication request contains one of the required hint parameters");

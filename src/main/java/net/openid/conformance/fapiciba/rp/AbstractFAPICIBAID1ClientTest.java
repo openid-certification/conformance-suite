@@ -28,8 +28,6 @@ import org.springframework.http.ResponseEntity;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -472,12 +470,14 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		validateRequestObjectForBackchannelEndpointRequest();
 		env.unmapKey("authorization_request_object");
 
+		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
+
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
-		callAndContinueOnFailure(BackchannelRequestHasOneOfTheHintParameters.class, Condition.ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, Condition.ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1");
 
 		createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {
@@ -554,7 +554,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
-		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
+		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");

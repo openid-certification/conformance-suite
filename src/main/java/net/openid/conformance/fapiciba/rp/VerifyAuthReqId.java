@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;

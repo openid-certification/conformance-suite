@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
