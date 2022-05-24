@@ -39,6 +39,9 @@ public class CreateEffectiveAuthorizationPARRequestParameters extends AbstractCo
 
 		JsonObject effective = authzEndpointReqParams.deepCopy();
 		effective.remove("request_uri");
+		effective.remove("client_assertion");
+		effective.remove("client_assertion_type");
+		effective.remove("client_secret");
 
 		// overrride with unsigned PAR params
 		for(String paramName : parEndpointReqParams.keySet()) {
