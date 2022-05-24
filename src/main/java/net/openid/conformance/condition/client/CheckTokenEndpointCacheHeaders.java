@@ -16,7 +16,7 @@ public class CheckTokenEndpointCacheHeaders extends AbstractValidateResponseCach
 
 		String humanReadableResponseName = "token endpoint response";
 
-		validateCacheHeaders(headers, humanReadableResponseName, false);
+		validateCacheHeaders(headers, humanReadableResponseName);
 
 		return env;
 	}
