@@ -128,8 +128,7 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		// as per https://openid.net/specs/openid-connect-backchannel-1_0.html#BCResponse
 		// we always return a successful response as this test expects a valid request
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Cache-Control", "no-cache, no-store");
-		headers.set("Pragma", "no-cache");
+		headers.set("Cache-Control", "no-store");
 		return new ResponseEntity<Object>("", headers, HttpStatus.OK);
 	}
 
