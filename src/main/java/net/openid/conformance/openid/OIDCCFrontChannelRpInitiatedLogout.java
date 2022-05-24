@@ -112,8 +112,7 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 
 		// https://openid.net/specs/openid-connect-frontchannel-1_0.html#RPLogout
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Cache-Control", "no-cache, no-store");
-		headers.set("Pragma", "no-cache");
+		headers.set("Cache-Control", "no-store");
 		return new ResponseEntity<Object>("", headers, HttpStatus.OK);
 	}
 
