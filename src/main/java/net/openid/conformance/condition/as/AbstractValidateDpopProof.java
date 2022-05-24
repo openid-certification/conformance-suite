@@ -69,6 +69,12 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		if(jti  == null) {
 			throw error("'jti' claim in DPoP Proof is missing");
 		}
+		String jtiStr = OIDFJSON.getString(jti);
+		if(jtiStr.isEmpty()) {
+			throw error("'jti' claim in DPoP Proof is blank");
+		} else {
+			// TODO check jti unique across requests
+		}
 
 		JsonElement htm = env.getElementFromObject("incoming_dpop_proof", "claims.htm");
 		if(htm  == null) {
@@ -112,6 +118,15 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 		}
 
+		// exp - not actually part of spec; but JWT defines known behaviour that really should be followed
+		Long exp = env.getLong("incoming_dpop_proof", "claims.exp");
+		if (exp != null) {
+			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
+				// this is just something to log, it doesn't make the token invalid
+				log("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
+			}
+		}
+
 		JsonElement ath = env.getElementFromObject("incoming_dpop_proof", "claims.ath");
 		if(isTokenRequest) { // DPoP Request, ensure no 'ath' claim
 			if(ath != null) {
@@ -123,7 +138,12 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 		}
 
-		// TODO nonce check
+		// check for nonce, currently not required/supported
+		JsonElement nonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
+		if(nonce  != null) {
+			throw error("'nonce' claim in DPoP Proof is unsupported", args("nonce", OIDFJSON.getString(nonce)));
+		}
+
 
 		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat passed validation checks");
 		return env;

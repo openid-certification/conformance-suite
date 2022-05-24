@@ -35,7 +35,6 @@ import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
-import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
@@ -45,12 +44,10 @@ import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
-import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
-import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
@@ -243,8 +240,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	// Controls which endpoints we should expose to the client
 	protected FAPI2ID2OPProfile profile;
 
-	protected boolean isPar = true;
-
 	protected FAPIResponseMode responseMode;
 
 	protected ClientAuthType clientAuthType;
@@ -280,6 +275,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void addCustomSignatureOfIdToken(){}
 
+	protected void addCustomValuesToAuthorizationResponse(){};
+
 	protected void endTestIfRequiredParametersAreMissing(){}
 
 	@Override
@@ -305,8 +302,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
-		callAndStopOnFailure(LoadServerJWKs.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		configureServerJWKS();
 
 		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-2"));
 		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-13"));
@@ -339,9 +335,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
-		if(isPar) {
-			call(sequence(AddPARToServerConfiguration.class));
-		}
+		call(sequence(AddPARToServerConfiguration.class));
 
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
@@ -447,6 +441,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
 	}
 
+	protected void configureServerJWKS() {
+		callAndStopOnFailure(LoadServerJWKs.class);
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+	}
+
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
@@ -504,7 +503,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
-		} else if (path.equals("par") && isPar) {
+		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
@@ -551,7 +550,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return userinfoEndpoint(requestId);
-		} else if (path.equals("par") && isPar) {
+		} else if (path.equals("par")) {
 			return parEndpoint(requestId);
 		}
 		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
@@ -807,51 +806,6 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		}
 	}
 
-	/**
-	 * Extracts and validates the information for DPOP token/resource requests
-	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
-	 *                       a request to the resource endpoint
-	 */
-	protected void checkSenderConstrainDpopTokenRequest(boolean isTokenRequest) {
-		callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
-		if(isTokenRequest) {
-			call(sequence(PerformDpopProofTokenRequestChecks.class));
-		}
-		else {
-			// Need to also extract the DPoP Access token for resource requests
-			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
-			call(sequence(PerformDpopProofResourceRequestChecks.class));
-		}
-	}
-
-	/**
-	 * Extracts and validates the information for MTLS token/resource requests
-	 * @param isTokenRequest Use to indicate whether this is a request for an access token or
-	 *                       a request to the resource endpoint
-	 */
-	protected void checkSenderConstrainMtlsTokenRequest(boolean isTokenRequest) {
-		if(!isTokenRequest) {  // no need to do anything on access  token requests
-			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
-		}
-	}
-
-	protected void checkSenderConstrainTokenRequest() {
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
-			checkSenderConstrainDpopTokenRequest(true);
-		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
-			checkSenderConstrainMtlsTokenRequest(true);
-		}
-	}
-
-	protected void checkSenderConstrainResourceRequest() {
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
-			checkSenderConstrainDpopTokenRequest(false);
-		} else if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
-			checkSenderConstrainMtlsTokenRequest(false);
-		}
-	}
-
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
@@ -955,8 +909,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Token endpoint")
-			.mapKey("token_endpoint_request", requestId)
-			.mapKey("incoming_request", requestId));
+			.mapKey("token_endpoint_request", requestId));
+
+		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+			call(exec().mapKey("incoming_request", requestId));
+		}
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -1102,11 +1059,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		if(isPar) {
-			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		} else {
-			throw new TestFailureException(getId(), "Only PAR requests are supported.");
-		}
+		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
@@ -1124,12 +1077,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 			}
-			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASE-5.2.2.2");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.NONCE, ConditionResult.INFO, ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OIDCC-3.2.2.1");
 		} else {
 			if(jarmType==FAPIJARMType.OIDC) {
 				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
 			}
-			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1" );
 		}
 
 		/*
@@ -1182,21 +1135,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(isPar) {
-			if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
-				callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-					"FAPI1-ADV-5.2.3-16");
-			}
-		} else {
-			validateRequestObjectCommonChecks();	//for PAR, these checks will be applied to the PAR endpoint request
-			callAndContinueOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class,  ConditionResult.FAILURE,
-				"OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
-			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING,
-				"OIDCC-6.1", "OIDCC-6.2");
-			if(responseMode!=FAPIResponseMode.JARM) {
-				callAndContinueOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, ConditionResult.FAILURE,
-					"OIDCC-6.1", "OIDCC-6.2");
-			}
+		if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
+				"FAPI1-ADV-5.2.3-16");
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
@@ -1309,6 +1250,8 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-BASE-4.3.1-13");
+
+		addCustomValuesToAuthorizationResponse();
 
 		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");

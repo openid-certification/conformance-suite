@@ -13,7 +13,6 @@ import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointRespon
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.ChangeTokenEndpointInServerConfigurationToMtls;
-import net.openid.conformance.condition.as.CheckAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -25,6 +24,7 @@ import net.openid.conformance.condition.as.DisallowMaxAgeEqualsZeroAndPromptNone
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptUserInfoResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
+import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -1023,7 +1023,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		extractNonceFromAuthorizationEndpointRequestParameters();
 
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, CheckAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.INFO);
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, EnsureAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.FAILURE, "RFC7636-4.3");
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {

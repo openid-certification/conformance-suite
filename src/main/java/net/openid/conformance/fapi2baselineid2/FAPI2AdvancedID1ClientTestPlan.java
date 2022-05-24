@@ -25,10 +25,12 @@ public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestInvalidAlternateAlg.class,
 		FAPI2BaselineID2ClientTestInvalidExpiredExp.class,
 		FAPI2BaselineID2ClientTestInvalidMissingExp.class,
-		FAPI2BaselineID2ClientTestIatIsWeekInPast.class,
 		FAPI2BaselineID2ClientTestInvalidMissingAud.class,
 		FAPI2BaselineID2ClientTestInvalidMissingIss.class,
 		FAPI2BaselineID2ClientTestValidAudAsArray.class,
+		FAPI2BaselineID2ClientTestInvalidAuthorizationResponseIss.class,
+		FAPI2BaselineID2ClientTestRemoveAuthorizationResponseIss.class,
+		FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity.class,
 		// OB systems specific tests
 		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
