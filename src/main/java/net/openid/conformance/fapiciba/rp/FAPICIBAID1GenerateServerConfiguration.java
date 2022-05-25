@@ -28,7 +28,6 @@ public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
 		JsonObject server = new JsonObject();
 
 		server.addProperty("issuer", baseUrl);
-		server.addProperty("authorization_endpoint", baseUrl + "authorize");
 		server.addProperty("token_endpoint", baseUrl + "token");
 		server.addProperty("jwks_uri", baseUrl + "jwks");
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
