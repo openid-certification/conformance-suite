@@ -19,6 +19,8 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
+
 public class FetchServerKeys extends AbstractCondition {
 
 	@Override
@@ -31,7 +33,7 @@ public class FetchServerKeys extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(jwksUri)) {
 			// do the fetch
 
-			log("Fetching server key", args("jwks_uri", jwksUri));
+			log("Fetching server key", args("jwks_uri", escapeHtml4(jwksUri)));
 
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
@@ -49,7 +51,7 @@ public class FetchServerKeys extends AbstractCondition {
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
 			} catch (RestClientException e) {
-				String msg = "Fetching server keys from " + jwksUri + " failed";
+				String msg = "Fetching server keys from " + escapeHtml4(jwksUri) + " failed";
 				if (e.getCause() != null) {
 					msg += " - " +e.getCause().getMessage();
 				}
