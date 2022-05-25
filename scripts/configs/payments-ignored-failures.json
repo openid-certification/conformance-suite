@@ -36,15 +36,6 @@
         "comment": "Mock bank does not have requestDateTime field in the error response causing test failure"
     },
     {
-        "test-name": "payments-consents-json-accept-header-jwt-returned-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Setting date to today",
-        "condition": "EnsureResponseCodeWas200",
-        "expected-result": "failure",
-        "comment": "Mock bank does not return correct response for a fetch in Payments Consents with content-type application/json"
-    },
-    {
         "test-name": "payments-api-idempotency-test",
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
