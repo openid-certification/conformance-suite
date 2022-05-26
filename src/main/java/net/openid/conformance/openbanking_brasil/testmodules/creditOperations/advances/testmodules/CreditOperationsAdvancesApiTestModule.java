@@ -42,7 +42,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"consent.productType"
 	}
 )
 public class CreditOperationsAdvancesApiTestModule extends AbstractOBBrasilFunctionalTestModule {
