@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -41,8 +42,9 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
-		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class); //Alex: Is this up to date?
 		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
+		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
 	}
 
 	@Override
