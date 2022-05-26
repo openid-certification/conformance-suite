@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiConsentS
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiConsentStatusTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiCrossClientTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiPermissionGroupsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ConsentsApiDeleteTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientAuthType;
@@ -41,7 +42,8 @@ public class ConsentsApiTestPlan implements TestPlan {
 					ConsentsApiCrossClientTestModule.class,
 					ConsentsApiConsentStatusTestModule.class,
 					ConsentsApiConsentStatusIfDeclinedTestModule.class,
-					ConsentsApiConsentExpiredTestModule.class
+					ConsentsApiConsentExpiredTestModule.class,
+					ConsentsApiDeleteTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

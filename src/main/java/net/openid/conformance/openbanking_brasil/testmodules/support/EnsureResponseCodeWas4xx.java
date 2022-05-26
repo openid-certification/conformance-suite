@@ -5,19 +5,18 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpStatus;
 
-public class EnsureResponseCodeWas403or400 extends AbstractCondition {
+public class EnsureResponseCodeWas4xx extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
 		int status = env.getInteger("resource_endpoint_response_full", "status");
-		if(status == HttpStatus.BAD_REQUEST.value()) {
-			logSuccess("400 response status returned");
-		} else if (status == HttpStatus.FORBIDDEN.value()){
-			env.putString("warning_message", "Participant returned a 403 this is accepted behaviour in the specs but awaiting clarification if this is correct");
+		if(status >= 400 && status <= 499) {
+			throw error("Was expecting a 4xx response");
 		} else {
-			throw error("Was expecting either a 403 or a 400 response, received " + status, args("status", status));
+			logSuccess("4xx response status, as expected");
 		}
 		return env;
 	}
+
 }
