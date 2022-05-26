@@ -82,8 +82,8 @@ public class CreateConsentWithInvalidFields  extends AbstractCondition {
 
 		JsonObject consentRequest2 = env.getObject("consent_endpoint_request");
 		JsonObject data = consentRequest2.getAsJsonObject("data");
-		data.addProperty("transactionFromDate", transactionFromDate);
-		data.addProperty("transactionToDate", transactionToDate);
+		data.addProperty("transactionFromDateTime", transactionFromDate);
+		data.addProperty("transactionToDateTime", transactionToDate);
 		logSuccess("Added transaction dates to request", args("consent_endpoint_request", consentRequest2));
 		return env;
 	}
