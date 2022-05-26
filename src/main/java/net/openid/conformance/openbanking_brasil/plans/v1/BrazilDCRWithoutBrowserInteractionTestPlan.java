@@ -4,6 +4,7 @@ import net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrAttemptClientTakeoverTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.DcrNoSubjectTypeTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrSandboxCredentialsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.DcrSubjectDnTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -46,7 +47,8 @@ public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 					DcrSubjectDnTestModule.class,
 					DcrAttemptClientTakeoverTestModule.class,
 					DCRConsentsBadLoggedUser.class,
-					DcrSandboxCredentialsTestModule.class
+					DcrSandboxCredentialsTestModule.class,
+					DcrNoSubjectTypeTestModule.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)
