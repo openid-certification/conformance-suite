@@ -12,7 +12,7 @@ public class EnsureResponseCodeWas200or406 extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		int status = env.getInteger("resource_endpoint_response_full", "status");
 
-		if(status != HttpStatus.OK.value() || status != HttpStatus.NOT_ACCEPTABLE.value()) {
+		if(status != HttpStatus.OK.value() && status != HttpStatus.NOT_ACCEPTABLE.value()) {
 			throw error("Was expecting a 200 or 406 response.");
 		}
 
