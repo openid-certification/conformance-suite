@@ -46,6 +46,7 @@ public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValueNoAuthFlow.class,
 					DcrSubjectDnTestModule.class,
 					DcrAttemptClientTakeoverTestModule.class,
+					DCRConsentsBadLoggedUser.class,
 					DcrSandboxCredentialsTestModule.class,
 					DcrNoSubjectTypeTestModule.class
 				),
