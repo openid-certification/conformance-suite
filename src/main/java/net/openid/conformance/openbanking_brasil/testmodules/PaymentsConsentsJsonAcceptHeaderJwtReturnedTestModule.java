@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "payments-consents-json-accept-header-jwt-returned-test",
@@ -55,8 +56,21 @@ public class PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule extends Abstr
 			callAndStopOnFailure(PaymentInitiationConsentValidator.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-			call(sequence(ValidateSelfEndpoint.class));
-			callAndContinueOnFailure(EnsureResponseWasJwt.class);
+
+			ConditionSequence validationSequence = new ValidateSelfEndpoint()
+				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas200or406.class))
+				.skip(SaveOldValues.class, "Skipped in the sequence for further check")
+				.skip(LoadOldValues.class, "Skipped in the sequence for further check")
+				.skip(ValidateResponseMetaData.class, "Skipped in the sequence for further check");
+
+			call(validationSequence);
+			if(env.getInteger("resource_endpoint_response_full", "status") == HttpStatus.OK.value()) {
+				callAndStopOnFailure(ValidateResponseMetaData.class);
+				callAndContinueOnFailure(EnsureResponseWasJwt.class);
+			} else {
+				callAndStopOnFailure(ValidateErrorFromResourceEndpointResponseError.class);
+			}
+
 		});
 	}
 }
