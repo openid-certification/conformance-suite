@@ -1,0 +1,845 @@
+openapi: 3.0.0
+info:
+    title: APIs Open Data do Open Insurance Brasil
+    description: API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
+    version: 1.0.0
+    contact:
+        url: https://http://novosite.susep.gov.br
+servers:
+    - url: https://api.organizacao.com.br/open-insurance/products-services/v1
+      description: Servidor de Producao
+    - url: https://api.organizacao.com.br/open-insurance/products-services/v1
+      description: Servidor de Homologacao
+tags:
+    - name: Intermediarios
+paths:
+    /intermediary/{countrySubDivision}:
+        get:
+            tags:
+                - Intermediary
+            summary: Obtem a lista dos produtos do tipo Intermediarios
+            description: Obtem a lista dos produtos do tipo Intermediarios
+            operationId: getIntermediary
+            parameters:
+                - $ref: '#/components/parameters/cache-Control'
+                - $ref: '#/components/parameters/content-Security-Policy'
+                - $ref: '#/components/parameters/content-Type'
+                - $ref: '#/components/parameters/strict-Transport-Security'
+                - $ref: '#/components/parameters/x-Content-Type-Options'
+                - $ref: '#/components/parameters/x-Frame-Options'
+                - $ref: '#/components/parameters/page'
+                - $ref: '#/components/parameters/pageSize'
+                - $ref: '#/components/parameters/countrySubDivision'
+                - $ref: '#/components/parameters/serviceLine'
+            responses:
+                '200':
+                    description: Dados dos produtos de Intermediarios
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseIntermediaryList'
+                '204':
+                    $ref: '#/components/responses/NoContent'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Dados dos produtos de API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResponseIntermediaryList'
+components:
+    schemas:
+        ResponseIntermediaryList:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    type: object
+                    required:
+                        - brand
+                    properties:
+                        brand:
+                            $ref: '#/components/schemas/IntermediaryBrand'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        IntermediaryBrand:
+            type: object
+            description: Organizacao controladora do grupo.
+            required:
+                - name
+                - companies
+            properties:
+                name:
+                    type: string
+                    description: Nome da Marca reportada pelo participante do Open Insurance. O conceito a que se refere a 'marca' é em essência uma promessa da empresa em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes
+                    maxLength: 80
+                    example: ACME Group Seguros
+                companies:
+                    $ref: '#/components/schemas/IntermediaryCompany'
+        IntermediaryCompany:
+            type: array
+            items:
+                description: Informações referente a sociedade a qual a marca pertence.
+                required:
+                    - name
+                    - cnpjNumber
+                    - identification
+                properties:
+                    name:
+                        type: string
+                        description: Nome da sociedade supervisionada participante
+                        maxLength: 80
+                        example: ACME Seguros
+                    cnpjNumber:
+                        type: string
+                        description: CNPJ da sociedade supervisionada participante
+                        maxLength: 14
+                        example: '12345678901234'
+                    identification:
+                        $ref: '#/components/schemas/IntermediaryIdentification'
+        IntermediaryIdentification:
+            type: array
+            items:
+                description: Informações referente a identificação.
+                required:
+                    - name
+                    - type
+                    - postalAddress
+                    - services
+                properties:
+                    name:
+                        type: string
+                        maxLength: 80
+                        description: Nome ou razão social (pessoa jurídica) do intermediário
+                        example: Intermediário C
+                    nameOther:
+                        type: string
+                        maxLength: 80
+                        description: No caso da Pessoa jurídica
+                        example: Intermediário D
+                    documentNumber:
+                        type: string
+                        maxLength: 14
+                        pattern: ^\d{11}|\d{14}$
+                        description: 'CPF ou CNPJ do intermediário OBS: Opcional para pessoa natural'
+                        example: 12341234123412
+                    type:
+                        type: string
+                        maxLength: 39
+                        description: Relação de tipos de intermediário
+                        enum:
+                            - CORRETOR_DE_SEGUROS
+                            - REPRESENTANTE_DE_SEGUROS
+                            - AGENTES_DE_SEGUROS
+                            - DISTRIBUIDOR_DE_TITULO_DE_CAPITALIZACAO
+                        example: CORRETOR_DE_SEGUROS
+                    SUSEP:
+                        type: string
+                        description: 'Número de Registro SUSEP no caso de intermediário ser Corretor de Seguros. OBS: Condicional a seleção de 1. Corretor de seguros no campo acima'
+                        maxLength: 20
+                        example: 15414622222222222
+                    postalAddress:
+                        $ref: '#/components/schemas/IntermediaryCoveragePostalAddress'
+                    access:
+                        $ref: '#/components/schemas/IntermediaryAccess'
+                    services:
+                        $ref: '#/components/schemas/IntermediaryServices'
+        IntermediaryCoveragePostalAddress:
+            type: array
+            items:
+                required:
+                    - address
+                    - townName
+                    - ibgeCode
+                    - countrySubDivision
+                    - postCode
+                properties:
+                    address:
+                        type: string
+                        maxLength: 150
+                        description: 'Deverá trazer toda a informação referente ao endereço do intermediário: Tipo de logradouro + Nome do logradouro + Número do Logradouro (se não existir usar '' s/n'') + complemento (se houver)'
+                        example: '''Rua Diamantina, 59, bloco 35'' Praça da Boa Vontade, s/n'
+                    additionalInfo:
+                        type: string
+                        maxLength: 30
+                        description: 'Alguns logradouros ainda necessitam ser especificados por meio de complemento, conforme o exemplo a seguir: ''Loja B'', ''Fundos'', ''Casa 2'', ''Lote C'''
+                        example: Loja B
+                    districtName:
+                        type: string
+                        maxLength: 50
+                        description: Bairro é uma comunidade ou região localizada em uma cidade ou município de acordo com as suas subdivisões geográficas
+                        example: Paraíso
+                    townName:
+                        type: string
+                        maxLength: 50
+                        description: 'Localidade: O nome da localidade corresponde à designação da cidade ou município no qual o endereço está localizado'
+                        example: São Paulo
+                    ibgeCode:
+                        type: string
+                        maxLength: 7
+                        description: 7 dígitos (o último é um código verificador).
+                    countrySubDivision:
+                        type: string
+                        maxLength: 2
+                        description: 'Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado. p.ex. ''AC''. São consideradas apenas as siglas para os estados brasileiros:'
+                        example: AC
+                        enum:
+                            - AC
+                            - AL
+                            - AP
+                            - AM
+                            - BA
+                            - CE
+                            - DF
+                            - ES
+                            - GO
+                            - MA
+                            - MT
+                            - MS
+                            - MG
+                            - PA
+                            - PB
+                            - PR
+                            - PE
+                            - PI
+                            - RJ
+                            - RN
+                            - RS
+                            - RO
+                            - RR
+                            - SC
+                            - SP
+                            - SE
+                            - TO
+                    postCode:
+                        type: string
+                        maxLength: 8
+                        description: 'Código de Endereçamento Postal: Composto por um conjunto numérico de oito dígitos, o objetivo principal do CEP é orientar e acelerar o encaminhamento, o tratamento e a entrega de objetos postados nos Correios, por meio da sua atribuição a localidades, logradouros, unidades dos Correios, serviços, órgãos públicos, empresas e edifícios'
+                        example: 1310200
+                    country:
+                        type: string
+                        maxLength: 46
+                        description: Lista de países vide aba 'Lista de países'
+                        enum:
+                            - ANDORRA
+                            - EMIRADOS_ARABES_UNIDOS
+                            - AFEGANISTAO
+                            - ANTIGUA_E_BARBUDA
+                            - ANGUILLA
+                            - ALBANIA
+                            - ARMENIA
+                            - ANTILHAS_HOLANDESAS
+                            - ANGOLA
+                            - ANTARTIDA
+                            - ARGENTINA
+                            - SAMOA_AMERICANA
+                            - AUSTRIA
+                            - AUSTRALIA
+                            - ARUBA
+                            - ILHAS_ALAND
+                            - AZERBAIJAO
+                            - BOSNIA_HERZEGOVINA
+                            - BARBADOS
+                            - BANGLADESH
+                            - BELGICA
+                            - BURKINA_FASSO
+                            - BULGARIA
+                            - BAHREIN
+                            - BURUNDI
+                            - BENIN
+                            - SAO_BARTOLOMEU
+                            - BERMUDAS
+                            - BRUNEI
+                            - BOLIVIA
+                            - BONAIRE_SINT_EUSTATIUS_E_SABA
+                            - BRASIL
+                            - BAHAMAS
+                            - BUTAO
+                            - ILHA_BOUVET_TERRITORIO_DA_NORUEGA
+                            - BOTSUANA
+                            - BELARUS
+                            - BELIZE
+                            - CANADA
+                            - ILHAS_COCOS
+                            - REPUBLICA_DEMOCRATICA_DO_CONGO_EX_ZAIRE
+                            - REPUBLICA_CENTRO_AFRICANA
+                            - CONGO
+                            - SUICA
+                            - COSTA_DO_MARFIM
+                            - ILHAS_COOK
+                            - CHILE
+                            - CAMAROES
+                            - CHINA
+                            - COLOMBIA
+                            - COSTA_RICA
+                            - CUBA
+                            - CABO_VERDE
+                            - CURACAO
+                            - ILHA_NATAL
+                            - CHIPRE
+                            - REPUBLICA_TCHECA
+                            - ALEMANHA
+                            - DJIBUTI
+                            - DINAMARCA
+                            - DOMINICA
+                            - REPUBLICA_DOMINICANA
+                            - ARGELIA
+                            - EQUADOR
+                            - ESTONIA
+                            - EGITO
+                            - SAARA_OCIDENTAL_EX_SPANISH_SAHARA
+                            - ERITREIA
+                            - ESPANHA
+                            - ETIOPIA
+                            - FINLANDIA
+                            - FIJI
+                            - ILHAS_FALKLAND_MALVINAS
+                            - MICRONESIA
+                            - ILHAS_FAROES
+                            - FRANCA
+                            - GABAO
+                            - GRA_BRETANHA_REINO_UNIDO_UK
+                            - GRANADA
+                            - GEORGIA
+                            - GUIANA_FRANCESA
+                            - GUERNSEY
+                            - GANA
+                            - GIBRALTAR
+                            - GROELANDIA
+                            - GAMBIA
+                            - GUINE
+                            - GUADALUPE
+                            - GUINE_EQUATORIAL
+                            - GRECIA
+                            - ILHAS_GEORGIA_DO_SUL_E_SANDWICH_DO_SUL
+                            - GUATEMALA
+                            - GUAM_TERRITORIO_DOS_ESTADOS_UNIDOS
+                            - GUINE_BISSAU
+                            - GUIANA
+                            - HONG_KONG
+                            - ILHAS_HEARD_E_MCDONALD_TERRITORIO_DA_AUSTRALIA
+                            - HONDURAS
+                            - CROACIA_HRVATSKA
+                            - HAITI
+                            - HUNGRIA
+                            - INDONESIA
+                            - IRLANDA
+                            - ISRAEL
+                            - ILHA_DO_HOMEM
+                            - INDIA
+                            - TERRITORIO_BRITANICO_DO_OCEANO_INDICO
+                            - IRAQUE
+                            - IRA
+                            - ISLANDIA
+                            - ITALIA
+                            - JERSEY
+                            - JAMAICA
+                            - JORDANIA
+                            - JAPAO
+                            - KENIA
+                            - KYRGYZSTAN
+                            - CAMBOJA
+                            - KIRIBATI
+                            - ILHAS_COMORES
+                            - SAO_CRISTOVAO_E_NEVIS
+                            - COREIA_DO_NORTE
+                            - COREIA_DO_SUL
+                            - KUAIT
+                            - ILHAS_CAYMAN
+                            - CAZAQUISTAO
+                            - LAOS
+                            - LIBANO
+                            - SANTA_LUCIA
+                            - LIECHTENSTEIN
+                            - SRI_LANKA
+                            - LIBERIA
+                            - LESOTO
+                            - LITUANIA
+                            - LUXEMBURGO
+                            - LATVIA
+                            - LIBIA
+                            - MARROCOS
+                            - MONACO
+                            - MOLDOVA
+                            - MONTENEGRO
+                            - SAO_MARTIM
+                            - MADAGASCAR
+                            - ILHAS_MARSHALL
+                            - MACEDONIA_REPUBLICA_YUGOSLAVA
+                            - MALI
+                            - MYANMA_EX_BURMA
+                            - MONGOLIA
+                            - MACAU
+                            - ILHAS_MARIANAS_DO_NORTE
+                            - MARTINICA
+                            - MAURITANIA
+                            - MONTSERRAT
+                            - MALTA
+                            - MAURICIO
+                            - MALDIVAS
+                            - MALAUI
+                            - MEXICO
+                            - MALASIA
+                            - MOCAMBIQUE
+                            - NAMIBIA
+                            - NOVA_CALEDONIA
+                            - NIGER
+                            - ILHAS_NORFOLK
+                            - NIGERIA
+                            - NICARAGUA
+                            - HOLANDA
+                            - NORUEGA
+                            - NEPAL
+                            - NAURU
+                            - NIUE
+                            - NOVA_ZELANDIA
+                            - OMA
+                            - PANAMA
+                            - PERU
+                            - POLINESIA_FRANCESA
+                            - PAPUA_NOVA_GUINE
+                            - FILIPINAS
+                            - PAQUISTAO
+                            - POLONIA
+                            - ST_PIERRE_AND_MIQUELON
+                            - ILHA_PITCAIRN
+                            - PORTO_RICO
+                            - TERRITORIOS_PALESTINOS_OCUPADOS
+                            - PORTUGAL
+                            - PALAU
+                            - PARAGUAI
+                            - QATAR
+                            - ILHA_REUNIAO
+                            - ROMENIA
+                            - SERVIA
+                            - FEDERACAO_RUSSA
+                            - RUANDA
+                            - ARABIA_SAUDITA
+                            - ILHAS_SOLOMAO
+                            - ILHAS_SEYCHELLES
+                            - SUDAO
+                            - SUECIA
+                            - CINGAPURA
+                            - SANTA_HELENA
+                            - ESLOVENIA
+                            - ILHAS_SVALBARD_E_JAN_MAYEN
+                            - ESLOVAQUIA
+                            - SERRA_LEOA
+                            - SAN_MARINO
+                            - SENEGAL
+                            - SOMALIA
+                            - SURINAME
+                            - SUDAO_DO_SUL
+                            - SAO_TOME_E_PRINCIPE
+                            - EL_SALVADOR
+                            - SAO_MARTINHO_PARTE_HOLANDESA
+                            - SIRIA
+                            - SUAZILANDIA
+                            - ILHAS_TURKS_E_CAICOS
+                            - CHADE
+                            - TERRITORIOS_DO_SUL_DA_FRANCA
+                            - TOGO
+                            - TAILANDIA
+                            - TADJIQUISTAO
+                            - ILHAS_TOKELAU
+                            - TIMOR_LESTE_EX_EAST_TIMOR
+                            - TURCOMENISTAO
+                            - TUNISIA
+                            - TONGA
+                            - TURQUIA
+                            - TRINIDAD_AND_TOBAGO
+                            - TUVALU
+                            - TAIWAN
+                            - TANZANIA
+                            - UCRANIA
+                            - UGANDA
+                            - ILHAS_MENORES_DOS_ESTADOS_UNIDOS
+                            - ESTADOS_UNIDOS
+                            - URUGUAI
+                            - UZBEQUISTAO
+                            - VATICANO
+                            - SAINT_VINCENTE_E_GRANADINAS
+                            - VENEZUELA
+                            - ILHAS_VIRGENS_INGLATERRA
+                            - ILHAS_VIRGENS_ESTADOS_UNIDOS
+                            - VIETNAM
+                            - VANUATU
+                            - ILHAS_WALLIS_E_FUTUNA
+                            - SAMOA_OCIDENTAL
+                            - IEMEN
+                            - MAYOTTE
+                            - AFRICA_DO_SUL
+                            - ZAMBIA
+                            - ZIMBABUE
+                    countryCode:
+                        type: string
+                        maxLength: 3
+                        example: BRA
+                        description: Código do país de acordo com o código “alpha3” do ISO-3166. p.ex.'BRA'
+                    geographicCoordinates:
+                        $ref: '#/components/schemas/IntermediaryGeographicCoordinates'
+        IntermediaryGeographicCoordinates:
+            type: object
+            properties:
+                latitude:
+                    type: string
+                    maxLength: 11
+                    description: Informação da Latitude referente a geolocalização informada. Entre -90 e 90. Formato numérico 2 casas antes da vírgula, 11 posições.
+                    example: -89.836518
+                longitude:
+                    type: string
+                    maxLength: 11
+                    description: Informação da Longitude referente a geolocalização informada. Formato numérico 3 casas antes da vírgula, 11 posições. Entre -180 e 180.'
+                    example: -179.836519
+        IntermediaryAccess:
+            type: object
+            description: Forma de acesso.
+            properties:
+                standards:
+                    $ref: '#/components/schemas/IntermediaryStandards'
+                email:
+                    description: Endereço de e-mail
+                    type: string
+                    maxLength: 50
+                    example: Joao.silva@seguradoraa.com.br
+                site:
+                    type: string
+                    description: Campo aberto As URLs são limitadas a 2048 caracteres, mas, para o contexto do Open Insurance, foi adotado a metade deste tamanho (1024).
+                    maxLength: 1024
+                    example: https://openinsurance.com.br/aaa
+                phones:
+                    $ref: '#/components/schemas/IntermediaryPhones'
+        IntermediaryStandards:
+            type: array
+            items:
+                properties:
+                    openingTime:
+                        type: string
+                        maxLength: 9
+                        pattern: ^\d{2}:\d{2}:\d{2}Z$
+                        example: 10:00:57Z
+                        description: Horário de abertura
+                    closingTime:
+                        type: string
+                        maxLength: 9
+                        pattern: ^\d{2}:\d{2}:\d{2}Z$
+                        example: 16:00:57Z
+                        description: Horário de encerramento
+                    weekday:
+                        type: string
+                        maxLength: 13
+                        description: Dias de funcionamento
+                        enum:
+                            - DOMINGO
+                            - SEGUNDA_FEIRA
+                            - TERCA_FEIRA
+                            - QUARTA_FEIRA
+                            - QUINTA_FEIRA
+                            - SEXTA_FEIRA
+                            - SABADO
+                        example: DOMINGO
+        IntermediaryPhones:
+            type: array
+            description: Telefone do intermediário
+            items:
+                type: object
+                properties:
+                    type:
+                        description: Identificação do Tipo de telefone do intermediário
+                        type: string
+                        maxLength: 13
+                        example: FIXO
+                    countryCallingCode:
+                        description: Número de DDI (Discagem Direta Internacional) para telefone de acesso ao Canal - se houver.
+                        type: string
+                        maxLength: 3
+                        example: 55
+                    areaCode:
+                        description: Número de DDD (Discagem Direta à Distância) do telefone do intermediário - se houver. p.ex. '19'
+                        type: string
+                        maxLength: 2
+                        example: 11
+                    number:
+                        description: Número de telefone do intermediário - se houver
+                        type: string
+                        maxLength: 11
+                        example: 30041000
+        IntermediaryServices:
+            type: array
+            items:
+                description: Forma de acesso.
+                required:
+                    - name
+                    - line
+                properties:
+                    name:
+                        description: Relação dos serviços efetivamente prestados, conforme discriminado na Tabela II.3 do Anexo II
+                        type: string
+                        maxLength: 164
+                        enum:
+                            - ANGARIACAO_PROMOCAO_INTERMEDIACAO_OU_DISTRIBUICAO_DE_PRODUTOS
+                            - ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS
+                            - RECEPCAO_DE_PROPOSTAS_E_EMISSAO_DE_DOCUMENTOS_CONTRATUAIS
+                            - SUBSCRICAO_DE_RISCOS_RELACIONADOS_A_PRODUTOS_DE_SEGUROS
+                            - COLETA_E_FORNECIMENTO_A_SOCIEDADE_PARTICIPANTE_DE_DADOS_CADASTRAIS_E_DE_DOCUMENTACAO_DE_CLIENTES_E_SE_FOR_O_CASO_ESTIPULANTES_CORRETORES_DE_SEGUROS_E_SEUS_PREPOSTOS
+                            - RECOLHIMENTO_DE_PREMIOS_E_CONTRIBUICOES
+                            - RECEBIMENTO_DE_AVISOS_DE_SINISTROS
+                            - REGULACAO_DE_SINISTROS
+                            - PAGAMENTO_DE_INDENIZACAO_BENEFICIO
+                            - ORIENTACAO_E_ASSISTENCIA_AOS_CLIENTES_NO_QUE_COMPETE_AOS_CONTRATOS_COMERCIALIZADOS
+                            - APOIO_LOGISTICO_E_OPERACIONAL_A_SOCIEDADE_PARTICIPANTE_NA_GESTAO_E_EXECUCAO_DE_CONTRATOS
+                            - OUTROS
+                        example: ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS
+                    nameOthers:
+                        description: Campo aberto para descrição em caso de seleção de Outras na lista padronizada de Tipo de Serviço Prestado por Intermediário
+                        type: string
+                        maxLength: 100
+                    line:
+                        type: array
+                        items:
+                            type: string
+                            description: Linha de negócio de atuação
+                            maxLength: 93
+                            enum:
+                                - LISTAGEM_DE_RAMOS_DE_SEGUROS_CONFORME_REGULAMENTACAO_ESPECIFICA_SOBRE_CONTABILIZACAO_EM_RAMOS
+                                - PREVIDENCIA_COMPLEMENTAR_ABERTA
+                                - CAPITALIZACAO
+                            example: CAPITALIZACAO
+        Links:
+            type: object
+            properties:
+                self:
+                    type: string
+                    description: URL da página atualmente requisitada
+                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                first:
+                    type: string
+                    description: URL da primeira página de registros
+                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                prev:
+                    type: string
+                    description: URL da página anterior de registros
+                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                next:
+                    type: string
+                    description: URL da próxima página de registros
+                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                last:
+                    type: string
+                    description: URL da última página de registros
+                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+        Meta:
+            type: object
+            properties:
+                totalRecords:
+                    type: integer
+                    description: Total de registros encontrados
+                    example: 10
+                totalPages:
+                    type: integer
+                    description: Total de páginas para os registros encontrados
+                    example: 1
+            required:
+                - totalRecords
+                - totalPages
+        ResponseError:
+            type: object
+            required:
+                - errors
+            properties:
+                errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 13
+                    items:
+                        type: object
+                        required:
+                            - code
+                            - title
+                            - detail
+                        properties:
+                            code:
+                                description: Código de erro específico do endpoint
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 255
+                            title:
+                                description: Título legível por humanos deste erro específico
+                                type: string
+                                maxLength: 255
+                            detail:
+                                description: Descrição legível por humanos deste erro específico
+                                type: string
+                                maxLength: 2048
+                            requestDateTime:
+                                description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
+                                type: string
+                                maxLength: 2048
+                                format: date-time
+                                example: '2021-08-20T08:30:00Z'
+                        additionalProperties: false
+                meta:
+                    $ref: '#/components/schemas/Meta'
+            additionalProperties: false
+    parameters:
+        page:
+            name: page
+            in: query
+            description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+        pageSize:
+            name: page-size
+            in: query
+            description: Quantidade total de registros por páginas.
+            schema:
+                type: integer
+                default: 10
+                minimum: 1
+        countrySubDivision:
+            name: countrySubDivision
+            in: path
+            description: Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado
+            required: true
+            schema:
+                type: string
+        serviceLine:
+            name: serviceLine
+            in: query
+            description: Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado
+            required: false
+            schema:
+                type: string
+        cache-Control:
+            name: cache-control
+            in: header
+            description: Controle de cache para evitar que informações confidenciais sejam armazenadas em cache.
+            required: true
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        content-Security-Policy:
+            name: Content-Security-Policy
+            in: header
+            description: Campo para proteção contra ataques clickjack do estilo - drag and drop.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        content-Type:
+            name: content-Type
+            in: header
+            description: Especificar o tipo de conteúdo da resposta.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        strict-Transport-Security:
+            name: Strict-Transport-Security
+            in: header
+            description: Campo para exigir conexões por HTTPS e proteger contra certificados falsificados.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        x-Content-Type-Options:
+            name: X-Content-Type-Options
+            in: header
+            description: Campo para evitar que navegadores executem a detecção de MIME e interpretem respostas como HTML de forma inadequada.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+        x-Frame-Options:
+            name: X-Frame-Options
+            in: header
+            description: Campo indica se o navegador deve ou não renderizar um frame.
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+    securitySchemes:
+        OpenId:
+            type: openIdConnect
+            openIdConnectUrl: https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration
+        OAuth2Security:
+            type: oauth2
+            description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
+            flows:
+                authorizationCode:
+                    authorizationUrl: https://authserver.example/authorization
+                    tokenUrl: https://authserver.example/token
+                    scopes:
+                        financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
+    responses:
+        NoContent:
+            description: O recurso solicitado não existe ou não foi localizado.
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        BadRequest:
+            description: A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Forbidden:
+            description: O token tem escopo incorreto ou uma política de segurança foi violada
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        InternalServerError:
+            description: Ocorreu um erro no gateway da API ou no microsserviço
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        MethodNotAllowed:
+            description: O consumidor tentou acessar o recurso com um método não suportado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotAcceptable:
+            description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotFound:
+            description: O recurso solicitado não existe ou não foi implementado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        TooManyRequests:
+            description: A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Unauthorized:
+            description: Cabeçalho de autenticação ausente/inválido ou token inválido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
