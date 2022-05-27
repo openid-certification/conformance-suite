@@ -1,17 +1,13 @@
 package net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRHappyFlow;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
@@ -104,7 +100,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			ConditionSequence paymentsConsentsSequence = new SignedPaymentConsentSequence()
 				.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422.class));
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422or201.class));
 
 			call(paymentsConsentsSequence);
 		}
