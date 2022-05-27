@@ -1,0 +1,78 @@
+{
+    "data": {
+        "brand": {
+            "name": "ACME Group Seguros",
+            "companies": [
+                {
+                    "name": "ACME Seguros",
+                    "cnpjNumber": "12345678901234",
+                    "identification": [
+                        {
+                            "name": "Intermediário C",
+                            "nameOther": "Intermediário D",
+                            "documentNumber": "12341234123412",
+                            "type": "CORRETOR_DE_SEGUROS",
+                            "SUSEP": "15414622222222222",
+                            "postalAddress": [
+                                {
+                                    "address": "'Rua Diamantina, 59, bloco 35' Praça da Boa Vontade, s/n",
+                                    "additionalInfo": "Loja B",
+                                    "districtName": "Paraíso",
+                                    "townName": "São Paulo",
+                                    "ibgeCode": "string",
+                                    "countrySubDivision": "AC",
+                                    "postCode": "1310200",
+                                    "country": "ANDORRA",
+                                    "countryCode": "BRA",
+                                    "geographicCoordinates": {
+                                        "latitude": "-89.836518",
+                                        "longitude": "-179.836519"
+                                    }
+                                }
+                            ],
+                            "access": {
+                                "standards": [
+                                    {
+                                        "openingTime": "10:00:57Z",
+                                        "closingTime": "16:00:57Z",
+                                        "weekday": "DOMINGO"
+                                    }
+                                ],
+                                "email": "Joao.silva@seguradoraa.com.br",
+                                "site": "https://openinsurance.com.br/aaa",
+                                "phones": [
+                                    {
+                                        "type": "FIXO",
+                                        "countryCallingCode": "55",
+                                        "areaCode": "11",
+                                        "number": "30041000"
+                                    }
+                                ]
+                            },
+                            "services": [
+                                {
+                                    "name": "ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS",
+                                    "nameOthers": "string",
+                                    "line": [
+                                        "CAPITALIZACAO"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/products-services/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

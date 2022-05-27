@@ -104,4 +104,10 @@ public class PlanNames {
 	public static final String LOANS_API_PLAN_NAME_V2 = "Functional tests for loans API - based on Swagger version: " + LATEST_VERSION_2;
 	public static final String FINANCINGS_API_NAME_V2 = "Functional tests for financings API - based on Swagger version: " + LATEST_VERSION_2;
 
+	public static final String HOUSING_API_TEST_PLAN = "Functional tests for ProductsServices - Housing API - based on Swagger version: 1.0.0";
+	public static final String INTERMEDIARY_API_TEST_PLAN = "Functional tests for ProductsServices - Intermediary API - based on Swagger version: 1.0.0";
+    public static final String OTHERS_SCOPES_API_TEST_PLAN = "Functional tests for ProductsServices - Others Scopes API - based on Swagger version: 1.0.0";
+    public static final String REFERENCED_NETWORK_API_TEST_PLAN = "Functional tests for ProductsServices - Referenced Network API - based on Swagger version: 1.0.0";
+    public static final String RURAL_API_TEST_PLAN = "Functional tests for ProductsServices - Rural API - based on Swagger version: 1.0.0";
+    public static final String TRANSPORT_API_TEST_PLAN = "Functional tests for ProductsServices - Transport API - based on Swagger version: 1.0.0";
 }
