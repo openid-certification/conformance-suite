@@ -17,7 +17,7 @@ public class BackchannelRequestHasClientNotificationToken extends AbstractCondit
 		env.putString("client_notification_token", clientNotificationToken);
 
 		if(Strings.isNullOrEmpty(clientNotificationToken)) {
-			throw error("The client_notification_token is required.");
+			throw error("The client_notification_token is required in ping mode.");
 		}
 
 		logSuccess("Backchannel authentication request contains the required client_notification_token");
