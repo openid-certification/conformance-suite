@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
-import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.*;
 import net.openid.conformance.runner.TestDispatcher;
@@ -74,7 +73,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithMTLS.class;
-		// TODO: Missing client authentication steps for MTLS backchannel
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
@@ -107,7 +105,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	protected void onConfigurationCompleted() { }
 
 	protected void validateClientConfiguration() { }
-
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -157,7 +154,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
 
-		callAndStopOnFailure(CheckServerConfiguration.class);
+		callAndStopOnFailure(FAPICIBAID1CheckServerConfiguration.class);
+		callAndStopOnFailure(FAPICIBAID1CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
