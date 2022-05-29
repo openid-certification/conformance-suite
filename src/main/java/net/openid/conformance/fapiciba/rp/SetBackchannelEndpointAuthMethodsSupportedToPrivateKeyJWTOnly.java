@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly extends AbstractCondition {
+public class SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")

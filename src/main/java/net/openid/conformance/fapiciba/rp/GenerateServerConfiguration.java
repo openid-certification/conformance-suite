@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
+public class GenerateServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "base_url")

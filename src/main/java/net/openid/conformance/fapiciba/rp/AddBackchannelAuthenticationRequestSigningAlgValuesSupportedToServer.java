@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPIAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer extends AbstractCondition {
+public class AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server", strings = "base_url")

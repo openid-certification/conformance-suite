@@ -1,21 +1,16 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.time.Instant;
-import java.util.Date;
 import java.util.Set;
 
-public class CIBAValidateRequestObjectClaims extends ValidateRequestObjectClaims {
+public class ValidateBackchannelRequestObjectClaims extends ValidateRequestObjectClaims {
 
 	@Override
 	protected void validateAud(Environment env) {

@@ -69,8 +69,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
-		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
-		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1AddTLSClientAuthToServerConfiguration.class;
+		addTokenEndpointAuthMethodSupported = net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration.class;
+		addBackchannelEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithMTLS.class;
 	}
@@ -78,7 +78,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		addBackchannelEndpointAuthMethodSupported = FAPICIBAID1SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
+		addBackchannelEndpointAuthMethodSupported = SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
@@ -116,7 +116,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		cibaMode = getVariant(CIBAMode.class);
 		env.putString("ciba_mode", cibaMode.name());
 
-		callAndStopOnFailure(FAPICIBAID1GenerateServerConfiguration.class);
+		callAndStopOnFailure(GenerateServerConfiguration.class);
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		callAndStopOnFailure(LoadServerJWKs.class);
@@ -138,10 +138,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(FAPIBrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+			callAndStopOnFailure(BrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
 		} else {
 			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(FAPIAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+			callAndStopOnFailure(AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
 		}
 
 		exposeEnvString("discoveryUrl");
@@ -156,8 +156,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
 
-		callAndStopOnFailure(FAPICIBAID1CheckServerConfiguration.class);
-		callAndStopOnFailure(FAPICIBAID1CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
+		callAndStopOnFailure(CheckServerConfiguration.class);
+		callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
@@ -554,8 +554,8 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
-		callAndStopOnFailure(CIBAValidateRequestObjectClaims.class);
-		callAndContinueOnFailure(CIBAWarnOnNonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
+		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
+		callAndContinueOnFailure(NonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");

@@ -6,13 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Set;
 
-public class CIBAWarnOnNonIssuerAsAudClaim extends AbstractCondition {
+public class NonIssuerAsAudClaim extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"authorization_request_object", "client"})

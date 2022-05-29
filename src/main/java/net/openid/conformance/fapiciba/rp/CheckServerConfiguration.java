@@ -5,7 +5,7 @@ import net.openid.conformance.condition.common.AbstractCheckServerConfiguration;
 
 import java.util.List;
 
-public class FAPICIBAID1CheckServerConfiguration extends AbstractCheckServerConfiguration {
+public class CheckServerConfiguration extends AbstractCheckServerConfiguration {
 
 	@Override
 	protected List<String> getExpectedListEndpoint() {

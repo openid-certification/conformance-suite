@@ -13,7 +13,7 @@ public class BackchannelRequestClientNotificationTokenLength extends AbstractCon
 		String clientNotificationToken = env.getString("client_notification_token");
 
 		if(clientNotificationToken.length() > 1024) {
-			throw error("The client_notification_token length must not exceed 1024 characters.");
+			throw error("The client_notification_token length must not exceed 1024 characters.", args("length", clientNotificationToken.length()));
 		}
 
 		logSuccess("client_notification_token length accepted");

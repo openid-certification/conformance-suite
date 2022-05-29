@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPICIBAID1CheckNotificationEndpointServerConfiguration extends AbstractCondition {
+public class CheckNotificationEndpointServerConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config", strings = "ciba_mode")

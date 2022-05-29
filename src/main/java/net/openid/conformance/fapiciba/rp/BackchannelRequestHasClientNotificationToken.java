@@ -20,7 +20,7 @@ public class BackchannelRequestHasClientNotificationToken extends AbstractCondit
 			throw error("The client_notification_token is required in ping mode.");
 		}
 
-		logSuccess("Backchannel authentication request contains the required client_notification_token");
+		logSuccess("Backchannel authentication request contains the required client_notification_token", args("client_notification_token", clientNotificationToken));
 
 		return env;
 	}

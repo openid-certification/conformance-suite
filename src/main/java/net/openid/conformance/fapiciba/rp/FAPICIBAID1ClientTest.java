@@ -5,7 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-test-plan",
 	displayName = "FAPI-CIBA-ID1: client test",
-	summary = "Tests a 'happy path' flow; the client should perform OpenID discovery from the displayed discoveryUrl, call the backchannel endpoint and either poll the token endpoint or wait to get pinged, then use the access token from the token endpoint response in a GET request to the accounts endpoint displayed.",
+	summary = "Tests a 'happy path' flow; the client should perform OpenID discovery from the displayed discoveryUrl, " +
+		"call the backchannel endpoint and either poll the token endpoint or wait to get pinged" +
+		"[, and then use the access token from the token endpoint response in a GET request to the accounts endpoint displayed].",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.jwks",

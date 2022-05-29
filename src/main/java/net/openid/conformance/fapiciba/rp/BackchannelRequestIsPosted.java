@@ -13,7 +13,7 @@ public class BackchannelRequestIsPosted extends AbstractCondition {
 		String method = env.getString("backchannel_endpoint_http_request", "method");
 
 		if(method == null || !method.equalsIgnoreCase("POST")) {
-			throw error("HTTP request method must be 'POST'");
+			throw error("HTTP request method must be 'POST'", args("method", method));
 		}
 
 		logSuccess("Backchannel authentication request received using HTTP POST");
