@@ -45,10 +45,6 @@ public class FAPICIBAID1GenerateServerConfiguration extends AbstractCondition {
 		values.add("ping");
 		server.add("backchannel_token_delivery_modes_supported", values);
 
-		JsonArray algs = new JsonArray();
-		algs.add("PS256");
-		server.add("backchannel_authentication_request_signing_alg_values_supported", algs);
-
 		server.addProperty("request_parameter_supported", true);
 
 		env.putObject("server", server);
