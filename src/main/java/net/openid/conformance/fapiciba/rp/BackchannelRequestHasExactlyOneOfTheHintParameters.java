@@ -18,7 +18,8 @@ public class BackchannelRequestHasExactlyOneOfTheHintParameters extends Abstract
 		String loginHint = env.getString("backchannel_request_object", "claims.login_hint");
 
 		if(Stream.of(loginHintToken, idTokenHint, loginHint).filter(s -> !Strings.isNullOrEmpty(s)).count() != 1) {
-			throw error("Exactly one of 'login_hint_token', 'id_token_hint' or 'login_hint' must be present in the request");
+			throw error("Exactly one of 'login_hint_token', 'id_token_hint' or 'login_hint' must be present in the request",
+				args("login_hint", loginHint, "login_hint_token", loginHintToken, "id_token_hint", idTokenHint));
 		}
 
 		logSuccess("Backchannel authentication request contains one of the required hint parameters");
