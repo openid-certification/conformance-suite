@@ -138,10 +138,10 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(FAPIBrazilAddBackchannelEndpointAuthSigningAlgValuesSupportedToServer.class);
+			callAndStopOnFailure(FAPIBrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
 		} else {
 			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(FAPIAddBackchannelEndpointAuthSigningAlgValuesSupportedToServer.class);
+			callAndStopOnFailure(FAPIAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
 		}
 
 		exposeEnvString("discoveryUrl");
