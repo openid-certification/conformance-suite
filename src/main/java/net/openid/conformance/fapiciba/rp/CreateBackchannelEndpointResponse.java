@@ -16,7 +16,7 @@ public class CreateBackchannelEndpointResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "backchannel_endpoint_http_request", "backchannel_request_object" })
-	@PostEnvironment(required = "backchannel_endpoint_response", strings = "auth_req_id_expiration")
+	@PostEnvironment(required = "backchannel_endpoint_response", strings = { "auth_req_id", "auth_req_id_expiration"})
 	public Environment evaluate(Environment env) {
 		JsonObject backchannelResponse = new JsonObject();
 		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);

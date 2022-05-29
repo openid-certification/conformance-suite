@@ -385,11 +385,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected Object cibaGrantType(String requestId) {
-		callAndStopOnFailure(VerifyAuthReqId.class);
+		callAndStopOnFailure(VerifyAuthReqId.class, ConditionResult.FAILURE, "CIBA-10.1");
 
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
-
-		callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
 
 		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
 			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
@@ -406,6 +404,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 				callAndStopOnFailure(GenerateBearerAccessToken.class);
 
 				createFinalTokenResponse();
+				callAndContinueOnFailure(RedeemAuthReqId.class);
 				statusCode = HttpStatus.OK;
 			}
 			setStatus(Status.WAITING);

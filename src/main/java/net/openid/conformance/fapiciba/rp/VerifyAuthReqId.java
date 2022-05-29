@@ -17,6 +17,12 @@ public class VerifyAuthReqId extends AbstractCondition {
 		if (!expectedAuthReqId.equals(actualAuthReqId)) {
 			throw error("Mismatch in auth_req_id", args("expected", expectedAuthReqId, "actual", actualAuthReqId));
 		}
+
+		Boolean authReqIdRedeemed = env.getBoolean("auth_req_id_redeemed");
+		if (authReqIdRedeemed != null && authReqIdRedeemed) {
+			throw error("The auth_req_id has already been redeemed", args("expected", expectedAuthReqId, "actual", actualAuthReqId));
+		}
+
 		logSuccess("Expected auth_req_id found in the request", ImmutableMap.of("auth_req_id", actualAuthReqId));
 		return env;
 	}
