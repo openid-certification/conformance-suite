@@ -70,7 +70,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
-		addBackchannelEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
+		addBackchannelEndpointAuthMethodSupported = AddBackchannelTLSClientAuthToServerConfiguration.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithMTLS.class;
 	}
