@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class AddSupportedOpenIdScopesToClientConfig extends AbstractCondition {
 		String supportedOpenBankingScopes = "";
 		for (JsonElement scope : scopesSupported.getAsJsonArray()) {
 			String supportedScope = OIDFJSON.getString(scope);
-			if (OPEN_BANKING_SCOPES.contains(supportedScope)  && !supportedOpenBankingScopes.contains(supportedScope)) {
+			if (OPEN_BANKING_SCOPES.contains(supportedScope)  && Arrays.stream(supportedOpenBankingScopes.split(" ")).noneMatch(s -> s.equals(supportedScope))) {
 				if (!supportedOpenBankingScopes.isEmpty()) {
 					supportedOpenBankingScopes += " " + supportedScope;
 				}else {
