@@ -88,6 +88,8 @@ public class PlanNames {
 	public static final String ERRORS_OMISSIONS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Errors Omissions Liability API - based on Swagger version: 1.0.0";
 	public static final String DIRECTORS_OFFICERS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Directors Officers Liability API - based on Swagger version: 1.0.0";
 
+	public static final String PAYMENTS_API_ALL_TEST_PLAN = "Functional tests for payments API INIC, DICT, MANU, QRES, QRDN, Scheduling (T0/T1/T2/T3) - Based on Swagger version: 1.1.0 (WIP)";
+
 	/** VERSION 2 **/
 	public static  final String LATEST_VERSION_2 = "2.0.0-r.c1.0 (WIP)";
 
@@ -102,4 +104,10 @@ public class PlanNames {
 	public static final String LOANS_API_PLAN_NAME_V2 = "Functional tests for loans API - based on Swagger version: " + LATEST_VERSION_2;
 	public static final String FINANCINGS_API_NAME_V2 = "Functional tests for financings API - based on Swagger version: " + LATEST_VERSION_2;
 
+	public static final String HOUSING_API_TEST_PLAN = "Functional tests for ProductsServices - Housing API - based on Swagger version: 1.0.0";
+	public static final String INTERMEDIARY_API_TEST_PLAN = "Functional tests for ProductsServices - Intermediary API - based on Swagger version: 1.0.0";
+    public static final String OTHERS_SCOPES_API_TEST_PLAN = "Functional tests for ProductsServices - Others Scopes API - based on Swagger version: 1.0.0";
+    public static final String REFERENCED_NETWORK_API_TEST_PLAN = "Functional tests for ProductsServices - Referenced Network API - based on Swagger version: 1.0.0";
+    public static final String RURAL_API_TEST_PLAN = "Functional tests for ProductsServices - Rural API - based on Swagger version: 1.0.0";
+    public static final String TRANSPORT_API_TEST_PLAN = "Functional tests for ProductsServices - Transport API - based on Swagger version: 1.0.0";
 }

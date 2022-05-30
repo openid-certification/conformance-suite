@@ -226,6 +226,10 @@ public class CommonValidatorParts {
 	}
 
 	public boolean isOptionalFieldByFlag(JsonObject jsonObject, String flagField, String flagValue) {
+		if (jsonObject.get(flagField) != null) {
 			return !OIDFJSON.getString(jsonObject.get(flagField)).equals(flagValue);
+		} else {
+			return true;
+		}
 	}
 }
