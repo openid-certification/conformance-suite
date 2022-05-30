@@ -588,7 +588,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
-			km = MtlsKeystoreBuilder.configureMtls(env);
+			km = MtlsKeystoreBuilder.configureMtls(env, this.log);
 		}
 
 		TrustManager[] trustAllCerts = {
