@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.util;
 
 import com.google.common.collect.Lists;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 import javax.net.ssl.KeyManager;
@@ -20,7 +21,7 @@ import java.util.Base64;
 
 public class DefaultMtlsStrategy extends AbstractMtlsStrategy {
 	@Override
-	public KeyManager[] process(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+	public KeyManager[] process(Environment env, TestInstanceEventLog log) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
 		String clientCert = env.getString("mutual_tls_authentication", "cert");
 		String clientKey = env.getString("mutual_tls_authentication", "key");
 		String clientCa = env.getString("mutual_tls_authentication", "ca");
