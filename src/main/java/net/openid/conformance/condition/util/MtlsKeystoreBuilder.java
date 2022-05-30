@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.util;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 import javax.net.ssl.KeyManager;
@@ -24,12 +25,13 @@ public class MtlsKeystoreBuilder {
 	private static KeystoreStrategy defaultStrategy = new DefaultMtlsStrategy();
 	private static KeystoreStrategy kmsStrategy = new AwsKmsMtlsStrategy();
 
-	public static KeyManager[] configureMtls(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+	public static KeyManager[] configureMtls(Environment env, TestInstanceEventLog log) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
 		JsonObject mtls  = env.getObject("mutual_tls_authentication");
 		if(!mtls.has("alias")) {
-			return defaultStrategy.process(env);
+			return defaultStrategy.process(env, log);
 		} else {
-			return kmsStrategy.process(env);
+			log.log("MtlsKeystoreBuilder", "Using alternate keystore");
+			return kmsStrategy.process(env, log);
 		}
 	}
 

@@ -2,6 +2,7 @@ package net.openid.conformance.condition.util;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -17,14 +18,16 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Map;
 
 public class AwsKmsMtlsStrategy extends AbstractMtlsStrategy {
 	@Override
-	public KeyManager[] process(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+	public KeyManager[] process(Environment env, TestInstanceEventLog log) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
 		String clientCert = env.getString("mutual_tls_authentication", "cert");
 		String clientCa = env.getString("mutual_tls_authentication", "ca");
 		JsonObject alt = env.getElementFromObject("mutual_tls_authentication", "alias").getAsJsonObject();
 		String keyAlias = OIDFJSON.getString(alt.get("key"));
+		log.log("AwsKmsMtlsStrategy", Map.of("KMS alias used for mtls", keyAlias));
 
 		byte[] certBytes = Base64.getDecoder().decode(clientCert);
 

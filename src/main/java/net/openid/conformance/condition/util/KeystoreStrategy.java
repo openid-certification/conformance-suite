@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.util;
 
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 
 import javax.net.ssl.KeyManager;
@@ -12,6 +13,6 @@ import java.security.spec.InvalidKeySpecException;
 
 public interface KeystoreStrategy {
 
-	KeyManager[] process(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException;
+	KeyManager[] process(Environment env, TestInstanceEventLog log) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException;
 
 }
