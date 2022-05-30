@@ -100,7 +100,11 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			ConditionSequence paymentsConsentsSequence = new SignedPaymentConsentSequence()
 				.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
 				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422or201.class));
+				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422or201.class))
+				.skip(FAPIBrazilGetKeystoreJwksUri.class, "Not needed for this test")
+				.skip(FetchServerKeys.class, "Not needed for this test")
+				.skip(ValidateResourceResponseSignature.class, "Not needed for this test")
+				.skip(ValidateResourceResponseJwtClaims.class, "Not needed for this test");
 
 			call(paymentsConsentsSequence);
 		}
