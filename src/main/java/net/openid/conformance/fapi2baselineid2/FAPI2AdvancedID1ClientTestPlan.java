@@ -12,7 +12,7 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-advanced-id1-client-test-plan",
 	displayName = "FAPI2-Advanced-ID1: Relying Party (client) test - BETA; subject to change, no certification programme yet",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.rptest
 )
 public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
