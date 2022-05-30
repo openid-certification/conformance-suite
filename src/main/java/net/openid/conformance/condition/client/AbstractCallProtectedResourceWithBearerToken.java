@@ -20,10 +20,8 @@ public abstract class AbstractCallProtectedResourceWithBearerToken extends Abstr
 		String tokenType = env.getString("access_token", "type");
 		if (Strings.isNullOrEmpty(tokenType)) {
 			throw error("Token type not found");
-		} else if (tokenType.equalsIgnoreCase("Bearer")) {
-			headers.set("Authorization", "Bearer " + accessToken);
-		} else if (tokenType.equalsIgnoreCase("DPoP")) {
-			headers.set("Authorization", "DPoP " + accessToken);
+		} else if (tokenType.equalsIgnoreCase("Bearer") || tokenType.equalsIgnoreCase("DPoP")) {
+			headers.set("Authorization", tokenType + " " + accessToken);
 		} else {
 			throw error("Access token is neither a bearer nor a dpop token", args("token_type", tokenType));
 		}
