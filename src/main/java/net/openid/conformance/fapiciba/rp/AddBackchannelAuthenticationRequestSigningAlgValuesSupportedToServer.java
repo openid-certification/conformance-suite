@@ -10,8 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 public class AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "server", strings = "base_url")
-	@PostEnvironment(required = "server")
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
 		JsonArray data = new JsonArray();

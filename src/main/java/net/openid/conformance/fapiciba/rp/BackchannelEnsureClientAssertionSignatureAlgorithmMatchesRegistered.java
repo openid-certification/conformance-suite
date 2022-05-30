@@ -2,21 +2,17 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 
-/**
- * backchannel_authentication_request_signing_alg
- * ...
- * All Token Requests using these authentication methods from this Client MUST be rejected,
- * if the JWT is not signed with this algorithm
- * ...
- */
-public class BackchannelEnsureClientAssertionSignatureAlgorithmMatchesRegistered extends AbstractVerifyJwsSignature {
+public class BackchannelEnsureClientAssertionSignatureAlgorithmMatchesRegistered extends AbstractCondition {
 
+	// TODO: This can't be right. backchannel_authentication_request_signing_alg is client metadata, we don't have that.
+	// TODO: If anything, the check could be that it matches one of the backchannel_authentication_request_signing_alg_supported values.
 	@Override
 	@PreEnvironment(required = { "client", "client_assertion" })
 	public Environment evaluate(Environment env) {
