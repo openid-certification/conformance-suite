@@ -39,7 +39,7 @@ public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissi
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		//Simples UI fix
+		//Simple UI fix
 		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
 		super.onConfigure(config, baseUrl);
 	}
