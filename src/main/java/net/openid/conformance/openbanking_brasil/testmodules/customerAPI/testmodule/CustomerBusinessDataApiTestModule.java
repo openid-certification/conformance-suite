@@ -12,6 +12,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessFinancialRelations;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyBusinessProductTypeToConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -42,15 +44,18 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
+//		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
+		callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
+		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
 	}
 
 	@Override
 	protected void validateResponse() {
-		runInBlock("Validating corporate relationship response", () ->{
+		runInBlock("Validating business qualifications response", () -> {
+//			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(BusinessRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
 		runInBlock("Validating business identifications response", () -> {
@@ -60,12 +65,13 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 			callAndContinueOnFailure(BusinessIdentificationValidator.class, Condition.ConditionResult.FAILURE);
 		});
 
-		runInBlock("Validating business qualifications response", () -> {
-			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
+		runInBlock("Validating corporate relationship response", () ->{
+			callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(BusinessRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
 		});
+
 
 	}
 }
