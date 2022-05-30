@@ -37,6 +37,7 @@ import net.openid.conformance.condition.Condition;
 )
 public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
 
+	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		//Simples UI fix
 		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
