@@ -46,7 +46,7 @@ public class TokenApi {
 	@ApiOperation(value = "Create new token")
 	@ApiResponses({
 		@ApiResponse(code = 201, message = "Created token successfully"),
-		@ApiResponse(code = 403, message = "In order to create token, You must be an admin")
+		@ApiResponse(code = 403, message = "To create a token, you must not be an admin")
 	})
 	public ResponseEntity<Object> createToken(@ApiParam(value = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
 

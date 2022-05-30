@@ -207,7 +207,11 @@
                         orderable: false,
                         visible: !public
                     },
-                    { title: 'Name', data: 'testName' },
+                    {
+                        title: 'Name',
+                        data: 'testName',
+                        render: $('#logsListing').DataTable.render.text()
+                    },
                     {
                         title: 'Variant',
                         data: 'variant',
@@ -216,7 +220,12 @@
                             display: function(v) { return FAPI_UI.formatVariant(v); }
                         }
                     },
-                    { title: 'Description', data: 'description', defaultContent: '' },
+                    {
+                        title: 'Description',
+                        data: 'description',
+                        render: $('#logsListing').DataTable.render.text(),
+                        defaultContent: ''
+                    },
                     {
                         title: 'Started',
                         data: 'started',
