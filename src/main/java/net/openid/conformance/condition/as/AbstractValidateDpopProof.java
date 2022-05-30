@@ -138,14 +138,25 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 		}
 
-		// check for nonce, currently not required/supported
-		JsonElement nonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
-		if(nonce  != null) {
-			throw error("'nonce' claim in DPoP Proof is unsupported", args("nonce", OIDFJSON.getString(nonce)));
+
+		String expectedNonce = env.getString("dpop_nonce"); // check for server side saved nonce
+
+		// check for incoming nonce
+		JsonElement incomingNonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
+
+		if(null == expectedNonce) { // server did not set nonce
+			if(incomingNonce  != null) {
+				throw error("DPoP proof contains unexpected nonce", args("nonce", OIDFJSON.getString(incomingNonce)));
+			}
+		} else { // server set nonce
+			if(null == incomingNonce) {
+				throw error("DPoP Proof does not contain an expected nonce", args("expected", expectedNonce));
+			} else if(!expectedNonce.equals(OIDFJSON.getString(incomingNonce))) {
+				throw error("DPoP Proof contains an invalid nonce", args("nonce", OIDFJSON.getString(incomingNonce), "expected", expectedNonce));
+			}
 		}
 
-
-		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat passed validation checks");
+		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat, exp, nbf, nonce passed validation checks");
 		return env;
 	}
 }
