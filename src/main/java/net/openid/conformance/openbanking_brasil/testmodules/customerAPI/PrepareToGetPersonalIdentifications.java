@@ -9,7 +9,7 @@ public class PrepareToGetPersonalIdentifications extends ResourceBuilder {
 	@Override
 	public Environment evaluate(Environment env) {
 		setApi("customers");
-		setEndpoint("personal/identifications");
+		setEndpoint("/personal/identifications");
 
 		return super.evaluate(env);
 	}

@@ -42,14 +42,23 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
-		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class); //Alex: Is this up to date?
-		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
+		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
+		callAndContinueOnFailure(PrepareToGetPersonalQualifications.class);
 		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
 	}
 
 	@Override
 	protected void validateResponse() {
+		runInBlock("Validating personal qualifications response", () -> {
+			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		});
+
 		runInBlock("Validating personal financial relationship response", () -> {
+			callAndContinueOnFailure(PrepareToGetPersonalFinancialRelationships.class); //ALEX
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
@@ -64,12 +73,6 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
-		runInBlock("Validating personal qualifications response", () -> {
-			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
-			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		});
+
 	}
 }

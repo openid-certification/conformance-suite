@@ -10,7 +10,7 @@ public class PrepareToGetPersonalQualifications extends ResourceBuilder {
 	public Environment evaluate(Environment env) {
 
 		setApi("customers");
-		setEndpoint("personal/qualifications");
+		setEndpoint("/personal/qualifications");
 
 		return super.evaluate(env);
 	}
