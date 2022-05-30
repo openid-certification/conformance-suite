@@ -63,14 +63,12 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
-	private Class<? extends Condition> addBackchannelEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
-		addBackchannelEndpointAuthMethodSupported = AddBackchannelTLSClientAuthToServerConfiguration.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithMTLS.class;
 	}
@@ -78,7 +76,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		addBackchannelEndpointAuthMethodSupported = SetBackchannelEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateTokenEndpointClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
@@ -134,7 +131,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
-		callAndStopOnFailure(addBackchannelEndpointAuthMethodSupported);
 
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
