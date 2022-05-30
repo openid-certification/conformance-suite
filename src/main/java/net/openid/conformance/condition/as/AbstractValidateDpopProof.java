@@ -100,21 +100,20 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		}
 
 		if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-			throw error("DPoP Proof 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+			throw error("DPoP Proof 'iat' is in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
 		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
 			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
 			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
 			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
-			throw error("DPoP Proof  'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
+			throw error("DPoP Proof  'iat' is more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
 
 		// nbf - not actually part of spec; but JWT defines known behaviour that really should be followed
 		Long nbf = env.getLong("incoming_dpop_proof", "claims.nbf");
 		if (nbf != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
-				// this is just something to log, it doesn't make the token invalid
-				log("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
+				throw error("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
 
@@ -122,8 +121,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		Long exp = env.getLong("incoming_dpop_proof", "claims.exp");
 		if (exp != null) {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
-				// this is just something to log, it doesn't make the token invalid
-				log("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
+				throw error("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
 			}
 		}
 
