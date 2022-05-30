@@ -9,8 +9,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.models.external.OpenBankingBrasilConsentRequest;
 import net.openid.conformance.testmodule.Environment;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class CreateConsentWithInvalidFields  extends AbstractCondition {
 
@@ -75,10 +76,15 @@ public class CreateConsentWithInvalidFields  extends AbstractCondition {
 		logSuccess(args("consent_endpoint_request", requestObject));
 
 		//Add transactionFromDate and transactionToDate fields to request
-		LocalDateTime date = LocalDateTime.now().minusDays(80);
-		String formatDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		String transactionFromDate = formatDate;
-		String transactionToDate =  formatDate;
+		Instant date = Instant.now();
+		Instant dateFrom = date.minus(80, ChronoUnit.DAYS);
+		Instant fromDate = dateFrom.truncatedTo(ChronoUnit.SECONDS);
+		String fromFormatDate = DateTimeFormatter.ISO_INSTANT.format(fromDate);
+		Instant toDate = date.truncatedTo(ChronoUnit.SECONDS);
+		String toFormatDate = DateTimeFormatter.ISO_INSTANT.format(toDate);
+
+		String transactionFromDate = fromFormatDate;
+		String transactionToDate =  toFormatDate;
 
 		JsonObject consentRequest2 = env.getObject("consent_endpoint_request");
 		JsonObject data = consentRequest2.getAsJsonObject("data");

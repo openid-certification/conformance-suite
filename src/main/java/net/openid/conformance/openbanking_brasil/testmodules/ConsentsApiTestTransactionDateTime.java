@@ -1,8 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckItemCountHasMin1;
-import net.openid.conformance.condition.client.EnsureConsentHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.TransactionDateTimeValidator;
@@ -39,8 +37,8 @@ public class ConsentsApiTestTransactionDateTime extends AbstractClientCredential
 			callAndStopOnFailure(CreateConsentWithInvalidFields.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(TransactionDateTimeValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
+			callAndContinueOnFailure(TransactionDateTimeValidator.class);
 		});
 	}
 
