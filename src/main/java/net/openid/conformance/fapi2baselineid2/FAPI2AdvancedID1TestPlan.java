@@ -25,6 +25,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
 		FAPI2BaselineID2TestClaimsParameterIdentityClaims.class,
+		FAPI2BaselineID2AccessTokenTypeHeaderCaseSensitivity.class,
 
 		// Possible failure case
 		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
