@@ -18,7 +18,7 @@ import net.openid.conformance.variant.ClientAuthType;
 		"\u2022 Create a client by performing a DCR against the provided server - Expect Success \n" +
 		"\u2022 Generate a token with the client_id created \n " +
 		"\u2022 Use the token to call either the POST Consents or POST Payments Consents API, depending on the directory configuration provided \n" +
-		"\u2022 Expect server to accept the message  but return a failure because with either 400 or 422 because of well formatted but invalid payload sent"
+		"\u2022 Expect server to accept the message  but return a failure because with either 400, 422 because of well formatted but invalid payload sent or 201."
 	,
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
