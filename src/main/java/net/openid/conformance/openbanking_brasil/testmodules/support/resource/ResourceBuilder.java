@@ -32,7 +32,7 @@ public class ResourceBuilder extends AbstractCondition {
 			baseUrl = m.group(0);
 			String protectedUrl = baseUrl + endpoint;
 			env.putString("protected_resource_url", protectedUrl);
-			logSuccess("Endpoint added", args("personal/identifications", protectedUrl));
+			logSuccess("Endpoint added", args(endpoint, protectedUrl));
 		} else{
 			//This else will only be valid if something goes wrong with the Matcher object
 			throw error("Base url path has not been correctly provided. It must match the regex " + fullResourceUrlRegex);
