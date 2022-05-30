@@ -44,7 +44,6 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest.class);
-//		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
 		callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
 	}
@@ -52,7 +51,6 @@ public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctiona
 	@Override
 	protected void validateResponse() {
 		runInBlock("Validating business qualifications response", () -> {
-//			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(BusinessQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
