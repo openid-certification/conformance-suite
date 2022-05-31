@@ -2,13 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import net.openid.conformance.fapiciba.AbstractFAPICIBAID1;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.consent.TransactionDateTimeValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.AbstractErrorFromJwtResponseCondition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -42,8 +37,7 @@ public class ConsentsApiTestTransactionDateTime extends AbstractClientCredential
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
-			callAndContinueOnFailure(TransactionDateTimeValidator.class);
-			//callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas400.class);
 			callAndContinueOnFailure(Validate400Response.class, Condition.ConditionResult.FAILURE);
 		});
 	}
