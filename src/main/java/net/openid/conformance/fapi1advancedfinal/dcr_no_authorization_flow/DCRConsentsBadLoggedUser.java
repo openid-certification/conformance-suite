@@ -123,7 +123,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 			condition(FAPIBrazilAddExpirationPlus30ToConsentRequest.class),
 			condition(SetContentTypeApplicationJson.class),
 			condition(CallConsentApiWithBearerToken.class).dontStopOnFailure().onFail(Condition.ConditionResult.INFO),
-			condition(EnsureResponseCodeWas400or422.class)
+			condition(EnsureResponseCodeWas400or422or201.class)
 		);
 	}
 
