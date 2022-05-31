@@ -231,6 +231,16 @@ textarea {
 	font-size: 110%;
 }
 
+.testStatusResultBox {
+	display: inline-block;
+	padding: 5px 10px;
+	border-radius: 3px;
+	margin: 1px;
+	text-align: center;
+	font-size: 110%;
+	height: 2rem;
+}
+
 .testStatus-created {
 	background-color: #fcd9f6;
 	color: black;
