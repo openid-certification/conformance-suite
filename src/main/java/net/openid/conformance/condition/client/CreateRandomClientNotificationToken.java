@@ -8,9 +8,11 @@ import org.apache.commons.text.RandomStringGenerator;
 public class CreateRandomClientNotificationToken extends AbstractCondition {
 
 	protected Integer requestedLength() {
-		// the CIBA spec suggests a minimum of 128 bits of entropy, and the bearer token syntax has 70 possible values
-		// giving 6.1292 bits of entropy per byte, so requires at least 21 characters
-		return 21;
+		// The CIBA spec suggests a minimum of 128 bits of entropy, and the bearer token syntax has 70 possible values
+		// giving 6.1292 bits of entropy per byte, so requires at least 21 characters.
+		// However, the entropy verification on the RP side seemed to calculate entropy to around 90 on occasion,
+		// so let's bump it to 28.
+		return 28;
 	}
 
 	@Override

@@ -28,12 +28,10 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 
 		String clientId = env.getString("client", "client_id"); // to check the client
 		String issuer = env.getString("server", "issuer"); // to validate the issuer
-		String tokenEndpoint = env.getString("server", "token_endpoint"); // to validate the audience
 
 		// check all our testable values
 		if (Strings.isNullOrEmpty(clientId)
-			|| Strings.isNullOrEmpty(issuer)
-			|| Strings.isNullOrEmpty(tokenEndpoint)) {
+			|| Strings.isNullOrEmpty(issuer)) {
 			throw error("Couldn't find issuer or client or token endpoint values in the test configuration to test the assertion");
 		}
 
@@ -93,6 +91,10 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 
 	protected void validateAud(Environment env) {
 		String tokenEndpoint = env.getString("server", "token_endpoint");
+		if (Strings.isNullOrEmpty(tokenEndpoint)) {
+			throw error("Couldn't find issuer or client or token endpoint values in the test configuration to test the assertion");
+		}
+
 		String mtlsTokenEndpoint = env.getString("server", "mtls_endpoint_aliases.token_endpoint");
 		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
 		if (aud == null) {

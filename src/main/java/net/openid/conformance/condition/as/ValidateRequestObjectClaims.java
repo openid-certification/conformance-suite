@@ -41,20 +41,7 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 			throw error("Issuer mismatch", args("expected", clientId, "actual", iss));
 		}
 
-		JsonElement aud = env.getElementFromObject("authorization_request_object", "claims.aud");
-		if (aud == null) {
-			throw error("Missing audience");
-		}
-
-		if (aud.isJsonArray()) {
-			if (!aud.getAsJsonArray().contains(new JsonPrimitive(issuer))) {
-				throw error("Audience not found", args("expected", issuer, "actual", aud));
-			}
-		} else {
-			if (!issuer.equals(OIDFJSON.getString(aud))) {
-				throw error("Audience mismatch", args("expected", issuer, "actual", aud));
-			}
-		}
+		validateAud(env);
 
 		Long exp = env.getLong("authorization_request_object", "claims.exp");
 		if (exp == null) {
@@ -99,8 +86,24 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 
 		logSuccess("Request object claims passed all validation checks");
 		return env;
-
-
 	}
 
+	protected void validateAud(Environment env) {
+		JsonElement aud = env.getElementFromObject("authorization_request_object", "claims.aud");
+		String issuer = env.getString("server", "issuer");
+
+		if (aud == null) {
+			throw error("Missing audience");
+		}
+
+		if (aud.isJsonArray()) {
+			if (!aud.getAsJsonArray().contains(new JsonPrimitive(issuer))) {
+				throw error("Audience not found", args("expected", issuer, "actual", aud));
+			}
+		} else {
+			if (!issuer.equals(OIDFJSON.getString(aud))) {
+				throw error("Audience mismatch", args("expected", issuer, "actual", aud));
+			}
+		}
+	}
 }
