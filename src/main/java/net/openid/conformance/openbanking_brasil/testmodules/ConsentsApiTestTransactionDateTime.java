@@ -43,7 +43,8 @@ public class ConsentsApiTestTransactionDateTime extends AbstractClientCredential
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
 			callAndContinueOnFailure(TransactionDateTimeValidator.class);
-			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE);
+			//callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(Validate400Response.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 
