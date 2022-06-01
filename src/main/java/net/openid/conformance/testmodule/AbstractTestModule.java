@@ -635,7 +635,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		testInfo.updateTestResult(getId(), getResult());
 	}
 
-	protected void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
+	private void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
 		switch (onFail) {
 			case FAILURE:
 				setResult(Result.FAILED);
