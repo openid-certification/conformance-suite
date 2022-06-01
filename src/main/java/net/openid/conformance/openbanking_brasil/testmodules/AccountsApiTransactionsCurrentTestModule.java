@@ -16,17 +16,18 @@ import java.time.format.DateTimeFormatter;
 
 @PublishTestModule(
 	testName = "account-api-transactions-current-test",
-	displayName = "Test the maximum current transaction date",
-	summary = "Testing that the server is respecting the BookingDate filter rules\n" +
+	displayName = "Test that the server has correctly implemented the current transactions resource",
+	summary = "\u2022 Test that the server has correctly implemented the current transactions resource\n" +
 		"\u2022 Creates a consent with only ACCOUNTS permissions\n" +
 		"\u2022 201 code and successful redirect\n" +
 		"\u2022 Using the consent created, call the Accounts API\n" +
-		"\u2022 Call GET Accounts Current Transactions API\n" +
-		"\u2022 Expect success, fetch a transaction, get the transactionDate, validate date\n" +
-		"\u2022 Call GET Accounts Current Transactions API, send query parameters fromBookingDate and toBookingDate using the max period (7 days including today)\n" +
-		"\u2022 Expect success, fetch a transaction, get the transactionDate, validate date\n" +
-		"\u2022 Call GET Accounts Current Transactions API, send query parameters fromBookingDate and toBookingDate exceeding the max period\n" +
-		"\u2022 Expect failure with the response code 422\n",
+		"\u2022 Expect OK 200 - Validate all fields of the API - Fetch the first returned account ids to be used later on the test to get its transactions\n" +
+		"\u2022 Call the GET Current Accounts Transactions API\n" +
+		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if one transaction is found it has today’s date on it\n" +
+		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDateMaxLimited and toBookingDateMaxLimited using the max period ( D-6 should be the from and D should be today)\n" +
+		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if transactions are found that none of them are more than 1 week older\n" +
+		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDateMaxLimited and toBookingDateMaxLimited using a period that is over the expected valid period. Both from and to booking date should be D-30 to D-20 for example\n" +
+		"\u2022 Expect 422 Unprocessable Entity",
 	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	configurationFields = {
 		"server.discoveryUrl",
