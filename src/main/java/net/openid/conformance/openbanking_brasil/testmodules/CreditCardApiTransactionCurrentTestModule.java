@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
@@ -14,6 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @PublishTestModule(
 	testName = "credit-card-api-transactions-current-test",
@@ -44,7 +46,8 @@ import java.time.ZoneId;
 		"consent.productType"
 	}
 )
-public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransactionsCurrentTestModule {
+public class CreditCardApiTransactionCurrentTestModule extends AbstractOBBrasilFunctionalTestModule {
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	@Override
 	protected void validateResponse() {
@@ -56,7 +59,6 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 		runInBlock("Fetch Credit Card Account Current transactions", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
-				.then(condition(CreditCardAccountsTransactionResponseValidator.class))
 				.then(condition(EnsureTransactionsDateIsSetToToday.class)))
 		);
 
@@ -69,7 +71,6 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 		runInBlock("Fetch Credit Card Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
-				.then(condition(CreditCardAccountsTransactionResponseValidator.class))
 				.then(condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
 		);
 
@@ -92,6 +93,29 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddCreditCardScopes.class);
+	}
+
+	protected ConditionSequence getValidationSequence() {
+		return sequenceOf(
+			condition(CreditCardAccountsTransactionResponseValidator.class),
+			condition(EnsureResponseHasLinks.class),
+			condition(ValidateResponseMetaData.class)
+		);
+	}
+
+	protected ConditionSequence getPreCallProtectedResourceSequence() {
+		return sequenceOf(
+			condition(CreateEmptyResourceEndpointRequestHeaders.class),
+			condition(AddFAPIAuthDateToResourceEndpointRequest.class),
+			condition(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class),
+			condition(CreateRandomFAPIInteractionId.class),
+			condition(AddFAPIInteractionIdToResourceEndpointRequest.class),
+			condition(CallProtectedResource.class),
+			condition(EnsureResponseCodeWas200.class),
+			condition(CheckForDateHeaderInResourceResponse.class),
+			condition(CheckForFAPIInteractionIdInResourceResponse.class),
+			condition(EnsureResourceResponseReturnedJsonContentType.class)
+		);
 	}
 
 }
