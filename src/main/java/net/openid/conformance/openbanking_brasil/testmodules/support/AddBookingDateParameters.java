@@ -22,10 +22,11 @@ public class AddBookingDateParameters extends AbstractCondition {
 	public Environment evaluate(Environment env){
 		String request = env.getString("base_resource_url");
 
-		LocalDateTime fromDate = LocalDateTime.now();
+		LocalDateTime date = LocalDateTime.now();
+		LocalDateTime fromDate = date.minusMonths(12);
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String fromDateF = fromDate.format(dateFormat);
-		LocalDateTime toDate = LocalDateTime.now().plusMonths(12);
+		LocalDateTime toDate = date;
 		String toDateF = toDate.format(dateFormat);
 
 		String accountId = env.getString("accountId");
