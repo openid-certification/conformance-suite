@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
@@ -35,6 +36,13 @@ import net.openid.conformance.condition.Condition;
 	}
 )
 public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		//Simple UI fix
+		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void preFetchResources() {

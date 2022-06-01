@@ -1,14 +1,17 @@
 package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.RememberOriginalScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalFinancialRelationships;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.ProvideIncorrectPermissionsForCustomerPersonalApi;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -41,6 +44,13 @@ import net.openid.conformance.condition.Condition;
 	}
 )
 public class CustomerPersonalWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		//Simple UI fix
+		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void preFetchResources() {

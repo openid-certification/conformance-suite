@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -42,12 +43,22 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
+		callAndContinueOnFailure(PrepareToGetPersonalQualifications.class);
+		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
 	}
 
 	@Override
 	protected void validateResponse() {
+		runInBlock("Validating personal qualifications response", () -> {
+			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
+			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		});
+
 		runInBlock("Validating personal financial relationship response", () -> {
+			callAndContinueOnFailure(PrepareToGetPersonalFinancialRelationships.class); //ALEX
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalRelationsResponseValidator.class, Condition.ConditionResult.FAILURE);
@@ -62,12 +73,6 @@ public class CustomerPersonalDataApiTestModule extends AbstractOBBrasilFunctiona
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		});
 
-		runInBlock("Validating personal qualifications response", () -> {
-			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
-			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(PersonalQualificationResponseValidator.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		});
+
 	}
 }
