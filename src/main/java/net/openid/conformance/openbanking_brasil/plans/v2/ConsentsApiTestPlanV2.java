@@ -21,7 +21,8 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class
+					PreFlightCertCheckModule.class,
+					ConsentsApiTestTransactionDateTime.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
