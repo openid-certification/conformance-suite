@@ -3,7 +3,7 @@ package net.openid.conformance.fapi2baselineid2;
 import net.openid.conformance.condition.as.AddAudValueAsArrayToIdToken;
 import net.openid.conformance.condition.as.SignIdTokenBypassingNimbusChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPIJARMType.class, values = "plain_oauth")
+@VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
 public class FAPI2BaselineID2ClientTestValidAudAsArray extends AbstractFAPI2BaselineID2ClientTest {
 
 	@Override
