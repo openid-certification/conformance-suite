@@ -4,8 +4,10 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.account.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -54,7 +56,8 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 		runInBlock("Fetch Credit Card Account Current transactions", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
-				.insertAfter(CreditCardAccountsTransactionResponseValidator.class, condition(EnsureTransactionsDateIsSetToToday.class)))
+				.then(condition(CreditCardAccountsTransactionResponseValidator.class))
+				.then(condition(EnsureTransactionsDateIsSetToToday.class)))
 		);
 
 		// Call with valid  parameters
@@ -66,7 +69,8 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 		runInBlock("Fetch Credit Card Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
-				.insertAfter(CreditCardAccountsTransactionResponseValidator.class, condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
+				.then(condition(CreditCardAccountsTransactionResponseValidator.class))
+				.then(condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
 		);
 
 		// Call with invalid  parameters
@@ -80,6 +84,7 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
 		);
+		callAndStopOnFailure(ResourceErrorMetaValidator.class);
 
 	}
 
@@ -87,15 +92,6 @@ public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransa
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddCreditCardScopes.class);
-	}
-
-	@Override
-	protected ConditionSequence getValidationSequence() {
-		return sequenceOf(
-			condition(CreditCardAccountsTransactionResponseValidator.class),
-			condition(EnsureResponseHasLinks.class),
-			condition(ValidateResponseMetaData.class)
-		);
 	}
 
 }

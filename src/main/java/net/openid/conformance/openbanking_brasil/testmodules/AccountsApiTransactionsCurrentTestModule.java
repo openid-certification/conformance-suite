@@ -44,7 +44,7 @@ import java.time.format.DateTimeFormatter;
 )
 public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	protected static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
 	@Override
@@ -57,7 +57,8 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		runInBlock("Fetch Account Current transactions", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
-				.insertAfter(AccountTransactionsValidator.class, condition(EnsureTransactionsDateIsSetToToday.class)))
+				.then(condition(AccountTransactionsValidator.class))
+				.then(condition(EnsureTransactionsDateIsSetToToday.class)))
 		);
 
 		// Call with valid  parameters
@@ -69,7 +70,8 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
-				.insertAfter(AccountTransactionsValidator.class, condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
+				.then(condition(AccountTransactionsValidator.class))
+				.then(condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
 		);
 
 		// Call with invalid  parameters
@@ -84,6 +86,7 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
 		);
 
+		callAndStopOnFailure(ResourceErrorMetaValidator.class);
 	}
 
 	@Override
@@ -94,7 +97,6 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 
 	protected ConditionSequence getValidationSequence() {
 		return sequenceOf(
-			condition(AccountTransactionsValidator.class),
 			condition(EnsureResponseHasLinks.class),
 			condition(ValidateResponseMetaData.class)
 		);
