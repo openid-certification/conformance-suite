@@ -39,4 +39,5 @@ public class CreditCardApiTransactionCurrentTestModule extends AbstractOBBrasilF
 	protected void validateResponse() {
 
 	}
+
 }
