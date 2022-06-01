@@ -163,7 +163,7 @@ import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -185,7 +185,7 @@ import javax.servlet.http.HttpSession;
 	FAPI1FinalOPProfile.class,
 	FAPIAuthRequestMethod.class,
 	FAPIResponseMode.class,
-	FAPIJARMType.class
+	FAPIClientType.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -227,7 +227,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected ClientAuthType clientAuthType;
 
-	protected FAPIJARMType jarmType;
+	protected FAPIClientType fapiClientType;
 
 	protected boolean startingShutdown = false;
 
@@ -263,7 +263,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		authRequestMethod = getVariant(FAPIAuthRequestMethod.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
-		jarmType = getVariant(FAPIJARMType.class);
+		fapiClientType = getVariant(FAPIClientType.class);
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -957,12 +957,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if("yes".equals(isOpenIdScopeRequested)) {
-			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
+			if(fapiClientType== FAPIClientType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 			}
 			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, "FAPI1-BASE-5.2.2.2");
 		} else {
-			if(jarmType==FAPIJARMType.OIDC) {
+			if(fapiClientType== FAPIClientType.OIDC) {
 				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
 			}
 			callAndStopOnFailure(EnsureAuthorizationRequestContainsStateParameter.class, "FAPI1-BASE-5.2.2.3-1");
@@ -999,7 +999,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
-		if(jarmType==FAPIJARMType.OIDC) {
+		if(fapiClientType== FAPIClientType.OIDC) {
 			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
 					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");

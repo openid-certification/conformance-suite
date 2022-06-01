@@ -1,14 +1,14 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Base class for tests that return an invalid authorization response
  * Client must stop after receiving an invalid authorization response
  */
-@VariantNotApplicable(parameter = FAPIJARMType.class, values = "plain_oauth")
+@VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
 public abstract class AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse extends AbstractFAPI2BaselineID2ClientTest {
 	@Override
 	protected void createAuthorizationEndpointResponse() {

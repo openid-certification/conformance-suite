@@ -174,7 +174,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -195,7 +195,7 @@ import javax.servlet.http.HttpSession;
 	ClientAuthType.class,
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
-	FAPIJARMType.class,
+	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class
 })
@@ -244,7 +244,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected ClientAuthType clientAuthType;
 
-	protected FAPIJARMType jarmType;
+	protected FAPIClientType fapiClientType;
 
 	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
@@ -275,7 +275,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	protected void addCustomSignatureOfIdToken(){}
 
-	protected void addCustomValuesToAuthorizationResponse(){};
+	protected void addCustomValuesToAuthorizationResponse(){}
 
 	protected void endTestIfRequiredParametersAreMissing(){}
 
@@ -287,7 +287,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		profile = getVariant(FAPI2ID2OPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
-		jarmType = getVariant(FAPIJARMType.class);
+		fapiClientType = getVariant(FAPIClientType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 
@@ -1074,12 +1074,12 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if("yes".equals(isOpenIdScopeRequested)) {
-			if(jarmType==FAPIJARMType.PLAIN_OAUTH) {
+			if(fapiClientType== FAPIClientType.PLAIN_OAUTH) {
 				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 			}
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.NONCE, ConditionResult.INFO, ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OIDCC-3.2.2.1");
 		} else {
-			if(jarmType==FAPIJARMType.OIDC) {
+			if(fapiClientType== FAPIClientType.OIDC) {
 				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
 			}
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1" );
@@ -1111,7 +1111,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
-		if(jarmType==FAPIJARMType.OIDC) {
+		if(fapiClientType== FAPIClientType.OIDC) {
 			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
 					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
@@ -1153,7 +1153,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
-		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
+		if((responseMode==FAPIResponseMode.PLAIN_RESPONSE) && (FAPIClientType.OIDC == fapiClientType)) {
 			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
 

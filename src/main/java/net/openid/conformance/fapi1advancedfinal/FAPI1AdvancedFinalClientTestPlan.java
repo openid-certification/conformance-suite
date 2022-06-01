@@ -50,7 +50,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 		String clientAuth = v.get("client_auth_type");
 		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
-		String jarmType = v.get("fapi_jarm_type");
+		String fapiClientType = v.get("fapi_client_type");
 		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
@@ -105,7 +105,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				break;
 			case "jarm":
 				certProfile += ", JARM";
-				switch(jarmType) {
+				switch(fapiClientType) {
 					case "oidc":
 						certProfile += " (OpenID Connect)";
 						break;
@@ -114,7 +114,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 						break;
 					default:
 						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
-							MethodHandles.lookup().lookupClass().getSimpleName(), jarmType));
+							MethodHandles.lookup().lookupClass().getSimpleName(), fapiClientType));
 				}
 				break;
 		}
