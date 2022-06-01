@@ -1,15 +1,17 @@
 package net.openid.conformance.openbanking_brasil.testmodules.customerAPI;
 
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareToGetPersonalQualifications extends AbstractCondition {
+
+public class PrepareToGetPersonalQualifications extends ResourceBuilder {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String url = env.getString("config", "resource.resourceUrl");
-		String protectedUrl = String.format("%s/%s", url, "personal/qualifications");
-		env.putString("protected_resource_url", protectedUrl);
-		return env;
+
+		setApi("customers");
+		setEndpoint("/personal/qualifications");
+
+		return super.evaluate(env);
 	}
 }
