@@ -1,8 +1,17 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.creditCard.CardAccountsDataResponseResponseValidator;
+import net.openid.conformance.openbanking_brasil.creditCard.CreditCardAccountsTransactionResponseValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @PublishTestModule(
 	testName = "credit-card-api-transactions-current-test",
@@ -33,11 +42,60 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"consent.productType"
 	}
 )
-public class CreditCardApiTransactionCurrentTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class CreditCardApiTransactionCurrentTestModule extends AccountsApiTransactionsCurrentTestModule {
 
 	@Override
 	protected void validateResponse() {
+		callAndContinueOnFailure(CardAccountsDataResponseResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(CardAccountSelector.class);
+		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 
+//		 Call without parameters
+		runInBlock("Fetch Credit Card Account Current transactions", () -> call(getPreCallProtectedResourceSequence()));
+		runInBlock("Validate Credit Card Account Current Transactions",
+			() -> call(getValidationSequence()
+				.insertAfter(CreditCardAccountsTransactionResponseValidator.class, condition(EnsureTransactionsDateIsSetToToday.class)))
+		);
+
+		// Call with valid  parameters
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
+
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		runInBlock("Fetch Credit Card Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
+		runInBlock("Validate Credit Card Account Current Transactions",
+			() -> call(getValidationSequence()
+				.insertAfter(CreditCardAccountsTransactionResponseValidator.class, condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
+		);
+
+		// Call with invalid  parameters
+		env.putString("fromBookingDate", currentDate.minusDays(30).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.minusDays(20).format(FORMATTER));
+		env.putString("protected_resource_url", env.getString("base_resource_url"));
+
+		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		runInBlock("Fetch Credit Card Account Current transactions with invalid date parameters",
+			() -> call(getPreCallProtectedResourceSequence()
+				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
+		);
+
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(AddCreditCardScopes.class);
+	}
+
+	@Override
+	protected ConditionSequence getValidationSequence() {
+		return sequenceOf(
+			condition(CreditCardAccountsTransactionResponseValidator.class),
+			condition(EnsureResponseHasLinks.class),
+			condition(ValidateResponseMetaData.class)
+		);
 	}
 
 }
