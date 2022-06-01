@@ -36,7 +36,6 @@ public class ConsentsApiTestPlan implements TestPlan {
 					PreFlightCertCheckModule.class,
 					ConsentApiTestModule.class,
 					//ConsentApiBadScopeTestModule.class,
-					ConsentApiBadConsentsTestModule.class,
 					ConsentApiNegativeTests.class,
 					ConsentsApiPermissionGroupsTestModule.class,
 					ConsentsApiCrossClientTestModule.class,
