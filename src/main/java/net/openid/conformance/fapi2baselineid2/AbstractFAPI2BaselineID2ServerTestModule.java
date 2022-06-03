@@ -115,7 +115,6 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmToPut;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
@@ -232,6 +231,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
 	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
+	protected Class <? extends ConditionSequence> createDpopForResourceEndpointSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -743,18 +743,18 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
 
-		protected boolean isDpop;
+		protected Class <? extends ConditionSequence> createDpopForResourceEndpointSteps;
 		protected boolean brazilPayments;
 
-		public UpdateResourceRequestSteps(boolean isDpop, boolean brazilPayments) {
-			this.isDpop = isDpop;
+		public UpdateResourceRequestSteps(Class <? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
+			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
 			this.brazilPayments = brazilPayments;
 		}
 
 		@Override
 		public void evaluate() {
-			if (isDpop) {
-				call(sequence(CreateDpopSteps.class));
+			if (createDpopForResourceEndpointSteps != null) {
+				call(sequence(createDpopForResourceEndpointSteps));
 			}
 			if (brazilPayments) {
 				// we use the idempotency header to allow us to make a request more than once; however it is required
@@ -769,7 +769,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeUpdateResourceRequestSteps() {
-		return new UpdateResourceRequestSteps(isDpop, brazilPayments);
+		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps, brazilPayments);
 	}
 
 	// Make any necessary updates to a resource request before we send it again
@@ -839,8 +839,8 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			}
 		}
 
-		if (isDpop) {
-			call(new CreateDpopSteps());
+		if (isDpop && (createDpopForResourceEndpointSteps != null) ) {
+			call(sequence(createDpopForResourceEndpointSteps));
 		}
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
@@ -999,6 +999,11 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
+	}
+
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
+	public void setupCreateDpopForResourceEndpointSteps() {
+		createDpopForResourceEndpointSteps = CreateDpopSteps.class;
 	}
 
 	protected boolean scopeContains(String requiredScope) {
