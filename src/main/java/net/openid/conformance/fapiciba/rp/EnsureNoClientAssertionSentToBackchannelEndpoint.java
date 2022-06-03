@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BackchannelEnsureNoClientAssertionSentToTokenEndpoint extends AbstractCondition {
+public class EnsureNoClientAssertionSentToBackchannelEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "backchannel_endpoint_http_request")
