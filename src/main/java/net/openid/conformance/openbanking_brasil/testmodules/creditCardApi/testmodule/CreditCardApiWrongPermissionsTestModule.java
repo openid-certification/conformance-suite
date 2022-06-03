@@ -4,12 +4,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissionsCheckingFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CardAccountSelector;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllCreditCardRelatedConsentsForHappyPathTest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareUrlForFetchingAccountResource;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.condition.Condition;
 
@@ -64,6 +59,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 	@Override
 	protected void prepareCorrectConsents() {
 		callAndStopOnFailure(AddOpenIdScope.class);
+		callAndStopOnFailure(AddCreditCardScopes.class);
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
 	}
 
