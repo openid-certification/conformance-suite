@@ -388,9 +388,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
 			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
 			// Just end it here, the auth_req_id is forever expired.
-			// However, we can't just throw, since we want a well-defined error message (expired_token).
-			setStatus(Status.INTERRUPTED);
-			updateResultFromConditionFailure(ConditionResult.FAILURE);
+			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
 			createIntermediateTokenResponse();
 			int tokenPollCount = env.getInteger("token_poll_count");
