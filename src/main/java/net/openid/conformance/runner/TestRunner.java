@@ -683,12 +683,8 @@ public class TestRunner implements DataUtils {
 			logger.error("Something terrible happened when handling an exception caught in '"+source+"', I give up", e);
 		}
 
-		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+		HttpStatus statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
 		JsonObject errorResponse = new JsonObject();
-
-		if(!(error.getCause() instanceof ConditionError)) {
-			statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-		}
 
 		if(error instanceof TestSkippedException) {
 			statusCode = HttpStatus.OK;
@@ -697,6 +693,7 @@ public class TestRunner implements DataUtils {
 		if(error instanceof TestFailureException && ((TestFailureException) error).getError() != null) {
 			errorResponse.addProperty("error", ((TestFailureException) error).getError());
 			errorResponse.addProperty("error_description", ((TestFailureException) error).getErrorDescription());
+			statusCode = HttpStatus.BAD_REQUEST;
 		} else {
 			errorResponse.addProperty("error", error.getMessage());
 		}

@@ -2,10 +2,7 @@ package net.openid.conformance.runner;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.TestInterruptedException;
-import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.testmodule.TestSkippedException;
+import net.openid.conformance.testmodule.*;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,9 +49,9 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals("msg", responseBody.get("error").getAsString());
-		assertNull(responseBody.getAsJsonPrimitive("error_description"));
-		assertEquals("testId", responseBody.get("testId").getAsString());
+		assertEquals("msg", OIDFJSON.getString(responseBody.get("error")));
+		assertNull(responseBody.get("error_description"));
+		assertEquals("testId", OIDFJSON.getString(responseBody.get("testId")));
 		assertTrue(responseBody.get("cause").isJsonNull());
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 	}
@@ -72,7 +69,7 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals(exception.getMessage(), responseBody.get("cause").getAsString());
+		assertEquals(exception.getMessage(), OIDFJSON.getString(responseBody.get("cause")));
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 	}
 
@@ -89,7 +86,7 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals(exception.getMessage(), responseBody.get("cause").getAsString());
+		assertEquals(exception.getMessage(), OIDFJSON.getString(responseBody.get("cause")));
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 	}
 
@@ -106,7 +103,7 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals(exception.getMessage(), responseBody.get("cause").getAsString());
+		assertEquals(exception.getMessage(), OIDFJSON.getString(responseBody.get("cause")));
 		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
 	}
 
@@ -122,8 +119,8 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals("msg", responseBody.get("error").getAsString());
-		assertEquals("testId", responseBody.get("testId").getAsString());
+		assertEquals("msg", OIDFJSON.getString(responseBody.get("error")));
+		assertEquals("testId", OIDFJSON.getString(responseBody.get("testId")));
 		assertTrue(responseBody.get("cause").isJsonNull());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	}
@@ -140,9 +137,9 @@ public class TestRunner_UnitTest {
 		ResponseEntity<Object> responseEntity = TestRunner.handleTestInterruptedException(error, support, source);
 		JsonObject responseBody = (JsonObject) responseEntity.getBody();
 
-		assertEquals("expired_token", responseBody.get("error").getAsString());
-		assertEquals("The token has expired", responseBody.get("error_description").getAsString());
-		assertEquals("testId", responseBody.get("testId").getAsString());
+		assertEquals("expired_token", OIDFJSON.getString(responseBody.get("error")));
+		assertEquals("The token has expired", OIDFJSON.getString(responseBody.get("error_description")));
+		assertEquals("testId", OIDFJSON.getString(responseBody.get("testId")));
 		assertTrue(responseBody.get("cause").isJsonNull());
 		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
 	}
