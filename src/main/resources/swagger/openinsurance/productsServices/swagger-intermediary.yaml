@@ -1,36 +1,39 @@
+
 openapi: 3.0.0
 info:
     title: APIs Open Data do Open Insurance Brasil
-    description: API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
+    description:
+        API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
     version: 1.0.0
     contact:
-        url: https://http://novosite.susep.gov.br
+        url: 'https://http://novosite.susep.gov.br'
 servers:
-    - url: https://api.organizacao.com.br/open-insurance/products-services/v1
+    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
       description: Servidor de Producao
-    - url: https://api.organizacao.com.br/open-insurance/products-services/v1
+    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
       description: Servidor de Homologacao
 tags:
-    - name: Intermediarios
+    - name: "Intermediarios"
+
 paths:
     /intermediary/{countrySubDivision}:
         get:
             tags:
                 - Intermediary
             summary: Obtem a lista dos produtos do tipo Intermediarios
-            description: Obtem a lista dos produtos do tipo Intermediarios
-            operationId: getIntermediary
+            description: "Obtem a lista dos produtos do tipo Intermediarios"
+            operationId: "getIntermediary"
             parameters:
-                - $ref: '#/components/parameters/cache-Control'
-                - $ref: '#/components/parameters/content-Security-Policy'
-                - $ref: '#/components/parameters/content-Type'
-                - $ref: '#/components/parameters/strict-Transport-Security'
-                - $ref: '#/components/parameters/x-Content-Type-Options'
-                - $ref: '#/components/parameters/x-Frame-Options'
-                - $ref: '#/components/parameters/page'
-                - $ref: '#/components/parameters/pageSize'
-                - $ref: '#/components/parameters/countrySubDivision'
-                - $ref: '#/components/parameters/serviceLine'
+                - $ref: "#/components/parameters/cache-Control"
+                - $ref: "#/components/parameters/content-Security-Policy"
+                - $ref: "#/components/parameters/content-Type"
+                - $ref: "#/components/parameters/strict-Transport-Security"
+                - $ref: "#/components/parameters/x-Content-Type-Options"
+                - $ref: "#/components/parameters/x-Frame-Options"
+                - $ref: "#/components/parameters/page"
+                - $ref: "#/components/parameters/pageSize"
+                - $ref: "#/components/parameters/countrySubDivision"
+                - $ref: "#/components/parameters/line"
             responses:
                 '200':
                     description: Dados dos produtos de Intermediarios
@@ -62,6 +65,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ResponseIntermediaryList'
+
 components:
     schemas:
         ResponseIntermediaryList:
@@ -114,7 +118,7 @@ components:
                         type: string
                         description: CNPJ da sociedade supervisionada participante
                         maxLength: 14
-                        example: '12345678901234'
+                        example: "12345678901234"
                     identification:
                         $ref: '#/components/schemas/IntermediaryIdentification'
         IntermediaryIdentification:
@@ -141,21 +145,22 @@ components:
                         type: string
                         maxLength: 14
                         pattern: ^\d{11}|\d{14}$
-                        description: 'CPF ou CNPJ do intermediário OBS: Opcional para pessoa natural'
+                        description: "CPF ou CNPJ do intermediário
+                  OBS: Opcional para pessoa natural"
                         example: 12341234123412
                     type:
                         type: string
                         maxLength: 39
                         description: Relação de tipos de intermediário
-                        enum:
-                            - CORRETOR_DE_SEGUROS
-                            - REPRESENTANTE_DE_SEGUROS
-                            - AGENTES_DE_SEGUROS
-                            - DISTRIBUIDOR_DE_TITULO_DE_CAPITALIZACAO
+                        enum: [CORRETOR_DE_SEGUROS,
+                               REPRESENTANTE_DE_SEGUROS,
+                               AGENTES_DE_SEGUROS,
+                               DISTRIBUIDOR_DE_TITULO_DE_CAPITALIZACAO]
                         example: CORRETOR_DE_SEGUROS
                     SUSEP:
                         type: string
-                        description: 'Número de Registro SUSEP no caso de intermediário ser Corretor de Seguros. OBS: Condicional a seleção de 1. Corretor de seguros no campo acima'
+                        description: "Número de Registro SUSEP no caso de intermediário ser Corretor de Seguros.
+                  OBS: Condicional a seleção de 1. Corretor de seguros no campo acima"
                         maxLength: 20
                         example: 15414622222222222
                     postalAddress:
@@ -164,6 +169,7 @@ components:
                         $ref: '#/components/schemas/IntermediaryAccess'
                     services:
                         $ref: '#/components/schemas/IntermediaryServices'
+
         IntermediaryCoveragePostalAddress:
             type: array
             items:
@@ -177,12 +183,13 @@ components:
                     address:
                         type: string
                         maxLength: 150
-                        description: 'Deverá trazer toda a informação referente ao endereço do intermediário: Tipo de logradouro + Nome do logradouro + Número do Logradouro (se não existir usar '' s/n'') + complemento (se houver)'
-                        example: '''Rua Diamantina, 59, bloco 35'' Praça da Boa Vontade, s/n'
+                        description: "Deverá trazer toda a informação referente ao endereço do intermediário: Tipo de logradouro + Nome do logradouro + Número do Logradouro (se não existir usar ' s/n') + complemento (se houver)"
+                        example: "'Rua Diamantina, 59, bloco 35'
+                Praça da Boa Vontade, s/n"
                     additionalInfo:
                         type: string
                         maxLength: 30
-                        description: 'Alguns logradouros ainda necessitam ser especificados por meio de complemento, conforme o exemplo a seguir: ''Loja B'', ''Fundos'', ''Casa 2'', ''Lote C'''
+                        description: "Alguns logradouros ainda necessitam ser especificados por meio de complemento, conforme o exemplo a seguir: 'Loja B', 'Fundos', 'Casa 2', 'Lote C'"
                         example: Loja B
                     districtName:
                         type: string
@@ -192,7 +199,7 @@ components:
                     townName:
                         type: string
                         maxLength: 50
-                        description: 'Localidade: O nome da localidade corresponde à designação da cidade ou município no qual o endereço está localizado'
+                        description: "Localidade: O nome da localidade corresponde à designação da cidade ou município no qual o endereço está localizado"
                         example: São Paulo
                     ibgeCode:
                         type: string
@@ -201,296 +208,294 @@ components:
                     countrySubDivision:
                         type: string
                         maxLength: 2
-                        description: 'Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado. p.ex. ''AC''. São consideradas apenas as siglas para os estados brasileiros:'
+                        description: "Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado. p.ex. 'AC'. São consideradas apenas as siglas para os estados brasileiros:"
                         example: AC
-                        enum:
-                            - AC
-                            - AL
-                            - AP
-                            - AM
-                            - BA
-                            - CE
-                            - DF
-                            - ES
-                            - GO
-                            - MA
-                            - MT
-                            - MS
-                            - MG
-                            - PA
-                            - PB
-                            - PR
-                            - PE
-                            - PI
-                            - RJ
-                            - RN
-                            - RS
-                            - RO
-                            - RR
-                            - SC
-                            - SP
-                            - SE
-                            - TO
+                        enum: [AC,
+                               AL,
+                               AP,
+                               AM,
+                               BA,
+                               CE,
+                               DF,
+                               ES,
+                               GO,
+                               MA,
+                               MT,
+                               MS,
+                               MG,
+                               PA,
+                               PB,
+                               PR,
+                               PE,
+                               PI,
+                               RJ,
+                               RN,
+                               RS,
+                               RO,
+                               RR,
+                               SC,
+                               SP,
+                               SE,
+                               TO]
                     postCode:
                         type: string
                         maxLength: 8
-                        description: 'Código de Endereçamento Postal: Composto por um conjunto numérico de oito dígitos, o objetivo principal do CEP é orientar e acelerar o encaminhamento, o tratamento e a entrega de objetos postados nos Correios, por meio da sua atribuição a localidades, logradouros, unidades dos Correios, serviços, órgãos públicos, empresas e edifícios'
+                        description: "Código de Endereçamento Postal: Composto por um conjunto numérico de oito dígitos, o objetivo principal do CEP é orientar e acelerar o encaminhamento, o tratamento e a entrega de objetos postados nos Correios, por meio da sua atribuição a localidades, logradouros, unidades dos Correios, serviços, órgãos públicos, empresas e edifícios"
                         example: 1310200
                     country:
                         type: string
                         maxLength: 46
                         description: Lista de países vide aba 'Lista de países'
-                        enum:
-                            - ANDORRA
-                            - EMIRADOS_ARABES_UNIDOS
-                            - AFEGANISTAO
-                            - ANTIGUA_E_BARBUDA
-                            - ANGUILLA
-                            - ALBANIA
-                            - ARMENIA
-                            - ANTILHAS_HOLANDESAS
-                            - ANGOLA
-                            - ANTARTIDA
-                            - ARGENTINA
-                            - SAMOA_AMERICANA
-                            - AUSTRIA
-                            - AUSTRALIA
-                            - ARUBA
-                            - ILHAS_ALAND
-                            - AZERBAIJAO
-                            - BOSNIA_HERZEGOVINA
-                            - BARBADOS
-                            - BANGLADESH
-                            - BELGICA
-                            - BURKINA_FASSO
-                            - BULGARIA
-                            - BAHREIN
-                            - BURUNDI
-                            - BENIN
-                            - SAO_BARTOLOMEU
-                            - BERMUDAS
-                            - BRUNEI
-                            - BOLIVIA
-                            - BONAIRE_SINT_EUSTATIUS_E_SABA
-                            - BRASIL
-                            - BAHAMAS
-                            - BUTAO
-                            - ILHA_BOUVET_TERRITORIO_DA_NORUEGA
-                            - BOTSUANA
-                            - BELARUS
-                            - BELIZE
-                            - CANADA
-                            - ILHAS_COCOS
-                            - REPUBLICA_DEMOCRATICA_DO_CONGO_EX_ZAIRE
-                            - REPUBLICA_CENTRO_AFRICANA
-                            - CONGO
-                            - SUICA
-                            - COSTA_DO_MARFIM
-                            - ILHAS_COOK
-                            - CHILE
-                            - CAMAROES
-                            - CHINA
-                            - COLOMBIA
-                            - COSTA_RICA
-                            - CUBA
-                            - CABO_VERDE
-                            - CURACAO
-                            - ILHA_NATAL
-                            - CHIPRE
-                            - REPUBLICA_TCHECA
-                            - ALEMANHA
-                            - DJIBUTI
-                            - DINAMARCA
-                            - DOMINICA
-                            - REPUBLICA_DOMINICANA
-                            - ARGELIA
-                            - EQUADOR
-                            - ESTONIA
-                            - EGITO
-                            - SAARA_OCIDENTAL_EX_SPANISH_SAHARA
-                            - ERITREIA
-                            - ESPANHA
-                            - ETIOPIA
-                            - FINLANDIA
-                            - FIJI
-                            - ILHAS_FALKLAND_MALVINAS
-                            - MICRONESIA
-                            - ILHAS_FAROES
-                            - FRANCA
-                            - GABAO
-                            - GRA_BRETANHA_REINO_UNIDO_UK
-                            - GRANADA
-                            - GEORGIA
-                            - GUIANA_FRANCESA
-                            - GUERNSEY
-                            - GANA
-                            - GIBRALTAR
-                            - GROELANDIA
-                            - GAMBIA
-                            - GUINE
-                            - GUADALUPE
-                            - GUINE_EQUATORIAL
-                            - GRECIA
-                            - ILHAS_GEORGIA_DO_SUL_E_SANDWICH_DO_SUL
-                            - GUATEMALA
-                            - GUAM_TERRITORIO_DOS_ESTADOS_UNIDOS
-                            - GUINE_BISSAU
-                            - GUIANA
-                            - HONG_KONG
-                            - ILHAS_HEARD_E_MCDONALD_TERRITORIO_DA_AUSTRALIA
-                            - HONDURAS
-                            - CROACIA_HRVATSKA
-                            - HAITI
-                            - HUNGRIA
-                            - INDONESIA
-                            - IRLANDA
-                            - ISRAEL
-                            - ILHA_DO_HOMEM
-                            - INDIA
-                            - TERRITORIO_BRITANICO_DO_OCEANO_INDICO
-                            - IRAQUE
-                            - IRA
-                            - ISLANDIA
-                            - ITALIA
-                            - JERSEY
-                            - JAMAICA
-                            - JORDANIA
-                            - JAPAO
-                            - KENIA
-                            - KYRGYZSTAN
-                            - CAMBOJA
-                            - KIRIBATI
-                            - ILHAS_COMORES
-                            - SAO_CRISTOVAO_E_NEVIS
-                            - COREIA_DO_NORTE
-                            - COREIA_DO_SUL
-                            - KUAIT
-                            - ILHAS_CAYMAN
-                            - CAZAQUISTAO
-                            - LAOS
-                            - LIBANO
-                            - SANTA_LUCIA
-                            - LIECHTENSTEIN
-                            - SRI_LANKA
-                            - LIBERIA
-                            - LESOTO
-                            - LITUANIA
-                            - LUXEMBURGO
-                            - LATVIA
-                            - LIBIA
-                            - MARROCOS
-                            - MONACO
-                            - MOLDOVA
-                            - MONTENEGRO
-                            - SAO_MARTIM
-                            - MADAGASCAR
-                            - ILHAS_MARSHALL
-                            - MACEDONIA_REPUBLICA_YUGOSLAVA
-                            - MALI
-                            - MYANMA_EX_BURMA
-                            - MONGOLIA
-                            - MACAU
-                            - ILHAS_MARIANAS_DO_NORTE
-                            - MARTINICA
-                            - MAURITANIA
-                            - MONTSERRAT
-                            - MALTA
-                            - MAURICIO
-                            - MALDIVAS
-                            - MALAUI
-                            - MEXICO
-                            - MALASIA
-                            - MOCAMBIQUE
-                            - NAMIBIA
-                            - NOVA_CALEDONIA
-                            - NIGER
-                            - ILHAS_NORFOLK
-                            - NIGERIA
-                            - NICARAGUA
-                            - HOLANDA
-                            - NORUEGA
-                            - NEPAL
-                            - NAURU
-                            - NIUE
-                            - NOVA_ZELANDIA
-                            - OMA
-                            - PANAMA
-                            - PERU
-                            - POLINESIA_FRANCESA
-                            - PAPUA_NOVA_GUINE
-                            - FILIPINAS
-                            - PAQUISTAO
-                            - POLONIA
-                            - ST_PIERRE_AND_MIQUELON
-                            - ILHA_PITCAIRN
-                            - PORTO_RICO
-                            - TERRITORIOS_PALESTINOS_OCUPADOS
-                            - PORTUGAL
-                            - PALAU
-                            - PARAGUAI
-                            - QATAR
-                            - ILHA_REUNIAO
-                            - ROMENIA
-                            - SERVIA
-                            - FEDERACAO_RUSSA
-                            - RUANDA
-                            - ARABIA_SAUDITA
-                            - ILHAS_SOLOMAO
-                            - ILHAS_SEYCHELLES
-                            - SUDAO
-                            - SUECIA
-                            - CINGAPURA
-                            - SANTA_HELENA
-                            - ESLOVENIA
-                            - ILHAS_SVALBARD_E_JAN_MAYEN
-                            - ESLOVAQUIA
-                            - SERRA_LEOA
-                            - SAN_MARINO
-                            - SENEGAL
-                            - SOMALIA
-                            - SURINAME
-                            - SUDAO_DO_SUL
-                            - SAO_TOME_E_PRINCIPE
-                            - EL_SALVADOR
-                            - SAO_MARTINHO_PARTE_HOLANDESA
-                            - SIRIA
-                            - SUAZILANDIA
-                            - ILHAS_TURKS_E_CAICOS
-                            - CHADE
-                            - TERRITORIOS_DO_SUL_DA_FRANCA
-                            - TOGO
-                            - TAILANDIA
-                            - TADJIQUISTAO
-                            - ILHAS_TOKELAU
-                            - TIMOR_LESTE_EX_EAST_TIMOR
-                            - TURCOMENISTAO
-                            - TUNISIA
-                            - TONGA
-                            - TURQUIA
-                            - TRINIDAD_AND_TOBAGO
-                            - TUVALU
-                            - TAIWAN
-                            - TANZANIA
-                            - UCRANIA
-                            - UGANDA
-                            - ILHAS_MENORES_DOS_ESTADOS_UNIDOS
-                            - ESTADOS_UNIDOS
-                            - URUGUAI
-                            - UZBEQUISTAO
-                            - VATICANO
-                            - SAINT_VINCENTE_E_GRANADINAS
-                            - VENEZUELA
-                            - ILHAS_VIRGENS_INGLATERRA
-                            - ILHAS_VIRGENS_ESTADOS_UNIDOS
-                            - VIETNAM
-                            - VANUATU
-                            - ILHAS_WALLIS_E_FUTUNA
-                            - SAMOA_OCIDENTAL
-                            - IEMEN
-                            - MAYOTTE
-                            - AFRICA_DO_SUL
-                            - ZAMBIA
-                            - ZIMBABUE
+                        enum: [ANDORRA,
+                               EMIRADOS_ARABES_UNIDOS,
+                               AFEGANISTAO,
+                               ANTIGUA_E_BARBUDA,
+                               ANGUILLA,
+                               ALBANIA,
+                               ARMENIA,
+                               ANTILHAS_HOLANDESAS,
+                               ANGOLA,
+                               ANTARTIDA,
+                               ARGENTINA,
+                               SAMOA_AMERICANA,
+                               AUSTRIA,
+                               AUSTRALIA,
+                               ARUBA,
+                               ILHAS_ALAND,
+                               AZERBAIJAO,
+                               BOSNIA_HERZEGOVINA,
+                               BARBADOS,
+                               BANGLADESH,
+                               BELGICA,
+                               BURKINA_FASSO,
+                               BULGARIA,
+                               BAHREIN,
+                               BURUNDI,
+                               BENIN,
+                               SAO_BARTOLOMEU,
+                               BERMUDAS,
+                               BRUNEI,
+                               BOLIVIA,
+                               BONAIRE_SINT_EUSTATIUS_E_SABA,
+                               BRASIL,
+                               BAHAMAS,
+                               BUTAO,
+                               ILHA_BOUVET_TERRITORIO_DA_NORUEGA,
+                               BOTSUANA,
+                               BELARUS,
+                               BELIZE,
+                               CANADA,
+                               ILHAS_COCOS,
+                               REPUBLICA_DEMOCRATICA_DO_CONGO_EX_ZAIRE,
+                               REPUBLICA_CENTRO_AFRICANA,
+                               CONGO,
+                               SUICA,
+                               COSTA_DO_MARFIM,
+                               ILHAS_COOK,
+                               CHILE,
+                               CAMAROES,
+                               CHINA,
+                               COLOMBIA,
+                               COSTA_RICA,
+                               CUBA,
+                               CABO_VERDE,
+                               CURACAO,
+                               ILHA_NATAL,
+                               CHIPRE,
+                               REPUBLICA_TCHECA,
+                               ALEMANHA,
+                               DJIBUTI,
+                               DINAMARCA,
+                               DOMINICA,
+                               REPUBLICA_DOMINICANA,
+                               ARGELIA,
+                               EQUADOR,
+                               ESTONIA,
+                               EGITO,
+                               SAARA_OCIDENTAL_EX_SPANISH_SAHARA,
+                               ERITREIA,
+                               ESPANHA,
+                               ETIOPIA,
+                               FINLANDIA,
+                               FIJI,
+                               ILHAS_FALKLAND_MALVINAS,
+                               MICRONESIA,
+                               ILHAS_FAROES,
+                               FRANCA,
+                               GABAO,
+                               GRA_BRETANHA_REINO_UNIDO_UK,
+                               GRANADA,
+                               GEORGIA,
+                               GUIANA_FRANCESA,
+                               GUERNSEY,
+                               GANA,
+                               GIBRALTAR,
+                               GROELANDIA,
+                               GAMBIA,
+                               GUINE,
+                               GUADALUPE,
+                               GUINE_EQUATORIAL,
+                               GRECIA,
+                               ILHAS_GEORGIA_DO_SUL_E_SANDWICH_DO_SUL,
+                               GUATEMALA,
+                               GUAM_TERRITORIO_DOS_ESTADOS_UNIDOS,
+                               GUINE_BISSAU,
+                               GUIANA,
+                               HONG_KONG,
+                               ILHAS_HEARD_E_MCDONALD_TERRITORIO_DA_AUSTRALIA,
+                               HONDURAS,
+                               CROACIA_HRVATSKA,
+                               HAITI,
+                               HUNGRIA,
+                               INDONESIA,
+                               IRLANDA,
+                               ISRAEL,
+                               ILHA_DO_HOMEM,
+                               INDIA,
+                               TERRITORIO_BRITANICO_DO_OCEANO_INDICO,
+                               IRAQUE,
+                               IRA,
+                               ISLANDIA,
+                               ITALIA,
+                               JERSEY,
+                               JAMAICA,
+                               JORDANIA,
+                               JAPAO,
+                               KENIA,
+                               KYRGYZSTAN,
+                               CAMBOJA,
+                               KIRIBATI,
+                               ILHAS_COMORES,
+                               SAO_CRISTOVAO_E_NEVIS,
+                               COREIA_DO_NORTE,
+                               COREIA_DO_SUL,
+                               KUAIT,
+                               ILHAS_CAYMAN,
+                               CAZAQUISTAO,
+                               LAOS,
+                               LIBANO,
+                               SANTA_LUCIA,
+                               LIECHTENSTEIN,
+                               SRI_LANKA,
+                               LIBERIA,
+                               LESOTO,
+                               LITUANIA,
+                               LUXEMBURGO,
+                               LATVIA,
+                               LIBIA,
+                               MARROCOS,
+                               MONACO,
+                               MOLDOVA,
+                               MONTENEGRO,
+                               SAO_MARTIM,
+                               MADAGASCAR,
+                               ILHAS_MARSHALL,
+                               MACEDONIA_REPUBLICA_YUGOSLAVA,
+                               MALI,
+                               MYANMA_EX_BURMA,
+                               MONGOLIA,
+                               MACAU,
+                               ILHAS_MARIANAS_DO_NORTE,
+                               MARTINICA,
+                               MAURITANIA,
+                               MONTSERRAT,
+                               MALTA,
+                               MAURICIO,
+                               MALDIVAS,
+                               MALAUI,
+                               MEXICO,
+                               MALASIA,
+                               MOCAMBIQUE,
+                               NAMIBIA,
+                               NOVA_CALEDONIA,
+                               NIGER,
+                               ILHAS_NORFOLK,
+                               NIGERIA,
+                               NICARAGUA,
+                               HOLANDA,
+                               NORUEGA,
+                               NEPAL,
+                               NAURU,
+                               NIUE,
+                               NOVA_ZELANDIA,
+                               OMA,
+                               PANAMA,
+                               PERU,
+                               POLINESIA_FRANCESA,
+                               PAPUA_NOVA_GUINE,
+                               FILIPINAS,
+                               PAQUISTAO,
+                               POLONIA,
+                               ST_PIERRE_AND_MIQUELON,
+                               ILHA_PITCAIRN,
+                               PORTO_RICO,
+                               TERRITORIOS_PALESTINOS_OCUPADOS,
+                               PORTUGAL,
+                               PALAU,
+                               PARAGUAI,
+                               QATAR,
+                               ILHA_REUNIAO,
+                               ROMENIA,
+                               SERVIA,
+                               FEDERACAO_RUSSA,
+                               RUANDA,
+                               ARABIA_SAUDITA,
+                               ILHAS_SOLOMAO,
+                               ILHAS_SEYCHELLES,
+                               SUDAO,
+                               SUECIA,
+                               CINGAPURA,
+                               SANTA_HELENA,
+                               ESLOVENIA,
+                               ILHAS_SVALBARD_E_JAN_MAYEN,
+                               ESLOVAQUIA,
+                               SERRA_LEOA,
+                               SAN_MARINO,
+                               SENEGAL,
+                               SOMALIA,
+                               SURINAME,
+                               SUDAO_DO_SUL,
+                               SAO_TOME_E_PRINCIPE,
+                               EL_SALVADOR,
+                               SAO_MARTINHO_PARTE_HOLANDESA,
+                               SIRIA,
+                               SUAZILANDIA,
+                               ILHAS_TURKS_E_CAICOS,
+                               CHADE,
+                               TERRITORIOS_DO_SUL_DA_FRANCA,
+                               TOGO,
+                               TAILANDIA,
+                               TADJIQUISTAO,
+                               ILHAS_TOKELAU,
+                               TIMOR_LESTE_EX_EAST_TIMOR,
+                               TURCOMENISTAO,
+                               TUNISIA,
+                               TONGA,
+                               TURQUIA,
+                               TRINIDAD_AND_TOBAGO,
+                               TUVALU,
+                               TAIWAN,
+                               TANZANIA,
+                               UCRANIA,
+                               UGANDA,
+                               ILHAS_MENORES_DOS_ESTADOS_UNIDOS,
+                               ESTADOS_UNIDOS,
+                               URUGUAI,
+                               UZBEQUISTAO,
+                               VATICANO,
+                               SAINT_VINCENTE_E_GRANADINAS,
+                               VENEZUELA,
+                               ILHAS_VIRGENS_INGLATERRA,
+                               ILHAS_VIRGENS_ESTADOS_UNIDOS,
+                               VIETNAM,
+                               VANUATU,
+                               ILHAS_WALLIS_E_FUTUNA,
+                               SAMOA_OCIDENTAL,
+                               IEMEN,
+                               MAYOTTE,
+                               AFRICA_DO_SUL,
+                               ZAMBIA,
+                               ZIMBABUE]
                     countryCode:
                         type: string
                         maxLength: 3
@@ -498,6 +503,7 @@ components:
                         description: Código do país de acordo com o código “alpha3” do ISO-3166. p.ex.'BRA'
                     geographicCoordinates:
                         $ref: '#/components/schemas/IntermediaryGeographicCoordinates'
+
         IntermediaryGeographicCoordinates:
             type: object
             properties:
@@ -505,7 +511,7 @@ components:
                     type: string
                     maxLength: 11
                     description: Informação da Latitude referente a geolocalização informada. Entre -90 e 90. Formato numérico 2 casas antes da vírgula, 11 posições.
-                    example: -89.836518
+                    example: -89.8365180
                 longitude:
                     type: string
                     maxLength: 11
@@ -524,9 +530,10 @@ components:
                     example: Joao.silva@seguradoraa.com.br
                 site:
                     type: string
-                    description: Campo aberto As URLs são limitadas a 2048 caracteres, mas, para o contexto do Open Insurance, foi adotado a metade deste tamanho (1024).
+                    description: "Campo aberto
+            As URLs são limitadas a 2048 caracteres, mas, para o contexto do Open Insurance, foi adotado a metade deste tamanho (1024)."
                     maxLength: 1024
-                    example: https://openinsurance.com.br/aaa
+                    example: "https://openinsurance.com.br/aaa"
                 phones:
                     $ref: '#/components/schemas/IntermediaryPhones'
         IntermediaryStandards:
@@ -549,14 +556,13 @@ components:
                         type: string
                         maxLength: 13
                         description: Dias de funcionamento
-                        enum:
-                            - DOMINGO
-                            - SEGUNDA_FEIRA
-                            - TERCA_FEIRA
-                            - QUARTA_FEIRA
-                            - QUINTA_FEIRA
-                            - SEXTA_FEIRA
-                            - SABADO
+                        enum: [DOMINGO,
+                               SEGUNDA_FEIRA,
+                               TERCA_FEIRA,
+                               QUARTA_FEIRA,
+                               QUINTA_FEIRA,
+                               SEXTA_FEIRA,
+                               SABADO]
                         example: DOMINGO
         IntermediaryPhones:
             type: array
@@ -596,19 +602,18 @@ components:
                         description: Relação dos serviços efetivamente prestados, conforme discriminado na Tabela II.3 do Anexo II
                         type: string
                         maxLength: 164
-                        enum:
-                            - ANGARIACAO_PROMOCAO_INTERMEDIACAO_OU_DISTRIBUICAO_DE_PRODUTOS
-                            - ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS
-                            - RECEPCAO_DE_PROPOSTAS_E_EMISSAO_DE_DOCUMENTOS_CONTRATUAIS
-                            - SUBSCRICAO_DE_RISCOS_RELACIONADOS_A_PRODUTOS_DE_SEGUROS
-                            - COLETA_E_FORNECIMENTO_A_SOCIEDADE_PARTICIPANTE_DE_DADOS_CADASTRAIS_E_DE_DOCUMENTACAO_DE_CLIENTES_E_SE_FOR_O_CASO_ESTIPULANTES_CORRETORES_DE_SEGUROS_E_SEUS_PREPOSTOS
-                            - RECOLHIMENTO_DE_PREMIOS_E_CONTRIBUICOES
-                            - RECEBIMENTO_DE_AVISOS_DE_SINISTROS
-                            - REGULACAO_DE_SINISTROS
-                            - PAGAMENTO_DE_INDENIZACAO_BENEFICIO
-                            - ORIENTACAO_E_ASSISTENCIA_AOS_CLIENTES_NO_QUE_COMPETE_AOS_CONTRATOS_COMERCIALIZADOS
-                            - APOIO_LOGISTICO_E_OPERACIONAL_A_SOCIEDADE_PARTICIPANTE_NA_GESTAO_E_EXECUCAO_DE_CONTRATOS
-                            - OUTROS
+                        enum: [ANGARIACAO_PROMOCAO_INTERMEDIACAO_OU_DISTRIBUICAO_DE_PRODUTOS,
+                               ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS,
+                               RECEPCAO_DE_PROPOSTAS_E_EMISSAO_DE_DOCUMENTOS_CONTRATUAIS,
+                               SUBSCRICAO_DE_RISCOS_RELACIONADOS_A_PRODUTOS_DE_SEGUROS,
+                               COLETA_E_FORNECIMENTO_A_SOCIEDADE_PARTICIPANTE_DE_DADOS_CADASTRAIS_E_DE_DOCUMENTACAO_DE_CLIENTES_E_SE_FOR_O_CASO_ESTIPULANTES_CORRETORES_DE_SEGUROS_E_SEUS_PREPOSTOS,
+                               RECOLHIMENTO_DE_PREMIOS_E_CONTRIBUICOES,
+                               RECEBIMENTO_DE_AVISOS_DE_SINISTROS,
+                               REGULACAO_DE_SINISTROS,
+                               PAGAMENTO_DE_INDENIZACAO_BENEFICIO,
+                               ORIENTACAO_E_ASSISTENCIA_AOS_CLIENTES_NO_QUE_COMPETE_AOS_CONTRATOS_COMERCIALIZADOS,
+                               APOIO_LOGISTICO_E_OPERACIONAL_A_SOCIEDADE_PARTICIPANTE_NA_GESTAO_E_EXECUCAO_DE_CONTRATOS,
+                               OUTROS,]
                         example: ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS
                     nameOthers:
                         description: Campo aberto para descrição em caso de seleção de Outras na lista padronizada de Tipo de Serviço Prestado por Intermediário
@@ -620,34 +625,35 @@ components:
                             type: string
                             description: Linha de negócio de atuação
                             maxLength: 93
-                            enum:
-                                - LISTAGEM_DE_RAMOS_DE_SEGUROS_CONFORME_REGULAMENTACAO_ESPECIFICA_SOBRE_CONTABILIZACAO_EM_RAMOS
-                                - PREVIDENCIA_COMPLEMENTAR_ABERTA
-                                - CAPITALIZACAO
+                            enum: [LISTAGEM_DE_RAMOS_DE_SEGUROS_CONFORME_REGULAMENTACAO_ESPECIFICA_SOBRE_CONTABILIZACAO_EM_RAMOS,
+                                   PREVIDENCIA_COMPLEMENTAR_ABERTA,
+                                   CAPITALIZACAO]
                             example: CAPITALIZACAO
+
         Links:
             type: object
             properties:
                 self:
                     type: string
                     description: URL da página atualmente requisitada
-                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
                 first:
                     type: string
                     description: URL da primeira página de registros
-                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
                 prev:
                     type: string
                     description: URL da página anterior de registros
-                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
                 next:
                     type: string
                     description: URL da próxima página de registros
-                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
                 last:
                     type: string
                     description: URL da última página de registros
-                    example: https://api.organizacao.com.br/open-insurance/products-services/v1
+                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+
         Meta:
             type: object
             properties:
@@ -662,6 +668,7 @@ components:
             required:
                 - totalRecords
                 - totalPages
+
         ResponseError:
             type: object
             required:
@@ -692,7 +699,7 @@ components:
                                 type: string
                                 maxLength: 2048
                             requestDateTime:
-                                description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
+                                description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
                                 type: string
                                 maxLength: 2048
                                 format: date-time
@@ -701,6 +708,7 @@ components:
                 meta:
                     $ref: '#/components/schemas/Meta'
             additionalProperties: false
+
     parameters:
         page:
             name: page
@@ -725,10 +733,10 @@ components:
             required: true
             schema:
                 type: string
-        serviceLine:
-            name: serviceLine
+        line:
+            name: line
             in: query
-            description: Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado
+            description: "Linha de negócio de atuação"
             required: false
             schema:
                 type: string
@@ -760,7 +768,7 @@ components:
             description: Campo para exigir conexões por HTTPS e proteger contra certificados falsificados.
             schema:
                 type: string
-                pattern: '[\w\W\s]*'
+                pattern:  '[\w\W\s]*'
         x-Content-Type-Options:
             name: X-Content-Type-Options
             in: header
@@ -775,28 +783,30 @@ components:
             schema:
                 type: string
                 pattern: '[\w\W\s]*'
+
     securitySchemes:
         OpenId:
             type: openIdConnect
-            openIdConnectUrl: https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration
+            openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
         OAuth2Security:
             type: oauth2
             description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
             flows:
                 authorizationCode:
-                    authorizationUrl: https://authserver.example/authorization
-                    tokenUrl: https://authserver.example/token
+                    authorizationUrl: 'https://authserver.example/authorization'
+                    tokenUrl: 'https://authserver.example/token'
                     scopes:
                         financings: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
+
     responses:
         NoContent:
-            description: O recurso solicitado não existe ou não foi localizado.
+            description: 'O recurso solicitado não existe ou não foi localizado.'
             content:
                 application/json; charset=utf-8:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         BadRequest:
-            description: A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.
+            description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
             content:
                 application/json; charset=utf-8:
                     schema:
@@ -832,7 +842,7 @@ components:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         TooManyRequests:
-            description: A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido
+            description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
             content:
                 application/json; charset=utf-8:
                     schema:
