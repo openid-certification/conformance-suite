@@ -59,7 +59,6 @@ public class PaymentsApiAllTestPlan implements TestPlan {
 					PaymentsConsentsReuseJtiTestModule.class,
 					PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule.class,
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
-					PaymentsApiFapiTesting.class,
 					PaymentsApiDcrHappyFlowTestModule.class,
 					PaymentsApiDcrTestModuleUnauthorizedClient.class,
 					PaymentsApiDcrTestModuleAttemptClientTakeover.class,
