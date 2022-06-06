@@ -9,8 +9,10 @@ import java.util.Map;
 public class AddHardcodedBrazilQrdnRemittanceToTheResource extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
-		env.putString("resource", "brazilQrdnRemittance", DictHomologKeys.PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION);
-		logSuccess("Brazil QRDN Remittance Information was added to the Resource", Map.of("brazilQrdnRemittance", DictHomologKeys.PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION));
+//		String proxyEmailStandardRemittanceInformation = DictHomologKeys.PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION;
+		String proxyEmailStandardRemittanceInformation = "$$EDITPAYMENT$$:20201.00";
+		env.putString("resource", "brazilQrdnRemittance", proxyEmailStandardRemittanceInformation);
+		logSuccess("Brazil QRDN Remittance Information was added to the Resource", Map.of("brazilQrdnRemittance", proxyEmailStandardRemittanceInformation));
 		return env;
 	}
 }
