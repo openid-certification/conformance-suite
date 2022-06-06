@@ -21,7 +21,9 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -478,6 +480,9 @@ public class BrowserControl implements DataUtils {
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
+							// wait for js to load
+							waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).
+								executeScript("return document.readyState").equals("complete"));
 						}
 
 						logger.debug(testId + ":\t\tDone waiting: " + commandString);
