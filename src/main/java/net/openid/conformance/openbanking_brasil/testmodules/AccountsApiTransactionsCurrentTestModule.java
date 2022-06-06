@@ -17,17 +17,18 @@ import java.time.format.DateTimeFormatter;
 @PublishTestModule(
 	testName = "account-api-transactions-current-test",
 	displayName = "Test that the server has correctly implemented the current transactions resource",
-	summary = "\u2022 Test that the server has correctly implemented the current transactions resource\n" +
-		"\u2022 Creates a consent with only ACCOUNTS permissions\n" +
-		"\u2022 201 code and successful redirect\n" +
+	summary = "Test that the server has correctly implemented the current transactions resource\n" +
+		"\u2022 Creates a consent with only Accounts permissions\n" +
+		"\u2022 Expect - 201 code and successful redirect\n" +
 		"\u2022 Using the consent created, call the Accounts API\n" +
-		"\u2022 Expect OK 200 - Validate all fields of the API - Fetch the first returned account ids to be used later on the test to get its transactions\n" +
+		"\u2022 Call the GET Accounts API\n" +
+		"\u2022 Expect OK 200 - Validate all fields of the API - Fetch the first returned account ids to be used on the transactions API Call\n" +
 		"\u2022 Call the GET Current Accounts Transactions API\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if one transaction is found it has today’s date on it\n" +
-		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDateMaxLimited and toBookingDateMaxLimited using the max period ( D-6 should be the from and D should be today)\n" +
+		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using the max 7 day period\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if transactions are found that none of them are more than 1 week older\n" +
-		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDateMaxLimited and toBookingDateMaxLimited using a period that is over the expected valid period. Both from and to booking date should be D-30 to D-20 for example\n" +
-		"\u2022 Expect 422 Unprocessable Entity",
+		"\u2022 Call the GET Current Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using a period that is not over the expected valid period\n" +
+		"\u2022 Expect 422 Unprocessable Entity\n",
 	profile = OBBProfile.OBB_PROFIlE_PHASE2,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -44,7 +45,7 @@ import java.time.format.DateTimeFormatter;
 )
 public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
-	protected static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
 	@Override
@@ -57,7 +58,6 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		runInBlock("Fetch Account Current transactions", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
-				.then(condition(AccountTransactionsValidator.class))
 				.then(condition(EnsureTransactionsDateIsSetToToday.class)))
 		);
 
@@ -70,7 +70,6 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
-				.then(condition(AccountTransactionsValidator.class))
 				.then(condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
 		);
 
@@ -97,6 +96,7 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 
 	protected ConditionSequence getValidationSequence() {
 		return sequenceOf(
+			condition(AccountTransactionsValidator.class),
 			condition(EnsureResponseHasLinks.class),
 			condition(ValidateResponseMetaData.class)
 		);
