@@ -22,7 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
+		"resource.brazilPixPayment"
 	}
 )
 public class PaymentsConsentsApiEnforceQRDNTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
