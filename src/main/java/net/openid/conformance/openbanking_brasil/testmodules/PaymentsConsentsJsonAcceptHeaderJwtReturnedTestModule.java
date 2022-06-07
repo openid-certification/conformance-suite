@@ -27,8 +27,7 @@ import org.springframework.http.HttpStatus;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.brazilCpf"
+		"resource.consentUrl"
 	}
 )
 public class PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {

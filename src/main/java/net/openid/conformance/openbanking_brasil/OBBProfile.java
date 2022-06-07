@@ -8,6 +8,7 @@ public interface OBBProfile {
 	String OBB_PROFIlE_PHASE3 = "Open Banking Brasil Functional Tests for Phase 3 - Payment Initiation";
 	String OBB_PROFIlE_PHASE4 = "Open Banking Brasil Functional Tests for Phase 4";
 	String OBB_PROFILE_OPEN_INSURANCE = "Open Insurance Functional Tests";
+	/** test plans using this profile will only be visible on dev.conformance, and not on web.conformance */
 	String DEV_ONLY = "Development only functional tests";
 
 }

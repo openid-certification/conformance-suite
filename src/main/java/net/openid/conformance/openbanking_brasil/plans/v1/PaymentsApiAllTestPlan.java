@@ -16,7 +16,7 @@ import java.util.List;
 
 
 @PublishTestPlan(
-	testPlanName = PlanNames.PAYMENTS_API_ALL_TEST_PLAN,
+	testPlanName = "PIX Functional Complete",
 	profile = OBBProfile.DEV_ONLY,
 	displayName = PlanNames.PAYMENTS_API_ALL_TEST_PLAN,
 	summary = "All PIX tests"
@@ -59,7 +59,6 @@ public class PaymentsApiAllTestPlan implements TestPlan {
 					PaymentsConsentsReuseJtiTestModule.class,
 					PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule.class,
 					PaymentsConsentsReuseIdempotencyKeyTestModule.class,
-					PaymentsApiFapiTesting.class,
 					PaymentsApiDcrHappyFlowTestModule.class,
 					PaymentsApiDcrTestModuleUnauthorizedClient.class,
 					PaymentsApiDcrTestModuleAttemptClientTakeover.class,
@@ -69,7 +68,6 @@ public class PaymentsApiAllTestPlan implements TestPlan {
 					PaymentsApiInvalidCnpjTestModule.class,
 					PaymentsConsentsApiInvalidTestModule.class,
 					// PIX scheduling below
-					PreFlightCertCheckPaymentsModule.class,
 					PixSchedulingDateInFutureConsentsTestModule.class,
 					PixSchedulingDateIsTodayConsentsTestModule.class,
 					PixScheduledPaymentDateIsInPastConsentsTestModule.class,
