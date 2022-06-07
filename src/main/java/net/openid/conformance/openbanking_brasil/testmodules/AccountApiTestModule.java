@@ -37,10 +37,13 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 
 public class AccountApiTestModule extends AbstractOBBrasilFunctionalTestModule {
-
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
 		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 	}
