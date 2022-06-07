@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -28,8 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
 		"resource.brazilQrdnPaymentConsent",
-		"resource.brazilQrdnCnpj",
-		"resource.brazilQrdnRemittance"
+		"resource.brazilQrdnCnpj"
 	}
 )
 public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCodePaymentFunctionalTestModule {
@@ -53,6 +53,12 @@ public class PaymentsConsentsApiQRDNHappyTestModule extends AbstractOBBrasilQrCo
 	@Override
 	protected void postProcessResourceSequence(ConditionSequence pixSequence) {
 		pixSequence.replace(CreatePaymentRequestEntityClaims.class, condition(CreatePaymentRequestEntityClaimsFromQrdnConfig.class));
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddHardcodedBrazilQrdnRemittanceToTheResource.class);
+		super.onConfigure(config, baseUrl);
 	}
 
 	@Override

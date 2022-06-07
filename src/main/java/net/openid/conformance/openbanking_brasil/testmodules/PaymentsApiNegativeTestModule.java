@@ -30,8 +30,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.brazilCpf"
+		"resource.consentUrl"
 	}
 )
 public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTestModule {
