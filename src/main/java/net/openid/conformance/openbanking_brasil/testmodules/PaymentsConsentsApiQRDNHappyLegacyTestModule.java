@@ -24,7 +24,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.resourceUrl",
-		"resource.brazilCpf",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
 		"resource.brazilQrdnPaymentConsent",
