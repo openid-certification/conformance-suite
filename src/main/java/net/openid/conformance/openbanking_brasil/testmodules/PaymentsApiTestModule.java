@@ -9,6 +9,8 @@ import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitia
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureNoRejectionReasonIFStatusIsNotRJCT;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "payments-api-test",
@@ -30,13 +32,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
 		"resource.brazilOrganizationId"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.brazilCpf",
+	"resource.brazilCpnj"
+})
 public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override

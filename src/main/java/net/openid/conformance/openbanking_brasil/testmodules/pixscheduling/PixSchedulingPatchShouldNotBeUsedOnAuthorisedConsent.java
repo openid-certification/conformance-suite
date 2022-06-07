@@ -28,7 +28,6 @@ import net.openid.conformance.variant.ClientAuthType;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
