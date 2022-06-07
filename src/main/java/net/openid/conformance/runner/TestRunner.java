@@ -17,6 +17,8 @@ import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.openbanking_brasil.testmodules.PaymentsDcmSubjectDnTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.ResourcesDcmSubjectDnTestModule;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -366,6 +368,10 @@ public class TestRunner implements DataUtils {
 				testName.equals("payments-api-dcr-subjectdn") ||
 				testName.equals("resources-api-dcr-test-unauthorized-client")) {
 				alias = "raidiam-client-payments-only";
+			}
+			else if (testName.equals(PaymentsDcmSubjectDnTestModule.testName) ||
+				testName.equals(ResourcesDcmSubjectDnTestModule.testName)) {
+				alias = "raidiam-client-dcm";
 			}
 
 			try {
