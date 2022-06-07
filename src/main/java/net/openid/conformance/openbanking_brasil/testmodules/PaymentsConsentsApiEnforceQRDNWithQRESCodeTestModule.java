@@ -22,7 +22,6 @@ import java.util.Optional;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
 	}

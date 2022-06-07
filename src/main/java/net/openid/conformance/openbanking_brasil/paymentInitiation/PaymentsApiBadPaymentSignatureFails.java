@@ -2,6 +2,9 @@ package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
+import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
@@ -35,6 +38,19 @@ public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazi
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 
 		super.validateClientConfiguration();
+	}
+
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
+		exposeEnvString("client_id");
+
+		// Test won't pass without MATLS, but we'll try anyway (for now)
+		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		validateClientConfiguration();
 	}
 
 	@Override

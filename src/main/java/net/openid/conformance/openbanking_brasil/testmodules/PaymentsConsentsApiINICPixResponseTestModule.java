@@ -26,8 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.brazilCpf"
+		"resource.consentUrl"
 	}
 )
 public class PaymentsConsentsApiINICPixResponseTestModule extends AbstractOBBrasilFunctionalTestModule {

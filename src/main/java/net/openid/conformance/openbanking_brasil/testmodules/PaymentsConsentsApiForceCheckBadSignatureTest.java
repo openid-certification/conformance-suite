@@ -33,8 +33,7 @@ import java.util.Random;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.brazilCpf"
+		"resource.consentUrl"
 	}
 )
 public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClientCredentialsGrantFunctionalTestModule {

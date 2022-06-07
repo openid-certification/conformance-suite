@@ -12,6 +12,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.payments.Ge
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "payments-consents-api-pixscheduling-happy-schedule-accepted",
@@ -33,13 +35,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPixPayment",
 		"resource.brazilOrganizationId"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
+})
 public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule {
 
 	@Override
