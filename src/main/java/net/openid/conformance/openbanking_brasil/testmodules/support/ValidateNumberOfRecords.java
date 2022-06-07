@@ -31,8 +31,6 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 
 		JsonElement body = bodyFrom(env);
 
-		System.out.println(body);
-
 		JsonArray dataArray = findByPath(body, "$.data").getAsJsonArray();
 
 		numberOfReturnedRecords = dataArray.size();
