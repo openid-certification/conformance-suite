@@ -58,7 +58,7 @@
                             "minimumRequirements": {
                                 "minimumRequirementDetails": "string",
                                 "targetAudiences": [
-                                        "PESSOA_FISICA"
+                                    "PESSOA_FISICA"
                                 ]
                             }
                         }

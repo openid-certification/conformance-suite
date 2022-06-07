@@ -23,7 +23,7 @@ import java.util.Set;
 public class PersonalRelationsResponseValidator extends AbstractJsonAssertingCondition {
 
 	public static final Set<String> ENUM_PRODUCTS_SERVICES_TYPE = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "CARTAO_CREDITO", "OPERACAO_CREDITO", "SEGURO", "PREVIDENCIA", "INVESTIMENTO", "OPERACOES_CAMBIO", "CONTA_SALARIO", "CREDENCIAMENTO", "OUTROS");
-	public static final Set<String> ENUM_TYPE = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_SE_APLICA");
+	public static final Set<String> ENUM_TYPE = Sets.newHashSet("REPRESENTANTE_LEGAL", "PROCURADOR", "NAO_APLICA");
 	public static final Set<String> ENUM_TYPE1 = Sets.newHashSet("CONTA_DEPOSITO_A_VISTA", "CONTA_POUPANCA", "CONTA_PAGAMENTO_PRE_PAGA", "SEM_TIPO_CONTA");
 	public static final Set<String> SUBTYPES = Sets.newHashSet("INDIVIDUAL", "CONJUNTA_SIMPLES", "CONJUNTA_SOLIDARIA", "SEM_SUB_TIPO_CONTA");
 
