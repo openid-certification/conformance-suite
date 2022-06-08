@@ -28,13 +28,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		//"resource.resourceUrl"
 	}
 )
-
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"resource.resourceUrl"
-})
 
 public class AccountApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 	@Override

@@ -39,7 +39,6 @@ import java.time.format.DateTimeFormatter;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"consent.productType"
 	}
 )
@@ -47,6 +46,11 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void validateResponse() {
