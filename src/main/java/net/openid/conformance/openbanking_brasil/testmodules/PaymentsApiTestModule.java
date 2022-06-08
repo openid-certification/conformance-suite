@@ -44,6 +44,12 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
