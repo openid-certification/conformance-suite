@@ -77,3 +77,6 @@ fabric.properties
 .idea/httpRequests
 
 ## End of JetBrains section
+
+# Helm ignore
+**/charts/*.tgz

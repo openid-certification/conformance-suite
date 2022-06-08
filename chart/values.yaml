@@ -31,7 +31,9 @@ resources:
 javaArgs: "-Xmx724M -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
   image:
-    tag: 3.6
+    tag: 4.4.13
+  auth:
+      enabled: false
   usePassword: false
   mongodbExtraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
