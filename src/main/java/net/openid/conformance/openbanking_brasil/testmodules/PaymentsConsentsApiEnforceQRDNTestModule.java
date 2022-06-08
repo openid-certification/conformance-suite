@@ -34,6 +34,11 @@ public class PaymentsConsentsApiEnforceQRDNTestModule extends AbstractClientCred
 	}
 
 	@Override
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+	}
+
+	@Override
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
 		return new ObtainPaymentsAccessTokenWithClientCredentials(clientAuthSequence);
 	}

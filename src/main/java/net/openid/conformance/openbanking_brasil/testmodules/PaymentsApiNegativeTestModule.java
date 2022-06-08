@@ -39,6 +39,12 @@ public class PaymentsApiNegativeTestModule extends AbstractOBBrasilFunctionalTes
 	private boolean secondTest = false;
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);
