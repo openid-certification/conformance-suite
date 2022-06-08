@@ -12,9 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessFinancialRelations;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetBusinessQualifications;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyBusinessProductTypeToConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -34,11 +32,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class CustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildBusinessCustomersConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

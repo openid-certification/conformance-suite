@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetPersonalQualifications;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.ProvideIncorrectPermissionsForCustomerPersonalApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildPersonalCustomersConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -39,11 +40,16 @@ import net.openid.conformance.condition.Condition;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class CustomerPersonalWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildPersonalCustomersConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
