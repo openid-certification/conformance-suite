@@ -34,7 +34,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"resource.consentUrl",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"resource.brazilOrganizationId"
 	}
 )
@@ -52,6 +51,7 @@ public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);

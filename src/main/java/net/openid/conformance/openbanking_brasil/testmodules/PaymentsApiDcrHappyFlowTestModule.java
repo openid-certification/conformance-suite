@@ -27,6 +27,7 @@ public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule 
 
 	@Override
 	protected void configureClient() {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
 		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);

@@ -28,11 +28,6 @@ import java.util.Optional;
 )
 public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends AbstractDictVerifiedPaymentTestModule {
 
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
-		super.onConfigure(config, baseUrl);
-	}
 
 	@Override
 	protected void configureDictInfo() {

@@ -3,13 +3,11 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
 public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 	@Override
-	@PreEnvironment(required = "resource")
 	public Environment evaluate(Environment env) {
 		JsonObject consentData;
 		JsonObject consentDetails;
@@ -22,6 +20,12 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonElement qrCode;
 
 		JsonObject resource = env.getObject("resource");
+		if (resource == null) {
+			resource = env.getElementFromObject("config", "resource").getAsJsonObject();
+		}
+		if (resource == null) {
+			throw error("Could not find resource object");
+		}
 
 		JsonObject brazilQrdnPaymentConsent = resource.getAsJsonObject("brazilQrdnPaymentConsent");
 		if (brazilQrdnPaymentConsent != null) {
@@ -31,7 +35,7 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 				if (consentPayment != null) {
 
 					amount = consentPayment.get("amount");
-					if (amount == null){
+					if (amount == null) {
 						throw error("amount field is missing in the payment object", consentPayment);
 					}
 
