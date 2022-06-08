@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.ConsentHasExpiredInsteadOfBeenRejected;
@@ -30,10 +31,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl"
 	}
 )
 public class ConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void configureClient(){
+		//Arbitrary resource
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {

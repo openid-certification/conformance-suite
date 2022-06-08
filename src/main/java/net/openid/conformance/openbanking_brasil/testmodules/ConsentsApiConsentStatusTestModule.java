@@ -33,12 +33,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"resource.customerUrl",
 		"consent.productType"
 	}
 )
 public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
+
+	@Override
+	protected void configureClient(){
+		//Arbitrary resource
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
