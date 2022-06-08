@@ -42,12 +42,17 @@ import java.time.format.DateTimeFormatter;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"consent.productType"
 	}
 )
 public class CreditCardApiTransactionCurrentTestModule extends AbstractOBBrasilFunctionalTestModule {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void validateResponse() {
