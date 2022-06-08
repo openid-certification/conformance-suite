@@ -15,13 +15,15 @@ import java.util.Set;
 /**
  * Api Source: swagger/openinsurance/productsServices/swagger-intermediary.yaml
  * Api endpoint: /intermediary/{countrySubDivision}
+ * Git hash: 2baaf5f7f439576456ca1f262b84eebcc85ecd7b
  * Api version: 1.0.0
  */
 
 @ApiName("ProductsServices Intermediary")
 public class GetIntermediaryValidator extends AbstractJsonAssertingCondition {
 
-	private static class Fields extends ProductNServicesCommonFields { }
+	private static class Fields extends ProductNServicesCommonFields {
+	}
 
 	public static final Set<String> TYPE = SetUtils.createSet("CORRETOR_DE_SEGUROS, REPRESENTANTE_DE_SEGUROS, AGENTES_DE_SEGUROS, DISTRIBUIDOR_DE_TITULO_DE_CAPITALIZACAO");
 	public static final Set<String> WEEKDAY_ENUM = SetUtils.createSet("DOMINGO, SEGUNDA_FEIRA, TERCA_FEIRA, QUARTA_FEIRA, QUINTA_FEIRA, SEXTA_FEIRA, SABADO");

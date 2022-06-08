@@ -18,6 +18,7 @@ public class DictHomologKeys {
 	public static final String PROXY_EMAIL_STANDARD_CODE = "OTHER";
 	public static final String PROXY_EMAIL_STANDARD_ADDITIONALINFORMATION = "Conformance Suite Test";
 	public static final String PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION ="Conformance Suite Test";
+	public static final String PROXY_QRDN_EDIT_PAYMENT_REMITTANCE_INFORMATION ="$$EDITPAYMENT$$:20201.00";
 
 	public static final String PROXY_PHONE_NUMBER = "+5561990010001";
 	public static final String PROXY_PHONE_NUMBER_BANK_CODE = "998";
