@@ -21,14 +21,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment"
+		"resource.brazilPaymentConsent"
 	}
 )
 public class PaymentsConsentsApiEnforceQRDNTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndContinueOnFailure(SelectQRDNCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 	}
