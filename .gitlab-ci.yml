@@ -20,6 +20,11 @@ stages:
 #  - template: Security/Dependency-Scanning.gitlab-ci.yml
 #  - template: Security/License-Scanning.gitlab-ci.yml
 
+# Helm2 to Helm3 migration jobs, remove when done
+include:
+  - project: gitlab-org/gitlab
+    file: lib/gitlab/ci/templates/Jobs/Helm-2to3.gitlab-ci.yml
+
 .maven: &maven
   image: maven:3-jdk-11
   interruptible: true
@@ -119,7 +124,7 @@ check-trailing-whitespace:
 #    paths: [codeclimate.json]
 
 .auto-deploy:
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.1.0"
+  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.28.2"
 
 .deploy: &deploy
   extends: .auto-deploy
@@ -413,7 +418,9 @@ local_test:
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
 
-    helm upgrade --install \
+    # helm rollback "$name" 1 --namespace $KUBE_NAMESPACE
+
+    helm upgrade --install --debug \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
       --set application.path_slug="$CI_PROJECT_PATH_SLUG" \
@@ -453,7 +460,7 @@ local_test:
 
   function get_mongo_pod() {
     MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod \
-      -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} \
+      -l app.kubernetes.io/component=mongodb -l app.kubernetes.io/instance=${CI_ENVIRONMENT_SLUG} \
       --field-selector=status.phase=Running \
       -o template --template="{{(index .items 0).metadata.name}}" 2>&1` \
       || MONGO_POD=''
