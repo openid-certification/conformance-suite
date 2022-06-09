@@ -19,6 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractDcrTestModuleAttemptClientTakeover {
 
+	@Override
 	protected void setupResourceEndpoint() {
 		callAndStopOnFailure(AddResourceUrlToConfig.class);
 		super.setupResourceEndpoint();
