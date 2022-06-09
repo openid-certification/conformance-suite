@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.brazilCpf",
-	"resource.brazilCpnj"
+	"resource.brazilCnpj"
 })
 public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 

@@ -53,7 +53,6 @@
         "client_id": "QjRzruzFWi_U_tMahlz01"
     },
     "resource": {
-        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
         "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
         "brazilPaymentConsent": {
             "data": {

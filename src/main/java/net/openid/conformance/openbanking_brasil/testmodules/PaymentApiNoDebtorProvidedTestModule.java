@@ -29,11 +29,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.resourceUrl"
+		"resource.consentUrl"
 	}
 )
 public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

@@ -36,6 +36,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
 	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);

@@ -32,6 +32,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsConsentsApiMANUPixResponseTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {
