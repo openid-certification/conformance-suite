@@ -21,8 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
-		"mtls.ca",
-		"resource.resourceUrl"
+		"mtls.ca"
 	}
 )
 public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails {
