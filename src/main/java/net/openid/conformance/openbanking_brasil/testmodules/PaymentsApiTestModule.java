@@ -32,7 +32,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilOrganizationId"
 	}

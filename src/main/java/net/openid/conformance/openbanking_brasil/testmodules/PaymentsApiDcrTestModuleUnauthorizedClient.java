@@ -10,8 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Obtain a software statement from the Brazil sandbox directory (using a hardcoded client that has the DADOS role), verify (in several different ways) that it is not possible to obtain a client with the 'payments' scope granted, and that a client credentials grant requesting the 'payments' scope fails with an 'invalid_scope' error. Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.resourceUrl"
+		"server.discoveryUrl"
 	}
 )
 public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModuleUnauthorizedClient {

@@ -25,8 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"resource.consentUrl",
-		"resource.resourceUrl"
+		"resource.consentUrl"
 	}
 )
 public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBrasilFunctionalTestModule {

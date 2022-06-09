@@ -14,8 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"directory.client_id",
-		"resource.resourceUrl"
+		"directory.client_id"
 	}
 )
 public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractDcrTestModuleAttemptClientTakeover {

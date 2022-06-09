@@ -19,8 +19,7 @@ import java.util.Optional;
 	summary = "Obtain a software statement from the Brazil sandbox directory (using a hardcoded client that has the PAGTO role), register a new client on the target authorization server and perform an authorization flow. Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.resourceUrl"
+		"server.discoveryUrl"
 	}
 )
 public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
