@@ -37,6 +37,7 @@ public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);
