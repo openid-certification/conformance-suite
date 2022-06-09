@@ -31,7 +31,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl",
 		"resource.brazilOrganizationId",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"directory.keystore"
 	}
 )
@@ -45,6 +44,7 @@ public class PaymentsApiInvalidCnpjTestModule extends AbstractOBBrasilFunctional
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);

@@ -11,6 +11,7 @@ public abstract class AbstractOBBrasilQrCodePaymentFunctionalTestModule extends 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		env.putBoolean("consent_rejected", false);
 		env.putString("proceed_with_test", "proceed");
