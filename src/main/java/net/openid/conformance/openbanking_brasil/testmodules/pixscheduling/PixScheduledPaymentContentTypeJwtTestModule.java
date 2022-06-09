@@ -39,6 +39,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctionalTestModule {
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
@@ -46,6 +52,7 @@ public class PixScheduledPaymentContentTypeJwtTestModule extends AbstractFunctio
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
