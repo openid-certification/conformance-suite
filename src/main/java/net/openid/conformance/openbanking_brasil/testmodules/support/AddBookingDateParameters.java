@@ -38,37 +38,48 @@ public class AddBookingDateParameters extends AbstractCondition {
 		JsonObject checkObject = new JsonParser().parse(data).getAsJsonObject();
 		JsonArray checkArray = checkObject.getAsJsonArray("data");
 		try {
+			int i = 1;
+			boolean olderThan = false;
+			boolean newerThan = false;
 			if (checkArray.get(1) != null) {
-				var dataElement1 = checkArray.get(0);
-				var dataElement2 = checkArray.get(1);
-				JsonObject dataObject1 = dataElement1.getAsJsonObject();
-				JsonObject dataObject2 = dataElement2.getAsJsonObject();
+				while(i < checkArray.size()) {
+					var dataElement1 = checkArray.get(0);
+					var dataElement2 = checkArray.get(i);
+					JsonObject dataObject1 = dataElement1.getAsJsonObject();
+					JsonObject dataObject2 = dataElement2.getAsJsonObject();
 
-				String transactionDate1 = OIDFJSON.getString(dataObject1.get("transactionDate"));
-				String transactionDate2 = OIDFJSON.getString(dataObject2.get("transactionDate"));
-				log("Transaction Date 1: " + transactionDate1 + " Transaction Date 2: " + transactionDate2);
+					String transactionDate1 = OIDFJSON.getString(dataObject1.get("transactionDate"));
+					String transactionDate2 = OIDFJSON.getString(dataObject2.get("transactionDate"));
+					log("Transaction Date 1: " + transactionDate1 + " Transaction Date 2: " + transactionDate2);
 
-				LocalDate transaction1Date = LocalDate.parse(transactionDate1);
-				LocalDate transaction2Date = LocalDate.parse(transactionDate2);
+					LocalDate transaction1Date = LocalDate.parse(transactionDate1);
+					LocalDate transaction2Date = LocalDate.parse(transactionDate2);
 
-				LocalDate checkDate = LocalDate.now().minusMonths(6);
-				long transaction1Difference = ChronoUnit.MONTHS.between(transaction1Date, checkDate);
-				long transaction2Difference = ChronoUnit.MONTHS.between(transaction2Date, checkDate);
+					LocalDate checkDate = LocalDate.now().minusMonths(6);
+					long transaction1Difference = ChronoUnit.MONTHS.between(transaction1Date, checkDate);
+					long transaction2Difference = ChronoUnit.MONTHS.between(transaction2Date, checkDate);
 
-				if (transaction1Difference > 6 || transaction2Difference > 6) {
-					logSuccess("One transactionDate is older than 6 months");
-					if (transaction1Difference <= 6 || transaction2Difference <= 6) {
-						logSuccess("One transactionDate is 6 months or less");
-					} else {
-						logFailure("One transactionDate should be 6 months or less");
+					if (transaction1Difference > 6 || transaction2Difference > 6) {
+						olderThan = true;
+						if (transaction1Difference <= 6 || transaction2Difference <= 6) {
+							newerThan = true;
+						}
 					}
-				} else {
-					logFailure("One transactionDate should be older than 6 months");
+					i = i+1;
+				}
+				if (olderThan == true && newerThan == true){
+					logSuccess("At least one transaction date is older than 6 months and at least one transaction date is 6 months or less");
+				}
+				else if (olderThan == false ){
+					logFailure("At least one transaction date should be older than 6 months");
+				}
+				else if (newerThan == false){
+					logFailure("At least one transaction date should be 6 months or less");
 				}
 			}
 		}
 		catch (IndexOutOfBoundsException e){
-			log("Only 1 transaction returned. Cannot compare transaction dates");
+			log("Less than 2 transactions returned. Cannot compare transaction dates");
 		}
 
 		Duration duration = Duration.between(fromDate, toDate);
