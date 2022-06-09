@@ -2,17 +2,20 @@ package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.a
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareUrlForFetchingCreditAdvanceContractInstallments extends AbstractCondition {
+public class PrepareUrlForFetchingCreditAdvanceContractInstallments extends ResourceBuilder {
 
 	@Override
-	@PreEnvironment(strings = {"contractId", "base_resource_url"})
 	public Environment evaluate(Environment env) {
-		String resourceUrl = env.getString("base_resource_url");
+
 		String contractId = env.getString("contractId");
-		resourceUrl = String.format("%s/%s/scheduled-instalments", resourceUrl, contractId);
-		env.putString("protected_resource_url", resourceUrl);
-		return env;
+
+		setApi("unarranged-accounts-overdraft");
+		setEndpoint("/contracts/" + contractId + "/scheduled-instalments");
+
+		return super.evaluate(env);
+
 	}
 }

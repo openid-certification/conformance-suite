@@ -18,6 +18,5 @@ public class PrepareUrlForFetchingFinancingContractResource extends ResourceBuil
 
 		return super.evaluate(env);
 
-
 	}
 }
