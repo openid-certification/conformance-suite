@@ -39,7 +39,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		JsonObject o = new JsonObject();
 		o.addProperty("request_uri", request.getURI().toString());
 		o.addProperty("request_method", request.getMethod().toString());
-		o.add("request_headers", mapToJsonObject(request.getHeaders(), true));
+		o.add("request_headers", mapToJsonObject(request.getHeaders(), false));
 		if (body != null) {
 			o.addProperty("request_body", new String(body, StandardCharsets.UTF_8));
 		}

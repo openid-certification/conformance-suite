@@ -1,20 +1,16 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddQueryAndFragmentToDpopHtu;
+import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
-import net.openid.conformance.condition.client.InvalidateDpopProofSignature;
-import net.openid.conformance.condition.client.RemoveHtuFromDpopProof;
-import net.openid.conformance.condition.client.RemoveIatFromDpopProof;
+import net.openid.conformance.condition.client.Fapi2DPoPNegativeConditions;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHashToIncorrectValue;
 import net.openid.conformance.condition.client.SetDpopHeaderJwkToPrivateKey;
-import net.openid.conformance.condition.client.SetDpopHeaderTypToInvalidValue;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmToPut;
-import net.openid.conformance.condition.client.SetDpopHtuToDifferentUrl;
 import net.openid.conformance.condition.client.SetDpopIatToOneHourInFuture;
 import net.openid.conformance.condition.client.SetDpopIatToOneHourInPast;
 import net.openid.conformance.condition.client.SignDpopProof;
@@ -50,9 +46,14 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 
 	class CallResourceEndpointSteps extends AbstractConditionSequence {
 		boolean expectSuccess;
+		boolean shouldFail;
 
-		public CallResourceEndpointSteps(boolean expectSuccess) {
+		String[] requirements;
+
+		public CallResourceEndpointSteps(boolean expectSuccess, boolean shouldFail, String... requirements) {
 			this.expectSuccess = expectSuccess;
+			this.shouldFail = shouldFail;
+			this.requirements = requirements;
 		}
 
 		@Override
@@ -60,10 +61,14 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 			call(makeUpdateResourceRequestSteps());
 			callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			Condition.ConditionResult result = Condition.ConditionResult.FAILURE;
+			if (!shouldFail) {
+				result = Condition.ConditionResult.WARNING;
+			}
 			if (expectSuccess) {
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class,result , requirements);
 			} else {
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "DPOP-7.1");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, result, requirements);
 			}
 			call(exec().unmapKey("endpoint_response"));
 		}
@@ -75,52 +80,102 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-dpop-07.html#section-4.3:
 
+		eventLog.startBlock("Try DPoP proof with all upper case header value");
+		call(new CallResourceEndpointSteps(true, false, "DPOP-4.1")
+			.replace(AddDpopHeaderForResourceEndpointRequest.class,
+				condition(Fapi2DPoPNegativeConditions.AddDpopHeaderAllCapital.class)));
+
 		// 1. that there is not more than one DPoP header in the request,
-		// FIXME
+		eventLog.startBlock("Try with more than one DPoP in the header");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.replace(AddDpopHeaderForResourceEndpointRequest.class,
+				sequence(Fapi2DPoPNegativeConditions.MultipleProofs.class)));
 
 		// 2. the string value of the header field is a well-formed JWT,
-		// FIXME (not entirely sure how to test this - maybe strip the part after the final dot (i.e. the signature)
+		eventLog.startBlock("Try DPoP proof not well-formed JWT");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.NotWellformedDPoP.class)));
 
 		// 3. all required claims per Section 4.2 are contained in the JWT,
-		// FIXME missing typ
-		// FIXME missing alg
-		// FIXME missing jwk
-		// FIXME missing jti
-		// FIXME missing htm
+		eventLog.startBlock("Try DPoP proof where 'typ' is missing in header");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveTypFromDpopProof.class)));
+		eventLog.startBlock("Try DPoP proof where 'alg' is missing");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SignDpopProof.class, condition(Fapi2DPoPNegativeConditions.SignDpopAndRemoveAlg.class)));
+		eventLog.startBlock("Try DPoP proof where 'jwk' is missing");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveJwkFromDpopProof.class)));
+		eventLog.startBlock("Try DPoP proof where 'jti' is missing");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveJtiFromDpopProof.class)));
+		eventLog.startBlock("Try DPoP proof where 'htm' is missing");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveHtmFromDpopProof.class)));
 		eventLog.startBlock("Try DPoP proof where 'htu' is missing");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(RemoveHtuFromDpopProof.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveHtuFromDpopProof.class)));
 		eventLog.startBlock("Try DPoP proof where 'iat' is missing");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(RemoveIatFromDpopProof.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(Fapi2DPoPNegativeConditions.RemoveIatFromDpopProof.class)));
 		eventLog.startBlock("Try DPoP proof where 'ath' is missing");
-		call(new CallResourceEndpointSteps(false).skip(SetDpopAccessTokenHash.class, "Skipping adding DPoP ATH"));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.skip(SetDpopAccessTokenHash.class, "Skipping adding DPoP ATH"));
 
 		// 4. the typ field in the header has the value dpop+jwt,
 		eventLog.startBlock("Try DPoP proof with invalid 'typ' in header");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHeaderTypToInvalidValue.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.SetDpopHeaderTypToInvalidValue.class)));
 
 		// 5. the algorithm in the header of the JWT indicates an asymmetric digital signature algorithm, is not none, is supported by the application, and is deemed secure,
 		// I think mostly this is one that can only be tested at the token endpoint, but there are a few things we can try:
-		// FIXME use RS256 instead of PS256 (should be rejected as FAPI doesn't allow RS256)
-		// FIXME try with alg: none
+		eventLog.startBlock("Try DPoP proof signed using RS256");
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+			.insertBefore(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.ChangeSignAlgorithm.class)));
+
+		eventLog.startBlock("Try DPoP proof with none alg");
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+			.replace(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.SignDpopProofWithNone.class)));
 
 		// 6. the JWT signature verifies with the public key contained in the jwk header of the JWT,
 		eventLog.startBlock("Try DPoP proof with invalid signature");
-		call(new CallResourceEndpointSteps(false).insertAfter(SignDpopProof.class, condition(InvalidateDpopProofSignature.class)));
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+			.insertAfter(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.InvalidateDpopProofSignature.class)));
 
 		// 7. the jwk header of the JWT does not contain a private key,
 		eventLog.startBlock("Try DPoP proof with jwk header incorrectly containing private key");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHeaderJwkToPrivateKey.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.3")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(SetDpopHeaderJwkToPrivateKey.class)));
 
 		// 8. the htm claim matches the HTTP method value of the HTTP request in which the JWT was received,
 		eventLog.startBlock("Try DPoP proof with incorrect 'htm'");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHtmToPut.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-4.3")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.SetDpopHtmToPut.class)));
 
 		// 9. the htu claim matches the HTTPS URI value for the HTTP request in which the JWT was received, ignoring any query and fragment parts,
 		eventLog.startBlock("Try DPoP proof where 'htu' has a query/fragment (which must be ignored in match as per 4.3-9 in DPoP spec)");
-		call(new CallResourceEndpointSteps(true).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(AddQueryAndFragmentToDpopHtu.class)));
+		call(new CallResourceEndpointSteps(true, true, "DPOP-4.3")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.AddQueryAndFragmentToDpopHtu.class)));
+
+		eventLog.startBlock("Try DPoP proof where 'htu' does not contain the query/fragment (which must be ignored in match as per 4.3-9 in DPoP spec)");
+		call(new CallResourceEndpointSteps(true, true, "DPOP-4.3")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.RemoveQueryAndFragmentFromDpopHtu.class)));
+
+
 
 		eventLog.startBlock("Try DPoP proof where 'htu' is a different url");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHtuToDifferentUrl.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.SetDpopHtuToDifferentUrl.class)));
 
 
 		// 10. if the server provided a nonce value to the client, the nonce claim matches the server-provided nonce value,
@@ -131,34 +186,68 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 		// This might need to be changed when we support nonces if the server is using nonce; there's been discussion on the IETF OAuth list about the nonce check replacing the iat check
 		// https://mailarchive.ietf.org/arch/msg/oauth/T4stTh9mQRExvZTdEC30OF541p0/
 		eventLog.startBlock("Try DPoP proof where 'iat' is one hour in the future");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopIatToOneHourInFuture.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(SetDpopIatToOneHourInFuture.class)));
 
 		eventLog.startBlock("Try DPoP proof where 'iat' is one hour in the past");
-		call(new CallResourceEndpointSteps(false).insertAfter(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopIatToOneHourInPast.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(SetDpopIatToOneHourInPast.class)));
 
-		// FIXME try reusing a proof (i.e. same jti value) - if this fails it should only be a warning, due to the "within a reasonable consideration of accuracy and resource utilization" getout clause in the spec
+		eventLog.startBlock("DPoP reuse, First use of jti");
+		call(new CallResourceEndpointSteps(true, true, "DPOP-7.1")
+			.insertAfter(CreateDpopClaims.class,
+				condition(Fapi2DPoPNegativeConditions.FixedJtiClaim.class)));
+		eventLog.startBlock("DPoP reuse, Second use of the same jti");
+		call(new CallResourceEndpointSteps(false, false, "DPOP-7.1")
+			.insertAfter(CreateDpopClaims.class,
+				condition(Fapi2DPoPNegativeConditions.FixedJtiClaim.class)));
 
 		// 12 if presented to a protected resource in conjunction with an access token,
 		// 12.1 ensure that the value of the ath claim equals the hash of that access token,
-
 		eventLog.startBlock("Try DPoP proof where 'ath' is incorrect");
-		call(new CallResourceEndpointSteps(false).replace(SetDpopAccessTokenHash.class, condition(SetDpopAccessTokenHashToIncorrectValue.class)));
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.replace(SetDpopAccessTokenHash.class,
+				condition(SetDpopAccessTokenHashToIncorrectValue.class)));
 
 		// 12.2 confirm that the public key to which the access token is bound matches the public key from the DPoP proof.
-		// FIXME
+		eventLog.startBlock("Try DPoP signed with a different key");
+		call(new CallResourceEndpointSteps(false, true, "DPOP-7.1")
+			.insertBefore(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.GenerateNewSignKey.class))
+			.insertAfter(SignDpopProof.class,
+				condition(Fapi2DPoPNegativeConditions.RecoverSignKey.class)));
 
 		// try proof with unknown values in header/body (should succeed)
-		// FIXME
+		eventLog.startBlock("Try DPoP proof with extra claims on header and claims, as it should be ignored by resource server");
+		call(new CallResourceEndpointSteps(true, true, "DPOP-7.2")
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.AddExtraClaimsToHeader.class))
+			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.AddExtraClaimsToClaims.class))
+		);
 
-		// Servers SHOULD employ Syntax-Based Normalization and Scheme-Based Normalization in accordance with Section 6.2.2. and Section 6.2.3. of [RFC3986] before comparing the htu claim.¶
-		// FIXME (only a 'should' so try de-normalizing url, maybe add port number to the real url (https://foo:443/...) and only warn if it fails)
+		// Servers SHOULD employ Syntax-Based Normalization and Scheme-Based Normalization in accordance with Section 6.2.2. and Section 6.2.3. of [RFC3986] before comparing the htu claim.
+		eventLog.startBlock("Try DPoP proof expecting RS to compare scheme and hostname using case independent mode when validating htu claim");
+		call(new CallResourceEndpointSteps(true, false, "RFC3986-6.2.2","RFC3986-6.2.3")
+			.replace(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.DpopHtuUpperCase.class)));
 
-		// FIXME try without a dpop proof
+		eventLog.startBlock("Try DPoP proof expecting Scheme based normalization of htu claim, where the port is not considered if that is the default for the scheme.");
+		call(new CallResourceEndpointSteps(true, false, "RFC3986-6.2.2","RFC3986-6.2.3")
+			.replace(SetDpopHtmHtuForResourceEndpoint.class,
+				condition(Fapi2DPoPNegativeConditions.DpopHtuWithPort.class)));
+
+		eventLog.startBlock("Try resource access without DPoP proof");
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.3.3")
+			.insertAfter(AddDpopHeaderForResourceEndpointRequest.class,
+				condition(Fapi2DPoPNegativeConditions.RemoveDpopFromResourceRequest.class)));
 
 		// This is a final sanity check to make sure that all the above tests failed because of the invalid dpop proofs,
 		// and not because the access token had stopped working for some reason etc.
 		eventLog.startBlock("Check a correct DPoP proof still works");
-		call(new CallResourceEndpointSteps(true));
+		call(new CallResourceEndpointSteps(true, true, "DPOP-7.1"));
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
 		}
