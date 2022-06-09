@@ -875,7 +875,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		fetchClientJwksFromJwksUri();
 
 		//at this point jwks has been downloaded from jwks_uri and added to client.jwks
-		if(clientJwksNeeded) {
+		JsonObject client = env.getObject("client");
+		if(client.has("jwks")) {
 			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 			validateClientJwks();
 		}
