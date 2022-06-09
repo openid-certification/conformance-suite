@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -22,11 +23,11 @@ import java.util.Optional;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
+		"resource.brazilPaymentConsent"
 	}
 )
 public class PaymentsConsentsApiEnforceQRDNWithQRESCodeTestModule extends AbstractDictVerifiedPaymentTestModule {
+
 
 	@Override
 	protected void configureDictInfo() {

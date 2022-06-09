@@ -37,6 +37,7 @@ public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBr
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		env.putBoolean("consent_rejected", false);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);

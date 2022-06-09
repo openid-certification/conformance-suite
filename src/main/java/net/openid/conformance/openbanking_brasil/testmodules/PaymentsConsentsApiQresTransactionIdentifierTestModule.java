@@ -48,6 +48,7 @@ public class PaymentsConsentsApiQresTransactionIdentifierTestModule extends Abst
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);

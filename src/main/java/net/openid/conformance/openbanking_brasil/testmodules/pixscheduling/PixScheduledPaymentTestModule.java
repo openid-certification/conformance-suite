@@ -37,7 +37,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"resource.consentUrl",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"resource.brazilOrganizationId"
 	}
 )

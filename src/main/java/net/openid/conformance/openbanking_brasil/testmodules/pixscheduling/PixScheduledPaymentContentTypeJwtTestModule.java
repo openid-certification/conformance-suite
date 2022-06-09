@@ -33,7 +33,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"resource.brazilOrganizationId"
 	}
 )
