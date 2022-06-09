@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddResourceUrlToConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -14,6 +15,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModuleUnauthorizedClient {
+
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 	@Override
 	boolean isPaymentsApiTest() {
 		return true;

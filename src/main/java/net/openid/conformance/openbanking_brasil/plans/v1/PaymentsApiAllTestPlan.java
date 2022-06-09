@@ -39,7 +39,7 @@ public class PaymentsApiAllTestPlan implements TestPlan {
 					// the below are also in the phase 1 test plan
 					PaymentsApiTestModule.class,
 					PaymentsApiNegativeTestModule.class,
-					PaymentApiNoDebtorProvidedTestModule.class, //TODO stopped here
+					PaymentApiNoDebtorProvidedTestModule.class,
 					PaymentsConsentsApiTestModule.class,
 					PaymentsConsumedConsentsTestModule.class,
 					PaymentsConsentsApiEnforceMANUTestModule.class,
