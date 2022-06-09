@@ -1,10 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithPagtoClientThatHasClientSpecificJwks;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -26,6 +22,7 @@ public class PaymentsApiDcrTestModuleAttemptClientTakeover extends AbstractDcrTe
 
 	@Override
 	protected void configureClient() {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(OverrideClientWithPagtoClient.class);
 		callAndStopOnFailure(OverrideScopeWithOpenIdPayments.class);
 		callAndStopOnFailure(OverrideCNPJ.class);

@@ -27,6 +27,7 @@ public class PaymentsConsentsApiEnforceQRESTestModule extends AbstractClientCred
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndContinueOnFailure(SelectQRESCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 	}
