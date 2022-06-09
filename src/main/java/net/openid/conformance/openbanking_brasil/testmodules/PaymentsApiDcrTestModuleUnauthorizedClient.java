@@ -15,6 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModuleUnauthorizedClient {
 
+	@Override
 	protected void setupResourceEndpoint() {
 		callAndStopOnFailure(AddResourceUrlToConfig.class);
 		super.setupResourceEndpoint();

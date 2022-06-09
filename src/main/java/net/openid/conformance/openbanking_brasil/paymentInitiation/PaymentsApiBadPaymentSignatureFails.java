@@ -26,6 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails {
 
+	@Override
 	protected void setupResourceEndpoint() {
 		callAndStopOnFailure(AddResourceUrlToConfig.class);
 		super.setupResourceEndpoint();

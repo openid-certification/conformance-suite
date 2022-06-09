@@ -24,6 +24,7 @@ import java.util.Optional;
 )
 public class PaymentsApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
+	@Override
 	protected void setupResourceEndpoint() {
 		callAndStopOnFailure(AddResourceUrlToConfig.class);
 		super.setupResourceEndpoint();
