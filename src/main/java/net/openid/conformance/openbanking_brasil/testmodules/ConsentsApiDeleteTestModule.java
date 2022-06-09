@@ -82,7 +82,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 		callAndStopOnFailure(SetResponseBodyOptional.class);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
-		callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(LoadProtectedResourceAccessToken.class);
 
@@ -91,18 +91,26 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
+		call(callTokenEndpointRefreshToken());
+	}
+
+	private ConditionSequence callTokenEndpointRefreshToken(){
 		ConditionSequence sequence = sequenceOf(
 			condition(GenerateRefreshTokenRequest.class),
-			condition(SetAccountScopeOnTokenEndpointRequest.class),
 			condition(CreateClientAuthenticationAssertionClaims.class),
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class),
+			condition(CallTokenEndpoint.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
 			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
 		);
-		call(sequence);
-	}
 
+		if (clientAuthType == ClientAuthType.MTLS) {
+			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Not needed for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Not needed for MTLS");
+		}
+		return sequence;
+	}
 	@Override
 	protected void validateResponse() {}
 }
