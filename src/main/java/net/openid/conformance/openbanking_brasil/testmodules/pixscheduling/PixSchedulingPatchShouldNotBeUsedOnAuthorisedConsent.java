@@ -28,7 +28,6 @@ import net.openid.conformance.variant.ClientAuthType;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPatchPaymentConsent",
 		"resource.brazilOrganizationId"
@@ -37,6 +36,12 @@ import net.openid.conformance.variant.ClientAuthType;
 public class PixSchedulingPatchShouldNotBeUsedOnAuthorisedConsent extends AbstractFunctionalTestModule {
 
 	protected ClientAuthType clientAuthType;
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

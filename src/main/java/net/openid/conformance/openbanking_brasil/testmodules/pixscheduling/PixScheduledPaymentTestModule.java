@@ -35,7 +35,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilOrganizationId"
 	}
@@ -47,6 +46,12 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule {
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
@@ -54,6 +59,7 @@ public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule 
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(EnforcePresenceOfDebtorAccount.class);
