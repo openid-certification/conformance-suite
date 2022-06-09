@@ -33,7 +33,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"resource.brazilPatchPaymentConsent",
 		"resource.brazilOrganizationId"
 	}
