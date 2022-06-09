@@ -74,6 +74,10 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2AdvancedID1ClientTestPlan.testModules);
 
+		// Remove JARM tests which will cause VariantService errors on startup since this only tests response_mode=plain_response
+		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails.class);
+		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidIssFails.class);
+
 		List<TestPlan.Variant> variant = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 			new TestPlan.Variant(FAPIResponseMode.class, "plain_response")
