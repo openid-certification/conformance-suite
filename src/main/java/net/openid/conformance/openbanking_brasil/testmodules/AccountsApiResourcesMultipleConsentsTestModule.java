@@ -76,7 +76,7 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 			callAndStopOnFailure(ExtractResourceIdOfResourcesWithSpecifiedTypeAndStatus.class);
 		});
 
-		env.putString("protected_resource_url", env.getString("protected_resource_base_url"));
+		env.putString("protected_resource_url", env.getString("base_resource_url"));
 		super.requestProtectedResource(); // Call Accounts API
 	}
 
@@ -87,8 +87,13 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 		callAndStopOnFailure(EnsureResponseHasLinks.class);
 
 		// Call ACCOUNTS BALANCES API
+		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
+		runInBlock("Call Accounts Balances API", () -> call(getPreCallProtectedResourceSequence()
+			.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas403.class))));
+		runInBlock("Validate Accounts Balances response", () -> {
+			callAndStopOnFailure(ResourceErrorMetaValidator.class);
 
-
+		});
 
 
 

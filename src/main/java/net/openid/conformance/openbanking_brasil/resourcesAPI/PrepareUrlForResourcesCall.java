@@ -17,7 +17,7 @@ public class PrepareUrlForResourcesCall extends AbstractCondition {
 
 		String protectedResourceUrl = env.getString("protected_resource_url");
 		if(!Strings.isNullOrEmpty(protectedResourceUrl)){
-			env.putString("protected_resource_base_url", protectedResourceUrl);
+			env.putString("base_resource_url", protectedResourceUrl);
 		}
 		env.putString("protected_resource_url", resourcesApiUrl);
 		log("Prepared URL for Resources API call");
