@@ -17,10 +17,7 @@ public class ExtractResourceIdOfResourcesWithSpecifiedTypeAndStatus extends Abst
 	private static final Gson GSON = JsonUtils.createBigDecimalAwareGson();
 
 	@Override
-	@PreEnvironment(
-		strings = {"resource_type", "resource_status", "resource_endpoint_response"},
-		required = "resource_endpoint_response_full"
-	)
+	@PreEnvironment(strings = {"resource_type", "resource_status", "resource_endpoint_response"})
 	@PostEnvironment(required = "extracted_resource_id")
 	public Environment evaluate(Environment env) {
 		String resource = env.getString("resource_endpoint_response");
@@ -44,14 +41,12 @@ public class ExtractResourceIdOfResourcesWithSpecifiedTypeAndStatus extends Abst
 			}
 		}
 
-		if (!extractedIds.isEmpty()) {
-			JsonObject object = new JsonObject();
-			object.add("extractedResourceIds", extractedIds);
-			env.putObject("extracted_resource_id", object);
-			logSuccess("Extracted resourceId's of corresponding API", Map.of("Resource type", requiredType, "Resource Status", requiredStatus, "Extracted resourceId", extractedIds));
-		} else {
-			throw error("No available resourceId's of corresponding API were extracted", Map.of("Resource type", requiredType, "Resource Status", requiredStatus, "data", data));
-		}
+
+		JsonObject object = new JsonObject();
+		object.add("extractedResourceIds", extractedIds);
+		env.putObject("extracted_resource_id", object);
+		logSuccess("Extracted resourceId's of corresponding API", Map.of("Resource type", requiredType, "Resource Status", requiredStatus, "Extracted resourceId", extractedIds));
+
 		return env;
 	}
 }
