@@ -16,6 +16,7 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonElement localInstrument;
 		JsonElement amount;
 		JsonElement currency;
+		JsonElement type;
 		JsonElement proxy;
 		JsonElement qrCode;
 
@@ -27,9 +28,9 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 			throw error("Could not find resource object");
 		}
 
-		JsonObject brazilQrdnPaymentConsent = resource.getAsJsonObject("brazilQrdnPaymentConsent");
-		if (brazilQrdnPaymentConsent != null) {
-			consentData = brazilQrdnPaymentConsent.get("data").getAsJsonObject();
+		JsonObject brazilPaymentConsent = resource.getAsJsonObject("brazilPaymentConsent");
+		if (brazilPaymentConsent != null) {
+			consentData = brazilPaymentConsent.get("data").getAsJsonObject();
 			if (consentData != null) {
 				consentPayment = consentData.get("payment").getAsJsonObject();
 				if (consentPayment != null) {
@@ -42,6 +43,11 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 					currency = consentPayment.get("currency");
 					if (currency == null) {
 						throw error("currency field is missing in the payment object", consentPayment);
+					}
+
+					type = consentPayment.get("type");
+					if (type == null) {
+						throw error("type field is missing in the payment object", consentPayment);
 					}
 
 					consentDetails = consentPayment.getAsJsonObject("details");
@@ -59,14 +65,8 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 						}
 
 						qrCode = consentDetails.get("qrCode");
-						if (qrCode == null) {
-							throw error("qrCode field is missing in the details", consentDetails);
-						}
-
 						proxy = consentDetails.get("proxy");
-						if (proxy == null) {
-							throw error("proxy field is missing in the details", consentDetails);
-						}
+
 
 					}else {
 						throw error("details object is missing in the payment", consentPayment);
@@ -76,10 +76,10 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 					throw error("payment object is missing in the data", consentData);
 				}
 			} else {
-				throw error("data object is missing in the brazilQrdnPaymentConsent", brazilQrdnPaymentConsent);
+				throw error("data object is missing in the brazilPaymentConsent", brazilPaymentConsent);
 			}
 		} else {
-			throw error("brazilQrdnPaymentConsent object is missing in the resource", resource);
+			throw error("brazilPaymentConsent object is missing in the resource", resource);
 		}
 
 
@@ -99,8 +99,12 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 
 		data.add("localInstrument", localInstrument);
 		data.addProperty("remittanceInformation", DictHomologKeys.PROXY_EMAIL_STANDARD_REMITTANCEINFORMATION);
-		data.add("qrCode", qrCode);
-		data.add("proxy", proxy);
+		if (qrCode != null) {
+			data.add("qrCode", qrCode);
+		}
+		if (proxy != null) {
+			data.add("proxy", proxy);
+		}
 		data.add("cnpjInitiator", brazilQrdnCnpj);
 		data.addProperty("ibgeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE);
 
