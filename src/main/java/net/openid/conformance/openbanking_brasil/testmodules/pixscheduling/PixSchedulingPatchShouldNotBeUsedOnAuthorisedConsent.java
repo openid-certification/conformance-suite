@@ -30,7 +30,6 @@ import net.openid.conformance.variant.ClientAuthType;
 		"resource.consentUrl",
 		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
-		"resource.brazilPixPayment",
 		"resource.brazilPatchPaymentConsent",
 		"resource.brazilOrganizationId"
 	}

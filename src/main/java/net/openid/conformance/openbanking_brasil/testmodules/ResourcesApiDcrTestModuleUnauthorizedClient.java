@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -18,8 +19,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 DELETEs the registered client from the authorization server",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.resourceUrl"
+		"server.discoveryUrl"
 	}
 )
 // hide various config values from the FAPI base module we don't need
@@ -30,6 +30,13 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	"resource.brazilPixPayment"
 })
 public class ResourcesApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModuleUnauthorizedClient {
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
+
 	@Override
 	boolean isPaymentsApiTest() {
 		return false;

@@ -39,6 +39,7 @@ public class PaymentsConsentsReuseIdempotencyKeyTestModule extends AbstractOBBra
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 		callAndStopOnFailure(SanitiseQrCodeConfig.class);

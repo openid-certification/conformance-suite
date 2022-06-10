@@ -32,7 +32,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl"
 	}
 )
 public class CreditOperationsDiscontinuedCreditRightsResourcesApiTestModule
@@ -41,6 +40,12 @@ public class CreditOperationsDiscontinuedCreditRightsResourcesApiTestModule
 	private static final String API_RESOURCE_ID = "contractId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.INVOICE_FINANCING.name();
 	private static final String RESOURCE_STATUS = EnumResourcesStatus.AVAILABLE.name();
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildCreditOperationsDiscountedConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

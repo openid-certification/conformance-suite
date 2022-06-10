@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.productsServices;
+package net.openid.conformance.openinsurance.validator.channels;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,13 +13,13 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api Source: swagger/openinsurance/productsServices/swagger-intermediary.yaml
+ * Api Source: swagger/openinsurance/swagger-intermediary.yaml
  * Api endpoint: /intermediary/{countrySubDivision}
- * Git hash: 2baaf5f7f439576456ca1f262b84eebcc85ecd7b
- * Api version: 1.0.0
+ * Git hash: 45ff0d424353d93b5eb478a0da902d7b3d6e4764
+ * Api version: 1.1.0
  */
 
-@ApiName("ProductsServices Intermediary")
+@ApiName("Channels Intermediary")
 public class GetIntermediaryValidator extends AbstractJsonAssertingCondition {
 
 	private static class Fields extends ProductNServicesCommonFields {
