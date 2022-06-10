@@ -40,7 +40,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilCpfJointAccount",
 		"resource.brazilCnpjJointAccount",
 		"consent.productType"
@@ -55,6 +54,7 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 	@Override
 	protected void configureClient() {
 		super.configureClient();
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
 		env.putBoolean("continue_test", true);
 		callAndContinueOnFailure(EnsureJointAccountCpfOrCnpjIsPresent.class, Condition.ConditionResult.WARNING);
 		if (!env.getBoolean("continue_test")) {
@@ -81,7 +81,7 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 
 		});
 
-		env.putString("protected_resource_url", env.getString("base_resource_url"));
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
 		super.requestProtectedResource(); // Call Accounts API
 	}
 
@@ -105,7 +105,6 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 
 		// Poll Resources API
 		runInBlock("Poll Resources API", () -> {
-			env.putString("protected_resource_url", env.getString("base_resource_url"));
 			callAndStopOnFailure(PrepareUrlForResourcesCall.class);
 
 			env.putString("resource_status", EnumResourcesStatus.AVAILABLE.name());
@@ -123,7 +122,7 @@ public class AccountsApiResourcesMultipleConsentsTestModule extends AbstractOBBr
 		});
 
 		// Call accounts API
-		env.putString("protected_resource_url", env.getString("base_resource_url"));
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
 		runInBlock("Call Accounts API", () -> call(getPreCallProtectedResourceSequence()));
 
 		runInBlock("Validate Accounts response", () -> {
