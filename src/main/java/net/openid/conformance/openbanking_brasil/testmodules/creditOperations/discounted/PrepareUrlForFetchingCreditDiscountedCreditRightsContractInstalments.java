@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 public class PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments extends ResourceBuilder {
 
 	@Override
-	@PreEnvironment(strings = {"contractId", "base_resource_url"})
+	@PreEnvironment(strings = "contractId")
 	public Environment evaluate(Environment env) {
 
 		String contractId = env.getString("contractId");

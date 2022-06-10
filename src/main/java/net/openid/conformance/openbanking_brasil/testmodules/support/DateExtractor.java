@@ -16,7 +16,7 @@ public class DateExtractor extends ResourceBuilder {
 	@PostEnvironment(strings = {"transactionDate"})
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
-		//String request = env.getString("base_resource_url");
+		String accountID = env.getString("accountID");
 		JsonObject consent = new JsonParser().parse(entityString).getAsJsonObject();
 		JsonArray data = consent.getAsJsonArray("data");
 		var dataElement = data.get(0);
@@ -31,14 +31,7 @@ public class DateExtractor extends ResourceBuilder {
 			logSuccess("Transaction ID", args("transactionId", transactionId));
 		}
 
-//		String newRequest = null;
-//		if (request.contains("fromBookingDate")) {
-//			int oldUrl = request.indexOf("?");
-//			newRequest = request.substring(0, oldUrl);
-//		}
 
-//		var url = String.format(newRequest + "?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate);
-		String accountID = env.getString("accountID");
 		setApi("accounts");
 		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate));
 

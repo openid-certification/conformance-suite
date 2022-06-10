@@ -64,7 +64,6 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		eventLog.startBlock("Set booking date query parameters as transaction date");
 		callAndContinueOnFailure(DateExtractor.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(PrepareUrlForBookingDateTests.class);
 		preCallProtectedResource("Fetch Account transactions");
 		keepHeaders = false;
 		eventLog.startBlock("End of date tests");
