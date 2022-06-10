@@ -5,23 +5,23 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.common.AbstractSignClaimsWithNullAlgorithm;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignIdTokenWithNullAlgorithm extends AbstractSignClaimsWithNullAlgorithm {
+public class SignJarmWithNullAlgorithm extends AbstractSignClaimsWithNullAlgorithm {
 
 	@Override
 	protected String getClaimsNotFoundErrorMsg() {
-		return "ID Token claims not found";
+		return "JARM claims not found";
 	}
 
 	@Override
 	protected String getSuccessMsg() {
-		return "Signed the id_token with null algorithm";
+		return "Signed the JARM response with null algorithm";
 	}
 
 	@Override
-	@PreEnvironment(required = "id_token_claims" )
-	@PostEnvironment(strings = "id_token")
+	@PreEnvironment(required = "jarm_response_claims" )
+	@PostEnvironment(strings = "jarm_response")
 	public Environment evaluate(Environment env) {
-		return signWithNullAlgorithm(env, "id_token_claims", "id_token");
+		return signWithNullAlgorithm(env, "jarm_response_claims", "jarm_response");
 	}
 
 }
