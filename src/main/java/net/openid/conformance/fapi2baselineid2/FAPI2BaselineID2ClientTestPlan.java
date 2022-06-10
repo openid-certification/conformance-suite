@@ -81,6 +81,8 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidAudFails.class);
 		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutExpFails.class);
 		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithExpiredExpFails.class);
+		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidSigFails.class);
+		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmSignatureAlgIsNotNone.class);
 
 		List<TestPlan.Variant> variant = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),
