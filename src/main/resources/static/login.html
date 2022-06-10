@@ -101,10 +101,9 @@
 				    $(".disclaimer-wrapper").show();
 			    }
 
-				// OCI-582 - uncommnent the code eblow when ready to release.
-				// if (data.brand.toLowerCase().includes("open banking brazil")) {
-				// 	$(".adminLogin").hide();
-				// }
+				if (data.brand.toLowerCase().includes("open banking brazil")) {
+				    $(".adminLogin").hide();
+				}
 
 			});
 		}
