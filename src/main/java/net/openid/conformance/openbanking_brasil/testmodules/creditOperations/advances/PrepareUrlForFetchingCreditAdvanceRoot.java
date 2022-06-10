@@ -9,8 +9,6 @@ public class PrepareUrlForFetchingCreditAdvanceRoot extends ResourceBuilder {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String contractId = env.getString("contractId");
-
 		setApi("unarranged-accounts-overdraft");
 		setEndpoint("/contracts");
 

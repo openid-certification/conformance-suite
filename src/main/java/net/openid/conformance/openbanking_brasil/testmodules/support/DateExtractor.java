@@ -33,7 +33,7 @@ public class DateExtractor extends ResourceBuilder {
 
 
 		setApi("accounts");
-		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate));
+		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", accountID, transactionDate, transactionDate));
 
 
 		return super.evaluate(env);
