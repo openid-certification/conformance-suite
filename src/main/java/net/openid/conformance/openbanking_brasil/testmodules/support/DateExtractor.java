@@ -6,16 +6,17 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class DateExtractor extends AbstractCondition {
+public class DateExtractor extends ResourceBuilder {
 	@Override
-	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
-	@PostEnvironment(strings = {"transactionDate","base_resource_url"})
+	@PreEnvironment(strings = {"resource_endpoint_response", "accountId"})
+	@PostEnvironment(strings = {"transactionDate"})
 	public Environment evaluate(Environment env) {
 		String entityString = env.getString("resource_endpoint_response");
-		String request = env.getString("base_resource_url");
+		//String request = env.getString("base_resource_url");
 		JsonObject consent = new JsonParser().parse(entityString).getAsJsonObject();
 		JsonArray data = consent.getAsJsonArray("data");
 		var dataElement = data.get(0);
@@ -30,16 +31,18 @@ public class DateExtractor extends AbstractCondition {
 			logSuccess("Transaction ID", args("transactionId", transactionId));
 		}
 
-		String newRequest = null;
-		if (request.contains("fromBookingDate")) {
-			int oldUrl = request.indexOf("?");
-			newRequest = request.substring(0, oldUrl);
-		}
+//		String newRequest = null;
+//		if (request.contains("fromBookingDate")) {
+//			int oldUrl = request.indexOf("?");
+//			newRequest = request.substring(0, oldUrl);
+//		}
 
-		var url = String.format(newRequest + "?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate);
-		logSuccess("Added fromBookingDate and toBookingDate query parameters: " + url);
-		env.putString("base_resource_url", url);
+//		var url = String.format(newRequest + "?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate);
+		String accountID = env.getString("accountID");
+		setApi("accounts");
+		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", transactionDate, transactionDate));
 
-		return env;
+
+		return super.evaluate(env);
 	}
 }
