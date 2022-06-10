@@ -30,14 +30,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class LoansApiResourcesTestModule extends LoansApiTestModule {
 
 	private static final String API_RESOURCE_ID = "contractId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.LOAN.name();
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildLoansConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

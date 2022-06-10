@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import java.time.Duration;
@@ -14,13 +15,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
-public class AddBookingDateParameters extends AbstractCondition {
+public class AddBookingDateParameters extends ResourceBuilder {
 	@Override
-	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
-	@PostEnvironment(strings = "base_resource_url")
-
+	@PreEnvironment(strings = {"resource_endpoint_response", "accountId"})
 	public Environment evaluate(Environment env){
-		String request = env.getString("base_resource_url");
 
 		LocalDateTime date = LocalDateTime.now();
 		LocalDateTime fromDate = date.minusMonths(12);
@@ -30,9 +28,9 @@ public class AddBookingDateParameters extends AbstractCondition {
 		String toDateF = toDate.format(dateFormat);
 
 		String accountId = env.getString("accountId");
-		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,fromDateF, toDateF);
-		log("Added fromBookingDate and toBookingDate query parameters to URL: " + url);
-		env.putString("base_resource_url", url);
+
+		setApi("accounts");
+		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", accountId, fromDateF, toDateF));
 
 		String data = env.getString("resource_endpoint_response");
 		JsonObject checkObject = new JsonParser().parse(data).getAsJsonObject();
@@ -90,6 +88,6 @@ public class AddBookingDateParameters extends AbstractCondition {
 		else {
 			log("Query parameters " + days + " days apart");
 		}
-		return env;
+		return super.evaluate(env);
 	}
 }
