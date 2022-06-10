@@ -82,7 +82,6 @@ public class CreditCardApiTransactionCurrentTestModule extends AbstractOBBrasilF
 		// Call with invalid  parameters
 		env.putString("fromBookingDate", currentDate.minusDays(30).format(FORMATTER));
 		env.putString("toBookingDate", currentDate.minusDays(20).format(FORMATTER));
-		env.putString("protected_resource_url", env.getString("base_resource_url"));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
