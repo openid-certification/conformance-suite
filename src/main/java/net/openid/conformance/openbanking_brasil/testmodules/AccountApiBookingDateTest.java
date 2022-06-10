@@ -28,12 +28,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 
 public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestModule{
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -56,12 +60,10 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		eventLog.startBlock("Add booking date query parameters 1 year apart");
 		keepHeaders = true;
 		callAndContinueOnFailure(AddBookingDateParameters.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(PrepareUrlForBookingDateTests.class);
 		preCallProtectedResource("Fetch Account transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		eventLog.startBlock("Set booking date query parameters as transaction date");
 		callAndContinueOnFailure(DateExtractor.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(PrepareUrlForBookingDateTests.class);
 		preCallProtectedResource("Fetch Account transactions");
 		keepHeaders = false;
 		eventLog.startBlock("End of date tests");

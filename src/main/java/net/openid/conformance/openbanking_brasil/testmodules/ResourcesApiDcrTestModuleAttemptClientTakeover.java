@@ -1,9 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDadosClientThatHasClientSpecificJwks;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -27,8 +24,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"directory.client_id",
-		"resource.resourceUrl"
+		"directory.client_id"
 	}
 )
 // hide various config values from the FAPI base module we don't need
@@ -45,6 +41,7 @@ public class ResourcesApiDcrTestModuleAttemptClientTakeover extends AbstractDcrT
 		callAndStopOnFailure(OverrideClientWithDadosClient.class);
 		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 

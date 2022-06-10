@@ -3,26 +3,26 @@ openapi: 3.0.0
 info:
     title: APIs Open Data do Open Insurance Brasil
     description:
-        API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
-    version: 1.0.0
+        API de informações de dados do produto Rede Referenciada. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados..
+    version: 1.1.0
     contact:
         url: 'https://http://novosite.susep.gov.br'
 servers:
-    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    - url: 'https://api.organizacao.com.br/open-insurance/channels/v1'
       description: Servidor de Producao
-    - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+    - url: 'https://api.organizacao.com.br/open-insurance/channels/v1'
       description: Servidor de Homologacao
 tags:
-    - name: "Intermediarios"
+    - name: "Rede Referenciada"
 
 paths:
-    /intermediary/{countrySubDivision}:
+    /referenced-network/{countrySubDivision}/{serviceType}:
         get:
             tags:
-                - Intermediary
-            summary: Obtem a lista dos produtos do tipo Intermediarios
-            description: "Obtem a lista dos produtos do tipo Intermediarios"
-            operationId: "getIntermediary"
+                - ReferencedNetwork
+            summary: Obtem a lista dos produtos do tipo Rede Referenciada
+            description: "Obtem a lista dos produtos do tipo Rede Referenciada"
+            operationId: "getReferencedNetwork"
             parameters:
                 - $ref: "#/components/parameters/cache-Control"
                 - $ref: "#/components/parameters/content-Security-Policy"
@@ -33,14 +33,14 @@ paths:
                 - $ref: "#/components/parameters/page"
                 - $ref: "#/components/parameters/pageSize"
                 - $ref: "#/components/parameters/countrySubDivision"
-                - $ref: "#/components/parameters/line"
+                - $ref: "#/components/parameters/serviceType"
             responses:
                 '200':
-                    description: Dados dos produtos de Intermediarios
+                    description: Dados dos produtos de Rede Referenciada
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ResponseIntermediaryList'
+                                $ref: '#/components/schemas/ResponseReferencedNetworkList'
                 '204':
                     $ref: '#/components/responses/NoContent'
                 '400':
@@ -60,15 +60,15 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
                 default:
-                    description: Dados dos produtos de API de informações de dados do produto Intermediarios. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
+                    description: Dados dos produtos de API de informações de dados do produto Rede Referenciada. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.2 do manual de escopo de dados.
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ResponseIntermediaryList'
+                                $ref: '#/components/schemas/ResponseReferencedNetworkList'
 
 components:
     schemas:
-        ResponseIntermediaryList:
+        ResponseReferencedNetworkList:
             type: object
             required:
                 - data
@@ -81,12 +81,12 @@ components:
                         - brand
                     properties:
                         brand:
-                            $ref: '#/components/schemas/IntermediaryBrand'
+                            $ref: '#/components/schemas/ReferencedNetworkBrand'
                 links:
                     $ref: '#/components/schemas/Links'
                 meta:
                     $ref: '#/components/schemas/Meta'
-        IntermediaryBrand:
+        ReferencedNetworkBrand:
             type: object
             description: Organizacao controladora do grupo.
             required:
@@ -99,8 +99,8 @@ components:
                     maxLength: 80
                     example: ACME Group Seguros
                 companies:
-                    $ref: '#/components/schemas/IntermediaryCompany'
-        IntermediaryCompany:
+                    $ref: '#/components/schemas/ReferencedNetworkCompany'
+        ReferencedNetworkCompany:
             type: array
             items:
                 description: Informações referente a sociedade a qual a marca pertence.
@@ -111,68 +111,75 @@ components:
                 properties:
                     name:
                         type: string
-                        description: Nome da sociedade supervisionada participante
+                        description: Nome da sociedade pertencente à marca.
                         maxLength: 80
                         example: ACME Seguros
                     cnpjNumber:
                         type: string
-                        description: CNPJ da sociedade supervisionada participante
+                        description: CNPJ da sociedade pertencente à marca.
                         maxLength: 14
                         example: "12345678901234"
                     identification:
-                        $ref: '#/components/schemas/IntermediaryIdentification'
-        IntermediaryIdentification:
+                        $ref: '#/components/schemas/ReferencedNetworkIdentification'
+        ReferencedNetworkIdentification:
             type: array
             items:
                 description: Informações referente a identificação.
                 required:
                     - name
-                    - type
+                    - cnpjNumber
+                    - products
                     - postalAddress
                     - services
                 properties:
                     name:
                         type: string
                         maxLength: 80
-                        description: Nome ou razão social (pessoa jurídica) do intermediário
-                        example: Intermediário C
-                    nameOther:
-                        type: string
-                        maxLength: 80
-                        description: No caso da Pessoa jurídica
-                        example: Intermediário D
-                    documentNumber:
+                        description: Nome ou razão social do prestador de serviço
+                        example: Empresa B
+                    cnpjNumber:
                         type: string
                         maxLength: 14
-                        pattern: ^\d{11}|\d{14}$
-                        description: "CPF ou CNPJ do intermediário
-                  OBS: Opcional para pessoa natural"
+                        description: CNPJ do prestador de serviço
                         example: 12341234123412
-                    type:
-                        type: string
-                        maxLength: 39
-                        description: Relação de tipos de intermediário
-                        enum: [CORRETOR_DE_SEGUROS,
-                               REPRESENTANTE_DE_SEGUROS,
-                               AGENTES_DE_SEGUROS,
-                               DISTRIBUIDOR_DE_TITULO_DE_CAPITALIZACAO]
-                        example: CORRETOR_DE_SEGUROS
-                    SUSEP:
-                        type: string
-                        description: "Número de Registro SUSEP no caso de intermediário ser Corretor de Seguros.
-                  OBS: Condicional a seleção de 1. Corretor de seguros no campo acima"
-                        maxLength: 20
-                        example: 15414622222222222
+                    products:
+                        $ref: '#/components/schemas/ReferencedNetworkProduct'
                     postalAddress:
-                        $ref: '#/components/schemas/IntermediaryCoveragePostalAddress'
+                        $ref: '#/components/schemas/ReferencedNetworkCoveragePostalAddress'
                     access:
-                        $ref: '#/components/schemas/IntermediaryAccess'
+                        $ref: '#/components/schemas/ReferencedNetworkAccess'
                     services:
-                        $ref: '#/components/schemas/IntermediaryServices'
+                        $ref: '#/components/schemas/ReferencedNetworkServices'
+        ReferencedNetworkProduct:
+            type: array
+            description: Lista de produtos de uma empresa.
+            items:
+                type: object
+                required:
+                    - code
+                    - name
+                properties:
+                    code:
+                        type: string
+                        description: Listagem de código de identificação do produto (vide seção 3 do Manual de Dados e Serviços) que possui atendimento pelo prestador de serviço.
+                        maxLength: 100
+                        example: "01234589-0"
+                    name:
+                        type: string
+                        description: Nome comercial do produto, pelo qual é identificado nos canais de distribuição e atendimento da sociedade.
+                        maxLength: 80
+                        example: Produto de Seguro
+                    coverage:
+                        type: array
+                        description: "Indicação da lista de coberturas, caso a distinção do atendimento pelo prestador de serviço se aplique para diferentes coberturas de um mesmo produto."
+                        items:
+                            type: string
+                            maxLength: 150
 
-        IntermediaryCoveragePostalAddress:
+        ReferencedNetworkCoveragePostalAddress:
             type: array
             items:
+                type: object
                 required:
                     - address
                     - townName
@@ -183,7 +190,7 @@ components:
                     address:
                         type: string
                         maxLength: 150
-                        description: "Deverá trazer toda a informação referente ao endereço do intermediário: Tipo de logradouro + Nome do logradouro + Número do Logradouro (se não existir usar ' s/n') + complemento (se houver)"
+                        description: "Deverá trazer toda a informação referente ao endereço do intermediário: Tipo de logradouro + Nome do logradouro + Número do Logradouro (se não existir usar ' s/n') + complemento (se houver), como, p.ex.: 'R Diamantina, 59, bloco 35, fundos’ 'Praça da Boa Vontade s/n'"
                         example: "'Rua Diamantina, 59, bloco 35'
                 Praça da Boa Vontade, s/n"
                     additionalInfo:
@@ -194,12 +201,12 @@ components:
                     districtName:
                         type: string
                         maxLength: 50
-                        description: Bairro é uma comunidade ou região localizada em uma cidade ou município de acordo com as suas subdivisões geográficas
+                        description: "Bairro é uma comunidade ou região localizada em uma cidade ou município de acordo com as suas subdivisões geográficas. p.ex: 'Paraíso'"
                         example: Paraíso
                     townName:
                         type: string
                         maxLength: 50
-                        description: "Localidade: O nome da localidade corresponde à designação da cidade ou município no qual o endereço está localizado"
+                        description: "Localidade: O nome da localidade corresponde à designação da cidade ou município no qual o endereço está localizado. p.ex. 'São Paulo'"
                         example: São Paulo
                     ibgeCode:
                         type: string
@@ -240,7 +247,7 @@ components:
                     postCode:
                         type: string
                         maxLength: 8
-                        description: "Código de Endereçamento Postal: Composto por um conjunto numérico de oito dígitos, o objetivo principal do CEP é orientar e acelerar o encaminhamento, o tratamento e a entrega de objetos postados nos Correios, por meio da sua atribuição a localidades, logradouros, unidades dos Correios, serviços, órgãos públicos, empresas e edifícios"
+                        description: "Código de Endereçamento Postal: Composto por um conjunto numérico de oito dígitos, o objetivo principal do CEP é orientar e acelerar o encaminhamento, o tratamento e a entrega de objetos postados nos Correios, por meio da sua atribuição a localidades, logradouros, unidades dos Correios, serviços, órgãos públicos, empresas e edifícios. p.ex. '01311000'"
                         example: 1310200
                     country:
                         type: string
@@ -502,41 +509,36 @@ components:
                         example: BRA
                         description: Código do país de acordo com o código “alpha3” do ISO-3166. p.ex.'BRA'
                     geographicCoordinates:
-                        $ref: '#/components/schemas/IntermediaryGeographicCoordinates'
+                        $ref: '#/components/schemas/ReferencedNetworkGeographicCoordinates'
 
-        IntermediaryGeographicCoordinates:
+        ReferencedNetworkGeographicCoordinates:
             type: object
             properties:
                 latitude:
                     type: string
                     maxLength: 11
-                    description: Informação da Latitude referente a geolocalização informada. Entre -90 e 90. Formato numérico 2 casas antes da vírgula, 11 posições.
+                    description: Informação da Latitude referente a geolocalização informada. Entre -90 e 90. Formato numérico 2 casas antes da vírgula, 11 posições. p.ex. '-89.8365180'
                     example: -89.8365180
                 longitude:
                     type: string
                     maxLength: 11
-                    description: Informação da Longitude referente a geolocalização informada. Formato numérico 3 casas antes da vírgula, 11 posições. Entre -180 e 180.'
+                    description: Informação da Longitude referente a geolocalização informada. Formato numérico 3 casas antes da vírgula, 11 posições. Entre -180 e 180. p.ex'-179.836519.'
                     example: -179.836519
-        IntermediaryAccess:
-            type: object
-            description: Forma de acesso.
-            properties:
-                standards:
-                    $ref: '#/components/schemas/IntermediaryStandards'
-                email:
-                    description: Endereço de e-mail
-                    type: string
-                    maxLength: 50
-                    example: Joao.silva@seguradoraa.com.br
-                site:
-                    type: string
-                    description: "Campo aberto
-            As URLs são limitadas a 2048 caracteres, mas, para o contexto do Open Insurance, foi adotado a metade deste tamanho (1024)."
-                    maxLength: 1024
-                    example: "https://openinsurance.com.br/aaa"
-                phones:
-                    $ref: '#/components/schemas/IntermediaryPhones'
-        IntermediaryStandards:
+        ReferencedNetworkAccess:
+            type: array
+            items:
+                type: object
+                description: Forma de acesso.
+                properties:
+                    standards:
+                        $ref: '#/components/schemas/ReferencedNetworkStandards'
+                    restrictionIndicator:
+                        type: boolean
+                        description: Indica se a instalação dos Prestadores de serviços tem acesso restrito a clientes, por exemplo. p.ex. 'false' (restrito)
+                        example: false
+                    phones:
+                        $ref: '#/components/schemas/ReferencedNetworkPhones'
+        ReferencedNetworkStandards:
             type: array
             items:
                 properties:
@@ -564,7 +566,7 @@ components:
                                SEXTA_FEIRA,
                                SABADO]
                         example: DOMINGO
-        IntermediaryPhones:
+        ReferencedNetworkPhones:
             type: array
             description: Telefone do intermediário
             items:
@@ -573,7 +575,7 @@ components:
                     type:
                         description: Identificação do Tipo de telefone do intermediário
                         type: string
-                        maxLength: 13
+                        maxLength: 50
                         example: FIXO
                     countryCallingCode:
                         description: Número de DDI (Discagem Direta Internacional) para telefone de acesso ao Canal - se houver.
@@ -590,45 +592,178 @@ components:
                         type: string
                         maxLength: 11
                         example: 30041000
-        IntermediaryServices:
+        ReferencedNetworkServices:
             type: array
             items:
                 description: Forma de acesso.
                 required:
+                    - type
                     - name
-                    - line
+                    - description
                 properties:
+                    type:
+                        description: "Relação dos tipos de prestação de serviços efetivamente prestados, conforme discriminado na Tabela XXX do Anexo II"
+                        type: string
+                        maxLength: 27
+                        enum: [ASSISTENCIA_AUTO,
+                               ASSISTENCIA_RE,
+                               ASSISTENCIA_VIDA,
+                               BENEFICIOS,
+                               DESPACHANTE,
+                               LOCACAO_DE_VEICULOS,
+                               REPAROS_AUTOMOTIVOS,
+                               REPAROS_EMERGENCIAIS,
+                               SERVICO_DE_MANUTENCAO,
+                               SERVICO_EM_CASO_DE_SINISTRO,
+                               TRANSPORTE_DO_EMERGENCIAL,
+                               OUTROS]
+                    typeOthers:
+                        description: Descrição de serviços efetuados no tipo de prestação de serviços CASO PREENCHIDO A OPÇÃO OUTRAS. Deve ser padronizada na proposta técnica submetida pela Estrutura Inicial de Governança para observância comum por todas as sociedades participantes
+                        type: string
+                        maxLength: 3000
                     name:
-                        description: Relação dos serviços efetivamente prestados, conforme discriminado na Tabela II.3 do Anexo II
-                        type: string
-                        maxLength: 164
-                        enum: [ANGARIACAO_PROMOCAO_INTERMEDIACAO_OU_DISTRIBUICAO_DE_PRODUTOS,
-                               ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS,
-                               RECEPCAO_DE_PROPOSTAS_E_EMISSAO_DE_DOCUMENTOS_CONTRATUAIS,
-                               SUBSCRICAO_DE_RISCOS_RELACIONADOS_A_PRODUTOS_DE_SEGUROS,
-                               COLETA_E_FORNECIMENTO_A_SOCIEDADE_PARTICIPANTE_DE_DADOS_CADASTRAIS_E_DE_DOCUMENTACAO_DE_CLIENTES_E_SE_FOR_O_CASO_ESTIPULANTES_CORRETORES_DE_SEGUROS_E_SEUS_PREPOSTOS,
-                               RECOLHIMENTO_DE_PREMIOS_E_CONTRIBUICOES,
-                               RECEBIMENTO_DE_AVISOS_DE_SINISTROS,
-                               REGULACAO_DE_SINISTROS,
-                               PAGAMENTO_DE_INDENIZACAO_BENEFICIO,
-                               ORIENTACAO_E_ASSISTENCIA_AOS_CLIENTES_NO_QUE_COMPETE_AOS_CONTRATOS_COMERCIALIZADOS,
-                               APOIO_LOGISTICO_E_OPERACIONAL_A_SOCIEDADE_PARTICIPANTE_NA_GESTAO_E_EXECUCAO_DE_CONTRATOS,
-                               OUTROS,]
-                        example: ACONSELHAMENTO_SOBRE_PRODUTOS_OFERTADOS
-                    nameOthers:
-                        description: Campo aberto para descrição em caso de seleção de Outras na lista padronizada de Tipo de Serviço Prestado por Intermediário
-                        type: string
-                        maxLength: 100
-                    line:
+                        description: "Relação dos serviços efetivamente prestados, conforme discriminado na Tabela II.5 do Anexo II"
                         type: array
                         items:
                             type: string
-                            description: Linha de negócio de atuação
-                            maxLength: 93
-                            enum: [LISTAGEM_DE_RAMOS_DE_SEGUROS_CONFORME_REGULAMENTACAO_ESPECIFICA_SOBRE_CONTABILIZACAO_EM_RAMOS,
-                                   PREVIDENCIA_COMPLEMENTAR_ABERTA,
-                                   CAPITALIZACAO]
-                            example: CAPITALIZACAO
+                            maxLength: 57
+                            enum: [ACIONAMENTO_E_OU_AGENDAMENTO_DE_LEVA_E_TRAZ,
+                                   AMPARO_DE_CRIANCAS,
+                                   APLICACAO_DE_VACINAS_EM_DOMICILIO,
+                                   AQUECEDORES,
+                                   ASSISTENCIA_A_ELETRODOMESTICOS,
+                                   ASSISTENCIA_AUTO_E_OU_MOTO,
+                                   ASSISTENCIA_BIKE,
+                                   ASSISTENCIA_EM_VIAGEM,
+                                   ASSISTENCIA_ESCOLAR,
+                                   ASSISTENCIA_FUNERAL,
+                                   ASSISTENCIA_FUNERAL_PET,
+                                   ASSISTENCIA_INFORMATICA,
+                                   ASSISTENCIA_NUTRICIONAL,
+                                   ASSISTENCIA_PET,
+                                   ASSISTENCIA_RESIDENCIAL,
+                                   ASSISTENCIA_SUSTENTAVEL,
+                                   ASSISTENCIA_VETERINARIA_EMERGENCIAL,
+                                   ASSISTENCIAS_SAUDE_E_BEM_ESTAR,
+                                   BABY_SITTER,
+                                   CACAMBA,
+                                   CARRO_RESERVA,
+                                   CESTA_BASICA,
+                                   CESTA_DE_ALIMENTOS,
+                                   CESTA_NATALIDADE,
+                                   CHAVEIRO,
+                                   CHECK_UP,
+                                   COBERTURA_PROVISORIA_DE_TELHADO,
+                                   CONCIERGE,
+                                   CONSERTO_DE_AR_CONDICIONADO,
+                                   CONSERTO_DE_ELETRODOMESTICOS_LINHA_BRANCA,
+                                   CONSERTO_DE_ELETROELETRONICO_LINHA_MARROM,
+                                   CONSERTO_DE_PORTA_ONDULADA,
+                                   CONSULTAS_VETERINARIAS,
+                                   CONSULTORIA_ORCAMENTARIA,
+                                   CONVENIENCIA_EM_VIAGEM,
+                                   DEDETIZACAO,
+                                   DESATOLAMENTO,
+                                   DESCARTE_RESPONSAVEL,
+                                   DESCONTOS_EM_CONSULTAS_E_EXAMES,
+                                   DESCONTOS_EM_MEDICAMENTOS,
+                                   DESENTUPIMENTO,
+                                   DESINSETIZACAO_E_DESRATIZACAO,
+                                   DESPACHANTE,
+                                   DESPESAS_FARMACEUTICAS,
+                                   DESPESAS_MEDICAS_CIRURGICAS_E_DE_HOSPITALIZACAO,
+                                   DESPESAS_ODONTOLOGICAS,
+                                   ELETRICISTA,
+                                   EMERGENCIAS,
+                                   ENCANADOR,
+                                   ENVIO_DE_ACOMPANHANTE_EM_CASO_DE_ACIDENTE,
+                                   ENVIO_DE_FAMILIAR_PARA_ACOMPANHAMENTO_DE_MENORES_DE_ANOS,
+                                   ENVIO_DE_RACAO,
+                                   ESCRITORIO_VIRTUAL,
+                                   GUARDA_DE_ANIMAIS,
+                                   GUARDA_DO_VEICULO,
+                                   GUINCHO,
+                                   HELP_DESK,
+                                   HIDRAULICA,
+                                   HOSPEDAGEM,
+                                   HOSPEDAGEM_DE_ANIMAIS,
+                                   INDICACAO_DE_BANHO_E_TOSA,
+                                   INDICACAO_DE_PROFISSIONAIS,
+                                   INFORMACAO_SOBRE_RACAS_DE_CAES,
+                                   INFORMACAO_SOBRE_VENDA_DE_FILHOTES,
+                                   INFORMACOES_SOBRE_VACINAS,
+                                   INFORMACOES_VETERINARIAS_UTEIS,
+                                   INSTALACAO_RESIDENCIA,
+                                   INSTALACAO_DE_CHUVEIRO_ELETRICO_E_OU_TROCA_DE_RESISTENCIA,
+                                   INSTALACAO_DE_SUPORTE_TV_ATE,
+                                   LIMPEZA,
+                                   LIMPEZA_DE_AR_CONDICIONADO,
+                                   LIMPEZA_DE_CAIXA_D_AGUA,
+                                   LIMPEZA_DE_CALHAS,
+                                   LIMPEZA_DE_RALOS_E_SIFOES,
+                                   LOCACAO_DE_ELETRODOMESTICOS,
+                                   LOCACAO_DE_VEICULOS,
+                                   LOCALIZACAO_DE_BAGAGEM,
+                                   MANUTENCAO,
+                                   MARTELINHO_E_REPARO_RAPIDO,
+                                   MECANICO,
+                                   MEIO_DE_TRANSPORTE,
+                                   MONITORACAO_MEDICA,
+                                   MOTO,
+                                   MOTORISTA_AMIGO,
+                                   MOTORISTA_SUBSTITUTO,
+                                   MTA_MEIO_DE_TRANSPORTE_ALTERNATIVO,
+                                   MUDANCA_E_GUARDA_DE_MOVEIS,
+                                   ORGANIZACAO,
+                                   ORIENTACAO_EM_CASO_DE_PERDA_DE_DOCUMENTOS,
+                                   ORIENTACAO_MEDICA,
+                                   ORIENTACAO_PSICOLOGICA,
+                                   PERSONAL_FITNESS,
+                                   REBOQUE,
+                                   REBOQUE_BIKE,
+                                   RECUPERACAO_DO_VEICULO,
+                                   REGRESSO_ANTECIPADO_EM_CASO_DE_FALECIMENTO_DE_PARENTES,
+                                   REGRESSO_DO_USUARIO_APOS_ALTA_HOSPITALAR,
+                                   REINSTALACAO_E_REPARO_DO_VENTILADOR_DE_TETO,
+                                   REMANEJAMENTO_DE_MOVEIS,
+                                   REMOCAO_HOSPITALAR,
+                                   REMOCAO_MEDICA,
+                                   REMOCAO_MEDICA_INTER_HOSPITALAR,
+                                   REPARACAO_AUTOMOTIVA,
+                                   REPARO_DE_TELEFONIA,
+                                   REPARO_EM_PORTOES_AUTOMATICOS,
+                                   REPARO_FIXACAO_DE_ANTENAS,
+                                   REPAROS_ELETRICOS,
+                                   RETORNO_ANTECIPADO_AO_DOMICILIO,
+                                   REVERSAO_DE_FOGAO,
+                                   REVISAO_DE_INSTALACAO_ELETRICA,
+                                   SEGUNDA_OPINIAO_MEDICA_INTERNACIONAL,
+                                   SEGURANCA,
+                                   SERRALHEIRO,
+                                   SERVICO_DE_INDICACAO_MEDICA,
+                                   SERVICO_DE_LIMPEZA,
+                                   SERVICOS_AUTO,
+                                   SERVICOS_ESPECIAIS_FIXACAO_DE_OBJETOS,
+                                   SERVICOS_GERAIS,
+                                   SUBSTITUICAO_DE_PNEUS,
+                                   SUBSTITUICAO_DE_TELHAS,
+                                   TAXI,
+                                   TELEMEDICINA,
+                                   TRANSMISSAO_DE_MENSAGENS_URGENTES,
+                                   TRANSPORTE_E_ENVIO_DE_FAMILIAR,
+                                   TRANSPORTE_E_GUARDA_MOVEIS,
+                                   TRANSPORTE_ESCOLAR_PESSOAS,
+                                   TRANSPORTE_VETERINARIO_EMERGENCIAL,
+                                   TRASLADO_DE_CORPO,
+                                   TROCA_DE_BATERIA,
+                                   TROCA_DE_PNEUS,
+                                   VERIFICACAO_DE_POSSIVEIS_VAZAMENTOS,
+                                   VIGILANCIA_E_SEGURANCA,
+                                   OUTRAS]
+                    description:
+                        type: string
+                        maxLength: 5000
+                        description: Campo aberto para detalhamento do tipo de serviço prestado.
 
         Links:
             type: object
@@ -636,23 +771,23 @@ components:
                 self:
                     type: string
                     description: URL da página atualmente requisitada
-                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                    example: 'https://api.organizacao.com.br/open-insurance/channels/v1'
                 first:
                     type: string
                     description: URL da primeira página de registros
-                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                    example: 'https://api.organizacao.com.br/open-insurance/channels/v1'
                 prev:
                     type: string
                     description: URL da página anterior de registros
-                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                    example: 'https://api.organizacao.com.br/open-insurance/channels/v1'
                 next:
                     type: string
                     description: URL da próxima página de registros
-                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                    example: 'https://api.organizacao.com.br/open-insurance/channels/v1'
                 last:
                     type: string
                     description: URL da última página de registros
-                    example: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
+                    example: 'https://api.organizacao.com.br/open-insurance/channels/v1'
 
         Meta:
             type: object
@@ -726,18 +861,18 @@ components:
                 type: integer
                 default: 10
                 minimum: 1
+        serviceType:
+            name: serviceType
+            in: path
+            description: Listagem de tipos que deve ser padronizada na proposta técnica submetida pela Estrutura Inicial de Governança para observância comum por todas as sociedades participantes
+            required: true
+            schema:
+                type: string
         countrySubDivision:
             name: countrySubDivision
             in: path
             description: Enumeração referente a cada sigla da unidade da federação que identifica o estado ou o distrito federal, no qual o endereço está localizado
             required: true
-            schema:
-                type: string
-        line:
-            name: line
-            in: query
-            description: "Linha de negócio de atuação"
-            required: false
             schema:
                 type: string
         cache-Control:
