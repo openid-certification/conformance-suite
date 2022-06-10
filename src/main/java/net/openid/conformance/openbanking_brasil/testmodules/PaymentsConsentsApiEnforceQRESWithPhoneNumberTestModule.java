@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddResourceUrlToConfig;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsProxyCheckForInvalidStatus;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealPhoneNumber;

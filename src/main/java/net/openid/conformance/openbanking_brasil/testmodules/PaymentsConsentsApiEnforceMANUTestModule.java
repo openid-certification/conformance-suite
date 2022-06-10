@@ -33,6 +33,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class PaymentsConsentsApiEnforceMANUTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+	}
+
+	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
