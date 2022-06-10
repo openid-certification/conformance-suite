@@ -3,19 +3,20 @@ package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.f
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareUrlForFetchingFinancingContractResource extends AbstractCondition {
+public class PrepareUrlForFetchingFinancingContractResource extends ResourceBuilder {
 
 	@Override
-	@PreEnvironment(strings = {"contractId"})
-	@PostEnvironment(strings = "base_resource_url")
 	public Environment evaluate(Environment env) {
-		String resourceUrl = env.getString("protected_resource_url");
-		env.putString("base_resource_url", resourceUrl);
+
 		String contractId = env.getString("contractId");
-		resourceUrl = String.format("%s/%s", resourceUrl, contractId);
-		env.putString("protected_resource_url", resourceUrl);
-		return env;
+
+		setApi("financings");
+		setEndpoint("/contracts/" + contractId);
+
+		return super.evaluate(env);
+
 	}
 }

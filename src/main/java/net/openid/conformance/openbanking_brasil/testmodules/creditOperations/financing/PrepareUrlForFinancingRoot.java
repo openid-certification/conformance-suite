@@ -1,15 +1,17 @@
 package net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing;
 
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareUrlForFinancingRoot extends AbstractCondition {
+public class PrepareUrlForFinancingRoot extends ResourceBuilder {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String resourceUrl = env.getString("base_resource_url");
-		env.putString("protected_resource_url", resourceUrl);
-		logSuccess("URL set up to call all financing resource");
-		return env;
+
+		setApi("financings");
+		setEndpoint("/contracts");
+
+		return super.evaluate(env);
 	}
 }
