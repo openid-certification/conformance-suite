@@ -107,7 +107,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 			condition(CreateClientAuthenticationAssertionClaims.class),
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
+			condition(CallTokenEndpointAndReturnFullResponse.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
 			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
 		);
 
