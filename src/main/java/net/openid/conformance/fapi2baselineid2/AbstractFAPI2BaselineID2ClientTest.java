@@ -851,8 +851,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		return new ResponseEntity<Object>(parResponse, HttpStatus.CREATED);
 	}
 
+	protected void addCustomValuesToParResponse() {};
+
 	protected JsonObject createPAREndpointResponse() {
 		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
+		addCustomValuesToParResponse();
 		JsonObject parResponse = env.getObject("par_endpoint_response");
 		return parResponse;
 	}
