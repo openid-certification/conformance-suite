@@ -30,6 +30,7 @@ public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestValidAudAsArray.class,
 		FAPI2BaselineID2ClientTestInvalidAuthorizationResponseIss.class,
 		FAPI2BaselineID2ClientTestRemoveAuthorizationResponseIss.class,
+		FAPI2BaselineID2ClientTestTokenEndpointResponseWithoutExpiresIn.class,
 		FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity.class,
 		FAPI2BaselineID2ClientTestEnsureParExpiresInGreaterThan600Fails.class,
 		FAPI2BaselineID2ClientTestEnsureParExpiresInLessThan5Fails.class,
