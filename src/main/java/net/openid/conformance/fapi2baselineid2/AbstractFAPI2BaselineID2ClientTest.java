@@ -1283,8 +1283,11 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	}
 
+	protected void addCustomValuesToJarmResponse() {};
+
 	protected void generateJARMResponseClaims() {
 		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-4.1.1");
+		addCustomValuesToJarmResponse();
 	}
 
 	/**

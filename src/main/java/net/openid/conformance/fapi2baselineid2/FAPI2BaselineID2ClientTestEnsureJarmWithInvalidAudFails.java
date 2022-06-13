@@ -26,8 +26,7 @@ public class FAPI2BaselineID2ClientTestEnsureJarmWithInvalidAudFails extends Abs
 
 
 	@Override
-	protected void generateJARMResponseClaims() {
-		super.generateJARMResponseClaims();
+	protected void addCustomValuesToJarmResponse() {
 		callAndContinueOnFailure(AddInvalidAudValueToJarm.class, "JARM-4.1");
 	}
 
