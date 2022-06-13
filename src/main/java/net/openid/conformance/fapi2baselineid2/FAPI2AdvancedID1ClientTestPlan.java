@@ -32,6 +32,8 @@ public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
 		FAPI2BaselineID2ClientTestInvalidAuthorizationResponseIss.class,
 		FAPI2BaselineID2ClientTestRemoveAuthorizationResponseIss.class,
+		FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidStateFails.class,
+		FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails.class,
 		FAPI2BaselineID2ClientTestTokenEndpointResponseWithoutExpiresIn.class,
 		FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity.class,
 		FAPI2BaselineID2ClientTestEnsureParExpiresInGreaterThan600Fails.class,
