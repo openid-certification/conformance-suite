@@ -30,8 +30,7 @@ public class FAPI2BaselineID2ClientTestEnsureJarmWithInvalidIssFails extends Abs
 
 
 	@Override
-	protected void generateJARMResponseClaims() {
-		super.generateJARMResponseClaims();
+	protected void addCustomValuesToJarmResponse() {
 		callAndContinueOnFailure(AddInvalidIssValueToJarm.class, Condition.ConditionResult.FAILURE, "JARM-4.1");
 	}
 
