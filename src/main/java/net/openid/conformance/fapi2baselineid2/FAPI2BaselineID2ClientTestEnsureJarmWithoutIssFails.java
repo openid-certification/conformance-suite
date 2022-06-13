@@ -27,8 +27,7 @@ public class FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails extends Abstrac
 
 
 	@Override
-	protected void generateJARMResponseClaims() {
-		super.generateJARMResponseClaims();
+	protected void addCustomValuesToJarmResponse() {
 		callAndContinueOnFailure(RemoveIssFromJarm.class);
 	}
 

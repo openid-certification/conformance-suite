@@ -31,8 +31,7 @@ public class FAPI2BaselineID2ClientTestEnsureJarmWithExpiredExpFails extends Abs
 
 
 	@Override
-	protected void generateJARMResponseClaims() {
-		super.generateJARMResponseClaims();
+	protected void addCustomValuesToJarmResponse() {
 		callAndContinueOnFailure(AddInvalidExpiredExpValueToJarm.class);
 	}
 
