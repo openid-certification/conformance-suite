@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddAccountScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllAccountRelatedConsentsForHappyPathTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -22,11 +23,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class AccountsApiUXScreenshots extends AbstractOBBrasilFunctionalTestModule {
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

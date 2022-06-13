@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import java.time.Duration;
@@ -14,13 +15,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
-public class AddBookingDateParameters extends AbstractCondition {
+public class AddBookingDateParameters extends ResourceBuilder {
 	@Override
-	@PreEnvironment(strings = {"resource_endpoint_response","base_resource_url", "accountId"})
-	@PostEnvironment(strings = "base_resource_url")
-
+	@PreEnvironment(strings = {"resource_endpoint_response", "accountId"})
 	public Environment evaluate(Environment env){
-		String request = env.getString("base_resource_url");
 
 		LocalDateTime date = LocalDateTime.now();
 		LocalDateTime fromDate = date.minusMonths(12);
@@ -30,45 +28,56 @@ public class AddBookingDateParameters extends AbstractCondition {
 		String toDateF = toDate.format(dateFormat);
 
 		String accountId = env.getString("accountId");
-		var url = String.format(request + "/%s/transactions?fromBookingDate=%s&toBookingDate=%s",accountId,fromDateF, toDateF);
-		log("Added fromBookingDate and toBookingDate query parameters to URL: " + url);
-		env.putString("base_resource_url", url);
+
+		setApi("accounts");
+		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", accountId, fromDateF, toDateF));
 
 		String data = env.getString("resource_endpoint_response");
 		JsonObject checkObject = new JsonParser().parse(data).getAsJsonObject();
 		JsonArray checkArray = checkObject.getAsJsonArray("data");
 		try {
+			int i = 1;
+			boolean olderThan = false;
+			boolean newerThan = false;
 			if (checkArray.get(1) != null) {
-				var dataElement1 = checkArray.get(0);
-				var dataElement2 = checkArray.get(1);
-				JsonObject dataObject1 = dataElement1.getAsJsonObject();
-				JsonObject dataObject2 = dataElement2.getAsJsonObject();
+				while(i < checkArray.size()) {
+					var dataElement1 = checkArray.get(0);
+					var dataElement2 = checkArray.get(i);
+					JsonObject dataObject1 = dataElement1.getAsJsonObject();
+					JsonObject dataObject2 = dataElement2.getAsJsonObject();
 
-				String transactionDate1 = OIDFJSON.getString(dataObject1.get("transactionDate"));
-				String transactionDate2 = OIDFJSON.getString(dataObject2.get("transactionDate"));
-				log("Transaction Date 1: " + transactionDate1 + " Transaction Date 2: " + transactionDate2);
+					String transactionDate1 = OIDFJSON.getString(dataObject1.get("transactionDate"));
+					String transactionDate2 = OIDFJSON.getString(dataObject2.get("transactionDate"));
+					log("Transaction Date 1: " + transactionDate1 + " Transaction Date 2: " + transactionDate2);
 
-				LocalDate transaction1Date = LocalDate.parse(transactionDate1);
-				LocalDate transaction2Date = LocalDate.parse(transactionDate2);
+					LocalDate transaction1Date = LocalDate.parse(transactionDate1);
+					LocalDate transaction2Date = LocalDate.parse(transactionDate2);
 
-				LocalDate checkDate = LocalDate.now().minusMonths(6);
-				long transaction1Difference = ChronoUnit.MONTHS.between(transaction1Date, checkDate);
-				long transaction2Difference = ChronoUnit.MONTHS.between(transaction2Date, checkDate);
+					LocalDate checkDate = LocalDate.now().minusMonths(6);
+					long transaction1Difference = ChronoUnit.MONTHS.between(transaction1Date, checkDate);
+					long transaction2Difference = ChronoUnit.MONTHS.between(transaction2Date, checkDate);
 
-				if (transaction1Difference > 6 || transaction2Difference > 6) {
-					logSuccess("One transactionDate is older than 6 months");
-					if (transaction1Difference <= 6 || transaction2Difference <= 6) {
-						logSuccess("One transactionDate is 6 months or less");
-					} else {
-						logFailure("One transactionDate should be 6 months or less");
+					if (transaction1Difference > 6 || transaction2Difference > 6) {
+						olderThan = true;
+						if (transaction1Difference <= 6 || transaction2Difference <= 6) {
+							newerThan = true;
+						}
 					}
-				} else {
-					logFailure("One transactionDate should be older than 6 months");
+					i = i+1;
+				}
+				if (olderThan == true && newerThan == true){
+					logSuccess("At least one transaction date is older than 6 months and at least one transaction date is 6 months or less");
+				}
+				else if (olderThan == false ){
+					logFailure("At least one transaction date should be older than 6 months");
+				}
+				else if (newerThan == false){
+					logFailure("At least one transaction date should be 6 months or less");
 				}
 			}
 		}
 		catch (IndexOutOfBoundsException e){
-			log("Only 1 transaction returned. Cannot compare transaction dates");
+			log("Less than 2 transactions returned. Cannot compare transaction dates");
 		}
 
 		Duration duration = Duration.between(fromDate, toDate);
@@ -79,6 +88,6 @@ public class AddBookingDateParameters extends AbstractCondition {
 		else {
 			log("Query parameters " + days + " days apart");
 		}
-		return env;
+		return super.evaluate(env);
 	}
 }

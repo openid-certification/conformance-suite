@@ -50,11 +50,16 @@ import net.openid.conformance.condition.Condition;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"consent.productType"
 	}
 )
 public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void prepareCorrectConsents() {

@@ -21,8 +21,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 DELETEs the registered client from the authorization server",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.resourceUrl"
+		"server.discoveryUrl"
 	}
 )
 // hide various config values from the FAPI base module we don't need
@@ -34,11 +33,14 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(OverrideClientWithDadosClient.class);
 		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
+		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+
 		super.configureClient();
 	}
 

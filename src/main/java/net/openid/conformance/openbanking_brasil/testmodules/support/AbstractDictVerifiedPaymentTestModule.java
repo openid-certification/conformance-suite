@@ -13,6 +13,12 @@ import java.util.Optional;
 public abstract class AbstractDictVerifiedPaymentTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();

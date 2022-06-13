@@ -32,16 +32,21 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilOrganizationId"
 	}
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.brazilCpf",
-	"resource.brazilCpnj"
+	"resource.brazilCnpj"
 })
 public class PaymentsApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

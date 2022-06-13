@@ -7,10 +7,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddPaymentScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentErrorMetaValidator;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -24,11 +21,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
-		"mtls.ca",
-		"resource.resourceUrl"
+		"mtls.ca"
 	}
 )
 public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails {
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

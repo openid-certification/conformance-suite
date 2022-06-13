@@ -53,9 +53,7 @@
         "client_id": "QjRzruzFWi_U_tMahlz01"
     },
     "resource": {
-        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
         "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-        "brazilCpf": "76109277673",
         "brazilPaymentConsent": {
             "data": {
                 "loggedUser": {
@@ -91,24 +89,6 @@
                     "number": "94088392",
                     "accountType": "CACC"
                 }
-            }
-        },
-        "brazilPixPayment": {
-            "data": {
-                "localInstrument": "DICT",
-                "payment": {
-                    "amount": "1333.00",
-                    "currency": "BRL"
-                },
-                "creditorAccount": {
-                    "ispb": "12345678",
-                    "issuer": "1774",
-                    "number": "1234567890",
-                    "accountType": "CACC"
-                },
-                "cnpjInitiator": "60545350000165",
-                "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                "proxy": "12345678901"
             }
         },
         "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
@@ -151,8 +131,7 @@
                 }
             }
         },
-        "brazilQrdnCnpj": "43142666000197",
-        "brazilQrdnRemittance": "$$EDITPAYMENT$$:20201.01"
+        "brazilQrdnCnpj": "43142666000197"
     },
     "client2": {
         "client_id": "QqLqA-tH9RpP5Al5n55LZ",
@@ -272,12 +251,10 @@
             ]
         }
     ],
-    "override" : {
-        "payments-consents-api-proxy-email-proxy-test" : {
+    "override": {
+        "payments-consents-api-proxy-email-proxy-test": {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
                 "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -313,24 +290,6 @@
                             "number": "94088392",
                             "accountType": "CACC"
                         }
-                    }
-                },
-                "brazilPixPayment": {
-                    "data": {
-                        "localInstrument": "DICT",
-                        "payment": {
-                            "amount": "20422.00",
-                            "currency": "BRL"
-                        },
-                        "creditorAccount": {
-                            "ispb": "12345678",
-                            "issuer": "1774",
-                            "number": "1234567890",
-                            "accountType": "CACC"
-                        },
-                        "cnpjInitiator": "60545350000165",
-                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                        "proxy": "12345678901"
                     }
                 },
                 "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
@@ -372,14 +331,13 @@
                             "accountType": "CACC"
                         }
                     }
-                }
+                },
+                "brazilQrdnCnpj": "43142666000197"
             }
         },
-        "payments-api-proxy-fake-email-proxy-test" : {
+        "payments-api-proxy-fake-email-proxy-test": {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
                 "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -415,24 +373,6 @@
                             "number": "94088392",
                             "accountType": "CACC"
                         }
-                    }
-                },
-                "brazilPixPayment": {
-                    "data": {
-                        "localInstrument": "DICT",
-                        "payment": {
-                            "amount": "20422.00",
-                            "currency": "BRL"
-                        },
-                        "creditorAccount": {
-                            "ispb": "12345678",
-                            "issuer": "1774",
-                            "number": "1234567890",
-                            "accountType": "CACC"
-                        },
-                        "cnpjInitiator": "60545350000165",
-                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                        "proxy": "12345678901"
                     }
                 },
                 "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
@@ -474,14 +414,13 @@
                             "accountType": "CACC"
                         }
                     }
-                }
+                },
+                "brazilQrdnCnpj": "43142666000197"
             }
         },
-        "payments-api-proxy-real-email-invalid-credior-proxy-test" : {
+        "payments-api-proxy-real-email-invalid-credior-proxy-test": {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
                 "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -517,24 +456,6 @@
                             "number": "94088392",
                             "accountType": "CACC"
                         }
-                    }
-                },
-                "brazilPixPayment": {
-                    "data": {
-                        "localInstrument": "DICT",
-                        "payment": {
-                            "amount": "20422.00",
-                            "currency": "BRL"
-                        },
-                        "creditorAccount": {
-                            "ispb": "12345678",
-                            "issuer": "1774",
-                            "number": "1234567890",
-                            "accountType": "CACC"
-                        },
-                        "cnpjInitiator": "60545350000165",
-                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                        "proxy": "12345678901"
                     }
                 },
                 "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
@@ -576,14 +497,13 @@
                             "accountType": "CACC"
                         }
                     }
-                }
+                },
+                "brazilQrdnCnpj": "43142666000197"
             }
         },
-        "payments-api-proxy-test-incorrect-cpf" : {
+        "payments-api-proxy-test-incorrect-cpf": {
             "resource": {
-                "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
                 "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-                "brazilCpf": "76109277673",
                 "brazilPaymentConsent": {
                     "data": {
                         "loggedUser": {
@@ -619,24 +539,6 @@
                             "number": "94088392",
                             "accountType": "CACC"
                         }
-                    }
-                },
-                "brazilPixPayment": {
-                    "data": {
-                        "localInstrument": "DICT",
-                        "payment": {
-                            "amount": "20201.00",
-                            "currency": "BRL"
-                        },
-                        "creditorAccount": {
-                            "ispb": "12345678",
-                            "issuer": "1774",
-                            "number": "1234567890",
-                            "accountType": "CACC"
-                        },
-                        "cnpjInitiator": "60545350000165",
-                        "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                        "proxy": "12345678901"
                     }
                 },
                 "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
@@ -678,7 +580,8 @@
                             "accountType": "CACC"
                         }
                     }
-                }
+                },
+                "brazilQrdnCnpj": "43142666000197"
             }
         }
     }

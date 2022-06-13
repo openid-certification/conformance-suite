@@ -3,86 +3,118 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
-public class ValidateNumberOfRecords extends AbstractJsonAssertingCondition{
-	@Override
-	public Environment evaluate(Environment env) {
+public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondition {
 
-		return env;
+	protected int numberOfReturnedRecords;
+
+	protected int pageSize;
+	protected int totalNumberOfRecords;
+	protected int totalNumberOfPages;
+	private JsonObject linksObject;
+	protected int currentPageNumber;
+	protected String selfLink;
+
+	public void prepareRecordData(Environment env) {
+
+		JsonElement body = bodyFrom(env);
+
+		JsonArray dataArray = findByPath(body, "$.data").getAsJsonArray();
+
+		numberOfReturnedRecords = dataArray.size();
+
+		linksObject = findByPath(body, "$.links").getAsJsonObject();
+		selfLink = OIDFJSON.getString(findByPath(linksObject, "$.self"));
+
+		currentPageNumber = getPageNumber(selfLink);
+		pageSize = getPageSize(selfLink);
+
+		JsonObject metaObject = findByPath(body, "$.meta").getAsJsonObject();
+
+		totalNumberOfRecords = OIDFJSON.getInt(findByPath(metaObject, "$.totalRecords"));
+		totalNumberOfPages = OIDFJSON.getInt(findByPath(metaObject, "$.totalPages"));
+
 	}
 
-	protected Environment executeNumberOfPageCheck(Environment env, String page){
+	protected int getPageNumber(String uri) {
+		try {
+			List<NameValuePair> params = URLEncodedUtils.parse(new URI(uri), StandardCharsets.UTF_8);
+			return Integer.parseInt(
+				params.stream()
+					.filter(p -> p.getName().equals("page"))
+					.findFirst()
+					.orElseThrow(() -> error("Page parameter is not found in the link", Map.of("Link", uri)))
+					.getValue());
 
-		if(!page.equals("first") && !page.equals("last")) {
-			throw  error("Specified page not found");
+		} catch (URISyntaxException e) {
+			throw error("Link is not a valid URI", Map.of("Link", uri));
 		}
-
-		JsonElement apiResponse = bodyFrom(env);
-
-		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			throw  error("No data field found in resource_endpoint_response");
-		}
-
-		JsonElement dataElement = findByPath(apiResponse, "$.data");
-		JsonArray dataArray = dataElement.getAsJsonArray();
-		int pX = dataArray.size();
-
-		if (!JsonHelper.ifExists(apiResponse, "$.links." + page)) {
-			throw  error("No first field found in self-links");
-		}
-
-		JsonElement firstElement = findByPath(apiResponse, "$.links." + page);
-		String firstLink = OIDFJSON.getString(firstElement);
-
-		int lastIndexOf = firstLink.lastIndexOf("page-size=");
-		int pY;
-
-		if(lastIndexOf < 0){
-			pY = 25;
-		} else{
-			pY = Integer.parseInt(firstLink.substring(lastIndexOf).replaceAll("[^0-9]", ""));
-		}
-
-		if(page.equals("first")) {
-			env.putString("P1_X", Integer.toString(pX));
-			if(pX != pY) {
-				throw  error("Number of records returned is different from specified in page-size");
-			}
-			logSuccess("Number of records match accordingly");
-
-		} else if(page.equals("last")){
-			env.putString("P2_X", Integer.toString(pX));
-			if(pX > pY) {
-				throw  error("Number of records returned is different from specified in page-size");
-			}
-
-			if (!JsonHelper.ifExists(apiResponse, "$.meta")) {
-				throw  error("No meta field found in resource_endpoint_response");
-			}
-
-			String p1XString = env.getString("P1_X");
-
-			if(p1XString == null) {
-				throw error("Number of records for page 1 not found");
-			}
-			int p1X = Integer.parseInt(p1XString);
-
-			JsonElement totElement = findByPath(apiResponse, "$.meta.totalRecords");
-			int tot = OIDFJSON.getInt(totElement);
-
-			if(tot < p1X + pX) {
-				throw error("Total records is less than records counts in page 1 and 2");
-			}
-
-			logSuccess("Number of records match accordingly");
-		}
-
-		return env;
 	}
+
+	protected int getPageSize(String uri) {
+		try {
+			List<NameValuePair> params = URLEncodedUtils.parse(new URI(uri), StandardCharsets.UTF_8);
+			return Integer.parseInt(
+				params.stream()
+					.filter(p -> p.getName().equals("page-size"))
+					.findFirst()
+					.orElse(new BasicNameValuePair("page-size", "25"))
+					.getValue());
+
+		} catch (URISyntaxException e) {
+			throw error("Link is not a valid URI", Map.of("Link", uri));
+		}
+	}
+
+	protected void validateLastLink() {
+		String lastLink = OIDFJSON.getString(findByPath(linksObject, "$.last"));
+		int lastLinkPageNumber = getPageNumber(lastLink);
+		if (lastLinkPageNumber != totalNumberOfPages) {
+			throw error("Page number in the last link does not match the value of the totalPages field in meta object",
+				Map.of("Last link", lastLink,
+					"Provided page number", lastLinkPageNumber,
+					"Expected page number", totalNumberOfPages));
+		} else {
+			logSuccess("Last page number matches the number in the last link");
+		}
+
+	}
+
+	protected void validateNextLink() {
+		String nextLink = OIDFJSON.getString(findByPath(linksObject, "$.next"));
+		int nextLinkPageNumber = getPageNumber(nextLink);
+		if (nextLinkPageNumber != currentPageNumber + 1) {
+			throw error("Page number in the next link is incorrect",
+				Map.of("Next link", nextLink,
+					"Provided page number", nextLinkPageNumber,
+					"Expected page number", currentPageNumber + 1));
+		} else {
+			logSuccess("Next page number matches the number in the next link");
+		}
+	}
+
+	protected void validatePrevLink() {
+		String prevLink = OIDFJSON.getString(findByPath(linksObject, "$.prev"));
+		int prevLinkPageNumber = getPageNumber(prevLink);
+
+		if (prevLinkPageNumber != currentPageNumber - 1) {
+			throw error("Page number in the prev link is incorrect",
+				Map.of("Prev link", prevLink,
+					"Provided page number", prevLinkPageNumber,
+					"Expected page number", currentPageNumber - 1));
+		}
+	}
+
 }
