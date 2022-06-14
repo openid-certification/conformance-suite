@@ -20,7 +20,7 @@ public class BuildAccountsConfigResourceUrlFromConsentUrl extends AbstractCondit
 		String resourceUrl = consentUrl.replaceAll("consents", resourceReplacement);
 		env.putString("config", "resource.resourceUrl", resourceUrl);
 
-		logSuccess("resourceUrl for account set up", args("resourceUrl", resourceUrl));
+		logSuccess(String.format("resourceUrl for %s set up", resourceReplacement), args("resourceUrl", resourceUrl));
 		return env;
 	}
 }
