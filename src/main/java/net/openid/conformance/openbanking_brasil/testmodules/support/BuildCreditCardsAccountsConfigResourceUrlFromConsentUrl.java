@@ -21,7 +21,7 @@ public class BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl extends Abs
 		String resourceUrl = consentUrl.replaceFirst("consents", apiReplacement).replaceFirst("consents", endpointReplacement);
 		env.putString("config", "resource.resourceUrl", resourceUrl);
 
-		logSuccess(String.format("resourceUrl for %s set up", apiReplacement), args("resourceUrl", resourceUrl);
+		logSuccess(String.format("resourceUrl for %s set up", apiReplacement), args("resourceUrl", resourceUrl));
 		return env;
 	}
 }
