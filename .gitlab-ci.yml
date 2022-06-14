@@ -20,11 +20,6 @@ stages:
 #  - template: Security/Dependency-Scanning.gitlab-ci.yml
 #  - template: Security/License-Scanning.gitlab-ci.yml
 
-# Helm2 to Helm3 migration jobs, remove when done
-include:
-  - project: gitlab-org/gitlab
-    file: lib/gitlab/ci/templates/Jobs/Helm-2to3.gitlab-ci.yml
-
 .maven: &maven
   image: maven:3-jdk-11
   interruptible: true
