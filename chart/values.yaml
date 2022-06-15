@@ -37,7 +37,6 @@ mongodb:
   usePassword: false
   extraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
-   - "--noIndexBuildRetry"
    - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
   livenessProbe:
     initialDelaySeconds: 30
