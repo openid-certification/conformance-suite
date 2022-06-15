@@ -8,6 +8,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.Provi
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsDiscountedConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -50,11 +52,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"consent.productType"
 	}
 )
 public class CreditOperationsDiscountedApiWrongPermissionsTestModuleV2 extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildCreditOperationsDiscountedConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void prepareCorrectConsents() {

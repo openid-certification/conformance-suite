@@ -7,6 +7,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractPermissions
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildFinancingsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtectedResourceExpectingFailureSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -48,11 +49,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class FinancingApiWrongPermissionsTestModuleV2 extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildFinancingsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void prepareCorrectConsents() {

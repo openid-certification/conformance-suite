@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddUnarrangedOverdraftScope;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseHasLinks;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateSelfEndpoint;
@@ -43,11 +44,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
-		"resource.resourceUrl",
 		"consent.productType"
 	}
 )
 public class CreditOperationsAdvancesApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
