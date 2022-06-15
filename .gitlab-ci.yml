@@ -83,7 +83,6 @@ test:
   only:
     refs:
       - branches
-    kubernetes: active
 
 compare_cloud:
   <<: *compare
@@ -119,7 +118,7 @@ check-trailing-whitespace:
 #    paths: [codeclimate.json]
 
 .auto-deploy:
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v1.1.0"
+  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.28.2"
 
 .deploy: &deploy
   extends: .auto-deploy
@@ -132,9 +131,14 @@ check-trailing-whitespace:
     - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
+    - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
+    # - auto-deploy create_secret
     - auto-deploy initialize_tiller
     - deploy
+    #    - auto-deploy deploy
+    #    - auto-deploy persist_environment_url
+
   artifacts:
     reports:
       dotenv: deploy.env
@@ -142,7 +146,6 @@ check-trailing-whitespace:
   only:
     refs:
       - branches
-    kubernetes: active
 
 deploy-review:
   <<: *deploy
@@ -190,7 +193,6 @@ stop_review:
   only:
     refs:
       - branches
-    kubernetes: active
   except:
     - master
     - production
@@ -220,7 +222,6 @@ stop_normal:
   only:
     refs:
       - branches
-    kubernetes: active
   artifacts:
     when: always
     paths:
@@ -453,7 +454,7 @@ local_test:
 
   function get_mongo_pod() {
     MONGO_POD=`kubectl -n ${KUBE_NAMESPACE} get pod \
-      -l app=mongodb -l release=${CI_ENVIRONMENT_SLUG} \
+      -l app.kubernetes.io/component=mongodb -l app.kubernetes.io/instance=${CI_ENVIRONMENT_SLUG} \
       --field-selector=status.phase=Running \
       -o template --template="{{(index .items 0).metadata.name}}" 2>&1` \
       || MONGO_POD=''
