@@ -35,9 +35,8 @@ mongodb:
   auth:
       enabled: false
   usePassword: false
-  mongodbExtraFlags:
+  extraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
-   - "--noIndexBuildRetry"
    - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
   livenessProbe:
     initialDelaySeconds: 30
@@ -47,8 +46,9 @@ mongodb:
     enabled: false
   resources:
     limits:
-      memory: 1Gi
+      memory: 1.5Gi
     requests:
       cpu: 100m
   persistence:
     size: 250Gi
+    storageClass: premium-rwo
