@@ -418,9 +418,7 @@ local_test:
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
 
-    # helm rollback "$name" 1 --namespace $KUBE_NAMESPACE
-
-    helm upgrade --install --debug \
+    helm upgrade --install \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
       --set application.path_slug="$CI_PROJECT_PATH_SLUG" \
