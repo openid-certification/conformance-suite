@@ -14,7 +14,7 @@ public class PrepareUrlForFetchingBillTransactionResource extends ResourceBuilde
 		String billId = env.getString("billId");
 
 		setApi("credit-cards-accounts");
-		setEndpoint("/accounts/" + accountId + "/bills" + billId + "/transactions");
+		setEndpoint("/accounts/" + accountId + "/bills/" + billId + "/transactions");
 
 		return super.evaluate(env);
 	}
