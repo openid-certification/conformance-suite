@@ -51,3 +51,4 @@ mongodb:
       cpu: 100m
   persistence:
     size: 250Gi
+    storageClass: premium-rwo
