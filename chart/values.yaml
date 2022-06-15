@@ -35,7 +35,7 @@ mongodb:
   auth:
       enabled: false
   usePassword: false
-  mongodbExtraFlags:
+  extraFlags:
    - "--wiredTigerCacheSizeGB=0.25"
    - "--noIndexBuildRetry"
    - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
