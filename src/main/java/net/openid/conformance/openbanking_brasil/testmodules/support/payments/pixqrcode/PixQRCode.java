@@ -1,7 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support.payments.pixqrcode;
 
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import org.apache.commons.lang3.StringUtils;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Optional;
 
 public class PixQRCode {
@@ -32,9 +34,19 @@ public class PixQRCode {
 
 	private Tag proxy;
 
-	//
 	private Tag additionalField;
 
+	public void useStandardConfig(){
+		this.setPayloadFormatIndicator("01");
+		this.setProxy(DictHomologKeys.PROXY_EMAIL);
+		this.setMerchantCategoryCode("0000");
+		this.setTransactionCurrency(DictHomologKeys.PROXY_EMAIL_STANDARD_CURRENCY);
+		this.setTransactionAmount(DictHomologKeys.PROXY_EMAIL_STANDARD_AMOUNT);
+		this.setCountryCode(DictHomologKeys.PROXY_EMAIL_STANDARD_COUNTRY);
+		this.setMerchantName(DictHomologKeys.PROXY_EMAIL_OWNER_NAME.toUpperCase(Locale.ROOT));
+		this.setMerchantCity(DictHomologKeys.PROXY_EMAIL_STANDARD_CITY);
+		this.setAdditionalField("03***");
+	}
 	public void setPayloadFormatIndicator(String payloadFormatIndicator) {
 		this.payloadFormatIndicator = new Tag(PixQrCodeConstants.ID_PAYLOAD_FORMAT_INDICATOR, payloadFormatIndicator);
 	}
