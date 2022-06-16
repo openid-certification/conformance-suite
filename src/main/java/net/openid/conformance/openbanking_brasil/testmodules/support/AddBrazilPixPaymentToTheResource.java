@@ -19,6 +19,7 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonElement type;
 		JsonElement proxy;
 		JsonElement qrCode;
+		JsonElement ibgeTownCode = null;
 
 		JsonObject resource = env.getObject("resource");
 		if (resource == null) {
@@ -31,6 +32,7 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonObject brazilPaymentConsent = resource.getAsJsonObject("brazilPaymentConsent");
 		if (brazilPaymentConsent != null) {
 			consentData = brazilPaymentConsent.get("data").getAsJsonObject();
+
 			if (consentData != null) {
 				consentPayment = consentData.get("payment").getAsJsonObject();
 				if (consentPayment != null) {
@@ -49,6 +51,8 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 					if (type == null) {
 						throw error("type field is missing in the payment object", consentPayment);
 					}
+
+					ibgeTownCode = consentPayment.get("ibgeTownCode");
 
 					consentDetails = consentPayment.getAsJsonObject("details");
 
@@ -106,7 +110,10 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 			data.add("proxy", proxy);
 		}
 		data.add("cnpjInitiator", brazilQrdnCnpj);
-		data.addProperty("ibgeTownCode", DictHomologKeys.PROXY_EMAIL_STANDARD_IBGETOWNCODE);
+
+		if(ibgeTownCode != null) {
+			data.add("ibgeTownCode", ibgeTownCode);
+		}
 
 		payment.add("amount", amount);
 		payment.add("currency", currency);
