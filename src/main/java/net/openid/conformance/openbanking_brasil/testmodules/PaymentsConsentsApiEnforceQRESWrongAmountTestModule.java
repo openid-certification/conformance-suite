@@ -32,7 +32,6 @@ public class PaymentsConsentsApiEnforceQRESWrongAmountTestModule extends Abstrac
 		callAndStopOnFailure(SelectQRESCodePixLocalInstrument.class);
 		callAndStopOnFailure(SetPaymentAmountToKnownValueOnConsent.class);
 		callAndStopOnFailure(SetPaymentAmountToKnownValueOnPaymentInitiation.class);
-		//callAndStopOnFailure(InjectQRCodeWithWrongAmountIntoConfig.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPayment.class);

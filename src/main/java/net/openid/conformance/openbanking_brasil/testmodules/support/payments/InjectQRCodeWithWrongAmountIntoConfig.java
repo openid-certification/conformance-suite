@@ -5,8 +5,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.pixqrcode.PixQRCode;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.validation.constraints.Null;
 import java.util.Locale;
 import java.util.Random;
 
