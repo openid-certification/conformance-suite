@@ -26,11 +26,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client2.jwks",
 		"mtls2.key",
 		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
+		"mtls2.ca"
 	}
 )
 public class PaymentsApiFapiTesting extends FAPI1AdvancedFinal {
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

@@ -31,13 +31,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPatchPaymentConsent",
 		"resource.brazilOrganizationId"
 	}
 )
 public class PixSchedulingPatchHappyPathRevokedByUserTestModule extends AbstractFunctionalTestModule {
+
+	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
 
 	//Setup PaymentScope
 	@Override
@@ -49,6 +54,7 @@ public class PixSchedulingPatchHappyPathRevokedByUserTestModule extends Abstract
 	//Setup POST Method in env object
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 	}

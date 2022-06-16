@@ -27,7 +27,6 @@ import net.openid.conformance.variant.ClientAuthType;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.resourceUrl",
 		"resource.brazilPaymentConsent",
 		"resource.brazilPatchPaymentConsent",
 		"resource.brazilOrganizationId"
@@ -37,6 +36,12 @@ public class PixSchedulingPatchConsentsIncorrectStatusTestModule extends Abstrac
 	protected ClientAuthType clientAuthType;
 
 	@Override
+	protected void setupResourceEndpoint() {
+		callAndStopOnFailure(AddResourceUrlToConfig.class);
+		super.setupResourceEndpoint();
+	}
+
+	@Override
 	protected void validateClientConfiguration() {
 		callAndStopOnFailure(AddPaymentScope.class);
 		super.validateClientConfiguration();
@@ -44,6 +49,7 @@ public class PixSchedulingPatchConsentsIncorrectStatusTestModule extends Abstrac
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		callAndStopOnFailure(PrepareToPostConsentRequest.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToPaymentsEndpoint.class);
 		clientAuthType = getVariant(ClientAuthType.class);
