@@ -44,11 +44,12 @@ mongodb:
     failureThreshold: 60
   readinessProbe:
     enabled: false
+  # memory / persistence storage size are increased for production/staging in .gitlab-ci.yml
   resources:
     limits:
-      memory: 1.5Gi
+      memory: 1Gi
     requests:
       cpu: 100m
   persistence:
-    size: 250Gi
+    size: 25Gi
     storageClass: premium-rwo

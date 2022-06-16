@@ -385,6 +385,12 @@ local_test:
 
     node_selector=""
 
+    if [[ "$CI_COMMIT_BRANCH" == "production" ]] || [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+      # we expect much bigger databases on production; use more RAM and disk for mongo
+      $mongo_settings = "--set mongodb.resources.limits.memory=4Gi \
+        --set mongodb.persistence.size=250Gi"
+    fi
+
     if [[ "$CI_COMMIT_BRANCH" == "production" ]]; then
       node_selector="--set nodeSelector.environment=production \
         --set tolerations[0].effect=NoSchedule \
@@ -427,6 +433,7 @@ local_test:
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
       $node_selector \
+      $mongo_settings \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \
