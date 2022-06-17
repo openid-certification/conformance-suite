@@ -385,7 +385,7 @@ local_test:
 
     node_selector=""
 
-    if [[ "$CI_COMMIT_BRANCH" == "production" ]] || [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
+    if [[ "$CI_COMMIT_BRANCH" == "production" ]] || [[ "$CI_COMMIT_BRANCH" == "master" ]] || [[ "$CI_COMMIT_BRANCH" == "ram-test" ]]; then
       # we expect much bigger databases on production; use more RAM and disk for mongo
       $mongo_settings = "--set mongodb.resources.limits.memory=4Gi \
         --set mongodb.persistence.size=250Gi"
