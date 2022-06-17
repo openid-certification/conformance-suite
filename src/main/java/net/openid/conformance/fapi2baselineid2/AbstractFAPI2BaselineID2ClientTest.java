@@ -82,6 +82,8 @@ import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.IdmvpAddClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
+import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
@@ -107,6 +109,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.IdmvpEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -849,7 +852,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		return new ResponseEntity<Object>(parResponse, HttpStatus.CREATED);
 	}
 
-	protected void addCustomValuesToParResponse() {};
+	protected void addCustomValuesToParResponse() {}
 
 	protected JsonObject createPAREndpointResponse() {
 		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
@@ -1153,6 +1156,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 			}
 		} else {
+			if (profile == FAPI2ID2OPProfile.IDMVP) {
+				callAndContinueOnFailure(IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "IDMVP");
+				callAndContinueOnFailure(IdmvpEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "IDMVP");
+			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
@@ -1218,6 +1225,10 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
+		if(profile == FAPI2ID2OPProfile.IDMVP) {
+			callAndContinueOnFailure(LoadRequestedIdTokenClaims.class);
+		}
+
 		addCustomValuesToIdToken();
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
@@ -1281,7 +1292,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 	}
 
-	protected void addCustomValuesToJarmResponse() {};
+	protected void addCustomValuesToJarmResponse() {}
 
 	protected void generateJARMResponseClaims() {
 		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-4.1.1");
