@@ -7,6 +7,7 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Iterator;
@@ -227,26 +228,9 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 
 	protected void addClaimsSupported(JsonObject server) {
 		JsonArray claims = new JsonArray();
-		claims.add("sub");
-		claims.add("name");
-		claims.add("given_name");
-		claims.add("family_name");
-		claims.add("middle_name");
-		claims.add("nickname");
-		claims.add("gender");
-		claims.add("birthdate");
-		claims.add("preferred_username");
-		claims.add("profile");
-		claims.add("website");
-		claims.add("locale");
-		claims.add("updated_at");
-		claims.add("address");
-		claims.add("zoneinfo");
-		//claims.add("picture");
-		claims.add("phone_number");
-		claims.add("phone_number_verified");
-		claims.add("email");
-		claims.add("email_verified");
+		for(String claimName : OIDCCLoadUserInfo.SUPPORTED_CLAIMS) {
+			claims.add(claimName);
+		}
 		server.add("claims_supported", claims);
 	}
 
