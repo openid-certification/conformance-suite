@@ -12,13 +12,8 @@ public class LoadUserInfo extends AbstractCondition {
 	@PostEnvironment(required = "user_info")
 	public Environment evaluate(Environment env) {
 
-		JsonObject user = new JsonObject();
-
-		user.addProperty("sub", "user-subject-1234531");
-		user.addProperty("name", "Demo T. User");
-		user.addProperty("email", "user@example.com");
-		user.addProperty("email_verified", false);
-
+		String[] claims = {"sub", "name", "email", "email_verified"};
+		JsonObject user = OIDCCLoadUserInfo.getUserInfoClaimsValues(claims);
 		env.putObject("user_info", user);
 
 		logSuccess("Added user information", args("user_info", user));
