@@ -18,6 +18,16 @@ public class TestFailureException extends TestInterruptedException {
 	 *
 	 */
 	private static final long serialVersionUID = 7168979969763096443L;
+	private String errorDescription;
+
+	public String getError() {
+		return super.getMessage();
+	}
+
+	public String getErrorDescription() {
+		return errorDescription;
+	}
+
 
 	/**
 	 * @param cause
@@ -41,4 +51,16 @@ public class TestFailureException extends TestInterruptedException {
 		super(testId, msg, cause);
 	}
 
+	/**
+	 * Constructor overload to allow creating OAuth2 style error responses,
+	 * ref https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1.
+	 *
+	 * @param testId
+	 * @param error
+	 * @param errorDescription
+	 */
+	public TestFailureException(String testId, String error, String errorDescription) {
+		super(testId, error);
+		this.errorDescription = errorDescription;
+	}
 }

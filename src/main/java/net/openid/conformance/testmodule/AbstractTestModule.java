@@ -80,7 +80,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
 
-		setStatus(Status.CREATED);
+		setStatusInternal(Status.CREATED);
 	}
 
 	@Override
@@ -519,7 +519,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	public void fireTestFinished() {
 
 		// first we set our test to WAITING to release the lock (note that this happens in the calling thread) and prepare for finalization
-		setStatus(Status.WAITING);
+		setStatusInternal(Status.WAITING);
 		fireTestFinishedInternal();
 	}
 
@@ -578,7 +578,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// everything has happen, as 'FINISHED' is the cue for run-test-plan.py to fetch the results, start
 				// the next test, etc.
 				// This will run any 'cleanup' tasks for the test module
-				setStatus(Status.FINISHED);
+				setStatusInternal(Status.FINISHED);
 			}
 
 			// stop() will also cancel the current thread, so don't do any logging etc after this
@@ -635,7 +635,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		testInfo.updateTestResult(getId(), getResult());
 	}
 
-	protected void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
+	private void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
 		switch (onFail) {
 			case FAILURE:
 				setResult(Result.FAILED);
@@ -651,6 +651,19 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	protected void setStatus(Status newStatus) {
+		switch (newStatus) {
+			case CONFIGURED:
+			case WAITING:
+			case RUNNING:
+				setStatusInternal(newStatus);
+				break;
+
+			default:
+				throw new TestFailureException(getId(), "Test module called setStatus() with a value other than CONFIGURED/WAITING/RUNNING. This is a bug in the test module; it should use a different method to change to the desired state - e.g. fireTestFinished() or throwing a TestFailureException.");
+		}
+	}
+
 	/*
 	 * Test status state machine:
 	 *
@@ -663,7 +676,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *                          \-> WAITING --/--------------/
 	 *
 	 */
-	protected void setStatus(Status newStatus) {
+	private void setStatusInternal(Status newStatus) {
 		try {
 			final boolean hadLockOnEntry = env.getLock().isHeldByCurrentThread();
 
@@ -841,7 +854,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	public void stop(String reason) {
 
 		if (!(getStatus().equals(Status.FINISHED) || getStatus().equals(Status.INTERRUPTED))) {
-			setStatus(Status.INTERRUPTED);
+			setStatusInternal(Status.INTERRUPTED);
 			eventLog.log(getName(), args(
 				"msg", "Test was interrupted before it could complete. "+reason,
 				"result", Status.INTERRUPTED.toString()));

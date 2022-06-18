@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.Plan;
@@ -20,8 +21,10 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -680,11 +683,23 @@ public class TestRunner implements DataUtils {
 			logger.error("Something terrible happened when handling an exception caught in '"+source+"', I give up", e);
 		}
 
-		JsonObject obj = new JsonObject();
-		obj.addProperty("error", error.getMessage());
-		obj.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
-		obj.addProperty("testId", error.getTestId());
-		return new ResponseEntity<>(obj, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+		HttpStatus statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+		JsonObject errorResponse = new JsonObject();
 
+		if(error instanceof TestSkippedException) {
+			statusCode = HttpStatus.OK;
+		}
+
+		if(error instanceof TestFailureException && ((TestFailureException) error).getError() != null) {
+			errorResponse.addProperty("error", ((TestFailureException) error).getError());
+			errorResponse.addProperty("error_description", ((TestFailureException) error).getErrorDescription());
+			statusCode = HttpStatus.BAD_REQUEST;
+		} else {
+			errorResponse.addProperty("error", error.getMessage());
+		}
+
+		errorResponse.addProperty("cause", error.getCause() != null ? error.getCause().getMessage() : null);
+		errorResponse.addProperty("testId", error.getTestId());
+		return new ResponseEntity<>(errorResponse, statusCode);
+	}
 }
