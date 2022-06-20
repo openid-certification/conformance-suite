@@ -19,7 +19,6 @@ public class InjectQRCodeWithWrongEmailAddressProxyIntoConfig extends AbstractCo
 		Random r = new Random();
 		float random = r.nextFloat() * 100;
 		String amount = String.format("%.02f", random);
-
 		qrCode.setTransactionAmount(amount);
 
 		//Mismatched proxy

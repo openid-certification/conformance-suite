@@ -40,7 +40,7 @@ public class PixQRCode {
 		this.setPayloadFormatIndicator("01");
 		this.setProxy(DictHomologKeys.PROXY_EMAIL);
 		this.setMerchantCategoryCode("0000");
-		this.setTransactionCurrency(DictHomologKeys.PROXY_EMAIL_STANDARD_CURRENCY);
+		this.setTransactionCurrency(DictHomologKeys.PROXY_EMAIL_STANDARD_CURRENCY_CODE);
 		this.setTransactionAmount(DictHomologKeys.PROXY_EMAIL_STANDARD_AMOUNT);
 		this.setCountryCode(DictHomologKeys.PROXY_EMAIL_STANDARD_COUNTRY);
 		this.setMerchantName(DictHomologKeys.PROXY_EMAIL_OWNER_NAME.toUpperCase(Locale.ROOT));
@@ -82,7 +82,7 @@ public class PixQRCode {
 	public void setProxy(String proxy) {
 
 		this.proxy = new Tag(PixQrCodeConstants.ID_MERCHANT_ACCOUNT_INFORMATION_RESERVED_ADDITIONAL_RANGE_START,
-				String.format("0014BR.GOV.BCB.PIX0129%s",proxy));
+				String.format("0014BR.GOV.BCB.PIX01%02d%s",proxy.length(), proxy));
 	}
 
 	public void setAdditionalField(String transactionID){
