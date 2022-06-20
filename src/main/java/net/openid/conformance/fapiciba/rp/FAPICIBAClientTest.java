@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPICIBAID1ClientTest extends AbstractFAPICIBAID1ClientTest {
+public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){
