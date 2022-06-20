@@ -22,9 +22,9 @@
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "VerifyErrorIfPixPostFailsOnQres",
+        "condition": "ChuckWarning",
         "expected-result": "failure",
-        "comment": "Mock bank does not return the correct error"
+        "comment": "not currently possible to test against mock bank"
     },
     {
         "test-name": "payments-api-fapi-testing",
