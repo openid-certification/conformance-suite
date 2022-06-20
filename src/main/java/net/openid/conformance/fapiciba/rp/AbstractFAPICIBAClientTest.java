@@ -3,6 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.*;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -206,13 +207,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				}
 				return backchannelEndpoint(requestId);
 			case "token":
-				if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-					throw new TestFailureException(
-						getId(),
-						"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
-					);
-				}
-				return tokenEndpoint(requestId);
+				throw new TestFailureException(
+					getId(),
+					"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
+				);
 			case "userinfo":
 				return userinfoEndpoint(requestId);
 			default:
