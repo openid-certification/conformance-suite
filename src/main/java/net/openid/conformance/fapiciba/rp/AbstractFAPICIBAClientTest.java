@@ -185,7 +185,39 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		return handleClientRequestForPath(requestId, path);
+		if (startingShutdown) {
+			throw new TestFailureException(
+				getId(),
+				String.format("Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server", path)
+			);
+		}
+
+		switch (path) {
+			case ".well-known/openid-configuration":
+				return discoveryEndpoint();
+			case "jwks":
+				return jwksEndpoint();
+			case "backchannel":
+				if (ClientAuthType.MTLS.equals(clientAuthType)) {
+					throw new TestFailureException(
+						getId(),
+						"In MTLS mode, the backchannel endpoint must be called over an mTLS secured connection using the backchannel_authentication_endpoint found in mtls_endpoint_aliases."
+					);
+				}
+				return backchannelEndpoint(requestId);
+			case "token":
+				if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+					throw new TestFailureException(
+						getId(),
+						"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
+					);
+				}
+				return tokenEndpoint(requestId);
+			case "userinfo":
+				return userinfoEndpoint(requestId);
+			default:
+				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
 	}
 
 	@Override
@@ -201,30 +233,36 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		if (path.equals("token")) {
-			return tokenEndpoint(requestId);
-		} else if (path.equals("backchannel")) {
-			return backchannelEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			return accountsEndpoint(requestId);
-		}
-
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, false);
 			}
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, true);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, true);
 			}
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+
+		switch (path) {
+			case "backchannel":
+				return backchannelEndpoint(requestId);
+			case "token":
+				return tokenEndpoint(requestId);
+			case ACCOUNTS_PATH:
+			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
+				return accountsEndpoint(requestId);
+			default:
+				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		}
 	}
 
 	private void exposeMtlsPath(String name, String path) {
@@ -276,32 +314,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
-	}
-
-	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals("backchannel")) {
-			return backchannelEndpoint(requestId);
-		} else if (path.equals("token")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
-					"using the token_endpoint found in mtls_endpoint_aliases.");
-			} else {
-				return tokenEndpoint(requestId);
-			}
-		} else if (path.equals("jwks")) {
-			return jwksEndpoint();
-		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			return userinfoEndpoint(requestId);
-		} else if (path.equals(".well-known/openid-configuration")) {
-			return discoveryEndpoint();
-		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
 	protected Object discoveryEndpoint() {
