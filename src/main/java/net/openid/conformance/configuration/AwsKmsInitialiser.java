@@ -37,7 +37,7 @@ public class AwsKmsInitialiser {
 				kmsClient.listAliases();
 			}
 
-			Security.addProvider(new KmsProvider(kmsClient));
+			Security.insertProviderAt(new KmsProvider(kmsClient), 1);
 			LOG.info("KMS security provider registered - provider name awsKms");
 			AbstractMtlsStrategy.register("awsKms", new AwsKmsMtlsStrategy());
 			SmartJWSSignerFactory signerFactory = SmartJWSSignerFactory.getInstance();
