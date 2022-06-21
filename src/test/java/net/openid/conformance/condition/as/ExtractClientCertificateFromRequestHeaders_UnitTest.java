@@ -27,7 +27,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 
 	private JsonObject tokenEndpointRequest;
 
-	private ExtractClientCertificateFromTokenEndpointRequestHeaders cond;
+	private ExtractClientCertificateFromRequestHeaders cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -35,7 +35,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	@Before
 	public void setUp() throws Exception {
 
-		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders();
+		cond = new ExtractClientCertificateFromRequestHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from RFC 7468
@@ -60,7 +60,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link ExtractClientCertificateFromTokenEndpointRequestHeaders#evaluate(Environment)}.
+	 * Test method for {@link ExtractClientCertificateFromRequestHeaders#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_valuePresent() {
@@ -75,7 +75,7 @@ public class ExtractClientCertificateFromRequestHeaders_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link ExtractClientCertificateFromTokenEndpointRequestHeaders#evaluate(Environment)}.
+	 * Test method for {@link ExtractClientCertificateFromRequestHeaders#evaluate(Environment)}.
 	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueMissing() {

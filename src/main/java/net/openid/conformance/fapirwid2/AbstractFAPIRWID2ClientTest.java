@@ -35,7 +35,7 @@ import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
-import net.openid.conformance.condition.as.ExtractClientCertificateFromTokenEndpointRequestHeaders;
+import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
@@ -335,7 +335,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
 
@@ -574,7 +574,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class);
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 

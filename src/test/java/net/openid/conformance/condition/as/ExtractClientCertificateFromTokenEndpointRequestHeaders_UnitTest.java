@@ -28,12 +28,12 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 	private TestInstanceEventLog eventLog;
 
 	private JsonObject tokenEndpointRequest;
-	private ExtractClientCertificateFromTokenEndpointRequestHeaders cond;
+	private ExtractClientCertificateFromRequestHeaders cond;
 
 
     @Before
     public void setUp() throws Exception {
-		cond = new ExtractClientCertificateFromTokenEndpointRequestHeaders();
+		cond = new ExtractClientCertificateFromRequestHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		JsonObject sampleHeaders = new JsonObject();
 
