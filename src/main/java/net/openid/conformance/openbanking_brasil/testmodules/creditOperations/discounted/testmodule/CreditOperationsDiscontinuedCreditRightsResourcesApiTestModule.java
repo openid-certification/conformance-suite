@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.InvoiceFinancingContractsResponseValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesStatus;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
@@ -38,6 +39,7 @@ public class CreditOperationsDiscontinuedCreditRightsResourcesApiTestModule
 
 	private static final String API_RESOURCE_ID = "contractId";
 	private static final String RESOURCE_TYPE = EnumResourcesType.INVOICE_FINANCING.name();
+	private static final String RESOURCE_STATUS = EnumResourcesStatus.AVAILABLE.name();
 
 	@Override
 	protected void configureClient(){
@@ -73,7 +75,8 @@ public class CreditOperationsDiscontinuedCreditRightsResourcesApiTestModule
 
 		eventLog.startBlock("Compare active resourceId's with API resources");
 		env.putString("resource_type", RESOURCE_TYPE);
-		callAndStopOnFailure(ExtractResourceIdOfActiveResources.class);
+		env.putString("resource_status", RESOURCE_STATUS);
+		callAndStopOnFailure(ExtractResourceIdOfResourcesWithSpecifiedTypeAndStatus.class);
 		callAndStopOnFailure(CompareResourceIdWithAPIResourceId.class);
 		eventLog.endBlock();
 	}

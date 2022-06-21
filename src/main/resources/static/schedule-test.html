@@ -837,6 +837,7 @@
                                     </div>
                                 </div>
 
+
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">fipeCode</div>
                                     <div class="col-md-10">
@@ -929,6 +930,30 @@
                                                 <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The 'CNPJ' value to be used in the consent creation request. At least one of CPF or CNPJ must be supplied."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="resource.brazilCnpj"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Joint Account brazilCpf</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The CPF that will be used on the multiple consent test. This field should only be sent by institutions that support joint accounts. In order to run this test, the user must provide a user that owns a joint account that can only share account data after multiple consents have been provided."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.brazilCpfJointAccount"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Joint Account brazilCnpj</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="The CNPJ that will be used on the multiple consent test. This field should only be sent by institutions that support joint accounts. In order to run this test, the user must provide a user that owns a joint account that can only share account data after multiple consents have been provided."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="resource.brazilCnpjJointAccount"></input>
                                         </div>
                                     </div>
                                 </div>

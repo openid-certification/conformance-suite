@@ -16,6 +16,14 @@ public class CompareResourceIdWithAPIResourceId extends AbstractCondition {
 		JsonArray extractedApiIds = env.getElementFromObject("extracted_api_ids", "extractedApiIds").getAsJsonArray();
 		JsonArray extractedResourcesIds = env.getElementFromObject("extracted_resource_id", "extractedResourceIds").getAsJsonArray();
 
+		if (extractedApiIds.isEmpty()) {
+			throw error("Extracted API IDs array is empty");
+		}
+
+		if (extractedResourcesIds.isEmpty()) {
+			throw error("Extracted Resources IDs array is empty");
+		}
+
 		if (extractedApiIds.size() == extractedResourcesIds.size()) {
 			log("Sizes are equal", Map.of("ApiIdsSize", extractedApiIds.size(), "ResourceIdsSize", extractedResourcesIds.size()));
 			for (JsonElement extractedResourcesId : extractedResourcesIds) {
