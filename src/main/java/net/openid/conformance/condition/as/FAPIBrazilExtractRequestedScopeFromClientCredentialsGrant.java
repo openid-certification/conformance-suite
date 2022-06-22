@@ -18,6 +18,10 @@ public class FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant extends A
 
 		String scope = env.getString("token_endpoint_request", "body_form_params.scope");
 
+		if (scope == null) {
+			throw error("Scope parameter not found in request", args("expected one of", "payments, consents", "actual", scope));
+		}
+
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
 
 		if (scopes.contains("payments")) {
