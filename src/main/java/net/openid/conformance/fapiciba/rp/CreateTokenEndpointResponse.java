@@ -12,7 +12,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 	public static final int EXPIRES_IN = 600;
 
 	@Override
-	@PreEnvironment(strings = { "access_token", "token_type" }, required = "backchannel_request_object") // note the others are optional
+	@PreEnvironment(strings = { "access_token", "token_type" }) // note the others are optional
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
