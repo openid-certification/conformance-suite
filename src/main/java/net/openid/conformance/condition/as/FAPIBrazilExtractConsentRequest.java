@@ -2,6 +2,7 @@ package net.openid.conformance.condition.as;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
@@ -17,6 +18,11 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 	//also adds consent_request_cnpj if found in request
 	@PostEnvironment(strings = {"consent_request_cpf"}, required = {"new_consent_request"})
 	public Environment evaluate(Environment env) {
+
+		JsonElement bodyJson = env.getElementFromObject("incoming_request", "body_json");
+		if (bodyJson == null) {
+			throw error("Request must contain a JSON structure in the body", args("expected", "JSON", "actual", bodyJson));
+		}
 
 		JsonObject parsedRequest = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
 
