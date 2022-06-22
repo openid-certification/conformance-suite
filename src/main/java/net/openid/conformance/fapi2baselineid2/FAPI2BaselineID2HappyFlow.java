@@ -8,6 +8,8 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
@@ -52,6 +54,14 @@ public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleC
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 			}
 		}
+	}
+
+	protected void checkResourceEndpointTLS() {
+		eventLog.startBlock("Resource endpoint TLS test");
+		env.mapKey("tls", "resource_endpoint_tls");
+		checkEndpointTLS();
+		env.unmapKey("tls");
+		eventLog.endBlock();
 	}
 
 	protected void checkAccountRequestEndpointTLS() {
@@ -117,9 +127,17 @@ public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleC
 
 	@Override
 	protected void requestProtectedResource() {
+
 		if (!isSecondClient()) {
-			checkAccountRequestEndpointTLS();
-			checkAccountResourceEndpointTLS();
+			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_UK ||
+				getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+				callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
+				checkAccountRequestEndpointTLS();
+				checkAccountResourceEndpointTLS();
+			} else {
+				callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
+				checkResourceEndpointTLS();
+			}
 		}
 
 		super.requestProtectedResource();

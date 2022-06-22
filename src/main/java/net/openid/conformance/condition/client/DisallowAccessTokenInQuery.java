@@ -14,7 +14,7 @@ import net.openid.conformance.condition.PreEnvironment;
 public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource" }, strings = "protected_resource_url")
+	@PreEnvironment(required = { "access_token" }, strings = "protected_resource_url")
 	public Environment evaluate(Environment env) {
 
 		return callProtectedResource(env);

@@ -326,13 +326,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			call(sequence(resourceConfiguration));
 		}
-
-		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_UK ||
-			getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, ConditionResult.INFO);
-		}
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
