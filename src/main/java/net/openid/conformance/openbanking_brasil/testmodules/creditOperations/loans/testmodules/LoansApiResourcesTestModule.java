@@ -64,6 +64,7 @@ public class LoansApiResourcesTestModule extends LoansApiTestModule {
 
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 		callAndStopOnFailure(PrepareUrlForResourcesCall.class);
 		preCallProtectedResource("Call Resources API");
 
