@@ -2,7 +2,7 @@ package net.openid.conformance.apis;
 
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
-import net.openid.conformance.openbanking_brasil.registrationData.PersonalRelationsResponseValidator;
+import net.openid.conformance.openbanking_brasil.registrationData.v1.PersonalRelationsResponseValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 

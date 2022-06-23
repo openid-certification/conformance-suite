@@ -10,8 +10,10 @@
         "balloonPayments": [
             {
                 "dueDate": "2020-01-10",
-                "currency": "BRL",
-                "amount": 100000.04
+                "amount": {
+                    "amount": "1000.0400",
+                    "currency": "BRL"
+                }
             }
         ]
     },

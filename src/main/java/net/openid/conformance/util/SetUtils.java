@@ -6,6 +6,6 @@ import java.util.*;
 public class SetUtils {
 
 	public static Set<String> createSet(String values) {
-		return Sets.newHashSet(values.split(", "));
+		return Sets.newHashSet(values.trim().split(", "));
 	}
 }
