@@ -70,6 +70,9 @@ public class FAPIBrazilExtractConsentRequest extends AbstractCondition {
 		if(!hasCnpj && !hasCpf) {
 			throw error("Either 'CPF' or 'CNPJ' must be provided");
 		}
+
+		logSuccess("Consent successfully extracted from the request.", parsedRequest);
+
 		env.putObject("new_consent_request", parsedRequest);
 		return env;
 
