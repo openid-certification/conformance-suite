@@ -13,6 +13,6 @@ public class PrepareUrlForResourcesCall extends ResourceBuilder {
 		// Takes the consents URL, leaves its base and attaches the resources endpoint
 		setApi("resources");
 		setEndpoint("/resources");
-		return env;
+		return super.evaluate(env);
 	}
 }
