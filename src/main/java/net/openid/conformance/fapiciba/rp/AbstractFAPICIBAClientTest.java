@@ -587,6 +587,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void prepareIdTokenClaims() {
+
+		env.mapKey("authorization_request_object", "backchannel_request_object");
+
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
@@ -604,6 +607,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		}
+
+		env.unmapKey("authorization_request_object");
+
 	}
 
 	protected void signIdToken() {
