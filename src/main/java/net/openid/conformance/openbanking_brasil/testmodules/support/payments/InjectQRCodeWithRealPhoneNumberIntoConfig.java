@@ -17,6 +17,9 @@ public class InjectQRCodeWithRealPhoneNumberIntoConfig  extends AbstractConditio
 		PixQRCode qrCode = new PixQRCode();
 		qrCode.useStandardConfig();
 
+		//Add proxy as the phone number
+		qrCode.setProxy(DictHomologKeys.PROXY_PHONE_NUMBER);
+
 		//Generate random amount
 		Random r = new Random();
 		float random = r.nextFloat() * 100;
