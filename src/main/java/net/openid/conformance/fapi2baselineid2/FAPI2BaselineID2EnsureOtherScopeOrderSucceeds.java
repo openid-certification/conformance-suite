@@ -3,6 +3,8 @@ package net.openid.conformance.fapi2baselineid2;
 import net.openid.conformance.condition.client.ReverseScopeOrderInAuthorizationEndpointRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-other-scope-order-succeeds",
@@ -26,6 +28,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+// idmvp only requires the openid scope to be supported, but this test requires at least two scopes
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "idmvp" })
 public class FAPI2BaselineID2EnsureOtherScopeOrderSucceeds extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
