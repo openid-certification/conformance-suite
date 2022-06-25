@@ -24,7 +24,10 @@ public class ValidateIdTokenStandardClaims extends AbstractValidateOpenIdStandar
 		"c_hash",
 		"at_hash",
 		// from FAPI standard
-		"s_hash"
+		"s_hash",
+		// standard jwt claims https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
+		"jti",
+		"nbf"
 	);
 
 	public static JsonObject getIdTokenIdentityClaims(Environment env) {
