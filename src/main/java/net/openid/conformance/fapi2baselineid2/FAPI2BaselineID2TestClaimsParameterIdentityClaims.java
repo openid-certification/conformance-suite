@@ -25,6 +25,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-test-claims-parameter-identity-claims",
@@ -48,6 +50,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 public class FAPI2BaselineID2TestClaimsParameterIdentityClaims extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	private boolean isClaimsParameterSupported() {

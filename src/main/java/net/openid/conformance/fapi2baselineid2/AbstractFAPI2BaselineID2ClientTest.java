@@ -306,7 +306,9 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-2"));
 		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-BASE-4.3.1-13"));
-		call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
+		if (jarmType == FAPIJARMType.OIDC) {
+			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
+		}
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
@@ -1153,7 +1155,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
-		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
+		if(jarmType == FAPIJARMType.OIDC) {
 			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 		}
 

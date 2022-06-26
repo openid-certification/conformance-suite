@@ -169,6 +169,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -183,6 +184,7 @@ import java.util.function.Supplier;
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
+	FAPIOpenIDConnect.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class
@@ -219,6 +221,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
 	protected Boolean isBrazil;
+	protected Boolean isOpenId;
 	protected Boolean isSignedRequest;
 	protected Boolean isDpop;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
@@ -265,6 +268,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 
@@ -642,39 +646,42 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-16");
 
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
+		if (isOpenId) {
 
-		call(new PerformStandardIdTokenChecks());
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
-		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+			call(new PerformStandardIdTokenChecks());
 
-		performProfileIdTokenValidation();
+			callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1-1");
-		} else {
-			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+			performProfileIdTokenValidation();
+
+			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+				callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1-1");
+			} else {
+				callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+			}
+			skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
+				FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6.1-1");
+			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU) {
+				callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+			}
+
+			// code flow - all hashes are optional.
+			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
+			callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
+			callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
+
+			/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
+			 * determined by the Extract*Hash condition
+			 */
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+			skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
+				ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 		}
-		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU) {
-			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
-		}
-
-		// code flow - all hashes are optional.
-		callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
-		callAndContinueOnFailure(ExtractSHash.class, ConditionResult.INFO, "FAPI1-ADV-5.2.2.1-5");
-		callAndContinueOnFailure(ExtractAtHash.class, Condition.ConditionResult.INFO, "OIDCC-3.3.2.11");
-
-		/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
-		 * determined by the Extract*Hash condition
-		 */
-		skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
-		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
-			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 	}
 
