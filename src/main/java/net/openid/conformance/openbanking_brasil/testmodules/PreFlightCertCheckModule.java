@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 

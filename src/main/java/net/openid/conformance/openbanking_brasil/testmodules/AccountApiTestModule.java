@@ -2,13 +2,14 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.account.*;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountIdentificationResponseValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountLimitsValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "account-api-test",
