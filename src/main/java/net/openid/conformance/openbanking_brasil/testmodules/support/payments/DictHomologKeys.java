@@ -13,7 +13,10 @@ public class DictHomologKeys {
 	public static final String PROXY_EMAIL_STANDARD_TYPE = "PIX";
 	public static final String PROXY_EMAIL_STANDARD_AMOUNT = "100.00";
 	public static final String PROXY_EMAIL_STANDARD_CURRENCY = "BRL";
+	public static final String PROXY_EMAIL_STANDARD_CURRENCY_CODE = "986";
 	public static final String PROXY_EMAIL_STANDARD_LOCALINSTRUMENT = "DICT";
+	public static final String PROXY_EMAIL_STANDARD_COUNTRY = "BR";
+	public static final String PROXY_EMAIL_STANDARD_CITY = "BELO HORIZONTE";
 	public static final String PROXY_EMAIL_STANDARD_IBGETOWNCODE = "5300108";
 	public static final String PROXY_EMAIL_STANDARD_CODE = "OTHER";
 	public static final String PROXY_EMAIL_STANDARD_ADDITIONALINFORMATION = "Conformance Suite Test";

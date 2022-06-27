@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesStatus;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
