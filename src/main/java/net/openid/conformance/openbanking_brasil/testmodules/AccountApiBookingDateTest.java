@@ -2,10 +2,10 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -15,10 +15,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Creates a consent with only ACCOUNTS permissions\n" +
 		"\u2022 201 code and successful redirect\n" +
 		"\u2022 Using the consent created, call the Accounts API\n" +
-		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using the max period (12 months from exisiting date)\n" +
-		"\u2022 Expect success, fetch a transaction, get the transactionDate\n" +
-		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate to be the transactionDate\n" +
-		"\u2022 To execute this test a data mass with at least two transactions, one older than 6 months and one 6 months or earlier must be set",
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using 6 months before current date (From D to D-180)\n" +
+		"\u2022 Expect success, fetch a transaction, get the transactionDate, make sure this transaction is within the range above\n" +
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate using 6 months older than current date (From D-180 to D-360)\n" +
+		"\u2022 Expect success, fetch a transaction, get the transactionDate, make sure this transaction is within the range above - Save the date from one of the transactions returned on that API Call - Save it's date\n" +
+		"\u2022 Call GET Accounts Transactions API, send query parameters fromBookingDate and toBookingDate to be the transactionDate saved on the test below\n" +
+		"\u2022 Expect success, make sure that the returned transactions is from exactly the date returned above\n",
+
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -45,8 +48,6 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 	}
 
-	Boolean keepHeaders = false;
-
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
@@ -55,36 +56,33 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		preCallProtectedResource("Fetch Account");
 		callAndContinueOnFailure(AccountIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-		callAndStopOnFailure(LogKnownIssue.class,"BCLOG-F02-172");
 		preCallProtectedResource("Fetch Account transactions");
-		eventLog.startBlock("Add booking date query parameters 1 year apart");
-		keepHeaders = true;
-		callAndContinueOnFailure(AddBookingDateParameters.class, Condition.ConditionResult.FAILURE);
-		preCallProtectedResource("Fetch Account transactions");
-		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
-		eventLog.startBlock("Set booking date query parameters as transaction date");
-		callAndContinueOnFailure(DateExtractor.class, Condition.ConditionResult.FAILURE);
-		preCallProtectedResource("Fetch Account transactions");
-		keepHeaders = false;
-		eventLog.startBlock("End of date tests");
-		callAndContinueOnFailure(AccountTransactionsValidator.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		call(sequence(ValidateSelfEndpoint.class));
+		eventLog.startBlock("Add booking date query parameters");
+		callAndContinueOnFailure(AddBookingDateSixMonthsBefore.class, Condition.ConditionResult.FAILURE);
+		preCallProtectedResource("Fetch Account transactions with query parameters");
+		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(validateTransactionWithinRange.class);
+		call(accountTransactionsValidationSequence());
+		eventLog.startBlock("Add booking date query parameters");
+		callAndStopOnFailure(AddBookingDate6MonthsOlderThanCurrent.class);
+		preCallProtectedResource("Fetch Account transactions with query parameters");
+		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(validateTransactionWithinRange.class);
+		call(accountTransactionsValidationSequence());
+		eventLog.startBlock("Add booking date query parameters using value from transaction returned");
+		callAndStopOnFailure(AddSavedTransactionDateAsBookingParam.class);
+		preCallProtectedResource("Fetch Account transactions with query parameters");
+		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(validateTransactionWithinRange.class);
+		call(accountTransactionsValidationSequence());
 	}
 
-	@Override
-	protected void preCallProtectedResource() {
-		if (!keepHeaders) {
-			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
-		}
-		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-3");
-		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
-		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
-		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
-		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
+	private ConditionSequence accountTransactionsValidationSequence(){
+		return sequenceOf(
+			condition(AccountTransactionsValidator.class),
+			condition(EnsureResponseHasLinks.class),
+			condition(ValidateResponseMetaData.class),
+			sequence(ValidateSelfEndpoint.class)
+		);
 	}
 }
