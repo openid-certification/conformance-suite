@@ -288,6 +288,14 @@ public class BrowserControl implements DataUtils {
 						JsonArray commands = currentTask.getAsJsonArray("commands");
 						if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we expect
 
+							// wait for webpage to finish loading
+							WebDriverWait waiting = new WebDriverWait(driver, 10, 100);
+							try {
+								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+							} catch (TimeoutException timeoutException) {
+								logger.error(testId + ": WebRunner caught exception: ", timeoutException);
+							}
+
 							// execute all of the commands in this task
 							for (int j = 0; j < commands.size(); j++) {
 								doCommand(commands.get(j).getAsJsonArray(), taskName);
@@ -480,9 +488,6 @@ public class BrowserControl implements DataUtils {
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
-							// wait for js to load
-							waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).
-								executeScript("return document.readyState").equals("complete"));
 						}
 
 						logger.debug(testId + ":\t\tDone waiting: " + commandString);
