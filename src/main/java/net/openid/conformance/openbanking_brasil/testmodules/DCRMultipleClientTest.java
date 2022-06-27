@@ -27,24 +27,9 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.ca",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory2.client_id",
-		"directory.apibase",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca"
+		"directory.apibase"
 	}
 )
-
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.org_jwks",
-	"resource.brazilOrganizationId",
-	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment",
-	"resource.consentUrl",
-	"resource.brazilCpf",
-	"resource.brazilCnpj"
-})
 
 public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 	protected ClientAuthType clientAuthType;
@@ -55,17 +40,25 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 	}
 
 	@Override
+	protected void setupResourceEndpoint() {
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		return false;
+	}
+
+	@Override
 	protected void callRegistrationEndpoint() {
-		//Create DCR
 		eventLog.startBlock("Create First Client");
-		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class)); //URL
-		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2"); //Access token
-		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class); //Scopes
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
 		eventLog.endBlock();
 		eventLog.startBlock("Create Second Client");
-		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class)); //URL
-		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2"); //Access token
-		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class); //Scopes
+		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
 		eventLog.endBlock();
 	}
 }
