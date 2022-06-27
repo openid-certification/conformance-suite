@@ -114,6 +114,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
+		String openidVariant = v.get("openid");
 		String clientAuth = v.get("client_auth_type");
 		String requestMethod = v.get("fapi_request_method");
 		String responseMode = v.get("fapi_response_mode");
@@ -122,8 +123,13 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 		boolean dpop = senderConstrain.equals("dpop");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
+		boolean openid = openidVariant.equals("openid_connect");
 
 		String certProfile = "FAPI2AdvancedID2 ";
+
+		if (openid) {
+			certProfile += "OpenID ";
+		}
 
 		switch (profile) {
 			case "plain_fapi":
@@ -164,6 +170,10 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 				}
 				if (jarm) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!openid) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for IDMVP",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name

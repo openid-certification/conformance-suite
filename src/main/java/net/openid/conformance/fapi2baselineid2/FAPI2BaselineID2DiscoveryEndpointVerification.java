@@ -34,6 +34,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -51,14 +52,17 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPI2ID2OPProfile.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
-	FAPIResponseMode.class
+	FAPIResponseMode.class,
+	FAPIOpenIDConnect.class
 })
 public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2BaselineID2DiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
+	private Class<? extends ConditionSequence> oidcChecks;
 
 	protected Boolean jarm;
 	protected Boolean signedRequest;
+	protected Boolean isOpenId;
 
 	protected boolean brazil = false;
 
@@ -88,11 +92,17 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		profileSpecificChecks = IdmvpDiscoveryEndpointChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPIOpenIDConnect.class, value = "openid_connect")
+	public void setupOidc() {
+		oidcChecks = OidcDiscoveryEndpointChecks.class;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		super.configure(config, baseUrl, externalUrlOverride);
 	}
 
@@ -121,14 +131,22 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
 		call(sequence(profileSpecificChecks));
+		if (oidcChecks != null) {
+			call(sequence(oidcChecks));
+		}
+	}
+
+	public static class OidcDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
+		}
 	}
 
 	public static class PlainFAPIDiscoveryEndpointChecks extends AbstractConditionSequence {
-
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 
@@ -136,7 +154,6 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
 			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
@@ -157,7 +174,6 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 
