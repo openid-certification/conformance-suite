@@ -127,6 +127,12 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             throw error("Data contains more items than the metadata totalRecords.");
         }
 
+		// check if there is a next or prev link - if so, totalPages should be different than one.
+		if (!Strings.isNullOrEmpty(prevLink) || !Strings.isNullOrEmpty(nextLink)){
+			if(metaTotalPages == 1 ){
+				throw error("totalPages field should not be 1.");
+			}
+		}
         // check if there is 1 page - if so, there should not be a next and prev link.
         if (metaTotalPages == 1) {
 

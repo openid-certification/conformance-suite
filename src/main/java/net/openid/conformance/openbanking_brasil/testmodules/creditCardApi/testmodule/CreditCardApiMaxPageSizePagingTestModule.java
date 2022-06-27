@@ -19,7 +19,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Expects a 200 response \n" +
 		"\u2022 Calls GET Accounts API with page size=1000\n" +
 		"\u2022 Expects a 200 response and expect that the links and meta attributes display the next page \n" +
-		"\u2022 Validates the number of records being return",
+		"\u2022 Validates the number of records in first page and compares it to the page-size returned \n" +
+		"\u2022 Validates the number of records in second page and compares it to the page-size returned \n" +
+		"\u2022 Checks the total records parameter and compares it with the number of records in the first and second pages",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -70,7 +72,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}
