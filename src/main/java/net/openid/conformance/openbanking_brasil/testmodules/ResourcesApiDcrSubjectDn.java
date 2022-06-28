@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildResourcesConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -29,7 +30,7 @@ public class ResourcesApiDcrSubjectDn extends AbstractApiDcrSubjectDn {
 
 	@Override
 	protected void configureClient(){
-		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
