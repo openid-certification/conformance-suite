@@ -49,7 +49,7 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
+		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 		dataElement.add("links", links);
 
 		consentResponse.add("data", dataElement);
