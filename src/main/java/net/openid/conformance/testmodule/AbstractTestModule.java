@@ -131,7 +131,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private void logException(Throwable e) {
 		Map<String, Object> event = ex(e);
-		event.put("msg", "Caught exception from test framework");
+		event.put("msg", "Caught exception from test framework: " + e.getMessage());
 
 		eventLog.log(getName(), event);
 	}
@@ -352,7 +352,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error(getId() + ": Couldn't create condition object", e);
-			throw new TestFailureException(getId(), "Couldn't create required condition: " + builder.getConditionClass().getSimpleName());
+			throw new TestFailureException(getId(), "Fatal failure from condition: " + builder.getConditionClass().getSimpleName());
 		} catch (TestFailureException e) {
 			logger.error(getId() + ": Caught TestFailureException", e);
 			throw e;
@@ -452,7 +452,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			logException(e);
 			logger.error(getId() + ": Couldn't create condition sequence object", e);
-			throw new TestFailureException(getId(), "Couldn't create required condition sequence: " + conditionSequenceClass.getSimpleName());
+			throw new TestFailureException(getId(), "Fatal failure from condition sequence: " + conditionSequenceClass.getSimpleName());
 		}
 	}
 
