@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.containsString;
 
 @UseResurce("jsonResponses/metaData/goodMetaLinksBodyResponse.json")
 public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionUnitTest {
-    
+
     @Test
 	public void validateMetaDataAndLinks() {
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
@@ -23,7 +23,7 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 	public void validateStructureWithMissingLinksObject() {
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
 		ConditionError error = runAndFail(condition);
-		String expected = "There should not be a 'next' or 'prev' link.";
+		String expected = "totalPages field should not be 1.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
