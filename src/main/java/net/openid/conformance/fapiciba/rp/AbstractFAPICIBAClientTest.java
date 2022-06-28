@@ -514,11 +514,13 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		});
 	}
 
-	// This method is a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest,
-	// which is why it maps the backchannel request to the authorization request object. Other than that, changes have
-	// been kept to a minimum.
+	// This method is for the most part a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest.
 	protected void validateRequestObjectForBackchannelEndpointRequest() {
+
 		validateRequestObjectCommonChecks();
+
+		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
+		callAndStopOnFailure(ValidateBackchannelRequestObjectSigningAlgMatchesSupported.class, "CIBA-4");
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");
 
@@ -563,7 +565,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
-		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
 		callAndContinueOnFailure(NonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
