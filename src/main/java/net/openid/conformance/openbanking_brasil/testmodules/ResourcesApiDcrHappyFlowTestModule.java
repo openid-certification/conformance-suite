@@ -39,7 +39,7 @@ public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule
 		callAndStopOnFailure(OverrideClientWithDadosClient.class);
 		callAndStopOnFailure(OverrideScopeWithAllDadosScopes.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
-		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 
 		super.configureClient();
 	}

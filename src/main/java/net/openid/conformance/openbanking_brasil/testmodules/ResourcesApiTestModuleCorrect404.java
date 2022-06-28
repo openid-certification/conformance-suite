@@ -34,7 +34,7 @@ public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctional
 
 	@Override
 	protected void configureClient(){
-		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
@@ -43,6 +43,7 @@ public class ResourcesApiTestModuleCorrect404 extends AbstractOBBrasilFunctional
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllCustomerRelatedConsentsForResource404HappyPathTest.class);
+		callAndStopOnFailure(AddResourcesScope.class);
 	}
 
 	@Override
