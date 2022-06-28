@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.stream.StreamSupport;
 
@@ -24,7 +25,7 @@ public class ValidateBackchannelRequestObjectSigningAlgMatchesSupported extends 
 
 		boolean isSupported = StreamSupport
 				.stream(supportedAlgs.spliterator(), false)
-				.anyMatch(alg -> algUsed.equals(alg.getAsString()));
+				.anyMatch(alg -> algUsed.equals(OIDFJSON.getString(alg)));
 
 		if(!isSupported) {
 			throw error("Request is not signed using one of the backchannel_authentication_request_signing_alg_values_supported algorithms.",
