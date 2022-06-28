@@ -2,13 +2,10 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.text.ParseException;
 import java.util.stream.StreamSupport;
 
 public class ValidateBackchannelRequestObjectSigningAlgMatchesSupported extends AbstractCondition {
