@@ -19,7 +19,7 @@ public class SetDpopExpToFiveMinutesInFuture extends AbstractCondition {
 
 		claims.addProperty("exp", exp.getEpochSecond());
 
-		logSuccess("Set 'exp' in DPoP proof to now", claims);
+		logSuccess("Set 'exp' in DPoP proof to 5 minutes in the future", claims);
 
 		return env;
 
