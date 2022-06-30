@@ -7,8 +7,8 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -40,16 +40,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class ConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override
-	protected void configureClient(){
-		//Arbitrary resource
-		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+	protected void configureClient() {
+		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
-		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(PrepareAllCustomerRelatedConsentsForResource404HappyPathTest.class);
+		callAndStopOnFailure(PrepareToGetCustomCustomerIdentifications.class);
 	}
 
 	@Override
