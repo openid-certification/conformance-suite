@@ -2,12 +2,10 @@ package net.openid.conformance.openbanking_brasil.raidiam.condition;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateConsentsRejection;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateConsentRejection;
 import static net.openid.conformance.util.JsonObjectBuilder.addFields;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +16,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,12 +26,12 @@ public class ValidateConsentsRejection_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateConsentsRejection cond;
+	private ValidateConsentRejection cond;
 
 	private JsonObject consentResponseRejectedAspspAllFields;
 	@Before
 	public void setUp() throws Exception {
-		cond = new ValidateConsentsRejection();
+		cond = new ValidateConsentRejection();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		consentResponseRejectedAspspAllFields = new JsonObject();

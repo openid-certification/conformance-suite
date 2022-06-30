@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateConsentsRejection extends AbstractJsonAssertingCondition {
+public class ValidateConsentRejection extends AbstractJsonAssertingCondition {
 
 
 	@Override
