@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.ConsentHasExpiredInsteadOfBeenRejected;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -35,13 +34,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
-	//TODO: Alex it is not needed for this specific test
-//	@Override
-//	protected void configureClient(){
-//		//Arbitrary resource
-//		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
-//		super.configureClient();
-//	}
+	@Override
+	protected void configureClient(){
+		//Arbitrary resource
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
@@ -50,38 +48,52 @@ public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunct
 	}
 
 	@Override
+	protected void requestProtectedResource(){
+
+	}
+
+	@Override
 	protected void performPreAuthorizationSteps() {
 		super.performPreAuthorizationSteps();
 		callAndContinueOnFailure(WaitFor2Seconds.class);
-		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
 
-
-
 	@Override
-	protected void onAuthorizationCallbackResponse() {
+	protected void onPostAuthorizationFlowComplete() {
+		runInBlock("Validating get consent response", () -> {
+			callAndContinueOnFailure(WaitFor180Seconds.class);
 
-		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
+			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+			preCallProtectedResource("Fetch consent");
 
-		callAndContinueOnFailure(RejectStateInUrlQueryForHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.SUCCESS);
+			callAndStopOnFailure(ValidateConsentsRejection.class);
+			callAndStopOnFailure(EnsureConsentRejectedByASPSP.class);
+			callAndStopOnFailure(EnsureConsentReasonConsentMaxDateReached.class);
 
-		callAndStopOnFailure(CheckAuthorizationEndpointHasError.class);
-
-		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
-
-		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
-
-		callAndStopOnFailure(ConsentHasExpiredInsteadOfBeenRejected.class);
-		callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
-
+		});
 		fireTestFinished();
 	}
 
+	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
+		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
+	}
 
 	@Override
 	protected void validateResponse() {
+		runInBlock("Validate Consent", () -> {
+			callAndContinueOnFailure(WaitFor60Seconds.class);
+			callAndContinueOnFailure(WaitFor60Seconds.class);
+			callAndContinueOnFailure(WaitFor60Seconds.class);
+
+			callAndStopOnFailure(ConsentIdExtractor.class);
+			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			fireTestFinished();
+
+		});
 
 	}
 
