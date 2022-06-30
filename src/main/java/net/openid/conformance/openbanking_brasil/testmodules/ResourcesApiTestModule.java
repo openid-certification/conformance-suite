@@ -39,7 +39,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 
 	@Override
 	protected void configureClient(){
-		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
@@ -47,6 +47,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
+		callAndStopOnFailure(AddResourcesScope.class);
 	}
 
 	@Override

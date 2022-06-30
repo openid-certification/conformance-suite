@@ -11,8 +11,10 @@ public class PrepareUrlForResourcesCall extends ResourceBuilder {
 	@PostEnvironment(strings = "protected_resource_url")
 	public Environment evaluate(Environment env) {
 		// Takes the consents URL, leaves its base and attaches the resources endpoint
+		setAllowDifferentBaseUrl(true);
 		setApi("resources");
 		setEndpoint("/resources");
+
 		return super.evaluate(env);
 	}
 }
