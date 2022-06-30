@@ -3,9 +3,9 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.accounts;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.v1.AccountIdentificationResponseValidator;
-import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
-import net.openid.conformance.openbanking_brasil.account.v1.AccountTransactionsValidator;
+import net.openid.conformance.openbanking_brasil.account.v2.AccountIdentificationResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.account.v2.AccountListValidatorV2;
+import net.openid.conformance.openbanking_brasil.account.v2.AccountTransactionsValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -51,11 +51,11 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 	}
 	@Override
 	protected void validateResponse() {
-		callAndContinueOnFailure(AccountListValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AccountListValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(AccountSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
-		callAndContinueOnFailure(AccountIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 		preCallProtectedResource("Fetch Account transactions");
 		eventLog.startBlock("Add booking date query parameters");
@@ -80,7 +80,7 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 
 	private ConditionSequence accountTransactionsValidationSequence(){
 		return sequenceOf(
-			condition(AccountTransactionsValidator.class),
+			condition(AccountTransactionsValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
 			condition(ValidateResponseMetaData.class),
 			sequence(ValidateSelfEndpoint.class)
