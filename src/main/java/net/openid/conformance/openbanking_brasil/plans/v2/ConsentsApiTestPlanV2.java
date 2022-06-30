@@ -27,7 +27,8 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 					ConsentsApiTestTransactionDateTime.class,
 					ConsentApiBadConsentsTestModule.class,
 					ConsentsApiConsentExpiredTestModuleV2.class,
-					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class
+					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class,
+					ConsentsApiDeleteTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
