@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus;
 public class EnsureResponseCodeWas404 extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "endpoint_response")
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
 
-		int statusCode = env.getInteger("endpoint_response", "status");
-		String endpointName = env.getString("endpoint_response", "endpoint_name");
+		int statusCode = env.getInteger("resource_endpoint_response_full", "status");
+		String endpointName = env.getString("resource_endpoint_response_full", "endpoint_name");
 
 		if(statusCode != HttpStatus.NOT_FOUND.value()) {
 			throw error(endpointName + " endpoint returned an unexpected http status - should be 404", args("http_status", statusCode));
