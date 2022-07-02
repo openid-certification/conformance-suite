@@ -383,25 +383,10 @@ local_test:
       replicas="$new_replicas"
     fi
 
-    node_selector=""
-
     if [[ "$CI_COMMIT_BRANCH" == "production" ]] || [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
       # we expect much bigger databases on production; use more RAM and disk for mongo
       mongo_settings="--set mongodb.resources.limits.memory=4Gi \
         --set mongodb.persistence.size=250Gi"
-    fi
-
-    if [[ "$CI_COMMIT_BRANCH" == "production" ]]; then
-      node_selector="--set nodeSelector.environment=production \
-        --set tolerations[0].effect=NoSchedule \
-        --set tolerations[0].key=dedicated \
-        --set tolerations[0].operator=Equal \
-        --set tolerations[0].value=production \
-        --set mongodb.nodeSelector.environment=production \
-        --set mongodb.tolerations[0].effect=NoSchedule \
-        --set mongodb.tolerations[0].key=dedicated \
-        --set mongodb.tolerations[0].operator=Equal \
-        --set mongodb.tolerations[0].value=production"
     fi
 
     # Create OIDC credentials secrets
@@ -432,7 +417,6 @@ local_test:
       --set application.track="$track" \
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set replicaCount="$replicas" \
-      $node_selector \
       $mongo_settings \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
