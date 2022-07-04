@@ -13,7 +13,6 @@ public class ValidateConsentRejection extends AbstractJsonAssertingCondition {
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
-		env.putString("resource_endpoint_response", "{\"data\":{\"status\":\"REJECTED\",\"rejection\":{\"rejectedBy\":\"ASPSP\",\"reason\":{\"code\":\"CONSENT_EXPIRED\"}}}}");
 
 		JsonElement consentResponse = bodyFrom(env);
 		if (consentResponse.getAsJsonObject().entrySet().isEmpty()) {

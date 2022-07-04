@@ -18,7 +18,7 @@ public class EnsureConsentReasonCostumerManuallyRejected extends AbstractJsonAss
 		if (consentResponse.getAsJsonObject().entrySet().isEmpty()) {
 			throw error("Consent response was not found.");
 		}
-		String expectedResult = "CONSENT_MAX_DATE_REACHED";
+		String expectedResult = "COSTUMER_MANUALLY_REJECTED";
 		JsonElement rejectionElement = findByPath(consentResponse, "$.data.rejection.reason.code");
 		String reason = OIDFJSON.getString(rejectionElement);
 		if(Strings.isNullOrEmpty(reason)) {
