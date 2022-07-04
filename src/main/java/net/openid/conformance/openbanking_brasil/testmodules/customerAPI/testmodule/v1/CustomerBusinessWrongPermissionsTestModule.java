@@ -50,24 +50,24 @@ public class CustomerBusinessWrongPermissionsTestModule extends AbstractPermissi
 	}
 
 	@Override
-	protected void preFetchResources() {
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
-	}
+	protected void preFetchResources() { }
 
 	@Override
 	protected void prepareCorrectConsents() {
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 	}
 
 	@Override
 	protected void prepareIncorrectPermissions() {
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerBusinessApi.class);
 	}
 
 	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the  Customer Business Qualification", () -> {
+			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
