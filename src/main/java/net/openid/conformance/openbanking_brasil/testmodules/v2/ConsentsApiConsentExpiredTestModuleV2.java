@@ -68,7 +68,7 @@ public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunct
 			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
 			preCallProtectedResource("Fetch consent");
 
-			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.SUCCESS);
+			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(ValidateConsentRejection.class);
 			callAndStopOnFailure(EnsureConsentRejectedByASPSP.class);
 			callAndStopOnFailure(EnsureConsentReasonConsentMaxDateReached.class);

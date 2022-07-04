@@ -20,16 +20,16 @@ public class EnsureConsentReasonConsentMaxDateReached extends AbstractJsonAssert
 		}
 		String expectedResult = "CONSENT_MAX_DATE_REACHED";
 		JsonElement rejectionElement = findByPath(consentResponse, "$.data.rejection.reason.code");
-		String status = OIDFJSON.getString(rejectionElement);
-		if(Strings.isNullOrEmpty(status)) {
+		String rejection = OIDFJSON.getString(rejectionElement);
+		if(Strings.isNullOrEmpty(rejection)) {
 			throw error("Consent Reason was not found.");
 		}
 
-		if(!status.equals(expectedResult)) {
-			throw error(String.format("Expected RejectedBy to be %s but it was not.", expectedResult), args("RejectedBy", expectedResult));
+		if(!rejection.equals(expectedResult)) {
+			throw error(String.format("Expected Reason to be %s but it was not.", expectedResult), args("Reason", rejection));
 		}
 
-		 logSuccess(String.format("RejectedBy is %s as expected", expectedResult), args("RejectedBy", expectedResult));
+		 logSuccess(String.format("Reason is %s as expected", expectedResult), args("Reason", expectedResult));
 
 		return env;
 	}

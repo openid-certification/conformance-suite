@@ -7,6 +7,6 @@ public class WaitFor180Seconds extends AbstractWaitForSpecifiedSeconds {
 
 	@Override
 	protected long getExpectedWaitSeconds(Environment env) {
-		return 60;
+		return 180;
 	}
 }
