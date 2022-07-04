@@ -83,14 +83,6 @@ public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunct
 
 	@Override
 	protected void validateResponse() {
-		runInBlock("Validate Consent", () -> {
-			callAndStopOnFailure(ConsentIdExtractor.class);
-			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
-			fireTestFinished();
-
-		});
-
 	}
 
 }
