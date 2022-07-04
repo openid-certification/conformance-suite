@@ -61,4 +61,10 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
 		eventLog.endBlock();
 	}
+
+	@Override
+	public void start() {
+		setStatus(Status.RUNNING);
+		super.onPostAuthorizationFlowComplete();
+	}
 }
