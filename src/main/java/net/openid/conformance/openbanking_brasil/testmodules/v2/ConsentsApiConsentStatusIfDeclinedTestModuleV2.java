@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Redirects the User to Reject the Consent\n" +
 		"\u2022 Checks if rejection resulted in an error message on the redirect\n" +
 		"\u2022 Calls the GET Consents endpoint\n" +
-		"\u2022 Expects a 200 with the Consent being on a rejected status",
+		"\u2022 Expects a 200 with the Consent being on a rejected status - Make Sure that RejectedBy is set to \"USER\" and Reason is set to \"COSTUMER_MANUALLY_REJECTED\"",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
