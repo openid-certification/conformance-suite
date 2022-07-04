@@ -84,10 +84,6 @@ public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunct
 	@Override
 	protected void validateResponse() {
 		runInBlock("Validate Consent", () -> {
-			callAndContinueOnFailure(WaitFor60Seconds.class);
-			callAndContinueOnFailure(WaitFor60Seconds.class);
-			callAndContinueOnFailure(WaitFor60Seconds.class);
-
 			callAndStopOnFailure(ConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
