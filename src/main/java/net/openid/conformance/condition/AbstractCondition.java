@@ -587,8 +587,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		KeyManager[] km = null;
 
 		// initialize MTLS if it's available
+		String[] suites = null;
 		if (env.containsObject("mutual_tls_authentication")) {
 			km = MtlsKeystoreBuilder.configureMtls(env, this.log);
+			suites = new String[] {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"};
 		}
 
 		TrustManager[] trustAllCerts = {
@@ -614,9 +616,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		builder.setSSLContext(sc);
 
+
 		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
 			(restrictAllowedTLSVersions ? new String[] { "TLSv1.2" } : null),
-			null,
+			suites,
 			NoopHostnameVerifier.INSTANCE);
 
 		builder.setSSLSocketFactory(sslConnectionSocketFactory);

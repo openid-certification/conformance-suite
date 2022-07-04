@@ -127,6 +127,12 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             throw error("Data contains more items than the metadata totalRecords.");
         }
 
+		// check if there is a next or prev link - if so, totalPages should be different than one.
+		if (!Strings.isNullOrEmpty(prevLink) || !Strings.isNullOrEmpty(nextLink)){
+			if(metaTotalPages == 1 ){
+				throw error("totalPages field should not be 1.");
+			}
+		}
         // check if there is 1 page - if so, there should not be a next and prev link.
         if (metaTotalPages == 1) {
 
@@ -199,7 +205,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 	}
 
 
-	private void validateMetaDateTimeFormat(String requestDateTime){
+	protected void validateMetaDateTimeFormat(String requestDateTime){
 			if(!requestDateTime.matches(DatetimeField.ALTERNATIVE_PATTERN)){
 				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
 			}
@@ -215,7 +221,7 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		return queryParams;
     }
 
-    private void validateSelfLink(String selfLink, String consentIdField){
+    protected void validateSelfLink(String selfLink, String consentIdField){
     	final String consent_regex = "consents/v1/consents/";
     	final String consent_payment_regex = "payments/v1/consents";
     	if(selfLink.contains(consent_regex)){

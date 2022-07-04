@@ -4,8 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.AccountIdentificationResponseValidator;
-import net.openid.conformance.openbanking_brasil.account.AccountListValidator;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;

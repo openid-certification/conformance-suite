@@ -3,9 +3,9 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.CreditOperationsDiscontinuedCreditRightsResourcesApiTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.CreditOperationsDiscountedApiWrongPermissionsTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.CreditOperationsDiscountedCreditRightsApiTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.v2.CreditOperationsDiscontinuedCreditRightsResourcesApiTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.v2.CreditOperationsDiscountedApiWrongPermissionsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.testmodule.v2.CreditOperationsDiscountedCreditRightsApiTestModuleV2;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,7 +23,10 @@ public class CreditOperationsDiscountedCreditRightsApiTestPlanV2 implements Test
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class
+					PreFlightCertCheckModule.class,
+					CreditOperationsDiscountedCreditRightsApiTestModuleV2.class,
+					CreditOperationsDiscountedApiWrongPermissionsTestModuleV2.class,
+					CreditOperationsDiscontinuedCreditRightsResourcesApiTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

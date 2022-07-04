@@ -5,15 +5,30 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/**
+ * A condition that builds a protected_resource_url from the resource.resourceUrl provided in the config field.
+ *
+ * The standard use of this class is done when the attribute allowDifferentBaseUrl is set to false, which means
+ * the base API will be preserved and a new endpoint will be added. In order to build the resourceUrl, use
+ * BuildXConfigFromConsentUrl where X is a chosen API.
+ *
+ * By setting alllowDifferentBaseUrl to true, the API can also be changed and in that case the consentUrl will be used
+ * as entry point.
+ *
+ */
 public class ResourceBuilder extends AbstractCondition {
 	protected String api;
 	protected String endpoint;
+	protected boolean allowDifferentBaseUrl = false;
 
 	@Override
 	public Environment evaluate(Environment env) {
 
 		String url = env.getString("config", "resource.resourceUrl");
+
+		if (allowDifferentBaseUrl) {
+			url = env.getString("config","resource.consentUrl").replaceFirst("consents", api);
+		}
 
 		String fullResourceUrlRegex = "^(https://)(.*?)(" + api + "/v[0-9])(.*?)";
 		if(!url.matches(fullResourceUrlRegex)) {
@@ -47,5 +62,9 @@ public class ResourceBuilder extends AbstractCondition {
 
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
+	}
+
+	public void setAllowDifferentBaseUrl(boolean allowDifferentBaseUrl){
+		this.allowDifferentBaseUrl = allowDifferentBaseUrl;
 	}
 }
