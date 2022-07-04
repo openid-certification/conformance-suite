@@ -22,9 +22,12 @@ import net.openid.conformance.variant.ClientAuthType;
 		"\u2022 Calls the Token endpoint using the authorization code flow\n" +
 		"\u2022 Makes sure a valid access token has been created\n" +
 		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
-		"\u2022 Call the DELETE Consents API\n" +
+		"\u2022 Calls the DELETE Consents API\n" +
 		"\u2022 Calls the Token endpoint to issue a new access token\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n",
+		"\u2022 Expects the test to return a 403 - Forbidden\n" +
+		"\u2022 Calls the Consents API with the initially authorized Consent \n" +
+		"\u2022 Expects a 200 - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure " +
+		"		Reason is set to \"CUSTOMER_MANUALLY_REVOKED”\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -110,8 +113,6 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		call(callTokenEndpointRefreshToken());
 
 		eventLog.startBlock("Validating get consent response");
-		callAndContinueOnFailure(WaitFor180Seconds.class);
-
 		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 		callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
 		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
