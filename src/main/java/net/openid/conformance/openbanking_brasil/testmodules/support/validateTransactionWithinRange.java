@@ -28,7 +28,6 @@ public class validateTransactionWithinRange extends AbstractCondition {
 		if (response == null){
 			throw error("No transactions returned unable to validate the defined behaviour with booking date query parameters");
 		}
-		log(response.toString());
 		JsonArray transactions = response.getAsJsonArray();
 
 		int amountOfTransactions = transactions.size();
