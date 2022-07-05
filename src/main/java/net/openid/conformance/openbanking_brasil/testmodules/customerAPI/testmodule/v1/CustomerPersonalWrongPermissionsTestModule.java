@@ -59,24 +59,24 @@ public class CustomerPersonalWrongPermissionsTestModule extends AbstractPermissi
 	}
 
 	@Override
-	protected void preFetchResources() {
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
-	}
+	protected void preFetchResources() { }
 
 	@Override
 	protected void prepareCorrectConsents() {
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 	}
 
 	@Override
 	protected void prepareIncorrectPermissions() {
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(ProvideIncorrectPermissionsForCustomerPersonalApi.class);
 	}
 
 	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the  Customer Personal Qualification", () -> {
+			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);

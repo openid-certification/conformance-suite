@@ -278,7 +278,7 @@ public class GetRuralValidator extends AbstractJsonAssertingCondition {
 		assertField(coverages,
 			new StringField
 				.Builder("coverage")
-				.setMaxLength(357)
+				.setMaxLength(532)
 				.setEnums(COVERAGE)
 				.build());
 

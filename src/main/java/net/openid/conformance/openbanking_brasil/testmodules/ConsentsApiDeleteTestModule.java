@@ -5,6 +5,8 @@ import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -44,17 +46,16 @@ import net.openid.conformance.variant.ClientAuthType;
 public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 
 	protected ClientAuthType clientAuthType;
-
 	@Override
-	protected void configureClient(){
-		//Arbitrary resource
-		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+	protected void configureClient() {
+		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
 	@Override
 	protected void validateClientConfiguration() {
 		super.validateClientConfiguration();
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(AddConsentScope.class);
 	}
 
@@ -75,6 +76,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 	protected void requestProtectedResource(){
 
 		eventLog.startBlock("Try calling protected resource after user authentication");
+		callAndStopOnFailure(PrepareToGetCustomCustomerIdentifications.class);
 		callAndStopOnFailure(SaveProtectedResourceAccessToken.class);
 		callAndStopOnFailure(CallProtectedResource.class);
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
