@@ -38,7 +38,9 @@ public class DummyUserFilter extends GenericFilterBean {
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
 
-	private static Set<GrantedAuthority> authorities = ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
+	@Value("${fintechlabs.makeDummyUserAdminInDevMode:true}")
+	private boolean makeDummyUserAdminInDevMode;
+
 	private static String sub = "developer";
 	private static String issuer = "https://developer.com";
 
@@ -46,9 +48,14 @@ public class DummyUserFilter extends GenericFilterBean {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		if (devmode) {
 			UserInfo info = new DefaultUserInfo();
-			info.setEmail("DEVMODE@developer.com");
+			String email = makeDummyUserAdminInDevMode ? "DEVMODE@developer.com" : "DEVMODE_NO_ADMIN@developer.com";
+			info.setEmail(email);
 			info.setName("DEV MODE");
 			info.setSub(sub);
+
+			Set<GrantedAuthority> authorities = makeDummyUserAdminInDevMode
+				? ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
+				: ImmutableSet.of(new SimpleGrantedAuthority("ROLE_USER"));
 
 			SecurityContextHolder.getContext().setAuthentication(new OIDCAuthenticationToken(sub, issuer, info, authorities, null, null, null));
 		}
