@@ -24,7 +24,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	summary = "Obtain a software statement from the Brazil sandbox directory (using a hardcoded client), register a new client on the target authorization server, perform a successful client credentials grant. Verify that the client credentials grant fails when using a certificate with a different subjectdn. Then use the DCM endpoint to change subjectdn for the client to the subjectdn for the other certificate, and verify the client credentials grant succeeds with that certificate but fails with the original certificate.\n\nNote that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl"
+		"server.discoveryUrl",
+		"resource.resourceUrl"
 	}
 )
 // hide various config values from the FAPI base module we don't need

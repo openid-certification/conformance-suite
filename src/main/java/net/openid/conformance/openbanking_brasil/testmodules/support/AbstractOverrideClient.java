@@ -74,13 +74,25 @@ public abstract class AbstractOverrideClient extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject client = (JsonObject) env.getElementFromObject("config", "client");
+		if (client == null) {
+			client = new JsonObject();
+			env.putObject("config", "client", client);
+		}
 		client.add("jwks", new JsonParser().parse(clientJwks()).getAsJsonObject());
 		client.add("org_jwks", new JsonParser().parse(orgJwks()).getAsJsonObject());
 
 		JsonObject directory = (JsonObject) env.getElementFromObject("config", "directory");
+		if (directory == null) {
+			directory = new JsonObject();
+			env.putObject("config", "directory", directory);
+		}
 		directory.addProperty("client_id", directoryClientId());
 
 		JsonObject mtls = (JsonObject) env.getElementFromObject("config", "mtls");
+		if (mtls == null) {
+			mtls = new JsonObject();
+			env.putObject("config", "mtls", mtls);
+		}
 		mtls.addProperty("cert", clientCert());
 		mtls.addProperty("key", clientKey());
 		mtls.addProperty("ca", sandboxCa);
