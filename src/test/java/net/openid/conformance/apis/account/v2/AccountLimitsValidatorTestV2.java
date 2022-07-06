@@ -22,7 +22,7 @@ public class AccountLimitsValidatorTestV2 extends AbstractJsonResponseConditionU
 	@UseResurce("jsonResponses/account/accountV2/limitsV2/accountLimitsResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 		ConditionError error = runAndFail(new AccountLimitsValidatorV2());
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("unarrangedOverdraftAmount", new AccountLimitsValidatorV2().getApiName())));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("totalRecords", new AccountLimitsValidatorV2().getApiName())));
 	}
 
 	@Test

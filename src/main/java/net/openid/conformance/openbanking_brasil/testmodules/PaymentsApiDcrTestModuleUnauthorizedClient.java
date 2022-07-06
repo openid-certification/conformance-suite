@@ -21,7 +21,7 @@ public class PaymentsApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTe
 		super.setupResourceEndpoint();
 	}
 	@Override
-	boolean isPaymentsApiTest() {
+	protected boolean isPaymentsApiTest() {
 		return true;
 	}
 }

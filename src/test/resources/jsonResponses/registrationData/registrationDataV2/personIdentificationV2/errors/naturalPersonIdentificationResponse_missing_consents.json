@@ -9,12 +9,8 @@
             "birthDate": "1989-03-23",
             "maritalStatusCode": "OUTRO",
             "maritalStatusAdditionalInfo": "Amasiado",
-            "companiesCnpj": [
-                "01773247000103",
-                "01773247000563"
-            ],
+            "sex": "FEMININO",
             "documents": {
-                "documentType": "AMBOS",
                 "cpfNumber": "25872252137",
                 "passport": {
                     "number": "75253468744594820620",
@@ -34,24 +30,26 @@
                 }
             ],
             "hasBrazilianNationality": false,
-            "nationality": {
-                "otherNationalitiesInfo": "CAN",
-                "documents": [
-                    {
-                        "type": "SOCIAL SEC",
-                        "number": "423929299",
-                        "expirationDate": "2021-05-21",
-                        "issueDate": "2021-05-21",
-                        "country": "Brasil",
-                        "additionalInfo": "Informações adicionais."
-                    }
-                ]
-            },
+            "nationality": [
+                {
+                    "otherNationalitiesInfo": "CAN",
+                    "documents": [
+                        {
+                            "type": "SOCIAL SEC",
+                            "number": "423929299",
+                            "expirationDate": "2021-05-21",
+                            "issueDate": "2021-05-21",
+                            "country": "Brasil",
+                            "additionalInfo": "Informações adicionais."
+                        }
+                    ]
+                }
+            ],
             "filiation": [
                 {
                     "type": "PAI",
                     "civilName": "Marcelo Cláudio Fernandes",
-                    "socialName": "gdFIBFsfQS9x74KB1AtFA8B8mciOE5hfE6xMy1g9E7iMwvDL6FseOUHm?%&<@|%(`( +%^"
+                    "socialName": "@3eDS?:<67_h:f-~M6$EKtU|gb~zQ6GS6Km^aWsnpoHt'Z3pMB/a&E0K8,[@gKeX)XJ<C:"
                 }
             ],
             "contacts": {
