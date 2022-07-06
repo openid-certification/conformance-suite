@@ -29,7 +29,13 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDCMSubjectDnTestClient2;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public abstract class AbstractDcmSubjectDnTestModule extends AbstractApiDcrTestModule {
 
 	@Override
