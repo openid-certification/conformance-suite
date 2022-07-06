@@ -30,7 +30,6 @@ import net.openid.conformance.variant.ClientAuthType;
 	}
 )
 public class ConsentsApiOperationalLimitsTestModule extends AbstractFunctionalTestModule {
-	protected ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient(){
@@ -45,11 +44,6 @@ public class ConsentsApiOperationalLimitsTestModule extends AbstractFunctionalTe
 		super.validateClientConfiguration();
 		callAndStopOnFailure(AddConsentScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
-	}
-
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		clientAuthType = getVariant(ClientAuthType.class);
 	}
 
 	@Override
@@ -80,7 +74,6 @@ public class ConsentsApiOperationalLimitsTestModule extends AbstractFunctionalTe
 		return sequenceOf(
 			condition(ConsentDetailsIdentifiedByConsentIdValidator.class),
 			condition(EnsureConsentResponseWas200.class)
-
 		);
 	}
 	protected ConditionSequence getPreConsentWithBearerTokenSequence(){
