@@ -75,20 +75,18 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consnet_id_" + numberOfExecutions, env.getString("consent_id"));
 
-		switch (numberOfExecutions){
-			case 2:{
+		if(numberOfExecutions == 3){
+			fireTestFinished();
+		}else {
+
+			if(numberOfExecutions == 2){
 				callAndStopOnFailure(SwitchToOriginalClientId.class);
 				callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			}
-			default:{
-				callAndContinueOnFailure(RemoveConsentIdFromClientScopes.class);
-				performAuthorizationFlow();
-				numberOfExecutions++;
-				break;
-			}
-			case 3:{
-				fireTestFinished();
-			}
+
+			callAndContinueOnFailure(RemoveConsentIdFromClientScopes.class);
+			performAuthorizationFlow();
+			numberOfExecutions++;
 		}
 	}
 
