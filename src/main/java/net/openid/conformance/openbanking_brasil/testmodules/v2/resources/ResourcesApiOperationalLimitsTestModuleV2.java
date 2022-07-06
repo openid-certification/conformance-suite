@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -53,6 +54,9 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddResourcesScope.class);
+		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		super.onConfigure(config, baseUrl);
 	}
 
@@ -70,12 +74,21 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consnet_id_" + numberOfExecutions, env.getString("consent_id"));
-		if (numberOfExecutions == 3) {
-			fireTestFinished();
-		} else {
-			callAndContinueOnFailure(RemoveConsentIdFromClientScopes.class);
-			performAuthorizationFlow();
-			numberOfExecutions++;
+
+		switch (numberOfExecutions){
+			case 2:{
+				callAndStopOnFailure(SwitchToOriginalClientId.class);
+				callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
+			}
+			default:{
+				callAndContinueOnFailure(RemoveConsentIdFromClientScopes.class);
+				performAuthorizationFlow();
+				numberOfExecutions++;
+				break;
+			}
+			case 3:{
+				fireTestFinished();
+			}
 		}
 	}
 
@@ -83,6 +96,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	protected void validateResponse() {
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(ValidateResponseMetaData.class);
-//		callAndStopOnFailure(ResourcesResponseValidator.class);
+		callAndStopOnFailure(ResourcesResponseValidator.class);
 	}
 }
