@@ -3,12 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiDcrHappyFlowTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiDcrSubjectDnV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiDcrTestModuleAttemptClientTakeoverV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiDcrTestModuleUnauthorizedClientV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiTestModuleCorrect404V2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.ResourcesApiTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -32,7 +27,8 @@ public class ResourcesApiTestPlanV2 implements TestPlan {
 					ResourcesApiDcrHappyFlowTestModuleV2.class,
 					ResourcesApiDcrTestModuleUnauthorizedClientV2.class,
 					ResourcesApiDcrTestModuleAttemptClientTakeoverV2.class,
-					ResourcesApiDcrSubjectDnV2.class
+					ResourcesApiDcrSubjectDnV2.class,
+					ResourcesApiOperationalLimitsTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
