@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiOperationalLimitsTestModule;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,7 +24,8 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					ConsentsApiTestTransactionDateTime.class,
-					ConsentApiBadConsentsTestModule.class
+					ConsentApiBadConsentsTestModule.class,
+					ConsentsApiOperationalLimitsTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
