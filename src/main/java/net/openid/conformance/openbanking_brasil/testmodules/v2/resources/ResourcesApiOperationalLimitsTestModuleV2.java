@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -94,6 +94,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	protected void validateResponse() {
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(ValidateResponseMetaData.class);
-		callAndStopOnFailure(ResourcesResponseValidator.class);
+		callAndStopOnFailure(ResourcesResponseValidatorV2.class);
 	}
 }
