@@ -25,7 +25,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"consent.productType"
 	}
 )
 // hide various config values from the FAPI base module we don't need
