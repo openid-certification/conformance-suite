@@ -4,16 +4,20 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddSavedTransactionDateAsBookingParam extends AbstractAddBookingDateParameters{
+import java.time.LocalDateTime;
+
+public class AddBookingDateSixDaysBefore extends AbstractAddBookingDateParameters{
+
 	@Override
-	@PreEnvironment(strings = {"accountId","transactionDate"})
+	@PreEnvironment(strings = "accountId")
 	@PostEnvironment(strings = {"fromBookingDate","toBookingDate"})
 	public Environment evaluate(Environment env) {
-		String fromBookingDate = env.getString("transactionDate");
-		String toBookingDate = env.getString("transactionDate");
+		String fromBookingDate = formatDateParam(LocalDateTime.now().minusDays(6));
+		String toBookingDate = formatDateParam(LocalDateTime.now());
 
 		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate,"/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s");
 
 		return super.evaluate(env);
 	}
 }
+

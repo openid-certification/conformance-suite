@@ -6,15 +6,15 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.LocalDateTime;
 
-public class AddBookingDateSixMonthsBefore extends AbstractAddBookingDateParameters {
+public class AddBookingDateSixDaysBeforeTransactionsCurrent extends AbstractAddBookingDateParameters{
 	@Override
 	@PreEnvironment(strings = "accountId")
 	@PostEnvironment(strings = {"fromBookingDate","toBookingDate"})
 	public Environment evaluate(Environment env) {
-		String fromBookingDate = formatDateParam(LocalDateTime.now().minusDays(180));
+		String fromBookingDate = formatDateParam(LocalDateTime.now().minusDays(6));
 		String toBookingDate = formatDateParam(LocalDateTime.now());
 
-		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate,"/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s");
+		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate,"/accounts/%s/transactions-current?fromBookingDate=%s&toBookingDate=%s");
 
 		return super.evaluate(env);
 	}
