@@ -51,15 +51,6 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		super.onConfigure(config, baseUrl);
 	}
 
-
-//	@Override
-//	protected void performPreAuthorizationSteps(){
-//		if (numberOfExecutions >= 2){
-//			fireTestFinished();
-//		}
-//		super.performPreAuthorizationSteps();
-//	}
-
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consent_id " + numberOfExecutions, env.getString("consent_id"));
