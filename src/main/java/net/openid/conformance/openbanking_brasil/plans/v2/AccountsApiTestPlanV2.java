@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.Account
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiPageSizeTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiPageSizeTooLargeTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiReadPermissionsAreRestrictedV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiResourcesMultipleConsentsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiTransactionsCurrentTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiUXScreenshotsV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiWrongPermissionsTestModuleV2;
@@ -33,7 +34,7 @@ public class AccountsApiTestPlanV2 implements TestPlan {
 				List.of(
 					PreFlightCertCheckModule.class,
 					AccountsApiTransactionsCurrentTestModuleV2.class,
-					AccountsApiResourcesMultipleConsentsTestModule.class,
+					AccountsApiResourcesMultipleConsentsTestModuleV2.class,
 					AccountApiTestModuleV2.class,
 					AccountsApiWrongPermissionsTestModuleV2.class,
 					AccountsApiReadPermissionsAreRestrictedV2.class,

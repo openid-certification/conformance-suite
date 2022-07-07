@@ -15,53 +15,52 @@ public class BusinessRelationsResponseValidatorTestV2 extends AbstractJsonRespon
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/corporateRelationshipResponseOK.json")
 	public void validateStructureOK() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		run(condition);
+		run(new BusinessRelationsResponseValidatorV2());
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/corporateRelationshipResponseOK(with_missing_field).json")
 	public void validateStructureWithMissingFieldOK() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		run(condition);
+
+		run(new BusinessRelationsResponseValidatorV2());
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/errors/corporateRelationshipResponseError(PatternNotMatch).json")
 	public void validateStructurePatternNotMatch() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
+
+		ConditionError error = runAndFail(new BusinessRelationsResponseValidatorV2());
 		assertThat(error.getMessage(),
-			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("number", condition.getApiName())));
+			containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("number", new BusinessRelationsResponseValidatorV2().getApiName())));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/errors/corporateRelationshipResponseError(enumNotMatch).json")
 	public void validateStructureEnumNotMatch() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
+
+		ConditionError error = runAndFail(new BusinessRelationsResponseValidatorV2());
 		assertThat(error.getMessage(),
 			containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage(
-				"productsServicesType", condition.getApiName())));
+				"productsServicesType", new BusinessRelationsResponseValidatorV2().getApiName())));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/errors/corporateRelationshipResponseError(excessMaxItems).json")
 	public void validateStructureExcessMaxItems() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
+
+		ConditionError error = runAndFail(new BusinessRelationsResponseValidatorV2());
 		assertThat(error.getMessage(),
 			containsString(ErrorMessagesUtils.createArrayIsMoreThanMaxItemsMessage(
-				"productsServicesType", condition.getApiName())));
+				"productsServicesType", new BusinessRelationsResponseValidatorV2().getApiName())));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/corporateRelationshipV2/errors/corporateRelationshipResponseError(lessMinItems).json")
 	public void validateStructureLessMinItems() {
-		BusinessRelationsResponseValidatorV2 condition = new BusinessRelationsResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
+
+		ConditionError error = runAndFail(new BusinessRelationsResponseValidatorV2());
 		assertThat(error.getMessage(),
 			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
-				"accounts", condition.getApiName())));
+				"productsServicesType", new BusinessRelationsResponseValidatorV2().getApiName())));
 	}
 }

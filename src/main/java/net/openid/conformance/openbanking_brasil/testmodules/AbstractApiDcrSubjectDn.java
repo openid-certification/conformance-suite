@@ -18,7 +18,7 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
     boolean useBrazilShortNames = true;
     boolean registrationFailed = false;
 
-    abstract boolean isPaymentsApiTest();
+    protected abstract boolean isPaymentsApiTest();
 
     @Override
     protected void configureClient() {
