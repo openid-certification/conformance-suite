@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.BooleanField;
@@ -18,14 +18,14 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/swagger-unarranged-accounts-overdraft.yaml
+ * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/swagger-unarranged-accounts-overdraft-v2.yaml
  * Api endpoint: /contracts/{contractId}/payments
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  * Git hash:
  */
 @ApiName("Advances Payments V2")
 public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	final Set<String> CHARGE_TYPES = SetUtils.createSet("JUROS_REMUNERATORIOS_POR_ATRASO, MULTA_ATRASO_PAGAMENTO, JUROS_MORA_ATRASO, IOF_CONTRATACAO, IOF_POR_ATRASO, SEM_ENCARGO, OUTROS");
 
@@ -33,7 +33,6 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
 		assertField(body,
 			new ObjectField
 				.Builder(ROOT_PATH)
@@ -72,7 +71,7 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 				.Builder("paymentId")
 				.setMaxLength(100)
 				.setMinLength(1)
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,100}$")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,99}$")
 				.setOptional()
 				.build());
 
@@ -86,7 +85,7 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 				.Builder("instalmentId")
 				.setMaxLength(100)
 				.setMinLength(1)
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,100}$")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$")
 				.build());
 
 		assertField(body,

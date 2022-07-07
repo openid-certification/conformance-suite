@@ -6,8 +6,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.advances.v2.AdvancesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesStatus;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.PrepareUrlForResourcesCallV2;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -65,17 +65,17 @@ public class CreditOperationsAdvancesApiResourcesTestModuleV2 extends CreditOper
 
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
-		callAndStopOnFailure(PrepareUrlForResourcesCall.class);
+		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
 		preCallProtectedResource("Call Resources API");
 
-		runInBlock("Validate Resources response", () -> {
-			callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+		runInBlock("Validate Resources response V2", () -> {
+			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 
-		eventLog.startBlock("Compare active resourceId's with API resources");
+		eventLog.startBlock("Compare active resourceId's with API resources v2");
 		env.putString("resource_type", RESOURCE_TYPE);
 		env.putString("resource_status", RESOURCE_STATUS);
 		callAndStopOnFailure(ExtractResourceIdOfResourcesWithSpecifiedTypeAndStatus.class);

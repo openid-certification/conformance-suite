@@ -9,7 +9,7 @@ import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSucces
 public abstract class AbstractApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModule {
     boolean didRegistrationWithExplicitScopeRequested = false;
 
-    abstract boolean isPaymentsApiTest();
+    protected abstract boolean isPaymentsApiTest();
 
 	// This can be uncommented to test the failure path through the test against the mock bank
 	// (There are two possible 'pass' routes through the test - one where DCR for accounts registers a client which does

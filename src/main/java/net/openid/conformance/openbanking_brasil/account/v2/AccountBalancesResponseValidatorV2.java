@@ -11,9 +11,9 @@ import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
 /**
- * Api url: swagger/openBanking/swagger_accounts_apis.yaml
+ * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
  * Api endpoint: /accounts/{accountId}/balances
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 @ApiName("Account Balances V2")
 public class AccountBalancesResponseValidatorV2 extends AbstractJsonAdditionalAssertingCondition {

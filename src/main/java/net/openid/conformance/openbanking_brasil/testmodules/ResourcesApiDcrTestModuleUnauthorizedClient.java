@@ -39,7 +39,7 @@ public class ResourcesApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrT
 	}
 
 	@Override
-	boolean isPaymentsApiTest() {
+	protected boolean isPaymentsApiTest() {
 		return false;
 	}
 }

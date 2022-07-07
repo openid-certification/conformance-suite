@@ -4,10 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckItemCountHasMin1;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
-import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
-import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
+import net.openid.conformance.openbanking_brasil.consent.v1.ConsentDetailsIdentifiedByConsentIdValidator;
+import net.openid.conformance.openbanking_brasil.consent.v1.CreateNewConsentValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 

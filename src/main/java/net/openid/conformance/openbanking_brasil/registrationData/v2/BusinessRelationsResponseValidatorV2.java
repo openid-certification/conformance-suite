@@ -13,16 +13,16 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: swagger/openinsurance/registrationData/swagger-customers.yaml
+ * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /business/financial-relations
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 
 @ApiName("Business Financial-relations V2")
 public class BusinessRelationsResponseValidatorV2 extends AbstractJsonAssertingCondition {
 	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 	public static final Set<String> PRODUCT_SERVICE_TYPES = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA, CARTAO_CREDITO, OPERACAO_CREDITO, SEGURO, PREVIDENCIA, INVESTIMENTO, OPERACOES_CAMBIO, CONTA_SALARIO, CREDENCIAMENTO, OUTROS");
-	public static final Set<String> TYPES = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA, SEM_TIPO_CONTA");
+	public static final Set<String> TYPES = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA");
 	public static final Set<String> PROCURATOR_TYPES = SetUtils.createSet("REPRESENTANTE_LEGAL, PROCURADOR");
 
 	@Override
@@ -63,15 +63,17 @@ public class BusinessRelationsResponseValidatorV2 extends AbstractJsonAssertingC
 				.build());
 
 		assertField(body,
-			new ObjectArrayField.Builder("procurators")
+			new ObjectArrayField
+				.Builder("procurators")
 				.setValidator(this::assertInnerFieldsForProcurators)
 				.setMinItems(0)
 				.build());
 
 		assertField(body,
-			new ObjectArrayField.Builder("accounts")
+			new ObjectArrayField.
+				Builder("accounts")
 				.setValidator(this::assertInnerFieldsForAccounts)
-				.setMinItems(1)
+				.setMinItems(0)
 				.build());
 	}
 	private void assertInnerFieldsForAccounts(JsonObject body) {

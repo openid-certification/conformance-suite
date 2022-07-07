@@ -5,22 +5,26 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/loansV2/swagger_loans_apis.yaml
+ * Api: swagger/openinsurance/loans/v2/swagger_loans_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  * Git hash:
  */
 @ApiName("Loans Contract V2")
 public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	final Set<String> PRODUCT_TYPE = SetUtils.createSet("EMPRESTIMOS");
 	final Set<String> PRODUCT_SUB_TYPE = SetUtils.createSet("HOME_EQUITY, CHEQUE_ESPECIAL, CONTA_GARANTIDA, CAPITAL_GIRO_TETO_ROTATIVO, CREDITO_PESSOAL_SEM_CONSIGNACAO, CREDITO_PESSOAL_COM_CONSIGNACAO, MICROCREDITO_PRODUTIVO_ORIENTADO, CAPITAL_GIRO_PRAZO_VENCIMENTO_ATE_365_DIAS, CAPITAL_GIRO_PRAZO_VENCIMENTO_SUPERIOR_365_DIAS");
@@ -40,9 +44,11 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
-		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
-		assertDataFields(data);
+		assertField(body,
+			new ObjectField
+				.Builder(ROOT_PATH)
+				.setValidator(this::assertDataFields)
+				.build());
 		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
@@ -96,13 +102,14 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 				.Builder("disbursementDates")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.setMaxLength(10)
+				.setMinItems(1)
 				.setOptional()
 				.build());
 
 		assertField(body,
 			new DatetimeField
 				.Builder("settlementDate")
-				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$|^NA$")
+				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.setMaxLength(10)
 				.setOptional()
 				.build());
@@ -121,6 +128,7 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -129,6 +137,7 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
 				.setMinLength(2)
 				.setMaxLength(10)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -178,37 +187,24 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 			new StringField
 				.Builder("cnpjConsignee")
 				.setMaxLength(14)
-				.setPattern("\\d{14}|^NA$")
+				.setPattern("^\\d{14}$")
 				.build());
 
-		assertInterestRate(body);
-		assertContractedFees(body);
-		assertContractedFinanceCharges(body);
-	}
-
-	private void assertInterestRate(JsonObject element) {
-		assertHasField(element, "interestRates");
-		assertField(element,
+		assertField(body,
 			new ObjectArrayField
 				.Builder("interestRates")
 				.setValidator(this::assertInnerFieldsForInterestRate)
 				.setMinItems(0)
 				.build());
-	}
 
-	private void assertContractedFees(JsonObject element) {
-		assertHasField(element, "contractedFees");
-		assertField(element,
+		assertField(body,
 			new ObjectArrayField
 				.Builder("contractedFees")
 				.setValidator(this::assertInnerFieldsContractedFees)
 				.setMinItems(0)
 				.build());
-	}
 
-	private void assertContractedFinanceCharges(JsonObject element) {
-		assertHasField(element, "contractedFinanceCharges");
-		assertField(element,
+		assertField(body,
 			new ObjectArrayField
 				.Builder("contractedFinanceCharges")
 				.setValidator(this::assertInnerFieldsCharges)

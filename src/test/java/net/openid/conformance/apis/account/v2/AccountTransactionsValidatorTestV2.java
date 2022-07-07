@@ -26,7 +26,7 @@ public class AccountTransactionsValidatorTestV2 extends AbstractJsonResponseCond
 
 		ConditionError error = runAndFail(new AccountTransactionsValidatorV2());
 		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage(
-			"partieCheckDigit", new AccountTransactionsValidatorV2().getApiName())));
+			"completedAuthorisedPaymentType", new AccountTransactionsValidatorV2().getApiName())));
 	}
 
 	@Test
@@ -60,14 +60,5 @@ public class AccountTransactionsValidatorTestV2 extends AbstractJsonResponseCond
 				"creditDebitType", new AccountTransactionsValidatorV2().getApiName())));
 	}
 
-	@Test
-	@UseResurce("jsonResponses/account/accountV2/transactionsV2/errors/accountTransactionsResponseWithError(Empty).json")
-	public void validateStructureWithEmptyList() {
-
-		ConditionError error = runAndFail(new AccountTransactionsValidatorV2());
-		assertThat(error.getMessage(),
-			containsString(ErrorMessagesUtils.createArrayIsLessThanMaxItemsMessage(
-				"data", new AccountTransactionsValidatorV2().getApiName())));
-	}
 
 }

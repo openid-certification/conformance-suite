@@ -8,28 +8,30 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.field.BooleanField;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * Api url: swagger/openinsurance/registrationData/swagger-customers.yaml
+ * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /personal/identifications
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 
 @ApiName("Natural Person Identity V2")
 public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAssertingCondition {
 	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
-
-	public static final Set<String> ENUM_MARITAL_STATUS_CODE = SetUtils.createSet("SOLTEIRO, CASADO, VIUVO, SEPARADO_JUDICIALMENTE, DIVORCIADO, UNIAO_ESTAVEL, OUTRO, NAO_DISPONIVEL");
-	public static final Set<String> ENUM_SEX = SetUtils.createSet("FEMININO, MASCULINO, OUTRO, NAO_DISPONIVEL");
-	public static final Set<String> DOCUMENT_TYPE = SetUtils.createSet("CPF, PASSAPORTE, AMBOS");
+	public static final Set<String> ENUM_MARITAL_STATUS_CODE = SetUtils.createSet("SOLTEIRO, CASADO, VIUVO, SEPARADO_JUDICIALMENTE, DIVORCIADO, UNIAO_ESTAVEL, OUTRO");
+	public static final Set<String> ENUM_SEX = SetUtils.createSet("FEMININO, MASCULINO, OUTRO");
 	public static final Set<String> ENUM_PERSONAL_OTHER_DOCUMENT_TYPES = SetUtils.createSet("CNH, RG, NIF, RNE, OUTROS, SEM_OUTROS_DOCUMENTOS");
-	public static final Set<String> ENUM_COUNTRY_SUB_DIVISION = SetUtils.createSet("AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO, NA");
+	public static final Set<String> ENUM_COUNTRY_SUB_DIVISION = SetUtils.createSet("AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO");
 	public static final Set<String> ENUM_CUSTOMER_PHONE_TYPE = SetUtils.createSet("FIXO, MOVEL, OUTRO");
 	public static final Set<String> ENUM_AREA_CODES = SetUtils.createSet("11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99, NA");
-
 	final Set<String> FILIATION_TYPE = SetUtils.createSet("MAE, PAI");
 
 
@@ -60,8 +62,8 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("personalId")
 				.setMaxLength(100)
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,100}$")
 				.setMinLength(1)
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$")
 				.build());
 
 		assertField(body,
@@ -83,6 +85,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.Builder("socialName")
 				.setMaxLength(70)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -96,6 +99,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("maritalStatusCode")
 				.setEnums(ENUM_MARITAL_STATUS_CODE)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -110,15 +114,15 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("sex")
 				.setEnums(ENUM_SEX)
+				.setOptional()
 				.build());
 
 		assertField(body,
 			new StringArrayField
-				.Builder("companyCnpj")
+				.Builder("companiesCnpj")
 				.setPattern("^\\d{14}$")
 				.setMaxLength(14)
-				.setMinItems(0)
-				.setOptional()
+				.setMinItems(1)
 				.build());
 
 		assertField(body,
@@ -132,6 +136,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.Builder("otherDocuments")
 				.setValidator(this::assertInnerOtherDocuments)
 				.setMinItems(1)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -140,10 +145,11 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.build());
 
 		assertField(body,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("nationality")
 				.setValidator(this::assertInnerNationalityFields)
 				.setOptional()
+				.setMinItems(1)
 				.build());
 
 		assertField(body,
@@ -185,11 +191,6 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 	}
 
 	private void assertDocuments(JsonObject documents) {
-		assertField(documents,
-			new StringField
-				.Builder("documentType")
-				.setEnums(DOCUMENT_TYPE)
-				.build());
 
 		assertField(documents,
 			new StringField
@@ -203,6 +204,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new ObjectField
 				.Builder("passport")
 				.setValidator(this::assertPassport)
+				.setOptional()
 				.build());
 	}
 
@@ -210,7 +212,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 		assertField(passport,
 			new StringField
 				.Builder("number")
-				.setPattern("\\w*\\W*")
+				.setPattern("^[\\w\\W]*$")
 				.setMaxLength(20)
 				.build());
 
@@ -256,7 +258,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 		assertField(body,
 			new StringField
 				.Builder("number")
-				.setMaxLength(11)
+				.setMaxLength(40)
 				.setPattern("[\\w\\W\\s]*")
 				.build());
 
@@ -265,6 +267,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.Builder("checkDigit")
 				.setMaxLength(2)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -396,6 +399,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.Builder("districtName")
 				.setMaxLength(50)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -417,6 +421,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("countrySubDivision")
 				.setEnums(ENUM_COUNTRY_SUB_DIVISION)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -441,7 +446,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 				.setMaxLength(3)
 				.build());
 
-		 assertGeographicCoordinates(body);
+		assertGeographicCoordinates(body);
 	}
 
 	private void assertInnerPhonesFields(JsonObject body) {
@@ -468,7 +473,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("countryCallingCode")
 				.setMaxLength(4)
-				.setPattern("^\\d{2,4}$")
+				.setPattern("^\\d{1,4}$")
 				.build());
 
 		assertField(body,
