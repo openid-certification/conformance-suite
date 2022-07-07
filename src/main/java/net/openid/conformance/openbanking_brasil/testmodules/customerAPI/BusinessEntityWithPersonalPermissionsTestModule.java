@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.customerAPI;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
@@ -42,8 +43,9 @@ public class BusinessEntityWithPersonalPermissionsTestModule extends AbstractCli
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndStopOnFailure(EnsureBusinessEntityInConsentRequest.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.INFO);
-			callAndStopOnFailure(EnsureResponseCodeWas400.class);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class, Condition.ConditionResult.INFO);
+			callAndStopOnFailure(EnsureConsentResponseWas400.class);
+			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
 			callAndStopOnFailure(ValidateErrorFromResourceEndpointResponseError.class);
 		});
 	}
