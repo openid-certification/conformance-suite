@@ -7,7 +7,7 @@ public class EnsureConsentAspspRevoked extends AbstractConsentRejectionValidatio
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
-		if (validateResponse(env.getString("resource_endpoint_response"),"CUSTOMER_MANUALLY_REVOKED","ASPSP")){
+		if (validateResponse(env.getString("resource_endpoint_response"),"CUSTOMER_MANUALLY_REVOKED","USER")){
 			env.putBoolean("code_returned", true);
 		}
 		return env;

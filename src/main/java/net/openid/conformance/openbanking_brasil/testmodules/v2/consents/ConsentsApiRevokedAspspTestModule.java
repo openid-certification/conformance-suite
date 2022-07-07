@@ -34,7 +34,6 @@ import net.openid.conformance.variant.ClientAuthType;
 	}
 )
 public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestModule {
-	protected ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient(){
@@ -51,11 +50,6 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 	}
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		clientAuthType = getVariant(ClientAuthType.class);
-	}
-
-	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
 		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApi(addTokenEndpointClientAuthentication);
@@ -66,6 +60,7 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 	@Override
 	protected void requestProtectedResource(){
 		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+
 		repeatSequence(() -> getPreConsentWithBearerTokenSequence()
 			.then(getValidateConsentResponsePollingSequence()))
 			.untilTrue("code_returned")
