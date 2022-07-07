@@ -6,8 +6,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesStatus;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.PrepareUrlForResourcesCallV2;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -63,13 +63,13 @@ public class FinancingsApiResourcesTestModuleV2 extends FinancingsApiTestModuleV
 
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
-		callAndStopOnFailure(PrepareUrlForResourcesCall.class);
+		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
 		preCallProtectedResource("Call Resources API");
 
 		runInBlock("Validate Resources response", () -> {
-			callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
-			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 

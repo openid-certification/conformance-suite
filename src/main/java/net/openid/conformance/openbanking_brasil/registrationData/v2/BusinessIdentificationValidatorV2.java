@@ -18,9 +18,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: swagger/openinsurance/registrationData/swagger-customers.yaml
+ * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /business/identifications
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 
 @ApiName("Business Identification V2")
@@ -30,7 +30,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 
 	public static final Set<String> PERSON_TYPES = SetUtils.createSet("PESSOA_NATURAL, PESSOA_JURIDICA");
 	public static final Set<String> AREA_CODES = SetUtils.createSet("11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99, NA");
-	public static final Set<String> COUNTRY_SUB_DIVISIONS = SetUtils.createSet("AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO, NA");
+	public static final Set<String> COUNTRY_SUB_DIVISIONS = SetUtils.createSet("AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO");
 	public static final Set<String> PARTIES_TYPE = SetUtils.createSet("SOCIO, ADMINISTRADOR");
 	public static final Set<String> DOCUMENT_TYPE = SetUtils.createSet("CPF, PASSAPORTE, OUTRO_DOCUMENTO_VIAGEM, CNPJ");
 	public static final Set<String> PHONE_TYPE = SetUtils.createSet("FIXO, MOVEL, OUTRO");
@@ -60,7 +60,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("businessId")
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,100}$")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$")
 				.setMaxLength(100)
 				.setMinLength(1)
 				.build());
@@ -179,6 +179,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 				.Builder("civilName")
 				.setMaxLength(70)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -194,6 +195,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 				.Builder("companyName")
 				.setMaxLength(70)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -293,7 +295,8 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 	private void assertInnerEmails(JsonObject body) {
 		assertField(body,
 			new BooleanField
-				.Builder("isMain").build());
+				.Builder("isMain")
+				.build());
 
 		assertField(body,
 			new StringField
@@ -327,7 +330,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("countryCallingCode")
-				.setPattern("^\\d{2,4}$")
+				.setPattern("^\\d{1,4}$")
 				.setMaxLength(4)
 				.build());
 

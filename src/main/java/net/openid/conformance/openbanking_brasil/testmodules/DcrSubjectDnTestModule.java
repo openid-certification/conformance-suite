@@ -11,8 +11,6 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 
-import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
-
 @PublishTestModule(
 	testName = "dcr-subjectdn",
 	displayName = "Resources API test that DCR works with both numeric and string oids",
@@ -24,7 +22,7 @@ import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSucces
 		"server.discoveryUrl"
 	}
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" }) // only applicable for mtls client auth
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"private_key_jwt"})// only applicable for mtls client auth
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
@@ -33,14 +31,12 @@ import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSucces
 public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
 	boolean useBrazilShortNames = true;
-	boolean registrationFailed = false;
+
 
 	@Override
 	protected void configureClient() {
 		super.configureClient();
-		if (!registrationFailed) {
-			deleteClient();
-		}
+		deleteClient();
 
 		// again but with non-RFC OIDs in numeric form
 		useBrazilShortNames = false;
@@ -52,26 +48,18 @@ public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR 
 	@Override
 	protected void callRegistrationEndpoint() {
 		if (useBrazilShortNames) {
-			// this form only generates a warning on failure
 			callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
 
 			call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
 
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING,"OIDCR-3.2");
-			callAndStopOnFailure(DetectIfHttpStatusIsSuccessOrFailure.class);
-			if (env.getBoolean(endpointResponseWas2xx)) {
-				// this is all lifted out of 'super'
-				callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-				callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-				callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-			} else {
-				registrationFailed = true; // don't try to use/deregister this client
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-				callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-				callAndContinueOnFailure(CheckNoClientIdFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-			}
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+			callAndStopOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+
+			// this is all lifted out of 'super'
+			callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+			callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+			callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+			callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 
 			call(exec().unmapKey("endpoint_response"));
 		} else {

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v1.ResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
@@ -55,7 +55,7 @@ public class ResourcesApiTestModule extends AbstractOBBrasilFunctionalTestModule
 
 		String responseError = env.getString("resource_endpoint_error_code");
 		if (Strings.isNullOrEmpty(responseError)) {
-			String logMessage = String.format("Validate resources api request");
+			String logMessage = "Validate resources api request";
 			runInBlock(logMessage, () -> {
 				callAndStopOnFailure(ResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(EnsureResponseHasLinks.class);
