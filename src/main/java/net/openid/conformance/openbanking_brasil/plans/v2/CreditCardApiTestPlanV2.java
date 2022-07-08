@@ -28,7 +28,8 @@ public class CreditCardApiTestPlanV2 implements TestPlan {
 					CreditCardApiPageSizeTestModuleV2.class,
 					CreditCardApiPageSizeTooLargeTestModuleV2.class,
 					CreditCardApiMaxPageSizePagingTestModuleV2.class,
-					CreditCardApiResourcesTestModuleV2.class
+					CreditCardApiResourcesTestModuleV2.class,
+					CreditCardsApiOperationalLimitsTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
