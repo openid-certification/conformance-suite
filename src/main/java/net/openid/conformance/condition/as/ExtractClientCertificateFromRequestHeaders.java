@@ -18,7 +18,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.asn1.x509.GeneralName;
 
-public class ExtractClientCertificateFromTokenEndpointRequestHeaders extends AbstractCondition {
+public class ExtractClientCertificateFromRequestHeaders extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_request")

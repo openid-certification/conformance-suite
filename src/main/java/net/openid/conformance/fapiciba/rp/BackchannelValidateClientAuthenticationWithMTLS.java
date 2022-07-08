@@ -9,8 +9,8 @@ public class BackchannelValidateClientAuthenticationWithMTLS extends AbstractCon
 	public void evaluate() {
 
 		// The presented TLS certificate has already been verified so nothing to do here.
-		callAndContinueOnFailure(BackchannelEnsureClientIdIsPresentOnTokenRequest.class, Condition.ConditionResult.FAILURE, "RFC8705-2");
+		callAndContinueOnFailure(EnsureClientIdIsPresentOnBackchannelRequest.class, Condition.ConditionResult.FAILURE, "RFC8705-2");
 
-		callAndStopOnFailure(BackchannelEnsureNoClientAssertionSentToTokenEndpoint.class);
+		callAndStopOnFailure(EnsureNoClientAssertionSentToBackchannelEndpoint.class);
 	}
 }

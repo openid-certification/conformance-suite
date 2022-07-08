@@ -51,7 +51,7 @@ import javax.servlet.http.HttpSession;
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"
 })
-public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
+public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
@@ -185,7 +185,36 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		return handleClientRequestForPath(requestId, path);
+		if (startingShutdown) {
+			throw new TestFailureException(
+				getId(),
+				String.format("Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server", path)
+			);
+		}
+
+		switch (path) {
+			case ".well-known/openid-configuration":
+				return discoveryEndpoint();
+			case "jwks":
+				return jwksEndpoint();
+			case "backchannel":
+				if (ClientAuthType.MTLS.equals(clientAuthType)) {
+					throw new TestFailureException(
+						getId(),
+						"In MTLS mode, the backchannel endpoint must be called over an mTLS secured connection using the backchannel_authentication_endpoint found in mtls_endpoint_aliases."
+					);
+				}
+				return backchannelEndpoint(requestId);
+			case "token":
+				throw new TestFailureException(
+					getId(),
+					"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
+				);
+			case "userinfo":
+				return userinfoEndpoint(requestId);
+			default:
+				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		}
 	}
 
 	@Override
@@ -201,30 +230,36 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		if (path.equals("token")) {
-			return tokenEndpoint(requestId);
-		} else if (path.equals("backchannel")) {
-			return backchannelEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			return accountsEndpoint(requestId);
-		}
-
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, false);
 			}
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, true);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
 				return brazilHandleGetConsentRequest(requestId, path, true);
 			}
+
 			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+
+		switch (path) {
+			case "backchannel":
+				return backchannelEndpoint(requestId);
+			case "token":
+				return tokenEndpoint(requestId);
+			case ACCOUNTS_PATH:
+			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
+				return accountsEndpoint(requestId);
+			default:
+				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		}
 	}
 
 	private void exposeMtlsPath(String name, String path) {
@@ -234,7 +269,7 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void checkMtlsCertificate() {
-		callAndContinueOnFailure(ExtractClientCertificateFromTokenEndpointRequestHeaders.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
 		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
@@ -276,32 +311,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
-	}
-
-	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals("backchannel")) {
-			return backchannelEndpoint(requestId);
-		} else if (path.equals("token")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
-					"using the token_endpoint found in mtls_endpoint_aliases.");
-			} else {
-				return tokenEndpoint(requestId);
-			}
-		} else if (path.equals("jwks")) {
-			return jwksEndpoint();
-		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			return userinfoEndpoint(requestId);
-		} else if (path.equals(".well-known/openid-configuration")) {
-			return discoveryEndpoint();
-		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
 	protected Object discoveryEndpoint() {
@@ -505,11 +514,13 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		});
 	}
 
-	// This method is a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest,
-	// which is why it maps the backchannel request to the authorization request object. Other than that, changes have
-	// been kept to a minimum.
+	// This method is for the most part a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest.
 	protected void validateRequestObjectForBackchannelEndpointRequest() {
+
 		validateRequestObjectCommonChecks();
+
+		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
+		callAndStopOnFailure(ValidateBackchannelRequestObjectSigningAlgMatchesSupported.class, "CIBA-4");
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");
 
@@ -536,9 +547,15 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 
-		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key (such as checking the iss in the JWT)?
 		if(ClientAuthType.MTLS.equals(clientAuthType)) {
+			// client_id is required as a parameter in MTLS mode
 			callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+		} else {
+			skipIfElementMissing(
+				CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
+				CreateEffectiveAuthorizationRequestParameters.CLIENT_ID,
+				ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
+			//skipIfMissing(new String[]{"client"}, null, ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
 		}
 
 		env.unmapKey("authorization_endpoint_http_request_params");
@@ -548,7 +565,6 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
-		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
 		callAndContinueOnFailure(NonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
@@ -572,6 +588,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 	}
 
 	protected void prepareIdTokenClaims() {
+
+		env.mapKey("authorization_request_object", "backchannel_request_object");
+
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
@@ -589,6 +608,9 @@ public abstract class AbstractFAPICIBAID1ClientTest extends AbstractTestModule {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		}
+
+		env.unmapKey("authorization_request_object");
+
 	}
 
 	protected void signIdToken() {

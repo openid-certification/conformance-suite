@@ -17,8 +17,8 @@ public class ExtractBearerAccessTokenFromHeader extends AbstractCondition {
 		String auth = env.getString("incoming_request", "headers.authorization");
 
 		if (!Strings.isNullOrEmpty(auth)) {
-			if (auth.toLowerCase().startsWith("bearer")) {
-				String incoming = auth.substring("bearer ".length(), auth.length());
+			if (auth.toLowerCase().startsWith("bearer") && auth.length() > "bearer ".length()) {
+				String incoming = auth.substring("bearer ".length());
 				if (!Strings.isNullOrEmpty(incoming)) {
 					logSuccess("Found access token on incoming request", args("access_token", incoming));
 					env.putString("incoming_access_token", incoming);
