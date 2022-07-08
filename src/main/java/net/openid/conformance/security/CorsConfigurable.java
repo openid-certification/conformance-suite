@@ -2,10 +2,8 @@ package net.openid.conformance.security;
 
 import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.List;
+import java.util.Map;
 
 public interface CorsConfigurable {
-	List<String> getPaths();
-
-	CorsConfiguration getCorsConfiguration();
+	Map<String, CorsConfiguration> getCorsConfigurations();
 }
