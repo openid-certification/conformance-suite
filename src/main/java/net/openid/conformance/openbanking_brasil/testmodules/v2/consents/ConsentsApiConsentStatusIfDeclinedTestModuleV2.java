@@ -42,7 +42,7 @@ public class ConsentsApiConsentStatusIfDeclinedTestModuleV2 extends AbstractOBBr
 
 	@Override
 	protected void validateResponse() {
-		runInBlock("Validating get consent response", () -> {
+		runInBlock("Validating get consent response V2", () -> {
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 			callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
 			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
