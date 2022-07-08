@@ -35,6 +35,8 @@ public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMis
 		if(!Strings.isNullOrEmpty(state)) {
 			callAndContinueOnFailure(RemoveStateFromAuthorizationEndpointResponseParams.class);
 			removedState = true;
+		} else {
+			fireTestSkipped("No state was sent.");
 		}
 	}
 
