@@ -36,7 +36,7 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 			// This set is as per https://gitlab.com/openid/conformance-suite/-/issues/927 albeit with one typo
 			// corrected to match https://openbanking-brasil.github.io/areadesenvolvedor/swagger/swagger_consents_apis.yaml
 
-			if (productType.equals("business")) {
+			if (productType != null && productType.equals("business")) {
 				permissions = new String[]{
 					"RESOURCES_READ",
 					"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ",
