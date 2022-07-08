@@ -2,14 +2,16 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.accounts;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
 import net.openid.conformance.openbanking_brasil.account.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @PublishTestModule(
 	testName = "accounts-api-operational-limits",
@@ -51,6 +53,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunctionalTestModule {
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	private int numberOfExecutions = 1;
 
@@ -115,7 +118,12 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 			callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		});
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-		callAndStopOnFailure(AddBookingDateSixDaysBefore.class);
+
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
+
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 
 		preCallProtectedResource("Fetching transactions with booking date parameters");
 		runInBlock("Validate Account Transactions Response", () -> {
@@ -150,7 +158,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 			});
 		}
 
-		callAndStopOnFailure(AddBookingDateSixDaysBeforeTransactionsCurrent.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 
 		preCallProtectedResource("Fetching Accounts Transactions Current with Booking date parameters");
 
