@@ -103,12 +103,9 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 			callAndStopOnFailure(FetchSpecifiedNumberOfExtractedApiIds.class);
 		});
 		if (numberOfExecutions == 1){
-//			callAndStopOnFailure(AccountsSelectTwoResources.class);
-//			callAndStopOnFailure(AccountsOperationLimitsSelectResourceOne.class);
 			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
 			env.putString("accountId", accountIdOne);
 			accountsOperationalLimitCalls();
-//			callAndStopOnFailure(AccountOperationalLimitsSelectResourceTwo.class);
 			String accountIdTwo = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(1));
 			env.putString("accountId", accountIdTwo);
 			accountsOperationalLimitCalls();
