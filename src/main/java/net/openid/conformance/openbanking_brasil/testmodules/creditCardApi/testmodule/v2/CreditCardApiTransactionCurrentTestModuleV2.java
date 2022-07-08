@@ -102,7 +102,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		return sequenceOf(
 			condition(CreditCardAccountsTransactionResponseValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
-			condition(ValidateTransactionsMetaOnlyRequestDateTime.class)
+			condition(ValidateMetaOnlyRequestDateTime.class)
 		);
 	}
 

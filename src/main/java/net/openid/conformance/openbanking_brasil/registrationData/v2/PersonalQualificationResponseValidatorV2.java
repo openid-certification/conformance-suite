@@ -13,15 +13,14 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: swagger/openinsurance/registrationData/swagger-customers.yaml
- * Api endpoint:/personal/qualifications
- * Api version: 2.0.0-RC1.0
+ * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
+ * Api endpoint: /personal/qualifications
+ * Api version: 2.0.0.final
  **/
 
 @ApiName("Natural Personal Qualification V2")
 public class PersonalQualificationResponseValidatorV2 extends AbstractJsonAssertingCondition {
 	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
-
 	public static final Set<String> OCCUPATION_CODES = SetUtils.createSet("RECEITA_FEDERAL, CBO, OUTRO");
 	public static final Set<String> FREQUENCIES = SetUtils.createSet("DIARIA, SEMANAL, QUINZENAL, MENSAL, BIMESTRAL, TRIMESTRAL, SEMESTRAL, ANUAL, OUTROS");
 
@@ -109,8 +108,8 @@ public class PersonalQualificationResponseValidatorV2 extends AbstractJsonAssert
 			new StringField
 				.Builder("amount")
 				.setMinLength(4)
-				.setMaxLength(21)
-				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setMaxLength(20)
+				.setPattern("^\\d{1,15}\\.\\d{2,4}$")
 				.build());
 
 		assertField(amount,

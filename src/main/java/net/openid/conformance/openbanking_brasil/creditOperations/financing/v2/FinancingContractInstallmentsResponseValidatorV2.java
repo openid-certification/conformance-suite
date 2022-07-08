@@ -5,23 +5,26 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.NumberField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/financings/swagger_financings_apis.yaml
+ * Api: swagger/openinsurance/financings/v2/swagger_financings_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}/scheduled-instalments
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  */
 
 @ApiName("Financings Scheduled Instalments V2")
 public class FinancingContractInstallmentsResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
-
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 	public static final Set<String> TYPE_NUMBER_OF_INSTALMENTS = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_TOTAL");
 	public static final Set<String> TYPE_CONTRACT_REMAINING = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_REMANESCENTE");
 
@@ -34,7 +37,6 @@ public class FinancingContractInstallmentsResponseValidatorV2 extends AbstractJs
 				.Builder(ROOT_PATH)
 				.setValidator(this::assertInnerFields)
 				.build());
-
 		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
