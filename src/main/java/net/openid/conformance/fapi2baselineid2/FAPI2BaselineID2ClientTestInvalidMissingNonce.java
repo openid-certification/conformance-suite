@@ -1,11 +1,13 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import com.google.common.base.Strings;
-import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.condition.as.RemoveNonceFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = FAPIJARMType.class, values = {"plain_oauth"})
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-invalid-missing-nonce",
 	displayName = "FAPI2-Baseline-ID2: client test - missing nonce in id_token from authorization_endpoint, should be rejected",
