@@ -1,33 +1,25 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
-import net.openid.conformance.condition.client.RejectStateInUrlQueryForHybridFlow;
-import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
-import net.openid.conformance.condition.client.WaitFor2Seconds;
-import net.openid.conformance.condition.client.WaitFor60Seconds;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
-import net.openid.conformance.openbanking_brasil.testmodules.support.BuildAccountsConfigResourceUrlFromConsentUrl;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
-import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.ConsentHasExpiredInsteadOfBeenRejected;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "consent-api-expired-consent-test-v2",
 	displayName = "Validate that consents can expire",
-	summary = "Consent will be created with a 1-minute expiry, and the user will be sent to the authorization endpoint after the consent has expired. The authorization server must return the browser to the redirect URL with a valid OAuth2 error response.\n" +
-		"\u2022 Creates a Consent V2 with all of the existing permissions\n" +
-		"\u2022 Checks all of the fields sent on the consent API V2 are specification compliant\n" +
+	summary = "Consent will be created with a 3-minute expiry. The user will be sent to the authorization endpoint before the consent has expired. Conformance Suite will call the Consents API after the consent has expired to make sure the consent is marked as CONSENT_MAX_DATE_REACHED . \n" +
+		"\u2022 Creates a Consent with all of the existing permissions and set expiration to be of 3 minutes\n" +
+		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
 		"\u2022 Expects a valid consent creation 201\n" +
-		"\u2022 Redirects the User - He should not accept the consent, waiting for the consent to reach an expired state\n" +
-		"\u2022 Verifies on the authorization endpoint response if the expiration of the consent resulted in an error message",
+		"\u2022 Redirects the User - He should accept the Consent \n" +
+		"\u2022 Conformance Suite Will be set to sleep for 3 minutes \n" +
+		"\u2022 Call the Consents API for the authorized ConsentID \n" +
+		"\u2022 Expect a success 200 - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to ASPSP. Make sure Reason is set to \"CONSENT_MAX_DATE_REACHED\"",
+
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -52,43 +44,42 @@ public class ConsentsApiConsentExpiredTestModuleV2 extends AbstractOBBrasilFunct
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		return super.createOBBPreauthSteps().
-			replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class));
+			replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInThreeMinute.class));
+	}
+
+	@Override
+	protected void requestProtectedResource(){
+
 	}
 
 	@Override
 	protected void performPreAuthorizationSteps() {
 		super.performPreAuthorizationSteps();
 		callAndContinueOnFailure(WaitFor2Seconds.class);
-		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
 
-
-
 	@Override
-	protected void onAuthorizationCallbackResponse() {
+	protected void onPostAuthorizationFlowComplete() {
+		runInBlock("Validating get consent response", () -> {
+			callAndContinueOnFailure(WaitFor180Seconds.class);
 
-		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
+			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+			preCallProtectedResource("Fetch consent");
 
-		callAndContinueOnFailure(RejectStateInUrlQueryForHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+			callAndStopOnFailure(EnsureConsentRejectAspspMaxDateReached.class);
 
-		callAndStopOnFailure(CheckAuthorizationEndpointHasError.class);
-
-		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
-
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
-
-		callAndContinueOnFailure(ValidateIssInAuthorizationResponse.class, Condition.ConditionResult.WARNING, "OAuth2-iss-2");
-
-		callAndStopOnFailure(ConsentHasExpiredInsteadOfBeenRejected.class);
-		callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
-
+		});
 		fireTestFinished();
 	}
 
+	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
+		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
+	}
 
 	@Override
 	protected void validateResponse() {
-
 	}
 
 }
