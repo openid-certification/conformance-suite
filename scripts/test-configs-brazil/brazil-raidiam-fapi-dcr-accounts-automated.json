@@ -1,30 +1,12 @@
 {
     "alias": "obbsb",
-    "description": "Raidiam Brazil Mock Bank DCR payments",
+    "description": "Raidiam Brazil Mock Bank DCR accounts",
     "server": {
         "discoveryUrl": "https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration"
     },
     "client": {
-        "scope": "openid payments",
+        "scope": "accounts consents openid",
         "jwks": {
-            "keys": [
-                {
-                    "alg": "PS256",
-                    "use": "sig",
-                    "kty": "RSA",
-                    "d": "npeMWMEWuFMVhQ8YpLwswbiF3jv_si2lF3GT-jQK7i1lmx-usIoBNUYkKyXkxsZW_4OmfbXaPK06FZ5Wa5DoqrFF5VzqDZ_FDI5gaJfrcZcI2hjoQew6mlFQrC9BwROVkD2Lexusd_csb-fbxiouL8nd_jOVTjkVmR9q_KxEk0Nx1AgMeyu9j8SIWO_YnheTW5jjnTroZwN2ODAUv_N-jySLQuBA6Tfj5T5WPlhU8-BvoLDOm5oRWdvBjNJqhzpQcDhENzts5MmLpuaSKOd0Gnpc1-4Lf5MDkNHzP8VNyFiqNU3ac8FaOUfHHvy4ZSOm7i9WeDX-SlX7lAbK7sj_TQ",
-                    "dp": "iUhy-HB_cgcgOkb2WvG8rvMQw6rb_ngJEcA18hkLB018r5IHDl0ugHd3EWTDfpILBvlGKzvvOC-_h5f6J02-W1YFGKQHLrfA02JFFBLJEPFPXE_o_6As1du8C1paiZEWEGnWPJ5nq6m98WYFFNAsb56x4E9ECaaKCzsMXeNND8E",
-                    "dq": "JEoT8rlN4vxiOsRqvnJ7bi62Z6SQ7ony28OWAH2QDkYSMIcNu-VcqIBFWdmrhBBocPevX2h2qeP2ffdXSQGe_L_aMDw1RUJO2xgFRiHJqUXc6XYZI4BfpO_k5Ngd6i06a8RClXxHQVYCox3uFX_4cKTRhE4EgQ9i2JQBjn2tIUk",
-                    "e": "AQAB",
-                    "kid": "dLQSDaD1FyvPvZWwwkxdQurnq4wkJRP-GMxn2ZH_JB0",
-                    "n": "vvqXGZKJtVuR6SbBBM54Zn6UcItziH1iMIJ7uIUM3b46qPXj9Nh7PRYeqoHMg6rPuScrWk_JhaFhS2tlEA0dlLaboGlKCYBDpL3kLSPeC4RzGaYx5x5iiiv6BhFUL-kmyGQdycKX5-VD1JzYWdqC-Z34RsqmnGpriC_sfRnrbEkpwfk6ABQnzdrDb4AHNTp4vyhZi45uWo4iURTNVZmK9_CdUVQOcfl4TI4jXmGZTDd1om9TvvA1mYxYnMdkJLW07V_YIewVmIupR-ER98loZo5r2bTFP0BZKWLWUwJ475-2XNXzRHlsLSMp4KaipdSWnuWzbYUCP1pbDt1HOHfpSQ",
-                    "p": "8VbFxjtGVb6kYIQt8HQvsFd0np_AHnZF8gANh68dcqd4nlDNBb4ORGGB7buVcqI8YZhfLfDMt-rZC87KKHyiAzdgyZEHYVavblT9E7iQZXt_Uw7CW-pUwI2jGPwVyAuk0TG1HLVRJ3QXCiKnaIYNLuGvkUHz3ZK0F1PiSUgmlfc",
-                    "q": "ypSiKlSeqk8jTo794cKixd5ukChPRC8hh_Jug2-SAg1xRbfqbtdHY6EN6ixAfuh19KnrC_ItO6F1W3MpcEamj4tFsXbUrpyRbny8te1UaVrvJrSb0MINjFT-y4OBZueXLfAW4_n_bLUpdKE28CuREMY32OnzPsxcoVZ8Ffaoqr8",
-                    "qi": "v5EP7qfJedJp7UoX9lcwW_IsOorNXjlrxH_M51a02UZIqCcdl_kijsesCn66r0uQw-HacYdu6xeEgiDR3-qYNUpRLAtbekynJJCgh__KkQJS_o4yMxMjuNiTiMtN90wqb48s0T4kqwx02yPLZi13Gz0NeH5sm4caigT-iVvkCso"
-                }
-            ]
-        },
-        "org_jwks": {
             "keys": [
                 {
                     "alg": "PS256",
@@ -49,65 +31,9 @@
         "ca": "-----BEGIN CERTIFICATE-----\nMIIEajCCA1KgAwIBAgIUdIYzEFdw7QJcrySyq6IiEwZfTfAwDQYJKoZIhvcNAQEL\nBQAwazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx\nFTATBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJv\nb3QgU0FOREJPWCAtIEcxMB4XDTIwMTIxMTEwMDAwMFoXDTIzMTIxMTEwMDAwMFow\ncTELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwxFTAT\nBgNVBAsTDE9wZW4gQmFua2luZzEtMCsGA1UEAxMkT3BlbiBCYW5raW5nIFNBTkRC\nT1ggSXNzdWluZyBDQSAtIEcxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC\nAQEA6fX+272mHX5QAcDaWkVHFWjnDIcORNUJU3OuNyeuOYhlvXJWydrXe3O+cV+P\nS39faMj/nfem3GfJBE7Xn0bWA/8ksxSfrg1BUBJDge4YBBw+VflI3A0g1fk9wJ3H\nGInsvV4serRJ/ISJTfs0uRNugX+RrbkT/T0tup4vGd3Kl2sbwUdDjokuJNJHANeO\nDRkQ+ra+9Wht71FBlc07yPf7qtpaWHm6aS3s47OJD35ixkG4xiZuHsScxcVtlo1V\nW98P2cQfH9H2lll4wWlPTVHpPThB2EYrPhwcxDh8kHkkOHNkyHO/fYM47u7H4VeQ\nV75LXWKa7iWmZg+WhFb8TXSr/wIDAQABo4H/MIH8MA4GA1UdDwEB/wQEAwIBBjAP\nBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSGf1itF/WCtk60BbP7sM4RQ99MvjAf\nBgNVHSMEGDAWgBSHE+yWPmLsIRwMSlY68iUM45TpyzBMBggrBgEFBQcBAQRAMD4w\nPAYIKwYBBQUHMAGGMGh0dHA6Ly9vY3NwLnNhbmRib3gucGtpLm9wZW5iYW5raW5n\nYnJhc2lsLm9yZy5icjBLBgNVHR8ERDBCMECgPqA8hjpodHRwOi8vY3JsLnNhbmRi\nb3gucGtpLm9wZW5iYW5raW5nYnJhc2lsLm9yZy5ici9pc3N1ZXIuY3JsMA0GCSqG\nSIb3DQEBCwUAA4IBAQBy4928pVPeiHItbneeOAsDoc4Obv5Q4tn0QpqTlSeCSBbH\nIURfEr/WaS8sv0JTbIPQEfiO/UtaN8Qxh7j5iVqTwTwgVaE/vDkHxGOen5YxAuyV\n1Fpm4W4oQyybiA6puHEBcteuiYZHppGSMus3bmFYTPE+9B0+W914VZeHDujJ2Y3Y\nMc32Q+PC+Zmv8RfaXp7+QCNYSXR5Ts3q3IesWGmlvAM5tLQi75JmzdWXJ1uKU4u3\nNrw5jY4UaOlvB5Re2BSmcjxdLT/5pApzkS+tO6lICnPAtk/Y6dOJ0YxQBMImtliY\np02yfwRaqP8WJ4CnwUHil3ZRt8U9I+psU8b4WV/3\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIDpjCCAo6gAwIBAgIUS3mWeRx1uG/SMl/ql55VwRtNz7wwDQYJKoZIhvcNAQEL\nBQAwazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx\nFTATBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJv\nb3QgU0FOREJPWCAtIEcxMB4XDTIwMTIxMTEwMDAwMFoXDTI1MTIxMDEwMDAwMFow\nazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwxFTAT\nBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJvb3Qg\nU0FOREJPWCAtIEcxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp50j\njNh0wu8ioziC1HuWqOfgXwxeiePiRGw5tKDqKIbC7XV1ghEcDiymTHHWWJSQ1LEs\nmYpZVwaos5Mrz2xJwytg8K5eqFqa7QvfOOul29bnzEFk+1gX/0nOYws3Lba9E7S+\nuPaUmfElF4r2lcCNL2f3F87RozqZf+DQBdGUzAt9n+ipY1JpqfI3KF/5qgRkPoIf\nJD+aj2Y1D6eYjs5uMRLU8FMYt0CCfv/Ak6mq4Y9/7CaMKp5qjlrrDux00IDpxoXG\nKx5cK0KgACb2UBZ98oDQxcGrbRIyp8VGmv68BkEQcm7NljP863uBVxtnVTpRwQ1x\nwYEbmSSyoonXy575wQIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/\nBAUwAwEB/zAdBgNVHQ4EFgQUhxPslj5i7CEcDEpWOvIlDOOU6cswDQYJKoZIhvcN\nAQELBQADggEBAFoYqwoH7zvr4v0SQ/hWx/bWFRIcV/Rf6rEWGyT/moVAEjPbGH6t\nyHhbxh3RdGcPY7Pzn797lXDGRu0pHv+GAHUA1v1PewCp0IHYukmN5D8+Qumem6by\nHyONyUASMlY0lUOzx9mHVBMuj6u6kvn9xjL6xsPS+Cglv/3SUXUR0mMCYf963xnF\nBIRLTRlbykgJomUptVl/F5U/+8cD+lB/fcZPoQVI0kK0VV51jAODSIhS6vqzQzH4\ncpUmcPh4dy+7RzdTTktxOTXTqAy9/Yx+fk18O9qSQw1MKa9dDZ4YLnAQS2fJJqIE\n1DXIta0LpqM4pMoRMXvp9SLU0atVZLEu6Sc=\n-----END CERTIFICATE-----\n"
     },
     "resource": {
-        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/pix/payments",
-        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/payments/v1/consents",
-        "brazilCpf": "48847377765",
-        "brazilOrganizationId": "74e929d9-33b6-4d85-8ba7-c146c867a817",
-        "brazilPaymentConsent": {
-            "data": {
-                "loggedUser": {
-                    "document": {
-                        "identification": "76109277673",
-                        "rel": "CPF"
-                    }
-                },
-                "creditor": {
-                    "personType": "PESSOA_NATURAL",
-                    "cpfCnpj": "48847377765",
-                    "name": "Marco Antonio de Brito"
-                },
-                "payment": {
-                    "type": "PIX",
-                    "date": "2021-01-01",
-                    "currency": "BRL",
-                    "amount": "100000.12",
-                    "details": {
-                        "localInstrument": "DICT",
-                        "proxy": "12345678901",
-                        "creditorAccount": {
-                            "ispb": "12345678",
-                            "issuer": "1774",
-                            "number": "1234567890",
-                            "accountType": "CACC"
-                        }
-                    }
-                },
-                "debtorAccount": {
-                    "ispb": "12345678",
-                    "issuer": "6272",
-                    "number": "94088392",
-                    "accountType": "CACC"
-                }
-            }
-        },
-        "brazilPixPayment": {
-            "data": {
-                "localInstrument": "DICT",
-                "payment": {
-                    "amount": "100000.12",
-                    "currency": "BRL"
-                },
-                "creditorAccount": {
-                    "ispb": "12345678",
-                    "issuer": "1774",
-                    "number": "1234567890",
-                    "accountType": "CACC"
-                },
-                "cnpjInitiator": "60545350000165",
-                "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                "proxy": "12345678901"
-            }
-        }
+        "resourceUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/accounts/v1/accounts",
+        "consentUrl": "https://matls-api.mockbank.poc.raidiam.io/open-banking/consents/v1/consents",
+        "brazilCpf": "76109277673"
     },
     "directory": {
         "discoveryUrl": "https://auth.sandbox.directory.openbankingbrasil.org.br/.well-known/openid-configuration",
