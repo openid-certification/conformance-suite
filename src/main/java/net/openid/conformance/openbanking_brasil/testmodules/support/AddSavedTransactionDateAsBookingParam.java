@@ -12,7 +12,7 @@ public class AddSavedTransactionDateAsBookingParam extends AbstractAddBookingDat
 		String fromBookingDate = env.getString("transactionDate");
 		String toBookingDate = env.getString("transactionDate");
 
-		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate);
+		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate,"/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s");
 
 		return super.evaluate(env);
 	}
