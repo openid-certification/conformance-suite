@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiRevokedAspspTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiBadConsentsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiNegativeTestsV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiTestModuleV2;
@@ -43,7 +44,8 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class,
 					ConsentsApiConsentExpiredTestModuleV2.class,
 					ConsentsApiDeleteTestModuleV2.class,
-					ConsentsApiOperationalLimitsTestModuleV2.class
+					ConsentsApiOperationalLimitsTestModuleV2.class,
+					ConsentsApiRevokedAspspTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

@@ -12,7 +12,7 @@ public class PrepareUrlForResourcesCallV2 extends ResourceBuilder {
 	public Environment evaluate(Environment env) {
 		// Takes the consents URL, leaves its base and attaches the resources endpoint
 		setAllowDifferentBaseUrl(true);
-		setApi("resources V2");
+		setApi("resources");
 		setEndpoint("/resources");
 		return super.evaluate(env);
 	}

@@ -26,6 +26,7 @@ import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRe
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDCMSubjectDnTestClient1;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDCMSubjectDnTestClient2;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
@@ -81,7 +82,7 @@ public abstract class AbstractDcmSubjectDnTestModule extends AbstractApiDcrTestM
 		eventLog.startBlock("Switch back to original certificate, verify that client credentials grant now fails");
 		env.unmapKey("config");
 		env.unmapKey("mutual_tls_authentication");
-		callAndStopOnFailure(OverrideClientWithDCMSubjectDnTestClient2.class);
+		callAndStopOnFailure(OverrideClientWithDCMSubjectDnTestClient1.class);
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		callClientCredentialsGrantExpectingFailure();
