@@ -3,31 +3,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
-import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
-import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddConsentScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.BuildAccountsConfigResourceUrlFromConsentUrl;
-import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCustomCustomersConfigResourceUrlFromConsentUrl;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CallConsentApiWithBearerToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentWasRejectedOrDeleted;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureConsentWasRejected;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403or400;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureTokenResponseWasAFailure;
-import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreResponseError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.LoadConsentsAccessToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.LoadProtectedResourceAccessToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToDeleteConsent;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToFetchConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SaveProtectedResourceAccessToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetResponseBodyOptional;
-import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -37,14 +18,17 @@ import net.openid.conformance.variant.ClientAuthType;
 	testName = "consents-api-delete-test-v2",
 	displayName = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token ",
 	summary = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token \n" +
-		"\u2022 Creates a Consent V2 with all of the existing permissions \n" +
+		"\u2022 Creates a Consent with all of the existing permissions \n" +
 		"\u2022 Redirects the user\n" +
 		"\u2022 Calls the Token endpoint using the authorization code flow\n" +
 		"\u2022 Makes sure a valid access token has been created\n" +
 		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
-		"\u2022 Call the DELETE Consents API V2\n" +
+		"\u2022 Calls the DELETE Consents API\n" +
 		"\u2022 Calls the Token endpoint to issue a new access token\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n",
+		"\u2022 Expects the test to return a 403 - Forbidden\n" +
+		"\u2022 Calls the Consents API with the initially authorized Consent \n" +
+		"\u2022 Expects a 200 - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure " +
+		"		Reason is set to \"CUSTOMER_MANUALLY_REVOKED”\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -66,7 +50,6 @@ import net.openid.conformance.variant.ClientAuthType;
 public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule {
 
 	protected ClientAuthType clientAuthType;
-
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
@@ -88,7 +71,7 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication);
+		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApi(addTokenEndpointClientAuthentication);
 
 		return preauthSteps;
 	}
@@ -103,7 +86,7 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 		eventLog.endBlock();
 
-		eventLog.startBlock("Deleting consent V2");
+		eventLog.startBlock("Deleting consent");
 		callAndContinueOnFailure(LoadConsentsAccessToken.class);
 		callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
@@ -122,6 +105,26 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
+
+		eventLog.startBlock("Try calling protected resource after consent is deleted");
+		callAndStopOnFailure(CallProtectedResource.class);
+		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+
+		eventLog.startBlock("Trying issuing a refresh token");
+		call(callTokenEndpointRefreshToken());
+
+		eventLog.startBlock("Validating get consent response");
+		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+		callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
+		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+		preCallProtectedResource("Fetch consent");
+
+		callAndStopOnFailure(EnsureConsentAspspRevoked.class);
+
+	}
+
+	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
+		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
 	private ConditionSequence callTokenEndpointRefreshToken(){
