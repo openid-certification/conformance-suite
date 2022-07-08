@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.accounts;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
@@ -12,8 +13,26 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "accounts-api-operational-limits",
-	displayName = "Test will make sure that the server has not implemented any type of operational limits for the Accounts API.",
-	summary = "",
+	displayName = "Accounts Api operational limits test module",
+	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here Operational Limits · Wiki · Open Banking Brasil / Certification · GitLab.\n" +
+	"Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided \n" +
+	"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
+	"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1) and the second saved returned active resource id (R_2)\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_1) once  - Expect a 200 response\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts Transactions API with the saved Resource ID (R_1) once, send query parameters fromBookingDate as D-6 and toBookingDate as Today - Expect a 200 response - Make Sure That at least 10 Transactions have been returned \n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts Balances API with the saved Resource ID (R_1) 14 Times  - Expect a 200 response\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts Limits API with the saved Resource ID (R_1) 14 Times  - Expect a 200 response\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts Transactions-Current API with the saved Resource ID (R_1) 7 Times  - Expect a 200 response\n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts Transactions-Current API with the saved Resource ID (R_1) Once,  send query parameters fromBookingDate as D-6 and toBookingDate as Today, with page-size=1 - Expect a 200 response - Fetch the links.next URI \n" +
+	"\u2022 Call the GET Accounts Transactions-Current API 9 more times, always using the links.next returned and always forcing the page-size to be equal to 1 - Expect a 200 on every single call \n" +
+	"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_2) once - Expect a 200 response \n" +
+	"\u2022 Repeat the exact same process done with the first tested resources (R_1) but now, execute it against the second returned Resource (R_2) \n" +
+	"\u2022 Using the regular client_id provided and the regular CPF/CNPJ for OL create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (2) \n" +
+	"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
+	"\u2022 With the authorized consent id (2), call the GET Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1)\n" +
+	"\u2022 With the authorized consent id (2), call the GET Accounts API with the saved Resource ID (R_1) once - Expect a 200 response\n" +
+	"\u2022 Repeat the exact same process done with the first tested resources (R_1) done with the first client",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -71,13 +90,14 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountListValidatorV2.class);
-		callAndStopOnFailure(AccountsSelectTwoResources.class);
 		if (numberOfExecutions == 1){
+			callAndStopOnFailure(AccountsSelectTwoResources.class);
 			callAndStopOnFailure(AccountsOperationLimitsSelectResourceOne.class);
 			accountsOperationalLimitCalls();
 			callAndStopOnFailure(AccountOperationalLimitsSelectResourceTwo.class);
 			accountsOperationalLimitCalls();
 		} else if (numberOfExecutions == 2){
+			callAndStopOnFailure(AccountSelector.class);
 			callAndStopOnFailure(AccountsOperationLimitsSelectResourceOne.class);
 			accountsOperationalLimitCalls();
 		}
@@ -85,60 +105,74 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 	}
 
-	private ConditionSequence callAccountsBalancesSequence(){
-
-		return new OperationalLimitsCallResource()
-			.replace(PrepareUrlForFetchingAccountResource.class,condition(PrepareUrlForFetchingAccountBalances.class))
-			.replace(AccountIdentificationResponseValidatorV2.class, condition(AccountBalancesResponseValidator.class));
-	}
-
-	private ConditionSequence callAccountsTransactionsCurrent(){
-		return new OperationalLimitsCallResource()
-			.replace(PrepareUrlForFetchingAccountResource.class,condition(PrepareUrlForFetchingAccountTransactionsCurrent.class))
-			.replace(AccountIdentificationResponseValidatorV2.class, condition(AccountTransactionsCurrentValidatorV2.class));
-	}
-
 	private void accountsOperationalLimitCalls(){
 		preCallProtectedResource("Fetching First Account");
 		//Call Account resource
-		ConditionSequence callAccountResource = new OperationalLimitsCallResource();
-		call(callAccountResource);
-		eventLog.startBlock("Fetching transactions with booking date parameters");
-		//Account transactions using booking date parameter
-		ConditionSequence callTransactionWithBookingParams = new OperationalLimitsCallResource()
-			.replace(PrepareUrlForFetchingAccountResource.class,condition(PrepareUrlForFetchingAccountTransactions.class))
-			.insertAfter(PrepareUrlForFetchingAccountResource.class, condition(AddBookingDateSixDaysBefore.class))
-			.replace(AccountIdentificationResponseValidatorV2.class,condition(AccountTransactionsValidatorV2.class));
-		call(callTransactionWithBookingParams);
+		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 
-		eventLog.startBlock("Fetching balances multiple times");
-		//Account Balances x14
-		repeatSequence(this::callAccountsBalancesSequence).times(14).trailingPause(1).run();
+		preCallProtectedResource("Fetching First Account");
+		runInBlock("Validate Account Response", () -> {
+			callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
+		});
+		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+		callAndStopOnFailure(AddBookingDateSixDaysBefore.class);
 
-		eventLog.startBlock("Fetching transaction current multiple times");
-		//Transaction Date x7
-		repeatSequence(this::callAccountsTransactionsCurrent).times(7).trailingPause(1).run();
+		preCallProtectedResource("Fetching transactions with booking date parameters");
+		runInBlock("Validate Account Transactions Response", () -> {
+			callAndStopOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
+		});
 
-		eventLog.startBlock("Fetching transaction current with booking date parameters");
-		//Transaction Current with booking date params
-		ConditionSequence transactionsCurrentSingleSequence = callAccountsTransactionsCurrent();
-		transactionsCurrentSingleSequence
-			.insertBefore(CreateEmptyResourceEndpointRequestHeaders.class,condition(AddBookingDateSixDaysBeforeTransactionsCurrent.class));
-		call(transactionsCurrentSingleSequence);
+		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
+		for (int i = 0; i < 14; i++){
+			preCallProtectedResource("Fetching balances");
 
-		//Set to resource response next url
-		callAndStopOnFailure(SetProtectedResourceUrlToNextEndpoint.class);
+			runInBlock("Validate Account Transactions Balances", () -> {
+				callAndStopOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
+			});
+		}
 
-		eventLog.startBlock("Fetching transaction current next link multiple times");
-		//Call next url x9 and validate page size is 1
-		ConditionSequence transactionsCurrentNextSequence = callAccountsTransactionsCurrent();
-		transactionsCurrentNextSequence
-			.skip(PrepareUrlForFetchingAccountResource.class,"Resource Url is set to Next")
-			.replace(AccountIdentificationResponseValidatorV2.class, condition(AccountTransactionsCurrentValidatorV2.class))
-			.insertAfter(AccountIdentificationResponseValidatorV2.class,condition(ValidatePageSizeIsOne.class))
-			.insertAfter(AccountIdentificationResponseValidatorV2.class,condition(SetProtectedResourceUrlToNextEndpoint.class));
-		call(transactionsCurrentNextSequence);
+		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionLimit.class);
 
-		repeatSequence(() -> transactionsCurrentNextSequence).times(9).trailingPause(1).run();
+		for (int i = 0; i < 14; i++){
+			preCallProtectedResource("Fetching accounts limits");
+
+			runInBlock("Validate accounts limits Balances", () -> {
+				callAndStopOnFailure(AccountLimitsValidatorV2.class, Condition.ConditionResult.FAILURE);
+			});
+		}
+		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionsCurrent.class);
+
+		for (int j = 0; j < 7; j++){
+			preCallProtectedResource("Fetching Account Transactions current");
+
+			runInBlock("Validate Account Transactions current", () -> {
+				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+			});
+		}
+
+		callAndStopOnFailure(AddBookingDateSixDaysBeforeTransactionsCurrent.class);
+
+		preCallProtectedResource("Fetching Accounts Transactions Current with Booking date parameters");
+
+		runInBlock("Validate Account Transactions Balances", () -> {
+			callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+		});
+
+
+		callAndStopOnFailure(SetSpecifiedUrlParameterToSpecifiedValue.class);
+		env.putString("protected_resource_url", env.getString("extracted_link"));
+
+		for (int k = 0; k < 10; k++){
+			preCallProtectedResource("Fetching Accounts Transactions Current next link");
+
+			runInBlock("Validate Account Transactions Balances", () -> {
+				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+				env.putString("value", "1");
+				env.putString("parameter", "page-size");
+				callAndStopOnFailure(SetSpecifiedUrlParameterToSpecifiedValue.class);
+				env.putString("protected_resource_url", env.getString("extracted_link"));
+			});
+		}
+
 	}
 }
