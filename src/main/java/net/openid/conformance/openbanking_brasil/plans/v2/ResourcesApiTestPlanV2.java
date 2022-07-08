@@ -28,7 +28,8 @@ public class ResourcesApiTestPlanV2 implements TestPlan {
 					ResourcesApiDcrTestModuleUnauthorizedClientV2.class,
 					ResourcesApiDcrTestModuleAttemptClientTakeoverV2.class,
 					ResourcesApiDcrSubjectDnV2.class,
-					ResourcesApiOperationalLimitsTestModuleV2.class
+					ResourcesApiOperationalLimitsTestModuleV2.class,
+					ResourcesApiTestModuleUnavailableV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
