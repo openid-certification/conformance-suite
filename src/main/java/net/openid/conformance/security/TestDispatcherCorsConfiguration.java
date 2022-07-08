@@ -20,7 +20,6 @@ public class TestDispatcherCorsConfiguration implements CorsConfigurable {
 	public CorsConfiguration getCorsConfiguration() {
 
 		CorsConfiguration testDispatcherConfiguration = new CorsConfiguration().applyPermitDefaultValues();
-		testDispatcherConfiguration.setAllowCredentials(true);
 		testDispatcherConfiguration.setAllowedHeaders(List.of(CorsConfiguration.ALL));
 		testDispatcherConfiguration.setExposedHeaders(List.of("WWW-Authenticate,DPoP-Nonce"));
 
