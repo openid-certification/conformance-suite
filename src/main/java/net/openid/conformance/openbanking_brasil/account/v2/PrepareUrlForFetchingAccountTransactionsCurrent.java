@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support;
+package net.openid.conformance.openbanking_brasil.account.v2;
 
 import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
