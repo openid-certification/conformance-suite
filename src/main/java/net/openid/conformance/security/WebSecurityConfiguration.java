@@ -50,7 +50,10 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-public class OIDCConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+	@Autowired(required = false)
+	CorsConfigurable additionalCorsConfiguration;
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
@@ -259,8 +262,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.and()
 					.cors().configurationSource(getCorsConfigurationSource());
 
-		// @formatter:off
-
+		// @formatter:on
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
@@ -282,13 +284,22 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		return writer;
 	}
 
-	protected CorsConfigurationSource getCorsConfigurationSource() {
+	protected UrlBasedCorsConfigurationSource getCorsConfigurationSource() {
+
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("*"));
 		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
 		source.registerCorsConfiguration("/**/get_session_state", configuration);
+
+		if (additionalCorsConfiguration != null) {
+			additionalCorsConfiguration.getPaths().forEach(p -> {
+				source.registerCorsConfiguration(p, additionalCorsConfiguration.getCorsConfiguration());
+			});
+		}
+
 		return source;
 	}
 
