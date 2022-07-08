@@ -6,21 +6,25 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/financings/swagger_financings_apis.yaml
+ * Api: swagger/openinsurance/financings/v2/swagger_financings_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  */
 @ApiName("Financing Contract V2")
 public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	public static final Set<String> PRODUCT_TYPE = SetUtils.createSet("FINANCIAMENTOS, FINANCIAMENTOS_RURAIS, FINANCIAMENTOS_IMOBILIARIOS");
 	public static final Set<String> PRODUCT_SUB_TYPE = SetUtils.createSet("AQUISICAO_BENS_VEICULOS_AUTOMOTORES, AQUISICAO_BENS_OUTROS_BENS, MICROCREDITO, CUSTEIO, INVESTIMENTO, INDUSTRIALIZACAO, COMERCIALIZACAO, FINANCIAMENTO_HABITACIONAL_SFH, FINANCIAMENTO_HABITACIONAL_EXCETO_SFH");
@@ -41,7 +45,8 @@ public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingC
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 		assertField(body,
-			new ObjectField.Builder(ROOT_PATH)
+			new ObjectField
+				.Builder(ROOT_PATH)
 				.setValidator(this::assertInnerFields)
 				.build());
 		linksAndMetaValidator.assertMetaAndLinks(body);
@@ -117,7 +122,11 @@ public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingC
 				.setOptional()
 				.build());
 
-		assertField(data, CommonFields.currency().setOptional().build());
+		assertField(data,
+			CommonFields
+				.currency()
+				.setOptional()
+				.build());
 
 		assertField(data,
 			new	DatetimeField

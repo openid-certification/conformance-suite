@@ -3,7 +3,22 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
+<<<<<<< HEAD
 import net.openid.conformance.openbanking_brasil.testmodules.v2.ConsentsApiConsentStatusIfDeclinedTestModuleV2;
+=======
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiRevokedAspspTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiBadConsentsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiNegativeTestsV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentExpiredTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusIfDeclinedTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiCrossClientTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiDeleteTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiOperationalLimitsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiPermissionGroupsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiTestTransactionDateTimeV2;
+>>>>>>> 4293fe7b3dee03a18cc2057fca1764beef92d75b
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,9 +38,18 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					PreFlightCertCheckModule.class,
-					ConsentsApiTestTransactionDateTime.class,
-					ConsentApiBadConsentsTestModule.class,
-					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class
+					ConsentsApiTestTransactionDateTimeV2.class,
+					ConsentApiBadConsentsTestModuleV2.class,
+					ConsentApiTestModuleV2.class,
+					ConsentApiNegativeTestsV2.class,
+					ConsentsApiPermissionGroupsTestModuleV2.class,
+					ConsentsApiCrossClientTestModuleV2.class,
+					ConsentsApiConsentStatusTestModuleV2.class,
+					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class,
+					ConsentsApiConsentExpiredTestModuleV2.class,
+					ConsentsApiDeleteTestModuleV2.class,
+					ConsentsApiOperationalLimitsTestModuleV2.class,
+					ConsentsApiRevokedAspspTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

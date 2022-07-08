@@ -6,13 +6,9 @@ import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentR
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.openbanking_brasil.*;
-import net.openid.conformance.openbanking_brasil.consent.ConsentDetailsIdentifiedByConsentIdValidator;
-import net.openid.conformance.openbanking_brasil.consent.CreateNewConsentValidator;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
-
-import net.openid.conformance.sequence.ConditionSequence;
 
 @PublishTestModule(
 	testName = "consent-api-bad-scope-test",
