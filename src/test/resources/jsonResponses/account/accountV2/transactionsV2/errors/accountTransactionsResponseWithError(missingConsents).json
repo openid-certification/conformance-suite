@@ -2,7 +2,6 @@
     "data": [
         {
             "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
-            "completedAuthorisedPaymentType": "TRANSACAO_EFETIVADA",
             "creditDebitType": "DEBITO",
             "transactionName": "TRANSFCWAR5TXHCX5I9IDBHML8082N8NEO30M6LNNG7ANAYIJYRM00ZBZPU8",
             "type": "PIX",
@@ -15,7 +14,8 @@
             "partiePersonType": "PESSOA_NATURAL",
             "partieCompeCode": "001",
             "partieBranchCode": "6272",
-            "partieNumber": "67890854360"
+            "partieNumber": "67890854360",
+            "partieCheckDigit": "4"
         }
     ],
     "links": {

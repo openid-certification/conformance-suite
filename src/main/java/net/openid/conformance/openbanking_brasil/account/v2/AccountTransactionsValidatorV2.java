@@ -14,9 +14,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: swagger/openBanking/swagger_accounts_apis.yaml
+ * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
  * Api endpoint: /accounts/{accountId}/transactions
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 @ApiName("Account Transactions V2")
 public class AccountTransactionsValidatorV2 extends AbstractJsonAssertingCondition {

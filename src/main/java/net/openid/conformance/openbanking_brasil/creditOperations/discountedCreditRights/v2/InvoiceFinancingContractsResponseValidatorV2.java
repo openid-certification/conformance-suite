@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -14,14 +14,14 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/discountedCreditRights/swagger-invoice-financings.yaml
+ * Api: swagger/openinsurance/discountedCreditRights/v2/swagger-invoice-financings-v2.yaml
  * Api endpoint: /contracts
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  * Git hash:
  */
 @ApiName("Invoice Financing Contracts V2")
 public class InvoiceFinancingContractsResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	final Set<String> PRODUCT_TYPE = SetUtils.createSet("DIREITOS_CREDITORIOS_DESCONTADOS");
 	final Set<String> PRODUCT_SUB_TYPE = SetUtils.createSet("DESCONTO_DUPLICATAS, DESCONTO_CHEQUES, ANTECIPACAO_FATURA_CARTAO_CREDITO, OUTROS_DIREITOS_CREDITORIOS_DESCONTADOS, OUTROS_TITULOS_DESCONTADOS");
@@ -30,9 +30,9 @@ public class InvoiceFinancingContractsResponseValidatorV2 extends AbstractJsonAs
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
 		assertField(body,
-			new ObjectArrayField.Builder(ROOT_PATH)
+			new ObjectArrayField
+				.Builder(ROOT_PATH)
 				.setValidator(this::assertInnerFields)
 				.setMinItems(0)
 				.build());
@@ -45,7 +45,7 @@ public class InvoiceFinancingContractsResponseValidatorV2 extends AbstractJsonAs
 		assertField(body,
 			new StringField
 				.Builder("contractId")
-				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{1,100}$")
+				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$")
 				.setMaxLength(100)
 				.setMinLength(1)
 				.build());

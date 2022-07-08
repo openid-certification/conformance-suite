@@ -35,7 +35,7 @@ public class ResourcesApiDcrSubjectDn extends AbstractApiDcrSubjectDn {
 	}
 
 	@Override
-	boolean isPaymentsApiTest() {
+	protected boolean isPaymentsApiTest() {
 		return false;
 	}
 

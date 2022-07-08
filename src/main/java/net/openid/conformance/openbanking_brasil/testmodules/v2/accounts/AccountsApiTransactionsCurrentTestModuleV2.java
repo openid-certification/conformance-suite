@@ -8,7 +8,7 @@ import net.openid.conformance.openbanking_brasil.account.v2.AccountListValidator
 import net.openid.conformance.openbanking_brasil.account.v2.AccountTransactionsValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateTransactionsMetaOnlyRequestDateTime;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateMetaOnlyRequestDateTime;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -103,7 +103,7 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		return sequenceOf(
 			condition(AccountTransactionsValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
-			condition(ValidateTransactionsMetaOnlyRequestDateTime.class)
+			condition(ValidateMetaOnlyRequestDateTime.class)
 		);
 	}
 
