@@ -32,6 +32,8 @@ public class FAPI2BaselineID2ClientTestInvalidMissingNonce extends AbstractFAPI2
 		if(!Strings.isNullOrEmpty(nonce)) {
 			callAndStopOnFailure(RemoveNonceFromIdToken.class, "OIDCC-3.1.3.7-11");
 			issuedMissingNonce = true;
+		} else {
+			fireTestSkipped("No nonce was sent.");
 		}
 	}
 
