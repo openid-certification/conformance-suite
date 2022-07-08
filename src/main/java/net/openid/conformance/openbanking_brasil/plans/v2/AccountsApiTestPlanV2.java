@@ -3,18 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountApiBookingDateTestV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountApiTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiMaxPageSizePagingTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiNegativeTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiPageSizeTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiPageSizeTooLargeTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiReadPermissionsAreRestrictedV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiResourcesMultipleConsentsTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiTransactionsCurrentTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiUXScreenshotsV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsApiWrongPermissionsTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.AccountsResourcesApiTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.accounts.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -44,7 +33,8 @@ public class AccountsApiTestPlanV2 implements TestPlan {
 					AccountsApiPageSizeTooLargeTestModuleV2.class,
 					AccountsApiMaxPageSizePagingTestModuleV2.class,
 					AccountApiBookingDateTestV2.class,
-					AccountsResourcesApiTestModuleV2.class
+					AccountsResourcesApiTestModuleV2.class,
+					AccountsApiOperationalLimitsTestModule.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

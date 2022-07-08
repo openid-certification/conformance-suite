@@ -1,16 +1,16 @@
-package net.openid.conformance.openbanking_brasil.testmodules.support;
+package net.openid.conformance.openbanking_brasil.account.v2;
 
 import net.openid.conformance.openbanking_brasil.testmodules.support.resource.ResourceBuilder;
 import net.openid.conformance.testmodule.Environment;
 
-public class PrepareUrlForFetchingAccountResource extends ResourceBuilder {
-
+public class PrepareUrlForFetchingAccountTransactionsCurrent extends ResourceBuilder {
 	@Override
 	public Environment evaluate(Environment env) {
 
 		String accountId = env.getString("accountId");
+
 		setApi("accounts");
-		setEndpoint("/accounts/" + accountId);
+		setEndpoint("/accounts/" + accountId + "/transactions-current");
 
 		return super.evaluate(env);
 	}

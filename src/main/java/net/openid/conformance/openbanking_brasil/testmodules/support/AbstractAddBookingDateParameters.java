@@ -8,11 +8,11 @@ import java.time.format.DateTimeFormatter;
 
 public abstract class AbstractAddBookingDateParameters extends ResourceBuilder {
 
-	protected void addBookingDateParamsToAccountsEndpoint(Environment environment, String fromBookingDate, String toBookingDate){
+	protected void addBookingDateParamsToAccountsEndpoint(Environment environment, String fromBookingDate, String toBookingDate, String endpointPath){
 		String accountId = environment.getString("accountId");
 		addDatesToEnvironment(environment,fromBookingDate,toBookingDate);
 		setApi("accounts");
-		setEndpoint(String.format("/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s", accountId, fromBookingDate, toBookingDate));
+		setEndpoint(String.format(endpointPath, accountId, fromBookingDate, toBookingDate));
 	}
 
 	protected String formatDateParam(LocalDateTime dateToFormat){
