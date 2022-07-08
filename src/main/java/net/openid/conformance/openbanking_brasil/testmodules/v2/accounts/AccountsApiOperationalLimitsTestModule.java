@@ -7,6 +7,7 @@ import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesRespo
 import net.openid.conformance.openbanking_brasil.account.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.LocalDate;
@@ -57,7 +58,8 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 	private int numberOfExecutions = 1;
 
-
+	private static final String API_RESOURCE_ID = "accountId";
+	private int numberOfIdsToFetch = 2;
 	@Override
 	protected void configureClient(){
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
@@ -93,11 +95,22 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(AccountListValidatorV2.class);
+		runInBlock("Preparing Credit Card Accounts", () -> {
+			env.putString("apiIdName", API_RESOURCE_ID);
+			callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
+
+			env.putInteger("number_of_ids_to_fetch", numberOfIdsToFetch);
+			callAndStopOnFailure(FetchSpecifiedNumberOfExtractedApiIds.class);
+		});
 		if (numberOfExecutions == 1){
-			callAndStopOnFailure(AccountsSelectTwoResources.class);
-			callAndStopOnFailure(AccountsOperationLimitsSelectResourceOne.class);
+//			callAndStopOnFailure(AccountsSelectTwoResources.class);
+//			callAndStopOnFailure(AccountsOperationLimitsSelectResourceOne.class);
+			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
+			env.putString("accountId", accountIdOne);
 			accountsOperationalLimitCalls();
-			callAndStopOnFailure(AccountOperationalLimitsSelectResourceTwo.class);
+//			callAndStopOnFailure(AccountOperationalLimitsSelectResourceTwo.class);
+			String accountIdTwo = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(1));
+			env.putString("accountId", accountIdTwo);
 			accountsOperationalLimitCalls();
 		} else if (numberOfExecutions == 2){
 			callAndStopOnFailure(AccountSelector.class);
