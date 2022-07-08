@@ -3,12 +3,13 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
+
+import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusIfDeclinedTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentExpiredTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiRevokedAspspTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiBadConsentsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiNegativeTestsV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentApiTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusIfDeclinedTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiCrossClientTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiDeleteTestModuleV2;
