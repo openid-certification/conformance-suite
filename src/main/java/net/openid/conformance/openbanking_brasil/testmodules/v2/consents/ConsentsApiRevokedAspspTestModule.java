@@ -10,7 +10,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "consents-api-revoked-aspsp",
+	testName = "consents-api-revoked-aspsp-v2",
 	displayName = "Validate that when a consent is manually revoked the rejected by is 'CUSTOMER_MANUALLY_REVOKED'",
 	summary = "Makes sure that the user can revoke its created consent inside the ASPSP." +
 		"\u2022 For this test, the Tester will have to manually revoke the created consent on the ASPSP platform while the server is set to poll the consent API. \n" +
