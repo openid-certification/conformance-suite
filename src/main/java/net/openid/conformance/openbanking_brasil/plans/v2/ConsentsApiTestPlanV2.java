@@ -13,7 +13,6 @@ import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.Consent
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiCrossClientTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiDeleteTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiOperationalLimitsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiPermissionGroupsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiTestTransactionDateTimeV2;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -45,7 +44,6 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 					ConsentsApiConsentStatusIfDeclinedTestModuleV2.class,
 					ConsentsApiConsentExpiredTestModuleV2.class,
 					ConsentsApiDeleteTestModuleV2.class,
-					ConsentsApiOperationalLimitsTestModuleV2.class,
 					ConsentsApiRevokedAspspTestModule.class
 				),
 				List.of(
