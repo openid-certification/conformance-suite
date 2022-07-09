@@ -14,7 +14,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "resources-api-test-unavailable",
+	testName = "resources-api-test-unavailable-v2",
 	displayName = "Validates that the server has correctly implemented the expected behaviour for temporarily blocked resources",
 	summary = "Validates that the server has correctly implemented the expected behaviour for temporarily blocked resources\n" +
 		"\u2022 Creates a CONSENT with all the existing permissions including either business or personal data, depending on what has been provided on the test configuration\n" +
