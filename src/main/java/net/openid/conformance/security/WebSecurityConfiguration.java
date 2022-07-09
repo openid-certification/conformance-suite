@@ -47,9 +47,6 @@ import java.util.stream.Collectors;
 @EnableWebSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	@Autowired(required = false)
-	CorsConfigurable additionalCorsConfiguration;
-
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
 	@Value("${fintechlabs.devmode:false}")
@@ -99,6 +96,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
+
+	@Autowired(required = false)
+	private CorsConfigurable additionalCorsConfiguration;
 
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
