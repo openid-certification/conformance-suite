@@ -3,7 +3,7 @@ package net.openid.conformance.apis.account.v1;
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.jsonAsserting.ErrorMessagesUtils;
-import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.account.AccountListValidator;
 import net.openid.conformance.util.UseResurce;
 import org.junit.Test;
 
