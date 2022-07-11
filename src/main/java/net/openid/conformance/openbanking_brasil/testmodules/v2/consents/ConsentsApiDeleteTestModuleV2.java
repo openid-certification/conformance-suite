@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
+import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -71,7 +72,7 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApi(addTokenEndpointClientAuthentication);
+		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication);
 
 		return preauthSteps;
 	}
