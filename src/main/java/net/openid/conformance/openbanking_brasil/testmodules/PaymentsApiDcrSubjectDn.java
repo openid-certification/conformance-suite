@@ -18,7 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class PaymentsApiDcrSubjectDn extends AbstractApiDcrSubjectDn {
 
 	@Override
-	boolean isPaymentsApiTest() {
+	protected boolean isPaymentsApiTest() {
 		return true;
 	}
 

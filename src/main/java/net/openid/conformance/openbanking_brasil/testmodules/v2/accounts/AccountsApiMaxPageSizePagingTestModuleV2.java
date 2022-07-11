@@ -7,7 +7,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v2.AccountTransactionsValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateTransactionsMetaOnlyRequestDateTime;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateMetaOnlyRequestDateTime;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -70,7 +70,7 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}

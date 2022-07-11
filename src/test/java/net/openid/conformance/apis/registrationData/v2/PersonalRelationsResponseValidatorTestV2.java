@@ -22,7 +22,7 @@ public class PersonalRelationsResponseValidatorTestV2 extends AbstractJsonRespon
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/naturalPersonalRelationshipV2/naturalPersonRelationshipResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 		ConditionError error = runAndFail(new PersonalRelationsResponseValidatorV2());
-		String expected = ErrorMessagesUtils.createElementNotFoundMessage("branchCode", new PersonalRelationsResponseValidatorV2().getApiName());
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("number", new PersonalRelationsResponseValidatorV2().getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 

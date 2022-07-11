@@ -5,41 +5,45 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.NumberField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/loansV2/swagger_loans_apis.yaml
+ * Api:swagger/openinsurance/loans/v2/swagger_loans_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}/scheduled-instalments
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  * Git hash:
  */
 
 @ApiName("Contract Installments V2")
 public class ContractInstallmentsResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 	public static final Set<String> ENUM_TYPE_NUMBER_OF_INSTALMENTS = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_TOTAL");
 	public static final Set<String> ENUM_TYPE_CONTRACT_REMAINING = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_REMANESCENTE");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
-
 		JsonElement body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
-		assertInnerFields(body);
+		assertField(body,
+			new ObjectField
+				.Builder(ROOT_PATH)
+				.setValidator(this::assertInnerFields)
+				.build());
 		linksAndMetaValidator.assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
 
-	private void assertInnerFields(JsonElement body) {
-		JsonObject data = findByPath(body, ROOT_PATH).getAsJsonObject();
-
+	private void assertInnerFields(JsonObject data) {
 		assertField(data,
 			new StringField
 				.Builder("typeNumberOfInstalments")
@@ -47,7 +51,7 @@ public class ContractInstallmentsResponseValidatorV2 extends AbstractJsonAsserti
 				.build());
 
 		assertField(data,
-			new IntField
+			new NumberField
 				.Builder("totalNumberOfInstalments")
 				.setMaxLength(999999999)
 				.setOptional()
@@ -60,34 +64,30 @@ public class ContractInstallmentsResponseValidatorV2 extends AbstractJsonAsserti
 				.build());
 
 		assertField(data,
-			new IntField
+			new NumberField
 				.Builder("contractRemainingNumber")
 				.setMaxLength(999999999)
 				.setOptional()
 				.build());
 
 		assertField(data,
-			new IntField
+			new NumberField
 				.Builder("paidInstalments")
 				.setMaxLength(999)
 				.build());
 
 		assertField(data,
-			new IntField
+			new NumberField
 				.Builder("dueInstalments")
 				.setMaxLength(999)
 				.build());
 
 		assertField(data,
-			new IntField
+			new NumberField
 				.Builder("pastDueInstalments")
 				.setMaxLength(999)
 				.build());
 
-		assertBalloonPayments(data);
-	}
-
-	private void assertBalloonPayments(JsonObject data) {
 		assertField(data,
 			new ObjectArrayField
 				.Builder("balloonPayments")

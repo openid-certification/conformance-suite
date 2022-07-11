@@ -6,8 +6,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.v1.GetLoansResponseValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesStatus;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.EnumResourcesType;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.PrepareUrlForResourcesCall;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.ResourcesResponseValidator;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v1.PrepareUrlForResourcesCall;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v1.ResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 

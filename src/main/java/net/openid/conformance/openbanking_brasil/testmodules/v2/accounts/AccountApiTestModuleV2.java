@@ -6,7 +6,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateTransactionsMetaOnlyRequestDateTime;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateMetaOnlyRequestDateTime;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -57,7 +57,7 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 		preCallProtectedResource("Fetch Account transactions V2");
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 		call(sequence(ValidateSelfEndpoint.class));
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits V2");

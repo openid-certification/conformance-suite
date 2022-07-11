@@ -3,8 +3,8 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.*;
+import net.openid.conformance.openbanking_brasil.resourcesAPI.v1.AccountResourcesResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareResourceRelatedConsentsForAccountsTest;
-import net.openid.conformance.openbanking_brasil.resourcesAPI.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 
@@ -36,9 +36,7 @@ public class ResourcesApiTestModuleAccount extends AbstractOBBrasilFunctionalTes
 
 	@Override
 	protected void validateResponse() {
-		String logMessage = String.format("Validate resources api request for ACCOUNTS only");
-		runInBlock(logMessage, () -> {
-			callAndStopOnFailure(AccountResourcesResponseValidator.class, Condition.ConditionResult.FAILURE);
-		});
+		String logMessage = "Validate resources api request for ACCOUNTS only";
+		runInBlock(logMessage, () -> callAndStopOnFailure(AccountResourcesResponseValidator.class, Condition.ConditionResult.FAILURE));
 	}
 }

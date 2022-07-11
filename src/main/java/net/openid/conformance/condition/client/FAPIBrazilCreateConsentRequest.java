@@ -16,12 +16,27 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 	@PostEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String cpf = env.getString("config", "resource.brazilCpf");
-		String cnpj = env.getString("config", "resource.brazilCnpj");
-		String productType = env.getString("config", "consent.productType");
-		if (Strings.isNullOrEmpty(cpf) && Strings.isNullOrEmpty(cnpj)) {
-			throw error("A least one of CPF and CNPJ must be specified in the test configuration");
+		String cpf;
+		String cnpj;
+		Boolean operationalLimitTest = env.getBoolean("operational_limit_consent");
+
+		if (operationalLimitTest != null && operationalLimitTest){
+			cpf  = env.getString("config", "resource.brazilCpfOperational");
+			cnpj = env.getString("config", "resource.brazilCnpjOperational");
+
+			if (Strings.isNullOrEmpty(cpf)) {
+				throw error("The operational limit CPF must be provided in the test configuration");
+			}
+		} else {
+			cpf = env.getString("config", "resource.brazilCpf");
+			cnpj = env.getString("config", "resource.brazilCnpj");
+
+			if (Strings.isNullOrEmpty(cpf) && Strings.isNullOrEmpty(cnpj)) {
+				throw error("A least one of CPF and CNPJ must be specified in the test configuration");
+			}
 		}
+		String productType = env.getString("config", "consent.productType");
+
 
 		if (Strings.isNullOrEmpty(productType)) {
 			throw error("Product type (Business or Personal) must be specified in the test configuration");

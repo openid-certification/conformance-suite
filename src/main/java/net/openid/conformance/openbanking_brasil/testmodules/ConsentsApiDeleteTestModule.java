@@ -8,6 +8,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -46,6 +47,7 @@ import net.openid.conformance.variant.ClientAuthType;
 public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 
 	protected ClientAuthType clientAuthType;
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);

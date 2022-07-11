@@ -15,31 +15,31 @@ public class ContractGuaranteesResponseValidatorTestV2 extends AbstractJsonRespo
 
 	@Test
 	public void validateStructure() {
-		ContractGuaranteesResponseValidatorV2 condition = new ContractGuaranteesResponseValidatorV2();
-		run(condition);
+
+		run(new ContractGuaranteesResponseValidatorV2());
 	}
 
 	@Test
 	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contractGuarantees/contractGuaranteesResponseWithError.json")
 	public void validateStructureWithMissingField() {
-		ContractGuaranteesResponseValidatorV2 condition = new ContractGuaranteesResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("warrantySubType", condition.getApiName())));
+
+		ConditionError error = runAndFail(new ContractGuaranteesResponseValidatorV2());
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("warrantySubType", new ContractGuaranteesResponseValidatorV2().getApiName())));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contractGuarantees/contractGuaranteesResponseWrongEnum.json")
 	public void validateStructureWrongEnum() {
-		ContractGuaranteesResponseValidatorV2 condition = new ContractGuaranteesResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("warrantyType", condition.getApiName())));
+
+		ConditionError error = runAndFail(new ContractGuaranteesResponseValidatorV2());
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchEnumerationMessage("warrantyType", new ContractGuaranteesResponseValidatorV2().getApiName())));
 	}
 
 	@Test
 	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contractGuarantees/contractGuaranteesResponseWrongRegexp.json")
 	public void validateStructureWrongRegexp() {
-		ContractGuaranteesResponseValidatorV2 condition = new ContractGuaranteesResponseValidatorV2();
-		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("currency", condition.getApiName())));
+
+		ConditionError error = runAndFail(new ContractGuaranteesResponseValidatorV2());
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("currency", new ContractGuaranteesResponseValidatorV2().getApiName())));
 	}
 }
