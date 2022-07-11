@@ -287,9 +287,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
 		source.registerCorsConfiguration("/**/get_session_state", configuration);
-
-		source.setCorsConfigurations(additionalCorsConfiguration.getCorsConfigurations());
-
+		
 		if (additionalCorsConfiguration != null) {
 			additionalCorsConfiguration.getCorsConfigurations().entrySet().stream().forEach(c -> {
 				source.registerCorsConfiguration(c.getKey(), c.getValue());
