@@ -33,7 +33,6 @@ import org.springframework.security.web.header.writers.DelegatingRequestMatcherH
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import javax.servlet.ServletException;
@@ -279,18 +278,22 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		return writer;
 	}
 
-	protected UrlBasedCorsConfigurationSource getCorsConfigurationSource() {
+	protected AdditiveUrlBasedCorsConfigurationSource getCorsConfigurationSource() {
 
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("*"));
 		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
 		source.registerCorsConfiguration("/**/get_session_state", configuration);
 
+		source.setCorsConfigurations(additionalCorsConfiguration.getCorsConfigurations());
+
 		if (additionalCorsConfiguration != null) {
-			source.setCorsConfigurations(additionalCorsConfiguration.getCorsConfigurations());
+			additionalCorsConfiguration.getCorsConfigurations().entrySet().stream().forEach(c -> {
+				source.registerCorsConfiguration(c.getKey(), c.getValue());
+			});
 		}
 
 		return source;
