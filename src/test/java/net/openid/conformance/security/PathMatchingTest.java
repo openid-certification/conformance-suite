@@ -30,19 +30,16 @@ public class PathMatchingTest {
 	}
 
 	@Test
-	public void the_exclusion_pattern_excludes_paths_that_end_with_end_session_endpoint() throws Exception {
+	public void the_exclusion_pattern_excludes_paths_that_end_with_logout_endpoints() throws Exception {
 
 		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/end_session_endpoint"));
 		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/a/b/end_session_endpoint"));
 
-		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/end_session_endpoint"));
-		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/a/b/end_session_endpoint"));
+		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/check_session_iframe"));
+		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/a/b/check_session_iframe"));
 
-		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/end_session_endpoint"));
-		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/a/b/end_session_endpoint"));
-
-		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/end_session_endpoint"));
-		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/end_session_endpoint"));
+		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/get_session_state"));
+		Assert.assertFalse(pathMatcher.match(patternWithExclusions, "/test/a/b/get_session_state"));
 	}
 
 	@Test
