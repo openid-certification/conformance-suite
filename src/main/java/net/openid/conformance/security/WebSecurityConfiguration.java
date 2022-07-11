@@ -278,6 +278,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		return writer;
 	}
 
+	// For more info regarding the CORS handling in the conformance suite, please refer to
+	// https://gitlab.com/openid/conformance-suite/-/merge_requests/1175#note_1020913221
 	protected AdditiveUrlBasedCorsConfigurationSource getCorsConfigurationSource() {
 
 		CorsConfiguration configuration = new CorsConfiguration();
@@ -287,11 +289,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
 		source.registerCorsConfiguration("/**/get_session_state", configuration);
-		
+
 		if (additionalCorsConfiguration != null) {
-			additionalCorsConfiguration.getCorsConfigurations().entrySet().stream().forEach(c -> {
-				source.registerCorsConfiguration(c.getKey(), c.getValue());
-			});
+			additionalCorsConfiguration.getCorsConfigurations().forEach(source::registerCorsConfiguration);
 		}
 
 		return source;
