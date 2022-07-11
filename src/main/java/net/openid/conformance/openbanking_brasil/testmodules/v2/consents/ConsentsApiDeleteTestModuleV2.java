@@ -107,13 +107,6 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
 
-		eventLog.startBlock("Try calling protected resource after consent is deleted");
-		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
-
-		eventLog.startBlock("Trying issuing a refresh token");
-		call(callTokenEndpointRefreshToken());
-
 		eventLog.startBlock("Validating get consent response");
 		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 		callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
