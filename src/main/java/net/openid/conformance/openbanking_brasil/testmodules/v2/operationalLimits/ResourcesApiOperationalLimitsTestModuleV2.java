@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
+package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
