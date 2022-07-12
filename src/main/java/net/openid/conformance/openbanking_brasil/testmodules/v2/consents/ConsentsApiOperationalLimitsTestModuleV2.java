@@ -1,13 +1,20 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
+import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.util.JsonUtils;
 
 @PublishTestModule(
 	testName = "consents-api-operational-limits",
@@ -35,6 +42,7 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctional
 	protected void configureClient() {
 		//Arbitrary resource
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(PrepareAllCustomerRelatedConsentsForResource404HappyPathTest.class);
 		super.configureClient();
 	}
 
@@ -49,8 +57,50 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctional
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication);
+		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication, true);
 		return preauthSteps;
+	}
+
+
+	@Override
+	protected void performPreAuthorizationSteps() {
+		super.performPreAuthorizationSteps();
+
+		callAndContinueOnFailure(EnsureResourceEndpointResponseStatusWas201.class, Condition.ConditionResult.WARNING);
+
+		if (getResult() == Result.WARNING) {
+			fireTestFinished();
+		}
+		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
+
+		String responseJson = env.getString("resource_endpoint_response");
+		Gson gson = JsonUtils.createBigDecimalAwareGson();
+		env.putObject("resource_endpoint_response", gson.fromJson(responseJson, JsonObject.class));
+
+		env.mapKey("consent_endpoint_response", "resource_endpoint_response");
+		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+		if (getResult() == Result.WARNING) {
+			fireTestFinished();
+		}
+		env.unmapKey("consent_endpoint_response");
+
+
+		callAndContinueOnFailure(CreateNewConsentValidatorV2.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(CheckItemCountHasMin1.class);
+
+		call(exec().startBlock("Validating get consent response"));
+		callAndStopOnFailure(ConsentIdExtractor.class);
+		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidatorV2.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
+		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+
+		callAndStopOnFailure(RemoveConsentScope.class);
 	}
 
 	@Override

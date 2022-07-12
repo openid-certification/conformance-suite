@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.account.testmodule
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
@@ -9,10 +10,12 @@ import net.openid.conformance.openbanking_brasil.account.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -26,13 +29,15 @@ import java.time.format.DateTimeFormatter;
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1) and the second saved returned active resource id (R_2)\n" +
-		"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_1) once  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions API with the saved Resource ID (R_1) once, send query parameters fromBookingDate as D-6 and toBookingDate as Today - Expect a 200 response - Make Sure That at least 10 Transactions have been returned \n" +
-		"\u2022 With the authorized consent id (1), call the GET Accounts Balances API with the saved Resource ID (R_1) 14 Times  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Accounts Limits API with the saved Resource ID (R_1) 14 Times  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions-Current API with the saved Resource ID (R_1) 7 Times  - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_1) 30 Times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions API with the saved Resource ID (R_1) 30 Times, send query parameters fromBookingDate as D-6 and toBookingDate as Today - Expect a 200 response - Make Sure That at least 20 Transactions have been returned \n" +
+		"\u2022 With the authorized consent id (1), refresh Access Token using the Refresh Token" +
+		"\u2022 With the authorized consent id (1), call the GET Accounts Balances API with the saved Resource ID (R_1) 420 Times  - Expect a 200 response. Every 100 calls the Access token is refreshed.\n" +
+		"\u2022 With the authorized consent id (1), call the GET Accounts Limits API with the saved Resource ID (R_1) 420 Times  - Expect a 200 response. Every 100 calls the Access token is refreshed.\n" +
+		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions-Current API with the saved Resource ID (R_1) 210 Times  - Expect a 200 response. Every 100 calls the Access token is refreshed.\n" +
+		"\u2022 With the authorized consent id (1), refresh Access Token using the Refresh Token" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions-Current API with the saved Resource ID (R_1) Once,  send query parameters fromBookingDate as D-6 and toBookingDate as Today, with page-size=1 - Expect a 200 response - Fetch the links.next URI \n" +
-		"\u2022 Call the GET Accounts Transactions-Current API 9 more times, always using the links.next returned and always forcing the page-size to be equal to 1 - Expect a 200 on every single call \n" +
+		"\u2022 Call the GET Accounts Transactions-Current API 19 more times, always using the links.next returned and always forcing the page-size to be equal to 1 - Expect a 200 on every single call \n" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_2) once - Expect a 200 response \n" +
 		"\u2022 Repeat the exact same process done with the first tested resources (R_1) but now, execute it against the second returned Resource (R_2) \n" +
 		"\u2022 Using the regular client_id provided and the regular CPF/CNPJ for OL create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (2) \n" +
@@ -64,6 +69,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 	private int numberOfExecutions = 1;
 	private int numberOfIdsToFetch = 2;
+	private ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient() {
@@ -78,6 +84,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
 		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
+		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
 	}
 
@@ -186,40 +193,51 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 		for (int i = 0; i < 420; i++) {
-			preCallProtectedResource("Fetching balances");
+			preCallProtectedResource(String.format("[%d] Fetching balances", i + 1));
 
-			runInBlock("Validate Account Transactions Balances", () -> {
+			runInBlock(String.format("[%d] Validate Account Transactions Balances", i + 1), () -> {
 				callAndStopOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
 			});
+			if(i % 100 == 0){
+				refreshAccessToken();
+			}
 		}
 
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionLimit.class);
 
 		for (int i = 0; i < 420; i++) {
-			preCallProtectedResource("Fetching accounts limits");
+			preCallProtectedResource(String.format("[%d] Fetching accounts limits", i + 1));
 
-			runInBlock("Validate accounts limits Balances", () -> {
+			runInBlock(String.format("[%d] Validate accounts limits Balances", i + 1), () -> {
 				callAndStopOnFailure(AccountLimitsValidatorV2.class, Condition.ConditionResult.FAILURE);
 			});
+			if(i % 100 == 0){
+				refreshAccessToken();
+			}
 		}
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionsCurrent.class);
 
-		for (int j = 0; j < 210; j++) {
-			preCallProtectedResource("Fetching Account Transactions current");
+		for (int i = 0; i < 210; i++) {
+			preCallProtectedResource(String.format("[%d] Fetching Account Transactions current", i + 1));
 
-			runInBlock("Validate Account Transactions current", () -> {
+			runInBlock(String.format("[%d] Validate Account Transactions current", i + 1), () -> {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
 			});
+			if(i % 100 == 0){
+				refreshAccessToken();
+			}
 		}
 
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		env.putInteger("required_page_size", 1);
 		callAndContinueOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
-		for (int k = 0; k < REQUIRED_NUMBER_OF_RECORDS; k++) {
-			preCallProtectedResource("Fetching Accounts Transactions Current next link");
+		refreshAccessToken();
 
-			runInBlock("Validate Account Transactions Balances", () -> {
+		for (int i = 0; i < REQUIRED_NUMBER_OF_RECORDS; i++) {
+			preCallProtectedResource(String.format("[%d] Fetching Accounts Transactions Current next link", i + 1));
+
+			runInBlock(String.format("[%d] Validate Account Transactions Balances", i + 1), () -> {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
 
 				callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
@@ -235,5 +253,31 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 			});
 		}
 
+	}
+
+	private void refreshAccessToken() {
+		runInBlock("Refreshing Access Token", () -> call(getRefreshAccessTokenSequence()));
+	}
+
+
+	private ConditionSequence getRefreshAccessTokenSequence() {
+		ConditionSequence sequence = sequenceOf(
+			condition(GenerateRefreshTokenRequest.class),
+			condition(CreateClientAuthenticationAssertionClaims.class),
+			condition(SignClientAuthenticationAssertion.class),
+			condition(AddClientAssertionToTokenEndpointRequest.class),
+			condition(CallTokenEndpoint.class),
+			condition(CheckIfTokenEndpointResponseError.class),
+			condition(CheckForAccessTokenValue.class),
+			condition(ExtractAccessTokenFromTokenResponse.class)
+
+		);
+		if (clientAuthType == ClientAuthType.MTLS) {
+			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
+				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
+				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
+				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
+		}
+		return sequence;
 	}
 }
