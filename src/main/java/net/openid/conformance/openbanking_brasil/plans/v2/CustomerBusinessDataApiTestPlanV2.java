@@ -4,7 +4,6 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.BusinessEntityWithPersonalPermissionsTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessApiOperationalLimitsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessDataApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessWrongPermissionsTestModuleV2;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -27,8 +26,7 @@ public class CustomerBusinessDataApiTestPlanV2 implements TestPlan {
 					PreFlightCertCheckModule.class,
 					BusinessEntityWithPersonalPermissionsTestModule.class,
 					CustomerBusinessDataApiTestModuleV2.class,
-					CustomerBusinessWrongPermissionsTestModuleV2.class,
-					CustomerBusinessApiOperationalLimitsTestModuleV2.class
+					CustomerBusinessWrongPermissionsTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
