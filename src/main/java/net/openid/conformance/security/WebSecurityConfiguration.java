@@ -31,14 +31,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.util.matcher.*;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import javax.servlet.ServletException;
@@ -50,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-public class OIDCConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
@@ -101,6 +95,9 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
+
+	@Autowired(required = false)
+	private CorsConfigurable additionalCorsConfiguration;
 
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
@@ -259,8 +256,7 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 				.and()
 					.cors().configurationSource(getCorsConfigurationSource());
 
-		// @formatter:off
-
+		// @formatter:on
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
@@ -282,13 +278,22 @@ public class OIDCConfig extends WebSecurityConfigurerAdapter {
 		return writer;
 	}
 
-	protected CorsConfigurationSource getCorsConfigurationSource() {
+	// For more info regarding the CORS handling in the conformance suite, please refer to
+	// https://gitlab.com/openid/conformance-suite/-/merge_requests/1175#note_1020913221
+	protected AdditiveUrlBasedCorsConfigurationSource getCorsConfigurationSource() {
+
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("*"));
 		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
 		source.registerCorsConfiguration("/**/get_session_state", configuration);
+
+		if (additionalCorsConfiguration != null) {
+			additionalCorsConfiguration.getCorsConfigurations().forEach(source::registerCorsConfiguration);
+		}
+
 		return source;
 	}
 
