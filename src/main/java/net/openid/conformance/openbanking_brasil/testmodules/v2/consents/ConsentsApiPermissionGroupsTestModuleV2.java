@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
@@ -66,10 +67,16 @@ public class ConsentsApiPermissionGroupsTestModuleV2 extends AbstractClientCrede
 		String[] creditOperationsContractData = {"LOANS_READ", "LOANS_WARRANTIES_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "FINANCINGS_READ", "FINANCINGS_WARRANTIES_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "RESOURCES_READ"};
 		String[] combo = arrayUtils.concatArrays(balances, creditCardLimits);
 
-		validatePermissions(personalRegistrationData, "Personal Registration Data");
-		validatePermissions(personalAdditionalInfo, "Personal Additional Information");
-		validatePermissions(businessRegistrationData, "Business Registration Data");
-		validatePermissions(businessAdditionalInfo, "Business Additional Information");
+		String brazilCnpj = env.getString("config", "resource.brazilCnpj");
+		if(Strings.isNullOrEmpty(brazilCnpj)) {
+			//No businessEntity, proceed with Personal permissions conditions
+			validatePermissions(personalRegistrationData, "Personal Registration Data");
+			validatePermissions(personalAdditionalInfo, "Personal Additional Information");
+		} else {
+			validatePermissions(businessRegistrationData, "Business Registration Data");
+			validatePermissions(businessAdditionalInfo, "Business Additional Information");
+		}
+
 		validatePermissions(balances, "Balances");
 		validatePermissions(limits, "Limits");
 		validatePermissions(extras, "Extras");
