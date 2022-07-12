@@ -34,7 +34,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 			"\u2022 Continue Polling until the Account Resource returned is on the status AVAILABLE\n" +
 			"\u2022 Call the ACCOUNTS API\n" +
 			"\u2022 Expect a 200 - Make sure the Account Resource is now returned on the API response\n",
-	profile = OBBProfile.OBB_PROFIlE_PHASE2,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
