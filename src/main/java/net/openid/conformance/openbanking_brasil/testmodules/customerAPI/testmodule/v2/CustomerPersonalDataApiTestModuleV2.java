@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalRel
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddDummyPersonalProductTypeToConfig;
+import net.openid.conformance.openbanking_brasil.testmodules.support.BuildPersonalCustomersConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -31,11 +32,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.resourceUrl"
+		"resource.brazilCpf"
 	}
 )
 public class CustomerPersonalDataApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
+
+	@Override
+	protected void configureClient(){
+		callAndStopOnFailure(BuildPersonalCustomersConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -56,7 +62,7 @@ public class CustomerPersonalDataApiTestModuleV2 extends AbstractOBBrasilFunctio
 		});
 
 		runInBlock("Validating personal financial relationship response V2", () -> {
-			callAndContinueOnFailure(PrepareToGetPersonalFinancialRelationships.class); //ALEX
+			callAndContinueOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(PersonalRelationsResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
