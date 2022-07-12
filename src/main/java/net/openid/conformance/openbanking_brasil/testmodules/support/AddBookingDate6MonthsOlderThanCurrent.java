@@ -14,7 +14,7 @@ public class AddBookingDate6MonthsOlderThanCurrent extends AbstractAddBookingDat
 		String fromBookingDate = formatDateParam(LocalDateTime.now().minusDays(360));
 		String toBookingDate = formatDateParam(LocalDateTime.now().minusDays(180));
 
-		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate);
+		addBookingDateParamsToAccountsEndpoint(env, fromBookingDate,toBookingDate,"/accounts/%s/transactions?fromBookingDate=%s&toBookingDate=%s");
 
 		return super.evaluate(env);
 	}

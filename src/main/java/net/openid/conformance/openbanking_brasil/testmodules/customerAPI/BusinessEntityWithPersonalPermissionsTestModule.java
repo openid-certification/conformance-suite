@@ -11,7 +11,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "customer-api-businessentity-personal-permissions",
+	testName = "customer-api-businessentity-personal-permissions-v2",
 	displayName = "Validate the structure of all consent API resources",
 	summary = "This test makes sure that if businessEntity is sent on the consent creation together with personal customer data permission the server will reject the request\n" +
 		"\u2022 Make sure that the user has sent a data Payload that contains a BusinessEntity \n" +

@@ -9,7 +9,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "consents-api-operational-limits-v2",
+	testName = "consents-api-operational-limits",
 	displayName = "Consents Api operational limits test module V2",
 	summary = "Make sure that access is not blocked on the Consents API V2 regardless of the number of calls done against it.\n\n"+
 		"\u2022 Create a consent using the CPF and CNPJ provided for the Operational Limits tests. Send the permissions for either customer business or customer personal data, based on what has been provided on the test configuration\n" +
