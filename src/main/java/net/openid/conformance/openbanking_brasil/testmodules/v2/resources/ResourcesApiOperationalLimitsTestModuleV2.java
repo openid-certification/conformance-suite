@@ -1,10 +1,14 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -53,12 +57,45 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddResourcesScope.class);
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
 		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		super.onConfigure(config, baseUrl);
 	}
+	@Override
+	protected ConditionSequence createOBBPreauthSteps() {
+		return new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), true);
+	}
+
+	@Override
+	protected void performPreAuthorizationSteps() {
+		super.performPreAuthorizationSteps();
+
+		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING);
+
+		if (getResult() == Result.WARNING) {
+			fireTestFinished();
+		}
+
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		call(exec().unmapKey("endpoint_response"));
+		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+		if (getResult() == Result.WARNING) {
+			fireTestFinished();
+		}
+
+		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+
+	}
+
 
 
 	@Override
