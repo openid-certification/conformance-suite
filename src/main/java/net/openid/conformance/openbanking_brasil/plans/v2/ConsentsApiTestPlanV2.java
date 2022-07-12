@@ -4,6 +4,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.*;
 
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightConsentsV2Module;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentStatusIfDeclinedTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiConsentExpiredTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.consents.ConsentsApiRevokedAspspTestModule;
@@ -35,7 +36,7 @@ public class ConsentsApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
+					PreFlightConsentsV2Module.class,
 					ConsentsApiTestTransactionDateTimeV2.class,
 					ConsentApiBadConsentsTestModuleV2.class,
 					ConsentApiTestModuleV2.class,
