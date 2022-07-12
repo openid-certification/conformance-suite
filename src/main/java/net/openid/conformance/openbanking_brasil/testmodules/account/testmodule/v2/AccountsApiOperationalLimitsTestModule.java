@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here Operational Limits · Wiki · Open Banking Brasil / Certification · GitLab.\n" +
 		"Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided \n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
-		"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
+		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1) and the second saved returned active resource id (R_2)\n" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts API with the saved Resource ID (R_1) once  - Expect a 200 response\n" +
 		"\u2022 With the authorized consent id (1), call the GET Accounts Transactions API with the saved Resource ID (R_1) once, send query parameters fromBookingDate as D-6 and toBookingDate as Today - Expect a 200 response - Make Sure That at least 10 Transactions have been returned \n" +
