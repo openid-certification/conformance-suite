@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.account;
+package net.openid.conformance.openbanking_brasil.account.v1;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;

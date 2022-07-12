@@ -3,6 +3,9 @@ package net.openid.conformance.openbanking_brasil.testmodules.account.testmodule
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.*;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountIdentificationResponseValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;

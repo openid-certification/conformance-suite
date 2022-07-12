@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.account;
+package net.openid.conformance.openbanking_brasil.account.v2;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,11 +12,11 @@ import net.openid.conformance.util.field.StringField;
 
 /**
  * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
- * Api endpoint: /accounts/{accountId}/overdraft-limits
+ * Api endpoint: /accounts/{accountId}/balances
  * Api version: 2.0.0.final
  **/
-@ApiName("Account Limits V2")
-public class AccountLimitsValidatorV2 extends AbstractJsonAdditionalAssertingCondition {
+@ApiName("Account Balances V2")
+public class AccountBalancesResponseValidatorV2 extends AbstractJsonAdditionalAssertingCondition {
 	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	@Override
@@ -33,25 +33,40 @@ public class AccountLimitsValidatorV2 extends AbstractJsonAdditionalAssertingCon
 		return environment;
 	}
 
-	private void assertData(JsonElement data) {assertField(data,
-		new ObjectField
-			.Builder("overdraftContractedLimit")
-			.setValidator(this::assertAmount)
-			.setOptional()
-			.build());
-
+	private void assertData(JsonElement data) {
 		assertField(data,
 			new ObjectField
-				.Builder("overdraftUsedLimit")
-				.setValidator(this::assertAmount)
-				.setOptional()
+				.Builder("availableAmount")
+				.setValidator(this::assertAvailableAmount)
 				.build());
 
 		assertField(data,
 			new ObjectField
-				.Builder("unarrangedOverdraftAmount")
+				.Builder("blockedAmount")
 				.setValidator(this::assertAmount)
-				.setOptional()
+				.build());
+
+		assertField(data,
+			new ObjectField
+				.Builder("automaticallyInvestedAmount")
+				.setValidator(this::assertAmount)
+				.build());
+	}
+
+	private void assertAvailableAmount(JsonObject data) {
+		assertField(data,
+			new StringField
+				.Builder("amount")
+				.setMinLength(4)
+				.setMaxLength(21)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("currency")
+				.setPattern("^[A-Z]{3}$")
+				.setMaxLength(3)
 				.build());
 	}
 

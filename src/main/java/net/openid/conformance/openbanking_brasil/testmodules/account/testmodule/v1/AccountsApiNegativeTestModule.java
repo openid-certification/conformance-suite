@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.account.AccountLimitsValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountLimitsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareAllAccountRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;

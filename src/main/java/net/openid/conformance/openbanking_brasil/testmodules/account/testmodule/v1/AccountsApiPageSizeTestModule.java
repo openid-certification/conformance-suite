@@ -5,7 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.account.AccountListValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareAllAccountRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;

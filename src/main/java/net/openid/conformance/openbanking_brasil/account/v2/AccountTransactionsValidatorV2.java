@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.account;
+package net.openid.conformance.openbanking_brasil.account.v2;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,11 +16,11 @@ import java.util.Set;
 
 /**
  * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
- * Api endpoint: /accounts/{accountId}/transactions-current
+ * Api endpoint: /accounts/{accountId}/transactions
  * Api version: 2.0.0.final
  **/
-@ApiName("Account Transactions Current V2")
-public class AccountTransactionsCurrentValidatorV2 extends AbstractJsonAssertingCondition {
+@ApiName("Account Transactions V2")
+public class AccountTransactionsValidatorV2 extends AbstractJsonAssertingCondition {
 	private final LinksAndMetaValidatorTransactions linksAndMetaValidator = new LinksAndMetaValidatorTransactions(this);
 
 	public static final Set<String> ENUM_COMPLETED_AUTHORISED_PAYMENT_INDICATOR = SetUtils.createSet("TRANSACAO_EFETIVADA, LANCAMENTO_FUTURO");

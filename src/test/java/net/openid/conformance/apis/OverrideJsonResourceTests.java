@@ -1,6 +1,6 @@
 package net.openid.conformance.apis;
 
-import net.openid.conformance.openbanking_brasil.testmodules.account.AccountBalancesResponseValidator;
+import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.UseResurce;
 import org.junit.AfterClass;
