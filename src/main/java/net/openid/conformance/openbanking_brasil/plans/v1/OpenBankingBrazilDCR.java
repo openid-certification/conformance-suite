@@ -12,7 +12,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Banking Brazil - DCR",
-	profile = OBBProfile.OBB_PROFIlE_PHASE3,
+	profile = OBBProfile.OBB_PROFILE_DCR,
 	displayName = PlanNames.OBB_DCR,
 	summary = "Tests for client registration via Dynamic Client Registration without unregistering the client after the test. " +
 		"These tests are designed to help users execute the Conformance Suite locally against different Authorization Servers. " +

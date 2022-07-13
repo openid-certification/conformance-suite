@@ -12,7 +12,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Resources api test " + PlanNames.LATEST_VERSION_2,
-	profile = OBBProfile.OBB_PROFIlE_PHASE2,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	displayName = PlanNames.RESOURCES_API_PLAN_NAME_V2,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Resources API"
 )
@@ -28,7 +28,6 @@ public class ResourcesApiTestPlanV2 implements TestPlan {
 					ResourcesApiDcrTestModuleUnauthorizedClientV2.class,
 					ResourcesApiDcrTestModuleAttemptClientTakeoverV2.class,
 					ResourcesApiDcrSubjectDnV2.class,
-					ResourcesApiOperationalLimitsTestModuleV2.class,
 					ResourcesApiTestModuleUnavailableV2.class
 				),
 				List.of(

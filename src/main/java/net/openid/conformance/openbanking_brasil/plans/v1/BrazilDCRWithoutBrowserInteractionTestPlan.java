@@ -18,7 +18,7 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "brazil-dcr-without-browser-interaction",
 	displayName = PlanNames.OBB_DCR_WITHOUT_BROWSER_INTERACTION_TEST_PLAN,
-	profile = OBBProfile.OBB_PROFIlE_PHASE3
+	profile = OBBProfile.OBB_PROFILE_DCR
 )
 public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 
