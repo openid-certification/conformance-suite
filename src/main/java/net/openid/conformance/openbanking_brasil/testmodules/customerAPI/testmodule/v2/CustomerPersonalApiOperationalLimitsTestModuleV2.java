@@ -23,14 +23,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided\n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Customer Personal permission group - Expect Server to return a 201 - Save ConsentID (1)\n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
-		"\u2022 With the authorized consent id (1), call the GET Customer Personal Identifications API - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Customer Personal Qualifications- Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Customer Personal Financial Relations - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Customer Personal Identifications API 30 times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Customer Personal Qualifications 30 times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Customer Personal Financial Relations 30 times - Expect a 200 response\n" +
 		"\u2022 Using the regular client_id provided and the regular CPF/CNPJ for OL create a Consent Request sending the Customer Personal permission group - Expect Server to return a 201 - Save ConsentID (2)\n" +
 		"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
-		"\u2022 With the authorized consent id (2), call the GET Customer Personal Identifications API - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (2), call the GET Customer Personal Qualifications- Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (2), call the GET Customer Personal Financial Relations - Expect a 200 response",
+		"\u2022 With the authorized consent id (2), call the GET Customer Personal Identifications API 30 times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (2), call the GET Customer Personal Qualifications 30 times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (2), call the GET Customer Personal Financial Relations 30 times - Expect a 200 response",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -80,17 +80,13 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING);
 
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
+		stopTestIfWarning();
 
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
 
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
+		stopTestIfWarning();
 
 		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
@@ -108,25 +104,41 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 		callAndStopOnFailure(ValidateResponseMetaData.class);
 		eventLog.endBlock();
 
-		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
-		preCallProtectedResource("Calling Personal Qualifications Endpoint with consent_id_" + numberOfExecutions);
-		runInBlock("Validate Personal Qualifications response", () -> {
-			callAndStopOnFailure(EnsureResponseCodeWas200.class);
-			callAndStopOnFailure(PersonalQualificationResponseValidatorV2.class);
-			callAndStopOnFailure(ValidateResponseMetaData.class);
-		});
+		for (int i = 1; i < 30; i++) {
+			preCallProtectedResource(String.format("[%d] Calling Personal Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
+			runInBlock("Validate Personal Identification response", () -> {
+				callAndStopOnFailure(EnsureResponseCodeWas200.class);
+				callAndStopOnFailure(PersonalIdentificationResponseValidatorV2.class);
+				callAndStopOnFailure(ValidateResponseMetaData.class);
+			});
+		}
 
-		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
-		preCallProtectedResource("Calling Customer Personal Financial Relations Endpoint with consent_id_" + numberOfExecutions);
-		runInBlock("Validate Customer Personal Financial Relations response", () -> {
-			callAndStopOnFailure(EnsureResponseCodeWas200.class);
-			callAndStopOnFailure(ValidateResponseMetaData.class);
-		});
+		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
+
+		for (int i = 0; i < 30; i++) {
+			preCallProtectedResource(String.format("[%d] Calling Personal Qualifications Endpoint with consent_id_%d", i + 1, numberOfExecutions));
+			runInBlock("Validate Personal Qualifications response", () -> {
+				callAndStopOnFailure(EnsureResponseCodeWas200.class);
+				callAndStopOnFailure(PersonalQualificationResponseValidatorV2.class);
+				callAndStopOnFailure(ValidateResponseMetaData.class);
+			});
+		}
+
+
+		for (int i = 0; i < 30; i++) {
+			callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
+			preCallProtectedResource(String.format("[%d] Calling Customer Personal Financial Relations Endpoint with consent_id_%d", i + 1, numberOfExecutions));
+			runInBlock("Validate Customer Personal Financial Relations response", () -> {
+				callAndStopOnFailure(EnsureResponseCodeWas200.class);
+				callAndStopOnFailure(ValidateResponseMetaData.class);
+			});
+		}
+
 	}
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		if(numberOfExecutions == 1){
+		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			callAndStopOnFailure(SwitchToOriginalClientId.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
@@ -134,7 +146,15 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 			validationStarted = false;
 			numberOfExecutions++;
 			performAuthorizationFlow();
-		}else {
+		} else {
+			fireTestFinished();
+		}
+	}
+
+
+
+	private void stopTestIfWarning() {
+		if (getResult() == Result.WARNING) {
 			fireTestFinished();
 		}
 	}
