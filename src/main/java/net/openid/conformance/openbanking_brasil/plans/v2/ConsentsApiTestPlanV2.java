@@ -24,7 +24,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Consents api test " + PlanNames.LATEST_VERSION_2,
-	profile = OBBProfile.OBB_PROFIlE_PHASE2,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	displayName = PlanNames.CONSENTS_API_NAME_V2,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant consents API"
 )
