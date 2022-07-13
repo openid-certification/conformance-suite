@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Random;
 
-public class validateTransactionWithinRange extends AbstractCondition {
+public class ValidateTransactionWithinRange extends AbstractCondition {
 
 
 	@Override
@@ -26,7 +26,10 @@ public class validateTransactionWithinRange extends AbstractCondition {
 
 		JsonElement response = env.getElementFromObject("resource_endpoint_response_full","body.data");
 		if (response == null){
-			throw error("No transactions returned unable to validate the defined behaviour with booking date query parameters");
+			throw error("No transactions returned unable to validate the defined behaviour with booking date query parameters",
+				args("response", env.getObject("resource_endpoint_response_full"),
+					"body", env.getElementFromObject("resource_endpoint_response_full","body"),
+					"data", env.getElementFromObject("resource_endpoint_response_full","body.data")));
 		}
 		JsonArray transactions = response.getAsJsonArray();
 
