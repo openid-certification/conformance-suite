@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.as.AddInvalidStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveStateFromAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -25,9 +26,19 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
+
+
 public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails extends AbstractFAPI2BaselineID2ClientTest {
 
 	protected boolean removedState = false;
+
+	@Override
+	protected void endTestIfRequiredParametersAreMissing() {
+		String state = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.STATE);
+		if(Strings.isNullOrEmpty(state)) {
+			fireTestSkipped("This test is being skipped as it relies on the client supplying a state value - since none is supplied, this can not be tested.");
+		}
+	}
 
 	@Override
 	protected void addCustomValuesToAuthorizationResponse() {
@@ -35,8 +46,6 @@ public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMis
 		if(!Strings.isNullOrEmpty(state)) {
 			callAndContinueOnFailure(RemoveStateFromAuthorizationEndpointResponseParams.class);
 			removedState = true;
-		} else {
-			fireTestSkipped("No state was sent.");
 		}
 	}
 

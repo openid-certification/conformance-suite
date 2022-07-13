@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveNonceFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -27,13 +28,19 @@ public class FAPI2BaselineID2ClientTestInvalidMissingNonce extends AbstractFAPI2
 	protected boolean issuedMissingNonce = false;
 
 	@Override
+	protected void endTestIfRequiredParametersAreMissing() {
+		String nonce = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.NONCE);
+		if(Strings.isNullOrEmpty(nonce)) {
+			fireTestSkipped("This test is being skipped as it relies on the client supplying a nonce value - since none is supplied, this can not be tested.");
+		}
+	}
+
+	@Override
 	protected void addCustomValuesToIdToken() {
 		String nonce = env.getString("id_token_claims", "nonce");
 		if(!Strings.isNullOrEmpty(nonce)) {
 			callAndStopOnFailure(RemoveNonceFromIdToken.class, "OIDCC-3.1.3.7-11");
 			issuedMissingNonce = true;
-		} else {
-			fireTestSkipped("No nonce was sent.");
 		}
 	}
 
