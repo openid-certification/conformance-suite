@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.account.testmodule.v2;
+package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;

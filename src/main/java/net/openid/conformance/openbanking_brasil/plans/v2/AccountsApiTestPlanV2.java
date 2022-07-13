@@ -33,8 +33,7 @@ public class AccountsApiTestPlanV2 implements TestPlan {
 					AccountsApiPageSizeTooLargeTestModuleV2.class,
 					AccountsApiMaxPageSizePagingTestModuleV2.class,
 					AccountApiBookingDateTestV2.class,
-					AccountsResourcesApiTestModuleV2.class,
-					AccountsApiOperationalLimitsTestModule.class
+					AccountsResourcesApiTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
