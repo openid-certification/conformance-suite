@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.customerAPI;
+package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
