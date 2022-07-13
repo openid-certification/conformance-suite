@@ -8,27 +8,13 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateConsentsOperationalFieldsFieldV2 extends AbstractJsonAssertingCondition {
-	private int cpfLength = 11;
-	private int cnpjLength = 14;
+public class ValidateConsentsOperationalFieldsFieldV2 extends ValidateConsentsFieldV2 {
     @Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
 		JsonElement config = env.getObject("config");
-
-		JsonElement consentElement = findElementOrThrowError(config, "$.resource.consentUrl");
-		String consentUrl = OIDFJSON.getString(consentElement);
-		String regexValidator = "^(https://)(.*?)(consents/v2/consents)";
-		if(!consentUrl.matches(regexValidator)) {
-			logFailure(String.format("consentUrl does not match the regex %s", regexValidator));
-		}
-
-		JsonElement brazilCpfElement = findElementOrThrowError(config, "$.resource.brazilCpf");
-		String brazilCpf = OIDFJSON.getString(brazilCpfElement);
-		if(Strings.isNullOrEmpty(brazilCpf) || brazilCpf.length() != cpfLength) {
-			logFailure("brazilCpf is not valid", args("brazilCpf", brazilCpf));
-		}
+		validateMainFields(config);
 
 		JsonElement productTypeElement = findElementOrThrowError(config, "$.consent.productType");
 		String productType = OIDFJSON.getString(productTypeElement);
@@ -39,7 +25,7 @@ public class ValidateConsentsOperationalFieldsFieldV2 extends AbstractJsonAssert
 		if(productType.equals("business")) {
 			JsonElement brazilCnpjElement = findElementOrThrowError(config, "$.resource.brazilCnpj");
 			String brazilCnpj = OIDFJSON.getString(brazilCnpjElement);
-			if(Strings.isNullOrEmpty(brazilCnpj) || brazilCnpj.length() != cnpjLength) {
+			if(Strings.isNullOrEmpty(brazilCnpj) || brazilCnpj.length() != super.cnpjLength) {
 				logFailure("brazilCnpj is not valid", args("brazilCnpj", brazilCnpj));
 			}
 		}
@@ -58,12 +44,5 @@ public class ValidateConsentsOperationalFieldsFieldV2 extends AbstractJsonAssert
 		}
 
         return env;
-	}
-
-	protected  JsonElement findElementOrThrowError(JsonElement rootElement, String path) {
-		if(!JsonHelper.ifExists(rootElement, path)) {
-			throw error(String.format("Element with path %s was not found.", path));
-		}
-		return findByPath(rootElement, path);
 	}
 }
