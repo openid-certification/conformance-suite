@@ -9,14 +9,15 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.MapDirector
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.openbanking_brasil.testmodules.support.UnmapDirectoryValues;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.ValidateConsentsFieldV2;
+import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.ValidateConsentsOperationalFieldsFieldV2;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "preflight-consents-v2",
+	testName = "preflight-check-operational-test-v2",
 	displayName = "Pre-flight checks will validate the mTLS certificate before requesting an access token using the Directory client_id provided in the test configuration. An SSA will be generated using the Open Banking Brasil Directory. Finally" +
-		"a check of necessaru fields will be made",
+		"a check of mandatory fields will be made",
 	summary = "Pre-flight checks will validate the mTLS certificate before requesting an access token using the Directory client_id provided in the test configuration. An SSA will be generated using the Open Banking Brasil Directory. Finally" +
-		"a check of necessaru fields will be made",
+		"a check of mandatory fields will be made, included fields for Operational Limits",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -31,7 +32,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class PreFlightConsentsV2Module extends AbstractClientCredentialsGrantFunctionalTestModule {
+public class PreFlightCheckOperationalV2Module extends AbstractClientCredentialsGrantFunctionalTestModule {
 
     @Override
     protected void runTests() {
@@ -94,7 +95,7 @@ public class PreFlightConsentsV2Module extends AbstractClientCredentialsGrantFun
 		});
 
 		runInBlock("Pre-flight Consent field checks", () -> {
-			callAndContinueOnFailure(ValidateConsentsFieldV2.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateConsentsOperationalFieldsFieldV2.class, Condition.ConditionResult.FAILURE);
 		});
     }
 }

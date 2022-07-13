@@ -8,7 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateConsentsFieldV2 extends AbstractJsonAssertingCondition {
+public class ValidateConsentsOperationalFieldsFieldV2 extends AbstractJsonAssertingCondition {
 	private int cpfLength = 11;
 	private int cnpjLength = 14;
     @Override
@@ -42,6 +42,19 @@ public class ValidateConsentsFieldV2 extends AbstractJsonAssertingCondition {
 			if(Strings.isNullOrEmpty(brazilCnpj) || brazilCnpj.length() != cnpjLength) {
 				logFailure("brazilCnpj is not valid", args("brazilCnpj", brazilCnpj));
 			}
+		}
+
+		//Extra checks for Operational Limits tests
+		JsonElement brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperational");
+		String brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
+		if(Strings.isNullOrEmpty(brazilCpfOperational)) {
+			logFailure("brazilCpfOperational is not valid", args("brazilCpfOperational", brazilCpfOperational));
+		}
+
+		JsonElement clientIdOperationalElement = findElementOrThrowError(config, "$.client.client_id_operational_limits");
+		String clientIdOperational = OIDFJSON.getString(clientIdOperationalElement);
+		if (Strings.isNullOrEmpty(clientIdOperational)) {
+			logFailure("client ID for Operational Limits not found");
 		}
 
         return env;

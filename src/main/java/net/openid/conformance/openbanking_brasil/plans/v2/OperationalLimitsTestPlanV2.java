@@ -3,6 +3,8 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckOperationalV2Module;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.CreditCardsApiOperationalLimitsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.CustomerBusinessApiOperationalLimitsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.ConsentsApiOperationalLimitsTestModuleV2;
@@ -26,7 +28,7 @@ public class OperationalLimitsTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
+					PreFlightCheckOperationalV2Module.class,
 					ResourcesApiOperationalLimitsTestModuleV2.class,
 					CustomerBusinessApiOperationalLimitsTestModuleV2.class,
 					ConsentsApiOperationalLimitsTestModuleV2.class,

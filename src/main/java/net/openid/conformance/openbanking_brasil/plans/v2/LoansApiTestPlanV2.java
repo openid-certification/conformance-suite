@@ -6,6 +6,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckM
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.testmodules.v2.LoansApiResourcesTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.testmodules.v2.LoansApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.testmodules.v2.LoansApiWrongPermissionsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,7 +24,7 @@ public class LoansApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
+					PreFlightCheckV2Module.class,
 					LoansApiTestModuleV2.class,
 					LoansApiWrongPermissionsTestModuleV2.class,
 					LoansApiResourcesTestModuleV2.class
