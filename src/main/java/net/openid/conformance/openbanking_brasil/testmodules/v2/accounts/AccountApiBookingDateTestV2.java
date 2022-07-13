@@ -62,19 +62,19 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 		callAndContinueOnFailure(AddBookingDateSixMonthsBefore.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
-		callAndStopOnFailure(validateTransactionWithinRange.class);
+		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
 		eventLog.startBlock("Add booking date query parameters");
 		callAndStopOnFailure(AddBookingDate6MonthsOlderThanCurrent.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
-		callAndStopOnFailure(validateTransactionWithinRange.class);
+		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
 		eventLog.startBlock("Add booking date query parameters using value from transaction returned");
 		callAndStopOnFailure(AddSavedTransactionDateAsBookingParam.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
-		callAndStopOnFailure(validateTransactionWithinRange.class);
+		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
 	}
 
