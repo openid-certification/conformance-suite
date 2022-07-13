@@ -4,27 +4,13 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CpfCnpjValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.field.DatetimeField;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class ValidateConsentsFieldV2 extends AbstractJsonAssertingCondition {
-
+	private int cpfLength = 11;
+	private int cnpjLength = 14;
     @Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
@@ -40,14 +26,15 @@ public class ValidateConsentsFieldV2 extends AbstractJsonAssertingCondition {
 
 		JsonElement brazilCpfElement = findElementOrThrowError(config, "$.resource.brazilCpf");
 		String brazilCpf = OIDFJSON.getString(brazilCpfElement);
-		if(!CpfCnpjValidator.isValidCPF(brazilCpf)) {
-			logFailure("brazilCpf is not valid");
+		if(Strings.isNullOrEmpty(brazilCpf) || brazilCpf.length() != cpfLength) {
+			logFailure("brazilCpf is not valid", args("brazilCpf", brazilCpf));
 		}
+
 
 		JsonElement brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperational");
 		String brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
-		if(!CpfCnpjValidator.isValidCPF(brazilCpfOperational)) {
-			logFailure("brazilCpfOperational is not valid");
+		if(Strings.isNullOrEmpty(brazilCpfOperational)) {
+			logFailure("brazilCpfOperational is not valid", args("brazilCpfOperational", brazilCpfOperational));
 		}
 
 		JsonElement productTypeElement = findElementOrThrowError(config, "$.consent.productType");
@@ -56,6 +43,13 @@ public class ValidateConsentsFieldV2 extends AbstractJsonAssertingCondition {
 			logFailure("Product type (Business or Personal) must be specified in the test configuration");
 		}
 
+		if(productType.equals("business")) {
+			JsonElement brazilCnpjElement = findElementOrThrowError(config, "$.resource.brazilCnpj");
+			String brazilCnpj = OIDFJSON.getString(brazilCnpjElement);
+			if(Strings.isNullOrEmpty(brazilCnpj) || brazilCnpj.length() != cnpjLength) {
+				logFailure("brazilCnpj is not valid", args("brazilCnpj", brazilCnpj));
+			}
+		}
 		JsonElement clientIdOperationalElement = findElementOrThrowError(config, "$.client.client_id_operational_limits");
 		String clientIdOperational = OIDFJSON.getString(clientIdOperationalElement);
 		if (Strings.isNullOrEmpty(clientIdOperational)) {
