@@ -2,10 +2,8 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.account.v1.AccountBalancesResponseValidator;
 import net.openid.conformance.openbanking_brasil.account.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
@@ -170,9 +168,12 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 		for (int i = 0; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching First Account", i + 1));
-			runInBlock(String.format("[%d] Validate Account Response", i + 1), () -> {
-				callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
-			});
+			if (i == 0) {
+				runInBlock("Validate Account Response", () -> {
+					callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
+					callAndStopOnFailure(ValidateResponseMetaData.class);
+				});
+			}
 		}
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 
@@ -185,47 +186,35 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		env.putInteger("required_number_of_records", REQUIRED_NUMBER_OF_RECORDS);
 		for (int i = 0; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching transactions with booking date parameters", i + 1));
-			runInBlock(String.format("[%d] Validate Account Transactions Response", i + 1), () -> {
-				callAndStopOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
-				callAndContinueOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
-			});
+
+			if (i == 0) {
+				runInBlock("Validate Account Transactions Response", () -> {
+					callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
+					callAndContinueOnFailure(ValidateResponseMetaData.class);
+					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
+				});
+			}
 		}
 
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
+
 		for (int i = 0; i < 420; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching balances", i + 1));
-
-			runInBlock(String.format("[%d] Validate Account Transactions Balances", i + 1), () -> {
-				callAndStopOnFailure(AccountBalancesResponseValidator.class, Condition.ConditionResult.FAILURE);
-			});
-			if(i % 100 == 0){
-				refreshAccessToken();
-			}
+			validateFields(i, "Validate Account Transactions Balances", AccountBalancesResponseValidatorV2.class);
 		}
 
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionLimit.class);
 
 		for (int i = 0; i < 420; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching accounts limits", i + 1));
-
-			runInBlock(String.format("[%d] Validate accounts limits Balances", i + 1), () -> {
-				callAndStopOnFailure(AccountLimitsValidatorV2.class, Condition.ConditionResult.FAILURE);
-			});
-			if(i % 100 == 0){
-				refreshAccessToken();
-			}
+			validateFields(i, "Validate accounts limits Balances", AccountLimitsValidatorV2.class);
 		}
+
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionsCurrent.class);
 
 		for (int i = 0; i < 210; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching Account Transactions current", i + 1));
-
-			runInBlock(String.format("[%d] Validate Account Transactions current", i + 1), () -> {
-				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
-			});
-			if(i % 100 == 0){
-				refreshAccessToken();
-			}
+			validateFields(i, "Validate Account Transactions current", AccountTransactionsCurrentValidatorV2.class);
 		}
 
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
@@ -237,22 +226,33 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		for (int i = 0; i < REQUIRED_NUMBER_OF_RECORDS; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching Accounts Transactions Current next link", i + 1));
 
-			runInBlock(String.format("[%d] Validate Account Transactions Balances", i + 1), () -> {
+
+			eventLog.startBlock(String.format("[%d] Validate Account Transactions Balances", i + 1));
+
+			if (i == 0) {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+			}
+			callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
+			callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
+			callAndStopOnFailure(ExtractNextLink.class);
 
-				callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
-				callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
-				callAndStopOnFailure(ExtractNextLink.class);
+			env.putString("value", "1");
+			env.putString("parameter", "page-size");
+			callAndStopOnFailure(SetSpecifiedValueToSpecifiedUrlParameter.class);
+			env.putString("protected_resource_url", env.getString("extracted_link"));
 
-				env.putString("value", "1");
-				env.putString("parameter", "page-size");
-				callAndStopOnFailure(SetSpecifiedValueToSpecifiedUrlParameter.class);
-				env.putString("protected_resource_url", env.getString("extracted_link"));
-
-
-			});
+			eventLog.endBlock();
 		}
 
+	}
+
+	private void validateFields(int i, String message, Class<? extends Condition> conditionClass) {
+		if (i == 0) {
+			runInBlock(message, () -> callAndStopOnFailure(conditionClass, Condition.ConditionResult.FAILURE));
+		}
+		if (i % 100 == 0) {
+			refreshAccessToken();
+		}
 	}
 
 	private void refreshAccessToken() {
