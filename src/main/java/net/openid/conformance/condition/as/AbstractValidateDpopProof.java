@@ -100,21 +100,20 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		}
 
 		if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-			throw error("DPoP Proof 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+			throw error("DPoP Proof 'iat' is in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
 		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
 			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
 			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
 			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
-			throw error("DPoP Proof  'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
+			throw error("DPoP Proof  'iat' is more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
 
 		// nbf - not actually part of spec; but JWT defines known behaviour that really should be followed
 		Long nbf = env.getLong("incoming_dpop_proof", "claims.nbf");
 		if (nbf != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
-				// this is just something to log, it doesn't make the token invalid
-				log("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
+				throw error("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
 
@@ -122,8 +121,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		Long exp = env.getLong("incoming_dpop_proof", "claims.exp");
 		if (exp != null) {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
-				// this is just something to log, it doesn't make the token invalid
-				log("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
+				throw error("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
 			}
 		}
 
@@ -138,14 +136,25 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 		}
 
-		// check for nonce, currently not required/supported
-		JsonElement nonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
-		if(nonce  != null) {
-			throw error("'nonce' claim in DPoP Proof is unsupported", args("nonce", OIDFJSON.getString(nonce)));
+
+		String expectedNonce = env.getString("dpop_nonce"); // check for server side saved nonce
+
+		// check for incoming nonce
+		JsonElement incomingNonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
+
+		if(null == expectedNonce) { // server did not set nonce
+			if(incomingNonce  != null) {
+				throw error("DPoP proof contains unexpected nonce", args("nonce", OIDFJSON.getString(incomingNonce)));
+			}
+		} else { // server set nonce
+			if(null == incomingNonce) {
+				throw error("DPoP Proof does not contain an expected nonce", args("expected", expectedNonce));
+			} else if(!expectedNonce.equals(OIDFJSON.getString(incomingNonce))) {
+				throw error("DPoP Proof contains an invalid nonce", args("nonce", OIDFJSON.getString(incomingNonce), "expected", expectedNonce));
+			}
 		}
 
-
-		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat passed validation checks");
+		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat, exp, nbf, nonce passed validation checks");
 		return env;
 	}
 }

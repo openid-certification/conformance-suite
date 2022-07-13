@@ -2,7 +2,12 @@ package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.as.AddInvalidIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {
+	"jarm"
+})
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-invalid-authorization-response-iss",
 	displayName = "FAPI2-Baseline-ID2: client test - invalid aud in id_token from authorization_endpoint must be rejected",

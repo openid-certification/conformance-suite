@@ -28,9 +28,25 @@ public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestInvalidMissingAud.class,
 		FAPI2BaselineID2ClientTestInvalidMissingIss.class,
 		FAPI2BaselineID2ClientTestValidAudAsArray.class,
+		FAPI2BaselineID2ClientTestInvalidNonce.class,
+		FAPI2BaselineID2ClientTestInvalidMissingNonce.class,
 		FAPI2BaselineID2ClientTestInvalidAuthorizationResponseIss.class,
 		FAPI2BaselineID2ClientTestRemoveAuthorizationResponseIss.class,
+		FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidStateFails.class,
+		FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails.class,
+		FAPI2BaselineID2ClientTestTokenEndpointResponseWithoutExpiresIn.class,
 		FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity.class,
+
+		// JARM tests
+		FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithInvalidIssFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithoutAudFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithInvalidAudFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithoutExpFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithExpiredExpFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmWithInvalidSigFails.class,
+		FAPI2BaselineID2ClientTestEnsureJarmSignatureAlgIsNotNone.class,
+
 		// OB systems specific tests
 		FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
