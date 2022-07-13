@@ -70,9 +70,11 @@ public class ConsentsApiPermissionGroupsTestModuleV2 extends AbstractClientCrede
 		String brazilCnpj = env.getString("config", "resource.brazilCnpj");
 		if(Strings.isNullOrEmpty(brazilCnpj)) {
 			//No businessEntity, proceed with Personal permissions conditions
+			eventLog.log("Business Permissions Checks skipped", "BusinessEntity not set, proceeding with Personal Permissions tests");
 			validatePermissions(personalRegistrationData, "Personal Registration Data");
 			validatePermissions(personalAdditionalInfo, "Personal Additional Information");
 		} else {
+			eventLog.log("Personal Permissions Checks skipped", "BusinessEntity has been set, proceeding with Business Permissions tests");
 			validatePermissions(businessRegistrationData, "Business Registration Data");
 			validatePermissions(businessAdditionalInfo, "Business Additional Information");
 		}
