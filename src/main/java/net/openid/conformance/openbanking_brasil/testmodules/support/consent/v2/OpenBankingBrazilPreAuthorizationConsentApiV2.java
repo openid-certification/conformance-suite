@@ -30,12 +30,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 public class OpenBankingBrazilPreAuthorizationConsentApiV2 extends AbstractConditionSequence {
 
-	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
-	private boolean isStopAfterConsentCall = false;
-
-	public OpenBankingBrazilPreAuthorizationConsentApiV2(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
-		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
-	}
+	private final Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
+	private final boolean isStopAfterConsentCall;
 
 	public OpenBankingBrazilPreAuthorizationConsentApiV2(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isStopAfterConsentCall) {
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
