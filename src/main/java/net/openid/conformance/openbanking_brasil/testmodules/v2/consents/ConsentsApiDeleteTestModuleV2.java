@@ -8,7 +8,6 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -51,6 +50,7 @@ import net.openid.conformance.variant.ClientAuthType;
 public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule {
 
 	protected ClientAuthType clientAuthType;
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
@@ -72,13 +72,13 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps  = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication);
+		ConditionSequence preauthSteps = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication, false);
 
 		return preauthSteps;
 	}
 
 	@Override
-	protected void requestProtectedResource(){
+	protected void requestProtectedResource() {
 
 		eventLog.startBlock("Try calling protected resource after user authentication");
 		callAndStopOnFailure(PrepareToGetCustomCustomerIdentifications.class);
@@ -121,7 +121,7 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		return new ObtainAccessTokenWithClientCredentials(clientAuthSequence);
 	}
 
-	private ConditionSequence callTokenEndpointRefreshToken(){
+	private ConditionSequence callTokenEndpointRefreshToken() {
 		ConditionSequence sequence = sequenceOf(
 			condition(GenerateRefreshTokenRequest.class),
 			condition(CreateClientAuthenticationAssertionClaims.class),
@@ -138,6 +138,8 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		}
 		return sequence;
 	}
+
 	@Override
-	protected void validateResponse() {}
+	protected void validateResponse() {
+	}
 }

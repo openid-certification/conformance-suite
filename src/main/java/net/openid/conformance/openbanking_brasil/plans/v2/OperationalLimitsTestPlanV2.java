@@ -3,10 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.CreditCardsApiOperationalLimitsTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.CustomerBusinessApiOperationalLimitsTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.ConsentsApiOperationalLimitsTestModuleV2;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.ResourcesApiOperationalLimitsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits.*;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -30,7 +27,8 @@ public class OperationalLimitsTestPlanV2 implements TestPlan {
 					ResourcesApiOperationalLimitsTestModuleV2.class,
 					CustomerBusinessApiOperationalLimitsTestModuleV2.class,
 					ConsentsApiOperationalLimitsTestModuleV2.class,
-					CreditCardsApiOperationalLimitsTestModuleV2.class
+					CreditCardsApiOperationalLimitsTestModuleV2.class,
+					AccountsApiOperationalLimitsTestModule.class
 					),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")
