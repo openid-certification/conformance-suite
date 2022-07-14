@@ -434,7 +434,7 @@ local_test:
     while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
     echo "Using pod: $MONGO_POD"
     echo -n "Connecting to mongodb"
-    while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
+    while ! kubectl exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()"; do echo -n .; sleep 1; done; echo
     # despite the db.version check we've seen instances of the insert failing - give it an extra few seconds to settle
     sleep 2
     echo "Inserting CI token"
