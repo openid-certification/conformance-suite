@@ -82,7 +82,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 		callAndStopOnFailure(AddCreditCardScopes.class);
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		super.onConfigure(config, baseUrl);
 	}
@@ -226,7 +226,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 	protected void onPostAuthorizationFlowComplete() {
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareUrlForCreditCardRoot.class);
-			callAndStopOnFailure(SwitchToOriginalClientId.class);
+			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
 			validationStarted = false;

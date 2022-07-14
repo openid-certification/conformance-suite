@@ -60,7 +60,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddResourcesScope.class);
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		super.onConfigure(config, baseUrl);
 	}
@@ -117,7 +117,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 		}else {
 
 			if(numberOfExecutions == 2){
-				callAndStopOnFailure(SwitchToOriginalClientId.class);
+				callAndStopOnFailure(SwitchToOriginalClient.class);
 				callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			}
 

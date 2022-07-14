@@ -62,7 +62,7 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOB
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 	}
 
@@ -127,7 +127,7 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOB
 	protected void onPostAuthorizationFlowComplete() {
 		if(numberOfExecutions == 1){
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
-			callAndStopOnFailure(SwitchToOriginalClientId.class);
+			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
 			validationStarted = false;
