@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.paymentInitiation;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -40,6 +41,11 @@ public class PaymentsApiBadPaymentSignatureFails extends FAPI1AdvancedFinalBrazi
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
 
 		super.validateClientConfiguration();
+	}
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 	}
 
 	@Override

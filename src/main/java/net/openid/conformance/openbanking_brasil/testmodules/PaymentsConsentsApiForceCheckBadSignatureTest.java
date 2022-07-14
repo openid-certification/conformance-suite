@@ -7,11 +7,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.PaymentConsentsErrorValidator;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ObtainPaymentsAccessTokenWithClientCredentials;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SignedPaymentConsentSequence;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
+	import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+	import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -45,6 +42,7 @@ public class PaymentsConsentsApiForceCheckBadSignatureTest extends AbstractClien
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 

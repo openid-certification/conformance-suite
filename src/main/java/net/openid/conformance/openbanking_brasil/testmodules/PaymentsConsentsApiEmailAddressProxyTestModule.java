@@ -39,10 +39,10 @@ public class PaymentsConsentsApiEmailAddressProxyTestModule extends AbstractClie
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
-		callAndContinueOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(RemoveQRCodeFromConfig.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountEmailToPaymentConsent.class);
 		callAndContinueOnFailure(InjectRealCreditorAccountToPayment.class);

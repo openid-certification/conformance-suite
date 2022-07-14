@@ -39,6 +39,7 @@ public class PaymentsConsentsJsonAcceptHeaderJwtReturnedTestModule extends Abstr
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 
