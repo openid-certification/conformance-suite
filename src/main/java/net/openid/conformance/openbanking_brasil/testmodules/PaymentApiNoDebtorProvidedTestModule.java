@@ -48,6 +48,7 @@ public class PaymentApiNoDebtorProvidedTestModule extends AbstractOBBrasilFuncti
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
