@@ -24,14 +24,19 @@ public class ValidateTransactionWithinRange extends AbstractCondition {
 		String fromBookingDate = env.getString("fromBookingDate");
 		String toBookingDate = env.getString("toBookingDate");
 
-		JsonElement response = env.getElementFromObject("resource_endpoint_response_full","body.data");
-		if (response == null){
+		JsonObject body = env.getElementFromObject("resource_endpoint_response_full","body").getAsJsonObject();
+		if (body == null) {
+			throw error("Body element is missing in the resource_endpoint_response_full");
+		}
+
+		JsonArray transactions = body.getAsJsonArray("data");
+
+		if (transactions == null || transactions.isEmpty()){
 			throw error("No transactions returned unable to validate the defined behaviour with booking date query parameters",
 				args("response", env.getObject("resource_endpoint_response_full"),
-					"body", env.getElementFromObject("resource_endpoint_response_full","body"),
-					"data", env.getElementFromObject("resource_endpoint_response_full","body.data")));
+					"body", body,
+					"data", transactions));
 		}
-		JsonArray transactions = response.getAsJsonArray();
 
 		int amountOfTransactions = transactions.size();
 		Random random = new Random();
