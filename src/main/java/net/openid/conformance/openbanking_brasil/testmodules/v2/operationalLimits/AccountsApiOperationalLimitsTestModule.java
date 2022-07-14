@@ -100,22 +100,21 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
+		}else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+			if (getResult() == Result.WARNING) {
+				fireTestFinished();
+			}else {
+				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+			}
 		}
-
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
-
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
-
-		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-
 	}
 
 	@Override
