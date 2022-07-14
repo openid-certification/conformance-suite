@@ -3,7 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.BusinessEntityWithPersonalPermissionsTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.BusinessEntityWithPersonalPermissionsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessDataApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessWrongPermissionsTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;

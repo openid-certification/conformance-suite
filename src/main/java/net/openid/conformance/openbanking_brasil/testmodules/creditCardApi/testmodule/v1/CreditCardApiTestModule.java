@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.creditCard.v1.CreditCardAccount
 import net.openid.conformance.openbanking_brasil.creditCard.v1.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.openbanking_brasil.creditCard.v1.CreditCardBillValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountResource;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.CardBillSelector;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingBillTransactionResource;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardBills;
