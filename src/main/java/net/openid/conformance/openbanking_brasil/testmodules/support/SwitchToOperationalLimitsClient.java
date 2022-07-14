@@ -32,10 +32,11 @@ public class SwitchToOperationalLimitsClient extends AbstractCondition {
 		String caString;
 
 		try {
-			jwksJson = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/jwks.json", StandardCharsets.UTF_8, getClass().getClassLoader());
-			certString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/cert.pem", StandardCharsets.UTF_8, getClass().getClassLoader());
-			keyString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/key.pem", StandardCharsets.UTF_8, getClass().getClassLoader());
-			caString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/ca.pem", StandardCharsets.UTF_8, getClass().getClassLoader());
+			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			jwksJson = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/jwks.json", StandardCharsets.UTF_8, contextClassLoader);
+			certString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/cert.pem", StandardCharsets.UTF_8, contextClassLoader);
+			keyString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/key.pem", StandardCharsets.UTF_8, contextClassLoader);
+			caString = IOUtils.resourceToString("operationalLimitsTestsHardcodedClient/ca.pem", StandardCharsets.UTF_8, contextClassLoader);
 
 
 		} catch (IOException e) {
