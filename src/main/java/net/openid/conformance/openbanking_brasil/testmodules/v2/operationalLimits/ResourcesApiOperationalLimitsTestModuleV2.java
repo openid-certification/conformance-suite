@@ -64,6 +64,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		super.onConfigure(config, baseUrl);
 	}
+
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		return new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), true);
@@ -78,24 +79,25 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+			if (getResult() == Result.WARNING) {
+				fireTestFinished();
+			} else {
+				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+			}
+
 		}
 
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
-
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
-
-		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
 
 	}
-
 
 
 	@Override
@@ -112,11 +114,11 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consnet_id_" + numberOfExecutions, env.getString("consent_id"));
 
-		if(numberOfExecutions == 3){
+		if (numberOfExecutions == 3) {
 			fireTestFinished();
-		}else {
+		} else {
 
-			if(numberOfExecutions == 2){
+			if (numberOfExecutions == 2) {
 				callAndStopOnFailure(SwitchToOriginalClient.class);
 				callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			}
