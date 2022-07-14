@@ -10,8 +10,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIJARMType.class, values = {"plain_oauth"})
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-invalid-missing-nonce",
-	displayName = "FAPI2-Baseline-ID2: client test - missing nonce in id_token from authorization_endpoint, should be rejected",
-	summary = "This test should end with the client displaying an error message that the nonce in the id_token is missing if the authorization_endpoint request supplies one",
+	displayName = "FAPI2-Baseline-ID2: client test - missing nonce in id_token from token_endpoint, should be rejected",
+	summary = "This test should end with the client displaying an error message that the nonce in the id_token is missing if the authorization request supplied one. If the client does not send a nonce value the test result will be SKIPPED.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
 		"server.jwks",
