@@ -101,21 +101,22 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+			if (getResult() == Result.WARNING) {
+				fireTestFinished();
+			} else {
+				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+			}
+
 		}
-
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
-
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
-
-		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
 
 	}
 
@@ -164,13 +165,11 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 			});
 
 
-
 			// Call to credit card bills GET
 
 			callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 			preCallProtectedResource(String.format("Fetch Credit Card Bills using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
 			runInBlock("Validate Credit Card Bills Response", () -> getValidationSequence(CreditCardBillValidatorV2.class));
-
 
 
 			// Call to credit card limits GET
@@ -179,7 +178,6 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 			preCallProtectedResource(String.format("Fetch Credit Card Limits using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
 			runInBlock("Validate Credit Card Limits Response",
 				() -> getValidationSequence(CreditCardAccountsLimitsResponseValidatorV2.class));
-
 
 
 			// Call to credit card current transactions 7 times GET
@@ -194,7 +192,6 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			env.putInteger("required_page_size", 1);
 			callAndStopOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
-
 
 
 			// Call to credit card current transactions with dates and page size fetched from next link 10 times GET
