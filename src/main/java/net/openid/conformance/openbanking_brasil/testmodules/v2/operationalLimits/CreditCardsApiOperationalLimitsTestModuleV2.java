@@ -126,7 +126,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 
 	@Override
 	protected void validateResponse() {
-
+		// Validate credit card response
 		call(getValidationSequence(CardAccountsDataResponseResponseValidatorV2.class));
 		eventLog.endBlock();
 
@@ -140,18 +140,21 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 
 		for (int i = 0; i < numberOfIdsToFetch; i++) {
 
-			// Call to credit card account GET 30 times
+			// Call to credit card account GET once with validation
 
 			String creditCardAccountId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
 			env.putString("accountId", creditCardAccountId);
 			callAndStopOnFailure(PrepareUrlForFetchingCreditCardAccount.class);
 
-			for (int j = 0; j < 30; j++) {
+			preCallProtectedResource(String.format("Fetching Credit Card Account using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Account response", CardIdentificationResponseValidatorV2.class);
+
+			// Call to credit card account GET 29 times
+			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetching Credit Card Account using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-				validateResponse(j, "Validate Credit Card Account response", CardIdentificationResponseValidatorV2.class);
 			}
 
-			// Call to credit card transactions  with dates GET 30 times
+			// Call to credit card transactions  with dates GET once with validation
 
 			LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 			env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
@@ -162,73 +165,77 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 
 
 			env.putInteger("required_number_of_records", REQUIRED_NUMBER_OF_RECORDS);
-			for (int j = 0; j < 30; j++) {
+
+			preCallProtectedResource(String.format("Fetch Credit Card Transactions using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Transactions Response", CreditCardAccountsTransactionResponseValidatorV2.class);
+			callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
+
+			// Call to credit card transactions  with dates GET 29 times
+			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Credit Card Transactions using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-				validateResponse(j, "Validate Credit Card Transactions Response", CreditCardAccountsTransactionResponseValidatorV2.class);
-				callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
 			}
 
-			// Call to credit card bills GET 30 times
+			// Call to credit card bills GET Once with Validation
 
 			callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
-			for (int j = 0; j < 30; j++) {
+			preCallProtectedResource(String.format("Fetch Credit Card Bills using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Bills Response", CreditCardBillValidatorV2.class);
+
+			// Call to credit card bills GET 29 times
+			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Credit Card Bills using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-				validateResponse(j, "Validate Credit Card Bills Response", CreditCardBillValidatorV2.class);
 			}
 
 			refreshAccessToken();
 
 
-			// Call to credit card limits GET 30 times
+			// Call to credit card limits GET once with validation
 
 			callAndStopOnFailure(PrepareUrlForFetchingCardLimits.class);
-			for (int j = 0; j < 30; j++) {
+
+			preCallProtectedResource(String.format("Fetch Credit Card Limits using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Limits Response", CreditCardAccountsLimitsResponseValidatorV2.class);
+
+			// Call to credit card limits GET 29 times
+			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Credit Card Limits using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-				validateResponse(j, "Validate Credit Card Limits Response", CreditCardAccountsLimitsResponseValidatorV2.class);
 			}
 
-			// Call to credit card current transactions GET 230 times refreshing token every 100 calls
-
+			// Call to credit card current transactions GET once with validation
 			callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-			for (int j = 0; j < 230; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Credit Card Transactions Current using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-				validateResponse(j, "Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
 
-				if(j % 100 == 0){
+			preCallProtectedResource(String.format("Fetch Credit Card Transactions Current using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
+
+			// Call to credit card current transactions GET 229 times refreshing token every 100 calls
+			for (int j = 1; j < 230; j++) {
+				preCallProtectedResource(String.format("[%d] Fetch Credit Card Transactions Current using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+
+				if (j % 100 == 0) {
 					refreshAccessToken();
 				}
 			}
+
+
+			// Call to credit card current transactions with dates and page size fetched from next once with validation
 
 			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			env.putInteger("required_page_size", 1);
 			callAndStopOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
+			preCallProtectedResource(String.format("Fetch Credit Card Transactions Current next link using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
+			validateNextLinkResponse();
 
-			// Call to credit card current transactions with dates and page size fetched from next link 10 times GET
-
-			for (int j = 0; j < REQUIRED_NUMBER_OF_RECORDS; j++) {
+			// Call to credit card current transactions with dates and page size fetched from next link 19 times GET
+			for (int j = 1; j < REQUIRED_NUMBER_OF_RECORDS; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Credit Card Transactions Current next link using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
-
-				validateResponse(j, "Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
-
-				runInBlock("Validate Credit Card Transactions Current Response Records and fetch next link",
-					() -> {
-						callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
-						callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
-						callAndStopOnFailure(ExtractNextLink.class);
-
-						env.putString("value", "1");
-						env.putString("parameter", "page-size");
-						callAndStopOnFailure(SetSpecifiedValueToSpecifiedUrlParameter.class);
-						env.putString("protected_resource_url", env.getString("extracted_link"));
-					});
+				validateNextLinkResponse();
 			}
-
 
 		}
 
 	}
-
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
@@ -247,16 +254,29 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 		}
 	}
 
-	protected void validateResponse(int i, String message, Class<? extends Condition> validationClass) {
-		if (i == 0) {
-			runInBlock(message, () -> call(getValidationSequence(validationClass)));
-		}
+
+
+	private void validateNextLinkResponse() {
+		runInBlock("Validate Credit Card Transactions Current Response Records and fetch next link",
+			() -> {
+				callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
+				callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
+				callAndStopOnFailure(ExtractNextLink.class);
+
+				env.putString("value", "1");
+				env.putString("parameter", "page-size");
+				callAndStopOnFailure(SetSpecifiedValueToSpecifiedUrlParameter.class);
+				env.putString("protected_resource_url", env.getString("extracted_link"));
+			});
+	}
+
+	protected void validateResponse(String message, Class<? extends Condition> validationClass) {
+		runInBlock(message, () -> call(getValidationSequence(validationClass)));
 	}
 
 
 	protected ConditionSequence getValidationSequence(Class<? extends Condition> validationClass) {
 		return sequenceOf(
-			condition(EnsureResponseCodeWas200.class),
 			condition(validationClass),
 			condition(ValidateResponseMetaData.class)
 		);
