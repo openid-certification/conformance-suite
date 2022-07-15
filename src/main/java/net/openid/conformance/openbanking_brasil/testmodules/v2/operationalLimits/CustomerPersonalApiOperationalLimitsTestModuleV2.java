@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2;
+package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalIdentificationResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalQualificationResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalRelationsResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -63,7 +64,7 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(PrepareAllCustomerPersonalRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 	}
 
@@ -80,20 +81,24 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING);
 
-		stopTestIfWarning();
+		if (getResult() == Result.WARNING) {
+			fireTestFinished();
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
 
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+			if (getResult() == Result.WARNING) {
+				fireTestFinished();
+			} else {
+				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+			}
 
-		stopTestIfWarning();
-
-		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-
+		}
 	}
 
 
@@ -106,55 +111,43 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 
 		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Personal Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			runInBlock("Validate Personal Identification response", () -> {
-				callAndStopOnFailure(EnsureResponseCodeWas200.class);
-				callAndStopOnFailure(PersonalIdentificationResponseValidatorV2.class);
-				callAndStopOnFailure(ValidateResponseMetaData.class);
-			});
 		}
-
 		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 
 		for (int i = 0; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Personal Qualifications Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			runInBlock("Validate Personal Qualifications response", () -> {
-				callAndStopOnFailure(EnsureResponseCodeWas200.class);
-				callAndStopOnFailure(PersonalQualificationResponseValidatorV2.class);
-				callAndStopOnFailure(ValidateResponseMetaData.class);
-			});
+			validateResponse(i, "Validate Personal Qualifications response", PersonalQualificationResponseValidatorV2.class);
 		}
 
-
+		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 		for (int i = 0; i < 30; i++) {
-			callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 			preCallProtectedResource(String.format("[%d] Calling Customer Personal Financial Relations Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			runInBlock("Validate Customer Personal Financial Relations response", () -> {
+			validateResponse(i, "Validate Customer Personal Financial Relations response", PersonalRelationsResponseValidatorV2.class);
+		}
+
+	}
+
+	private void validateResponse(int i, String message, Class<? extends Condition> validator) {
+		if (i == 0) {
+			runInBlock(message, () -> {
 				callAndStopOnFailure(EnsureResponseCodeWas200.class);
+				callAndStopOnFailure(validator);
 				callAndStopOnFailure(ValidateResponseMetaData.class);
 			});
 		}
-
 	}
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
-			callAndStopOnFailure(SwitchToOriginalClientId.class);
+			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
 			validationStarted = false;
 			numberOfExecutions++;
 			performAuthorizationFlow();
 		} else {
-			fireTestFinished();
-		}
-	}
-
-
-
-	private void stopTestIfWarning() {
-		if (getResult() == Result.WARNING) {
 			fireTestFinished();
 		}
 	}
