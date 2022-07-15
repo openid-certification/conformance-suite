@@ -4,7 +4,9 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.registrationData.v2.*;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessIdentificationValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessQualificationResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessRelationsResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -80,14 +82,14 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOB
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
-		}else {
+		} else {
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 			call(exec().unmapKey("endpoint_response"));
 			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
 
 			if (getResult() == Result.WARNING) {
 				fireTestFinished();
-			}else {
+			} else {
 				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
@@ -102,42 +104,55 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOB
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResponseCodeWas200.class);
+		// Validate Business Identification response
 		callAndStopOnFailure(BusinessIdentificationValidatorV2.class);
 		callAndStopOnFailure(ValidateResponseMetaData.class);
+
 		eventLog.endBlock();
 
+		// Call Business Identification 29 times
 		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Business Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
 		}
+
+		// Call Business Qualifications once with validation
+
 		callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 
-		for (int i = 0; i < 30; i++) {
+		preCallProtectedResource(String.format("Calling Business Qualifications Endpoint with consent_id_%d", numberOfExecutions));
+		validateResponse("Validate Business Qualifications response", BusinessQualificationResponseValidatorV2.class);
+
+		// Call Business Qualifications 29 times
+		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Business Qualifications Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse(i, "Validate Business Qualifications response", BusinessQualificationResponseValidatorV2.class);
 		}
 
+
+		// Call Customer Business Financial Relations once with validation
+
 		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
-		for (int i = 0; i < 30; i++) {
+
+		preCallProtectedResource(String.format("Calling Customer Business Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
+		validateResponse("Validate Customer Business Financial Relations response", BusinessRelationsResponseValidatorV2.class);
+
+		// Call Customer Business Financial Relations 29 times
+		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Customer Business Financial Relations Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse(i, "Validate Customer Business Financial Relations response", BusinessRelationsResponseValidatorV2.class);
 		}
 
 	}
 
-	private void validateResponse(int i, String message, Class<? extends Condition> validator) {
-		if (i == 0) {
-			runInBlock(message, () -> {
-				callAndStopOnFailure(EnsureResponseCodeWas200.class);
-				callAndStopOnFailure(validator);
-				callAndStopOnFailure(ValidateResponseMetaData.class);
-			});
-		}
+	private void validateResponse(String message, Class<? extends Condition> validator) {
+		runInBlock(message, () -> {
+			callAndStopOnFailure(validator);
+			callAndStopOnFailure(ValidateResponseMetaData.class);
+		});
+
 	}
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		if(numberOfExecutions == 1){
+		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
 			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
@@ -145,7 +160,7 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOB
 			validationStarted = false;
 			numberOfExecutions++;
 			performAuthorizationFlow();
-		}else {
+		} else {
 			fireTestFinished();
 		}
 	}
