@@ -104,13 +104,12 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
     @Override
     protected void callRegistrationEndpoint() {
         if (useBrazilShortNames) {
-            // this form only generates a warning on failure
             callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
 
             call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
 
             callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING,"OIDCR-3.2");
+            callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
             callAndStopOnFailure(DetectIfHttpStatusIsSuccessOrFailure.class);
             if (env.getBoolean(endpointResponseWas2xx)) {
                 // this is all lifted out of 'super'

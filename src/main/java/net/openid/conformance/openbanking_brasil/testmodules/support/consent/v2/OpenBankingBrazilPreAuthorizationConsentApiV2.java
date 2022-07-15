@@ -30,10 +30,12 @@ import net.openid.conformance.sequence.ConditionSequence;
 
 public class OpenBankingBrazilPreAuthorizationConsentApiV2 extends AbstractConditionSequence {
 
-	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
+	private final Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
+	private final boolean isStopAfterConsentCall;
 
-	public OpenBankingBrazilPreAuthorizationConsentApiV2(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+	public OpenBankingBrazilPreAuthorizationConsentApiV2(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isStopAfterConsentCall) {
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
+		this.isStopAfterConsentCall = isStopAfterConsentCall;
 	}
 
 	@Override
@@ -80,6 +82,11 @@ public class OpenBankingBrazilPreAuthorizationConsentApiV2 extends AbstractCondi
 		callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 		callAndStopOnFailure(SetContentTypeApplicationJson.class);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+
+		if(isStopAfterConsentCall){
+			return;
+		}
+
 		callAndContinueOnFailure(CreateNewConsentValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
