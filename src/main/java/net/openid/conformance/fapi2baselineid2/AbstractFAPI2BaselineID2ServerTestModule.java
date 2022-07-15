@@ -198,6 +198,7 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
+	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
