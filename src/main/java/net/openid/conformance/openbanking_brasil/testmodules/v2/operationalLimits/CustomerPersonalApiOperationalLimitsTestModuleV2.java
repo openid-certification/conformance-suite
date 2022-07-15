@@ -4,9 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalIdentificationResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalQualificationResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalRelationsResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -104,37 +102,50 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOB
 
 	@Override
 	protected void validateResponse() {
-		callAndStopOnFailure(EnsureResponseCodeWas200.class);
+		// Validate Personal Identification response
 		callAndStopOnFailure(PersonalIdentificationResponseValidatorV2.class);
 		callAndStopOnFailure(ValidateResponseMetaData.class);
+
 		eventLog.endBlock();
 
+		// Call Personal Identification 29 times
 		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Personal Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
 		}
+
+		// Call Personal Qualifications once with validation
+
 		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 
-		for (int i = 0; i < 30; i++) {
+		preCallProtectedResource(String.format("Calling Personal Qualifications Endpoint with consent_id_%d", numberOfExecutions));
+		validateResponse("Validate Personal Qualifications response", PersonalQualificationResponseValidatorV2.class);
+
+		// Call Personal Qualifications 29 times
+		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Personal Qualifications Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse(i, "Validate Personal Qualifications response", PersonalQualificationResponseValidatorV2.class);
 		}
 
+
+		// Call Customer Personal Financial Relations once with validation
+
 		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
-		for (int i = 0; i < 30; i++) {
+
+		preCallProtectedResource(String.format("Calling Customer Personal Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
+		validateResponse("Validate Customer Personal Financial Relations response", PersonalRelationsResponseValidatorV2.class);
+
+		// Call Customer Personal Financial Relations 29 times
+		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Customer Personal Financial Relations Endpoint with consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse(i, "Validate Customer Personal Financial Relations response", PersonalRelationsResponseValidatorV2.class);
 		}
 
 	}
 
-	private void validateResponse(int i, String message, Class<? extends Condition> validator) {
-		if (i == 0) {
-			runInBlock(message, () -> {
-				callAndStopOnFailure(EnsureResponseCodeWas200.class);
-				callAndStopOnFailure(validator);
-				callAndStopOnFailure(ValidateResponseMetaData.class);
-			});
-		}
+	private void validateResponse(String message, Class<? extends Condition> validator) {
+		runInBlock(message, () -> {
+			callAndStopOnFailure(validator);
+			callAndStopOnFailure(ValidateResponseMetaData.class);
+		});
+
 	}
 
 	@Override
