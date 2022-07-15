@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -52,9 +53,14 @@ public class EnsureSpecificCreditOperationsPermissionsWereReturned extends Abstr
 				permissionGroup = INVOICE_FINANCINGS_PERMISSIONS;
 				break;
 		}
-
-		Gson gson = JsonUtils.createBigDecimalAwareGson();
-		JsonObject body = gson.fromJson(env.getString("consent_endpoint_response_full", "body"), JsonObject.class);
+		String bodyJsonString = env.getString("consent_endpoint_response_full", "body");
+		JsonObject body;
+		try {
+			Gson gson = JsonUtils.createBigDecimalAwareGson();
+			body = gson.fromJson(bodyJsonString, JsonObject.class);
+		} catch (JsonSyntaxException e) {
+			throw error("Body is not JSON object", e, args("Body", bodyJsonString));
+		}
 
 		if (body == null) {
 			throw error("body element is missing in the consent_endpoint_response_full");
