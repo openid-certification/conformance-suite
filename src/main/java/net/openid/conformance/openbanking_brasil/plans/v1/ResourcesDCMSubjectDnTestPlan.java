@@ -37,7 +37,7 @@ public class ResourcesDCMSubjectDnTestPlan implements TestPlan {
 
 		if(clientAuth.equals("private_key_jwt")) {
 			throw new RuntimeException("This test is set to be executed only with client authentication type of type tls_client_auth. The scope of the test, " +
-				"updating the tls_client_auth_subject_dn, has no defined effect when using private_key_jwt client authentication");
+				"updating the tls_client_auth_subject_dn, has no defined effect when using private_key_jwt client authentication.");
 		}
 
 		return null;
