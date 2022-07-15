@@ -3,8 +3,7 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.BusinessEntityWithPersonalPermissionsTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessApiOperationalLimitsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.BusinessEntityWithPersonalPermissionsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessDataApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessWrongPermissionsTestModuleV2;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Business Customer Data api test " + PlanNames.LATEST_VERSION_2,
-	profile = OBBProfile.OBB_PROFIlE_PHASE2,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	displayName = PlanNames.CUSTOMER_BUSINESS_DATA_API_PLAN_NAME_V2,
 	summary = "Structural and logical tests for OpenBanking Brasil-conformant Business Customer Data API"
 )
@@ -27,8 +26,7 @@ public class CustomerBusinessDataApiTestPlanV2 implements TestPlan {
 					PreFlightCertCheckModule.class,
 					BusinessEntityWithPersonalPermissionsTestModule.class,
 					CustomerBusinessDataApiTestModuleV2.class,
-					CustomerBusinessWrongPermissionsTestModuleV2.class,
-					CustomerBusinessApiOperationalLimitsTestModuleV2.class
+					CustomerBusinessWrongPermissionsTestModuleV2.class
 				),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

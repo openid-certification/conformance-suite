@@ -10,7 +10,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "payments-dcm-subjectdn-test-plan",
-	profile = OBBProfile.OBB_PROFIlE_PHASE3,
+	profile = OBBProfile.OBB_PROFILE_DCR,
 	displayName = "Payments DCM tests for changing subjectdn",
 	summary = "For servers that support MTLS client authentication, check that subjectdn can be updated using the dynamic client management endpoint."
 )
