@@ -5,8 +5,11 @@ import net.openid.conformance.openbanking_brasil.testmodules.PaymentsDcmSubjectD
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "payments-dcm-subjectdn-test-plan",
@@ -26,5 +29,18 @@ public class PaymentsDCMSubjectDnTestPlan implements TestPlan {
 				)
 			)
 		);
+	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+
+		Map<String, String> v = variant.getVariant();
+		String clientAuth = v.get("client_auth_type");
+
+		if(clientAuth.equals("private_key_jwt")) {
+			throw new RuntimeException("This test is set to be executed only with client authentication type of type tls_client_auth. The scope of the test, " +
+				"updating the tls_client_auth_subject_dn, has no defined effect when using private_key_jwt client authentication");
+		}
+
+		return null;
 	}
 }

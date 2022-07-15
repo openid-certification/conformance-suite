@@ -27,7 +27,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-@VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" }) // only applicable for mtls client auth
 public class PaymentsDcmSubjectDnTestModule extends AbstractDcmSubjectDnTestModule {
 	public static final String testName = "payments-dcm-subject-dn-test";
 
