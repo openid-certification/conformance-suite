@@ -36,6 +36,7 @@ public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
 		FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails.class,
 		FAPI2BaselineID2ClientTestTokenEndpointResponseWithoutExpiresIn.class,
 		FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity.class,
+		FAPI2BaselineID2ClientTestPkceCodeDifferent.class,
 
 		// JARM tests
 		FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails.class,
