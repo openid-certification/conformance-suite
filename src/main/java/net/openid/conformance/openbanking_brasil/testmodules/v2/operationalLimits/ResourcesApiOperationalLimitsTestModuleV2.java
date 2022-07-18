@@ -47,7 +47,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private int currentBatch = 1;
-	private int numberOfExecutions = 2;
+	private int numberOfExecutions = 450;
 
 	@Override
 	protected void configureClient() {
@@ -117,7 +117,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		expose("consnet_id_" + currentBatch, env.getString("consent_id"));
+		expose("consent_id_" + currentBatch, env.getString("consent_id"));
 
 		if (currentBatch == 3) {
 			fireTestFinished();
