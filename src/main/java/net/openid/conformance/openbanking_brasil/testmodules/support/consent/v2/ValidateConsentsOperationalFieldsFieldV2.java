@@ -14,22 +14,6 @@ public class ValidateConsentsOperationalFieldsFieldV2 extends ValidateConsentsFi
 	public Environment evaluate(Environment env) {
 
 		JsonElement config = env.getObject("config");
-		validateMainFields(config);
-
-		JsonElement productTypeElement = findElementOrThrowError(config, "$.consent.productType");
-		String productType = OIDFJSON.getString(productTypeElement);
-		if (Strings.isNullOrEmpty(productType)) {
-			logFailure("Product type (Business or Personal) must be specified in the test configuration");
-		}
-
-		if(productType.equals("business")) {
-			JsonElement brazilCnpjElement = findElementOrThrowError(config, "$.resource.brazilCnpj");
-			String brazilCnpj = OIDFJSON.getString(brazilCnpjElement);
-			if(Strings.isNullOrEmpty(brazilCnpj) || brazilCnpj.length() != super.cnpjLength) {
-				logFailure("brazilCnpj is not valid", args("brazilCnpj", brazilCnpj));
-			}
-		}
-
 		//Extra checks for Operational Limits tests
 		JsonElement brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperational");
 		String brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
@@ -43,6 +27,6 @@ public class ValidateConsentsOperationalFieldsFieldV2 extends ValidateConsentsFi
 			logFailure("client ID for Operational Limits not found");
 		}
 
-        return env;
+        return super.evaluate(env);
 	}
 }
