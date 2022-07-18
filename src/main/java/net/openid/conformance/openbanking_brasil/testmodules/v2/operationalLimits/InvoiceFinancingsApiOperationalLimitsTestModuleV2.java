@@ -5,16 +5,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.v2.*;
-import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingContractResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingGuaranteesResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingPaymentsResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.creditOperations.loans.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.*;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.*;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -142,8 +135,8 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 			// Call invoice financings specific contract once with validation
 
-			String loanContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
-			env.putString("contractId", loanContractId);
+			String invoiceFinancingsContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
+			env.putString("contractId", invoiceFinancingsContractId);
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContract.class);
 
 			preCallProtectedResource(String.format("Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
@@ -172,7 +165,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 			preCallProtectedResource(String.format("Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
 			validateResponse("Validate Invoice Financings Scheduled Instalments Response", InvoiceFinancingContractInstallmentsResponseValidatorV2.class);
 
-			// Call Loans Scheduled Instalments 29 times
+			// Call invoice financings Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
@@ -187,7 +180,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 			preCallProtectedResource(String.format("Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
 			validateResponse("Validate Invoice Financings Payments Response", InvoiceFinancingContractPaymentsResponseValidatorV2.class);
 
-			// Call Loans Payments GET 29 times
+			// Call invoice financings Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
 				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
