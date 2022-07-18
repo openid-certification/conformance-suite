@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openinsurance.validator.OpenBankingLinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.NumberField;
@@ -16,15 +16,15 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/discountedCreditRights/swagger-invoice-financings.yaml
+ * Api: swagger/openinsurance/discountedCreditRights/v2/swagger-invoice-financings-v2.yaml
  * Api endpoint: /contracts/{contractId}/scheduled-instalments
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  * Git hash:
  */
 
 @ApiName("Invoice Financing Contract Installments V2")
 public class InvoiceFinancingContractInstallmentsResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final OpenBankingLinksAndMetaValidator linksAndMetaValidator = new OpenBankingLinksAndMetaValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	public static final Set<String> TYPE_NUMBER_OF_INSTALMENTS = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_TOTAL");
 	public static final Set<String> TYPE_CONTRACT_REMAINING = SetUtils.createSet("DIA, SEMANA, MES, ANO, SEM_PRAZO_REMANESCENTE");
@@ -33,7 +33,6 @@ public class InvoiceFinancingContractInstallmentsResponseValidatorV2 extends Abs
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertHasField(body, ROOT_PATH);
 		assertField(body,
 			new ObjectField
 				.Builder(ROOT_PATH)

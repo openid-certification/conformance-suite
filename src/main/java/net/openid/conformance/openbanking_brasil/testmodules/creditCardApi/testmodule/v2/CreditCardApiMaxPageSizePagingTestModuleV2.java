@@ -58,7 +58,7 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Credit Card Tansactions V2");
@@ -70,7 +70,7 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}

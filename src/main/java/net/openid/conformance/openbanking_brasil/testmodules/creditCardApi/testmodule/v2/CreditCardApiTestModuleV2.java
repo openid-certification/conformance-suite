@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardAccount
 import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardAccountsTransactionResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardBillValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountResource;
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -84,7 +85,7 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		preCallProtectedResource("Fetch card transactions V2");
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
@@ -99,7 +100,7 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		preCallProtectedResource("Fetch Credit Card bill transaction V2");
 		callAndContinueOnFailure(CreditCardAccountsTransactionBillResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateTransactionsMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 
 		call(sequence(ValidateSelfEndpoint.class));
 	}

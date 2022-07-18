@@ -29,7 +29,7 @@ public class PersonalIdentificationResponseValidatorTestV2 extends AbstractJsonR
 	@UseResurce("jsonResponses/registrationData/registrationDataV2/personIdentificationV2/errors/naturalPersonIdentificationResponse_missing_consents.json")
 	public void validateStructureWithMissingField() {
 		ConditionError error = runAndFail(new PersonalIdentificationResponseValidatorV2());
-		String expected = ErrorMessagesUtils.createElementNotFoundMessage("sex", new PersonalIdentificationResponseValidatorV2().getApiName());
+		String expected = ErrorMessagesUtils.createElementNotFoundMessage("companiesCnpj", new PersonalIdentificationResponseValidatorV2().getApiName());
 		assertThat(error.getMessage(), containsString(expected));
 	}
 

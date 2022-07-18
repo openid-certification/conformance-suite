@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
+import net.openid.conformance.openbanking_brasil.testmodules.support.LinksAndMetaValidatorTransactions;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -14,9 +15,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api url: swagger/openBanking/swagger_accounts_apis.yaml
+ * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
  * Api endpoint: /accounts/{accountId}/transactions
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 @ApiName("Account Transactions V2")
 public class AccountTransactionsValidatorV2 extends AbstractJsonAssertingCondition {

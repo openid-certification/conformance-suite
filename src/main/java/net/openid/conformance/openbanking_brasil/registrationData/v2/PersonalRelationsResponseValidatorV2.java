@@ -13,9 +13,9 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api url: swagger/openinsurance/registrationData/swagger-customers.yaml
+ * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /personal/financial-relations
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.0.final
  **/
 @ApiName("Natural Person Relationship V2")
 public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingCondition {
@@ -23,8 +23,8 @@ public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingC
 
 	public static final Set<String> ENUM_PRODUCTS_SERVICES_TYPE = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA, CARTAO_CREDITO, OPERACAO_CREDITO, SEGURO, PREVIDENCIA, INVESTIMENTO, OPERACOES_CAMBIO, CONTA_SALARIO, CREDENCIAMENTO, OUTROS");
 	public static final Set<String> ENUM_TYPE = SetUtils.createSet("REPRESENTANTE_LEGAL, PROCURADOR");
-	public static final Set<String> ENUM_TYPE1 = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA, SEM_TIPO_CONTA");
-	public static final Set<String> SUBTYPES = SetUtils.createSet("INDIVIDUAL, CONJUNTA_SIMPLES, CONJUNTA_SOLIDARIA, SEM_SUB_TIPO_CONTA");
+	public static final Set<String> ENUM_TYPE1 = SetUtils.createSet("CONTA_DEPOSITO_A_VISTA, CONTA_POUPANCA, CONTA_PAGAMENTO_PRE_PAGA");
+	public static final Set<String> SUBTYPES = SetUtils.createSet("INDIVIDUAL, CONJUNTA_SIMPLES, CONJUNTA_SOLIDARIA");
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
@@ -64,7 +64,7 @@ public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingC
 		assertField(data,
 			new StringField
 				.Builder("productsServicesTypeAdditionalInfo")
-				.setPattern("[\\w\\W\\s]*")
+				.setPattern("^[\\w\\W]*$")
 				.setMaxLength(100)
 				.setOptional()
 				.build());
@@ -73,7 +73,6 @@ public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingC
 			new ObjectArrayField
 				.Builder("procurators")
 				.setValidator(this::assertInnerFieldsProcurators)
-				.setOptional()
 				.setMinItems(0)
 				.build());
 
@@ -81,7 +80,7 @@ public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingC
 			new ObjectArrayField
 				.Builder("accounts")
 				.setValidator(this::assertInnerFieldsAccounts)
-				.setMinItems(1)
+				.setMinItems(0)
 				.build());
 	}
 

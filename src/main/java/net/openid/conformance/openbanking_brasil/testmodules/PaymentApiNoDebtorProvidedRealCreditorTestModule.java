@@ -49,10 +49,10 @@ public class PaymentApiNoDebtorProvidedRealCreditorTestModule extends AbstractOB
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(AddBrazilPixPaymentToTheResource.class);
 		eventLog.startBlock("Setting date to today");
 		callAndStopOnFailure(EnsurePaymentDateIsToday.class);
-		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectDICTCodePixLocalInstrument.class);
 		callAndStopOnFailure(RemoveQRCodeFromConfig.class);
 		callAndStopOnFailure(RemoveTransactionIdentification.class);

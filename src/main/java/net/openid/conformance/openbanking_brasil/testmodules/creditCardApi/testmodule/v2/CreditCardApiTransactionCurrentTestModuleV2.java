@@ -8,6 +8,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditCard.v2.CardAccountsDataResponseResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardAccountsTransactionResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingCurrentAccountTransactions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -31,7 +32,7 @@ import java.time.format.DateTimeFormatter;
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if transactions are found that none of them are more than 1 week older\n" +
 		"\u2022 Call the GET Current Credit Cards Transactions API V2, send query parameters fromBookingDate and toBookingDate using a period that is not over the expected valid period\n" +
 		"\u2022 Expect 422 Unprocessable Entity\n",
-	profile = OBBProfile.OBB_PROFIlE_PHASE2,
+	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -102,7 +103,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		return sequenceOf(
 			condition(CreditCardAccountsTransactionResponseValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
-			condition(ValidateTransactionsMetaOnlyRequestDateTime.class)
+			condition(ValidateMetaOnlyRequestDateTime.class)
 		);
 	}
 
