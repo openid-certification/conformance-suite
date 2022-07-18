@@ -47,7 +47,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private int currentBatch = 1;
-	private static final int numberOfExecutions = 450;
+	private static final int NUMBER_OF_EXECUTIONS = 450;
 
 	@Override
 	protected void configureClient() {
@@ -104,7 +104,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilF
 	protected void requestProtectedResource() {
 
 
-		for (int i = 0; i < numberOfExecutions; i++) {
+		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Resources Endpoint with consent_id_%d", i + 1, currentBatch));
 
 			if(i == 0) {
