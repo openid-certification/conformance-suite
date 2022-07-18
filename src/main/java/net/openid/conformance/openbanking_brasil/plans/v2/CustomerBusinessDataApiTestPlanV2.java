@@ -6,6 +6,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckM
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.BusinessEntityWithPersonalPermissionsTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessDataApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerBusinessWrongPermissionsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckCustomerV2Module;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -24,7 +25,7 @@ public class CustomerBusinessDataApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCheckV2Module.class,
+					PreFlightCheckCustomerV2Module.class,
 					BusinessEntityWithPersonalPermissionsTestModule.class,
 					CustomerBusinessDataApiTestModuleV2.class,
 					CustomerBusinessWrongPermissionsTestModuleV2.class
