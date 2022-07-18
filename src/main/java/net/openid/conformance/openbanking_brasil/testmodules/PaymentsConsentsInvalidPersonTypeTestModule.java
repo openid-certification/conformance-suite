@@ -38,6 +38,7 @@ public class PaymentsConsentsInvalidPersonTypeTestModule extends AbstractClientC
 
 	@Override
 	protected void postConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		callAndStopOnFailure(SelectDICTCodeLocalInstrument.class);
 		callAndContinueOnFailure(SanitiseQrCodeConfig.class);
 	}
 
