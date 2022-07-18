@@ -3,12 +3,10 @@ package net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
-import net.openid.conformance.openbanking_brasil.testmodules.support.JsonHelper;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ValidateConsentsOperationalFieldsFieldV2 extends ValidateConsentsFieldV2 {
+public class ValidateConsentsOperationalFieldV2 extends ValidateConsentsFieldV2 {
     @Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {

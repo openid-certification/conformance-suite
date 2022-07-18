@@ -8,8 +8,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCrede
 import net.openid.conformance.openbanking_brasil.testmodules.support.MapDirectoryValues;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.openbanking_brasil.testmodules.support.UnmapDirectoryValues;
-import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.ValidateConsentsFieldV2;
-import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.ValidateConsentsOperationalFieldsFieldV2;
+import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.ValidateConsentsOperationalFieldV2;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -95,7 +94,7 @@ public class PreFlightCheckOperationalV2Module extends AbstractClientCredentials
 		});
 
 		runInBlock("Pre-flight Consent field checks", () -> {
-			callAndContinueOnFailure(ValidateConsentsOperationalFieldsFieldV2.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateConsentsOperationalFieldV2.class, Condition.ConditionResult.FAILURE);
 		});
     }
 }
