@@ -29,7 +29,8 @@ public class OperationalLimitsTestPlanV2 implements TestPlan {
 					CustomerPersonalApiOperationalLimitsTestModuleV2.class,
 					ConsentsApiOperationalLimitsTestModuleV2.class,
 					CreditCardsApiOperationalLimitsTestModuleV2.class,
-					AccountsApiOperationalLimitsTestModule.class
+					AccountsApiOperationalLimitsTestModule.class,
+					LoansApiOperationalLimitsTestModuleV2.class
 					),
 				List.of(
 					new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil")

@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "dcr-test-sandbox-credentials",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR no software statement",
-	summary = "Set hardcoded credentials from Sandbox Environment and perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt. ",
+	summary = "Set hardcoded credentials from Sandbox Environment and perform the DCR flow, expecting the server to not accept a DCR - 201 response as certificates are not from that environment.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
