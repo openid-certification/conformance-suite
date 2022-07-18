@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.v2.*;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingContractResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingGuaranteesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.FinancingPaymentsResponseValidatorV2;
@@ -11,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.creditOperations.financing.v2.F
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.*;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.*;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -71,7 +73,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 	@Override
 	protected void configureClient() {
-		callAndStopOnFailure(BuildFinancingsConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildCreditOperationsDiscountedConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
@@ -124,7 +126,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 	@Override
 	protected void validateResponse() {
 		//validate invoice financings response
-		call(getValidationSequence(FinancingResponseValidatorV2.class));
+		call(getValidationSequence(InvoiceFinancingContractsResponseValidatorV2.class));
 		eventLog.endBlock();
 
 		runInBlock("Preparing Invoice Finanacings Contracts", () -> {
@@ -142,10 +144,10 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 			String loanContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
 			env.putString("contractId", loanContractId);
-			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContract.class);
 
 			preCallProtectedResource(String.format("Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Contract response", FinancingContractResponseValidatorV2.class);
+			validateResponse("Validate Invoice Financings Contract response", InvoiceFinancingAgreementResponseValidatorV2.class);
 
 			// Call invoice financings specific contract 29 times
 			for (int j = 1; j < 30; j++) {
@@ -153,10 +155,10 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 			}
 
 			// Call invoice financings warranties once with validation
-			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractWarrantiesResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees.class);
 
 			preCallProtectedResource(String.format("Fetch Invoice Financings Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Warranties", FinancingGuaranteesResponseValidatorV2.class);
+			validateResponse("Validate Invoice Financings Warranties", InvoiceFinancingContractGuaranteesResponseValidatorV2.class);
 
 			// Call invoice financings warranties 29 times
 			for (int j = 1; j < 30; j++) {
@@ -165,10 +167,10 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 			// Call invoice financings Scheduled Instalments once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractInstallmentsResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
 
 			preCallProtectedResource(String.format("Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Scheduled Instalments Response", ContractInstallmentsResponseValidatorV2.class);
+			validateResponse("Validate Invoice Financings Scheduled Instalments Response", InvoiceFinancingContractInstallmentsResponseValidatorV2.class);
 
 			// Call Loans Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
@@ -180,10 +182,10 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 			// Call invoice financings Payments GET once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingFinancingContractPaymentsResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments.class);
 
 			preCallProtectedResource(String.format("Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Payments Response", FinancingPaymentsResponseValidatorV2.class);
+			validateResponse("Validate Invoice Financings Payments Response", InvoiceFinancingContractPaymentsResponseValidatorV2.class);
 
 			// Call Loans Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
@@ -198,7 +200,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (numberOfExecutions == 1) {
-			callAndStopOnFailure(PrepareUrlForFinancingRoot.class);
+			callAndStopOnFailure(PrepareUrlForDiscountedRoot.class);
 			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
