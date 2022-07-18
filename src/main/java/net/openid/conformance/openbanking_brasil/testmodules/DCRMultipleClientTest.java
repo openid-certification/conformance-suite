@@ -1,7 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
@@ -32,13 +34,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 )
 
 public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
-	protected ClientAuthType clientAuthType;
-	@Override
-	protected void configureClient() {
-		clientAuthType = getVariant(ClientAuthType.class);
-		super.configureClient();
-	}
-
 	@Override
 	protected void setupResourceEndpoint() {
 	}
@@ -53,12 +48,15 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		eventLog.startBlock("Create First Client");
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
+		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
+		callAndStopOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
+		deleteClient();
 		eventLog.endBlock();
 		eventLog.startBlock("Create Second Client");
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-		callAndStopOnFailure(CheckScopesFromDynamicRegistrationEndpointContainsConsentsOrPayments.class);
+		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
+		callAndStopOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 		eventLog.endBlock();
 	}
 
