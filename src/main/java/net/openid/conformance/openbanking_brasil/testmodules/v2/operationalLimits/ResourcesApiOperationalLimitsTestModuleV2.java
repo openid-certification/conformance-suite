@@ -47,7 +47,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private int currentBatch = 1;
-	private int numberOfExecutions = 450;
+	private static final int  numberOfExecutions = 450;
 
 	@Override
 	protected void configureClient() {
