@@ -104,7 +104,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 			call(exec().unmapKey("endpoint_response"));
 
-			env.putString("permission_type", EnsureSpecificCreditOperationsPermissionsWereReturned.CreditOperationsPermissionsType.FINANCINGS.name());
+			env.putString("permission_type", EnsureSpecificCreditOperationsPermissionsWereReturned.CreditOperationsPermissionsType.INVOICE_FINANCINGS.name());
 			callAndContinueOnFailure(EnsureSpecificCreditOperationsPermissionsWereReturned.class, Condition.ConditionResult.WARNING);
 
 			if (getResult() == Result.WARNING) {
