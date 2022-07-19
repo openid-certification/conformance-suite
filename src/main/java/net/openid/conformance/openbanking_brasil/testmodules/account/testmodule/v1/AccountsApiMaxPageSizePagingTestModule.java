@@ -52,7 +52,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 
 		preCallProtectedResource("Prepare to Fetch Account Transactions");
 		callAndStopOnFailure(AccountSelector.class);
-		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
+		callAndStopOnFailure(AddBookingDateOneYearBeforeAndPageSize1000.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
@@ -62,7 +62,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
-		preCallProtectedResource("Prepare to Fetch page 2 of Account Tansactions");
+		preCallProtectedResource("Prepare to Fetch page 2 of Account Transactions");
 		callAndStopOnFailure(ClearRequestObjectFromEnvironment.class);
 		callAndStopOnFailure(SetProtectedResourceUrlToNextEndpoint.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
