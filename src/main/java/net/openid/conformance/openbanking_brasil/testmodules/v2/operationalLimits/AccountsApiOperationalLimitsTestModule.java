@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -22,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 @PublishTestModule(
 	testName = "accounts-api-operational-limits",
 	displayName = "Accounts Api operational limits test module",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here Operational Limits · Wiki · Open Banking Brasil / Certification · GitLab.\n" +
+	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
 		"Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided \n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
@@ -80,7 +81,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClientId.class);
+		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
@@ -100,22 +101,21 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
+		}else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
+
+			if (getResult() == Result.WARNING) {
+				fireTestFinished();
+			}else {
+				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
+				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
+			}
 		}
-
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
-
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		}
-
-		callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		expose("consent_id " + numberOfExecutions, env.getString("consent_id"));
 
 		if (numberOfExecutions == 1) {
-			callAndStopOnFailure(SwitchToOriginalClientId.class);
+			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndContinueOnFailure(RemoveConsentIdFromClientScopes.class);
 			callAndStopOnFailure(PrepareUrlForFetchingAccounts.class);
@@ -256,28 +256,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 	}
 
 	private void refreshAccessToken() {
-		runInBlock("Refreshing Access Token", () -> call(getRefreshAccessTokenSequence()));
-	}
-
-
-	private ConditionSequence getRefreshAccessTokenSequence() {
-		ConditionSequence sequence = sequenceOf(
-			condition(GenerateRefreshTokenRequest.class),
-			condition(CreateClientAuthenticationAssertionClaims.class),
-			condition(SignClientAuthenticationAssertion.class),
-			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class),
-			condition(CheckIfTokenEndpointResponseError.class),
-			condition(CheckForAccessTokenValue.class),
-			condition(ExtractAccessTokenFromTokenResponse.class)
-
-		);
-		if (clientAuthType == ClientAuthType.MTLS) {
-			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
-				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
-				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
-				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
-		}
-		return sequence;
+		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
+		call(refreshAccessTokenSteps);
 	}
 }

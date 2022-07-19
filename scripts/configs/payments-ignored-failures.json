@@ -52,5 +52,14 @@
         "condition": "ValidateErrorAndMetaFieldNames",
         "expected-result": "failure",
         "comment": "Mock bank does not return correct error code"
+    },
+    {
+        "test-name": "payments-api-consumed-consent-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Validating response, expecting 422 jwt with code: CONSENTIMENTO_INVALIDO",
+        "condition": "EnsureResponseCodeWas422",
+        "expected-result": "failure",
+        "comment": "Mock bank returns 201"
     }
 ]
