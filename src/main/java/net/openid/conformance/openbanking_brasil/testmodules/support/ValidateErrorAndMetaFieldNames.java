@@ -57,7 +57,7 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	}
 
 	private void assertError(JsonObject error) {
-		String pattern = "\\w*\\W*";
+		String pattern = "[\\w\\W\\s]*";
 
 		assertField(error,
 			new StringField
