@@ -42,7 +42,7 @@
                                 "complementaryAssistanceServicesDetail": "string",
                                 "chargeTypeSignaling": "GRATUITO"
                             },
-                            "customerServices": "REDE_REFERENCIADA",
+                            "customerServices": ["REDE_REFERENCIADA"],
                             "microinsurance": true,
                             "traits": true,
                             "validity": [
