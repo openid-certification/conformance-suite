@@ -9,7 +9,6 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
