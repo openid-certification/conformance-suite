@@ -1,21 +1,15 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
-import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalBrazilDCRNoSoftwareStatement;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddSupportedOpenIdScopesToClientConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedOpenBankingScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ReplaceByHardcodedSandboxCredentials;
-import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "dcr-test-sandbox-credentials",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR no software statement",
-	summary = "Set hardcoded credentials from Sandbox Environment and perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt. ",
+	summary = "Set hardcoded credentials from Sandbox Environment and perform the DCR flow, expecting the server to not accept a DCR - 201 response as certificates are not from that environment.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -43,13 +37,11 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 
 	@Override
 	protected void callRegistrationEndpoint() {
-		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
+		callAndStopOnFailure(CallDynamicRegistrationEndpointAllowingTLSFailure.class, "RFC7591-3.1", "OIDCR-3.2");
 
 		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
 
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-		callAndStopOnFailure(ExtractDynamicRegistrationResponse.class);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xxOrFailedTLS.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
 		call(exec().unmapKey("endpoint_response"));
 
 		fireTestFinished();
