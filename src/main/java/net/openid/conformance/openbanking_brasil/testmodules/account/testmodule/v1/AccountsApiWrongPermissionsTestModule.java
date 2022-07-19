@@ -8,6 +8,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.condition.Condition;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "account-api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
@@ -50,9 +54,15 @@ import net.openid.conformance.condition.Condition;
 	}
 )
 public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -72,7 +82,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 		preCallProtectedResource("Fetch Account balance");
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-		callAndStopOnFailure(AddBookingDateOneYearBefore.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits");
@@ -110,7 +120,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 
 		runInBlock("Ensure we cannot call the account transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-			callAndStopOnFailure(AddBookingDateOneYearBefore.class);
+			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);

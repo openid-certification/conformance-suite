@@ -9,6 +9,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "account-api-test-v2",
 	displayName = "Validate structure of all accounts API resources V2",
@@ -31,9 +35,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 
 public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -55,7 +65,7 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 		callAndContinueOnFailure(AccountBalancesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 		callAndStopOnFailure(LogKnownIssue.class, "BCLOG-F02-172");
-		callAndStopOnFailure(AddBookingDateOneYearBefore.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions V2");
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);

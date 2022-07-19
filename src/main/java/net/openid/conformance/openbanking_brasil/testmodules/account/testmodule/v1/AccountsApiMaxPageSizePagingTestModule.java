@@ -11,6 +11,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareAllA
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "account-api-max-page-size-paging-test",
 	displayName = "Test result set paging: Banks should configure a test accounts list which contains their maximum page-size + 1 items (maximum page-size must be between 25 and 1000). For example, if the bank support a maximum page-size of 50, then they must setup a test resource with at least 51 items. The initial request should receive a response with 50 items. Requesting the 'next' link, found in the metadata, should receive a response with at least 1 item",
@@ -35,9 +39,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -52,7 +62,8 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 
 		preCallProtectedResource("Prepare to Fetch Account Transactions");
 		callAndStopOnFailure(AccountSelector.class);
-		callAndStopOnFailure(AddBookingDateOneYearBeforeAndPageSize1000.class);
+		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
+		callAndStopOnFailure(AppendToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
