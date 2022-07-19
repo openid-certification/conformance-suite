@@ -237,7 +237,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 		);
 		if (clientAuthType == ClientAuthType.MTLS) {
-			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
+			sequence.insertAfter(GenerateRefreshTokenRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
 				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
 				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
 				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
