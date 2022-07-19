@@ -1,18 +1,14 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.util.field.*;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.text.ParseException;
-import java.util.Map;
 import java.util.Set;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
@@ -44,7 +40,6 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		JsonObject claims = decodedJwt.getAsJsonObject("claims");
 
 
-
 		assertField(claims,
 			new ObjectField
 				.Builder("meta")
@@ -65,33 +60,33 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	private void assertError(JsonObject error) {
 		String pattern = "\\w*\\W*";
 
-			assertField(error,
-				new StringField
-					.Builder("code")
-					.setEnums(errorCodes)
-					.build());
+		assertField(error,
+			new StringField
+				.Builder("code")
+				.setEnums(errorCodes)
+				.build());
 
-			assertField(error,
-				new StringField
-					.Builder("title")
-					.setPattern(pattern)
-					.setMaxLength(255)
-					.build());
+		assertField(error,
+			new StringField
+				.Builder("title")
+				.setPattern(pattern)
+				.setMaxLength(255)
+				.build());
 
-			assertField(error,
-				new StringField
-					.Builder("detail")
-					.setPattern(pattern)
-					.setMaxLength(2048)
-					.build());
+		assertField(error,
+			new StringField
+				.Builder("detail")
+				.setPattern(pattern)
+				.setMaxLength(2048)
+				.build());
 
-			if(error.size() > 3){
-				throw error("Error object contains extra fields not defined in swagger", args("Error", error));
-			}
+		if (error.size() > 3) {
+			throw error("Error object contains extra fields not defined in swagger", args("Error", error));
+		}
 	}
 
 
-	private void assertMeta(JsonObject meta){
+	private void assertMeta(JsonObject meta) {
 		assertField(meta,
 			new IntField
 				.Builder("totalRecords")
@@ -108,7 +103,7 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				.setMaxLength(20)
 				.build());
 
-		if(meta.size() > 3){
+		if (meta.size() > 3) {
 			throw error("Meta object contains extra fields not defined in swagger", args("Meta", meta));
 		}
 	}
