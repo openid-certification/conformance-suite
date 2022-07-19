@@ -8,6 +8,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.*;
 
 import java.util.Set;
@@ -24,16 +25,17 @@ public class GetExtendedWarrantyValidator extends AbstractJsonAssertingCondition
 	private static class Fields extends ProductNServicesCommonFields {
 	}
 
-	public static final Set<String> COVERAGE = Sets.newHashSet("GARANTIA_ESTENDIDA_ORIGINAL", "GARANTIA_ESTENDIDA_AMPLIADA", "GARANTIA_ESTENDIDA_REDUZIDA", "COMPLEMENTACAO_DE_GARANTIA", "OUTRAS");
-	public static final Set<String> TERM = Sets.newHashSet("ANUAL", "ANUAL_INTERMITENTE", "PLURIANUAL", "PLURIANUAL_INTERMITENTE", "MENSAL", "MENSAL_INTERMITENTE", "DIARIO", "DIARIO_INTERMITENTE", "OUTROS");
-	public static final Set<String> TARGET_AUDIENCE = Sets.newHashSet("PESSOA_NATURAL", "PESSOA_JURIDICA");
-	public static final Set<String> SECURITY_TYPE = Sets.newHashSet("SMARTPHONE", "NOTEBOOK", "TABLET", "EQUIPAMENTOS_PORTATEIS", "ELETRODOMESTICOS_–_LINHA_BRANCA", "ELETRODOMESTICOS_–_LINHA_MARROM", "AUTOMOVEL", "BICICLETA", "BICICLETA_ELETRICA", "EMPRESA", "RESIDENCIA", "OUTROS");
-	public static final Set<String> SERVICES_PACKAGE = Sets.newHashSet("ATE_10_SERVICOS", "ATE_20_SERVICOS", "ACIMA_DE_20_SERVICOS", "CUSTOMIZAVEL");
-	public static final Set<String> TYPE_SIGNALING = Sets.newHashSet("GRATUITO", "PAGO");
-	public static final Set<String> CUSTOMER_SERVICES = Sets.newHashSet("REDE_REFERENCIADA", "LIVRE_ESCOLHA");
-	public static final Set<String> PAYMENT_METHOD = Sets.newHashSet("CARTAO_DE_CREDITO", "CARTAO_DE_DEBITO", "DEBITO_EM_CONTA_CORRENTE", "DEBITO_EM_CONTA_POUPANCA", "BOLETO_BANCARIO", "PIX", "CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO", "PONTOS_DE_PROGRAMA_DE_BENEFICIO", "OUTROS");
-	public static final Set<String> PAYMENT_TYPE = Sets.newHashSet("A_VISTA", "PARCELADO");
-	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("COLETIVO", "INDIVIDUAL");
+	public static final Set<String> COVERAGE = SetUtils.createSet("GARANTIA_ESTENDIDA_ORIGINAL, GARANTIA_ESTENDIDA_AMPLIADA, GARANTIA_ESTENDIDA_REDUZIDA, COMPLEMENTACAO_DE_GARANTIA, OUTRAS");
+	public static final Set<String> TERM = SetUtils.createSet("ANUAL, ANUAL_INTERMITENTE, PLURIANUAL, PLURIANUAL_INTERMITENTE, MENSAL, MENSAL_INTERMITENTE, DIARIO, DIARIO_INTERMITENTE, OUTROS");
+	public static final Set<String> TARGET_AUDIENCE = SetUtils.createSet("PESSOA_NATURAL, PESSOA_JURIDICA");
+	public static final Set<String> SECURITY_TYPE = SetUtils.createSet("SMARTPHONE, NOTEBOOK, TABLET, EQUIPAMENTOS_PORTATEIS, ELETRODOMESTICOS_–_LINHA_BRANCA, ELETRODOMESTICOS_–_LINHA_MARROM, AUTOMOVEL, BICICLETA, BICICLETA_ELETRICA, EMPRESA, RESIDENCIA, OUTROS");
+	public static final Set<String> SERVICES_PACKAGE = SetUtils.createSet("ATE_10_SERVICOS, ATE_20_SERVICOS, ACIMA_DE_20_SERVICOS, CUSTOMIZAVEL");
+	public static final Set<String> TYPE_SIGNALING = SetUtils.createSet("GRATUITO, PAGO");
+	public static final Set<String> CUSTOMER_SERVICES = SetUtils.createSet("REDE_REFERENCIADA, LIVRE_ESCOLHA");
+	public static final Set<String> PAYMENT_METHOD = SetUtils.createSet("CARTAO_DE_CREDITO, CARTAO_DE_DEBITO, DEBITO_EM_CONTA_CORRENTE, DEBITO_EM_CONTA_POUPANCA, BOLETO_BANCARIO, PIX, CONSIGNACAO_EM_FOLHA_DE_PAGAMENTO, PONTOS_DE_PROGRAMA_DE_BENEFICIO, OUTROS");
+	public static final Set<String> PAYMENT_TYPE = SetUtils.createSet(" A_VISTA, PARCELADO");
+	public static final Set<String> CONTRACT_TYPE = SetUtils.createSet("COLETIVO, INDIVIDUAL");
+	public static final Set<String> INSURED_PARTICIPATION = SetUtils.createSet( "FRANQUIA, POS, NAO_SE_APLICA");
 
 	@Override
 	public Environment evaluate(Environment environment) {
@@ -98,7 +100,7 @@ public class GetExtendedWarrantyValidator extends AbstractJsonAssertingCondition
 				.build());
 
 		assertField(products,
-			new StringField
+			new StringArrayField
 				.Builder("customerServices")
 				.setMaxLength(17)
 				.setEnums(CUSTOMER_SERVICES)
@@ -268,6 +270,20 @@ public class GetExtendedWarrantyValidator extends AbstractJsonAssertingCondition
 			new ObjectField
 				.Builder("maxLMI")
 				.setValidator(this::assertValue)
+				.build());
+
+		assertField(coverageAttributes,
+			new StringArrayField
+				.Builder("insuredParticipation")
+				.setEnums(INSURED_PARTICIPATION)
+				.setMaxLength(13)
+				.build());
+
+		assertField(coverageAttributes,
+			new StringField
+				.Builder("insuredParticipationDescription")
+				.setMaxLength(1024)
+				.setOptional()
 				.build());
 	}
 
