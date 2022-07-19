@@ -9,6 +9,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -255,28 +256,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 	}
 
 	private void refreshAccessToken() {
-		runInBlock("Refreshing Access Token", () -> call(getRefreshAccessTokenSequence()));
-	}
-
-
-	private ConditionSequence getRefreshAccessTokenSequence() {
-		ConditionSequence sequence = sequenceOf(
-			condition(GenerateRefreshTokenRequest.class),
-			condition(CreateClientAuthenticationAssertionClaims.class),
-			condition(SignClientAuthenticationAssertion.class),
-			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpoint.class),
-			condition(CheckIfTokenEndpointResponseError.class),
-			condition(CheckForAccessTokenValue.class),
-			condition(ExtractAccessTokenFromTokenResponse.class)
-
-		);
-		if (clientAuthType == ClientAuthType.MTLS) {
-			sequence.insertAfter(SetPaymentsScopeOnTokenEndpointRequest.class, condition(AddClientIdToTokenEndpointRequest.class))
-				.skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS")
-				.skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS")
-				.skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
-		}
-		return sequence;
+		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
+		call(refreshAccessTokenSteps);
 	}
 }
