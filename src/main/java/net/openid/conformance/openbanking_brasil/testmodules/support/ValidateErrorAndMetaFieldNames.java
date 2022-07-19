@@ -51,7 +51,6 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				.Builder("errors")
 				.setValidator(this::assertError)
 				.setMinItems(1)
-				.setMaxItems(13)
 				.build());
 
 		return env;
