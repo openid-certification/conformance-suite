@@ -5,6 +5,8 @@ import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerPersonalDataApiTestModuleV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.testmodule.v2.CustomerPersonalWrongPermissionsTestModuleV2;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckCustomerV2Module;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -22,7 +24,7 @@ public class CustomerPersonalDataApiTestPlanV2 implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					PreFlightCertCheckModule.class,
+					PreFlightCheckCustomerV2Module.class,
 					CustomerPersonalDataApiTestModuleV2.class,
 					CustomerPersonalWrongPermissionsTestModuleV2.class
 				),
