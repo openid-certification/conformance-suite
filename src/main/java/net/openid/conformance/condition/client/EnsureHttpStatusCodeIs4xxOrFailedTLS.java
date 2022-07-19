@@ -9,7 +9,6 @@ public class EnsureHttpStatusCodeIs4xxOrFailedTLS extends AbstractCondition {
 	public static final String RESPONSE_SSL_ERROR_KEY = "dynamic_registration_endpoint_response_ssl_error";
 
 	@Override
-	@PreEnvironment(required = "endpoint_response")
 	public Environment evaluate(Environment env) {
 		Integer httpStatus = env.getInteger("endpoint_response", "status");
 		String endpointName = env.getString("endpoint_response", "endpoint_name");
@@ -19,12 +18,17 @@ public class EnsureHttpStatusCodeIs4xxOrFailedTLS extends AbstractCondition {
 			throw error("Missing environment variable: " + RESPONSE_SSL_ERROR_KEY);
 		}
 
+		if (ssl_error) {
+			logSuccess("TSL has failed.");
+			return env;
+		}
+
 		if (httpStatus == null) {
-			if (ssl_error) {
-				logSuccess("TSL has failed.");
-				return env;
-			}
 			throw error("Http status can not be null.");
+		}
+
+		if (endpointName == null) {
+			throw error("endpoint_name cannot be null.");
 		}
 
 		if (httpStatus >= 400 && httpStatus <= 499) {
