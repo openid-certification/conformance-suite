@@ -4,12 +4,11 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.creditOperations.loans.v2.*;
+import net.openid.conformance.openbanking_brasil.creditOperations.advances.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
-import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.*;
+import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
@@ -19,26 +18,26 @@ import net.openid.conformance.variant.ClientAuthType;
 
 
 @PublishTestModule(
-	testName = "loans-api-operational-limits",
-	displayName = "This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Credit Cards API are considered correctly and, if present, that the pagination-key parameter is correctly serving it’s function\n",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
-		"This test will require the user to have set at least two ACTIVE resources each with at least 10 Transactions to be returned on the transactions-current endpoint for each active account\n" +
-		"This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Loans API are considered correctly.\n" +
+	testName = "unarranged-overdraft-api-operational-limits",
+	displayName = "This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Unarranged Accounts API are considered correctly and, if present, that the pagination-key parameter is correctly serving it’s function\n",
+	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits .\n" +
+		"This test will require the user to have set at least two ACTIVE resources on the Unarranged Accounts API. \n" +
+		"This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Unarranged Accounts API are considered correctly.\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided\n" +
-		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Credit Operations permission group - Expect Server to return a 201\n" +
+		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Credit Operations permission group \n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
 		"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans List API 30 Times - Expect a 200 - Save the first returned ACTIVE resource id (R_1) and the second saved returned active resource id (R_2)\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans  API with the saved Resource ID (R_1) 30 Times\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans Warranties API with the saved Resource ID (R_1) 30 Times  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans Scheduled Instalments API with the saved Resource ID (R_1) 30 Times  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans Payments API with the saved Resource ID (R_1) 30 Times  - Expect a 200 response\n" +
-		"\u2022 With the authorized consent id (1), call the GET Loans API with the saved Resource ID (R_2) 30 Times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1) and the second saved returned active resource id (R_2)\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts  API with the saved Resource ID (R_1) 30 times - Expect a 200\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts Warranties API with the saved Resource ID (R_1) 30 times - Expect a 200\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts Scheduled Instalments API with the saved Resource ID (R_1) 30 times - Expect a 200\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts Payments API with the saved Resource ID (R_1) 30 times - Expect a 200\n" +
+		"\u2022 With the authorized consent id (1), call the GET Unarranged Accounts API with the saved Resource ID (R_2) 30 times - Expect a 200\n" +
 		"\u2022 Repeat the exact same process done with the first tested resources (R_1) but now, execute it against the second returned Resource (R_2) \n" +
 		"\u2022 Using the regular client_id provided and the regular CPF/CNPJ for OL create a Consent Request sending the Credit Operations permission group - Expect Server to return a 201 - Save ConsentID (2)\n" +
 		"\u2022 Redirect User to authorize the Created Consent - Expect a successful authorization\n" +
-		"\u2022 With the authorized consent id (2), call the GET Loans List API 30 Times - Expect a 200 - Save the first returned ACTIVE resource id (R_1) \n" +
-		"\u2022 With the authorized consent id (2), call the GET Loans API with the saved Resource ID (R_1) 30 Times - Expect a 200 response\n" +
+		"\u2022 With the authorized consent id (2), call the GET Unarranged Accounts List API Once - Expect a 200 - Save the first returned ACTIVE resource id (R_1) \n" +
+		"\u2022 With the authorized consent id (2), call the GET Unarranged Accounts API with the saved Resource ID (R_1) once - Expect a 200 response\n" +
 		"\u2022 Repeat the exact same process done with the first tested resources (R_1) done with the first client, now using the second client",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
@@ -57,7 +56,7 @@ import net.openid.conformance.variant.ClientAuthType;
 		"consent.productType"
 	}
 )
-public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
+public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final String API_RESOURCE_ID = "contractId";
 	private int numberOfIdsToFetch = 2;
@@ -68,13 +67,13 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunct
 
 	@Override
 	protected void configureClient() {
-		callAndStopOnFailure(BuildLoansConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl.class);
 		super.configureClient();
 	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddLoansScope.class);
+		callAndStopOnFailure(AddUnarrangedOverdraftScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
 		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
@@ -101,7 +100,7 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunct
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 			call(exec().unmapKey("endpoint_response"));
 
-			env.putString("permission_type", EnsureSpecificCreditOperationsPermissionsWereReturned.CreditOperationsPermissionsType.LOAN.name());
+			env.putString("permission_type", EnsureSpecificCreditOperationsPermissionsWereReturned.CreditOperationsPermissionsType.UNARRANGED_ACCOUNTS_OVERDRAFT.name());
 			callAndContinueOnFailure(EnsureSpecificCreditOperationsPermissionsWereReturned.class, Condition.ConditionResult.WARNING);
 
 			if (getResult() == Result.WARNING) {
@@ -120,76 +119,76 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunct
 
 	@Override
 	protected void validateResponse() {
-		//validate loans response
-		call(getValidationSequence(GetLoansResponseValidatorV2.class));
+		//validate Unarranged Accounts response
+		call(getValidationSequence(AdvancesResponseValidatorV2.class));
 		eventLog.endBlock();
 
-		runInBlock("Preparing Loan Contracts", () -> {
+		runInBlock("Preparing Unarranged Accounts Contracts", () -> {
 			env.putString("apiIdName", API_RESOURCE_ID);
 			callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
 
 			env.putInteger("number_of_ids_to_fetch", numberOfIdsToFetch);
 			callAndStopOnFailure(FetchSpecifiedNumberOfExtractedApiIds.class);
 
-			// Call loans GET 29 times
+			// Call Unarranged Accounts GET 29 times
 			for (int i = 1; i < 30; i++) {
-				preCallProtectedResource(String.format("[%d] Fetching Loans Contracts", i + 1));
+				preCallProtectedResource(String.format("[%d] Fetching Unarranged Accounts Contracts", i + 1));
 			}
 
 		});
 
 		for (int i = 0; i < numberOfIdsToFetch; i++) {
 
-			// Call loan specific contract once with validation
+			// Call Unarranged Accounts specific contract once with validation
 
-			String loanContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
-			env.putString("contractId", loanContractId);
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractResource.class);
+			String unarrangedAccountsContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
+			env.putString("contractId", unarrangedAccountsContractId);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContracts.class);
 
-			preCallProtectedResource(String.format("Fetching Loans Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Contract response", ContractResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Unarranged Accounts Contract Account response", AdvancesContractResponseValidatorV2.class);
 
-			// Call loan specific contract 29 times
+			// Call Unarranged Accounts specific contract 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetching Loans Contract using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
 
-			// Call loans warranties once with validation
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractWarrantiesResource.class);
+			// Call Unarranged Accounts warranties once with validation
+			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractGuarantees.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Warranties", ContractGuaranteesResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Unarranged Accounts Warranties", AdvancesGuaranteesResponseValidatorV2.class);
 
-			// Call loans warranties 29 times
+			// Call Unarranged Accounts warranties 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Warranties using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
 
-			// Call Loans Scheduled Instalments once with validation
+			// Call Unarranged Accounts Scheduled Instalments once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractInstallmentsResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractInstallments.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Scheduled Instalments Response", ContractInstallmentsResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Unarranged Accounts Scheduled Instalments Response", AdvancesContractInstallmentsResponseValidatorV2.class);
 
-			// Call Loans Scheduled Instalments 29 times
+			// Call Unarranged Accounts Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
 
 			refreshAccessToken();
 
 
-			// Call Loans Payments GET once with validation
+			// Call Unarranged Accounts Payments GET once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractPaymentsResource.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractPayments.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Payments Response", ContractPaymentsValidatorV2.class);
+			preCallProtectedResource(String.format("Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			validateResponse("Validate Unarranged Accounts Payments Response", AdvancesPaymentsResponseValidatorV2.class);
 
-			// Call Loans Payments GET 29 times
+			// Call Unarranged Accounts Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
 			}
 
 		}
@@ -200,7 +199,7 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunct
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		if (numberOfExecutions == 1) {
-			callAndStopOnFailure(PrepareUrlForLoansRoot.class);
+			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceRoot.class);
 			callAndStopOnFailure(SwitchToOriginalClient.class);
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
@@ -230,4 +229,5 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunct
 		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
 		call(refreshAccessTokenSteps);
 	}
+
 }

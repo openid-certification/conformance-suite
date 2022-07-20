@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.creditCard.v1.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardTransactions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -53,7 +54,7 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions");
 		callAndStopOnFailure(CardAccountSelector.class);
-		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
+		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
