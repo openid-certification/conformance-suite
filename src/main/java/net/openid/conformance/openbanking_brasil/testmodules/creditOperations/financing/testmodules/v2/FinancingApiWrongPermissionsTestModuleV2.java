@@ -28,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Expects 200\n" +
 		"\u2022 Calls GET Financings Contracts Instalments API V2\n" +
 		"\u2022 Expects 200\n" +
-		"\u2022 Creates a consent with all the permissions needed to access the Customer Personal and Customer Business API (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"RESOURCES_READ\")\n" +
+		"\u2022 reates a consent with all the permissions needed to access the Customer Personal or the Customer Business API (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\",  \"RESOURCES_READ\")or (“CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ”,” \"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ”, \"RESOURCES_READ\")\n" +
 		"\u2022 Expects 201 - Expects Success on Redirect - Validates all of the fields sent on the consents API\n" +
 		"\u2022 Calls GET Financings Contracts API V2\n" +
 		"\u2022 Expects 403\n" +
