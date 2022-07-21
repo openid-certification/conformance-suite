@@ -9,6 +9,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.condition.Condition;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "CreditCard-Api-wrong-permissions-test",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
@@ -56,9 +60,14 @@ import net.openid.conformance.condition.Condition;
 )
 public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissionsCheckingFunctionalTestModule {
 
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -77,11 +86,13 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		callAndStopOnFailure(PrepareUrlForFetchingCardLimits.class);
 		preCallProtectedResource("Fetch CreditCard Limits");
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		preCallProtectedResource("Fetch CreditCard Bills");
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Bills Transaction");
 	}
 
@@ -116,6 +127,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 
 		runInBlock("Ensure we cannot call the CreditCard Bill Transaction API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
+			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
@@ -130,6 +142,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 
 		runInBlock("Ensure we cannot call the  CreditCard Transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
+			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);

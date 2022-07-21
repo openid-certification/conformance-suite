@@ -45,8 +45,8 @@ public class BrazilDCRWithoutBrowserInteractionTestPlan implements TestPlan {
 //					DcrAttemptClientTakeoverTestModule.class,
 					DCRConsentsBadLoggedUser.class,
 					DcrSandboxCredentialsTestModule.class,
-					DcrNoSubjectTypeTestModule.class,
-					DCRMultipleClientTest.class
+					DcrNoSubjectTypeTestModule.class
+//					DCRMultipleClientTest.class
 				),
 				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
 			)

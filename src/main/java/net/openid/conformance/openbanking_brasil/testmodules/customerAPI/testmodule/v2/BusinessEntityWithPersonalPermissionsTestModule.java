@@ -25,8 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"consent.productType"
+		"resource.brazilCpf"
 	}
 )
 public class BusinessEntityWithPersonalPermissionsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {

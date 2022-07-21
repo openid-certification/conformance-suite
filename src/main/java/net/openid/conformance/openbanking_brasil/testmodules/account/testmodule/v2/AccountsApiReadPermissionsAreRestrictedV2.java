@@ -10,6 +10,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "account-api-permissions-restriction-test-v2",
 	displayName = "Ensures permissions allow you to call only the correct resources",
@@ -39,9 +43,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class AccountsApiReadPermissionsAreRestrictedV2 extends AbstractOBBrasilFunctionalTestModule {
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -60,6 +70,7 @@ public class AccountsApiReadPermissionsAreRestrictedV2 extends AbstractOBBrasilF
 
 		runInBlock("Ensure we can call the account transactions API V2", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 			preCallProtectedResource();
 		});
 
