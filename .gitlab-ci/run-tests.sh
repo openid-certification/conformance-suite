@@ -393,6 +393,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     TESTS="${TESTS} --show-untested-test-modules server-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
+    TESTS="${TESTS} --no-parallel"
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     echo "Run ciba tests"
     makeCIBATest
