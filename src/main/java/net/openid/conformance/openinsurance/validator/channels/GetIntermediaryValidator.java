@@ -186,12 +186,14 @@ public class GetIntermediaryValidator extends AbstractJsonAssertingCondition {
 				.setOptional()
 				.setValidator(geo -> {
 					assertField(geo,
-						new LatitudeField.Builder()
+						new StringField
+							.Builder("latitude")
 							.setMaxLength(11)
 							.setOptional()
 							.build());
 					assertField(geo,
-						new LongitudeField.Builder()
+						new StringField
+							.Builder("longitude")
 							.setMaxLength(11)
 							.setOptional()
 							.build());
