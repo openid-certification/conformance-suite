@@ -24,8 +24,8 @@ import net.openid.conformance.util.JsonUtils;
 	summary = "Make sure that access is not blocked on the Consents API V2 regardless of the number of calls done against it.\n\n" +
 		"\u2022 Create a consent using the CPF and CNPJ provided for the Operational Limits tests. Send the permissions for either customer business or customer personal data, based on what has been provided on the test configuration\n" +
 		"\u2022 Redirect the user to authorise the Consent with the customer and the created consent scopes- Expect a success on the redirect\n" +
-		"\u2022 Call the GET Consents API 20 Times using the Authorized ConsentID\n" +
-		"\u2022 Expect every single call to return a 200 - OK Code\n",
+		"\u2022 Call the GET Consents API 600 Times using the Authorized ConsentID\n" +
+		"\u2022 Expect every single call to return a 600 times - Expect a 200 - response_body should only be validated on first API Call\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -34,11 +34,14 @@ import net.openid.conformance.util.JsonUtils;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"consent.productType",
 		"resource.brazilCpfOperational",
 		"resource.brazilCnpjOperational"
 	}
 )
 public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctionalTestModule {
+
+	private static final int NUMBER_OF_EXECUTIONS = 600;
 
 	@Override
 	protected void configureClient() {
@@ -111,12 +114,21 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctional
 
 	@Override
 	protected void requestProtectedResource() {
-		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-		repeatSequence(() -> getPreConsentWithBearerTokenSequence()
-			.then(getValidateConsentResponsePollingSequence()))
-			.times(20)
-			.trailingPause(1)
-			.run();
+		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
+			if (i % 100 == 0) {
+				eventLog.startBlock(currentClientString() + "Refreshing access token.");
+				call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+				eventLog.endBlock();
+			}
+
+			eventLog.startBlock(currentClientString() + String.format("[%d] Calling consent endpoint.", i + 1));
+			call(getPreConsentWithBearerTokenSequence());
+			eventLog.endBlock();
+
+			if (i == 0) {
+				call(getValidateConsentResponsePollingSequence());
+			}
+		}
 	}
 
 	@Override
