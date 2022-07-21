@@ -382,6 +382,8 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
+    TESTS="${TESTS} --no-parallel"
 elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     echo "Run server tests"
     makeServerTest
