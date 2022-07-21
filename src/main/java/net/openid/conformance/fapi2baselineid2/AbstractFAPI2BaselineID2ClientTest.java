@@ -1269,7 +1269,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		addCustomValuesToAuthorizationResponse();
 
-		if((responseMode==FAPIResponseMode.PLAIN_RESPONSE) && (FAPIClientType.OIDC == fapiClientType)) {
+		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
 			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
 		}
 		if(responseMode==FAPIResponseMode.JARM) {
