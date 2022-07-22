@@ -15,7 +15,7 @@
 
 
 </head>
-<body>
+<body th:class="${brand}">
 	<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
@@ -59,7 +59,7 @@
 		</div>
     </footer>
 
-    <script type="text/javascript">
+    <script th:inline="javascript">
 	    $(document).ready(function() {
 	        var urlParams = new URLSearchParams(window.location.search);
 
@@ -82,16 +82,12 @@
 		function loadServerInfo() {
 			return $.getJSON('/api/server', function(data) {
 				$(".browserTitle").text(data.brand + " Functional Conformance: Login");
-				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+				$(".serverInfo").text([ (data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
 				$(".brandDesc").text(data.brand + " Functional Conformance Suite - Brought to you by Raidiam, with thanks to the OpenID Foundation");
 				$("#logo").attr("src", "/images/" + data.logo);
 				$(".headerText").text("Login to the " + data.brand + " Functional Conformance Suite");
 				$(".loginHref").attr("href", "/openid_connect_login?iss=" + data.issuer);
 				$(".loginHref").text("Login with " + data.brand);
-
-				if (data.brand.toLowerCase().includes("open banking brazil")) {
-				    $(".adminLogin").hide();
-				}
 
 			});
 		}
