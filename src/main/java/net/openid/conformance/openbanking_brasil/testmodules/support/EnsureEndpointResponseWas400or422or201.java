@@ -18,10 +18,6 @@ public class EnsureEndpointResponseWas400or422or201 extends AbstractCondition {
 			throw error(endpointName + " endpoint returned an unexpected http status - should be 400, 422 or 201", args("http_status", statusCode));
 		}
 
-		if(statusCode == HttpStatus.SC_UNPROCESSABLE_ENTITY) {
-			env.putString("proceed_with_test", "true");
-		}
-
 		if(statusCode == HttpStatus.SC_BAD_REQUEST) {
 			if(env.getString("proceed_with_test") != null) {
 				env.removeNativeValue("proceed_with_test");

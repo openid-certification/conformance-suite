@@ -8,18 +8,18 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "consents-bad-logged",
 	displayName = "FAPI1-Advanced-Final: Brazil DCR happy flow without authentication flow",
-	summary = "This test will try to use the recently created DCR to access either a Consents or, " +
-		"if the server does not support Phase 2, a Payments Consent Call with a dummy, but well-formated payload to make sure " +
-		"that the server will read the request but won’t be able to process it. \n" +
-		"\u2022 Create a client by performing a DCR against the provided server - Expect Success \n" +
-		"\u2022 Generate a token with the client_id created \n " +
-		"\u2022 Use the token to call either the POST Consents or POST Payments Consents API, depending on the directory configuration provided \n" +
-		"\u2022 Expect server to accept the message  but return a failure because with either 400, 422 because of well formatted but invalid payload sent or 201."
-	,
+	summary = "This test will try to use the recently created DCR to access either a Consents or, if the server does not support Phase 2, a Payments Consent Call with a dummy, but well-formated payload to make sure that the server will read the request but won’t be able to process it. If server supports both Consents API, server will try to call both of them and expect a success.\n" +
+		"\u2022 Create a client by performing a DCR against the provided server - Expect Success\n" +
+		"\u2022 Generate a token with the client_id created using client_credentials grant with either payments or consents scope\n" +
+		"\u2022 Use the token to call either the POST Consents or POST Payments Consents API, depending on the directory configuration provided the first provided consentURI\n" +
+		"\u2022 Expect the server to accept the message but return a failure because with either 400, 422 because of well formatted but invalid payload sent or 201 - If the message is a Payments Consents Response make sure the JWT has been correctly signed by the key registered on the A.S.\n" +
+		"\u2022 Call either the POST consents or payments-consents API, depending on what has been provided on the  on the \"SecondaryConsentUrl\" field\n" +
+		"\u2022 Expect the server to accept the message but return a failure because with either 400, 422 because of well formatted but invalid payload sent or 201 - If the message is a Payments Consents Response make sure the JWT has been correctly signed by the key registered on the A.S.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -30,7 +30,9 @@ import net.openid.conformance.variant.ClientAuthType;
 		"directory.discoveryUrl",
 		"directory.client_id",
 		"directory.apibase",
-		"resource.consentUrl"
+		"resource.consentUrl",
+		"resource.consentUrl2",
+		"resource.brazilOrganizationId"
 	}
 )
 
@@ -76,43 +78,59 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 
 		eventLog.startBlock("Checking consentURL");
 		callAndStopOnFailure(EnsureConsentUrlIsNotNull.class);
+		callAndStopOnFailure(EnsureSecondaryConsentUrlIsNotNull.class);
 		String consentUrl = env.getString("config", "resource.consentUrl");
+		String secondaryConsentUrl = env.getString("config", "resource.consentUrl2");
 
-		if(consentUrl.matches("^(https://)(.*?)(consents/v[0-9]/consents)")) {
+		callConsentsEndpoint(consentUrl, "consentUrl");
+		callAndContinueOnFailure(SwitchToSecondaryConsentUrl.class);
+		callConsentsEndpoint(secondaryConsentUrl, "secondaryConsentUrl");
+
+	}
+
+	private void callConsentsEndpoint(String consentUrl, String message) {
+		if (consentUrl.matches("^(https://)(.*?)(consents/v[0-9]/consents)")) {
 			eventLog.startBlock("Calling Token Endpoint using Client Credentials");
+			eventLog.log(getName(), String.format("%s is identified as Consents consent URL", message));
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 
 			call(callTokenEndpointShortVersion());
 			eventLog.endBlock();
 
-			eventLog.startBlock("Calling Consents API");
+			eventLog.startBlock(String.format("Calling Consents API using %s", message));
 			call(consentsApiSequence());
 
-		} else if(consentUrl.matches("^(https://)(.*?)(payments/v[0-9]/consents)")) {
+		} else if (consentUrl.matches("^(https://)(.*?)(payments/v[0-9]/consents)")) {
 			eventLog.startBlock("Calling Token Endpoint using Client Credentials");
+			eventLog.log(getName(), String.format("%s is identified as Payments consent URL", message));
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
 
 			call(callTokenEndpointShortVersion());
 			eventLog.endBlock();
-			eventLog.startBlock("Calling Payments Consents API");
-			ConditionSequence paymentsConsentsSequence = new SignedPaymentConsentSequence()
-				.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
-				.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
-				.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422or201.class))
-				.skip(FAPIBrazilGetKeystoreJwksUri.class, "Not needed for this test")
-				.skip(FetchServerKeys.class, "Not needed for this test")
-				.skip(ValidateResourceResponseSignature.class, "Not needed for this test")
-				.skip(ValidateResourceResponseJwtClaims.class, "Not needed for this test");
+			eventLog.startBlock(String.format("Calling Consents API using %s", message));
+			call(getPaymentsConsentSequence());
 
-			call(paymentsConsentsSequence);
+
+			env.mapKey("endpoint_response", "consent_endpoint_response_full");
+			if(env.getInteger("endpoint_response", "status") == HttpStatus.SC_BAD_REQUEST){
+				callAndStopOnFailure(EnsureContentTypeJson.class);
+			}
+			env.unmapKey("endpoint_response");
+
 		}
 		eventLog.endBlock();
-
 	}
 
-	private ConditionSequence consentsApiSequence(){
+	private ConditionSequence getPaymentsConsentSequence() {
+		return new SignedPaymentConsentSequence()
+			.insertAfter(AddFAPIAuthDateToResourceEndpointRequest.class, condition(FAPIBrazilCreatePaymentConsentRequest.class))
+			.insertBefore(FAPIBrazilSignPaymentConsentRequest.class, condition(CopyClientJwksToClient.class))
+			.replace(EnsureHttpStatusCodeIs201.class, condition(EnsureEndpointResponseWas400or422or201.class));
+	}
+
+	private ConditionSequence consentsApiSequence() {
 		return sequenceOf(
 			condition(PrepareToPostConsentRequest.class),
 			condition(AddConsentScope.class),
@@ -127,7 +145,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 		);
 	}
 
-	private ConditionSequence callTokenEndpointShortVersion(){
+	private ConditionSequence callTokenEndpointShortVersion() {
 		ConditionSequence sequence = sequenceOf(
 			condition(AddClientIdToTokenEndpointRequest.class),
 			condition(CreateClientAuthenticationAssertionClaims.class).dontStopOnFailure(),
@@ -147,7 +165,7 @@ public class DCRConsentsBadLoggedUser extends FAPI1AdvancedFinalBrazilDCRHappyFl
 	}
 
 	@Override
-	protected void onPostAuthorizationFlowComplete(){
+	protected void onPostAuthorizationFlowComplete() {
 		// not needed as resource endpoint won't be called
 	}
 }
