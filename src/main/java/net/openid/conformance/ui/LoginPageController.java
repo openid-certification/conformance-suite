@@ -13,7 +13,9 @@ public class LoginPageController {
 
 	@RequestMapping("/login.html")
 	public String login(Model model) {
-		String brand = serverInfoTemplate.getServerInfo().get("brand").replaceAll("\\W", "");
+		String brand = serverInfoTemplate.getServerInfo().get("brand")
+			.toLowerCase()
+			.replaceAll("\\W", "");
 
 		model.addAttribute("brand", brand);
 		return "login.html";
