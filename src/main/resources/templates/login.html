@@ -15,11 +15,11 @@
 
 
 </head>
-<body>
+<body th:class="${brand}">
 	<div class="pageHeader container-fluid">
 		<div class="row-fluid">
 			<div class="col-md-8">
-				<a href='index.html'><img id="logo" src=''></a>
+				<a href='../static/index.html'><img id="logo" src=''></a>
 			</div>
 			<div id="userInfoDiv" class="col-md-4 text-right"></div>
 		</div>
@@ -40,8 +40,8 @@
 		</div>
 		<div class="row">
 			<div class="col-md-2">
-            <a href="logs.html?public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-duplicate"></span> View published logs</a>
-            <a href="plans.html?public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> View published plans</a>
+            <a href="../static/logs.html?public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-duplicate"></span> View published logs</a>
+            <a href="../static/plans.html?public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> View published plans</a>
 			</div>
 		</div>
 	</div>
@@ -59,7 +59,7 @@
 		</div>
     </footer>
 
-    <script type="text/javascript">
+    <script th:inline="javascript">
 	    $(document).ready(function() {
 	        var urlParams = new URLSearchParams(window.location.search);
 
@@ -82,16 +82,12 @@
 		function loadServerInfo() {
 			return $.getJSON('/api/server', function(data) {
 				$(".browserTitle").text(data.brand + " Functional Conformance: Login");
-				$(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
+				$(".serverInfo").text([ (data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
 				$(".brandDesc").text(data.brand + " Functional Conformance Suite - Brought to you by Raidiam, with thanks to the OpenID Foundation");
 				$("#logo").attr("src", "/images/" + data.logo);
 				$(".headerText").text("Login to the " + data.brand + " Functional Conformance Suite");
 				$(".loginHref").attr("href", "/openid_connect_login?iss=" + data.issuer);
 				$(".loginHref").text("Login with " + data.brand);
-
-				if (data.brand.toLowerCase().includes("open banking brazil")) {
-				    $(".adminLogin").hide();
-				}
 
 			});
 		}
