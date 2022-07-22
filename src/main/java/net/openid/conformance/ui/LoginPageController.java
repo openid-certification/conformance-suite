@@ -12,7 +12,7 @@ public class LoginPageController {
 	private ServerInfoTemplate serverInfoTemplate;
 
 	@RequestMapping("/login.html")
-	public String getYourPage(Model model) {
+	public String login(Model model) {
 		String brand = serverInfoTemplate.getServerInfo().get("brand").replaceAll("\\W", "");
 
 		model.addAttribute("brand", brand);
