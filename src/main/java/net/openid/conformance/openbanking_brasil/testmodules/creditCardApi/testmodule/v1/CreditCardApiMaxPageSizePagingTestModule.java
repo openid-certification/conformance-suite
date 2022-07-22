@@ -6,8 +6,13 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.*;
 import net.openid.conformance.openbanking_brasil.creditCard.v1.CreditCardAccountsTransactionResponseValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardTransactions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @PublishTestModule(
 	testName = "credit-card-api-max-page-size-paging-test",
@@ -36,9 +41,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -53,7 +63,9 @@ public class CreditCardApiMaxPageSizePagingTestModule extends AbstractOBBrasilFu
 
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions");
 		callAndStopOnFailure(CardAccountSelector.class);
+		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
+		callAndStopOnFailure(AppendToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
