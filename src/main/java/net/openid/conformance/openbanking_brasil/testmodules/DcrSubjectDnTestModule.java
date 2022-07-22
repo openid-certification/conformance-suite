@@ -24,9 +24,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {"private_key_jwt"})// only applicable for mtls client auth
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"resource.brazilOrganizationId",
+	"client.org_jwks",
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment",
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
 })
 public class DcrSubjectDnTestModule extends AbstractFAPI1AdvancedFinalBrazilDCR {
 
