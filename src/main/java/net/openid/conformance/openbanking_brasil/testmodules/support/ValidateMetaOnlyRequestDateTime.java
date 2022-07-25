@@ -33,6 +33,19 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 
 		if(JsonHelper.ifExists(apiResponse, "$.meta")){
 
+			if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
+				metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
+			}else {
+				throw error("totalRecords field is missing in meta");
+			}
+
+			if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
+				metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
+			}else {
+				throw error("totalPages field is missing in meta");
+			}
+
+
 			if (JsonHelper.ifExists(apiResponse, "$.meta.requestDateTime")) {
 				String metaRequestDateTime = OIDFJSON.getString(findByPath(apiResponse, "$.meta.requestDateTime"));
 
@@ -54,9 +67,9 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 		}
 
 
-		Boolean isConsentRequest = false;
-		Boolean isPaymentConsent = false;
-		Boolean isPayment = false;
+		boolean isConsentRequest = false;
+		boolean isPaymentConsent = false;
+		boolean isPayment = false;
 		if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
 			isConsentRequest = true;
 		}
@@ -82,7 +95,7 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 			}
 		} else {
 			//  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
-			if (isConsentRequest == false) {
+			if (!isConsentRequest) {
 				throw error("There should be a 'self' link.");
 			} else {
 				if (isPaymentConsent) {
@@ -135,8 +148,12 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 			// if Self is page=1, then we should not see a prev link
 			int selfLinkPageNum = 1;
 			try {
-				selfLinkPageNum  = Integer.parseInt(selfLinkQueryStringParams.getFirst("page"));
-			} catch (NumberFormatException e) {}
+				String page = selfLinkQueryStringParams.getFirst("page");
+				if(page == null){
+					throw error("Self link page parameter is null", args("Self link", selfLink));
+				}
+				selfLinkPageNum  = Integer.parseInt(page);
+			} catch (NumberFormatException ignored) {}
 
 			if ( selfLinkPageNum == 1) {
 

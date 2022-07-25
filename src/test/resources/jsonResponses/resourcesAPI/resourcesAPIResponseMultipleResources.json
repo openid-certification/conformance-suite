@@ -1,0 +1,29 @@
+{
+    "data": [
+        {
+            "resourceId": "25cac914-d8ae-6789-b215-650a6215820d",
+            "type": "ACCOUNT",
+            "status": "AVAILABLE"
+        },
+        {
+            "resourceId": "25cac914-d8ae-6789-b215-650a6215820d",
+            "type": "ACCOUNT",
+            "status": "AVAILABLE"
+        },
+        {
+            "resourceId": "25cac914-d8ae-6789-b215-650a6215820d",
+            "type": "ACCOUNT",
+            "status": "AVAILABLE"
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "last": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "totalRecords": 3,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}
