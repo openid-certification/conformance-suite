@@ -8,6 +8,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccoun
 import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareAllAccountRelatedConsentsForHappyPathTest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "account-api-page-size-too-big-test",
@@ -31,6 +33,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class AccountsApiPageSizeTooLargeTestModule extends AbstractOBBrasilFunctionalTestModule {
 	@Override
 	protected void configureClient() {

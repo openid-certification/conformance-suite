@@ -9,6 +9,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "customer-api-businessentity-personal-permissions-v2",
@@ -28,6 +30,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class BusinessEntityWithPersonalPermissionsTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override

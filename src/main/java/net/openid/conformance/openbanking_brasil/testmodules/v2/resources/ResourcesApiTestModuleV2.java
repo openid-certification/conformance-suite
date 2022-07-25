@@ -20,6 +20,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateRes
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateSelfEndpoint;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 
 //import net.openid.conformance.testmodule.PublishTestModule;
@@ -45,6 +47,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"consent.productType"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"directory.client_id"
+})
 public class ResourcesApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override

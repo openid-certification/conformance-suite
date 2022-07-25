@@ -1,9 +1,14 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.time.Instant;
-
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public abstract class AbstractPermissionsCheckingFunctionalTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override

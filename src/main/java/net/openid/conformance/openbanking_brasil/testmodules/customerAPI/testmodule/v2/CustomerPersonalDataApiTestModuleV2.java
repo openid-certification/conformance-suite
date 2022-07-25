@@ -14,6 +14,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.BuildPerson
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "customer-personal-data-api-test-v2",
@@ -35,6 +37,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class CustomerPersonalDataApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override

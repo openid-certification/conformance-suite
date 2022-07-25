@@ -10,6 +10,8 @@ import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.PrepareUrlForRe
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "credit-card-resources-api-test-v2",

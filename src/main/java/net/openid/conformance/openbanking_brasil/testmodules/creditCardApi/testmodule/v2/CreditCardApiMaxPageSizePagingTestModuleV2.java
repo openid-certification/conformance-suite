@@ -8,6 +8,8 @@ import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardAccount
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -36,6 +38,10 @@ import java.time.format.DateTimeFormatter;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
