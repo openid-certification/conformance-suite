@@ -53,6 +53,9 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 		if (Strings.isNullOrEmpty(apibase)) {
 			throw error("directory.apibase missing from test configuration");
 		}
+		if (!apibase.endsWith("/")) {
+			apibase += "/";
+		}
 		String ou = env.getString("certificate_subject", "ou");
 		if (Strings.isNullOrEmpty(ou)) {
 			throw error("'ou' not found in TLS certificate subject");
