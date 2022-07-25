@@ -21,6 +21,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SetUpNonExi
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetUpResourceReadOnlyPermissions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetUpSlightlyLessIncompleteAccountPermissions;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "consent-api-test-negative-v2",
@@ -57,6 +59,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"consent.productType"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class ConsentApiNegativeTestsV2 extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override
