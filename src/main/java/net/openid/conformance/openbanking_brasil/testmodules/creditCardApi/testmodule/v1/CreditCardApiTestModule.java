@@ -61,8 +61,8 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -95,7 +95,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch card transactions");
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -111,7 +111,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Credit Card bill transaction");
 		callAndContinueOnFailure(CreditCardAccountsTransactionBillResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
