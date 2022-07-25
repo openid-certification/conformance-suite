@@ -7,6 +7,8 @@ import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "resources-api-test-404-customer-data-v2",
@@ -29,6 +31,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"consent.productType"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.org_jwks",
+	"directory.client_id"
+})
 public class ResourcesApiTestModuleCorrect404V2 extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override

@@ -13,6 +13,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreRespo
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetContentTypeApplicationJson;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "consent-api-bad-consents-test-v2",
@@ -33,6 +35,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class ConsentApiBadConsentsTestModuleV2 extends AbstractClientCredentialsGrantFunctionalTestModule {
 
 	@Override

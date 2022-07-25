@@ -22,6 +22,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureRespo
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateSelfEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "loans-api-test-v2",
@@ -50,6 +52,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"consent.productType"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class LoansApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override

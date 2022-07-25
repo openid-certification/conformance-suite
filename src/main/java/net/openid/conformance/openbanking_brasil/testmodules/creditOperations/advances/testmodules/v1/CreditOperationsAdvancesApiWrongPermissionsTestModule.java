@@ -18,6 +18,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.CallProtect
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas403;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "unarranged-overdraft-api-wrong-permissions-test",

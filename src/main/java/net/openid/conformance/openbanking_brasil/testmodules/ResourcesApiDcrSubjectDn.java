@@ -25,6 +25,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment",
+	"directory.client_id"
 })
 public class ResourcesApiDcrSubjectDn extends AbstractApiDcrSubjectDn {
 

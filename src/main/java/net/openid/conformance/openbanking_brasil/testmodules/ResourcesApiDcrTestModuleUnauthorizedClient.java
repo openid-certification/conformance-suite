@@ -24,11 +24,13 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	}
 )
 // hide various config values from the FAPI base module we don't need
+// hide various config values from the FAPI base module we don't need
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment"
+	"resource.brazilPixPayment",
+	"directory.client_id"
 })
 public class ResourcesApiDcrTestModuleUnauthorizedClient extends AbstractApiDcrTestModuleUnauthorizedClient {
 

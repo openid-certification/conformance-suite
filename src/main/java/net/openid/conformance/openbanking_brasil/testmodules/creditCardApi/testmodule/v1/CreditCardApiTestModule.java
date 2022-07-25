@@ -18,6 +18,8 @@ import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.Prepa
 import net.openid.conformance.openbanking_brasil.testmodules.creditCardApi.PrepareUrlForFetchingCardTransactions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -53,6 +55,10 @@ import java.time.format.DateTimeFormatter;
 		"resource.brazilCpf",
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -61,8 +67,8 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -95,7 +101,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch card transactions");
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
@@ -111,7 +117,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Credit Card bill transaction");
 		callAndContinueOnFailure(CreditCardAccountsTransactionBillResponseValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);

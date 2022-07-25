@@ -8,6 +8,8 @@ import net.openid.conformance.openbanking_brasil.creditCard.v2.CreditCardAccount
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -36,6 +38,10 @@ import java.time.format.DateTimeFormatter;
 		"resource.brazilCpf"
 	}
 )
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"directory.client_id",
+	"client.org_jwks"
+})
 public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -44,8 +50,8 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -61,7 +67,7 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions V2");
 		callAndStopOnFailure(CardAccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
-		callAndStopOnFailure(AppendToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AppendToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
