@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-pixscheduling-in-past-date",
 	displayName = "Pix scheduled payment date in past",
-	summary = "Attempts to create a payment consent scheduled for a day in the past, with a payment date of yesterday, and expects a 422 response with the error INVALID_SCHEDULE",
+	summary = "Attempts to create a payment consent scheduled for a day in the past, with a payment date of yesterday, and expects a 422 response with the error DATA_PGTO_INVALIDA",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -52,7 +52,7 @@ public class PixScheduledPaymentDateIsInPastConsentsTestModule extends AbstractC
 					sequenceOf(
 						condition(EnsureConsentResponseCodeWas422.class),
 						condition(ValidateErrorAndMetaFieldNames.class),
-						condition(EnsureConsentErrorWasInvalid_Schedule.class)
+						condition(EnsureConsentErrorWasDataPgtoInvalida.class)
 					))
 			);
 		});

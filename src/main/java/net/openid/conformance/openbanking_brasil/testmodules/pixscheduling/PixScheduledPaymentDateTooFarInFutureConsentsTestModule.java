@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "payments-consents-api-pixscheduling-future-date",
 	displayName = "Pix scheduled payment date next year",
-	summary = "Attempts to create a payment consent scheduled for a day too far in the future, with a payment date of today + 370 days, and expects a 422 response with the error INVALID_SCHEDULE",
+	summary = "Attempts to create a payment consent scheduled for a day too far in the future, with a payment date of today + 370 days, and expects a 422 response with the error DATA_PGTO_INVALIDA",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -52,7 +52,7 @@ public class PixScheduledPaymentDateTooFarInFutureConsentsTestModule extends Abs
 					sequenceOf(
 						condition(EnsureConsentResponseCodeWas422.class),
 						condition(ValidateErrorAndMetaFieldNames.class),
-						condition(EnsureConsentErrorWasInvalid_Schedule.class)
+						condition(EnsureConsentErrorWasDataPgtoInvalida.class)
 					))
 			);
 		});
