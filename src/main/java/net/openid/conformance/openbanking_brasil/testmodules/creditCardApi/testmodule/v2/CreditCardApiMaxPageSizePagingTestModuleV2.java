@@ -44,8 +44,8 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -61,7 +61,7 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions V2");
 		callAndStopOnFailure(CardAccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
-		callAndStopOnFailure(AppendToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AppendToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);

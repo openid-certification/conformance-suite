@@ -28,9 +28,9 @@ import java.time.format.DateTimeFormatter;
 		"\u2022 Expect OK 200 - Validate all fields of the API - Fetch the first returned account ids to be used on the transactions API Call\n" +
 		"\u2022 Call the GET Current Credit Cards Transactions API V2\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if one transaction is found it has today’s date on it\n" +
-		"\u2022 Call the GET Current Credit Cards Transactions API V2, send query parameters fromBookingDate and toBookingDate using the max 7 day period\n" +
+		"\u2022 Call the GET Current Credit Cards Transactions API V2, send query parameters fromTransactionDate and toTransactionDate using the max 7 day period\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if transactions are found that none of them are more than 1 week older\n" +
-		"\u2022 Call the GET Current Credit Cards Transactions API V2, send query parameters fromBookingDate and toBookingDate using a period that is not over the expected valid period\n" +
+		"\u2022 Call the GET Current Credit Cards Transactions API V2, send query parameters fromTransactionDate and toTransactionDate using a period that is not over the expected valid period\n" +
 		"\u2022 Expect 422 Unprocessable Entity\n",
 	profile = OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 	configurationFields = {
@@ -69,10 +69,10 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 
 		// Call with valid  parameters
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(6).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
@@ -80,11 +80,11 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		);
 
 		// Call with invalid  parameters
-		env.putString("fromBookingDate", currentDate.minusDays(30).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.minusDays(20).format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(30).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions V2 with invalid date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))

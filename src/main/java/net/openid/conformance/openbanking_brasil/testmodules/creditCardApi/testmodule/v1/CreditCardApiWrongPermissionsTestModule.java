@@ -66,8 +66,8 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 	protected void configureClient(){
 		callAndStopOnFailure(BuildCreditCardsAccountsConfigResourceUrlFromConsentUrl.class);
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toTransactionDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -86,13 +86,13 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		callAndStopOnFailure(PrepareUrlForFetchingCardLimits.class);
 		preCallProtectedResource("Fetch CreditCard Limits");
 		callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		preCallProtectedResource("Fetch CreditCard Bills");
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Bills Transaction");
 	}
 
@@ -127,7 +127,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 
 		runInBlock("Ensure we cannot call the CreditCard Bill Transaction API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
@@ -142,7 +142,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 
 		runInBlock("Ensure we cannot call the  CreditCard Transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
