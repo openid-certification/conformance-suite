@@ -3,18 +3,10 @@ package net.openid.conformance.runner;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.vdurmont.semver4j.Semver;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.frontchannel.BrowserControl;
-import net.openid.conformance.info.ImageService;
-import net.openid.conformance.info.Plan;
-import net.openid.conformance.info.SavedConfigurationService;
-import net.openid.conformance.info.TestInfoService;
-import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.info.*;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.openbanking_brasil.testmodules.PaymentsDcmSubjectDnTestModule;
@@ -36,29 +28,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -358,15 +334,17 @@ public class TestRunner implements DataUtils {
 				"payments-api-dcr-test-unauthorized-client",
 				"resources-api-dcr-happyflow",
 				"resources-api-dcr-test-attempt-client-takeover",
-				"resources-api-dcr-subjectdn");
+				"resources-api-dcr-subjectdn",
+				"resources-api-dcr-happyflow-v2",
+				"resources-api-dcr-test-attempt-client-takeover-v2");
 			if (needsAccountAlias.contains(testName)) {
 				// These tests use a hardcoded client that needs a particular redirect url
 				alias = "raidiam-client-accounts-only";
-			}
-			else if (testName.equals("payments-api-dcr-happyflow") ||
+			} else if (testName.equals("payments-api-dcr-happyflow") ||
 				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
 				testName.equals("payments-api-dcr-subjectdn") ||
-				testName.equals("resources-api-dcr-test-unauthorized-client")) {
+				testName.equals("resources-api-dcr-test-unauthorized-client") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client-v2")) {
 				alias = "raidiam-client-payments-only";
 			}
 			else if (testName.equals(PaymentsDcmSubjectDnTestModule.testName) ||
