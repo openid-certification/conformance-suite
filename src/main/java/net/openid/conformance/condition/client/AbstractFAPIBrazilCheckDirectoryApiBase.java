@@ -4,8 +4,10 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class FAPIBrazilCheckDirectoryApiBase extends AbstractCondition {
-	private final String BRAZIL_DIRECTORY_API_BASE = "https://matls-api.sandbox.directory.openbankingbrasil.org.br/";
+public abstract class AbstractFAPIBrazilCheckDirectoryApiBase extends AbstractCondition {
+	protected abstract String getErrorMessage();
+
+	abstract String getExpectedUrl();
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -14,8 +16,9 @@ public class FAPIBrazilCheckDirectoryApiBase extends AbstractCondition {
 		String apiBase = getStringFromEnvironment(env, "config", "directory.apibase",
 			"Directory API base in test configuration");
 
+		String BRAZIL_DIRECTORY_API_BASE = getExpectedUrl();
 		if (!apiBase.equals(BRAZIL_DIRECTORY_API_BASE)) {
-			throw error("Testing for Brazil certification must be done using the Brazil directory. If you do not have access to the directory an example client is available in the conformance suite instructions.",
+			throw error(getErrorMessage(),
 				args("directory_api_base", apiBase,
 					"expected", BRAZIL_DIRECTORY_API_BASE));
 		}
@@ -25,5 +28,4 @@ public class FAPIBrazilCheckDirectoryApiBase extends AbstractCondition {
 		return env;
 
 	}
-
 }

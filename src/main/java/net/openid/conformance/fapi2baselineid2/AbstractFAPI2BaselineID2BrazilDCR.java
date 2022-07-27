@@ -5,7 +5,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddImplicitGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
@@ -35,14 +34,13 @@ import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryApiBase;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryDiscoveryUrl;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SetResponseTypeCodeIdTokenInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
@@ -58,9 +56,9 @@ public abstract class AbstractFAPI2BaselineID2BrazilDCR extends AbstractFAPI2Bas
 
 		callAndStopOnFailure(ExtractDirectoryConfiguration.class);
 
-		callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+		callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
-		callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+		callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
 
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");

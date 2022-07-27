@@ -35,10 +35,12 @@ import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryApiBase;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl;
+import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
@@ -50,6 +52,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
 public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1AdvancedFinalServerTestModule {
 	protected void getSsa() {
@@ -58,9 +61,13 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 
 		callAndStopOnFailure(ExtractDirectoryConfiguration.class);
 
-		callAndContinueOnFailure(FAPIBrazilCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
-
-		callAndContinueOnFailure(FAPIBrazilCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+			callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+		} else {
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-1");
+		}
 
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");
