@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /personal/identifications
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 
 @ApiName("Natural Person Identity V2")
@@ -28,10 +28,10 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 	public static final Set<String> ENUM_MARITAL_STATUS_CODE = SetUtils.createSet("SOLTEIRO, CASADO, VIUVO, SEPARADO_JUDICIALMENTE, DIVORCIADO, UNIAO_ESTAVEL, OUTRO");
 	public static final Set<String> ENUM_SEX = SetUtils.createSet("FEMININO, MASCULINO, OUTRO");
-	public static final Set<String> ENUM_PERSONAL_OTHER_DOCUMENT_TYPES = SetUtils.createSet("CNH, RG, NIF, RNE, OUTROS, SEM_OUTROS_DOCUMENTOS");
+	public static final Set<String> ENUM_PERSONAL_OTHER_DOCUMENT_TYPES = SetUtils.createSet("CNH, RG, NIF, RNE, OUTROS");
 	public static final Set<String> ENUM_COUNTRY_SUB_DIVISION = SetUtils.createSet("AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO");
 	public static final Set<String> ENUM_CUSTOMER_PHONE_TYPE = SetUtils.createSet("FIXO, MOVEL, OUTRO");
-	public static final Set<String> ENUM_AREA_CODES = SetUtils.createSet("11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99, NA");
+	public static final Set<String> ENUM_AREA_CODES = SetUtils.createSet("11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99");
 	final Set<String> FILIATION_TYPE = SetUtils.createSet("MAE, PAI");
 
 
@@ -337,7 +337,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.setOptional()
 				.build());
 

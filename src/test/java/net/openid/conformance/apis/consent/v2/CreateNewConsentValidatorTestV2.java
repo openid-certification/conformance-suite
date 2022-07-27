@@ -13,7 +13,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/consents/createConsentResponse.json")
 public class CreateNewConsentValidatorTestV2 extends AbstractJsonResponseConditionUnitTest {
 	@Test
 	@UseResurce("jsonResponses/consent/createConsentResponse/v2/createConsentResponse.json")

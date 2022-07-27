@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
  * Api endpoint: /accounts/{accountId}/transactions-current
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 @ApiName("Account Transactions Current V2")
 public class AccountTransactionsCurrentValidatorV2 extends AbstractJsonAssertingCondition {

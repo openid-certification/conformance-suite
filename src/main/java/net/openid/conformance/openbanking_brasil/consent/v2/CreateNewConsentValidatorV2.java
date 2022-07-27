@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openBanking/swagger-consents-api-v2.yaml
  * Api endpoint: /consents
- * Api version: 2.0.0-RC1.0
+ * Api version: 2.0.1.final
  **/
 @ApiName("Create New Consent V2")
 public class CreateNewConsentValidatorV2 extends AbstractJsonAssertingCondition {

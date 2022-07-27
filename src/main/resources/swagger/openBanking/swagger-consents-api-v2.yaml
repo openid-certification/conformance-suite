@@ -11,6 +11,7 @@ info:
         - Na chamada para a criação do consentimento deve-se utilizar um token gerado via `client_credentials`.
         - Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
         - O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do usuário na instituição transmissora dos dados.
+        - Alteração obrigatória do status `AWAITING_AUTHORISATION` para `REVOKED` após 60 minutos.
         - Todas as datas trafegadas nesta API seguem o padrão da [RFC3339](https://tools.ietf.org/html/rfc3339) e formato "zulu".
         - A descrição do fluxo de consentimento encontra-se disponível no [Portal do desenvolvedor](https://openbanking-brasil.github.io/areadesenvolvedor/#em-revisao-fluxo-de-consentimento).
         - O arquivo com o mapeamento completo entre `Roles`, `scopes` e `permissions` está disponibilizado no Portal do desenvolvedor, no mesmo item acima - descrição do fluxo de consentimento.
@@ -79,22 +80,22 @@ info:
         - A instituição transmissora deve validar o preenchimento correto desses agrupamentos no momento da geração do consentimento.
         - Caso a instiuição receptora envie permissões divergentes ao agrupamento especificado na tabela, a transmissora deve rejeitar o pedido da receptora dando retorno HTTP Status Code 400.
         - A transmissora deve retornar, da lista de permissions requisitadas, apenas o subconjunto de permissions por ela suportada, removendo da lista as permissions de produtos não suportados e retornando HTTP Status Code 201. Caso não restem permissões funcionais, a instituição transmissora deve retornar o erro HTTP Code "422 Unprocessable Entity".
-    version: 2.0.0
+    version: 2.0.1
     license:
         name: Apache 2.0
-        url: 'http://www.apache.org/licenses/LICENSE-2.0'
+        url: http://www.apache.org/licenses/LICENSE-2.0
     contact:
         name: Governança do Open Banking Brasil - Especificações
         email: gt-interfaces@openbankingbr.org
-        url: 'https://openbanking-brasil.github.io/areadesenvolvedor/'
+        url: https://openbanking-brasil.github.io/areadesenvolvedor/
 servers:
-    - url: 'https://api.banco.com.br/open-banking/consents/v2'
+    - url: https://api.banco.com.br/open-banking/consents/v2
       description: Servidor de Produção
-    - url: 'https://apih.banco.com.br/open-banking/consents/v2'
+    - url: https://apih.banco.com.br/open-banking/consents/v2
       description: Servidor de Homologação
 tags:
     - name: Consents
-      description: 'Operações para criação, consulta e revogação do consentimento dado pelo cliente.'
+      description: Operações para criação, consulta e revogação do consentimento dado pelo cliente.
 paths:
     /consents:
         post:
@@ -139,6 +140,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -150,7 +153,7 @@ paths:
             security:
                 - OAuth2Security:
                       - consents
-    '/consents/{consentId}':
+    /consents/{consentId}:
         get:
             tags:
                 - Consents
@@ -183,6 +186,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -226,6 +231,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -250,36 +257,36 @@ components:
                     format: uri
                     maxLength: 2000
                     description: URI completo que gerou a resposta atual.
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 first:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da primeira página que originou essa lista de resultados. Restrição - Obrigatório quando não for a primeira página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 prev:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: "URI da página anterior dessa lista de resultados. Restrição - \tObrigatório quando não for a primeira página da resposta"
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 next:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da próxima página dessa lista de resultados. Restrição - Obrigatório quando não for a última página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 last:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da última página dessa lista de resultados. Restrição - Obrigatório quando não for a última página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
         Meta:
             type: object
             description: Meta informações referente à API requisitada.
@@ -299,7 +306,7 @@ components:
                     description: Número total de páginas no resultado
                     example: 1
                 requestDateTime:
-                    description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                    description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
                     type: string
                     maxLength: 20
                     format: date-time
@@ -323,7 +330,7 @@ components:
                         permissions:
                             type: array
                             items:
-                                description: 'Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.'
+                                description: Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.
                                 type: string
                                 enum:
                                     - ACCOUNTS_READ
@@ -363,7 +370,7 @@ components:
                                 - ACCOUNTS_OVERDRAFT_LIMITS_READ
                                 - RESOURCES_READ
                         expirationDateTime:
-                            description: 'Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             maxLength: 20
                             format: date-time
@@ -440,11 +447,11 @@ components:
                                 - o identificador específico dentro do namespace (C1DD33123).
                                 Informações mais detalhadas sobre a construção de namespaces devem ser consultadas na [RFC8141](https://tools.ietf.org/html/rfc8141).
                             type: string
-                            pattern: '^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*''%\/?#]+$'
+                            pattern: ^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*'%\/?#]+$
                             maxLength: 256
-                            example: 'urn:bancoex:C1DD33123'
+                            example: urn:bancoex:C1DD33123
                         creationDateTime:
-                            description: 'Data e hora em que o recurso foi criado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora em que o recurso foi criado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -458,7 +465,7 @@ components:
                                 - REJECTED
                             example: AWAITING_AUTHORISATION
                         statusUpdateDateTime:
-                            description: 'Data e hora em que o recurso foi atualizado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora em que o recurso foi atualizado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -467,7 +474,7 @@ components:
                             type: array
                             maxItems: 30
                             minItems: 1
-                            description: 'Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.'
+                            description: Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.
                             items:
                                 type: string
                                 enum:
@@ -506,7 +513,7 @@ components:
                                 - ACCOUNTS_OVERDRAFT_LIMITS_READ
                                 - RESOURCES_READ
                         expirationDateTime:
-                            description: 'Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -542,11 +549,11 @@ components:
                                 - o identificador específico dentro do namespace (C1DD33123).
                                 Informações mais detalhadas sobre a construção de namespaces devem ser consultadas na [RFC8141](https://tools.ietf.org/html/rfc8141).
                             type: string
-                            pattern: '^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*''%\/?#]+$'
+                            pattern: ^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*'%\/?#]+$
                             maxLength: 256
-                            example: 'urn:bancoex:C1DD33123'
+                            example: urn:bancoex:C1DD33123
                         creationDateTime:
-                            description: 'Data e hora em que o recurso foi criado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora em que o recurso foi criado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -560,7 +567,7 @@ components:
                                 - REJECTED
                             example: AWAITING_AUTHORISATION
                         statusUpdateDateTime:
-                            description: 'Data e hora em que o recurso foi atualizado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora em que o recurso foi atualizado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -569,7 +576,7 @@ components:
                             type: array
                             maxItems: 30
                             minItems: 1
-                            description: 'Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.'
+                            description: Especifica os tipos de permissões de acesso às APIs no escopo do Open Banking Brasil - Fase 2, de acordo com os blocos de consentimento fornecidos pelo usuário e necessários ao acesso a cada endpoint das APIs.
                             items:
                                 type: string
                                 enum:
@@ -608,7 +615,7 @@ components:
                                 - ACCOUNTS_OVERDRAFT_LIMITS_READ
                                 - RESOURCES_READ
                         expirationDateTime:
-                            description: 'Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).'
+                            description: Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
                             type: string
                             format: date-time
                             example: '2021-05-21T08:30:00Z'
@@ -699,7 +706,7 @@ components:
                         - requestDateTime
                     properties:
                         requestDateTime:
-                            description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                            description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
                             type: string
                             maxLength: 20
                             format: date-time
@@ -721,16 +728,16 @@ components:
                             maxLength: 11
                             description: Número do documento de identificação oficial do usuário.
                             example: '11111111111'
-                            pattern: '^\d{11}$'
+                            pattern: ^\d{11}$
                         rel:
                             type: string
                             maxLength: 3
                             description: Tipo do documento de identificação oficial do usuário.
                             example: CPF
-                            pattern: '^[A-Z]{3}$'
+                            pattern: ^[A-Z]{3}$
         BusinessEntity:
             type: object
-            description: 'Titular, pessoa jurídica a quem se referem os dados que são objeto de compartilhamento.'
+            description: Titular, pessoa jurídica a quem se referem os dados que são objeto de compartilhamento.
             required:
                 - document
             properties:
@@ -745,13 +752,13 @@ components:
                             maxLength: 14
                             description: Número do documento de identificação oficial do titular pessoa jurídica.
                             example: '11111111111111'
-                            pattern: '^\d{14}$'
+                            pattern: ^\d{14}$
                         rel:
                             type: string
                             maxLength: 4
                             description: Tipo do documento de identificação oficial do titular pessoa jurídica.
                             example: CNPJ
-                            pattern: '^[A-Z]{4}$'
+                            pattern: ^[A-Z]{4}$
     parameters:
         consentId:
             name: consentId
@@ -769,7 +776,7 @@ components:
             required: true
             schema:
                 type: string
-                pattern: '^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*''%\/?#]+$'
+                pattern: ^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*'%\/?#]+$
                 maxLength: 256
         Authorization:
             name: Authorization
@@ -797,7 +804,7 @@ components:
             required: false
             schema:
                 type: string
-                pattern: '^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} (GMT|UTC)$'
+                pattern: ^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} (GMT|UTC)$
                 minLength: 29
                 maxLength: 29
         xFapiCustomerIpAddress:
@@ -813,11 +820,11 @@ components:
         xFapiInteractionId:
             name: x-fapi-interaction-id
             in: header
-            description: 'Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.'
+            description: Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
             required: false
             schema:
                 type: string
-                pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+                pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
                 minLength: 1
                 maxLength: 100
     securitySchemes:
@@ -825,7 +832,7 @@ components:
             type: oauth2
             flows:
                 clientCredentials:
-                    tokenUrl: 'https://authserver.example/token'
+                    tokenUrl: https://authserver.example/token
                     scopes:
                         consents: Criação do consentimento.
     responses:
@@ -836,13 +843,19 @@ components:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         BadRequest:
-            description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
+            description: A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.
             content:
                 application/json; charset=utf-8:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         Forbidden:
             description: O token tem escopo incorreto ou uma política de segurança foi violada
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        GatewayTimeout:
+            description: GATEWAY TIMEOUT - A requisição não foi atendida dentro do tempo limite estabelecido
             content:
                 application/json; charset=utf-8:
                     schema:
@@ -872,13 +885,13 @@ components:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         TooManyRequests:
-            description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
+            description: A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido
             content:
                 application/json; charset=utf-8:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         UnprocessableEntity:
-            description: 'A sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes.'
+            description: A sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes.
             content:
                 application/json; charset=utf-8:
                     schema:
@@ -890,11 +903,67 @@ components:
                     schema:
                         $ref: '#/components/schemas/ResponseError'
         SiteIsOverloaded:
-            description: 'O site está sobrecarregado e a operação foi recusada, pois foi atingido o limite máximo de TPS global, neste momento.'
+            description: O site está sobrecarregado e a operação foi recusada, pois foi atingido o limite máximo de TPS global, neste momento.
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseErrorMetaSingle'
+                        type: object
+                        required:
+                            - errors
+                        properties:
+                            errors:
+                                type: array
+                                minItems: 1
+                                maxItems: 13
+                                items:
+                                    type: object
+                                    required:
+                                        - code
+                                        - title
+                                        - detail
+                                    properties:
+                                        code:
+                                            description: Código de erro específico do endpoint
+                                            type: string
+                                            pattern: '[\w\W\s]*'
+                                            maxLength: 255
+                                        title:
+                                            description: Título legível por humanos deste erro específico
+                                            type: string
+                                            pattern: '[\w\W\s]*'
+                                            maxLength: 255
+                                        detail:
+                                            description: Descrição legível por humanos deste erro específico
+                                            type: string
+                                            pattern: '[\w\W\s]*'
+                                            maxLength: 2048
+                                    additionalProperties: false
+                            meta:
+                                type: object
+                                description: Meta informações referente à API requisitada.
+                                required:
+                                    - totalRecords
+                                    - totalPages
+                                    - requestDateTime
+                                properties:
+                                    totalRecords:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de registros no resultado
+                                        example: 1
+                                    totalPages:
+                                        type: integer
+                                        format: int32
+                                        description: Número total de páginas no resultado
+                                        example: 1
+                                    requestDateTime:
+                                        description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
+                                        type: string
+                                        maxLength: 20
+                                        format: date-time
+                                        example: '2021-05-21T08:30:00Z'
+                                additionalProperties: false
+                        additionalProperties: false
         201ConsentsCreated:
             description: Consentimento criado com sucesso.
             headers:
@@ -904,7 +973,7 @@ components:
                         Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
                     schema:
                         type: string
-                        pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
                         minLength: 1
                         maxLength: 100
                         example: 73cac523-d3ae-2289-b106-330a6218710d
@@ -921,7 +990,7 @@ components:
                         Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
                     schema:
                         type: string
-                        pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
                         minLength: 1
                         maxLength: 100
                         example: 92cac523-d3ae-2289-b106-330a6218710d
@@ -938,7 +1007,7 @@ components:
                         Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
                     schema:
                         type: string
-                        pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
                         minLength: 1
                         maxLength: 100
                         example: 85bac523-d3ae-2289-b106-330a6218710d

@@ -10,7 +10,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/resourcesAPI/resourcesAPIResponse.json")
+@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponse.json")
 public class ResourcesResponseValidatorTestV2 extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
@@ -20,7 +20,7 @@ public class ResourcesResponseValidatorTestV2 extends AbstractJsonResponseCondit
 	}
 
 	@Test
-	@UseResurce("jsonResponses/resourcesAPI/resourcesAPIResponseWithError.json")
+	@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponseWithError.json")
 	public void validateStructureWithMissingField() {
 
 		ConditionError error = runAndFail(new ResourcesResponseValidatorV2());
@@ -28,7 +28,7 @@ public class ResourcesResponseValidatorTestV2 extends AbstractJsonResponseCondit
 	}
 
 	@Test
-	@UseResurce("jsonResponses/resourcesAPI/resourcesAPIResponseWrongEnum.json")
+	@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponseWrongEnum.json")
 	public void validateStructureWithWrongEnum() {
 
 		ConditionError error = runAndFail(new ResourcesResponseValidatorV2());
@@ -36,7 +36,7 @@ public class ResourcesResponseValidatorTestV2 extends AbstractJsonResponseCondit
 	}
 
 	@Test
-	@UseResurce("jsonResponses/resourcesAPI/resourcesAPIResponseWrongPattern.json")
+	@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponseWrongPattern.json")
 	public void validateStructureWithWrongPattern() {
 
 		ConditionError error = runAndFail(new ResourcesResponseValidatorV2());
