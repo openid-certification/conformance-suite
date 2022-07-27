@@ -6,7 +6,6 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.models.external.OBBrasilConsentPermissions;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,8 +13,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -31,7 +28,7 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private FAPIBrazilCreateConsentRequest condition;
+	private FAPIBrazilOpenBankingCreateConsentRequest condition;
 
 	@Test
 	public void expectsACPF() {
@@ -43,7 +40,7 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 		try {
 			condition.execute(env);
 		} catch(ConditionError ce) {
-			assertThat(ce.getMessage(), equalTo("FAPIBrazilCreateConsentRequest: A least one of CPF and CNPJ must be specified in the test configuration"));
+			assertThat(ce.getMessage(), equalTo("FAPIBrazilOpenBankingCreateConsentRequest: A least one of CPF and CNPJ must be specified in the test configuration"));
 		}
 
 	}
@@ -150,7 +147,7 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		condition = new FAPIBrazilCreateConsentRequest();
+		condition = new FAPIBrazilOpenBankingCreateConsentRequest();
 
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}

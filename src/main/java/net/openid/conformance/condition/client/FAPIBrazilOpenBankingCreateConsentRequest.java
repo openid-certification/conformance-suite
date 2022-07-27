@@ -9,10 +9,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.models.external.OpenBankingBrasilConsentRequest;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
+public class FAPIBrazilOpenBankingCreateConsentRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config" )

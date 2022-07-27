@@ -865,7 +865,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 			updatePaymentConsent();
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), false);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(),
+			false,
+			addTokenEndpointClientAuthentication,
+			brazilPayments.isTrue(),
+			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL,
+			false);
 		return steps;
 	}
 
