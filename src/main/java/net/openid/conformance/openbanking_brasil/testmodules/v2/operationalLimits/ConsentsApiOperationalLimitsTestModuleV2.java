@@ -36,7 +36,7 @@ import net.openid.conformance.util.JsonUtils;
 		"mtls.ca",
 		"consent.productType",
 		"resource.brazilCpfOperational",
-		"resource.brazilCnpjOperational"
+		"resource.brazilCnpjOperationalBusiness"
 	}
 )
 public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctionalTestModule {

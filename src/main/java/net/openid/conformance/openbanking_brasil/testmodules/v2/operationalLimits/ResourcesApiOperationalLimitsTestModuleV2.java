@@ -44,8 +44,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
-		"resource.brazilCpfOperational",
-		"resource.brazilCnpjOperational",
+		"resource.brazilCpfOperationalBusiness",
+		"resource.brazilCnpjOperationalBusiness",
 		"consent.productType"
 	}
 )
