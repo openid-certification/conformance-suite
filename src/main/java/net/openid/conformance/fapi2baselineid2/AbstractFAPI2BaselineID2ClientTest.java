@@ -891,7 +891,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		if ((profile == FAPI2ID2OPProfile.IDMVP) || (profile == FAPI2ID2OPProfile.PLAIN_FAPI && fapiClientType == FAPIClientType.OIDC)) {
+		if (profile == FAPI2ID2OPProfile.IDMVP) {
 			// for IDMVP we use the userinfo endpoint as the resource endpoint, so this is the end of the test
 			resourceEndpointCallComplete();
 		} else {
