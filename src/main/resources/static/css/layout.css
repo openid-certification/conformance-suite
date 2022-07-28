@@ -8,6 +8,11 @@ body.openbankingbrazil a.adminLogin {
 	visibility: hidden;
 }
 
+.tooltip {
+	word-wrap: break-word;
+	word-break: break-word;
+}
+
 .pageHeader {
 	margin-top: 5px;
 	margin-bottom: 20px;
