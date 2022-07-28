@@ -44,6 +44,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
+		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
 		"consent.productType"

@@ -27,6 +27,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
+		"resource.brazilCnpj",
+		"resource.brazilCpfOperationalPersonal",
+		"resource.brazilCpfOperationalBusiness",
+		"resource.brazilCnpjOperationalBusiness",
         "directory.client_id"
 	}
 )

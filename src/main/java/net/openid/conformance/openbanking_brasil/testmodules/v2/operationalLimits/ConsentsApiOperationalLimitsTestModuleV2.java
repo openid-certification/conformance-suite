@@ -35,7 +35,8 @@ import net.openid.conformance.util.JsonUtils;
 		"mtls.cert",
 		"mtls.ca",
 		"consent.productType",
-		"resource.brazilCpfOperational",
+		"resource.brazilCpfOperationalPersonal",
+		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness"
 	}
 )

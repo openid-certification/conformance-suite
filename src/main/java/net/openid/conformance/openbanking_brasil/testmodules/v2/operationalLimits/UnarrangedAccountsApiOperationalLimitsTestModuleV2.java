@@ -51,6 +51,7 @@ import net.openid.conformance.variant.ClientAuthType;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
+		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
 		"consent.productType"
