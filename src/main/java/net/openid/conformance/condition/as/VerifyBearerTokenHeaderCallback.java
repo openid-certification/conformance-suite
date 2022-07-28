@@ -36,7 +36,7 @@ public class VerifyBearerTokenHeaderCallback extends AbstractCondition {
 		String[] authorizationContentElements = authorizationContent.split("( )+");
 
 		if (authorizationContentElements.length == 2
-			&& authorizationContentElements[0].equals("Bearer")
+			&& authorizationContentElements[0].equalsIgnoreCase("Bearer")
 			&& authorizationContentElements[1].equals(env.getString("client_notification_token"))) {
 			logSuccess("'Authorization' header in notification callback contained client_notification_token.");
 		} else {
