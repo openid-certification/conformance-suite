@@ -27,7 +27,7 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 		Boolean operationalLimitTest = env.getBoolean("operational_limit_consent");
 		if (operationalLimitTest != null && operationalLimitTest){
 			if (productType.equals("business")) {
-				log("Product type business was chosen, proceeding with Business CPF and Business CNPJ");
+				log("Product type business was chosen, proceeding with Business CPF and Business CNPJ.");
 
 				cpf  = env.getString("config", "resource.brazilCpfOperationalBusiness");
 				cnpj = env.getString("config", "resource.brazilCnpjOperationalBusiness");
