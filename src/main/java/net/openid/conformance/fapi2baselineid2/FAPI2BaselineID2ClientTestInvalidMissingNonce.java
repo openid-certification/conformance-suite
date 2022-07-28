@@ -31,7 +31,7 @@ public class FAPI2BaselineID2ClientTestInvalidMissingNonce extends AbstractFAPI2
 	protected void endTestIfRequiredParametersAreMissing() {
 		String nonce = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.NONCE);
 		if(Strings.isNullOrEmpty(nonce)) {
-			fireTestSkipped("This test is being skipped as it relies on the client supplying a nonce value - since none is supplied, this can not be tested.");
+			fireTestSkipped("This test is being skipped as it relies on the client supplying an OPTIONAL nonce value - since none is supplied, this can not be tested. PKCE prevents CSRF so this is acceptable and will not prevent certification.");
 		}
 	}
 

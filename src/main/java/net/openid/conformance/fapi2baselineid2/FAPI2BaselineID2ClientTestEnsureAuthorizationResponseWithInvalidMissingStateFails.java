@@ -1,19 +1,16 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import com.google.common.base.Strings;
-import net.openid.conformance.condition.as.AddInvalidStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveStateFromAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-ensure-authorization-response-with-invalid-missing-state-fails",
-	displayName = "FAPI2-Baseline-ID2: sends an authorization endpoint response with an invalid state value.",
+	displayName = "FAPI2-Baseline-ID2: sends an authorization endpoint response with a missing state value which the client should reject",
 	summary = "This test should end with the client displaying an error message that the state value in the authorization endpoint response is invalid. If the client does not send a state value the test result will be SKIPPED.",
 	profile = "FAPI2-Baseline-ID2",
 	configurationFields = {
@@ -36,7 +33,7 @@ public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMis
 	protected void endTestIfRequiredParametersAreMissing() {
 		String state = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.STATE);
 		if(Strings.isNullOrEmpty(state)) {
-			fireTestSkipped("This test is being skipped as it relies on the client supplying a state value - since none is supplied, this can not be tested.");
+			fireTestSkipped("This test is being skipped as it relies on the client supplying an OPTIONAL state value - since none is supplied, this can not be tested. PKCE prevents CSRF so this is acceptable and will not prevent certification.");
 		}
 	}
 
