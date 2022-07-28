@@ -2,20 +2,7 @@
     {
         "AuthorisationServers": [
             {
-                "OpenIDDiscoveryDocument": "WellKnown URL 1"
-            },
-            {
-                "OpenIDDiscoveryDocument": "WellKnown URL 2"
-            }
-        ]
-    },
-    {
-        "AuthorisationServers": [
-            {
-                "OpenIDDiscoveryDocument": "WellKnown URL 3"
-            },
-            {
-                "OpenIDDiscoveryDocument": "WellKnown URL 4"
+                "blah": "WellKnown URL 1"
             }
         ]
     }
