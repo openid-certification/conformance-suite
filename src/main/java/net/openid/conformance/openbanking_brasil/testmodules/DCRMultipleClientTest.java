@@ -44,7 +44,7 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 	protected void callRegistrationEndpoint() {
 		eventLog.startBlock("Create First Client - Expect 200");
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
-		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");;
+		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 		eventLog.endBlock();
 
 		eventLog.startBlock("Create Second Client - Expect 400");
