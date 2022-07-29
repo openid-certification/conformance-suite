@@ -45,7 +45,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	}
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.client_id",
 	"client.org_jwks"
 })
 public class ConsentApiTestModuleV2 extends AbstractClientCredentialsGrantFunctionalTestModule {

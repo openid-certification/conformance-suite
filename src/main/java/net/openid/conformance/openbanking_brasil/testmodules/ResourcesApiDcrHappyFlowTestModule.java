@@ -29,8 +29,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	"client.org_jwks",
 	"resource.brazilOrganizationId",
 	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment",
-	"directory.client_id"
+	"resource.brazilPixPayment"
 })
 public class ResourcesApiDcrHappyFlowTestModule extends AbstractApiDcrTestModule {
 
