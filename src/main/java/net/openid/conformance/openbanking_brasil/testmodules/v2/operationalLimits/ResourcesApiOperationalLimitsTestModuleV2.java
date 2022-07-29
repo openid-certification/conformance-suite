@@ -50,11 +50,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	}
 )
 
-
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.client_id"
-})
-
 public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private int currentBatch = 1;

@@ -4,19 +4,15 @@ body {
 	font-size: 16px;
 }
 
-body.openbankingbrazil a.adminLogin {
-	visibility: hidden;
+.pageHeader {
+	margin-top: 5px;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
 }
 
 .tooltip {
 	word-wrap: break-word;
 	word-break: break-word;
-}
-
-.pageHeader {
-	margin-top: 5px;
-	margin-bottom: 20px;
-	padding-bottom: 10px;
 }
 
 .pageHeader img {
