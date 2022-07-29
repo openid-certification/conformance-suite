@@ -4,10 +4,6 @@ body {
 	font-size: 16px;
 }
 
-body.openbankingbrazil a.adminLogin {
-	visibility: hidden;
-}
-
 .pageHeader {
 	margin-top: 5px;
 	margin-bottom: 20px;
