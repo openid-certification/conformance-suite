@@ -4,7 +4,7 @@
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "ChuckWarning",
+        "condition": "EnsureResponseCodeWas200",
         "expected-result": "failure",
         "comment": "mock bank bank is not fully compliant"
     },
@@ -13,7 +13,7 @@
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "ChuckWarning",
+        "condition": "EnsureResponseCodeWas200",
         "expected-result": "failure",
         "comment": "not currently possible to test against mock bank"
     },
@@ -22,7 +22,7 @@
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "ChuckWarning",
+        "condition": "EnsureResponseCodeWas200",
         "expected-result": "failure",
         "comment": "not currently possible to test against mock bank"
     },
@@ -31,7 +31,7 @@
         "variant": "*",
         "configuration-filename": "./scripts/configs/generated-payment-config.json",
         "current-block": "Validate response",
-        "condition": "ChuckWarning",
+        "condition": "EnsureResponseCodeWas200",
         "expected-result": "failure",
         "comment": "not currently possible to test against mock bank"
     },
