@@ -222,19 +222,27 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     }
 
     protected void validateSelfLink(String selfLink, String consentIdField){
-    	final String consent_regex = "consents/v1/consents/";
+    	final String consent_regex_v1 = "consents/v1/consents/";
+		final String consent_regex_v2 = "consents/v2/consents/";
     	final String consent_payment_regex = "payments/v1/consents";
-    	if(selfLink.contains(consent_regex)){
-			String consentID = selfLink.split(consent_regex)[1];
-			if(consentID.isBlank() || consentID.isEmpty()){
-				throw error("Consent ID needs to be attached to the self link post creation");
-			} else {
-				if(consentID.equalsIgnoreCase(consentIdField)){
-					logSuccess("Consent ID in self link matches the consent ID in the returned object");
-				}
-			}
-		} else if(!selfLink.contains(consent_payment_regex)){
+    	if (selfLink.contains(consent_regex_v1)){
+			String consentId = selfLink.split(consent_regex_v1)[1];
+			validateConsentId(consentId, consentIdField);
+		} else if (selfLink.contains(consent_regex_v2)) {
+			String consentId = selfLink.split(consent_regex_v2)[1];
+			validateConsentId(consentId, consentIdField);
+		} else if (!selfLink.contains(consent_payment_regex)){
     		throw error("Invalid 'self' link URI. URI: " + selfLink);
+		}
+	}
+
+	protected void validateConsentId(String consentId, String consentIdField) {
+		if(consentId.isBlank() || consentId.isEmpty()){
+			throw error("Consent ID needs to be attached to the self link post creation");
+		} else {
+			if(consentId.equalsIgnoreCase(consentIdField)){
+				logSuccess("Consent ID in self link matches the consent ID in the returned object");
+			}
 		}
 	}
 }
