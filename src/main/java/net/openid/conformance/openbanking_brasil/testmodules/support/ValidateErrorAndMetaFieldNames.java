@@ -7,12 +7,15 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.util.field.*;
+import org.springframework.http.HttpStatus;
 
 import java.text.ParseException;
 import java.util.Set;
 
 public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingCondition {
 	private Set<String> errorCodes;
+	private int numberOfErrorRecords;
+	private int status;
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -39,12 +42,11 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 		}
 		JsonObject claims = decodedJwt.getAsJsonObject("claims");
 
-
-		assertField(claims,
-			new ObjectField
-				.Builder("meta")
-				.setValidator(this::assertMeta)
-				.build());
+		if (apiResponse.has("status")) {
+			status = OIDFJSON.getInt(apiResponse.get("status"));
+		} else {
+			throw error("Could not get status from the response", args("apiResponse", apiResponse));
+		}
 
 		assertField(claims,
 			new ObjectArrayField
@@ -53,16 +55,31 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				.setMinItems(1)
 				.build());
 
+		numberOfErrorRecords = findByPath(claims, "errors").getAsJsonArray().size();
+
+		assertField(claims,
+			new ObjectField
+				.Builder("meta")
+				.setValidator(this::assertMeta)
+				.setOptional()
+				.build());
 		return env;
 	}
 
 	private void assertError(JsonObject error) {
 		String pattern = "[\\w\\W\\s]*";
 
+		StringField.Builder codeFieldBuilder = new StringField.Builder("code");
+
+		if (status == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
+			codeFieldBuilder.setEnums(errorCodes);
+		}else {
+			codeFieldBuilder.setPattern(pattern);
+			codeFieldBuilder.setMaxLength(255);
+		}
+
 		assertField(error,
-			new StringField
-				.Builder("code")
-				.setEnums(errorCodes)
+			codeFieldBuilder
 				.build());
 
 		assertField(error,
@@ -88,13 +105,25 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	private void assertMeta(JsonObject meta) {
 		assertField(meta,
 			new IntField
-				.Builder("totalRecords")
+				.Builder("totalPages")
+				.setMinValue(1)
 				.build());
 
-		assertField(meta,
-			new IntField
-				.Builder("totalPages")
-				.build());
+		int totalPages = OIDFJSON.getInt(findByPath(meta, "totalPages"));
+
+
+		IntField.Builder totalRecordsFieldBuilder = new IntField
+			.Builder("totalRecords")
+			.setMinValue(numberOfErrorRecords);
+
+
+		if (totalPages == 1) {
+			totalRecordsFieldBuilder.setMaxValue(numberOfErrorRecords);
+		}
+
+
+		assertField(meta, totalRecordsFieldBuilder.build());
+
 
 		assertField(meta,
 			new DatetimeField
