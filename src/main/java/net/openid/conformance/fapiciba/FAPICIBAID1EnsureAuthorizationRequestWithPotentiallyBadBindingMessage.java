@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
 	displayName = "FAPI-CIBA-ID1: Test with a potentially bad binding message, the server should authenticate successfully or return the invalid_binding_message error",
-	summary = "This test tries sending a potentially bad binding message to authorization endpoint request. The server should either authenticate successfully showing the correct binding message (a screenshot/photo of which should be uploaded) or return the invalid_binding_message error.",
+	summary = "This test tries sending a potentially bad binding message to authorization endpoint request - i.e. a message that the Authentication Device may not be able to display, as it is quite long and contains various non-ASCII characters. The server should either:\n\n * showing the correct binding message (a screenshot/photo of which should be uploaded) and the users successfully authenticates\n\n * or, if it is unable to display the message, return the invalid_binding_message error.\n\nThe binding message used is:\n\n" + AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest.POTENTIALLY_BAD_BINDING_MESSAGE,
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",

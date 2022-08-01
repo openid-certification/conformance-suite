@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest extends AbstractCondition {
 
-	private static final String POTENTIALLY_BAD_BINDING_MESSAGE = "1234 \uD83D\uDC4D\uD83C\uDFFF 品川 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+	public static final String POTENTIALLY_BAD_BINDING_MESSAGE = "1234 \uD83D\uDC4D\uD83C\uDFFF 品川 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
