@@ -1,12 +1,9 @@
 {
     "data": [
         {
-            "contractId": "92792126019929279212650822221989319252576",
-            "brandName": "Organização A",
-            "companyCnpj": "21128159000166",
-            "productType": "Error",
-            "productSubType": "CREDITO_PESSOAL_COM_CONSIGNACAO",
-            "ipocCode": "92792126019929279212650822221989319252576"
+            "resourceId": "25cac914-d8ae-6789-b215-650a6215820d",
+            "type": "ACCOUNTTTTT",
+            "status": "AVAILABLE"
         }
     ],
     "links": {

@@ -39,18 +39,18 @@ info:
         ### `/contracts/{contractId}/payments`
           - permissions:
             - GET: **FINANCINGS_PAYMENTS_READ**
-    version: 2.0.0
+    version: 2.0.1
     license:
         name: Apache 2.0
-        url: 'https://www.apache.org/licenses/LICENSE-2.0'
+        url: https://www.apache.org/licenses/LICENSE-2.0
     contact:
         name: Governança do Open Banking Brasil – Especificações
         email: gt-interfaces@openbankingbr.org
-        url: 'https://openbanking-brasil.github.io/areadesenvolvedor/'
+        url: https://openbanking-brasil.github.io/areadesenvolvedor/
 servers:
-    - url: 'https://api.banco.com.br/open-banking/financings/v2'
+    - url: https://api.banco.com.br/open-banking/financings/v2
       description: Servidor de Produção
-    - url: 'https://apih.banco.com.br/open-banking/financings/v2'
+    - url: https://apih.banco.com.br/open-banking/financings/v2
       description: Servidor de Homologação
 tags:
     - name: Financings
@@ -94,6 +94,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -102,9 +104,9 @@ paths:
                 - OpenId:
                       - openid
                   OAuth2Security:
-                      - 'consent:consentId'
+                      - consent:consentId
                       - financings
-    '/contracts/{contractId}':
+    /contracts/{contractId}:
         get:
             tags:
                 - Financings
@@ -141,6 +143,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -149,9 +153,9 @@ paths:
                 - OpenId:
                       - openid
                   OAuth2Security:
-                      - 'consent:consentId'
+                      - consent:consentId
                       - financings
-    '/contracts/{contractId}/warranties':
+    /contracts/{contractId}/warranties:
         get:
             tags:
                 - Financings
@@ -191,6 +195,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -199,9 +205,9 @@ paths:
                 - OpenId:
                       - openid
                   OAuth2Security:
-                      - 'consent:consentId'
+                      - consent:consentId
                       - financings
-    '/contracts/{contractId}/scheduled-instalments':
+    /contracts/{contractId}/scheduled-instalments:
         get:
             tags:
                 - Financings
@@ -241,6 +247,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -249,9 +257,9 @@ paths:
                 - OpenId:
                       - openid
                   OAuth2Security:
-                      - 'consent:consentId'
+                      - consent:consentId
                       - financings
-    '/contracts/{contractId}/payments':
+    /contracts/{contractId}/payments:
         get:
             tags:
                 - Financings
@@ -291,6 +299,8 @@ paths:
                     $ref: '#/components/responses/TooManyRequests'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+                '504':
+                    $ref: '#/components/responses/GatewayTimeout'
                 '529':
                     $ref: '#/components/responses/SiteIsOverloaded'
                 default:
@@ -299,10 +309,43 @@ paths:
                 - OpenId:
                       - openid
                   OAuth2Security:
-                      - 'consent:consentId'
+                      - consent:consentId
                       - financings
 components:
     schemas:
+        ResponseErrorWithAbleAdditionalProperties:
+            type: object
+            required:
+                - errors
+            properties:
+                errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 13
+                    items:
+                        type: object
+                        required:
+                            - code
+                            - title
+                            - detail
+                        properties:
+                            code:
+                                description: Código de erro específico do endpoint
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 255
+                            title:
+                                description: Título legível por humanos deste erro específico
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 255
+                            detail:
+                                description: Descrição legível por humanos deste erro específico
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 2048
+                meta:
+                    $ref: '#/components/schemas/Meta'
         ResponseFinancingsContractList:
             type: object
             required:
@@ -510,9 +553,9 @@ components:
                 preFixedRate:
                     type: string
                     format: double
-                    maxLength: 8
+                    maxLength: 9
                     minLength: 8
-                    pattern: '^[01]\.\d{6}$'
+                    pattern: ^\d{1,2}\.\d{6}$
                     example: '0.600000'
                     description: |
                         Taxa pré fixada aplicada sob o contrato da modalidade crédito. p.ex. 0.014500.
@@ -520,9 +563,9 @@ components:
                 postFixedRate:
                     type: string
                     format: double
-                    maxLength: 8
+                    maxLength: 9
                     minLength: 8
-                    pattern: '^[01]\.\d{6}$'
+                    pattern: ^\d{1,2}\.\d{6}$
                     example: '0.550000'
                     description: |
                         Taxa pós fixada aplicada sob o contrato da modalidade crédito. p.ex. 0.014500.
@@ -540,13 +583,14 @@ components:
             type: object
             description: Lista que traz as datas de vencimento e valor das parcelas não regulares  do contrato da modalidade de crédito consultada.
             required:
+                - dueDate
                 - amount
             properties:
                 dueDate:
                     type: string
                     format: date
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
-                    description: 'Data de vencimento da parcela não regular  a vencer do contrato da modalidade de crédito consultada, conforme especificação RFC-3339. p.ex. 2014-03-19'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
+                    description: Data de vencimento da parcela não regular  a vencer do contrato da modalidade de crédito consultada, conforme especificação RFC-3339. p.ex. 2014-03-19
                     maxLength: 10
                     example: '2020-01-10'
                 amount:
@@ -561,16 +605,16 @@ components:
                 amount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
                     description: Valor monetário da parcela não regular a vencer. Expresso em valor monetário com no mínimo 2 casas e no máximo 4 casas decimais.
                 currency:
                     type: string
-                    pattern: '^[A-Z]{3}$'
+                    pattern: ^[A-Z]{3}$
                     maxLength: 3
-                    description: 'Moeda referente ao valor monetário, seguindo o modelo ISO-4217.'
+                    description: Moeda referente ao valor monetário, seguindo o modelo ISO-4217.
                     example: BRL
         FinancingsChargeOverParcel:
             type: object
@@ -583,7 +627,7 @@ components:
                 chargeAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -616,14 +660,14 @@ components:
                 contractNumber:
                     type: string
                     maxLength: 100
-                    pattern: '^\d{1,100}$'
+                    pattern: ^\d{1,100}$
                     example: '1324926521496'
                     description: Número do contrato dado pela instituição contratante.
                 ipocCode:
                     type: string
                     maxLength: 67
                     minLength: 22
-                    pattern: '^\d{22,67}$'
+                    pattern: ^\d{22,67}$
                     description: |
                         "Número padronizado do contrato - IPOC (Identificação Padronizada da Operação de Crédito). Segundo DOC 3040, composta por:
                         - **CNPJ da instituição:** 8 (oito) posições iniciais;
@@ -650,7 +694,7 @@ components:
                     type: string
                     format: date
                     maxLength: 10
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                     example: '2018-01-05'
                     description: Data de contratação da operação de crédito. Especificação RFC-3339
                 disbursementDates:
@@ -662,7 +706,7 @@ components:
                         type: string
                         format: date
                         maxLength: 10
-                        pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                        pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                         example: '2018-01-15'
                         description: |
                             Data do Desembolso do valor contratado. Especificação RFC-3339.
@@ -671,21 +715,21 @@ components:
                     type: string
                     format: date
                     maxLength: 10
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                     example: '2018-01-15'
                     description: |
                         Data de liquidação da operação.
                 contractAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
                     description: Valor contratado da operação. Expresso em valor monetário com no mínimo 2 casas e no máximo 4 casas decimais.
                 currency:
                     type: string
-                    pattern: '^(\w{3}){1}$'
+                    pattern: ^(\w{3}){1}$
                     maxLength: 3
                     description: |
                         Moeda referente ao valor da garantia, segundo modelo ISO-4217. p.ex. 'BRL'
@@ -695,7 +739,7 @@ components:
                     type: string
                     format: date
                     maxLength: 10
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                     example: '2028-01-15'
                     description: |
                         Data de vencimento Final da operação. Especificação RFC-3339.
@@ -728,16 +772,16 @@ components:
                     type: string
                     format: date
                     maxLength: 10
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                     example: '2018-02-15'
                     description: |
                         Data de vencimento primeira parcela do principal.
                 CET:
                     type: string
                     format: double
-                    maxLength: 8
+                    maxLength: 9
                     minLength: 8
-                    pattern: '^[01]\.\d{6}$'
+                    pattern: ^\d{1,2}\.\d{6}$
                     example: '0.290000'
                     description: |
                         CET – Custo Efetivo Total deve ser expresso na forma de taxa percentual anual e incorpora todos os encargos e despesas incidentes nas operações de crédito (taxa de juro, mas também tarifas, tributos, seguros e outras despesas cobradas).
@@ -771,13 +815,14 @@ components:
                     minItems: 0
                     description: |
                         Objeto que traz o conjunto de informações necessárias para demonstrar a composição das taxas de juros remuneratórios da Modalidade de crédito.
+                        Caso o contrato não possua taxas de juros, deve ser compartilhada uma lista vazia. Caso o contrato possua uma taxa de juros com valor 0, deve ser compartilhado um objeto com o valor 0 de forma explícita.
                     items:
                         $ref: '#/components/schemas/FinancingsContractInterestRate'
                 contractedFees:
                     type: array
                     minItems: 0
                     description: |
-                        Lista que traz o conjunto de informações necessárias para demonstrar a composição das taxas de juros remuneratórios da Modalidade de crédito
+                        Lista que traz as informações das tarifas pactuadas no contrato.
                     items:
                         $ref: '#/components/schemas/FinancingsContractFee'
                 contractedFinanceCharges:
@@ -831,7 +876,7 @@ components:
                 feeAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -844,9 +889,9 @@ components:
                     format: double
                     maxLength: 8
                     minLength: 8
-                    pattern: '^[01]\.\d{6}$'
+                    pattern: ^[01]\.\d{6}$
                     description: |
-                        Objeto que traz o conjunto de informações necessárias para demonstrar a composição das taxas de juros remuneratórios da Modalidade de crédito.
+                        É o valor da tarifa em percentual pactuada no contrato.
 
                         [Restrição] Preenchimento obrigatório quando a forma de cobrança for Percentual.
                     example: '0.200000'
@@ -874,7 +919,7 @@ components:
                 feeAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -902,7 +947,7 @@ components:
                 chargeRate:
                     type: string
                     format: double
-                    pattern: '^[01]\.\d{6}$'
+                    pattern: ^[01]\.\d{6}$
                     maxLength: 8
                     minLength: 8
                     description: |
@@ -952,11 +997,11 @@ components:
                     description: |
                         Prazo Remanescente segundo o tipo (dia, semana, mês, ano) referente à Modalidade de Crédito informada.
 
-                        [Restrição] Obrigatoriamente deve ser preenchido caso o typeNumberOfInstalments seja diferente de SEM_PRAZO_REMANESCENTE.
+                        [Restrição] Obrigatoriamente deve ser preenchido caso o typeContractRemaining seja diferente de SEM_PRAZO_REMANESCENTE.
                     example: 14600
                 paidInstalments:
                     type: number
-                    description: 'Quantidade de prestações pagas. (No caso de modalidades que não possuam parcelas, o número de prestações é igual a zero)'
+                    description: Quantidade de prestações pagas. (No caso de modalidades que não possuam parcelas, o número de prestações é igual a zero)
                     maximum: 999
                     example: 73
                 dueInstalments:
@@ -994,20 +1039,20 @@ components:
             properties:
                 contractId:
                     type: string
-                    pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$'
+                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$
                     maxLength: 100
                     example: '92792126019929279212650822221989319252576'
-                    description: 'Identifica de forma única o contrato da operação de crédito do cliente, mantendo as regras de imutabilidade dentro da instituição transmissora.'
+                    description: Identifica de forma única o contrato da operação de crédito do cliente, mantendo as regras de imutabilidade dentro da instituição transmissora.
                 brandName:
                     type: string
                     pattern: '[\w\W\s]*'
                     maxLength: 80
                     example: Organização A
-                    description: 'Nome da Marca reportada pelo participante no Open Finance. Recomenda-se utilizar, sempre que possível, o mesmo nome de marca atribuído no campo do diretório Customer Friendly Server Name (Authorisation Server).'
+                    description: Nome da Marca reportada pelo participante no Open Finance. Recomenda-se utilizar, sempre que possível, o mesmo nome de marca atribuído no campo do diretório Customer Friendly Server Name (Authorisation Server).
                 companyCnpj:
                     type: string
-                    pattern: '^\d{14}$'
-                    description: 'Número completo do CNPJ da instituição responsável pelo Cadastro - o CNPJ corresponde ao número de inscrição no Cadastro de Pessoa Jurídica. Deve-se ter apenas os números do CNPJ, sem máscara.'
+                    pattern: ^\d{14}$
+                    description: Número completo do CNPJ da instituição responsável pelo Cadastro - o CNPJ corresponde ao número de inscrição no Cadastro de Pessoa Jurídica. Deve-se ter apenas os números do CNPJ, sem máscara.
                     maxLength: 14
                     example: '21128159000166'
                 productType:
@@ -1018,7 +1063,7 @@ components:
                     type: string
                     maxLength: 67
                     minLength: 22
-                    pattern: '^\d{22,67}$'
+                    pattern: ^\d{22,67}$
                     example: '92792126019929279212650822221989319252576'
                     description: |
                         Número padronizado do contrato - IPOC (Identificação Padronizada da Operação de Crédito). Segundo DOC 3040, composta por:
@@ -1035,7 +1080,7 @@ components:
             description: |
                 Objeto das tarifas e encargos que foram pagos fora da parcela.
 
-                [Restrição] Informação deve ser enviada caso ela exista, torna-se obrigatório caso haja parcelamento.
+                [Restrição] Informação deve ser enviada caso ela exista.
             required:
                 - fees
                 - charges
@@ -1045,7 +1090,7 @@ components:
                     minItems: 0
                     items:
                         $ref: '#/components/schemas/FinancingsFeeOverParcel'
-                    description: 'Lista das tarifas que foram pagas fora da parcela, só para pagamento avulso.'
+                    description: Lista das tarifas que foram pagas fora da parcela, só para pagamento avulso.
                 charges:
                     type: array
                     minItems: 0
@@ -1070,7 +1115,7 @@ components:
                 contractOutstandingBalance:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -1086,7 +1131,6 @@ components:
             description: Lista dos pagamentos realizados no período
             required:
                 - isOverParcelPayment
-                - instalmentId
                 - paidDate
                 - currency
                 - paidAmount
@@ -1096,7 +1140,7 @@ components:
                     maxLength: 100
                     minLength: 1
                     example: XlthLXpBLVowLTldW2EtekEtWjAtOVwtXXswLDk5fSQ
-                    pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$'
+                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$
                     description: Identificador de pagamento de responsabilidade de cada Instituição transmissora.
                 isOverParcelPayment:
                     type: boolean
@@ -1106,20 +1150,22 @@ components:
                     type: string
                     maxLength: 100
                     minLength: 1
-                    pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$'
+                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$
                     example: WGx0aExYcEJMVm93TFRsZFcyRXRla0V0V2pBdE9Wd3RYWH
-                    description: 'Identificador de parcela, de responsabilidade de cada Instituição transmissora.'
+                    description: |
+                        Identificador de parcela, de responsabilidade de cada Instituição transmissora.
+                        [Restrição] Informação de envio obrigatório quando isOverParcelPayment tiver o valor FALSE.
                 paidDate:
                     type: string
                     format: date
                     maxLength: 10
-                    pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+                    pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
                     example: '2021-05-21'
-                    description: 'Data efetiva do pagamento referente ao contrato da modalidade de crédito consultada, conforme especificação RFC-3339. p.ex. 2014-03-19'
+                    description: Data efetiva do pagamento referente ao contrato da modalidade de crédito consultada, conforme especificação RFC-3339. p.ex. 2014-03-19
                 currency:
                     type: string
                     maxLength: 3
-                    pattern: '^(\w{3}){1}$'
+                    pattern: ^(\w{3}){1}$
                     example: BRL
                     description: |
                         Moeda referente ao valor monetário informado, segundo modelo ISO-4217. p.ex. 'BRL'.
@@ -1127,7 +1173,7 @@ components:
                 paidAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -1145,13 +1191,13 @@ components:
             properties:
                 currency:
                     type: string
-                    pattern: '^(\w{3}){1}$'
+                    pattern: ^(\w{3}){1}$
                     maxLength: 3
-                    description: 'Moeda referente ao valor da garantia, segundo modelo ISO-4217. p.ex. ''BRL''. Todos os valores monetários informados estão representados com a moeda vigente do Brasil'
+                    description: Moeda referente ao valor da garantia, segundo modelo ISO-4217. p.ex. 'BRL'. Todos os valores monetários informados estão representados com a moeda vigente do Brasil
                     example: BRL
                 warrantyType:
                     type: string
-                    description: 'Denominação/Identificação do tipo da garantia que avaliza a Modalidade da Operação de Crédito contratada  (Doc 3040, Anexo 12)'
+                    description: Denominação/Identificação do tipo da garantia que avaliza a Modalidade da Operação de Crédito contratada  (Doc 3040, Anexo 12)
                     enum:
                         - CESSAO_DIREITOS_CREDITORIOS
                         - CAUCAO
@@ -1229,7 +1275,7 @@ components:
                 warrantyAmount:
                     type: string
                     format: double
-                    pattern: '^\d{1,15}\.\d{2,4}$'
+                    pattern: ^\d{1,15}\.\d{2,4}$
                     maxLength: 20
                     minLength: 4
                     example: '1000.0400'
@@ -1239,10 +1285,22 @@ components:
             type: object
             description: Meta informações referente à API requisitada.
             required:
+                - totalRecords
+                - totalPages
                 - requestDateTime
             properties:
+                totalRecords:
+                    type: integer
+                    format: int32
+                    description: Número total de registros no resultado
+                    example: 1
+                totalPages:
+                    type: integer
+                    format: int32
+                    description: Número total de páginas no resultado
+                    example: 1
                 requestDateTime:
-                    description: 'Data e hora da consulta, conforme especificação RFC-3339, formato UTC.'
+                    description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
                     type: string
                     maxLength: 20
                     format: date-time
@@ -1258,36 +1316,36 @@ components:
                     format: uri
                     maxLength: 2000
                     description: URI completo que gerou a resposta atual.
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 first:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da primeira página que originou essa lista de resultados. Restrição - Obrigatório quando não for a primeira página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 prev:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: "URI da página anterior dessa lista de resultados. Restrição - \tObrigatório quando não for a primeira página da resposta"
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 next:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da próxima página dessa lista de resultados. Restrição - Obrigatório quando não for a última página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
                 last:
                     type: string
                     format: uri
                     maxLength: 2000
                     description: URI da última página dessa lista de resultados. Restrição - Obrigatório quando não for a última página da resposta
-                    example: 'https://api.banco.com.br/open-banking/api/v1/resource'
-                    pattern: '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$'
+                    example: https://api.banco.com.br/open-banking/api/v1/resource
+                    pattern: ^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
         ResponseError:
             type: object
             required:
@@ -1320,12 +1378,22 @@ components:
                                 pattern: '[\w\W\s]*'
                                 maxLength: 2048
                 meta:
-                    $ref: '#/components/schemas/Meta'
+                    type: object
+                    description: Meta informações referente à API requisitada.
+                    required:
+                        - requestDateTime
+                    properties:
+                        requestDateTime:
+                            description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
+                            type: string
+                            maxLength: 20
+                            format: date-time
+                            example: '2021-05-21T08:30:00Z'
         XFapiInteractionId:
             type: string
-            pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
             maxLength: 100
-            description: 'Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.'
+            description: Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
     parameters:
         Authorization:
             name: Authorization
@@ -1343,12 +1411,12 @@ components:
             required: true
             schema:
                 type: string
-                pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$'
+                pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$
                 maxLength: 100
         pagination-key:
             name: pagination-key
             in: query
-            description: 'Identificador de rechamada, utilizado para evitar a contagem de chamadas ao endpoint durante a paginação.'
+            description: Identificador de rechamada, utilizado para evitar a contagem de chamadas ao endpoint durante a paginação.
             schema:
                 type: string
                 maxLength: 2048
@@ -1390,7 +1458,7 @@ components:
             required: false
             schema:
                 type: string
-                pattern: '^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} (GMT|UTC)$'
+                pattern: ^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} (GMT|UTC)$
                 minLength: 29
                 maxLength: 29
         xFapiCustomerIpAddress:
@@ -1406,24 +1474,24 @@ components:
         xFapiInteractionId:
             name: x-fapi-interaction-id
             in: header
-            description: 'Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.'
+            description: Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
             required: false
             schema:
                 type: string
-                pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
+                pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
                 minLength: 1
                 maxLength: 100
     securitySchemes:
         OpenId:
             type: openIdConnect
-            openIdConnectUrl: 'https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration'
+            openIdConnectUrl: https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration
         OAuth2Security:
             type: oauth2
             description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Requer o processo de redirecionamento e autenticação do usuário a que se referem os dados.
             flows:
                 authorizationCode:
-                    authorizationUrl: 'https://authserver.example/authorization'
-                    tokenUrl: 'https://authserver.example/token'
+                    authorizationUrl: https://authserver.example/authorization
+                    tokenUrl: https://authserver.example/token
                     scopes:
                         financings: Escopo necessário para acesso à API Financings. O controle dos endpoints específicos é feito via permissions.
     responses:
@@ -1478,74 +1546,80 @@ components:
                     schema:
                         $ref: '#/components/schemas/ResponseFinancingsPayments'
         BadRequest:
-            description: 'A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.'
+            description: A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL.
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         Forbidden:
             description: O token tem escopo incorreto ou uma política de segurança foi violada
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         InternalServerError:
             description: Ocorreu um erro no gateway da API ou no microsserviço
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
+        GatewayTimeout:
+            description: GATEWAY TIMEOUT - A requisição não foi atendida dentro do tempo limite estabelecido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         MethodNotAllowed:
             description: O consumidor tentou acessar o recurso com um método não suportado
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         Locked:
             description: Locked
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         NotAcceptable:
             description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         NotFound:
             description: O recurso solicitado não existe ou não foi implementado
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         TooManyRequests:
-            description: 'A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido'
+            description: A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         Unauthorized:
             description: Cabeçalho de autenticação ausente/inválido ou token inválido
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         UnprocessableEntity:
-            description: 'A sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes.'
+            description: A sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes.
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         Default:
             description: Erro inesperado.
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'
         SiteIsOverloaded:
-            description: 'O site está sobrecarregado e a operação foi recusada, pois foi atingido o limite máximo de TPS global, neste momento.'
+            description: O site está sobrecarregado e a operação foi recusada, pois foi atingido o limite máximo de TPS global, neste momento.
             content:
                 application/json; charset=utf-8:
                     schema:
-                        $ref: '#/components/schemas/ResponseError'
+                        $ref: '#/components/schemas/ResponseErrorWithAbleAdditionalProperties'

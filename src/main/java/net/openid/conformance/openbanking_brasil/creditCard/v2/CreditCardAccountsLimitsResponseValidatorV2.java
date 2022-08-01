@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api: swagger/openBanking/swagger-credit-cards-api-V2.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/limits
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 
 @ApiName("Credit Card Accounts Limits V2")
@@ -100,7 +100,7 @@ public class CreditCardAccountsLimitsResponseValidatorV2 extends AbstractJsonAss
 		assertField(data,
 			new ObjectField
 				.Builder("availableAmount")
-				.setValidator(this::assertUsedAmount)
+				.setValidator(this::assertAvailableAmount)
 				.setOptional()
 				.build());
 	}
@@ -136,6 +136,25 @@ public class CreditCardAccountsLimitsResponseValidatorV2 extends AbstractJsonAss
 				.Builder("currency")
 				.setPattern("^[A-Z]{3}$")
 				.setMaxLength(3)
+				.build());
+	}
+
+	private void assertAvailableAmount(JsonObject data) {
+		assertField(data,
+			new StringField
+				.Builder("amount")
+				.setMinLength(4)
+				.setMaxLength(21)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.setOptional()
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("currency")
+				.setPattern("^[A-Z]{3}$")
+				.setMaxLength(3)
+				.setOptional()
 				.build());
 	}
 }

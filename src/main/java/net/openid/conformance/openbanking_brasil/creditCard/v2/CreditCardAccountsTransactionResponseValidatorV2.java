@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api: swagger/openBanking/swagger-credit-cards-api-V2.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/transactions
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 
 @ApiName("Credit Card Accounts Transaction V2")
@@ -100,6 +100,7 @@ public class CreditCardAccountsTransactionResponseValidatorV2 extends AbstractJs
 			new StringField
 				.Builder("paymentType")
 				.setEnums(ENUM_PAYMENT_TYPE)
+				.setOptional()
 				.build());
 
 		assertField(data,

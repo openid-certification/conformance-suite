@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.DatetimeField;
@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Api:swagger/openinsurance/loans/v2/swagger_loans_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}/scheduled-instalments
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  * Git hash:
  */
 
@@ -104,7 +104,6 @@ public class ContractInstallmentsResponseValidatorV2 extends AbstractJsonAsserti
 				.setMaxLength(10)
 				.setMinLength(2)
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
-				.setOptional()
 				.build());
 
 		assertField(body,

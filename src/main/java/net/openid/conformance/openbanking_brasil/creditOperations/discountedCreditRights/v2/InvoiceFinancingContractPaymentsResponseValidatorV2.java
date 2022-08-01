@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.BooleanField;
@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Api: swagger/openinsurance/discountedCreditRights/v2/swagger-invoice-financings-v2.yaml
  * Api endpoint: /contracts/{contractId}/payments
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  * Git hash:
  */
 @ApiName("Invoice Financing Contract Payments V2")
@@ -47,6 +47,7 @@ public class InvoiceFinancingContractPaymentsResponseValidatorV2 extends Abstrac
 			new NumberField
 				.Builder("paidInstalments")
 				.setMaxValue(999)
+				.setOptional()
 				.build());
 
 		assertField(data,
@@ -84,6 +85,7 @@ public class InvoiceFinancingContractPaymentsResponseValidatorV2 extends Abstrac
 				.Builder("instalmentId")
 				.setMaxLength(100)
 				.setPattern("[\\w\\W\\s]*")
+				.setOptional()
 				.build());
 
 		assertField(body,
