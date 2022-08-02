@@ -40,9 +40,9 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 
 		fullRangeData.iterator().forEachRemaining(resource -> {
 			JsonObject resourceObject = resource.getAsJsonObject();
-			JsonElement resourceDate = resourceObject.get(getDateName());
+			JsonElement resourceDate = resourceObject.get("transactionDate");
 			if (resourceDate == null) {
-				throw error(String.format("Could no find %s JSON element in the resource Object", getDateName()), args("resource", resource));
+				throw error("Could no find transactionDate JSON element in the resource Object", args("resource", resource));
 			}
 			LocalDate date = LocalDate.parse(OIDFJSON.getString(resourceDate), FORMATTER);
 			if (date.isAfter(fromDate) && (date.isBefore(toDate) || date.isEqual(toDate))) {
@@ -58,8 +58,6 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 
 		return env;
 	}
-
-	protected abstract String getDateName(); //TODO remove maybe
 
 	protected abstract String getToDate();
 

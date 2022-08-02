@@ -13,12 +13,7 @@ public class CheckExpectedTransactionDateMaxLimitedResponse extends AbstractChec
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
 	}
-
-	@Override
-	protected String getDateName() {
-		return "transactionDate";
-	}
-
+	
 	@Override
 	protected String getToDate() {
 		return "toTransactionDateMaxLimited";

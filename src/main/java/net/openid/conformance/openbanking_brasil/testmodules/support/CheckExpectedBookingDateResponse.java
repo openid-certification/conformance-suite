@@ -15,11 +15,6 @@ public class CheckExpectedBookingDateResponse extends AbstractCheckExpectedDateR
 	}
 
 	@Override
-	protected String getDateName() {
-		return "transactionDate";
-	}
-
-	@Override
 	protected String getToDate() {
 		return "toBookingDate";
 	}

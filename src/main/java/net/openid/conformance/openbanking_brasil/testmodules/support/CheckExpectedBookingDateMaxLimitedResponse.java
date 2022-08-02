@@ -15,11 +15,6 @@ public class CheckExpectedBookingDateMaxLimitedResponse extends AbstractCheckExp
 	}
 
 	@Override
-	protected String getDateName() {
-		return "transactionDate";
-	}
-
-	@Override
 	protected String getToDate() {
 		return "toBookingDateMaxLimited";
 	}
