@@ -53,6 +53,8 @@ import java.time.format.DateTimeFormatter;
 public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final String FROM_BOOKING_DATE_MAX_LIMITED = "fromBookingDateMaxLimited";
+	private static final String TO_BOOKING_DATE_MAX_LIMITED = "toBookingDateMaxLimited";
 
 	@Override
 	protected void configureClient(){
@@ -75,8 +77,8 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 
 		// Call with valid  parameters
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(6).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
@@ -86,8 +88,8 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		);
 
 		// Call with invalid  parameters
-		env.putString("fromBookingDate", currentDate.minusDays(30).format(FORMATTER));
-		env.putString("toBookingDate", currentDate.minusDays(20).format(FORMATTER));
+		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(30).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);

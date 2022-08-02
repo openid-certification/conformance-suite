@@ -74,7 +74,7 @@ public class AccountsApiReadPermissionsAreRestricted extends AbstractOBBrasilFun
 
 		runInBlock("Ensure we can call the account transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 			preCallProtectedResource();
 		});
 

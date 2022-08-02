@@ -3,12 +3,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckExpectedBookingDateResponse extends AbstractCheckExpectedDateResponse {
+public class CheckExpectedTransactionDateMaxLimitedResponse extends AbstractCheckExpectedDateResponse{
 
 	@Override
 	@PreEnvironment(
 		required = {"resource_endpoint_response_full", "full_range_response"},
-		strings = {"fromBookingDate", "toBookingDate"}
+		strings = {"fromTransactionDateMaxLimited", "toTransactionDateMaxLimited"}
 	)
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
@@ -21,11 +21,11 @@ public class CheckExpectedBookingDateResponse extends AbstractCheckExpectedDateR
 
 	@Override
 	protected String getToDate() {
-		return "toBookingDate";
+		return "toTransactionDateMaxLimited";
 	}
 
 	@Override
 	protected String getFromDate() {
-		return "fromBookingDate";
+		return "fromTransactionDateMaxLimited";
 	}
 }

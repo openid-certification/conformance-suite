@@ -72,7 +72,7 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
 		env.putString("toBookingDate", currentDate.format(FORMATTER));
 
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
@@ -84,7 +84,7 @@ public class AccountsApiTransactionsCurrentTestModule extends AbstractOBBrasilFu
 		env.putString("toBookingDate", currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with invalid date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
