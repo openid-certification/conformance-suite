@@ -1,0 +1,9 @@
+[
+    {
+        "AuthorisationServers": [
+            {
+                "blah": "WellKnown URL 1"
+            }
+        ]
+    }
+]
