@@ -70,7 +70,7 @@ public class LoansApiResourcesTestModuleV2 extends LoansApiTestModuleV2 {
 		runInBlock("Validate Resources response V2", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
-			callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 
