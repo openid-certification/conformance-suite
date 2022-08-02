@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
@@ -222,14 +224,11 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     }
 
     protected void validateSelfLink(String selfLink, String consentIdField){
-    	final String consent_regex_v1 = "consents/v1/consents/";
-		final String consent_regex_v2 = "consents/v2/consents/";
+		final Pattern consent_regex = Pattern.compile("(consents/v\\d/consents/)");
+		Matcher matcher = consent_regex.matcher(selfLink);
     	final String consent_payment_regex = "payments/v1/consents";
-    	if (selfLink.contains(consent_regex_v1)){
-			String consentId = selfLink.split(consent_regex_v1)[1];
-			validateConsentId(consentId, consentIdField);
-		} else if (selfLink.contains(consent_regex_v2)) {
-			String consentId = selfLink.split(consent_regex_v2)[1];
+    	if (matcher.find()){
+			String consentId = selfLink.split(matcher.group())[1];
 			validateConsentId(consentId, consentIdField);
 		} else if (!selfLink.contains(consent_payment_regex)){
     		throw error("Invalid 'self' link URI. URI: " + selfLink);
