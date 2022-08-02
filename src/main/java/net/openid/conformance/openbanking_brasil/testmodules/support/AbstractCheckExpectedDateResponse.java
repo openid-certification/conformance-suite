@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
@@ -15,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 public abstract class AbstractCheckExpectedDateResponse extends AbstractCondition {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+	@Override
+	@PreEnvironment(required = {"resource_endpoint_response_full", "full_range_response"})
 	public Environment evaluate(Environment env) {
 
 		Gson gson = JsonUtils.createBigDecimalAwareGson();
