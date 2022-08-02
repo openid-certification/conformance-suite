@@ -75,8 +75,18 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 				.then(condition(EnsureTransactionsDateIsSetToToday.class)))
 		);
 
-		// Call with valid  parameters
+		// Call with full range parameters | Anti Cheat
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(360).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		runInBlock("Fetch Credit Card Account Current transactions with full range date parameters",
+			() -> call(getPreCallProtectedResourceSequence()
+				.then(condition(CopyResourceEndpointResponse.class)))
+		);
+		env.mapKey("full_range_response", "resource_endpoint_response_full_copy");
+
+		// Call with valid  parameters
 		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(6).format(FORMATTER));
 		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
 
@@ -84,6 +94,7 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
+				.then(condition(CheckExpectedBookingDateMaxLimitedResponse.class))
 				.then(condition(EnsureTransactionsDateIsNoOlderThan7Days.class)))
 		);
 
