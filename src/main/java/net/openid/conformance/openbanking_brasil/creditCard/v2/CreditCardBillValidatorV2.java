@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api: swagger/openBanking/swagger-credit-cards-api-V2.yaml
  * Api endpoint: /accounts/{creditCardAccountId}/bills
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 @ApiName("Credit Card Bill V2")
 public class CreditCardBillValidatorV2 extends AbstractJsonAssertingCondition {
@@ -58,13 +58,13 @@ public class CreditCardBillValidatorV2 extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new ObjectField
 				.Builder("billTotalAmount")
-				.setValidator(this::assertAmount)
+				.setValidator(this::assertTotalAmount)
 				.build());
 
 		assertField(data,
 			new ObjectField
 				.Builder("billMinimumAmount")
-				.setValidator(this::assertAmount)
+				.setValidator(this::assertMinimumAmount)
 				.build());
 
 		assertField(data,
@@ -106,10 +106,9 @@ public class CreditCardBillValidatorV2 extends AbstractJsonAssertingCondition {
 		assertField(data,
 			new StringField
 				.Builder("amount")
-				.setMaxLength(21)
+				.setMaxLength(20)
 				.setMinLength(4)
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
-				.setNullable()
 				.build());
 
 		assertField(data,
@@ -156,7 +155,24 @@ public class CreditCardBillValidatorV2 extends AbstractJsonAssertingCondition {
 				.build());
 	}
 
-	private void assertAmount(JsonObject data) {
+	private void assertTotalAmount(JsonObject data) {
+		assertField(data,
+			new StringField
+				.Builder("amount")
+				.setMinLength(4)
+				.setMaxLength(21)
+				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
+				.build());
+
+		assertField(data,
+			new StringField
+				.Builder("currency")
+				.setPattern("^[A-Z]{3}$")
+				.setMaxLength(3)
+				.build());
+	}
+
+	private void assertMinimumAmount(JsonObject data) {
 		assertField(data,
 			new StringField
 				.Builder("amount")

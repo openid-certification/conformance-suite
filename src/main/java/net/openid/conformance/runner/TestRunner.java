@@ -358,15 +358,17 @@ public class TestRunner implements DataUtils {
 				"payments-api-dcr-test-unauthorized-client",
 				"resources-api-dcr-happyflow",
 				"resources-api-dcr-test-attempt-client-takeover",
-				"resources-api-dcr-subjectdn");
+				"resources-api-dcr-subjectdn",
+				"resources-api-dcr-happyflow-v2",
+				"resources-api-dcr-test-attempt-client-takeover-v2");
 			if (needsAccountAlias.contains(testName)) {
 				// These tests use a hardcoded client that needs a particular redirect url
 				alias = "raidiam-client-accounts-only";
-			}
-			else if (testName.equals("payments-api-dcr-happyflow") ||
+			} else if (testName.equals("payments-api-dcr-happyflow") ||
 				testName.equals("payments-api-dcr-test-attempt-client-takeover") ||
 				testName.equals("payments-api-dcr-subjectdn") ||
-				testName.equals("resources-api-dcr-test-unauthorized-client")) {
+				testName.equals("resources-api-dcr-test-unauthorized-client") ||
+				testName.equals("resources-api-dcr-test-unauthorized-client-v2")) {
 				alias = "raidiam-client-payments-only";
 			}
 			else if (testName.equals(PaymentsDcmSubjectDnTestModule.testName) ||

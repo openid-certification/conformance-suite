@@ -10,10 +10,10 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
-@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseOK.json")
 public class ContractResponseValidatorTestV2 extends AbstractJsonResponseConditionUnitTest {
 
 	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseOK.json")
 	public void validateStructure() {
 		run(new ContractResponseValidatorV2());
 	}
@@ -30,7 +30,7 @@ public class ContractResponseValidatorTestV2 extends AbstractJsonResponseConditi
 	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseWithError.json")
 	public void validateStructureWithMissingField() {
 		ConditionError error = runAndFail(new ContractResponseValidatorV2());
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("CET", new ContractResponseValidatorV2().getApiName())));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("contractNumber", new ContractResponseValidatorV2().getApiName())));
 	}
 
 	@Test

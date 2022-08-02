@@ -67,6 +67,7 @@ public class CreditOperationsDiscountedApiWrongPermissionsTestModule extends Abs
 	@Override
 	protected void prepareCorrectConsents() {
 		callAndStopOnFailure(AddOpenIdScope.class);
+		callAndStopOnFailure(AddInvoiceFinancingsScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 	}
 

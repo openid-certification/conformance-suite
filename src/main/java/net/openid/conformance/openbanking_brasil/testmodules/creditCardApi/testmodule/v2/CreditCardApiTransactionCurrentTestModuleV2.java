@@ -48,7 +48,6 @@ import java.time.format.DateTimeFormatter;
 	}
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.client_id",
 	"client.org_jwks"
 })
 public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {

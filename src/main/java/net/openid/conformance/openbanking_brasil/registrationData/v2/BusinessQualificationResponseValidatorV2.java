@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /business/qualifications
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 @ApiName("Business Qualification V2")
 public class BusinessQualificationResponseValidatorV2 extends AbstractJsonAssertingCondition {

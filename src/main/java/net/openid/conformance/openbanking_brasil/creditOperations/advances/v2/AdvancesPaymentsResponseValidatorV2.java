@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.BooleanField;
@@ -18,9 +18,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/swagger-unarranged-accounts-overdraft-v2.yaml
+ * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/v2/swagger-unarranged-accounts-overdraft-v2.yaml
  * Api endpoint: /contracts/{contractId}/payments
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  * Git hash:
  */
 @ApiName("Advances Payments V2")
@@ -48,6 +48,7 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 			new NumberField
 				.Builder("paidInstalments")
 				.setMaxValue(999)
+				.setOptional()
 				.build());
 
 		assertField(data,
@@ -86,6 +87,7 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 				.setMaxLength(100)
 				.setMinLength(1)
 				.setPattern("^[a-zA-Z0-9][a-zA-Z0-9-]{0,99}$")
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -176,7 +178,6 @@ public class AdvancesPaymentsResponseValidatorV2 extends AbstractJsonAssertingCo
 		assertField(body,
 			new StringField
 				.Builder("feeAmount")
-				.setNullable()
 				.setPattern("^-?\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(4)
 				.setMaxLength(21)

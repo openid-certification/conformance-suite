@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Api: swagger/openinsurance/discountedCreditRights/v2/swagger-invoice-financings-v2.yaml
  * Api endpoint: /contracts/{contractId}/warranties
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  * Git hash:
  */
 @ApiName("Invoice Financing Contract Guarantees V2")
@@ -47,6 +47,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorV2 extends Abstr
 				.Builder("currency")
 				.setPattern("^(\\w{3}){1}$")
 				.setMaxLength(3)
+				.setOptional()
 				.build());
 
 		assertField(element,
@@ -67,6 +68,7 @@ public class InvoiceFinancingContractGuaranteesResponseValidatorV2 extends Abstr
 				.setPattern("^\\d{1,15}\\.\\d{2,4}$")
 				.setMinLength(4)
 				.setMaxLength(20)
+				.setOptional()
 				.build());
 	}
 }

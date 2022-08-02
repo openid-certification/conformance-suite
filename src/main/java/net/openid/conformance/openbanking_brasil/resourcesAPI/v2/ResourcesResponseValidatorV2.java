@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.LinksAndMetaRequestDateTimeValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -16,12 +16,12 @@ import java.util.Set;
 /**
  * Api: swagger/openBanking/swagger-resources-apis-v2.yaml
  * Api endpoint: /resources
- * Api version: 2.0.0 Final
+ * Api version: 2.0.1 Final
  **/
 @ApiName("Resources V2")
 public class ResourcesResponseValidatorV2 extends AbstractJsonAssertingCondition {
 
-	private final LinksAndMetaRequestDateTimeValidator linksAndMetaValidator = new LinksAndMetaRequestDateTimeValidator(this);
+	private final LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
 
 	public static final Set<String> ENUM_STATUS = SetUtils.createSet("AVAILABLE, UNAVAILABLE, TEMPORARILY_UNAVAILABLE, PENDING_AUTHORISATION");
 	public static final Set<String> ACCOUNT = SetUtils.createSet("ACCOUNT, CREDIT_CARD_ACCOUNT, LOAN, FINANCING, UNARRANGED_ACCOUNT_OVERDRAFT, INVOICE_FINANCING");

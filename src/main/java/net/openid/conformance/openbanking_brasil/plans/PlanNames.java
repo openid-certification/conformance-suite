@@ -91,7 +91,7 @@ public class PlanNames {
 	public static final String PAYMENTS_API_ALL_TEST_PLAN = "Functional tests for payments API INIC, DICT, MANU, QRES, QRDN, Scheduling (T0/T1/T2/T3) - Based on Swagger version: 1.1.0 (WIP)";
 
 	/** VERSION 2 **/
-	public static  final String LATEST_VERSION_2 = "2.0.0 (WIP)";
+	public static  final String LATEST_VERSION_2 = "2.0.1 final";
 
 	public static final String ACCOUNT_API_NAME_V2 = "Functional tests for accounts API - based on Swagger version: " + LATEST_VERSION_2;
 	public static final String CONSENTS_API_NAME_V2 = "Functional tests for consents API - based on Swagger version: " + LATEST_VERSION_2;

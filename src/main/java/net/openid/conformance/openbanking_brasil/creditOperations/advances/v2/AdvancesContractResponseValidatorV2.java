@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.DatetimeField;
@@ -17,9 +17,9 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/swagger-unarranged-accounts-overdraft-v2.yaml
+ * Api: swagger/openinsurance/UnarrangedAccountsOverdraft/v2/swagger-unarranged-accounts-overdraft-v2.yaml
  * Api endpoint: /contracts/{contractId}
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  * Git hash:
  */
 @ApiName("Advances Contract V2")
@@ -164,9 +164,10 @@ public class AdvancesContractResponseValidatorV2 extends AbstractJsonAssertingCo
 		assertField(body,
 			new StringField
 				.Builder("CET")
-				.setPattern("^[01]\\.\\d{6}$")
-				.setMaxLength(8)
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
+				.setMaxLength(9)
 				.setMinLength(8)
+				.setOptional()
 				.build());
 
 		assertField(body,
@@ -253,17 +254,17 @@ public class AdvancesContractResponseValidatorV2 extends AbstractJsonAssertingCo
 		assertField(body,
 			new StringField
 				.Builder("preFixedRate")
-				.setPattern("^[01]\\.\\d{6}$")
-				.setMaxLength(8)
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
+				.setMaxLength(9)
 				.setMinLength(8)
 				.build());
 
 		assertField(body,
 			new StringField
 				.Builder("postFixedRate")
-				.setMaxLength(8)
+				.setMaxLength(9)
 				.setMinLength(8)
-				.setPattern("^[01]\\.\\d{6}$")
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
 				.build());
 
 		assertField(body,
