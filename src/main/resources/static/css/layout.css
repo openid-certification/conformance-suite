@@ -10,6 +10,11 @@ body {
 	padding-bottom: 10px;
 }
 
+.tooltip {
+	word-wrap: break-word;
+	word-break: break-word;
+}
+
 .pageHeader img {
 	max-height: 40px;
 }

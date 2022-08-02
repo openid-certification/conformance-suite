@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Api: swagger/openBanking/swagger-credit-cards-api-V2.yaml
  * Api endpoint: /accounts
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 
 @ApiName("Card List V2")

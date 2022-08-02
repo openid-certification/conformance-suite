@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /personal/financial-relations
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 @ApiName("Natural Person Relationship V2")
 public class PersonalRelationsResponseValidatorV2 extends AbstractJsonAssertingCondition {

@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openBanking/swagger_accounts_apis-v2.yaml
  * Api endpoint: /accounts
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 @ApiName("Accounts list V2")
 public class AccountListValidatorV2 extends AbstractJsonAssertingCondition {

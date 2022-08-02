@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Api url: swagger/openinsurance/registrationData/swagger-customers-v2.yaml
  * Api endpoint: /business/identifications
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  **/
 
 @ApiName("Business Identification V2")
@@ -111,7 +111,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 			new ObjectArrayField
 				.Builder("otherDocuments")
 				.setValidator(this::assertOtherDocuments)
-				.setMinItems(0)
+				.setMinItems(1)
 				.setOptional()
 				.build());
 
@@ -423,7 +423,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 			new StringField
 				.Builder("country")
 				.setMaxLength(80)
-				.setPattern("\\w*\\W*")
+				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(body,

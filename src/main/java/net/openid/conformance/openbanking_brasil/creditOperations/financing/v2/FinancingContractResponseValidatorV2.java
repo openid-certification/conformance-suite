@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.CommonFields;
-import net.openid.conformance.openbanking_brasil.creditOperations.LinksAndMetaValidator;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.DatetimeField;
@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Api: swagger/openinsurance/financings/v2/swagger_financings_apis-v2.yaml
  * Api endpoint: /contracts/{contractId}
- * Api version: 2.0.0.final
+ * Api version: 2.0.1.final
  */
 @ApiName("Financing Contract V2")
 public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingCondition {
@@ -161,9 +161,9 @@ public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingC
 		assertField(data,
 			new StringField
 				.Builder("CET")
-				.setMaxLength(8)
+				.setMaxLength(9)
 				.setMinLength(8)
-				.setPattern("^[01]\\.\\d{6}$")
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
 				.setOptional()
 				.build());
 
@@ -323,18 +323,18 @@ public class FinancingContractResponseValidatorV2 extends AbstractJsonAssertingC
 		assertField(data,
 			new StringField
 				.Builder("preFixedRate")
-				.setMaxLength(8)
+				.setMaxLength(9)
 				.setMinLength(8)
-				.setPattern("^[01]\\.\\d{6}$")
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
 				.setOptional()
 				.build());
 
 		assertField(data,
 			new StringField
 				.Builder("postFixedRate")
-				.setMaxLength(8)
+				.setMaxLength(9)
 				.setMinLength(8)
-				.setPattern("^[01]\\.\\d{6}$")
+				.setPattern("^\\d{1,2}\\.\\d{6}$")
 				.setOptional()
 				.build());
 

@@ -1,0 +1,9 @@
+{
+    "errors" : [
+        {
+            "code" : "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO",
+            "title" : "Blah",
+            "detail" : "blah blah"
+        }
+    ]
+}
