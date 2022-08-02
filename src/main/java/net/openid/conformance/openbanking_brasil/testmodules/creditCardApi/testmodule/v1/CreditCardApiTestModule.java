@@ -68,6 +68,8 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
 		env.putString("toTransactionDate", currentDate.format(FORMATTER));
+		env.putString("fromDueDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toDueDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -108,6 +110,7 @@ public class CreditCardApiTestModule extends AbstractOBBrasilFunctionalTestModul
 		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
+		callAndStopOnFailure(AddToAndFromDueDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch card bills");
 		callAndContinueOnFailure(CreditCardBillValidator.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);

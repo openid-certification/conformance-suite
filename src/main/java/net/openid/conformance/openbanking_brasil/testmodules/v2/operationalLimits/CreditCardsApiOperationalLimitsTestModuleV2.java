@@ -177,7 +177,9 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 			}
 
 			// Call to credit card bills GET Once with Validation
-
+			env.putString("fromDueDate", currentDate.minusDays(6).format(FORMATTER));
+			env.putString("toDueDate", currentDate.format(FORMATTER));
+			callAndStopOnFailure(AddToAndFromDueDateParametersToProtectedResourceUrl.class);
 			callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 			preCallProtectedResource(String.format("Fetch Credit Card Bills using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
 			validateResponse("Validate Credit Card Bills Response", CreditCardBillValidatorV2.class);
