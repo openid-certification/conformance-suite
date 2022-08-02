@@ -17,12 +17,28 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String cpf;
-		String cnpj;
-		Boolean operationalLimitTest = env.getBoolean("operational_limit_consent");
+		String cnpj = null;
 
+		String productType = env.getString("config", "consent.productType");
+		if (Strings.isNullOrEmpty(productType)) {
+			throw error("Product type (Business or Personal) must be specified in the test configuration");
+		}
+
+		Boolean operationalLimitTest = env.getBoolean("operational_limit_consent");
 		if (operationalLimitTest != null && operationalLimitTest){
-			cpf  = env.getString("config", "resource.brazilCpfOperational");
-			cnpj = env.getString("config", "resource.brazilCnpjOperational");
+			if (productType.equals("business")) {
+				log("Product type business was chosen, proceeding with Business CPF and Business CNPJ.");
+
+				cpf  = env.getString("config", "resource.brazilCpfOperationalBusiness");
+				cnpj = env.getString("config", "resource.brazilCnpjOperationalBusiness");
+
+				if (Strings.isNullOrEmpty(cnpj)) {
+					throw error("The operational limit CNPJ must be provided in the test configuration");
+				}
+			} else {
+				log("Product type Personal was chosen, proceeding with Personal CPF.");
+				cpf  = env.getString("config", "resource.brazilCpfOperationalPersonal");
+			}
 
 			if (Strings.isNullOrEmpty(cpf)) {
 				throw error("The operational limit CPF must be provided in the test configuration");
@@ -34,12 +50,6 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 			if (Strings.isNullOrEmpty(cpf) && Strings.isNullOrEmpty(cnpj)) {
 				throw error("A least one of CPF and CNPJ must be specified in the test configuration");
 			}
-		}
-		String productType = env.getString("config", "consent.productType");
-
-
-		if (Strings.isNullOrEmpty(productType)) {
-			throw error("Product type (Business or Personal) must be specified in the test configuration");
 		}
 
 		String[] permissions;
