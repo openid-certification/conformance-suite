@@ -21,8 +21,8 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 		JsonObject actualResponse = gson.fromJson(env.getString("resource_endpoint_response_full", "body"), JsonObject.class);
 		JsonObject fullRangeResponse = gson.fromJson(env.getString("full_range_response", "body"), JsonObject.class);
 
-		LocalDate fromDate = LocalDate.parse(env.getString(getFromDate()), FORMATTER);
-		LocalDate toDate = LocalDate.parse(env.getString(getToDate()), FORMATTER);
+		LocalDate fromDate = LocalDate.parse(env.getString(getFromDateName()), FORMATTER);
+		LocalDate toDate = LocalDate.parse(env.getString(getToDateName()), FORMATTER);
 
 		JsonArray fullRangeData = fullRangeResponse.getAsJsonArray("data");
 		JsonArray actualData = actualResponse.getAsJsonArray("data");
@@ -59,9 +59,9 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 		return env;
 	}
 
-	protected abstract String getToDate();
+	protected abstract String getToDateName();
 
-	protected abstract String getFromDate();
+	protected abstract String getFromDateName();
 
 
 }

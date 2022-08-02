@@ -15,12 +15,12 @@ public class CheckExpectedBookingDateResponse extends AbstractCheckExpectedDateR
 	}
 
 	@Override
-	protected String getToDate() {
+	protected String getToDateName() {
 		return "toBookingDate";
 	}
 
 	@Override
-	protected String getFromDate() {
+	protected String getFromDateName() {
 		return "fromBookingDate";
 	}
 }

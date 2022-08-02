@@ -15,12 +15,12 @@ public class CheckExpectedBookingDateMaxLimitedResponse extends AbstractCheckExp
 	}
 
 	@Override
-	protected String getToDate() {
+	protected String getToDateName() {
 		return "toBookingDateMaxLimited";
 	}
 
 	@Override
-	protected String getFromDate() {
+	protected String getFromDateName() {
 		return "fromBookingDateMaxLimited";
 	}
 }
