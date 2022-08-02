@@ -24,6 +24,7 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateWellKnownUriSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -45,6 +46,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 
 public class PreFlightCertCheckModule extends AbstractClientCredentialsGrantFunctionalTestModule {
+
+	@Override
+	protected void preConfigure(JsonObject config, String baseUrl, String externalUrlOverride) {
+		call(new ValidateWellKnownUriSteps());
+	}
 
     @Override
     protected void runTests() {
