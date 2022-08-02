@@ -224,8 +224,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     }
 
     protected void validateSelfLink(String selfLink, String consentIdField){
-		final Pattern consent_regex = Pattern.compile(String.format("^(https://)(.*?)(consents|payments)(/v\\d/consents/%s)", consentIdField), Pattern.CASE_INSENSITIVE);
-		Matcher matcher = consent_regex.matcher(selfLink);
+		final Pattern consentRegex = Pattern.compile(String.format("^(https://)(.*?)(consents|payments)(/v\\d/consents/%s)", consentIdField), Pattern.CASE_INSENSITIVE);
+		Matcher matcher = consentRegex.matcher(selfLink);
     	if (matcher.find()){
 			logSuccess("Consent ID in self link matches the consent ID in the returned object");
 		} else {
