@@ -224,24 +224,12 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     }
 
     protected void validateSelfLink(String selfLink, String consentIdField){
-		final Pattern consent_regex = Pattern.compile("(consents/v\\d/consents/)");
+		final Pattern consent_regex = Pattern.compile(String.format("^(https://)(.*?)(consents|payments)(/v\\d/consents/%s)", consentIdField), Pattern.CASE_INSENSITIVE);
 		Matcher matcher = consent_regex.matcher(selfLink);
-    	final String consent_payment_regex = "payments/v1/consents";
     	if (matcher.find()){
-			String consentId = selfLink.split(matcher.group())[1];
-			validateConsentId(consentId, consentIdField);
-		} else if (!selfLink.contains(consent_payment_regex)){
-    		throw error("Invalid 'self' link URI. URI: " + selfLink);
-		}
-	}
-
-	protected void validateConsentId(String consentId, String consentIdField) {
-		if(consentId.isBlank() || consentId.isEmpty()){
-			throw error("Consent ID needs to be attached to the self link post creation");
+			logSuccess("Consent ID in self link matches the consent ID in the returned object");
 		} else {
-			if(consentId.equalsIgnoreCase(consentIdField)){
-				logSuccess("Consent ID in self link matches the consent ID in the returned object");
-			}
+    		throw error("Invalid 'self' link URI. URI: " + selfLink);
 		}
 	}
 }
