@@ -17,7 +17,7 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	@Override
-	@PreEnvironment(required = {"resource_endpoint_response_full", "full_range_response"})
+	@PreEnvironment(required = {"resource_endpoint_response_full", "full_range_response"}) // Works with CopyResourceEndpointResponse
 	public Environment evaluate(Environment env) {
 
 		Gson gson = JsonUtils.createBigDecimalAwareGson();
@@ -52,7 +52,6 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 				expectedData.add(resourceObject);
 			}
 		});
-
 		if (!actualData.equals(expectedData)) {
 			throw error("The returned data array is not what was expected", args("Returned", actualData, "Expected", expectedData));
 		}
