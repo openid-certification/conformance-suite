@@ -2,39 +2,39 @@
 <project version="4">
   <component name="EntryPointsManager">
   	<list size="3">
-	  <item index="0" class="java.lang.String" itemvalue="net.openid.conformance.plan.PublishTestPlan" />
-	  <item index="1" class="java.lang.String" itemvalue="net.openid.conformance.testmodule.PublishTestModule" />
-	  <item index="2" class="java.lang.String" itemvalue="net.openid.conformance.variant.VariantSetup" />
-	</list>
+	  	<item index="0" class="java.lang.String" itemvalue="net.openid.conformance.plan.PublishTestPlan" />
+	  	<item index="1" class="java.lang.String" itemvalue="net.openid.conformance.testmodule.PublishTestModule" />
+	  	<item index="2" class="java.lang.String" itemvalue="net.openid.conformance.variant.VariantSetup" />
+		</list>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="JavaScriptSettings">
     <option name="languageLevel" value="ES6" />
   </component>
   <component name="MavenProjectsManager">
-	<option name="originalFiles">
-	  <list>
-		<option value="$PROJECT_DIR$/pom.xml" />
-	  </list>
-	</option>
+		<option name="originalFiles">
+	  	<list>
+				<option value="$PROJECT_DIR$/pom.xml" />
+	  	</list>
+		</option>
   </component>
   <component name="PDMPlugin">
-	<option name="customRuleSets">
-	  <list>
-		<option value="$PROJECT_DIR$/.pmd.ruleset.xml" />
-	  </list>
-	</option>
-	<option name="options">
-	  <map>
-		<entry key="Statistics URL" value="" />
-		<entry key="Target JDK" value="11" />
-	  </map>
-	</option>
-  </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="false" project-jdk-name="11" project-jdk-type="JavaSDK">
-	<output url="file://$PROJECT_DIR$/out" />
+		<option name="customRuleSets">
+	  	<list>
+				<option value="$PROJECT_DIR$/.pmd.ruleset.xml" />
+	  	</list>
+		</option>
+		<option name="options">
+			<map>
+				<entry key="Statistics URL" value="" />
+				<entry key="Target JDK" value="11" />
+			</map>
+		</option>
+	</component>
+	<component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="false" project-jdk-name="11" project-jdk-type="JavaSDK">
+	  <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="PythonCompatibilityInspectionAdvertiser">
-	<option name="version" value="3" />
+	  <option name="version" value="3" />
   </component>
 </project>
