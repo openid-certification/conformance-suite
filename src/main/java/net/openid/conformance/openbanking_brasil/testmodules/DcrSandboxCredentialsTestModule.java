@@ -54,7 +54,4 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 	protected void performAuthorizationFlow() {
 		fireTestFinished();
 	}
-
-	@Override
-	public void cleanup() {}
 }
