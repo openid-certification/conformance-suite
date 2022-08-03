@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -19,6 +20,8 @@ import java.util.Map;
 public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondition {
 
 	protected int numberOfReturnedRecords;
+
+	protected boolean isMetaOnlyRequestDateTime = false;
 
 	protected int pageSize;
 	protected int totalNumberOfRecords;
@@ -41,11 +44,14 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 		currentPageNumber = getPageNumber(selfLink);
 		pageSize = getPageSize(selfLink);
 
-		JsonObject metaObject = findByPath(body, "$.meta").getAsJsonObject();
+		isMetaOnlyRequestDateTime = Boolean.parseBoolean(env.getString("metaOnlyRequestDateTime"));
 
-		totalNumberOfRecords = OIDFJSON.getInt(findByPath(metaObject, "$.totalRecords"));
-		totalNumberOfPages = OIDFJSON.getInt(findByPath(metaObject, "$.totalPages"));
+		if(!isMetaOnlyRequestDateTime) {
+			JsonObject metaObject = findByPath(body, "$.meta").getAsJsonObject();
 
+			totalNumberOfRecords = OIDFJSON.getInt(findByPath(metaObject, "$.totalRecords"));
+			totalNumberOfPages = OIDFJSON.getInt(findByPath(metaObject, "$.totalPages"));
+		}
 	}
 
 	protected int getPageNumber(String uri) {
@@ -79,6 +85,11 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 	}
 
 	protected void validateLastLink() {
+		if(isMetaOnlyRequestDateTime) {
+			log("No last link validation since MetaOnlyRequestDateTime object was returned.");
+			return;
+		}
+
 		String lastLink = OIDFJSON.getString(findByPath(linksObject, "$.last"));
 		int lastLinkPageNumber = getPageNumber(lastLink);
 		if (lastLinkPageNumber != totalNumberOfPages) {

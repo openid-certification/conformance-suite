@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ValidateNumberOfRecordsPage2 extends ValidateNumberOfRecords {
 	@Override
-	@PreEnvironment(strings = "number_of_returned_records_from_page_1")
+	@PreEnvironment(strings = {"number_of_returned_records_from_page_1", "metaOnlyRequestDateTime"})
 	public Environment evaluate(Environment env) {
 		prepareRecordData(env);
 		int numberOfRecordsFromFirstPage = Integer.parseInt(env.getString("number_of_returned_records_from_page_1"));
@@ -57,14 +57,15 @@ public class ValidateNumberOfRecordsPage2 extends ValidateNumberOfRecords {
 				logSuccess("Number of records returned is less than or equal to the page-size");
 			}
 
-			if (totalNumberOfRecords != numberOfRecordsFromFirstPage + numberOfReturnedRecords) {
-				throw error("Total number of records has to be equal to the number of records in page 1 and 2",
-					Map.of("Total number of records", totalNumberOfRecords,
-						"Number of records in page 1 and 2", numberOfRecordsFromFirstPage + numberOfReturnedRecords));
-			} else {
-				logSuccess("Total number of records is equal to the number of records in page 1 and 2");
+			if (!isMetaOnlyRequestDateTime) {
+				if (totalNumberOfRecords != numberOfRecordsFromFirstPage + numberOfReturnedRecords) {
+					throw error("Total number of records has to be equal to the number of records in page 1 and 2",
+						Map.of("Total number of records", totalNumberOfRecords,
+							"Number of records in page 1 and 2", numberOfRecordsFromFirstPage + numberOfReturnedRecords));
+				} else {
+					logSuccess("Total number of records is equal to the number of records in page 1 and 2");
+				}
 			}
-
 		}
 
 		return env;

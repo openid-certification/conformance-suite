@@ -1,12 +1,14 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
 
 public class ValidateNumberOfRecordsPage1 extends ValidateNumberOfRecords {
 	@Override
+	@PreEnvironment(strings = "metaOnlyRequestDateTime")
 	@PostEnvironment(strings = "number_of_returned_records_from_page_1")
 	public Environment evaluate(Environment env) {
 		prepareRecordData(env);
