@@ -32,8 +32,6 @@ public class EnsureTransactionsDateIsNoOlderThan7DaysTest extends AbstractJsonRe
 	@Test
 	public void unhappyPath() {
 		EnsureTransactionsDateIsNoOlderThan7Days cond = new EnsureTransactionsDateIsNoOlderThan7Days();
-		environment.putObject("resource_endpoint_response_full", "body", jsonObject);
-
 		ConditionError conditionError = runAndFail(cond);
 		assertThat(conditionError.getMessage(), containsString("Transaction is older than 7 days"));
 	}
