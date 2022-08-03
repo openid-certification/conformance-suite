@@ -4,13 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckItemCountHasMin1;
-import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
-import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
-import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
 import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
@@ -34,12 +32,17 @@ import net.openid.conformance.util.JsonUtils;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"client2.client_id",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
 		"consent.productType",
 		"resource.brazilCpfOperational",
 		"resource.brazilCnpjOperational"
 	}
 )
-public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctionalTestModule {
+public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationalLimitsTestModule {
 
 	private static final int NUMBER_OF_EXECUTIONS = 600;
 
@@ -51,6 +54,10 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractFunctional
 		super.configureClient();
 	}
 
+	@Override
+	protected void validateFirstClient() {
+		// Only OL client is used in this test
+	}
 
 	@Override
 	protected void validateClientConfiguration() {

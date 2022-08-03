@@ -49,11 +49,15 @@ import java.time.format.DateTimeFormatter;
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
-		"client.client_id_operational_limits",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
+		"client2.client_id",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
@@ -62,7 +66,7 @@ import java.time.format.DateTimeFormatter;
 		"consent.productType"
 	}
 )
-public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
+public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperationalLimitsTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -85,45 +89,13 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(AddCreditCardScopes.class);
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
-		callAndStopOnFailure(EnsureClientIdForOperationalLimitsIsPresent.class);
-		callAndStopOnFailure(SwitchToOperationalLimitsClient.class);
+		switchToSecondClient();
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
 	}
 
-	@Override
-	protected ConditionSequence createOBBPreauthSteps() {
-		return new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), true);
-	}
 
-	@Override
-	protected void performPreAuthorizationSteps() {
-		super.performPreAuthorizationSteps();
-
-		call(exec().mapKey("endpoint_response", "consent_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING);
-
-		if (getResult() == Result.WARNING) {
-			fireTestFinished();
-		} else {
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-			call(exec().unmapKey("endpoint_response"));
-			callAndContinueOnFailure(FAPIBrazilConsentEndpointResponseValidatePermissions.class, Condition.ConditionResult.WARNING);
-
-			if (getResult() == Result.WARNING) {
-				fireTestFinished();
-			} else {
-				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
-				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
-				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-				callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
-			}
-
-		}
-
-	}
 
 	@Override
 	protected void validateResponse() {
@@ -242,7 +214,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOBBrasi
 	protected void onPostAuthorizationFlowComplete() {
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareUrlForCreditCardRoot.class);
-			callAndStopOnFailure(SwitchToOriginalClient.class);
+			unmapClient();
 			callAndStopOnFailure(RemoveOperationalLimitsFromConsentRequest.class);
 			callAndStopOnFailure(RemoveConsentIdFromClientScopes.class);
 			validationStarted = false;
