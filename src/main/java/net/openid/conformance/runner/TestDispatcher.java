@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,19 +94,19 @@ public class TestDispatcher implements DataUtils {
 			// it's an aliased test, look it up
 			String alias = pathParts.next();
 			if (!support.hasAlias(alias)) {
-				return new ResponseEntity<>("Error - no test found with alias '"+alias+"'", HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(Map.of("error", "No test found with alias '"+alias+"'"), HttpStatus.NOT_FOUND);
 			}
 			testId = support.getTestIdForAlias(alias);
 		}
 
 		if (!support.hasTestId(testId)) {
-			return new ResponseEntity<>("Error - no test found with test id '"+testId+"'", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(Map.of("error", "No test found with test id '"+testId+"'"), HttpStatus.NOT_FOUND);
 		}
 
 		TestModule test = support.getRunningTestById(testId);
 
 		if (test == null) {
-			return new ResponseEntity<>("Error - no running test with test id '"+testId+"'", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(Map.of("error", "No running test with test id '"+testId+"'"), HttpStatus.NOT_FOUND);
 		}
 
 		try {
@@ -207,7 +208,7 @@ public class TestDispatcher implements DataUtils {
 			//If the "resource" parameter is absent or malformed, the WebFinger
 			//   resource MUST indicate that the request is bad as per Section 10.4.1
 			//   of RFC 2616 [2].
-			return new ResponseEntity<>("resource parameter missing",HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(Map.of("error", "resource parameter missing"),HttpStatus.BAD_REQUEST);
 		}
 		String testName = null;
 		String alias = null;
@@ -243,13 +244,13 @@ public class TestDispatcher implements DataUtils {
 		}
 
 		if (!support.hasTestId(testId)) {
-			return new ResponseEntity<>("test id not found for alias '"+alias+"'", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(Map.of("error", "test id not found for alias '"+alias+"'"), HttpStatus.NOT_FOUND);
 		}
 
 		TestModule test = support.getRunningTestById(testId);
 
 		if (test == null) {
-			return new ResponseEntity<>("no running test for test id '"+testId+"' from alias '"+alias+"'", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(Map.of("error", "no running test for test id '" + testId + "' from alias '" + alias + "'"), HttpStatus.NOT_FOUND);
 		}
 
 		try {
