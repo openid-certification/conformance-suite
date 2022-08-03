@@ -68,6 +68,8 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		env.putString("fromTransactionDate", currentDate.minusDays(360).format(FORMATTER));
 		env.putString("toTransactionDate", currentDate.format(FORMATTER));
+		env.putString("fromDueDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toDueDate", currentDate.format(FORMATTER));
 		super.configureClient();
 	}
 
@@ -89,6 +91,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
+		callAndStopOnFailure(AddToAndFromDueDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch CreditCard Bills");
 		callAndStopOnFailure(CardBillSelector.class);
 		callAndStopOnFailure(PrepareUrlForFetchingBillTransactionResource.class);
@@ -120,6 +123,7 @@ public class CreditCardApiWrongPermissionsTestModule extends AbstractPermissions
 
 		runInBlock("Ensure we cannot call the CreditCard Bill API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
+			callAndStopOnFailure(AddToAndFromDueDateParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
