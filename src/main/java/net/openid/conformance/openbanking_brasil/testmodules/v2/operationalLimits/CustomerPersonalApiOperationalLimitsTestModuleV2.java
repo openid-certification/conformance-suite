@@ -42,8 +42,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
-		"resource.brazilCpfOperational",
-		"resource.brazilCnpjOperational"
+		"resource.brazilCpfOperationalPersonal"
 	}
 )
 public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {

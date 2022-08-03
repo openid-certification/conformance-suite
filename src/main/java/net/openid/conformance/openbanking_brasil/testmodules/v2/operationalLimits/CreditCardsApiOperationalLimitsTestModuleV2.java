@@ -57,8 +57,9 @@ import java.time.format.DateTimeFormatter;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
-		"resource.brazilCpfOperational",
-		"resource.brazilCnpjOperational",
+		"resource.brazilCpfOperationalPersonal",
+		"resource.brazilCpfOperationalBusiness",
+		"resource.brazilCnpjOperationalBusiness",
 		"consent.productType"
 	}
 )
