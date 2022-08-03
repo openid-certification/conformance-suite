@@ -13,7 +13,8 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPICIBAClientTest.class,
-		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class
+		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class,
+		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {
