@@ -9,10 +9,11 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi-ciba-id1-client-test-plan",
-	displayName = "FAPI-CIBA: Relying Party (client test) (alpha - INCOMPLETE/INCORRECT, please email certification team if intererested)",
+	displayName = "FAPI-CIBA-ID1: Relying Party (client test) (alpha - INCOMPLETE/INCORRECT, please email certification team if intererested)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
-		FAPICIBAClientTest.class
+		FAPICIBAClientTest.class,
+		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {

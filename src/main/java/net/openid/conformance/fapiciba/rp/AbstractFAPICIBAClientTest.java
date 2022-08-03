@@ -110,6 +110,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected abstract void createBackchannelResponse();
 
+	protected abstract void backchannelEndpointCallComplete();
+
 	protected abstract void createIntermediateTokenResponse();
 
 	protected abstract void createFinalTokenResponse();
@@ -509,7 +511,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		}
 
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
-		setStatus(Status.WAITING);
+		backchannelEndpointCallComplete();
 
 		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), HttpStatus.OK);
 	}
