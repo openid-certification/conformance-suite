@@ -25,7 +25,6 @@ public class EnsureTransactionsDateIsNoOlderThan7DaysTest extends AbstractJsonRe
 		transaction.addProperty("transactionDate", currentDate.format(FORMATTER));
 
 		EnsureTransactionsDateIsNoOlderThan7Days cond = new EnsureTransactionsDateIsNoOlderThan7Days();
-		environment.putObject("resource_endpoint_response_full", "body", jsonObject);
 		run(cond);
 	}
 
@@ -43,7 +42,6 @@ public class EnsureTransactionsDateIsNoOlderThan7DaysTest extends AbstractJsonRe
 	@Test
 	public void unhappyPathEmptyData() {
 		EnsureTransactionsDateIsNoOlderThan7Days cond = new EnsureTransactionsDateIsNoOlderThan7Days();
-		environment.putObject("resource_endpoint_response_full", "body", jsonObject);
 		run(cond);
 	}
 }
