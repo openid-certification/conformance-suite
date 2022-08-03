@@ -13,10 +13,35 @@ public class ValidateConsentsOperationalFieldV2 extends ValidateConsentsFieldV2 
 
 		JsonElement config = env.getObject("config");
 		//Extra checks for Operational Limits tests
-		JsonElement brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperational");
-		String brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
-		if(Strings.isNullOrEmpty(brazilCpfOperational)) {
-			logFailure("brazilCpfOperational is not valid", args("brazilCpfOperational", brazilCpfOperational));
+
+		String productType = env.getString("config", "consent.productType");
+		if (Strings.isNullOrEmpty(productType)) {
+			throw error("Product type (Business or Personal) must be specified in the test configuration");
+		}
+
+		JsonElement brazilCpfOperationalElement;
+		String brazilCpfOperational;
+		JsonElement brazilCnpjOperationalElement;
+		String brazilCnpjOperational;
+
+		if (productType.equals("business")) {
+			brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperationalBusiness");
+			brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
+			if(Strings.isNullOrEmpty(brazilCpfOperational)) {
+				logFailure("brazilCpfOperationalBusiness is not valid", args("brazilCpfOperational", brazilCpfOperational));
+			}
+
+			brazilCnpjOperationalElement = findElementOrThrowError(config, "$.resource.brazilCnpjOperationalBusiness");
+			brazilCnpjOperational = OIDFJSON.getString(brazilCnpjOperationalElement);
+			if(Strings.isNullOrEmpty(brazilCnpjOperational)) {
+				logFailure("brazilCnpjOperationalBusiness is not valid", args("brazilCpfOperational", brazilCpfOperational));
+			}
+		} else {
+			brazilCpfOperationalElement = findElementOrThrowError(config, "$.resource.brazilCpfOperationalPersonal");
+			brazilCpfOperational = OIDFJSON.getString(brazilCpfOperationalElement);
+			if(Strings.isNullOrEmpty(brazilCpfOperational)) {
+				logFailure("brazilCpfOperationalPersonal is not valid", args("brazilCpfOperational", brazilCpfOperational));
+			}
 		}
 
         return super.evaluate(env);

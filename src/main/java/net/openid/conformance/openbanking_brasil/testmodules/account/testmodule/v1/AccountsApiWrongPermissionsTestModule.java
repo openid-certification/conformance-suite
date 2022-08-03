@@ -82,7 +82,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 		preCallProtectedResource("Fetch Account balance");
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions");
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits");
@@ -120,7 +120,7 @@ public class AccountsApiWrongPermissionsTestModule extends AbstractPermissionsCh
 
 		runInBlock("Ensure we cannot call the account transactions API", () -> {
 			callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);

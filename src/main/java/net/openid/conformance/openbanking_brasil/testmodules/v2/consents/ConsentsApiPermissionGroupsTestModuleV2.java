@@ -13,7 +13,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreRespo
 import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetContentTypeApplicationJson;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateRequestedPermissionsAreNotWidened;
-import net.openid.conformance.openbanking_brasil.testmodules.support.arrayUtils;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ArrayUtils;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -70,7 +70,7 @@ public class ConsentsApiPermissionGroupsTestModuleV2 extends AbstractClientCrede
 		String[] creditCardTransactions = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ", "RESOURCES_READ"};
 		String[] creditCardInvoices = {"CREDIT_CARDS_ACCOUNTS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_READ", "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ", "RESOURCES_READ"};
 		String[] creditOperationsContractData = {"LOANS_READ", "LOANS_WARRANTIES_READ", "LOANS_SCHEDULED_INSTALMENTS_READ", "LOANS_PAYMENTS_READ", "FINANCINGS_READ", "FINANCINGS_WARRANTIES_READ", "FINANCINGS_SCHEDULED_INSTALMENTS_READ", "FINANCINGS_PAYMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ", "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ", "INVOICE_FINANCINGS_READ", "INVOICE_FINANCINGS_WARRANTIES_READ", "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ", "INVOICE_FINANCINGS_PAYMENTS_READ", "RESOURCES_READ"};
-		String[] combo = arrayUtils.concatArrays(balances, creditCardLimits);
+		String[] combo = ArrayUtils.concatArrays(balances, creditCardLimits);
 
 		String brazilCnpj = env.getString("config", "resource.brazilCnpj");
 		if(Strings.isNullOrEmpty(brazilCnpj)) {

@@ -43,7 +43,7 @@ public class FAPIBrasilCreateConsentRequest_UnitTest {
 		try {
 			condition.execute(env);
 		} catch(ConditionError ce) {
-			assertThat(ce.getMessage(), equalTo("FAPIBrazilCreateConsentRequest: A least one of CPF and CNPJ must be specified in the test configuration"));
+			assertThat(ce.getMessage(), equalTo("FAPIBrazilCreateConsentRequest: Product type (Business or Personal) must be specified in the test configuration"));
 		}
 
 	}

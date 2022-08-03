@@ -61,8 +61,9 @@ import java.time.format.DateTimeFormatter;
 		"resource.consentUrl",
 		"resource.brazilCpf",
 		"resource.brazilCnpj",
-		"resource.brazilCpfOperational",
-		"resource.brazilCnpjOperational",
+		"resource.brazilCpfOperationalPersonal",
+		"resource.brazilCpfOperationalBusiness",
+		"resource.brazilCnpjOperationalBusiness",
 		"consent.productType"
 	}
 )
@@ -130,11 +131,11 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 			// Call to credit card transactions  with dates GET once with validation
 
 			LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-			env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
-			env.putString("toBookingDate", currentDate.format(FORMATTER));
+			env.putString("fromTransactionDate", currentDate.minusDays(6).format(FORMATTER));
+			env.putString("toTransactionDate", currentDate.format(FORMATTER));
 
 			callAndStopOnFailure(PrepareUrlForFetchingCardTransactions.class);
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 
 
 			env.putInteger("required_number_of_records", REQUIRED_NUMBER_OF_RECORDS);
@@ -191,8 +192,10 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 
 
 			// Call to credit card current transactions with dates and page size fetched from next once with validation
+			env.putString("fromTransactionDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
+			env.putString("toTransactionDateMaxLimited", currentDate.format(FORMATTER));
 
-			callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+			callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
 			env.putInteger("required_page_size", 1);
 			callAndStopOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
