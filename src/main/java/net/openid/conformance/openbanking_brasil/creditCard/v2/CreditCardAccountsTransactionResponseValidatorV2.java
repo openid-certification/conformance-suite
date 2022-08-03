@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.openbanking_brasil.creditCard.LinksAndMetaValidatorTransactions;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaOnlyRequestDateTimeValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.*;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 @ApiName("Credit Card Accounts Transaction V2")
 public class CreditCardAccountsTransactionResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final LinksAndMetaValidatorTransactions linksAndMetaValidator = new LinksAndMetaValidatorTransactions(this);
+	private final LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
 	private static final Set<String> ENUM_PAYMENT_TYPE = SetUtils.createSet("A_VISTA, A_PRAZO");
 	public static final Set<String> ENUM_CREDIT_DEBIT_TYPE = SetUtils.createSet("CREDITO, DEBITO");
 	private static final Set<String> ENUM_FEE_TYPE = SetUtils.createSet("ANUIDADE, SAQUE_CARTAO_BRASIL, SAQUE_CARTAO_EXTERIOR, AVALIACAO_EMERGENCIAL_CREDITO, EMISSAO_SEGUNDA_VIA, TARIFA_PAGAMENTO_CONTAS, SMS, OUTRA");

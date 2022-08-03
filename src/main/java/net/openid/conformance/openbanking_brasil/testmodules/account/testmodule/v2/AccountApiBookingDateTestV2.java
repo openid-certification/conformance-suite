@@ -106,7 +106,7 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 		return sequenceOf(
 			condition(AccountTransactionsValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
-			condition(ValidateResponseMetaData.class),
+			condition(ValidateMetaOnlyRequestDateTime.class),
 			sequence(ValidateSelfEndpoint.class)
 		);
 	}

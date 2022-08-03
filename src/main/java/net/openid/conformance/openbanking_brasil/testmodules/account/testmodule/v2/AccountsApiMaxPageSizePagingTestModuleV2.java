@@ -76,7 +76,7 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 		callAndStopOnFailure(EnsureResponseCodeWas200.class);
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Account Transactions V2");

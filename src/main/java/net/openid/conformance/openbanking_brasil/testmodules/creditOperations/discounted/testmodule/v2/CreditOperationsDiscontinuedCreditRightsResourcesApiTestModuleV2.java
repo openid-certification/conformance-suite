@@ -69,7 +69,7 @@ public class CreditOperationsDiscontinuedCreditRightsResourcesApiTestModuleV2
 		runInBlock("Validate Resources response", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
-			callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 			call(sequence(ValidateSelfEndpoint.class));
 		});
 
