@@ -14,7 +14,8 @@ import java.util.Map;
 	testModules = {
 		FAPICIBAClientTest.class,
 		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class,
-		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class
+		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class,
+		FAPICIBAClientRespectsPollingIntervalTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {

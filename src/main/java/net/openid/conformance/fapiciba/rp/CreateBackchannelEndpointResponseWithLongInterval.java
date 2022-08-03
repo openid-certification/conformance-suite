@@ -9,15 +9,16 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.function.BiConsumer;
+import java.util.Map;
 
-public class CreateBackchannelEndpointResponse extends AbstractCondition {
+public class CreateBackchannelEndpointResponseWithLongInterval extends AbstractCondition {
 
 	public static final int EXPIRES_IN = 180;
+	public static final int INTERVAL = 31;
 
 	@Override
 	@PreEnvironment(required = { "backchannel_endpoint_http_request", "backchannel_request_object" })
-	@PostEnvironment(required = "backchannel_endpoint_response", strings = { "auth_req_id", "auth_req_id_expiration"})
+	@PostEnvironment(required = "backchannel_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonObject backchannelResponse = new JsonObject();
 		String authReqId = RFC6749AppendixASyntaxUtils.generateVSChar(40, 10, 0);
@@ -27,6 +28,9 @@ public class CreateBackchannelEndpointResponse extends AbstractCondition {
 		Integer requestedExpiry = env.getInteger("backchannel_request_object", "claims.requested_expiry");
 		int expiresIn = requestedExpiry != null ? requestedExpiry : EXPIRES_IN;
 		backchannelResponse.addProperty("expires_in", expiresIn);
+
+		backchannelResponse.addProperty("interval", INTERVAL);
+		env.putInteger("interval", INTERVAL);
 
 		String authReqIdExpiration = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(expiresIn));
 		env.putString("auth_req_id_expiration", authReqIdExpiration);
