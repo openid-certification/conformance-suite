@@ -16,9 +16,11 @@ import java.nio.charset.StandardCharsets;
 
 public class SwitchToOperationalLimitsClient extends AbstractCondition {
 
+	private static final String HARDCODED_ALIAS = "OBB_OL";
+
 	@Override
-	@PreEnvironment(required = {"client", "config", "mutual_tls_authentication"})
-	@PostEnvironment(required = {"original_client", "original_mutual_tls_authentication"})
+	@PreEnvironment(required = {"client", "config", "mutual_tls_authentication"}, strings = "redirect_uri")
+	@PostEnvironment(required = {"original_client", "original_mutual_tls_authentication"}, strings = "original_redirect_uri")
 	public Environment evaluate(Environment env) {
 		JsonObject originalClient = env.getObject("client").deepCopy();
 		JsonObject originalMtls = env.getObject("mutual_tls_authentication").deepCopy();
@@ -73,9 +75,18 @@ public class SwitchToOperationalLimitsClient extends AbstractCondition {
 
 		env.putObject("mutual_tls_authentication", operationalLimitsMtls);
 
+		// Redirect URI
+
+		String originalRedirectUri = env.getString("redirect_uri");
+		String alias = env.getString("config", "alias");
+		env.putString("original_redirect_uri", originalRedirectUri);
+		String operationalLimitsRedirectUri = originalRedirectUri.replaceAll(alias, HARDCODED_ALIAS);
+		env.putString("redirect_uri", operationalLimitsRedirectUri);
+
+
 		logSuccess("Switched to hardcoded Operational Limits Client",
-			args("Current Client", operationalLimitsClient, "Current MTLS", operationalLimitsMtls,
-				"Original client", originalClient, "Original MTLS", originalMtls));
+			args("Current Client", operationalLimitsClient, "Current MTLS", operationalLimitsMtls, "Current Redirect URI", operationalLimitsRedirectUri,
+				"Original client", originalClient, "Original MTLS", originalMtls, "Original Redirect URI", originalRedirectUri));
 
 		return env;
 	}
