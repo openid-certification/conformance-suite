@@ -14,6 +14,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @PublishTestModule(
 	testName = "account-api-bookingdate-test-v2",
 	displayName = "Test the max date of a payment",
@@ -43,6 +47,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	"client.org_jwks"
 })
 public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestModule {
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
@@ -61,24 +67,37 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 		callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
+
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions");
+		callAndStopOnFailure(CopyResourceEndpointResponse.class);
+		env.mapKey("full_range_response", "resource_endpoint_response_full_copy");
+
 		eventLog.startBlock("Add booking date query parameters");
 		callAndContinueOnFailure(AddBookingDateSixMonthsBefore.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
+
 		eventLog.startBlock("Add booking date query parameters");
 		callAndStopOnFailure(AddBookingDate6MonthsOlderThanCurrent.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
+
 		eventLog.startBlock("Add booking date query parameters using value from transaction returned");
 		callAndStopOnFailure(AddSavedTransactionDateAsBookingParam.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
 	}

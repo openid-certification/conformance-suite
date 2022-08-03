@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
 
-public class AppendToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl extends AbstractCondition {
+public class AppendToAndFromBookingDateParametersToProtectedResourceUrl extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = {"protected_resource_url", "fromBookingDate", "toBookingDate"})
