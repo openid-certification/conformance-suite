@@ -182,7 +182,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
 		env.putString("toBookingDate", currentDate.format(FORMATTER));
 
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 
 		env.putInteger("required_number_of_records", REQUIRED_NUMBER_OF_RECORDS);
 		for (int i = 0; i < 30; i++) {
@@ -217,6 +217,9 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOBBrasilFunc
 			preCallProtectedResource(String.format("[%d] Fetching Account Transactions current", i + 1));
 			validateFields(i, "Validate Account Transactions current", AccountTransactionsCurrentValidatorV2.class);
 		}
+
+		env.putString("fromBookingDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
+		env.putString("toBookingDateMaxLimited", currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		env.putInteger("required_page_size", 1);

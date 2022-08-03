@@ -47,7 +47,7 @@ public abstract class ValidateTransactionsDate extends AbstractCondition {
 		return env;
 	}
 
-	abstract protected boolean isDateInvalid(LocalDate currentDate, LocalDate transactionDate);
+	protected abstract boolean isDateInvalid(LocalDate currentDate, LocalDate transactionDate);
 
-	abstract protected String getErrorMessage();
+	protected abstract String getErrorMessage();
 }
