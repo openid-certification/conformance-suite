@@ -7,11 +7,11 @@ import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
-public class LinksAndMetaRequestDateTimeValidator {
+public class LinksAndMetaOnlyRequestDateTimeValidator {
 
 	private final AbstractJsonAssertingCondition validator;
 
-	public LinksAndMetaRequestDateTimeValidator(AbstractJsonAssertingCondition validator) {
+	public LinksAndMetaOnlyRequestDateTimeValidator(AbstractJsonAssertingCondition validator) {
 		this.validator = validator;
 	}
 
