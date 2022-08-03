@@ -7,12 +7,19 @@ import net.openid.conformance.openbanking_brasil.account.v1.AccountIdentificatio
 import net.openid.conformance.openbanking_brasil.account.v1.AccountListValidator;
 import net.openid.conformance.openbanking_brasil.account.v1.AccountTransactionsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.account.*;
+import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareAllAccountRelatedConsentsForHappyPathTest;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountResource;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountTransactions;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @PublishTestModule(
 	testName = "account-api-bookingdate-test",
@@ -44,6 +51,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	"client.org_jwks"
 })
 public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestModule {
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
@@ -63,24 +74,37 @@ public class AccountApiBookingDateTest extends AbstractOBBrasilFunctionalTestMod
 		callAndStopOnFailure(PrepareUrlForFetchingAccountResource.class);
 		preCallProtectedResource("Fetch Account");
 		callAndContinueOnFailure(AccountIdentificationResponseValidator.class, Condition.ConditionResult.FAILURE);
+
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
+		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions");
+		callAndStopOnFailure(CopyResourceEndpointResponse.class);
+		env.mapKey("full_range_response", "resource_endpoint_response_full_copy");
+
 		eventLog.startBlock("Add booking date query parameters");
 		callAndContinueOnFailure(AddBookingDateSixMonthsBefore.class, Condition.ConditionResult.FAILURE);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
+
 		eventLog.startBlock("Add booking date query parameters");
 		callAndStopOnFailure(AddBookingDate6MonthsOlderThanCurrent.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
+
 		eventLog.startBlock("Add booking date query parameters using value from transaction returned");
 		callAndStopOnFailure(AddSavedTransactionDateAsBookingParam.class);
 		preCallProtectedResource("Fetch Account transactions with query parameters");
 		eventLog.startBlock("Validating random transaction returned");
+		callAndStopOnFailure(CheckExpectedBookingDateResponse.class);
 		callAndStopOnFailure(ValidateTransactionWithinRange.class);
 		call(accountTransactionsValidationSequence());
 	}
