@@ -7,7 +7,7 @@ public class EnsureConsentRejectAspspMaxDateReached extends AbstractConsentRejec
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
-		if (validateResponse(env.getString("resource_endpoint_response"),"CONSENT_MAX_DATE_REACHED","ASPSP")){
+		if (!validateResponse(env.getString("resource_endpoint_response"),"CONSENT_MAX_DATE_REACHED","ASPSP")){
 			throw error("Rejected object was not found.");
 		}
 		return env;
