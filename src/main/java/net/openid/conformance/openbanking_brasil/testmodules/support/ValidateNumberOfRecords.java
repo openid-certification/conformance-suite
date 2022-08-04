@@ -24,8 +24,8 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 	protected boolean isMetaOnlyRequestDateTime = false;
 
 	protected int pageSize;
-	protected int totalNumberOfRecords;
-	protected int totalNumberOfPages;
+	protected int totalNumberOfRecords = 0;
+	protected int totalNumberOfPages = 0;
 	private JsonObject linksObject;
 	protected int currentPageNumber;
 	protected String selfLink;
