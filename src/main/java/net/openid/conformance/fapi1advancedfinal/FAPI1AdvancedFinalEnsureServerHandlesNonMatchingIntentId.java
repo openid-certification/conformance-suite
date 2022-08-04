@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil" })
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "openinsurance_brazil" })
 public class FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

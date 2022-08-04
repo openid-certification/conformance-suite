@@ -78,7 +78,11 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
+			case "openinsurance_brazil":
+				// this deliberately doesn't throw an exception as we rely on this case in our CI to test the Brazil profile currently
 				return "Not a conformance profile. Please use 'FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+			default:
+				throw new RuntimeException("Not a conformance profile.");
 		}
 
 		certProfile += " Adv. RP w/";

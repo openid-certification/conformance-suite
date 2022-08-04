@@ -30,10 +30,11 @@ import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientSco
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
-import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
+import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
@@ -55,16 +56,18 @@ import net.openid.conformance.sequence.ConditionSequence;
 public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSequence {
 
 	private boolean payments;
+	private boolean openInsurance;
 	private boolean dpop;
 	private boolean stopAfterConsentEndpointCall;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean stopAfterConsentEndpointCall) {
+	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean openInsurance, boolean stopAfterConsentEndpointCall) {
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.dpop = dpop;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 		this.payments = payments;
+		this.openInsurance = openInsurance;
 		this.stopAfterConsentEndpointCall = stopAfterConsentEndpointCall;
 	}
 
@@ -193,7 +196,11 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			call(exec().unmapKey("endpoint_response"));
 			call(exec().unmapKey("endpoint_response_jwt"));
 		} else {
-			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
+			if (openInsurance) {
+				callAndStopOnFailure(FAPIBrazilOpenInsuranceCreateConsentRequest.class);
+			} else {
+				callAndStopOnFailure(FAPIBrazilOpenBankingCreateConsentRequest.class);
+			}
 
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 

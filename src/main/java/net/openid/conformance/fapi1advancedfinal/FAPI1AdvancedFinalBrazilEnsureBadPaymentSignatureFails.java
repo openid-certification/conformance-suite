@@ -35,7 +35,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
 	"plain_fapi",
 	"openbanking_uk",
-	"consumerdataright_au"
+	"consumerdataright_au",
+	"openinsurance_brazil"
 })
 public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI1AdvancedFinalServerTestModule {
 
@@ -44,7 +45,12 @@ public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends Abst
 		if (brazilPayments.isTrue()) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), false, addTokenEndpointClientAuthentication, brazilPayments.isTrue(), true);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(),
+			false,
+			addTokenEndpointClientAuthentication,
+			brazilPayments.isTrue(),
+			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL,
+			true);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));

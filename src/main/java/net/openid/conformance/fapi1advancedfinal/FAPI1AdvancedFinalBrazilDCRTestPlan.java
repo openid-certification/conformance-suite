@@ -6,6 +6,7 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
@@ -37,12 +38,23 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
 				),
-				List.of(new Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"))
+				List.of()
 			)
 		);
 
 	}
 	public static String certificationProfileName(VariantSelection variant) {
-		return "BR-OB Adv. OP DCR";
+		Map<String, String> v = variant.getVariant();
+
+		String profile = v.get("fapi_profile");
+
+		switch (profile) {
+			case "openbanking_brazil":
+				return "BR-OB Adv. OP DCR";
+			case "openinsurance_brazil":
+				return "BR-OPIN Adv. OP DCR";
+			default:
+				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
+		}
 	}
 }

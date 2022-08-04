@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.InvalidateConsentEndpointRequestS
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -45,7 +46,13 @@ public class FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails extends Abstra
 		if (brazilPayments) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(isSecondClient(), isDpop, addTokenEndpointClientAuthentication, brazilPayments, true);
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
+			isSecondClient(),
+			isDpop,
+			addTokenEndpointClientAuthentication,
+			brazilPayments,
+			false, // open insurance not yet supported in fapi2
+			true);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));
