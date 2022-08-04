@@ -989,7 +989,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = this::createOBBPreauthSteps;
-		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
+		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
 

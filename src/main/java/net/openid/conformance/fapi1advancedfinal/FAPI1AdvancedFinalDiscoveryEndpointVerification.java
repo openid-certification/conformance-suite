@@ -81,6 +81,12 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		brazil = true;
 	}
 
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
+	public void setupOpenInsuranceBrazil() {
+		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
+		brazil = true;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;

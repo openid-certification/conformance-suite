@@ -13,7 +13,9 @@ public enum FAPI1FinalOPProfile {
 	// as per https://consumerdatastandardsaustralia.github.io/standards/
 	CONSUMERDATARIGHT_AU,
 	// as per https://github.com/OpenBanking-Brasil/specs-seguranca/
-	OPENBANKING_BRAZIL;
+	OPENBANKING_BRAZIL,
+	// as per https://github.com/br-openinsurance/areadesenvolvedor/blob/develop/documentation/source/files/swagger/consents.yaml
+	OPENINSURANCE_BRAZIL;
 
 	@Override
 	public String toString() {

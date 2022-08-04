@@ -72,7 +72,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 				// this will always fail & stop
 				callAndStopOnFailure(CDRRefreshTokenRequiredWhenSharingDurationRequested.class, "CDR-requesting-sharing-duration");
 			}
-			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if (isBrazil()) {
 				// this will always fail & stop
 				callAndStopOnFailure(FAPIBrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-12");
 			}
@@ -84,7 +84,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
 		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication);
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
 		}

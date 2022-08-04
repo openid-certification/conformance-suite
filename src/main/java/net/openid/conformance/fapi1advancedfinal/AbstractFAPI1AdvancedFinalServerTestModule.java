@@ -72,6 +72,13 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+	"consent.productType",
+	"resource.consentUrl",
+	"resource.brazilCpf",
+	"resource.brazilCnpj",
+	"directory.keystore"
+})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
@@ -96,7 +103,13 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	}
 
+	protected boolean isBrazil() {
+		return profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL ||
+			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
+	}
+
 	protected int whichClient;
+	protected FAPI1FinalOPProfile profile;
 	protected Troolean jarm = Troolean.ISNT_CONFIGURED_YET;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Troolean isPar = Troolean.ISNT_CONFIGURED_YET;
@@ -141,9 +154,11 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			return;
 		}
 
+		profile = getVariant(FAPI1FinalOPProfile.class);
+
 		jarm = Troolean.configure(getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM);
 		isPar = Troolean.configure(getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED);
-		isBrazil = Troolean.configure(getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL);
+		isBrazil = Troolean.configure(isBrazil());
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -231,7 +246,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			callAndContinueOnFailure(FAPIBrazilCheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
 		} else {
 			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
@@ -302,7 +317,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		public void evaluate() {
 			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
-			call(sequence(profileAuthorizationEndpointSetupSteps));
+			if (profileAuthorizationEndpointSetupSteps != null) {
+				call(sequence(profileAuthorizationEndpointSetupSteps));
+			}
 
 			if (isSecondClient) {
 				exec().putInteger("requested_state_length", 128);
@@ -381,8 +398,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		boolean isPar = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
-		boolean isBrazil = getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL;
-		boolean encrypt = isBrazil && !isPar;
+		boolean encrypt = isBrazil() && !isPar;
 		return new CreateAuthorizationRequestObjectSteps(isSecondClient(), encrypt);
 	}
 
@@ -506,7 +522,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
 		}
@@ -533,7 +549,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		performProfileIdTokenValidation();
 
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1-1");
 		} else {
 			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
@@ -819,7 +835,15 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = this::createOBBPreauthSteps;
-		profileAuthorizationEndpointSetupSteps = OpenBankingBrazilAuthorizationEndpointSetup.class;
+		profileAuthorizationEndpointSetupSteps = null;
+		profileIdTokenValidationSteps = null;
+	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
+	public void setupOpenInsuranceBrazil() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = this::createOBBPreauthSteps;
+		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
 
