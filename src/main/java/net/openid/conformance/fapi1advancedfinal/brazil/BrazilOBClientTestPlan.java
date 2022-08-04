@@ -50,9 +50,22 @@ import java.util.Map;
 public class BrazilOBClientTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
-		String certProfile = "BR-OB Adv. RP w/";
+		String certProfile;
 
 		Map<String, String> v = variant.getVariant();
+		String profile = v.get("fapi_profile");
+
+		switch (profile) {
+			case "openbanking_brazil":
+				certProfile = "BR-OB Adv. OP DCR";
+				break;
+			case "openinsurance_brazil":
+				certProfile = "BR-OPIN Adv. OP DCR";
+				break;
+			default:
+				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
+		}
+
 		String clientAuth = v.get("client_auth_type");
 		String responseMode = v.get("fapi_response_mode");
 		String fapiClientType = v.get("fapi_client_type");
@@ -119,11 +132,9 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		parModules.add(FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR.class);
 
 		List<TestPlan.Variant> variantListByValue = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
 			new TestPlan.Variant(FAPIAuthRequestMethod.class, "by_value")
 		);
 		List<TestPlan.Variant> variantListPushed = List.of(
-			new TestPlan.Variant(FAPI1FinalOPProfile.class, "openbanking_brazil"),
 			new TestPlan.Variant(FAPIAuthRequestMethod.class, "pushed")
 		);
 
