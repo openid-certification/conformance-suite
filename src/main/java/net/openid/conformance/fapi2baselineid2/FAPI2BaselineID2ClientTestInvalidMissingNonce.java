@@ -1,13 +1,14 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveNonceFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
-@VariantNotApplicable(parameter = FAPIJARMType.class, values = {"plain_oauth"})
+@VariantNotApplicable(parameter = FAPIClientType.class, values = {"plain_oauth"})
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-client-test-invalid-missing-nonce",
 	displayName = "FAPI2-Baseline-ID2: client test - missing nonce in id_token from token_endpoint, should be rejected",
@@ -27,13 +28,19 @@ public class FAPI2BaselineID2ClientTestInvalidMissingNonce extends AbstractFAPI2
 	protected boolean issuedMissingNonce = false;
 
 	@Override
+	protected void endTestIfRequiredParametersAreMissing() {
+		String nonce = env.getString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, CreateEffectiveAuthorizationPARRequestParameters.NONCE);
+		if(Strings.isNullOrEmpty(nonce)) {
+			fireTestSkipped("This test is being skipped as it relies on the client supplying an OPTIONAL nonce value - since none is supplied, this can not be tested. PKCE prevents CSRF so this is acceptable and will not prevent certification.");
+		}
+	}
+
+	@Override
 	protected void addCustomValuesToIdToken() {
 		String nonce = env.getString("id_token_claims", "nonce");
 		if(!Strings.isNullOrEmpty(nonce)) {
 			callAndStopOnFailure(RemoveNonceFromIdToken.class, "OIDCC-3.1.3.7-11");
 			issuedMissingNonce = true;
-		} else {
-			fireTestSkipped("No nonce was sent.");
 		}
 	}
 

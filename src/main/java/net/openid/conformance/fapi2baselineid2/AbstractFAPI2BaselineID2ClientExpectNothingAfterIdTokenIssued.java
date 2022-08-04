@@ -1,14 +1,14 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIJARMType;
+import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Base class for tests that return an invalid id_token, either from the authorization endpoint or the token endpoint
  * Client must stop after receiving an invalid id_token
  */
-@VariantNotApplicable(parameter = FAPIJARMType.class, values = "plain_oauth")
+@VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
 public abstract class AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued extends AbstractFAPI2BaselineID2ClientTest {
 	protected boolean issueIdTokenCalled = false;
 

@@ -4,7 +4,6 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
-import net.openid.conformance.variant.FAPIJARMType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
