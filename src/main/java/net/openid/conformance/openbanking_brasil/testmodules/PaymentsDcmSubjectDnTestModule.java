@@ -23,7 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"\u2022 Use client_credentials grant to obtain Brazil consent\n" +
 		"\u2022 Switch back to original certificate (1), verify that client credentials grant fails\n" +
 		"\u2022 Use original certificate (1) to make a GET request to client configuration endpoint expecting a success\n" +
-		"\u2022 Use original certificate (1) to make a PUT with subjectdn for second certificate (2) client configuration endpoint expecting a success" +
+		"\u2022 Use original certificate (1) to make a PUT request on the client configuration endpoint expecting a success" +
 		"\u2022 Unregister dynamically registered client with original certificate (1)\n\n" +
 		"Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = OBBProfile.OBB_PROFILE,
