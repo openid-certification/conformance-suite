@@ -27,6 +27,7 @@ public class FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest extends Abstr
 		callAndStopOnFailure(CreateBackchannelEndpointResponseWithoutAuthReqId.class);
 	}
 
+	@Override
 	protected void backchannelEndpointCallComplete() {
 		fireTestFinished();
 	}

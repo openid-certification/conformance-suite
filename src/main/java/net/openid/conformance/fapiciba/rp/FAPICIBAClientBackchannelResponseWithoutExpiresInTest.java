@@ -27,6 +27,7 @@ public class FAPICIBAClientBackchannelResponseWithoutExpiresInTest extends Abstr
 		callAndStopOnFailure(CreateBackchannelEndpointResponseWithoutExpiresIn.class);
 	}
 
+	@Override
 	protected void backchannelEndpointCallComplete() {
 		fireTestFinished();
 	}
