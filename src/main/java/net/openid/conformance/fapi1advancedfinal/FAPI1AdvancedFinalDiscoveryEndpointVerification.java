@@ -5,28 +5,29 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
+import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
-import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
-import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.FAPIRWCheckDiscEndpointResponseTypesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -52,7 +53,7 @@ import net.openid.conformance.variant.VariantSetup;
 })
 public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification {
 
-	private Class<? extends ConditionSequence> profileSpecificChecks;
+	private ConditionSequence profileSpecificChecks;
 
 	protected Boolean jarm;
 
@@ -62,28 +63,28 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		profileSpecificChecks = new PlainFAPIDiscoveryEndpointChecks();
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
-		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
+		profileSpecificChecks = new OpenBankingUkDiscoveryEndpointChecks();
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
-		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
+		profileSpecificChecks = new AuCdrDiscoveryEndpointChecks();
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
+		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
 		brazil = true;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
-		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
+		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(true);
 		brazil = true;
 	}
 
@@ -120,7 +121,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
-		call(sequence(profileSpecificChecks));
+		call(profileSpecificChecks);
 
 		if (brazil && !par) {
 			// encrypted request object support is only required for redirect based flows
@@ -169,20 +170,29 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 	}
 
 	public static class OpenBankingBrazilDiscoveryEndpointChecks extends AbstractConditionSequence {
+		boolean openInsurance;
+
+		OpenBankingBrazilDiscoveryEndpointChecks(boolean openInsurance) {
+			this.openInsurance = openInsurance;
+		}
 
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE,
-				"OIDCD-3", "BrazilOB-5.2.2-3");
+				"OIDCD-3", "BrazilOB-5.2.2-3", "BrazilOPIN-page8");
 
 			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE,
-				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6");
+				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported.class, Condition.ConditionResult.FAILURE,
-				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5");
+				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
-			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			if (openInsurance) {
+				callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOPIN-page8");
+			} else {
+				callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
+				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
+			}
+			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
 		}
 	}

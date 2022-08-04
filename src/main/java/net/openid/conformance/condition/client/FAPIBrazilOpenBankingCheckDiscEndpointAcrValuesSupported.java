@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIBrazilCheckDiscEndpointAcrValuesSupported extends AbstractValidateJsonArray {
+public class FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "acr_values_supported";
 
