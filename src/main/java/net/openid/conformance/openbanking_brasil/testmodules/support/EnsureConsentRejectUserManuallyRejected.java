@@ -8,7 +8,7 @@ public class EnsureConsentRejectUserManuallyRejected extends AbstractConsentReje
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		if (!validateResponse(env.getString("resource_endpoint_response"),"COSTUMER_MANUALLY_REJECTED","USER")){
+		if (!validateResponse(env.getString("resource_endpoint_response"),"CUSTOMER_MANUALLY_REJECTED","USER")){
 			throw error("Rejection object was not found.");
 		}
 
