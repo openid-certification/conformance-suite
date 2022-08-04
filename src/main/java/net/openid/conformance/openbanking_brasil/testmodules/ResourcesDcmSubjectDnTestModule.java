@@ -15,7 +15,16 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = ResourcesDcmSubjectDnTestModule.testName,
 	displayName = "Brazil DCM: resources: check that subjectdn can be updated using the dynamic client management endpoint",
-	summary = "Obtain a software statement from the Brazil sandbox directory (using a hardcoded client), register a new client on the target authorization server, perform a successful client credentials grant. Verify that the client credentials grant fails when using a certificate with a different subjectdn. Then use the DCM endpoint to change subjectdn for the client to the subjectdn for the other certificate, and verify the client credentials grant succeeds with that certificate but fails with the original certificate.\n\nNote that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
+	summary = "\u2022 Perform Dynamic Client Registration with first credential set (1) setting subject_dn (1)\n" +
+		"\u2022 Use client_credentials grant to obtain Brazil consent\n" +
+		"\u2022 Switch to certificate (2) with different subjectdn, verify that client credentials grant fails\n" +
+		"\u2022 Make PUT request to client configuration endpoint with subjectdn for second certificate (2) -> This will update tls_subject_dn to (2)\n" +
+		"\u2022 Use client_credentials grant to obtain Brazil consent\n" +
+		"\u2022 Switch back to original certificate (1), verify that client credentials grant fails\n" +
+		"\u2022 Use original certificate (1) to make a GET request to client configuration endpoint expecting a success\n" +
+		"\u2022 Use original certificate (1) to make a PUT with subjectdn for second certificate (2) client configuration endpoint expecting a success" +
+		"\u2022 Unregister dynamically registered client with original certificate (1)\n\n" +
+		"Note that this test overrides the 'alias' value in the configuration, so you may see your test being interrupted if other users are testing.",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
