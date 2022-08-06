@@ -138,6 +138,9 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
 				break;
+			case "openinsurance_brazil":
+				certProfile = "BR-OPIN";
+				break;
 		}
 
 		certProfile += " Adv. OP w/";
