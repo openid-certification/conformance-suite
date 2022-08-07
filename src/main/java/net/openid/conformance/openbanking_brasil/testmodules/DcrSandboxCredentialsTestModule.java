@@ -44,7 +44,14 @@ public class DcrSandboxCredentialsTestModule extends AbstractFAPI1AdvancedFinalB
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xxOrFailedTLS.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
 		call(exec().unmapKey("endpoint_response"));
 
-		fireTestFinished();
 		eventLog.endBlock();
+	}
+
+	@Override
+	protected void setupResourceEndpoint() {}
+
+	@Override
+	protected void performAuthorizationFlow() {
+		fireTestFinished();
 	}
 }

@@ -62,20 +62,9 @@ public abstract class AbstractDcmSubjectDnTestModule extends AbstractApiDcrTestM
 		callClientCredentialsGrantExpectingFailure();
 
 		eventLog.startBlock("Make PUT request to client configuration endpoint with subjectdn for second certificate");
-		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
-		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
-		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
-		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
-		callAndStopOnFailure(AddTlsClientAuthSubjectDnToClientConfigurationRequest.class);
+		createClientConfigurationRequestWithSubjectDn();
 
-		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
-		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
-		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
-		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callClientConfigurationEndpoint();
 
 		performPreAuthorizationSteps();
 
@@ -86,8 +75,41 @@ public abstract class AbstractDcmSubjectDnTestModule extends AbstractApiDcrTestM
 		callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 		callClientCredentialsGrantExpectingFailure();
+		eventLog.endBlock();
+
+
+		eventLog.startBlock("Use original certificate (1) to make a GET request to client configuration endpoint expecting a success");
+		env.removeObject("registration_client_endpoint_request_body");
+		callClientConfigurationEndpoint();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Use original certificate (1) to make a PUT with subjectdn for second certificate (2) client configuration endpoint expecting a success");
+		createClientConfigurationRequestWithSubjectDn();
+		callClientConfigurationEndpoint();
+		eventLog.endBlock();
+
 
 		fireTestFinished();
+	}
+
+	protected void createClientConfigurationRequestWithSubjectDn() {
+		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
+		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
+		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
+		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
+		callAndStopOnFailure(AddTlsClientAuthSubjectDnToClientConfigurationRequest.class);
+	}
+
+	protected void callClientConfigurationEndpoint() {
+
+		callAndStopOnFailure(CallClientConfigurationEndpoint.class);
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentTypeHttpStatus200.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckRegistrationClientEndpointContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3");
+		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 	}
 
 	private void callClientCredentialsGrantExpectingFailure() {

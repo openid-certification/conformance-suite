@@ -1,7 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -20,11 +22,14 @@ public abstract class ValidateTransactionsDate extends AbstractCondition {
 	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
 
-		JsonArray data = env.getElementFromObject("resource_endpoint_response_full", "body.data").getAsJsonArray();
+		JsonObject body = JsonParser.parseString(env.getString("resource_endpoint_response_full", "body"))
+			.getAsJsonObject();
+
+		JsonArray dataArray = body.getAsJsonArray("data");
 
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 
-		data.forEach(jsonElement -> {
+		dataArray.forEach(jsonElement -> {
 			JsonObject transactionObject = jsonElement.getAsJsonObject();
 			String transactionDateString = OIDFJSON.getString(transactionObject.get("transactionDate"));
 			LocalDate transactionDate = LocalDate.parse(transactionDateString, FORMATTER);
