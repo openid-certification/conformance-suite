@@ -32,11 +32,12 @@ public class ValidateNumberOfRecordsPage1 extends ValidateNumberOfRecords {
 			logSuccess("Number of records match accordingly");
 		}
 
-		if (totalNumberOfPages > currentPageNumber) {
-			validateNextLink();
-			validateLastLink();
+		if(!isMetaOnlyRequestDateTime) {
+			if (totalNumberOfPages > currentPageNumber) {
+				validateNextLink();
+				validateLastLink();
+			}
 		}
-
 		return env;
 	}
 

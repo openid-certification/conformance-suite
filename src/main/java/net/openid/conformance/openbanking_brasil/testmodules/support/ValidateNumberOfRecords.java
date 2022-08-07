@@ -85,11 +85,6 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 	}
 
 	protected void validateLastLink() {
-		if(isMetaOnlyRequestDateTime) {
-			log("No last link validation since MetaOnlyRequestDateTime object was returned.");
-			return;
-		}
-
 		String lastLink = OIDFJSON.getString(findByPath(linksObject, "$.last"));
 		int lastLinkPageNumber = getPageNumber(lastLink);
 		if (lastLinkPageNumber != totalNumberOfPages) {
@@ -100,7 +95,6 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 		} else {
 			logSuccess("Last page number matches the number in the last link");
 		}
-
 	}
 
 	protected void validateNextLink() {

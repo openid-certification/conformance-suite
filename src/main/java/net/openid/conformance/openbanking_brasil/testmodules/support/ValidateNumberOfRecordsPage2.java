@@ -24,30 +24,8 @@ public class ValidateNumberOfRecordsPage2 extends ValidateNumberOfRecords {
 
 		validatePrevLink();
 
-		if (totalNumberOfPages > currentPageNumber) {
-			log("Second page is not the last page");
-
-			if (numberOfReturnedRecords != pageSize) {
-				throw error("Number of records returned has to be equal to the page-size",
-					Map.of("Number of returned records", numberOfReturnedRecords,
-						"Page size", pageSize));
-			} else {
-				logSuccess("Number of records returned is equal to the page-size");
-			}
-
-			if (totalNumberOfRecords <= numberOfRecordsFromFirstPage + numberOfReturnedRecords) {
-				throw error("Total number of records has to be greater than number of records in page 1 and 2",
-					Map.of("Total number of records", totalNumberOfRecords,
-						"Number of records in page 1 and 2", numberOfRecordsFromFirstPage + numberOfReturnedRecords));
-			} else {
-				logSuccess("Total number of records is greater than number of records in page 1 and 2");
-			}
-
-			validateLastLink();
-			validateNextLink();
-
-		} else {
-			log("Second page is the last page");
+		if(isMetaOnlyRequestDateTime) {
+			log("metaOnlyRequestDateTime object provided.");
 
 			if (numberOfReturnedRecords > pageSize) {
 				throw error("Number of records returned has to be less than or equal to the page-size",
@@ -56,8 +34,40 @@ public class ValidateNumberOfRecordsPage2 extends ValidateNumberOfRecords {
 			} else {
 				logSuccess("Number of records returned is less than or equal to the page-size");
 			}
+		} else {
+			if (totalNumberOfPages > currentPageNumber) {
+				log("Second page is not the last page");
 
-			if (!isMetaOnlyRequestDateTime) {
+				if (numberOfReturnedRecords != pageSize) {
+					throw error("Number of records returned has to be equal to the page-size",
+						Map.of("Number of returned records", numberOfReturnedRecords,
+							"Page size", pageSize));
+				} else {
+					logSuccess("Number of records returned is equal to the page-size");
+				}
+
+				if (totalNumberOfRecords <= numberOfRecordsFromFirstPage + numberOfReturnedRecords) {
+					throw error("Total number of records has to be greater than number of records in page 1 and 2",
+						Map.of("Total number of records", totalNumberOfRecords,
+							"Number of records in page 1 and 2", numberOfRecordsFromFirstPage + numberOfReturnedRecords));
+				} else {
+					logSuccess("Total number of records is greater than number of records in page 1 and 2");
+				}
+
+				validateLastLink();
+				validateNextLink();
+
+			} else {
+				log("Second page is the last page");
+
+				if (numberOfReturnedRecords > pageSize) {
+					throw error("Number of records returned has to be less than or equal to the page-size",
+						Map.of("Number of returned records", numberOfReturnedRecords,
+							"Page size", pageSize));
+				} else {
+					logSuccess("Number of records returned is less than or equal to the page-size");
+				}
+
 				if (totalNumberOfRecords != numberOfRecordsFromFirstPage + numberOfReturnedRecords) {
 					throw error("Total number of records has to be equal to the number of records in page 1 and 2",
 						Map.of("Total number of records", totalNumberOfRecords,
