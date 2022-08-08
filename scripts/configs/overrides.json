@@ -32,5 +32,8 @@
     },
     "payments-api-consumed-consent-test": {
         "pixPaymentAmount": "9999.99"
+    },
+    "payments-api-qres-good-phone-number-proxy-test": {
+        "pixPaymentAmount": "{{1333.00}}"
     }
 }

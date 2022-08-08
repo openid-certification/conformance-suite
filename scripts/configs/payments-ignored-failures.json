@@ -1,38 +1,3 @@
 [
-    {
-        "test-name": "payments-api-qres-good-phone-number-proxy-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Validate response",
-        "condition": "ChuckWarning",
-        "expected-result": "failure",
-        "comment": "mock bank bank is not fully compliant"
-    },
-    {
-        "test-name": "payments-api-qres-wrong-amount-proxy-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Validate response",
-        "condition": "ChuckWarning",
-        "expected-result": "failure",
-        "comment": "not currently possible to test against mock bank"
-    },
-    {
-        "test-name": "payments-api-qres-mismatched-consent-payment-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Validate response",
-        "condition": "ChuckWarning",
-        "expected-result": "failure",
-        "comment": "not currently possible to test against mock bank"
-    },
-    {
-        "test-name": "payments-api-qres-mismatched-proxy-test",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Validate response",
-        "condition": "ChuckWarning",
-        "expected-result": "failure",
-        "comment": "not currently possible to test against mock bank"
-    }
+
 ]
