@@ -95,7 +95,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
             selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
             log("Validating self link: " + selfLink);
             if(isConsentRequest && !isPaymentConsent && !isPayment) {
-				validateSelfLink(selfLink);
+				validateSelfLink(selfLink,
+					OIDFJSON.getString(apiResponse.getAsJsonObject().getAsJsonObject("data").get("consentId")));
 			}
         } else {
             //  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
@@ -222,9 +223,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		return queryParams;
     }
 
-    protected void validateSelfLink(String selfLink){
-		String regex = "^(https:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)$";
-		final Pattern consentRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+    protected void validateSelfLink(String selfLink, String consentIdField){
+		final Pattern consentRegex = Pattern.compile(String.format("^(https://)(.*?)(consents|payments)(/v\\d/consents/%s)", consentIdField), Pattern.CASE_INSENSITIVE);
 		Matcher matcher = consentRegex.matcher(selfLink);
     	if (matcher.find()){
 			logSuccess("Consent ID in self link matches the consent ID in the returned object");
