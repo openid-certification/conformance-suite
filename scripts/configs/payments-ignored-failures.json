@@ -34,14 +34,5 @@
         "condition": "ChuckWarning",
         "expected-result": "failure",
         "comment": "not currently possible to test against mock bank"
-    },
-    {
-        "test-name": "payments-api-fapi-testing",
-        "variant": "*",
-        "configuration-filename": "./scripts/configs/generated-payment-config.json",
-        "current-block": "Try Client1's MTLS client certificate with Client2's access token",
-        "condition": "ResourceErrorMetaValidator",
-        "expected-result": "failure",
-        "comment": "Mock bank does not have requestDateTime field in the error response causing test failure"
     }
 ]
