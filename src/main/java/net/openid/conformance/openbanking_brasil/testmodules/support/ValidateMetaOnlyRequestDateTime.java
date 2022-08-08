@@ -66,8 +66,7 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 			selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
 			log("Validating self link: " + selfLink);
 			if(isConsentRequest && !isPaymentConsent && !isPayment) {
-				validateSelfLink(selfLink,
-					OIDFJSON.getString(apiResponse.getAsJsonObject().getAsJsonObject("data").get("consentId")));
+				validateSelfLink(selfLink);
 			}
 		} else {
 			//  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
