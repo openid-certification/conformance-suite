@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.JsonElement;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -14,6 +15,7 @@ import java.util.Locale;
 public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 
 	@Override
+	@PostEnvironment(strings = "metaOnlyRequestDateTime")
 	public Environment evaluate(Environment env) {
 
 		JsonElement apiResponse = bodyFrom(env);
@@ -80,6 +82,7 @@ public class ValidateMetaOnlyRequestDateTime extends ValidateResponseMetaData {
 			}
 		}
 
+		env.putString("metaOnlyRequestDateTime", "true");
 		return env;
 	}
 }
