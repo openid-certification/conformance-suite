@@ -207,6 +207,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 			if (i == 0) {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
 			}
 			callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
 			callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
