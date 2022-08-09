@@ -16,8 +16,11 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.Key;
+import java.security.Provider;
+import java.security.Security;
 import java.text.ParseException;
 import java.util.List;
 
@@ -73,6 +76,8 @@ public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 		for (Key key : keys) {
 			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
+			Provider provider = Security.getProvider("BC");
+			verifier.getJCAContext().setProvider(provider);
 
 			if (jwt.verify(verifier)) {
 				return true;
