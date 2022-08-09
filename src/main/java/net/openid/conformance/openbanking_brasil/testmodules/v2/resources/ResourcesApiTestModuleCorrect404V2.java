@@ -44,7 +44,7 @@ public class ResourcesApiTestModuleCorrect404V2 extends AbstractOBBrasilFunction
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
+		callAndStopOnFailure(AddResourcesScope.class);
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(PrepareAllCustomerRelatedConsentsForResource404HappyPathTest.class);
 	}
