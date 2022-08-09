@@ -1,16 +1,13 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddConsentScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CallConsentApiWithBearerToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CreateConsentWithInvalidFields;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas400;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetContentTypeApplicationJson;
-import net.openid.conformance.openbanking_brasil.testmodules.support.Validate400Response;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -47,9 +44,10 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 			callAndStopOnFailure(CreateConsentWithInvalidFields.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
-			callAndContinueOnFailure(EnsureResponseCodeWas400.class);
-			callAndContinueOnFailure(Validate400Response.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class);
+			callAndStopOnFailure(EnsureConsentResponseWas400.class);
+			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
+			callAndStopOnFailure(ValidateErrorFromResourceEndpointResponseError.class);
 		});
 	}
 
