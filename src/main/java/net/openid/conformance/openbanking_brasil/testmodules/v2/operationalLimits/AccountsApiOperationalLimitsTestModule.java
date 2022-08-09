@@ -163,7 +163,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			if (i == 0) {
 				runInBlock("Validate Account Transactions Response", () -> {
 					callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
-					callAndContinueOnFailure(ValidateResponseMetaData.class);
+					callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
 					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
 				});
 			}
@@ -207,6 +207,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 			if (i == 0) {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
 			}
 			callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
 			callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);

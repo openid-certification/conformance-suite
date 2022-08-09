@@ -101,7 +101,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 	@Override
 	protected void validateResponse() {
 		// Validate credit card response
-		call(getValidationSequence(CardAccountsDataResponseResponseValidatorV2.class));
+		call(getValidationSequence(CardAccountsDataResponseResponseValidatorV2.class, ValidateResponseMetaData.class));
 		eventLog.endBlock();
 
 		runInBlock("Preparing Credit Card Accounts", () -> {
@@ -141,7 +141,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 			env.putInteger("required_number_of_records", REQUIRED_NUMBER_OF_RECORDS);
 
 			preCallProtectedResource(String.format("Fetch Credit Card Transactions using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Credit Card Transactions Response", CreditCardAccountsTransactionResponseValidatorV2.class);
+			validateResponse("Validate Credit Card Transactions Response", CreditCardAccountsTransactionResponseValidatorV2.class, ValidateMetaOnlyRequestDateTime.class);
 			callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
 
 			// Call to credit card transactions  with dates GET 29 times
@@ -181,7 +181,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 			callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 
 			preCallProtectedResource(String.format("Fetch Credit Card Transactions Current using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
+			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class, ValidateMetaOnlyRequestDateTime.class);
 
 			// Call to credit card current transactions GET 229 times refreshing token every 100 calls
 			for (int j = 1; j < 230; j++) {
@@ -202,7 +202,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 			callAndStopOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
 			preCallProtectedResource(String.format("Fetch Credit Card Transactions Current next link using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class);
+			validateResponse("Validate Credit Card Transactions Current Response", CreditCardAccountsTransactionCurrentResponseValidatorV2.class, ValidateMetaOnlyRequestDateTime.class);
 			validateNextLinkResponse();
 
 			// Call to credit card current transactions with dates and page size fetched from next link 19 times GET
@@ -249,14 +249,19 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 	}
 
 	protected void validateResponse(String message, Class<? extends Condition> validationClass) {
-		runInBlock(message, () -> call(getValidationSequence(validationClass)));
+		runInBlock(message, () -> call(getValidationSequence(validationClass, ValidateResponseMetaData.class)));
 	}
 
+	protected void validateResponse(String message, Class<? extends Condition> validationClass,
+									Class<? extends Condition> metaValidatorClass) {
+		runInBlock(message, () -> call(getValidationSequence(validationClass, metaValidatorClass)));
+	}
 
-	protected ConditionSequence getValidationSequence(Class<? extends Condition> validationClass) {
+	protected ConditionSequence getValidationSequence(Class<? extends Condition> validationClass,
+													  Class<? extends Condition> metaValidatorClass) {
 		return sequenceOf(
 			condition(validationClass),
-			condition(ValidateResponseMetaData.class)
+			condition(metaValidatorClass)
 		);
 	}
 
