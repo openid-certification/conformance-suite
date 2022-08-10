@@ -1,0 +1,195 @@
+{
+    "data": {
+        "documentType": "APOLICE_INDIVIDUAL",
+        "policyId": "111111",
+        "susepProcessNumber": "string",
+        "groupCertificateId": "string",
+        "issuanceType": "EMISSAO_PROPRIA",
+        "issuanceDate": "AAAA-MM-DD",
+        "termStartDate": "AAAA-MM-DD",
+        "termEndDate": "AAAA-MM-DD",
+        "leadInsurerCode": "string",
+        "leadInsurerPolicyId": "string",
+        "maxLMG": {
+            "amount": 2000.22,
+            "currency": "BRL"
+        },
+        "proposalId": "string",
+        "insureds": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "beneficiaries": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "principals": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "intermediaries": [
+            {
+                "type": "REPRESENTANTE",
+                "identification": "12345678900",
+                "brokerId": "string",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "insuredObjects": [
+            {
+                "identification": "string",
+                "type": "CONTRATO",
+                "typeAdditionalInfo": "string",
+                "description": "string",
+                "hasExactVehicleIdentification": true,
+                "modality": "VALOR_DE_MERCADO_REFERENCIADO",
+                "amountReferenceTable": "MOLICAR",
+                "model": "string",
+                "year": "3552",
+                "fareCategory": "10",
+                "riskPostCode": "10000000",
+                "vehicleUsage": "LAZER",
+                "frequentDestinationPostCode": "10000000",
+                "overnightPostCode": "10000000",
+                "coverages": [
+                    {
+                        "branch": "111",
+                        "code": "CASCO_COMPREENSIVA",
+                        "description": "string",
+                        "internalCode": "string",
+                        "susepProcessNumber": "string",
+                        "LMI": {
+                            "amount": 2000.22,
+                            "currency": "BRL"
+                        },
+                        "termStartDate": "AAAA-MM-DD",
+                        "termEndDate": "AAAA-MM-DD",
+                        "isMainCoverage": true,
+                        "feature": "MASSIFICADOS",
+                        "type": "PARAMETRICO",
+                        "gracePeriod": 0,
+                        "gracePeriodicity": "DIA",
+                        "gracePeriodCountingMethod": "DIAS_UTEIS",
+                        "gracePeriodStartDate": "AAAA-MM-DD",
+                        "gracePeriodEndDate": "AAAA-MM-DD",
+                        "adjustmentRate": 10.11,
+                        "premiumAmount": {
+                            "amount": 2000.22,
+                            "currency": "BRL"
+                        },
+                        "compensationType": "PARCIAL",
+                        "partialCompensationPercentage": 10.11,
+                        "percentageOverLMI": 10.11,
+                        "daysForTotalCompensation": 0,
+                        "boundCoverage": "VEICULO"
+                    }
+                ]
+            }
+        ],
+        "coverages": [
+            {
+                "branch": "111",
+                "code": "CASCO_COMPREENSIVA",
+                "description": "string",
+                "deductible": {
+                    "type": "DEDUTIVEL",
+                    "typeAdditionalInfo": "string",
+                    "amount": {
+                        "amount": 2000.22,
+                        "currency": "BRL"
+                    },
+                    "period": 10,
+                    "periodicity": "DIA",
+                    "periodCountingMethod": "DIAS_UTEIS",
+                    "periodStartDate": "2022-05-16",
+                    "periodEndDate": "2022-05-17",
+                    "description": "Franquia de exemplo",
+                    "hasDeductibleOverTotalCompensation": true
+                },
+                "POS": {
+                    "applicationType": "VALOR",
+                    "description": "DescriÃ§Ã£o de exemplo",
+                    "minValue": {
+                        "amount": 2000.22,
+                        "currency": "BRL"
+                    },
+                    "maxValue": {
+                        "amount": 2000.22,
+                        "currency": "BRL"
+                    },
+                    "percentage": 10.22
+                }
+            }
+        ],
+        "coinsuranceRetainedPercentage": 10.22,
+        "coinsurers": [
+            {
+                "identification": "string",
+                "cededPercentage": 10.22
+            }
+        ],
+        "repairNetwork": "REDE_REFERENCIADA",
+        "repairedPartsUsageType": "NOVA_E_USADA",
+        "repairedPartsClassification": "ORIGINAL_E_COMPATIVEL",
+        "repairedPartsNationality": "NACIONAL_E_IMPORTADA",
+        "validityType": "SEMESTRAL_INTERMITENTE",
+        "otherCompensations": "string",
+        "otherBenefits": "DESCONTOS",
+        "assistancePackages": "ATE_DEZ_SERVICOS",
+        "isExpiredRiskPolicy": true,
+        "bonusDiscountRate": 0.22,
+        "bonusClass": "string",
+        "drivers": [
+            {
+                "identification": "12345678900",
+                "sex": "MASCULINO",
+                "birthDate": "AAAA-MM-DD",
+                "licensedExperience": 4
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

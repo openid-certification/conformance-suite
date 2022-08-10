@@ -1,0 +1,1395 @@
+openapi: 3.0.0
+info:
+    title: API InsuranceAviation - Open Insurance Brasil
+    description: |
+        API de Aeronáuticos do Open Insurance Brasil - Fase 2.\
+        Traz informações de apólice, prêmio e sinistro mantidas nas instituições transmissoras por seus clientes.\
+        Não possui segregação entre pessoa natural e pessoa jurídica.\
+        Requer consentimento do cliente para todos os 'endpoints'.
+
+        # Orientações
+        A `Role`  do diretório de participantes relacionada à presente API é a `DADOS`.\
+        Para todos os `endpoints` desta API é previsto o envio de um `token` através do header `Authorization`.\
+        Este `token` deverá estar relacionado ao consentimento (identificado pelo `consentId`) mantido na instituição transmissora dos dados, o qual permitirá a pesquisa e retorno, na API em questão, dos
+        dados relacionados ao `consentId` específico.\
+        Os dados serão devolvidos na consulta desde que o `consentId` relacionado corresponda a um consentimento válido e com o status `AUTHORISED`.\
+        É também necessário que o recurso em questão (conta, contrato, etc.) esteja disponível na instituição transmissora (ou seja, sem boqueios de qualquer natureza e com todas as autorizações/consentimentos já autorizados).\
+        Além disso, as `permissions` necessárias deverão ter sido solicitadas quando da criação do consentimento relacionado.\
+        Relacionamos a seguir as `permissions` necessárias para a consulta de dados em cada `endpoint` da presente API.
+
+        ## Permissions necessárias para a API InsuranceAviation
+
+        Para cada um dos `paths` desta API, além dos escopos (`scopes`) indicados existem `permissions` que deverão ser observadas:
+
+        ### `/`
+          - permissions:
+            - GET: **DAMAGES_AND_PEOPLE_AERONAUTICAL_READ**
+        ### `/{policyId}/policy-info`
+          - permissions:
+            - GET: **DAMAGES_AND_PEOPLE_AERONAUTICAL_POLICYINFO_READ**
+        ### `/{policyId}/premium`
+          - permissions:
+            - GET: **DAMAGES_AND_PEOPLE_AERONAUTICAL_PREMIUM_READ**
+        ### `/{policyId}/claim`
+          - permissions:
+            - GET: **DAMAGES_AND_PEOPLE_AERONAUTICAL_CLAIM_READ**
+    version: 1.0.0
+    contact:
+        name: Governança do Open Insurance Brasil
+        email: gt-interfaces@openinsurancebr.org
+        url: https://openinsurance-brasil.github.io/areadesenvolvedor/
+servers:
+    - url: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+      description: Servidor de Produção
+    - url: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+      description: Servidor de Homologação
+paths:
+    /:
+        get:
+            tags:
+                - InsuranceAviation
+            summary: Obtem a lista de identificação de InsuranceAviation
+            description: Método para obter a lista de identificação de InsuranceAviation
+            operationId: getInsuranceAviation
+            parameters:
+                - $ref: '#/components/parameters/Authorization'
+                - $ref: '#/components/parameters/xFapiAuthDate'
+                - $ref: '#/components/parameters/xFapiCustomerIpAddress'
+                - $ref: '#/components/parameters/xFapiInteractionId'
+                - $ref: '#/components/parameters/xCustomerUserAgent'
+                - $ref: '#/components/parameters/page'
+                - $ref: '#/components/parameters/pageSize'
+            responses:
+                '200':
+                    $ref: '#/components/responses/OKResponseInsuranceAviation'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Erro inesperado.
+                    content:
+                        application/json; charset=utf-8:
+                            schema:
+                                $ref: '#/components/schemas/ResponseError'
+            security:
+                - OpenId:
+                      - openid
+                  OAuth2Security:
+                      - consent:consentId
+                      - insurance-aviation
+    /{policyId}/policy-info:
+        get:
+            tags:
+                - InsuranceAviation
+            summary: Obtém as informações gerais da apólice identificada por {policyId}
+            description: Método para obter as informações gerais da apólice
+            operationId: getInsuranceAviationpolicyIdPolicyInfo
+            parameters:
+                - $ref: '#/components/parameters/Authorization'
+                - $ref: '#/components/parameters/xFapiAuthDate'
+                - $ref: '#/components/parameters/xFapiCustomerIpAddress'
+                - $ref: '#/components/parameters/xFapiInteractionId'
+                - $ref: '#/components/parameters/xCustomerUserAgent'
+                - $ref: '#/components/parameters/policyId'
+            responses:
+                '200':
+                    $ref: '#/components/responses/OKResponseInsuranceAviationPolicyInfo'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Erro inesperado.
+                    content:
+                        application/json; charset=utf-8:
+                            schema:
+                                $ref: '#/components/schemas/ResponseError'
+            security:
+                - OpenId:
+                      - openid
+                  OAuth2Security:
+                      - consent:consentId
+                      - insurance-aviation
+    /{policyId}/premium:
+        get:
+            tags:
+                - InsuranceAviation
+            summary: Obtém os dados de prêmio da apólice identificada por {policyId}
+            description: Método para obter os dados de prêmio da apólice.
+            operationId: getInsuranceAviationpolicyIdPremium
+            parameters:
+                - $ref: '#/components/parameters/Authorization'
+                - $ref: '#/components/parameters/xFapiAuthDate'
+                - $ref: '#/components/parameters/xFapiCustomerIpAddress'
+                - $ref: '#/components/parameters/xFapiInteractionId'
+                - $ref: '#/components/parameters/xCustomerUserAgent'
+                - $ref: '#/components/parameters/policyId'
+            responses:
+                '200':
+                    $ref: '#/components/responses/OKResponseInsuranceAviationPremium'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Erro inesperado.
+                    content:
+                        application/json; charset=utf-8:
+                            schema:
+                                $ref: '#/components/schemas/ResponseError'
+            security:
+                - OpenId:
+                      - openid
+                  OAuth2Security:
+                      - consent:consentId
+                      - insurance-aviation
+    /{policyId}/claim:
+        get:
+            tags:
+                - InsuranceAviation
+            summary: Obtém os dados de sinistro da apólice identificada por {policyId}
+            description: Método para obter os dados de sinistro associados à apólice
+            operationId: getInsuranceAviationpolicyIdClaims
+            parameters:
+                - $ref: '#/components/parameters/Authorization'
+                - $ref: '#/components/parameters/xFapiAuthDate'
+                - $ref: '#/components/parameters/xFapiCustomerIpAddress'
+                - $ref: '#/components/parameters/xFapiInteractionId'
+                - $ref: '#/components/parameters/xCustomerUserAgent'
+                - $ref: '#/components/parameters/policyId'
+            responses:
+                '200':
+                    $ref: '#/components/responses/OKResponseInsuranceAviationClaims'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '405':
+                    $ref: '#/components/responses/MethodNotAllowed'
+                '406':
+                    $ref: '#/components/responses/NotAcceptable'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '429':
+                    $ref: '#/components/responses/TooManyRequests'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                default:
+                    description: Erro inesperado.
+                    content:
+                        application/json; charset=utf-8:
+                            schema:
+                                $ref: '#/components/schemas/ResponseError'
+            security:
+                - OpenId:
+                      - openid
+                  OAuth2Security:
+                      - consent:consentId
+                      - insurance-aviation
+components:
+    schemas:
+        ResponseInsuranceAviation:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    type: array
+                    items:
+                        type: object
+                        required:
+                            - brand
+                            - companies
+                        properties:
+                            brand:
+                                description: Nome da marca reportada pelo participante do Open Insurance
+                                type: string
+                                maxLength: 80
+                            companies:
+                                type: array
+                                items:
+                                    type: object
+                                    required:
+                                        - companyName
+                                        - cnpjNumber
+                                        - policies
+                                    properties:
+                                        companyName:
+                                            description: Nome da sociedade pertencente à marca
+                                            type: string
+                                            maxLength: 80
+                                        cnpjNumber:
+                                            description: CNPJ da sociedade pertencente à marca
+                                            type: string
+                                            maxLength: 14
+                                            pattern: ^\d{14}$
+                                            example: '12345678901234'
+                                        policies:
+                                            type: array
+                                            items:
+                                                description: policyId - Identificador da apólice
+                                                type: string
+                                                maxLength: 60
+                                                example: '42'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        ResponseInsuranceAviationPolicyInfo:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    $ref: '#/components/schemas/InsuranceAviationPolicyInfo'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        InsuranceAviationPolicyInfo:
+            type: object
+            required:
+                - documentType
+                - policyId
+                - issuanceType
+                - issuanceDate
+                - termStartDate
+                - termEndDate
+                - maxLMG
+                - proposalId
+                - insureds
+                - insuredObjects
+            properties:
+                documentType:
+                    description: Tipo de Documento Emitido
+                    type: string
+                    maxLength: 28
+                    enum:
+                        - APOLICE_INDIVIDUAL
+                        - BILHETE
+                        - CERTIFICADO
+                        - APOLICE_INDIVIDUAL_AUTOMOVEL
+                        - APOLICE_FROTA_AUTOMOVEL
+                    example: APOLICE_INDIVIDUAL
+                policyId:
+                    description: Identificador da apólice ou bilhete
+                    type: string
+                    maxLength: 60
+                    example: '111111'
+                susepProcessNumber:
+                    description: Número SUSEP da apólice, conforme regulamentação vigente (Obrigatório caso apólice com coberturas do ramo Garantia)
+                    type: string
+                    maxLength: 60
+                groupCertificateId:
+                    description: Identificador do Certificado(Caso Tipo de Documento Emitido for certificado)
+                    type: string
+                    maxLength: 60
+                issuanceType:
+                    description: Tipo de Emissão
+                    type: string
+                    maxLength: 16
+                    enum:
+                        - EMISSAO_PROPRIA
+                        - COSSEGURO_ACEITO
+                    example: EMISSAO_PROPRIA
+                issuanceDate:
+                    description: Data de emissão do documento
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                termStartDate:
+                    description: Data de início de vigência do documento
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                termEndDate:
+                    description: Data de fim de vigência do documento
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                leadInsurerCode:
+                    description: Código da seguradora líder para contratos com arranjo de cosseguro
+                    type: string
+                    maxLength: 1024
+                leadInsurerPolicyId:
+                    description: Identificador da apólice seguradora líder para apólice de cosseguro aceito
+                    type: string
+                    maxLength: 1024
+                maxLMG:
+                    description: Limite Máximo de Garantia.
+                    $ref: '#/components/schemas/AmountDetails'
+                proposalId:
+                    description: Identificador da Proposta
+                    type: string
+                    maxLength: 60
+                insureds:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PersonalInfo'
+                beneficiaries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PersonalInfo'
+                principals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PersonalInfo'
+                intermediaries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Intermediary'
+                insuredObjects:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationInsuredObject'
+                coverages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationCoverage'
+                coinsuranceRetainedPercentage:
+                    description: Percentual Retido em Cosseguro (Quando há cosseguro)
+                    type: number
+                    pattern: ^\d{1,3}\.\d{1,9}$
+                    example: 10
+                coinsurers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Coinsurer'
+        PersonalInfo:
+            type: object
+            required:
+                - identification
+                - identificationType
+                - name
+                - postCode
+                - city
+                - state
+                - country
+                - address
+            properties:
+                identification:
+                    description: Documento de Identificação da Pessoa
+                    type: string
+                    maxLength: 60
+                    example: '12345678900'
+                identificationType:
+                    description: Tipo de Documento da Pessoa
+                    type: string
+                    maxLength: 6
+                    enum:
+                        - CPF
+                        - CNPJ
+                        - OUTROS
+                    example: CPF
+                name:
+                    description: Nome ou Razão Social da Pessoa
+                    type: string
+                    maxLength: 60
+                    example: Nome Sobrenome
+                postCode:
+                    description: Código Postal da Pessoa
+                    type: string
+                    maxLength: 60
+                    example: '10000000'
+                email:
+                    description: E-mail da Pessoa (caso possua)
+                    type: string
+                    maxLength: 256
+                city:
+                    description: Cidade da Pessoa (por extenso)
+                    type: string
+                    maxLength: 60
+                state:
+                    description: Estado da Pessoa (por extenso)
+                    type: string
+                    maxLength: 60
+                country:
+                    description: País da Pessoa (de acordo com o código "alpha3" do ISO-3166)
+                    type: string
+                    maxLength: 3
+                    pattern: ^(\w{3}){1}$
+                    example: BRA
+                address:
+                    description: Endereço da Pessoa (restante do endereço, excluindo cidade, estado e país)
+                    type: string
+                    maxLength: 60
+        Intermediary:
+            type: object
+            required:
+                - identification
+                - identificationType
+                - name
+            properties:
+                type:
+                    description: Tipo do Intermediador
+                    type: string
+                    maxLength: 23
+                    enum:
+                        - CORRETOR
+                        - REPRESENTANTE
+                        - ESTIPULANTE
+                        - CORRESPONDENTE
+                        - AGENTE_DE_MICROSSEGUROS
+                        - OUTROS
+                    example: REPRESENTANTE
+                identification:
+                    description: Documento de Identificação da Intermediador
+                    type: string
+                    maxLength: 60
+                    pattern: ^\d{1,60}$
+                    example: '12345678900'
+                brokerId:
+                    description: Identificador do Intermediador (Caso Tipo de Intermediador for CORRETOR)
+                    type: string
+                    maxLength: 100
+                identificationType:
+                    description: Tipo de Documento da Intermediador
+                    type: string
+                    maxLength: 6
+                    enum:
+                        - CPF
+                        - CNPJ
+                        - OUTROS
+                    example: CPF
+                name:
+                    description: Nome ou Razão Social da Intermediador
+                    type: string
+                    maxLength: 60
+                    example: Nome Sobrenome
+                postCode:
+                    description: Código Postal da Intermediador (Caso Tipo de Intermediador for ESTIPULANTE)
+                    type: string
+                    maxLength: 60
+                    example: '10000000'
+                city:
+                    description: Cidade da Intermediador (por extenso; Caso Tipo de Intermediador for ESTIPULANTE)
+                    type: string
+                    maxLength: 60
+                state:
+                    description: Estado da Intermediador (por extenso; Caso Tipo de Intermediador for ESTIPULANTE)
+                    type: string
+                    maxLength: 60
+                country:
+                    description: País da Intermediador (de acordo com o código "alpha3" do ISO-3166; Caso Tipo de Intermediador for ESTIPULANTE)
+                    type: string
+                    maxLength: 3
+                    pattern: ^(\w{3}){1}$
+                    example: BRA
+                address:
+                    description: Endereço da Intermediador (restante do do endereço, excluindo cidade, estado e país; Caso Tipo de Intermediador for ESTIPULANTE)
+                    type: string
+                    maxLength: 60
+        InsuranceAviationInsuredObject:
+            type: object
+            required:
+                - identification
+                - type
+                - description
+                - amount
+                - coverages
+            properties:
+                identification:
+                    type: string
+                    maxLength: 100
+                    description: 'Identificador do objeto segurado. Obs.: Para Fiança Locatícia, é a identificação do Contrato de Locação.'
+                type:
+                    type: string
+                    maxLength: 23
+                    description: Tipo do objeto segurado
+                    enum:
+                        - CONTRATO
+                        - PROCESSO_ADMINISTRATIVO
+                        - PROCESSO_JUDICIAL
+                        - AUTOMOVEL
+                        - CONDUTOR
+                        - OUTROS
+                typeAdditionalInfo:
+                    type: string
+                    maxLength: 100
+                    description: Descrição do tipo do objeto segurado(caso tipo de objeto segurado for outros).
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: Descrição do objeto segurado
+                amount:
+                    description: Valor do objeto segurado
+                    $ref: '#/components/schemas/AmountDetails'
+                coverages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationInsuredObjectCoverage'
+        InsuranceAviationInsuredObjectCoverage:
+            type: object
+            required:
+                - branch
+                - code
+                - susepProcessNumber
+                - LMI
+                - termStartDate
+                - termEndDate
+                - feature
+                - type
+            properties:
+                branch:
+                    type: string
+                    maxLength: 4
+                    example: 111
+                    description: Grupo e Ramo da Cobertura (Conforme regulamentação Susep vigente)
+                code:
+                    type: string
+                    description: Código da cobertura, conforme Anexo II do Manuel de Escopo de Dados
+                    maxLength: 52
+                    enum:
+                        - CASCO
+                        - RESPONSABILIDADE_CIVIL_FACULTATIVA
+                        - RESPONSABILIDADE_CIVIL_AEROPORTUARIA
+                        - RESPONSABILIDADE_DO_EXPLORADOR_E_TRANSPORTADOR_AEREO
+                        - OUTRAS
+                description:
+                    type: string
+                    maxLength: 500
+                    description: Descrição / Nome da Cobertura (Obrigatório quando o campo 'Codigo' for preenchido com 'Outras')
+                internalCode:
+                    type: string
+                    maxLength: 500
+                    description: Código interno da cobertura da seguradora(obrigatório se houver)
+                susepProcessNumber:
+                    type: string
+                    maxLength: 50
+                LMI:
+                    $ref: '#/components/schemas/AmountDetails'
+                    description: Limite máximo de indenização (LMI)
+                isLMISublimit:
+                    type: boolean
+                    description: Limite máximo de indenização (LMI) é sublimite (Caso aplicável)
+                termStartDate:
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                    description: Data de início de vigência da cobertura
+                termEndDate:
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                    description: Data de fim de vigência da cobertura
+                isMainCoverage:
+                    type: boolean
+                    description: Cobertura Principal
+                feature:
+                    type: string
+                    maxLength: 25
+                    description: Característica da cobertura
+                    enum:
+                        - MASSIFICADOS
+                        - MASSIFICADOS_MICROSEGUROS
+                        - GRANDES_RISCOS
+                type:
+                    type: string
+                    maxLength: 26
+                    description: Tipo de cobertura
+                    enum:
+                        - PARAMETRICO
+                        - INTERMITENTE
+                        - REGULAR_COMUM
+                        - CAPITAL_GLOBAL
+                        - PARAMETRICO_E_INTERMITENTE
+                gracePeriod:
+                    type: integer
+                    maxLength: 5
+                    description: 'Período de carência. OBS: Obrigatório, se houver'
+                gracePeriodicity:
+                    type: string
+                    maxLength: 3
+                    description: 'Periodicidade da carência. OBS: Obrigatório, se houver'
+                    enum:
+                        - DIA
+                        - MES
+                        - ANO
+                gracePeriodCountingMethod:
+                    type: string
+                    maxLength: 13
+                    description: 'Indicador de dias úteis ou corridos da carência. OBS: Obrigatório, se houver'
+                    enum:
+                        - DIAS_UTEIS
+                        - DIAS_CORRIDOS
+                gracePeriodStartDate:
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                    description: 'Data de início da carência. OBS: Obrigatório, se houver'
+                gracePeriodEndDate:
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                    description: 'Data de fim da carência. OBS: Obrigatório, se houver'
+        InsuranceAviationCoverage:
+            type: object
+            required:
+                - branch
+                - code
+            minProperties: 3
+            properties:
+                branch:
+                    description: Grupo e ramo da cobertura
+                    type: string
+                    maxLength: 4
+                    example: 111
+                code:
+                    type: string
+                    description: Código da cobertura, conforme Anexo II do Manuel de Escopo de Dados
+                    maxLength: 52
+                    enum:
+                        - CASCO
+                        - RESPONSABILIDADE_CIVIL_FACULTATIVA
+                        - RESPONSABILIDADE_CIVIL_AEROPORTUARIA
+                        - RESPONSABILIDADE_DO_EXPLORADOR_E_TRANSPORTADOR_AEREO
+                        - OUTRAS
+                description:
+                    description: Descrição / Nome da Cobertura (Caso Código da Cobertura for "OUTRAS")
+                    type: string
+                    maxLength: 500
+                deductible:
+                    description: Informações de franquia
+                    $ref: '#/components/schemas/Deductible'
+                POS:
+                    description: Informações de franquia
+                    $ref: '#/components/schemas/POS'
+        Deductible:
+            type: object
+            required:
+                - type
+                - amount
+                - period
+                - periodicity
+                - periodStartDate
+                - periodEndDate
+                - description
+            properties:
+                type:
+                    description: Tipo de Franquia
+                    type: string
+                    maxLength: 9
+                    enum:
+                        - REDUZIDA
+                        - NORMAL
+                        - MAJORADA
+                        - DEDUTIVEL
+                        - OUTROS
+                    example: DEDUTIVEL
+                typeAdditionalInfo:
+                    description: Descriçao do Tipo de Franquia (Caso Tipo de Franquia for "OUTROS")
+                    type: string
+                    maxLength: 500
+                amount:
+                    description: Valor da Franquia
+                    $ref: '#/components/schemas/AmountDetails'
+                period:
+                    description: Prazo da Franquia
+                    type: integer
+                    maxLength: 5
+                    example: 10
+                periodicity:
+                    description: Periodicidade da Franquia
+                    type: string
+                    maxLength: 3
+                    enum:
+                        - DIA
+                        - MES
+                        - ANO
+                    example: DIA
+                periodCountingMethod:
+                    description: Indicador de Dias Úteis ou Corridos (Caso aplicável)
+                    type: string
+                    maxLength: 13
+                    enum:
+                        - DIAS_UTEIS
+                        - DIAS_CORRIDOS
+                    example: DIAS_UTEIS
+                periodStartDate:
+                    description: Data de Início da Franquia
+                    type: string
+                    format: date
+                    example: '2022-05-16'
+                periodEndDate:
+                    description: Data de Fim da Franquia
+                    type: string
+                    format: date
+                    example: '2022-05-17'
+                description:
+                    description: Descrição da Franquia
+                    type: string
+                    maxLength: 60
+                    example: Franquia de exemplo
+        POS:
+            type: object
+            required:
+                - applicationType
+                - description
+            properties:
+                applicationType:
+                    description: Forma de Aplicação do POS
+                    type: string
+                    maxLength: 10
+                    enum:
+                        - VALOR
+                        - PERCENTUAL
+                        - OUTROS
+                    example: VALOR
+                description:
+                    description: Descrição do POS
+                    type: string
+                    maxLength: 60
+                    example: Descrição de exemplo
+                minValue:
+                    description: Valor Mínimo do POS
+                    $ref: '#/components/schemas/AmountDetails'
+                maxValue:
+                    description: Valor Máximo do POS
+                    $ref: '#/components/schemas/AmountDetails'
+                percentage:
+                    description: Percentual do POS
+                    type: number
+                    pattern: ^\d{1,3}\.\d{1,9}$
+                    example: 10
+        Coinsurer:
+            type: object
+            required:
+                - identification
+                - cededPercentage
+            properties:
+                identification:
+                    description: 'Identificação da congênere, cessionário do cosseguro. Obs: Obrigatório quando há cosseguro'
+                    type: string
+                    maxLength: 60
+                cededPercentage:
+                    description: 'Percentual cedido para a congênere para contratos de cosseguro cedido. Obs: Obrigatório quando há cosseguro'
+                    type: number
+                    pattern: ^\d{1,3}\.\d{1,9}$
+                    example: 10
+        ResponseInsuranceAviationPremium:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    $ref: '#/components/schemas/InsuranceAviationPremium'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        InsuranceAviationPremium:
+            type: object
+            required:
+                - amount
+                - paymentsQuantity
+                - coverages
+                - payments
+            properties:
+                paymentsQuantity:
+                    description: Quantidade de parcelas do prêmio do contrato
+                    type: number
+                    maxLength: 3
+                    example: 4
+                amount:
+                    description: Valor total do prêmio do contrato
+                    $ref: '#/components/schemas/AmountDetails'
+                coverages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationPremiumCoverage'
+                payments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Payment'
+        InsuranceAviationPremiumCoverage:
+            type: object
+            required:
+                - branch
+                - code
+                - premiumAmount
+            properties:
+                branch:
+                    description: Grupo e ramo da cobertura
+                    type: string
+                    maxLength: 4
+                    example: 111
+                code:
+                    type: string
+                    description: Código da cobertura, conforme Anexo II do Manuel de Escopo de Dados
+                    maxLength: 52
+                    enum:
+                        - CASCO
+                        - RESPONSABILIDADE_CIVIL_FACULTATIVA
+                        - RESPONSABILIDADE_CIVIL_AEROPORTUARIA
+                        - RESPONSABILIDADE_DO_EXPLORADOR_E_TRANSPORTADOR_AEREO
+                        - OUTRAS
+                description:
+                    description: Descrição / Nome da Cobertura (Caso Código da Cobertura for "OUTRAS")
+                    type: string
+                    maxLength: 500
+                premiumAmount:
+                    description: Valor de Prêmio da Cobertura
+                    $ref: '#/components/schemas/AmountDetails'
+        Payment:
+            type: object
+            required:
+                - movementDate
+                - movementType
+                - movementPaymentsNumber
+                - amount
+                - maturityDate
+            properties:
+                movementDate:
+                    description: Data do movimento de prêmio
+                    type: string
+                    format: date
+                    example: AAAA-MM-DD
+                movementType:
+                    description: Tipo do Movimento
+                    type: string
+                    enum:
+                        - LIQUIDACAO_DE_PREMIO
+                        - LIQUIDACAO_DE_RESTITUICAO_DE_PREMIO
+                        - LIQUIDACAO_DE_CUSTO_DE_AQUISICAO
+                        - LIQUIDACAO_DE_RESTITUICAO_DE_CUSTO_DE_AQUISICAO
+                        - ESTORNO_DE_PREMIO
+                        - ESTORNO_DE_RESTITUICAO_DE_PREMIO
+                        - ESTORNO_DE_CUSTO_DE_AQUISICAO
+                        - EMISSAO_DE_PREMIO
+                        - CANCELAMENTO_DE_PARCELA
+                        - EMISSAO_DE_RESTITUICAO_DE_PREMIO
+                        - REABERTURA_DE_PARCELA
+                        - BAIXA_POR_PERDA
+                    maxLength: 47
+                    example: LIQUIDACAO_DE_PREMIO
+                movementOrigin:
+                    description: 'Origem do Movimento. Obs: Obrigatório caso Tipo de Movimento for LIQUIDACAO_DE_PREMIO e ESTORNO_DE_PREMIO'
+                    type: string
+                    enum:
+                        - EMISSAO_DIRETA
+                        - EMISSAO_ACEITA_DE_COSSEGURO
+                        - EMISSAO_CEDIDA_DE_COSSEGURO
+                    maxLength: 27
+                    example: EMISSAO_DIRETA
+                movementPaymentsNumber:
+                    description: Identificador da parcela do movimento
+                    type: number
+                    maxLength: 3
+                amount:
+                    description: Valor da parcela
+                    $ref: '#/components/schemas/AmountDetails'
+                maturityDate:
+                    description: Data de Vencimento da Parcela
+                    type: string
+                    format: date
+                    example: AAAA-MM-DD
+                tellerId:
+                    description: 'Documento do Pagador/Recebedor Obs: Obrigatório caso Tipo de Movimento for  LIQUIDACAO_DE_PREMIO e LIQUIDACAO_DE_CUSTO_DE_AQUISICAO'
+                    type: string
+                    maxLength: 1024
+                tellerIdType:
+                    description: 'Tipo do Documento do Pagador/Recebedor Obs: Obrigatório caso Tipo de Movimento for  LIQUIDACAO_DE_PREMIO e LIQUIDACAO_DE_CUSTO_DE_AQUISICAO'
+                    type: string
+                    enum:
+                        - CPF
+                        - CNPJ
+                        - OUTROS
+                    maxLength: 6
+                    example: CPF
+                tellerName:
+                    description: 'Nome ou Razão Social do Pagador/Recebedor Obs: Obrigatório caso Tipo de Movimento for  LIQUIDACAO_DE_PREMIO e LIQUIDACAO_DE_CUSTO_DE_AQUISICAO'
+                    type: string
+                    maxLength: 100
+                financialInstitutionCode:
+                    description: 'Código da Instituição Financeiro do Pagamento Obs: Obrigatório caso Tipo de Movimento for  LIQUIDACAO_DE_PREMIO e LIQUIDACAO_DE_CUSTO_DE_AQUISICAO'
+                    type: string
+                    maxLength: 100
+                paymentType:
+                    description: 'Meio de Pagamento Obs: Obrigatório caso Tipo de Movimento for  LIQUIDACAO_DE_PREMIO e LIQUIDACAO_DE_CUSTO_DE_AQUISICAO'
+                    type: string
+                    enum:
+                        - BOLETO
+                        - TED
+                        - TEF
+                        - CARTAO
+                        - DOC
+                        - CHEQUE
+                        - DESCONTO_EM_FOLHA
+                        - PIX
+                        - DINHEIRO_EM_ESPECIE
+                        - OUTROS
+                    maxLength: 19
+                    example: BOLETO
+        ResponseInsuranceAviationClaims:
+            type: object
+            required:
+                - data
+                - links
+                - meta
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationClaim'
+                links:
+                    $ref: '#/components/schemas/Links'
+                meta:
+                    $ref: '#/components/schemas/Meta'
+        InsuranceAviationClaim:
+            type: object
+            required:
+                - identification
+                - documentationDeliveryDate
+                - status
+                - statusAlterationDate
+                - occurrenceDate
+                - warningDate
+                - amount
+            properties:
+                identification:
+                    description: Identificador do processo de sinistro
+                    type: string
+                    maxLength: 50
+                documentationDeliveryDate:
+                    description: Data de entrega da documentação completa
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                status:
+                    description: Status do sinistro
+                    type: string
+                    maxLength: 30
+                    enum:
+                        - ABERTO
+                        - ENCERRADO_COM_INDENIZACAO
+                        - ENCERRADO_SEM_INDENIZACAO
+                        - REABERTO
+                        - CANCELADO_POR_ERRO_OPERACIONAL
+                        - AVALIACAO_INICIAL
+                statusAlterationDate:
+                    description: Data de alteração do status do sinistro
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                occurrenceDate:
+                    description: Data de ocorrência do sinistro
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                warningDate:
+                    description: Data de aviso do sinistro
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                thirdPartyClaimDate:
+                    description: Data de reclamação do terceiro
+                    type: string
+                    format: date
+                    maxLength: 10
+                    example: AAAA-MM-DD
+                amount:
+                    description: Valor total bruto do sinistro considerando todos os movimentos e suas reavaliações. Não devem ser considerados valores de deduções (por exemplo, redutores e ressarcimento salvado)
+                    $ref: '#/components/schemas/AmountDetails'
+                denialJustification:
+                    description: Justificativa da Negativa(Caso Status do Sinistro for 'ENCERRADO_SEM_INDENIZACAO')
+                    type: string
+                    maxLength: 23
+                    enum:
+                        - RISCO_EXCLUIDO
+                        - RISCO_AGRAVADO
+                        - SEM_DOCUMENTACAO
+                        - DOCUMENTACAO_INCOMPLETA
+                        - PRESCRICAO
+                        - FORA_COBERTURA
+                        - OUTROS
+                denialJustificationDescription:
+                    description: Descrição da Justificativa da Negativa(Caso Justificativa da Negativa for 'OUTROS')
+                    type: string
+                    maxLength: 100
+                coverages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/InsuranceAviationClaimCoverage'
+        InsuranceAviationClaimCoverage:
+            type: object
+            required:
+                - branch
+                - code
+            properties:
+                insuredObjectId:
+                    description: Identificador do Objeto Segurado (Caso aplicável)
+                    type: string
+                    maxLength: 100
+                branch:
+                    description: Grupo e ramo da cobertura
+                    type: string
+                    maxLength: 4
+                    example: 111
+                code:
+                    type: string
+                    description: Código da cobertura, conforme Anexo II do Manuel de Escopo de Dados
+                    maxLength: 52
+                    enum:
+                        - CASCO
+                        - RESPONSABILIDADE_CIVIL_FACULTATIVA
+                        - RESPONSABILIDADE_CIVIL_AEROPORTUARIA
+                        - RESPONSABILIDADE_DO_EXPLORADOR_E_TRANSPORTADOR_AEREO
+                        - OUTRAS
+                description:
+                    description: Descrição / Nome da Cobertura (Caso Código da Cobertura for "OUTRAS")
+                    type: string
+                    maxLength: 500
+                warningDate:
+                    description: Data de Aviso do Sinistro por Cobertura (Caso aplicável)
+                    type: string
+                    format: date
+                    example: '2022-05-01'
+                thirdPartyClaimDate:
+                    description: Data de Reclamação do Terceiro por Cobertura (Caso aplicável)
+                    type: string
+                    format: date
+                    example: '2022-05-01'
+        AmountDetails:
+            type: object
+            required:
+                - amount
+                - currency
+            properties:
+                amount:
+                    type: number
+                    pattern: ^\d{1,16}\.\d{2}$
+                    example: 2000
+                currency:
+                    description: Moeda da Parcela, de acordo com ISO-4217.
+                    type: string
+                    pattern: ^(\w{3}){1}$
+                    example: BRL
+        Links:
+            type: object
+            properties:
+                self:
+                    type: string
+                    description: URL da página atualmente requisitada
+                    example: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+                first:
+                    type: string
+                    description: URL da primeira página de registros
+                    example: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+                prev:
+                    type: string
+                    description: URL da página anterior de registros
+                    example: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+                next:
+                    type: string
+                    description: URL da próxima página de registros
+                    example: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+                last:
+                    type: string
+                    description: URL da última página de registros
+                    example: https://api.organizacao.com.br/open-insurance/insurance-aviation/v1
+        Meta:
+            type: object
+            properties:
+                totalRecords:
+                    type: integer
+                    description: Total de registros encontrados
+                    example: 10
+                totalPages:
+                    type: integer
+                    description: Total de páginas para os registros encontrados
+                    example: 1
+            required:
+                - totalRecords
+                - totalPages
+        ResponseError:
+            type: object
+            required:
+                - errors
+            properties:
+                errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 13
+                    items:
+                        type: object
+                        required:
+                            - code
+                            - title
+                            - detail
+                        properties:
+                            code:
+                                description: Código de erro específico do endpoint
+                                type: string
+                                pattern: '[\w\W\s]*'
+                                maxLength: 255
+                            title:
+                                description: Título legível por humanos deste erro específico
+                                type: string
+                                maxLength: 255
+                            detail:
+                                description: Descrição legível por humanos deste erro específico
+                                type: string
+                                maxLength: 2048
+                            requestDateTime:
+                                description: Data e hora da consulta, conforme especificação RFC-3339, formato UTC.
+                                type: string
+                                maxLength: 2048
+                                format: date-time
+                                example: '2021-08-20T08:30:00Z'
+                        additionalProperties: false
+                meta:
+                    $ref: '#/components/schemas/Meta'
+            additionalProperties: false
+        XFapiInteractionId:
+            type: string
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
+            maxLength: 100
+            description: Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
+    parameters:
+        policyId:
+            name: policyId
+            in: path
+            required: true
+            schema:
+                type: string
+                maxLength: 60
+        Authorization:
+            name: Authorization
+            in: header
+            description: Cabeçalho HTTP padrão. Permite que as credenciais sejam fornecidas dependendo do tipo de recurso solicitado.
+            required: true
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+                maxLength: 2048
+        page:
+            name: page
+            in: query
+            description: Número da página que está sendo requisitada (o valor da primeira página é 1).
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+                format: int32
+        pageSize:
+            name: page-size
+            in: query
+            description: Quantidade total de registros por páginas.
+            schema:
+                type: integer
+                default: 25
+                minimum: 1
+                format: int32
+                maximum: 1000
+        xCustomerUserAgent:
+            name: x-customer-user-agent
+            in: header
+            description: Indica o user-agent que o usuário utiliza.
+            required: false
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+                minLength: 1
+                maxLength: 100
+        xFapiAuthDate:
+            name: x-fapi-auth-date
+            in: header
+            description: 'Data em que o usuário logou pela última vez com o receptor. Representada de acordo com a [RFC7231](https://tools.ietf.org/html/rfc7231). Exemplo: Sun, 10 Sep 2017 19:43:31 UTC'
+            required: false
+            schema:
+                type: string
+                pattern: ^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} (GMT|UTC)$
+                minLength: 29
+                maxLength: 29
+        xFapiCustomerIpAddress:
+            name: x-fapi-customer-ip-address
+            in: header
+            description: O endereço IP do usuário se estiver atualmente logado com o receptor.
+            required: false
+            schema:
+                type: string
+                pattern: '[\w\W\s]*'
+                minLength: 1
+                maxLength: 100
+        xFapiInteractionId:
+            name: x-fapi-interaction-id
+            in: header
+            description: Um UID [RFC4122](https://tools.ietf.org/html/rfc4122) usado como um ID de correlação. Se fornecido, o transmissor deve "reproduzir" esse valor no cabeçalho de resposta.
+            required: false
+            schema:
+                type: string
+                pattern: ^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$
+                minLength: 1
+                maxLength: 100
+    securitySchemes:
+        OpenId:
+            type: openIdConnect
+            openIdConnectUrl: https://auth.mockbank.poc.raidiam.io/.well-known/openid-configuration
+        OAuth2Security:
+            type: oauth2
+            description: Fluxo OAuth necessário para que a receptora tenha acesso aos dados na instituição transmissora. Inclui o processo de redirecionamento e autenticação do usuário a que se referem os dados.
+            flows:
+                authorizationCode:
+                    authorizationUrl: https://authserver.example/authorization
+                    tokenUrl: https://authserver.example/token
+                    scopes:
+                        insurance-aviation: Escopo necessário para acesso à API. O controle dos endpoints específicos é feito via permissions.
+    responses:
+        OKResponseInsuranceAviation:
+            description: Dados de ResponseInsuranceAviation obtidos com sucesso
+            headers:
+                x-fapi-interaction-id:
+                    schema:
+                        $ref: '#/components/schemas/XFapiInteractionId'
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ResponseInsuranceAviation'
+        OKResponseInsuranceAviationPolicyInfo:
+            description: Dados de ResponseInsuranceAviationPolicyInfo obtidos com sucesso
+            headers:
+                x-fapi-interaction-id:
+                    schema:
+                        $ref: '#/components/schemas/XFapiInteractionId'
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ResponseInsuranceAviationPolicyInfo'
+        OKResponseInsuranceAviationClaims:
+            description: Dados de ResponseInsuranceAviationClaims obtidos com sucesso
+            headers:
+                x-fapi-interaction-id:
+                    schema:
+                        $ref: '#/components/schemas/XFapiInteractionId'
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ResponseInsuranceAviationClaims'
+        OKResponseInsuranceAviationPremium:
+            description: Dados de ResponseInsuranceAviationPremium obtidos com sucesso
+            headers:
+                x-fapi-interaction-id:
+                    schema:
+                        $ref: '#/components/schemas/XFapiInteractionId'
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ResponseInsuranceAviationPremium'
+        BadRequest:
+            description: A requisição foi malformada, omitindo atributos obrigatórios, seja no payload ou através de atributos na URL
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Forbidden:
+            description: O token tem escopo incorreto ou uma política de segurança foi violada
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        InternalServerError:
+            description: Ocorreu um erro no gateway da API ou no microsserviço
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        MethodNotAllowed:
+            description: O consumidor tentou acessar o recurso com um método não suportado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotAcceptable:
+            description: A solicitação continha um cabeçalho Accept diferente dos tipos de mídia permitidos ou um conjunto de caracteres diferente de UTF-8
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        NotFound:
+            description: O recurso solicitado não existe ou não foi implementado
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        TooManyRequests:
+            description: A operação foi recusada, pois muitas solicitações foram feitas dentro de um determinado período ou o limite global de requisições concorrentes foi atingido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        Unauthorized:
+            description: Cabeçalho de autenticação ausente/inválido ou token inválido
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'
+        UnprocessableEntity:
+            description: O servidor entende o tipo de conteúdo da entidade da requisição, e a sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes
+            content:
+                application/json; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/ResponseError'

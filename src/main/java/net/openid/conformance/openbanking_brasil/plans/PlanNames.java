@@ -29,7 +29,7 @@ public class PlanNames {
 	/* Phase 2 - Customer Data */
 
 	public static final String ACCOUNT_API_NAME = "Functional tests for accounts API - based on Swagger version: 1.0.3";
-	public static final String CONSENTS_API_NAME = "Functional tests for consents API - based on Swagger version: 1.0.3";
+	public static final String CONSENTS_API_NAME = "Functional tests for consents API - based on Swagger version: 1.0.4";
 	public static final String CREDIT_CARDS_API_PLAN_NAME = "Functional tests for Credit Card API - based on swagger version: 1.0.4";
 	public static final String CREDIT_OPERATIONS_API_PLAN_NAME = "Functional tests for credit operations API - based on Swagger version: 1.0.4";
 	public static final String CUSTOMER_PERSONAL_DATA_API_PLAN_NAME = "Functional tests for personal customer data API - based on Swagger version: 1.0.3";
@@ -114,4 +114,12 @@ public class PlanNames {
 	public static final String INTERMEDIARY_API_TEST_PLAN = "Functional tests for Channels - Intermediary API - based on Swagger version: 1.1.0";
 	public static final String REFERENCED_NETWORK_API_TEST_PLAN = "Functional tests for Channels - Referenced Network API - based on Swagger version: 1.1.0";
 
+	/**
+	 * Open Insurance Brasil - Phase 2
+	 */
+	public static  final String LATEST_VERSION_OPIN_PHASE2 = "1.05";
+	public static final String OPIN_CONSENTS_API_NAME = "Functional tests for consents API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
+	public static final String CUSTOMER_PERSONAL_DATA_API_PLAN_NAME_PHASE2 = "Functional tests for personal customer data API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
+	public static final String CUSTOMER_BUSINESS_DATA_API_PLAN_NAME_PHASE2 = "Functional tests for business customer data API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
+	public static final String INSURANCE_RURAL_API_TEST_PLAN_PHASE2 = "Functional tests for OpenInsurance Brasil Rural API - Phase 2 - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
 }

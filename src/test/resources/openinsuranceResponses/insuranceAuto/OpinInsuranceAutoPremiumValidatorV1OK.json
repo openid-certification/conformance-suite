@@ -1,0 +1,49 @@
+{
+    "data": {
+        "paymentsQuantity": 4,
+        "amount": {
+            "amount": 2000.11,
+            "currency": "BRL"
+        },
+        "coverages": [
+            {
+                "branch": "111",
+                "code": "CASCO_COMPREENSIVA",
+                "description": "string",
+                "premiumAmount": {
+                    "amount": 2000.11,
+                    "currency": "BRL"
+                }
+            }
+        ],
+        "payments": [
+            {
+                "movementDate": "AAAA-MM-DD",
+                "movementType": "LIQUIDACAO_DE_PREMIO",
+                "movementOrigin": "EMISSAO_DIRETA",
+                "movementPaymentsNumber": 0,
+                "amount": {
+                    "amount": 2000.11,
+                    "currency": "BRL"
+                },
+                "maturityDate": "AAAA-MM-DD",
+                "tellerId": "string",
+                "tellerIdType": "CPF",
+                "tellerName": "string",
+                "financialInstitutionCode": "string",
+                "paymentType": "BOLETO"
+            }
+        ]
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-auto/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}
