@@ -13,7 +13,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureRespo
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = " Customer-Personal-api-wrong-permissions-test-v2",
+	testName = " customer-personal-api-wrong-permissions-test-v2",
 	displayName = "Ensures API resource cannot be called with wrong permissions",
 	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test\n" +
 		"\u2022 Creates a Consent will the customer personal permissions ( \"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\",\"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
