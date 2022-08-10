@@ -87,11 +87,14 @@ public class OpenBankingBrazilPreAuthorizationErrorAgnosticSteps extends Abstrac
 
 		callAndStopOnFailure(OptionallyAllow201Or422.class, Condition.ConditionResult.SUCCESS);
 
+		call(condition(ValidateErrorAndMetaFieldNames.class)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.skipIfStringMissing("validate_errors"));
+
 		call(condition(EnsureContentTypeApplicationJwt.class)
 			.dontStopOnFailure()
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirement("BrazilOB-6.1")
-			.skipIfStringMissing("proceed_with_test"));
+			.requirement("BrazilOB-6.1"));
 
 		call(condition(EnsureHttpStatusCodeIs201.class)
 			.dontStopOnFailure()
@@ -99,32 +102,23 @@ public class OpenBankingBrazilPreAuthorizationErrorAgnosticSteps extends Abstrac
 			.skipIfStringMissing("proceed_with_test"));
 
 		call(condition(ExtractSignedJwtFromResourceResponse.class)
-			.onFail(Condition.ConditionResult.FAILURE)
-			.requirement("BrazilOB-6.1")
-			.skipIfStringMissing("proceed_with_test"));
-
-		call(condition(ExtractSignedJwtFromResourceResponse.class)
 			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.FAILURE)
-			.skipIfStringMissing("proceed_with_test"));
+			.onFail(Condition.ConditionResult.FAILURE));
 
 		call(condition(FAPIBrazilValidateResourceResponseTyp.class)
 			.dontStopOnFailure()
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirement("BrazilOB-6.1")
-			.skipIfStringMissing("proceed_with_test"));
+			.requirement("BrazilOB-6.1"));
 
 		// signature needs to be validated against the organisation jwks
 		call(condition(FAPIBrazilGetKeystoreJwksUri.class)
-			.onFail(Condition.ConditionResult.FAILURE)
-			.skipIfStringMissing("proceed_with_test"));
+			.onFail(Condition.ConditionResult.FAILURE));
 
 
 		call(exec().mapKey("server", "org_server"));
 		call(exec().mapKey("server_jwks", "org_server_jwks"));
 
-		call(condition(FetchServerKeys.class)
-			.skipIfStringMissing("proceed_with_test"));
+		call(condition(FetchServerKeys.class));
 
 		call(exec().unmapKey("server"));
 		call(exec().unmapKey("server_jwks"));
@@ -132,14 +126,12 @@ public class OpenBankingBrazilPreAuthorizationErrorAgnosticSteps extends Abstrac
 		call(condition(ValidateResourceResponseSignature.class)
 			.dontStopOnFailure()
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirement("BrazilOB-6.1")
-			.skipIfStringMissing("proceed_with_test"));
+			.requirement("BrazilOB-6.1"));
 
 		call(condition(ValidateResourceResponseJwtClaims.class)
 			.dontStopOnFailure()
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirement("BrazilOB-6.1")
-			.skipIfStringMissing("proceed_with_test"));
+			.requirement("BrazilOB-6.1"));
 
 		call(exec().unmapKey("endpoint_response"));
 		call(exec().unmapKey("endpoint_response_jwt"));
