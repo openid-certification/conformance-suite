@@ -37,7 +37,7 @@ import javax.servlet.http.HttpSession;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk", "consumerdataright_au"
+	"openbanking_uk", "consumerdataright_au", "openinsurance_brazil"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
@@ -115,6 +115,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected abstract void createIntermediateTokenResponse();
 
 	protected abstract void createFinalTokenResponse();
+
+	protected abstract void sendPingRequestAndVerifyResponse();
 
 	protected void addCustomSignatureOfIdToken() { }
 
@@ -527,9 +529,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
 
-			callAndStopOnFailure(PingClientNotificationEndpoint.class, ConditionResult.FAILURE, "CIBA");
-			callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, ConditionResult.FAILURE, "CIBA-10.2");
-			callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, ConditionResult.WARNING, "CIBA-10.2");
+			sendPingRequestAndVerifyResponse();
 
 			call(exec().endBlock());
 			setStatus(Status.WAITING);

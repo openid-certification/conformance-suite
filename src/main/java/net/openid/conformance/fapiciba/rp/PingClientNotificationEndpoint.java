@@ -34,8 +34,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			// TODO: Send invalid client tokens and check the SHOULDs in the response (CIBA-10.2)
-			headers.setBearerAuth(env.getString("client_notification_token"));
+			headers.setBearerAuth(getBearerToken(env));
 
 			HttpEntity<String> request = new HttpEntity<>(pingRequestObject.toString(), headers);
 
@@ -50,8 +49,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 				return env;
 
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling token endpoint",
-					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				return handleClientResponseException(env, e);
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
 			}
@@ -60,11 +58,20 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 		}
 	}
 
+	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
+		throw error("RestClientResponseException occurred whilst calling token endpoint",
+			args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+	}
+
 	protected Environment handleClientException(Environment env, RestClientException e) {
 		String msg = "Call to client notification endpoint failed";
 		if (e.getCause() != null) {
 			msg += " - " + e.getCause().getMessage();
 		}
 		throw error(msg, e);
+	}
+
+	protected String getBearerToken(Environment env) {
+		return env.getString("client_notification_token");
 	}
 }

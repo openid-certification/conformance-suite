@@ -15,7 +15,8 @@ import java.util.Map;
 		FAPICIBAClientTest.class,
 		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class,
 		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class,
-		FAPICIBAClientRespectsPollingIntervalTest.class
+		FAPICIBAClientRespectsPollingIntervalTest.class,
+		FAPICIBAClientPingWithInvalidBearerTokenTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {

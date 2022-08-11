@@ -38,4 +38,7 @@ public class FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest extends Abstr
 	@Override
 	protected void createFinalTokenResponse() {	}
 
+	@Override
+	protected void sendPingRequestAndVerifyResponse() {	}
+
 }

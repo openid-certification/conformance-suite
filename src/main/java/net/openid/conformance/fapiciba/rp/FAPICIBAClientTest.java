@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -7,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "FAPI-CIBA-ID1: Client test",
 	summary = "Tests a 'happy path' flow; the client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the backchannel endpoint and either poll the token endpoint or wait to get pinged" +
-		"[, and then use the access token from the token endpoint response in a GET request to the accounts endpoint displayed].",
+		"and then use the access token from the token endpoint response in a resource endpoint request.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.jwks",
@@ -44,5 +45,12 @@ public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 	@Override
 	protected void createFinalTokenResponse() {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+	}
+
+	@Override
+	protected void sendPingRequestAndVerifyResponse() {
+		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
 	}
 }

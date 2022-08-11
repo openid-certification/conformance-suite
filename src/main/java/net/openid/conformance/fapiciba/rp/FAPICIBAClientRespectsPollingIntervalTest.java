@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -40,5 +41,12 @@ public class FAPICIBAClientRespectsPollingIntervalTest extends AbstractFAPICIBAC
 
 	@Override
 	protected void createFinalTokenResponse() {	}
+
+	@Override
+	protected void sendPingRequestAndVerifyResponse() {
+		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
 
 }
