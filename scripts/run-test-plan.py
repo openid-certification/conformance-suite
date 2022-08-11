@@ -1203,10 +1203,15 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        # We're not requiring FAPI-CIBA RP testing for the negative tests for now, just the happy one
+        if re.match(r'fapi-ciba-id1-client-.+-test',m):
+            untested_test_modules.remove(m)
+            continue
+
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'oidcc-client-.*', m)
-        ciba_test = re.match(r'fapi-ciba-id1.*', m)
+        ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
 
@@ -1227,7 +1232,7 @@ async def main():
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
-            if client_test or ciba_test or rp_initiated_logout or ekyc_test:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
@@ -1241,7 +1246,7 @@ async def main():
                 continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
-            if not ciba_test:
+            if not ciba_op_test:
                 untested_test_modules.remove(m)
                 continue
 
