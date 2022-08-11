@@ -1,0 +1,45 @@
+{
+    "data": [
+        {
+            "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+            "completedAuthorisedPaymentType": "TRANSACAO_EFETIVADA",
+            "creditDebitType": "DEBITO",
+            "transactionName": "TRANSFCWAR5TXHCX5I9IDBHML8082N8NEO30M6LNNG7ANAYIJYRM00ZBZPU8",
+            "type": "PIX",
+            "amount": 500.54,
+            "transactionCurrency": "BRL",
+            "transactionDate": "2021-01-07",
+            "partieCnpjCpf": "43908445778",
+            "partiePersonType": "PESSOA_NATURAL",
+            "partieCompeCode": "001",
+            "partieBranchCode": "6272",
+            "partieNumber": "67890854360",
+            "partieCheckDigit": "4"
+        },
+        {
+            "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+            "completedAuthorisedPaymentType": "TRANSACAO_EFETIVADA",
+            "creditDebitType": "DEBITO",
+            "transactionName": "TRANSFCWAR5TXHCX5I9IDBHML8082N8NEO30M6LNNG7ANAYIJYRM00ZBZPU8",
+            "type": "PIX",
+            "amount": 500.54,
+            "transactionCurrency": "BRL",
+            "transactionDate": "2021-01-07",
+            "partieCnpjCpf": "43908445778",
+            "partiePersonType": "PESSOA_NATURAL",
+            "partieCompeCode": "001",
+            "partieBranchCode": "6272",
+            "partieNumber": "67890854360",
+            "partieCheckDigit": "4"
+        }
+    ],
+    "links": {
+        "self": "https://mockbank.com/open-banking/accounts/v1/accounts/0000/transactions?page=2&page-size=1",
+        "prev": "https://mockbank.com/open-banking/accounts/v1/accounts/0000/transactions?page=1&page-size=3",
+        "first": "https://mockbank.com/open-banking/accounts/v1/accounts/0000/transactions?page=1&page-size=3",
+        "last": "https://mockbank.com/open-banking/accounts/v1/accounts/0000/transactions?page=2&page-size=3"
+    },
+    "meta": {
+        "requestDateTime": "2022-02-23T12:40:40Z"
+    }
+}

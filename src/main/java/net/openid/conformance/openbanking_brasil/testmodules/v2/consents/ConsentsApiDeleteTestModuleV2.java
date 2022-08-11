@@ -57,15 +57,8 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 	protected ClientAuthType clientAuthType;
 
 	@Override
-	protected void configureClient() {
-		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
-		super.configureClient();
-	}
-
-	@Override
 	protected void validateClientConfiguration() {
 		super.validateClientConfiguration();
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndStopOnFailure(AddConsentScope.class);
 	}
 

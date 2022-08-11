@@ -3,6 +3,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -20,9 +21,11 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 
 	protected int numberOfReturnedRecords;
 
+	protected boolean isMetaOnlyRequestDateTime = false;
+
 	protected int pageSize;
-	protected int totalNumberOfRecords;
-	protected int totalNumberOfPages;
+	protected int totalNumberOfRecords = 0;
+	protected int totalNumberOfPages = 0;
 	private JsonObject linksObject;
 	protected int currentPageNumber;
 	protected String selfLink;
@@ -41,11 +44,14 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 		currentPageNumber = getPageNumber(selfLink);
 		pageSize = getPageSize(selfLink);
 
-		JsonObject metaObject = findByPath(body, "$.meta").getAsJsonObject();
+		isMetaOnlyRequestDateTime = Boolean.parseBoolean(env.getString("metaOnlyRequestDateTime"));
 
-		totalNumberOfRecords = OIDFJSON.getInt(findByPath(metaObject, "$.totalRecords"));
-		totalNumberOfPages = OIDFJSON.getInt(findByPath(metaObject, "$.totalPages"));
+		if(!isMetaOnlyRequestDateTime) {
+			JsonObject metaObject = findByPath(body, "$.meta").getAsJsonObject();
 
+			totalNumberOfRecords = OIDFJSON.getInt(findByPath(metaObject, "$.totalRecords"));
+			totalNumberOfPages = OIDFJSON.getInt(findByPath(metaObject, "$.totalPages"));
+		}
 	}
 
 	protected int getPageNumber(String uri) {
@@ -89,7 +95,6 @@ public abstract class ValidateNumberOfRecords extends AbstractJsonAssertingCondi
 		} else {
 			logSuccess("Last page number matches the number in the last link");
 		}
-
 	}
 
 	protected void validateNextLink() {

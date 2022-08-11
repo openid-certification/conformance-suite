@@ -44,12 +44,6 @@ public class ValidateConsentsOperationalFieldV2 extends ValidateConsentsFieldV2 
 			}
 		}
 
-		JsonElement clientIdOperationalElement = findElementOrThrowError(config, "$.client.client_id_operational_limits");
-		String clientIdOperational = OIDFJSON.getString(clientIdOperationalElement);
-		if (Strings.isNullOrEmpty(clientIdOperational)) {
-			logFailure("client ID for Operational Limits not found");
-		}
-
         return super.evaluate(env);
 	}
 }
