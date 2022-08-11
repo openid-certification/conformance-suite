@@ -9,7 +9,7 @@ import org.springframework.util.StringUtils;
 
 public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequest extends AbstractCondition {
 
-	protected abstract String getExpectedRequestedExpiry();
+	protected abstract Integer getExpectedRequestedExpiry();
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request"} )
@@ -18,8 +18,8 @@ public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequest exte
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		String requestedExpiry = getExpectedRequestedExpiry();
-		if (StringUtils.isEmpty(requestedExpiry)) {
+		Integer requestedExpiry = getExpectedRequestedExpiry();
+		if (requestedExpiry == null) {
 			throw error("requested_expiry missing/empty");
 		}
 
