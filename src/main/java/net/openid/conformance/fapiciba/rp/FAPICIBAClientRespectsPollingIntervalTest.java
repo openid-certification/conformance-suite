@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-respects-interval-test-plan",
+	testName = "fapi-ciba-id1-client-respects-interval-test",
 	displayName = "FAPI-CIBA-ID1: Client test - the backchannel response sets the polling interval to 31 seconds",
 	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
 		"call the backchannel endpoint. The response will set the interval property to 31 seconds and fail " +
