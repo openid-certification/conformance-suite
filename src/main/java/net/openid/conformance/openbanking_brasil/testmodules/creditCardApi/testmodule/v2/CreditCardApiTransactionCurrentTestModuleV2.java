@@ -76,7 +76,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 
 		// Call with full range parameters | Anti Cheat
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(360).format(FORMATTER));
+		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(6).format(FORMATTER));
 		env.putString(TO_TRANSACTION_DATE, currentDate.format(FORMATTER));
 		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions with full range date parameters",
@@ -87,7 +87,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 
 
 		// Call with valid  parameters
-		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(6).format(FORMATTER));
+		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(5).format(FORMATTER));
 		env.putString(TO_TRANSACTION_DATE, currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
