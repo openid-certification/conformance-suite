@@ -3,7 +3,6 @@ package net.openid.conformance.raidiam.validators.organisationsExport;
 import com.google.gson.JsonElement;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
-import net.openid.conformance.raidiam.validators.Utils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -63,10 +62,8 @@ public class GetOrganisationsExportSnapshotByOrganisationIdValidator extends Get
 				.setOptional()
 				.build());
 
-		Utils.convertJsonMapToJsonArray(snapshot, "SoftwareStatements");
-
 		assertField(snapshot,
-			new ObjectArrayField
+			new ObjectField
 				.Builder("SoftwareStatements")
 				.setValidator(this::assertSoftwareStatements)
 				.setOptional()

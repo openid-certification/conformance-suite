@@ -115,30 +115,30 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 
 		assertField(data,
 			new ObjectField
-				.Builder("carModels")
-				.setValidator(carModels -> {
-					assertField(carModels,
+				.Builder("carModel")
+				.setValidator(carModel -> {
+					assertField(carModel,
 						new StringField
 							.Builder("model")
 							.setMaxLength(20)
 							.setOptional()
 							.build());
 
-					assertField(carModels,
+					assertField(carModel,
 						new NumberField
 							.Builder("year")
 							.setMaxValue(9999)
 							.setOptional()
 							.build());
 
-					assertField(carModels,
+					assertField(carModel,
 						new StringField
 							.Builder("manufacturer")
 							.setMaxLength(20)
 							.setOptional()
 							.build());
 
-					assertField(carModels,
+					assertField(carModel,
 						new StringField
 							.Builder("fipeCode")
 							.setMaxLength(20)
@@ -230,7 +230,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 
 		assertField(data,
 			new StringField
-				.Builder("termAdditionalInfo")
+				.Builder("termsAdditionalInfo")
 				.setMaxLength(255)
 				.setOptional()
 				.build());
@@ -294,7 +294,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 
 		assertField(data,
 			new StringField
-				.Builder("targetAudiences")
+				.Builder("targetAudience")
 				.setMaxLength(23)
 				.setEnums(TARGET_AUDIENCE)
 				.setOptional()
@@ -385,7 +385,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 
 					assertField(newCar,
 						new IntField
-							.Builder("MaximumCalculatingPeriod")
+							.Builder("maximumCalculatingPeriod")
 							.setMaxLength(3)
 							.setOptional()
 							.build());
@@ -440,7 +440,7 @@ public class AutomotiveInsuranceListValidator extends AbstractJsonAssertingCondi
 				.setValidator(geographicScope -> {
 					assertField(geographicScope,
 						new StringArrayField
-							.Builder("coverage")
+							.Builder("coverages")
 							.setMinItems(1)
 							.setMaxLength(13)
 							.setEnums(GEOGRAPHIC_SCOPE_COVERAGE)

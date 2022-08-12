@@ -25,14 +25,13 @@ public class GetOrganisationsValidator extends AbstractJsonAssertingCondition {
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		parts.assertDefaultResponseFields(body);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("content")
 				.setValidator(parts::organisationContent)
 				.setOptional()
 				.build());
-
+		parts.assertDefaultResponseFields(body);
 		return environment;
 	}
 }

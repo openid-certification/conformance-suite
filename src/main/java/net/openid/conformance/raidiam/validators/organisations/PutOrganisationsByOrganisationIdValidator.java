@@ -28,6 +28,16 @@ public class PutOrganisationsByOrganisationIdValidator extends AbstractJsonAsser
 
 		assertField(content,
 			new StringField
+				.Builder("OrganisationId")
+				.build());
+
+		assertField(content,
+			new StringField
+				.Builder("CreatedOn")
+				.build());
+
+		assertField(content,
+			new StringField
 				.Builder("Status")
 				.setEnums(STATUS)
 				.setOptional()

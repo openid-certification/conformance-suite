@@ -26,13 +26,13 @@ public class GetUsersHistoryResponseValidator extends AbstractJsonAssertingCondi
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
-		parts.assertDefaultResponseFields(body);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("content")
 				.setValidator(parts::assertTermsAndConditionsDetail)
 				.setOptional()
 				.build());
+		parts.assertDefaultResponseFields(body);
 
 		return environment;
 	}

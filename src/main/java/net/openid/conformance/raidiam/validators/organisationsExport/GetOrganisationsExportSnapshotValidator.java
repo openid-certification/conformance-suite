@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonParts;
-import net.openid.conformance.raidiam.validators.Utils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
@@ -28,13 +27,13 @@ public class GetOrganisationsExportSnapshotValidator extends AbstractJsonAsserti
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		Utils.convertJsonMapToJsonArray(body, "");
-		assertField(body,
-			new ObjectArrayField
-				.Builder("data")
-				.setValidator(this::assertSnapshot)
-				.build());
-
+		for (String key : body.getAsJsonObject().keySet()) {
+			assertField(body,
+				new ObjectField
+					.Builder(key)
+					.setValidator(this::assertSnapshot)
+					.build());
+		}
 		return environment;
 	}
 
@@ -74,10 +73,8 @@ public class GetOrganisationsExportSnapshotValidator extends AbstractJsonAsserti
 				.setOptional()
 				.build());
 
-		Utils.convertJsonMapToJsonArray(snapshot, "SoftwareStatements");
-
 		assertField(snapshot,
-			new ObjectArrayField
+			new ObjectField
 				.Builder("SoftwareStatements")
 				.setValidator(this::assertSoftwareStatements)
 				.setOptional()
@@ -92,25 +89,34 @@ public class GetOrganisationsExportSnapshotValidator extends AbstractJsonAsserti
 	}
 
 	protected void assertSoftwareStatements(JsonObject softwareStatements) {
-		assertField(softwareStatements,
-			new ObjectField
-				.Builder("SoftwareDetails")
-				.setValidator(parts::assertSoftwareDetails)
-				.setOptional()
-				.build());
+		for (String key : softwareStatements.keySet()) {
+			assertField(softwareStatements,
+				new ObjectField
+					.Builder(key)
+					.setValidator(data -> {
+						assertField(data,
+							new ObjectField
+								.Builder("SoftwareDetails")
+								.setValidator(parts::assertSoftwareDetails)
+								.setOptional()
+								.build());
 
-		assertField(softwareStatements,
-			new ObjectArrayField
-				.Builder("SoftwareAuthorityClaims")
-				.setValidator(parts::assertSoftwareAuthorityClaims)
-				.setOptional()
-				.build());
+						assertField(data,
+							new ObjectArrayField
+								.Builder("SoftwareAuthorityClaims")
+								.setValidator(parts::assertSoftwareAuthorityClaims)
+								.setOptional()
+								.build());
 
-		assertField(softwareStatements,
-		new ObjectArrayField
-			.Builder("SoftwareCertificates")
-			.setValidator(parts::assertCertificates)
-			.setOptional()
-			.build());
+						assertField(data,
+							new ObjectArrayField
+								.Builder("SoftwareCertificates")
+								.setValidator(parts::assertCertificates)
+								.setOptional()
+								.build());
+					})
+					.setOptional()
+					.build());
+		}
 	}
 }
