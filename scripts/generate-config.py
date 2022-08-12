@@ -17,7 +17,6 @@ def add_overrides(config, overrides):
             payment_amount = override_info['pixPaymentAmount']
             print('Overriding pix payment amount in module {0} to {1}'.format(module_name, payment_amount))
             override_data['resource']['brazilPaymentConsent']['data']['payment']['amount'] = payment_amount
-            override_data['resource']['brazilPixPayment']['data']['payment']['amount'] = payment_amount
         if 'qrdnAmount' in override_info:
             payment_amount = override_info['qrdnAmount']
             print('Overriding qrdn payment amount in module {0} to {1}'.format(module_name, payment_amount))

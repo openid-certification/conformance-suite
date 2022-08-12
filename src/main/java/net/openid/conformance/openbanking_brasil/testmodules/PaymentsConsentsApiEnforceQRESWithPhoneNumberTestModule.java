@@ -2,10 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddResourceUrlToConfig;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PaymentsProxyCheckForInvalidStatus;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SelectQRESCodeLocalInstrument;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetProxyToRealPhoneNumber;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -33,6 +30,7 @@ public class PaymentsConsentsApiEnforceQRESWithPhoneNumberTestModule extends Abs
 		callAndStopOnFailure(SelectQRESCodePixLocalInstrument.class);
 		callAndStopOnFailure(SetPaymentAmountToKnownValueOnConsent.class);
 		callAndStopOnFailure(SetPaymentAmountToKnownValueOnPaymentInitiation.class);
+		callAndStopOnFailure(InsertRandom1333XXAmountIntoPaymentsAndPaymentsConsentsResources.class);
 		callAndStopOnFailure(InjectQRCodeWithRealPhoneNumberIntoConfig.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumber.class);
 		callAndStopOnFailure(SetProxyToRealPhoneNumberOnPaymentConsent.class);
