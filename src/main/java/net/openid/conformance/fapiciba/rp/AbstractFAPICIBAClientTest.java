@@ -487,6 +487,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(sequence(VerifyPostedFormData.class));
 
+		if(clientAuthType == ClientAuthType.MTLS || isBrazil()) {
+			env.mapKey("token_endpoint_request", requestId);
+			checkMtlsCertificate();
+			env.unmapKey("token_endpoint_request");
+		}
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
 		JsonObject httpRequestObj = env.getObject("backchannel_endpoint_http_request");
