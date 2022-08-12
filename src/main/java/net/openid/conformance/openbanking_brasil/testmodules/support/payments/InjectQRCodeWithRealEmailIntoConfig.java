@@ -6,6 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.pixqrcode.PixQRCode;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Random;
+
 public class InjectQRCodeWithRealEmailIntoConfig extends AbstractCondition {
 
 	@Override
@@ -16,11 +18,22 @@ public class InjectQRCodeWithRealEmailIntoConfig extends AbstractCondition {
 
 		PixQRCode qrCode = new PixQRCode();
 		qrCode.useStandardConfig();
-		qrCode.setTransactionAmount(env.getString("resource", "brazilPaymentConsent.data.payment.amount"));
+
+
+		Random random = new Random();
+		int amountFractionalPart = random.ints(0, 99)
+			.findFirst().orElseThrow(() -> error("Could not generate random fractional part"));
+
+		// Amount has to be always within the following range 1333.00 - 1333.99
+		String amount = String.format("1333.%02d", amountFractionalPart);
+		qrCode.setTransactionAmount(amount);
 		consentPaymentDetails.addProperty("qrCode", qrCode.toString());
 		paymentInitiation.addProperty("qrCode", qrCode.toString());
+		env.putString("resource", "brazilPaymentConsent.data.payment.amount", amount);
+		env.putString("resource", "brazilPixPayment.data.payment.amount", amount);
 
-		logSuccess("Added qr code to payment consent and payment initiation");
+		logSuccess("Added qr code to payment consent and payment initiation with random amount",
+			args("qrCode", qrCode.toString(), "amount", amount));
 
 		return env;
 	}
