@@ -113,7 +113,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    <h4 class="modal-title" id="errorLabel">Publish</h4>
+                    <h4 class="modal-title">Publish</h4>
                 </div>
                 <div class="modal-body">
                     Are you sure? This will make all keys, secrets, and all other test information publicly visible.
@@ -125,8 +125,9 @@
             </div>
         </div>
     </div>
+
     <!-- Certification submission modal -->
-    <div class="modal fade" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal fade" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content pad28">
                 <div class="modal-header">
@@ -136,7 +137,7 @@
                     <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
                 </div>
                 <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
-                <div id="certificationPackageFormModalBody" class="modal-body">
+                    <div id="certificationPackageFormModalBody" class="modal-body">
                     <div id="certificationPackageFormErrors"></div>
                     <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
                     <ol class="top15">
@@ -159,10 +160,11 @@
                     <div>
                         <div class="form-group">
                                 <fieldset>
+                                    <strong>1.</strong> A filled out and signed <strong>certification of conformance</strong> document.
                                     <label class="text-info">
-                                        <a class="darkblue" href="https://openid.net/wordpress-content/uploads/2021/07/OpenID-Certification-of-Conformance.pdf" target="coc">OpenID-Certification-of-Conformance.pdf</a>
+                                        (<a class="darkblue" href="https://openid.net/wordpress-content/uploads/2021/07/OpenID-Certification-of-Conformance.pdf" target="coc">Download the template here.</a>)
                                     </label>
-                                    <input type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
+                                    <input class="top10" type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
                                     <p class="help-block">Upload the signed certification of conformance document
                                         (as per the instructions, completed and signed by an authorized person).
                                     </p>
@@ -170,20 +172,27 @@
                         </div>
                         <div class="form-group">
                             <fieldset>
-                                <label class="info darkblue">
-                                    Client data (For RP Tests Only)
-                                </label>
-                                <input type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip">
+                                <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                <input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip">
                                 <p class="help-block">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
                             </fieldset>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-primary" disabled>Create Certification Package</button>
-                    <button id="closeCertificationPackageFormModal" type="button" class="btn btn-success" disabled>Close</button>
-                </div>
+
+                    <div id="certificationPackageDownloaded" class="modal-body hidden">
+                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                            is complete then you will find the zip file in your browser download directory.</p>
+                        <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
+                            and then proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                            to submit.</p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-primary" disabled>Create Certification Package</button>
+                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-success" disabled>Close</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -595,6 +604,14 @@
                 if (evt.target.files && evt.target.files.length > 0) {
                     document.querySelector('#certificationPackageFormSubmitBtn').removeAttribute('disabled');
                 }
+            });
+
+            document.querySelector('#certificationPackageForm').addEventListener('submit', evt => {
+                console.log('wtf');
+                document.querySelector('#certificationPackageFormModalBody').classList.add('hidden');
+                document.querySelector('#certificationPackageDownloaded').classList.remove('hidden');
+                document.querySelector('#cancelCertificationPackageFormModal').setAttribute('disabled');
+                document.querySelector('#certificationPackageFormSubmitBtn').setAttribute('disabled');
             });
 
         });
