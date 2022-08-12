@@ -86,6 +86,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		callAndStopOnFailure(AddAccountScope.class);
 		callAndStopOnFailure(PrepareAllAccountRelatedConsentsForHappyPathTest.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddAccountScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

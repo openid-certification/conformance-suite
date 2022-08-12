@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
@@ -15,6 +16,11 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		// Everything below is taken from super
 		validateFirstClient();
 		validateSecondClient();
+	}
+
+	@Override
+	protected boolean scopeContains(String requiredScope) {
+		return false;
 	}
 
 	protected void validateSecondClient() {
@@ -87,6 +93,12 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		eventLog.log(getName(),"Switched to second client");
+		JsonObject client = env.getObject("client");
+		if (client != null) {
+			eventLog.log(getName(), client);
+
+		}
 	}
 
 	@Override
@@ -94,6 +106,12 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		env.unmapKey("mutual_tls_authentication");
+		eventLog.log(getName(),"Switched to first client");
+		JsonObject client = env.getObject("client");
+		if (client != null) {
+			eventLog.log(getName(), client);
+
+		}
 	}
 
 

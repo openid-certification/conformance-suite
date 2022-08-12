@@ -81,6 +81,7 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 		callAndStopOnFailure(AddUnarrangedOverdraftScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddUnarrangedOverdraftScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
