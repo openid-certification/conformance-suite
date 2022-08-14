@@ -64,7 +64,9 @@ public class FinancingsApiResourcesTestModuleV2 extends FinancingsApiTestModuleV
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
 		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
-		preCallProtectedResource("Call Resources API");
+
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
+		call(pollingSteps);
 
 		runInBlock("Validate Resources response", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);

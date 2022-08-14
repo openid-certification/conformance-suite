@@ -10,6 +10,7 @@ import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.PrepareUrlForRe
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -59,7 +60,10 @@ public class AccountsResourcesApiTestModuleV2 extends AccountApiTestModuleV2 {
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
 		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
-		preCallProtectedResource("Call Resources API");
+
+
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
+		call(pollingSteps);
 
 		runInBlock("Validate Resources response", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);

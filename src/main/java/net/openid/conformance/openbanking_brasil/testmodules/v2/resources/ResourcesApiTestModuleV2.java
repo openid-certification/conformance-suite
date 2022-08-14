@@ -6,19 +6,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AbstractOBBrasilFunctionalTestModuleOptionalErrors;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddResourcesScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.BuildCreditOperationsAdvancesConfigResourceUrlFromConsentUrl;
-import net.openid.conformance.openbanking_brasil.testmodules.support.BuildResourcesConfigResourceUrlFromConsentUrl;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas404;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseHasLinks;
-import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreResponseError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareAllResourceRelatedConsentsForHappyPathTest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateMetaOnlyRequestDateTime;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateSelfEndpoint;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.CustomerDataResources404;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -67,6 +57,8 @@ public class ResourcesApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModu
 
 	@Override
 	protected void validateResponse() {
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
+		call(pollingSteps);
 
 		String responseError = env.getString("resource_endpoint_error_code");
 		if (Strings.isNullOrEmpty(responseError)) {

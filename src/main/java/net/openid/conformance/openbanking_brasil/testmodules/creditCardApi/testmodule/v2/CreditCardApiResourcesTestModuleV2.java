@@ -65,7 +65,9 @@ public class CreditCardApiResourcesTestModuleV2 extends CreditCardApiTestModuleV
 		env.putString("apiIdName", API_RESOURCE_ID);
 		callAndStopOnFailure(ExtractAllSpecifiedApiIds.class);
 		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
-		preCallProtectedResource("Call Resources API");
+
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
+		call(pollingSteps);
 
 		runInBlock("Validate Resources response V2", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
