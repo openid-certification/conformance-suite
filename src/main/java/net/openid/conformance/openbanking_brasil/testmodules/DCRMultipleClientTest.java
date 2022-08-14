@@ -3,7 +3,9 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazilDCR;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CopyClient;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureEndpointResponseWas201;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -47,11 +49,20 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Create Second Client - Expect 400");
+		eventLog.startBlock("Create Second Client - Expect 400 - Return warning on 201");
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
 		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.WARNING, "OIDCR-3.2");
+
+		env.putString("warning_message", "The current Open Banking Brazil specification requires servers to support " +
+			"only one active client for each software statement. As the decision to mandate this behavior has been " +
+			"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
+			"- Moment where test will return a failure");
+		callAndStopOnFailure(ChuckWarning.class);
+
+		callAndContinueOnFailure(EnsureEndpointResponseWas201.class, Condition.ConditionResult.FAILURE);
+
 		call(condition(CopyClient.class)
 			.skipIfElementMissing("dynamic_registration_endpoint_response", "body_json.client_id"));
 		call(condition(ExtractDynamicRegistrationResponse.class)
