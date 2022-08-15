@@ -75,16 +75,16 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		ConditionSequence validationSteps = sequenceOf(condition(EnsureContentTypeJson.class),
 			condition(EnsureHttpStatusCodeIs400.class));
 
-		env.putString("warning_message", "The current Open Banking Brazil specification requires servers to support " +
-			"only one active client for each software statement. As the decision to mandate this behavior has been " +
-			"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
-			"- Moment where test will return a failure");
-
 		int statusCode = env.getInteger("endpoint_response", "status");
 		if (statusCode != HttpStatus.SC_BAD_REQUEST) {
-			validationSteps.replace(EnsureHttpStatusCodeIs400.class, condition(ChuckWarning.class).dontStopOnFailure()
-					.onFail(Condition.ConditionResult.WARNING))
-				.then(condition(EnsureEndpointResponseWas201.class));
+
+			env.putString("warning_message", "The current Open Banking Brazil specification requires servers to support " +
+				"only one active client for each software statement. As the decision to mandate this behavior has been " +
+				"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
+				"- Moment where test will return a failure");
+			validationSteps.replace(EnsureHttpStatusCodeIs400.class,condition(EnsureEndpointResponseWas201.class))
+				.then(condition(ChuckWarning.class).dontStopOnFailure()
+					.onFail(Condition.ConditionResult.WARNING));
 		}
 		return validationSteps;
 	}
