@@ -26,4 +26,22 @@ public class EnsureDataArrayIsEmptyTest extends AbstractJsonResponseConditionUni
 		ConditionError conditionError = runAndFail(cond);
 		assertThat(conditionError.getMessage(), containsString("Data array should be empty, but it was not."));
 	}
+
+	@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponseNullData.json")
+	@Test
+	public void unhappyPathNullData() {
+		EnsureDataArrayIsEmpty cond = new EnsureDataArrayIsEmpty();
+
+		ConditionError conditionError = runAndFail(cond);
+		assertThat(conditionError.getMessage(), containsString("Data object cannot be null."));
+	}
+
+	@UseResurce("jsonResponses/resourcesAPI/v2/resourcesAPIResponseNoData.json")
+	@Test
+	public void unhappyPathNoData() {
+		EnsureDataArrayIsEmpty cond = new EnsureDataArrayIsEmpty();
+
+		ConditionError conditionError = runAndFail(cond);
+		assertThat(conditionError.getMessage(), containsString("Data object not found in response body."));
+	}
 }
