@@ -82,6 +82,7 @@ public class FinancingsApiOperationalLimitsTestModuleV2 extends AbstractOperatio
 		callAndStopOnFailure(AddScopesForFinancingsApi.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddScopesForFinancingsApi.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

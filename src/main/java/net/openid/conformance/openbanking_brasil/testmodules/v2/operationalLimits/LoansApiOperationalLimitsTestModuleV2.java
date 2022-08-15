@@ -80,6 +80,7 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 		callAndStopOnFailure(AddLoansScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddLoansScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

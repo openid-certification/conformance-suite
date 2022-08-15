@@ -91,6 +91,7 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 		callAndStopOnFailure(AddCreditCardScopes.class);
 		callAndStopOnFailure(PrepareAllCreditCardRelatedConsentsForHappyPathTest.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddCreditCardScopes.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

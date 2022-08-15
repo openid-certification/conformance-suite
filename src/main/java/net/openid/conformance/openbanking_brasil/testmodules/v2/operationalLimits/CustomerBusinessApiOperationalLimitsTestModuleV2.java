@@ -67,6 +67,7 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOp
 		callAndStopOnFailure(PrepareAllCustomerBusinessRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddDummyBusinessProductTypeToConfig.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 	}
 

@@ -67,7 +67,8 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(AddResourcesScope.class);
-switchToSecondClient();
+		switchToSecondClient();
+		callAndStopOnFailure(AddResourcesScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

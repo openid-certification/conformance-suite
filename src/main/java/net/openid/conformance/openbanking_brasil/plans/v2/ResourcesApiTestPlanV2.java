@@ -28,7 +28,7 @@ public class ResourcesApiTestPlanV2 implements TestPlan {
 					ResourcesApiDcrHappyFlowTestModuleV2.class,
 					ResourcesApiDcrTestModuleUnauthorizedClientV2.class,
 					ResourcesApiDcrTestModuleAttemptClientTakeoverV2.class,
-					ResourcesApiDcrSubjectDnV2.class,
+//					ResourcesApiDcrSubjectDnV2.class,
 					ResourcesApiTestModuleUnavailableV2.class
 				),
 				List.of(

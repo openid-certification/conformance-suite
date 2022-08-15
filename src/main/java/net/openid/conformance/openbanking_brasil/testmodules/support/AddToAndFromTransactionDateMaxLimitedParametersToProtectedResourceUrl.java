@@ -15,7 +15,7 @@ public class AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceU
 		String fromTransactionDateMaxLimited = env.getString("fromTransactionDateMaxLimited");
 		String toTransactionDateMaxLimited = env.getString("toTransactionDateMaxLimited");
 
-		String url = String.format("%s?fromTransactionDateMaxLimited=%s&toTransactionDateMaxLimited=%s", baseUrl, fromTransactionDateMaxLimited, toTransactionDateMaxLimited);
+		String url = String.format("%s?fromTransactionDate=%s&toTransactionDate=%s", baseUrl, fromTransactionDateMaxLimited, toTransactionDateMaxLimited);
 		env.putString("protected_resource_url", url);
 		logSuccess("Parameters were added to the resource URL", Map.of("URL", url));
 		return env;
