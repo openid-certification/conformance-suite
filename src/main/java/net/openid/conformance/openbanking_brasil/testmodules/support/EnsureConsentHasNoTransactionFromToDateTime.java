@@ -8,11 +8,12 @@ import net.openid.conformance.testmodule.Environment;
 
 public class EnsureConsentHasNoTransactionFromToDateTime extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = "resource_endpoint_response")
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
-		JsonObject body = JsonParser.parseString(env.getString("resource_endpoint_response")).getAsJsonObject();
+		String dataString = env.getElementFromObject("resource_endpoint_response_full", "body").getAsString();
 
-		JsonObject consent = body.get("data").getAsJsonObject();
+		JsonObject data = JsonParser.parseString(dataString).getAsJsonObject();
+		JsonObject consent = data.get("data").getAsJsonObject();
 
 		if(consent.has("transactionFromDateTime") || consent.has("transactionToDateTime")) {
 			throw  error("transactionFromDateTime and transactionToDateTime can not be in the consent response.");
