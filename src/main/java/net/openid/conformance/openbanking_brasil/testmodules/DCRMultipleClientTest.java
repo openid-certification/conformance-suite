@@ -6,8 +6,11 @@ import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalBrazi
 import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CopyClient;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureEndpointResponseWas201;
+import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas200;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "dcr-test-multiple-clients",
@@ -52,16 +55,8 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		eventLog.startBlock("Create Second Client - Expect 400 - Return warning on 201");
 		callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
 		call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.WARNING, "OIDCR-3.2");
 
-		env.putString("warning_message", "The current Open Banking Brazil specification requires servers to support " +
-			"only one active client for each software statement. As the decision to mandate this behavior has been " +
-			"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
-			"- Moment where test will return a failure");
-		callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
-
-		callAndContinueOnFailure(EnsureEndpointResponseWas201.class, Condition.ConditionResult.FAILURE);
+		call(validationSequence());
 
 		call(condition(CopyClient.class)
 			.skipIfElementMissing("dynamic_registration_endpoint_response", "body_json.client_id"));
@@ -76,6 +71,23 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 		unregisterClient2();
 	}
 
+	ConditionSequence validationSequence() {
+		ConditionSequence validationSteps = sequenceOf(condition(EnsureContentTypeJson.class),
+			condition(EnsureHttpStatusCodeIs400.class));
+
+		env.putString("warning_message", "The current Open Banking Brazil specification requires servers to support " +
+			"only one active client for each software statement. As the decision to mandate this behavior has been " +
+			"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
+			"- Moment where test will return a failure");
+
+		int statusCode = env.getInteger("endpoint_response", "status");
+		if (statusCode != HttpStatus.SC_BAD_REQUEST) {
+			validationSteps.replace(EnsureHttpStatusCodeIs400.class, condition(ChuckWarning.class).dontStopOnFailure()
+					.onFail(Condition.ConditionResult.WARNING))
+				.then(condition(EnsureEndpointResponseWas201.class));
+		}
+		return validationSteps;
+	}
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
