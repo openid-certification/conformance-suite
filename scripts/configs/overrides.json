@@ -29,5 +29,8 @@
     },
     "payments-api-qres-wrong-amount-proxy-test": {
         "pixPaymentAmount": "10422.01"
+    },
+    "payments-api-consumed-consent-test": {
+        "pixPaymentAmount": "9999.99"
     }
 }

@@ -80,6 +80,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 		callAndStopOnFailure(AddInvoiceFinancingsScope.class);
 		callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 		switchToSecondClient();
+		callAndStopOnFailure(AddInvoiceFinancingsScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);

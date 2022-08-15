@@ -48,7 +48,7 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 				throw error("Could no find transactionDate JSON element in the resource Object", args("resource", resource));
 			}
 			LocalDate date = LocalDate.parse(OIDFJSON.getString(resourceDate), FORMATTER);
-			if (date.isAfter(fromDate) && (date.isBefore(toDate) || date.isEqual(toDate))) {
+			if (!date.isAfter(toDate) && !date.isBefore(fromDate)) {
 				expectedData.add(resourceObject);
 			}
 		});
