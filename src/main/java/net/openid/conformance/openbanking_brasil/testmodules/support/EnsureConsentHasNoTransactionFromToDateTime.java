@@ -5,12 +5,13 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class EnsureConsentHasNoTransactionFromToDateTime extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
-		String dataString = env.getElementFromObject("resource_endpoint_response_full", "body").getAsString();
+		String dataString = OIDFJSON.getString(env.getElementFromObject("resource_endpoint_response_full", "body"));
 
 		JsonObject data = JsonParser.parseString(dataString).getAsJsonObject();
 		JsonObject consent = data.get("data").getAsJsonObject();
