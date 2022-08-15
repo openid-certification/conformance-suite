@@ -2,9 +2,9 @@ openapi: 3.0.0
 info:
   title: APIs Open Data do Open Insurance Brasil
   description: As APIs descritas neste documento são referentes as APIs da fase Open Data do Open Insurance Brasil.
-  version: 1.0.2
+  version: 1.2.0
   contact:
-    url: 'https://http://novosite.susep.gov.br'
+    url: 'http://novosite.susep.gov.br/'
 tags:
   - name: "Channels"
     description: "Operações para listagem de canais de atendimentos"
@@ -132,10 +132,10 @@ components:
           properties:
             brand:
               $ref: '#/components/schemas/BranchesBrand'
-            links:
-              $ref: '#/components/schemas/LinksPaginated'
-            meta:
-              $ref: '#/components/schemas/MetaPaginated'
+        links:
+          $ref: '#/components/schemas/LinksPaginated'
+        meta:
+          $ref: '#/components/schemas/MetaPaginated'
     BranchesBrand:
       type: object
       required:
@@ -180,6 +180,7 @@ components:
             $ref: '#/components/schemas/Branch'
           minItems: 1
           description: Lista de Dependências de uma Instituição
+
     ResponseElectronicChannelsList:
       type: object
       required:
@@ -187,8 +188,13 @@ components:
         - links
         - meta
       properties:
-        brand:
-          $ref: '#/components/schemas/ElectronicChannelsBrand'
+        data:
+          type: object
+          required:
+            - brand
+          properties:
+            brand:
+              $ref: '#/components/schemas/ElectronicChannelsBrand'
         links:
           $ref: '#/components/schemas/LinksPaginated'
         meta:
@@ -207,8 +213,8 @@ components:
                       urls:
                         - 'https://empresa1.com/insurance'
                     services:
-                      - name: "SEGUROS"
-                        code: "SEGUROS"
+                      - name: 'ALTERACOES_FORMA_PAGAMENTO'
+                        code: '01'
         links:
           self: 'https://api.organizacao.com.br/open-insurance/channels/v1/electronic-channels'
           first: 'https://api.organizacao.com.br/open-insurance/channels/v1/electronic-channels'
@@ -544,7 +550,7 @@ components:
             - "18"
             - "19"
           description: Código dos Serviços efetivamente prestados pelo Canal de Atendimento
-          example: "PORTABILIDADE"
+          example: "05"
       required:
       - code
       - name
@@ -605,7 +611,7 @@ components:
         name:
           type: string
           enum:
-            - ALTERACACOES_FORMA_PAGAMENTO
+            - ALTERACOES_FORMA_PAGAMENTO
             - AVISO_SINISTRO
             - CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO
             - EFETIVACAO_APORTE
@@ -625,7 +631,7 @@ components:
             - SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS
             - SUGESTOES_ELOGIOS
           description: "Nome dos Serviços efetivamente prestados pelo Canal de Atendimento"
-          example: "ABERTURA_CONTAS_DEPOSITOS_OU_PAGAMENTO_PRE_PAGA"
+          example: "ALTERACOES_FORMA_PAGAMENTO"
         code:
           type: string
           enum:
@@ -650,7 +656,7 @@ components:
             - "19"
 
           description: "Código dos Serviços efetivamente prestados pelo Canal de Atendimento"
-          example: "RECLAMACAO"
+          example: "01"
     BranchPhone:
       type: object
       properties:
@@ -720,7 +726,7 @@ components:
                           areaCode: '14'
                           number: '997865532'
                     services:
-                      - name: 'ALTERACACOES_FORMA_PAGAMENTO'
+                      - name: 'ALTERACOES_FORMA_PAGAMENTO'
                         code: '01'
                       - name: 'AVISO_SINISTRO'
                         code: '02'
