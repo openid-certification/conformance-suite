@@ -16,9 +16,10 @@ public class VerifyResourcePollingSequenceStopCondition extends AbstractConditio
 		if(status != HttpStatus.ACCEPTED.value()) {
 			env.putBoolean("200Ok_or_differentCode_found", true);
 			log("A status code different from 202 was found, stop polling.");
+		} else {
+			log("A status code different from 200 was found, keep polling");
 		}
 
-		log("A status code different from 200 was found, keep polling");
 		return env;
 	}
 }

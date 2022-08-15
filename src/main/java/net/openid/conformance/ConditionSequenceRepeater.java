@@ -3,11 +3,17 @@ package net.openid.conformance;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.WaitForConfiguredSeconds;
 import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalServerTestModule;
+import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -26,7 +32,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 
 	private Predicate<Environment> timeoutPredicate = (e) -> {
 		int ttl = e.getInteger(TIMEOUT_COUNTER_KEY);
-		logger.info("TTL on repeating condition sequence for {} now {}", getName(), ttl);
+		logger.info("TTL on repeating condition sequence now {}", ttl);
 		return !(ttl < timeout);
 	};
 
@@ -34,9 +40,15 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 
 	public ConditionSequenceRepeater(Supplier<ConditionSequence> conditionSequenceSupplier) {
 		this.sequenceSupplier = conditionSequenceSupplier;
+	}
+
+	public void setProperties(Environment env, String id,TestInstanceEventLog eventLog,TestInfoService testInfo, TestExecutionManager executionManager) {
+		super.setProperties(id, null, eventLog , null, testInfo, executionManager, null);
+		this.env = env;
 		env.putInteger("loopSequencePauseTime", 0);
 		env.putInteger("preSequencePauseTime", 0);
 		env.putInteger("postSequencePauseTime", 1);
+
 	}
 
 	/**

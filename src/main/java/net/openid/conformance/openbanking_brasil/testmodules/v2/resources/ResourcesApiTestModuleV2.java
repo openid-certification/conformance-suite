@@ -57,7 +57,9 @@ public class ResourcesApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModu
 
 	@Override
 	protected void validateResponse() {
-		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
+
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
 		call(pollingSteps);
 
 		String responseError = env.getString("resource_endpoint_error_code");

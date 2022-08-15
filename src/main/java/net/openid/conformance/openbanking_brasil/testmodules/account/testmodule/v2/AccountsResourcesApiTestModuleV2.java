@@ -62,8 +62,11 @@ public class AccountsResourcesApiTestModuleV2 extends AccountApiTestModuleV2 {
 		callAndStopOnFailure(PrepareUrlForResourcesCallV2.class);
 
 
-		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps();
-		call(pollingSteps);
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		runInBlock("Polling Resources API", () -> {
+			call(pollingSteps);
+		});
 
 		runInBlock("Validate Resources response", () -> {
 			callAndStopOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
