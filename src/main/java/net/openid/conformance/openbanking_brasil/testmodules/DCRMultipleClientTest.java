@@ -59,7 +59,7 @@ public class DCRMultipleClientTest extends AbstractFAPI1AdvancedFinalBrazilDCR {
 			"only one active client for each software statement. As the decision to mandate this behavior has been " +
 			"set on july 2022 this behavior will still be accepted for a few months before becoming mandatory " +
 			"- Moment where test will return a failure");
-		callAndStopOnFailure(ChuckWarning.class);
+		callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
 
 		callAndContinueOnFailure(EnsureEndpointResponseWas201.class, Condition.ConditionResult.FAILURE);
 
