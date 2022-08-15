@@ -19,12 +19,12 @@ public class EnsureDataArrayIsEmpty extends AbstractCondition {
 			.getAsJsonObject();
 
 		if(!body.has("data")) {
-			throw error("Data object not found in response body.");
+			throw error("Data object not found in response body.", args("body", body));
 		}
 
 		JsonElement dataElem = body.get("data");
 		if (dataElem.isJsonNull()) {
-			throw error("Data object cannot be null.");
+			throw error("Data object cannot be null.", args("body", body));
 		}
 
 		JsonArray dataArray = body.getAsJsonArray("data");
