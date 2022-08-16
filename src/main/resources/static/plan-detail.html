@@ -613,8 +613,8 @@
                 console.log('wtf');
                 document.querySelector('#certificationPackageFormModalBody').classList.add('hidden');
                 document.querySelector('#certificationPackageDownloaded').classList.remove('hidden');
-                document.querySelector('#cancelCertificationPackageFormModal').setAttribute('disabled');
-                document.querySelector('#certificationPackageFormSubmitBtn').setAttribute('disabled');
+                document.querySelector('#cancelCertificationPackageFormModal').setAttribute('disabled', 'true');
+                document.querySelector('#certificationPackageFormSubmitBtn').setAttribute('disabled', 'true');
             });
 
         });
