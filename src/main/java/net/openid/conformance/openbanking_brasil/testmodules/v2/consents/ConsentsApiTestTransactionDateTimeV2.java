@@ -3,7 +3,6 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
-import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
 import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
@@ -50,10 +49,9 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class);
 
 			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
-			callAndStopOnFailure(ResourceEndpointResponseFromFullResponse.class);
+			callAndStopOnFailure(EnsureResponseCodeWas201.class);
 
-			callAndStopOnFailure(EnsureConsentResponseCodeWas201.class);
-
+			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
 			callAndContinueOnFailure(CreateNewConsentValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
@@ -63,10 +61,12 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 		runInBlock("Validating get consent response v2", () -> {
 			callAndStopOnFailure(ConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
-			callAndStopOnFailure(EnsureConsentResponseWas200.class);
+			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
+			callAndStopOnFailure(EnsureResponseCodeWas200.class);
 
+			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
