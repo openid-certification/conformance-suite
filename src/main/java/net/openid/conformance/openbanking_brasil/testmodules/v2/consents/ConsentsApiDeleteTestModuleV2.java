@@ -89,30 +89,23 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		callAndContinueOnFailure(LoadConsentsAccessToken.class);
 		callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureConsentResponseWas204.class);
+
 		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(SetResponseBodyOptional.class);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(EnsureConsentResponseWas200.class);
+		callAndContinueOnFailure(EnsureConsentAspspRevoked.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(LoadProtectedResourceAccessToken.class);
 
 		eventLog.startBlock("Try calling protected resource after consent is deleted");
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
-
-		eventLog.startBlock("Validating get consent response");
-		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-		callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
-		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-		preCallProtectedResource("Fetch consent");
-
-		callAndStopOnFailure(EnsureConsentAspspRevoked.class);
-
 	}
 
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {

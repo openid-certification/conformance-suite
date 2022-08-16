@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -17,6 +18,12 @@ public abstract class AbstractConsentRejectionValidation extends AbstractConditi
 		JsonObject body = consentResponse.getAsJsonObject("data");
 		JsonObject rejection = body.getAsJsonObject("rejection");
 		if (rejection == null){
+			JsonElement statusElem = body.get("status");
+			if (!statusElem.isJsonNull()) {
+				if(statusElem.getAsString().equals("REJECTED")) {
+					throw error("consent status is REJECTED but no rejection object found", args("body", body));
+				}
+			}
 			return false;
 		}
 		JsonObject rejectionReason = rejection.getAsJsonObject("reason");

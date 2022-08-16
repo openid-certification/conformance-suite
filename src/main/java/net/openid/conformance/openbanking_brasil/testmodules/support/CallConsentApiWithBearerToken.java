@@ -127,6 +127,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				} else {
 					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 					env.putObject("resource_endpoint_response_headers", responseHeaders);
+					env.putInteger("resource_endpoint_response_status", response.getStatusCodeValue());
 
 					logSuccess("No response body, as expected", args( "headers", responseHeaders));
 					return env;
