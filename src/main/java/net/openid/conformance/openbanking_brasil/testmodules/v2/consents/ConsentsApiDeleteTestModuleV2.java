@@ -19,18 +19,16 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @PublishTestModule(
 	testName = "consents-api-delete-test-v2",
 	displayName = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token ",
-	summary = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token \n" +
+	summary = "Make sure that after consent has been deleted, no more tokens can be used or issued using a refresh token \n" +
 		"\u2022 Creates a Consent with all of the existing permissions \n" +
 		"\u2022 Redirects the user\n" +
 		"\u2022 Calls the Token endpoint using the authorization code flow\n" +
 		"\u2022 Makes sure a valid access token has been created\n" +
 		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
-		"\u2022 Calls the DELETE Consents API\n" +
-		"\u2022 Calls the Token endpoint to issue a new access token\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n" +
-		"\u2022 Calls the Consents API with the initially authorized Consent \n" +
-		"\u2022 Expects a 200 - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure " +
-		"		Reason is set to \"CUSTOMER_MANUALLY_REVOKED”\n",
+		"\u2022 Calls the DELETE Consents API Calls the Consents API with the initially authorized Consent - Expects a 204\n" +
+		"\u2022 Calls the Consents API - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure Reason is set to \"CUSTOMER_MANUALLY_REVOKED\"\n"+
+		"\u2022 Call the protected resource with the access token previously issued - expect 401\n" +
+		"\u2022 Call the token endpoint to issue a new access token using the refresh token - expect 401\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
