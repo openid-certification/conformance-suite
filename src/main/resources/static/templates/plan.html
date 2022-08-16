@@ -70,13 +70,13 @@
                         <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-default btn-block" title="Create a new test plan based on the configuration used in this one"><span class="glyphicon glyphicon-edit"></span> Edit configuration</a>
                     <% } %>
                     <% if (!public || plan.publish == "everything") { %>
-                        <% if (FAPI_UI.currentUser.isAdmin) { %>
+                        <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                         <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download all Logs</button>
                         <% } %>
                     <% } %>
                     <% if (!public) { %>
                         <% if (!plan.publish) { %>
-                            <% if (FAPI_UI.currentUser.isAdmin) { %>
+                            <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                         <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
                         <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
                             <% } %>
