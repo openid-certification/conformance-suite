@@ -427,6 +427,10 @@ pre.prettyprint {
 	color: #38a321;
 }
 
+.darkblue {
+	color: #23527c;
+}
+
 /* spacers for page elements */
 .top5 { margin-top:5px; }
 .top7 { margin-top:7px; }
@@ -434,6 +438,8 @@ pre.prettyprint {
 .top15 { margin-top:15px; }
 .top17 { margin-top:17px; }
 .top30 { margin-top:30px; }
+
+.pad28 { padding: 28px; }
 
 /* shim for hidden elements */
 [hidden] {
