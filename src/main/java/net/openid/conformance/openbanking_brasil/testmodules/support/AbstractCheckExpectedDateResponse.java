@@ -52,9 +52,17 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 				expectedData.add(resourceObject);
 			}
 		});
-		if (!actualData.equals(expectedData)) {
+
+
+		if(expectedData.isEmpty() && !actualData.isEmpty()){
 			throw error("The returned data array is not what was expected", args("Returned", actualData, "Expected", expectedData));
 		}
+
+		expectedData.iterator().forEachRemaining(expectedResource -> {
+			if (!actualData.contains(expectedResource.getAsJsonObject())) {
+				throw error("The returned data array does not contain the expected resource", args("Returned", actualData, "Expected", expectedResource));
+			}
+		});
 
 		logSuccess("The returned data array has expected resources", args("Returned", actualData, "Expected", expectedData));
 

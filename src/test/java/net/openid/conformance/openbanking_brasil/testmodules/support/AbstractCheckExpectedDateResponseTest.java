@@ -1,7 +1,9 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
 import net.openid.conformance.apis.AbstractJsonResponseConditionUnitTest;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.util.UseResurce;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -11,14 +13,26 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class AbstractCheckExpectedDateResponseTest extends AbstractJsonResponseConditionUnitTest {
 
 	private CopyResourceEndpointResponse copyResourceEndpointResponse = new CopyResourceEndpointResponse();
 
+
 	@Test
 	@UseResurce("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentResponse.json")
 	public void checkCreditCardTransactionsCurrentResponse() {
+		CheckExpectedTransactionDateMaxLimitedResponse condition = new CheckExpectedTransactionDateMaxLimitedResponse();
+		environment.putString("fromTransactionDateMaxLimited", "2021-05-01");
+		environment.putString("toTransactionDateMaxLimited", "2021-06-01");
+		copyAndAddFullRangeResponseToEnvironment("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentFullRangeResponse.json");
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentMultipleResourcesResponse.json")
+	public void checkCreditCardTransactionsCurrentMultipleResourcesResponse() {
 		CheckExpectedTransactionDateMaxLimitedResponse condition = new CheckExpectedTransactionDateMaxLimitedResponse();
 		environment.putString("fromTransactionDateMaxLimited", "2021-05-01");
 		environment.putString("toTransactionDateMaxLimited", "2021-06-01");
@@ -64,15 +78,31 @@ public class AbstractCheckExpectedDateResponseTest extends AbstractJsonResponseC
 		environment.putString("toTransactionDateMaxLimited", "2021-07-01");
 		copyAndAddFullRangeResponseToEnvironment("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentFullRangeResponse.json");
 		ConditionError conditionError = runAndFail(condition);
+		assertThat(conditionError.getMessage(), containsString("The returned data array does not contain the expected resource"));
+	}
+
+
+	@Test
+	@UseResurce("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentResponse.json")
+	public void checkCreditCardTransactionsCurrentCheatResponse2() {
+		CheckExpectedTransactionDateMaxLimitedResponse condition = new CheckExpectedTransactionDateMaxLimitedResponse();
+		environment.putString("fromTransactionDateMaxLimited", "2021-06-01");
+		environment.putString("toTransactionDateMaxLimited", "2021-07-01");
+		copyAndAddFullRangeResponseToEnvironment("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentFullRangeResponse2.json");
+		ConditionError conditionError = runAndFail(condition);
 		assertThat(conditionError.getMessage(), containsString("The returned data array is not what was expected"));
 	}
+
+
 
 
 	private void copyAndAddFullRangeResponseToEnvironment(String path) {
 		try {
 			String fullResponseJson = IOUtils.resourceToString(path, StandardCharsets.UTF_8, getClass().getClassLoader());
 			environment.putString("resource_endpoint_response_full", "body", fullResponseJson);
-			run(copyResourceEndpointResponse);
+			TestInstanceEventLog eventLog = mock(TestInstanceEventLog.class);
+			copyResourceEndpointResponse.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+			copyResourceEndpointResponse.evaluate(environment);
 			environment.mapKey("full_range_response", "resource_endpoint_response_full_copy");
 		} catch (IOException e) {
 			throw new AssertionError("Could not load resource");
