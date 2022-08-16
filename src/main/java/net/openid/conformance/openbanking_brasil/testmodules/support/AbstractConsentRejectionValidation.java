@@ -20,7 +20,7 @@ public abstract class AbstractConsentRejectionValidation extends AbstractConditi
 		if (rejection == null){
 			JsonElement statusElem = body.get("status");
 			if (!statusElem.isJsonNull()) {
-				if(statusElem.getAsString().equals("REJECTED")) {
+				if(OIDFJSON.getString(statusElem).equals("REJECTED")) {
 					throw error("consent status is REJECTED but no rejection object found", args("body", body));
 				}
 			}
