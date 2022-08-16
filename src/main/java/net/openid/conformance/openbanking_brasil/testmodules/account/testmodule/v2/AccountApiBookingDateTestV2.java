@@ -72,7 +72,7 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		env.putString("fromBookingDate", currentDate.minusDays(360).format(FORMATTER));
 		env.putString("toBookingDate", currentDate.format(FORMATTER));
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		preCallProtectedResource("Fetch Account transactions");
 		callAndStopOnFailure(CopyResourceEndpointResponse.class);
 		env.mapKey("full_range_response", "resource_endpoint_response_full_copy");
