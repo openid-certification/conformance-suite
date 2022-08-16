@@ -43,7 +43,7 @@ public class PixQRCode {
 		this.setTransactionCurrency(DictHomologKeys.PROXY_EMAIL_STANDARD_CURRENCY_CODE);
 		this.setTransactionAmount(DictHomologKeys.PROXY_EMAIL_STANDARD_AMOUNT);
 		this.setCountryCode(DictHomologKeys.PROXY_EMAIL_STANDARD_COUNTRY);
-		this.setMerchantName(DictHomologKeys.PROXY_EMAIL_OWNER_NAME.toUpperCase(Locale.ROOT));
+		this.setMerchantName(DictHomologKeys.PROXY_EMAIL_OWNER_NAME);
 		this.setMerchantCity(DictHomologKeys.PROXY_EMAIL_STANDARD_CITY);
 		this.setAdditionalField("03***");
 	}

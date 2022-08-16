@@ -28,6 +28,7 @@ public class PaymentsConsentsApiEnforceQRESNWithEmailAddressTestModule extends A
 	protected void configureDictInfo() {
 		callAndStopOnFailure(SelectQRESCodeLocalInstrument.class);
 		callAndStopOnFailure(SelectQRESCodePixLocalInstrument.class);
+		callAndStopOnFailure(InsertRandom1333XXAmountIntoPaymentsAndPaymentsConsentsResources.class);
 		callAndStopOnFailure(InjectQRCodeWithRealEmailIntoConfig.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddress.class);
 		callAndStopOnFailure(SetProxyToRealEmailAddressOnPaymentConsent.class);

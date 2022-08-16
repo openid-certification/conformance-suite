@@ -1,0 +1,11 @@
+[
+    {
+        "test-name": "payments-api-qres-good-phone-number-proxy-test",
+        "variant": "*",
+        "configuration-filename": "./scripts/configs/generated-payment-config.json",
+        "current-block": "Validate response",
+        "condition": "ChuckWarning",
+        "expected-result": "failure",
+        "comment": "mock bank bank is not fully compliant"
+    }
+]
