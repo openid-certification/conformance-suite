@@ -37,8 +37,8 @@ public abstract class ValidateTransactionsDate extends AbstractCondition {
 			if (isDateInvalid(currentDate, transactionDate)) {
 				throw error(getErrorMessage(),
 					Map.of("Transaction", transactionObject,
-						"Current Date", currentDate.format(FORMATTER),
-						"Transaction Date", transactionDate.format(FORMATTER)));
+						"Expected Current Date", currentDate.format(FORMATTER),
+						"Received Transaction Date", transactionDate.format(FORMATTER)));
 			}
 		});
 

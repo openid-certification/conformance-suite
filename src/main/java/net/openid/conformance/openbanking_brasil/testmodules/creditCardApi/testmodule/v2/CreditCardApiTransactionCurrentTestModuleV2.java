@@ -78,6 +78,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(6).format(FORMATTER));
 		env.putString(TO_TRANSACTION_DATE, currentDate.format(FORMATTER));
+
 		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions with full range date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
@@ -104,7 +105,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		env.putString(TO_TRANSACTION_DATE, currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions V2 with invalid date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
