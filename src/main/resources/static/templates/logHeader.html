@@ -83,7 +83,7 @@
                     <button class="btn btn-default btn-block collapse" id="planBtn"><span class="glyphicon glyphicon-book"></span> Return to Plan</button>
                     <% if (!public) { %>
                     <button class="btn btn-default btn-block collapse" id="nextPlanBtn" title="Run the next test in this test plan"><span class="glyphicon glyphicon-fast-forward"></span> Continue Plan</button>
-                    <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
+                    <% if (!test.publish && (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin)) { %>
                     <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
                     <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
                     <% } else { %>
