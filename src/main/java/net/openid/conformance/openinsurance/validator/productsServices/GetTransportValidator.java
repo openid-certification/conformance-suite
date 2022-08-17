@@ -118,7 +118,7 @@ public class GetTransportValidator extends AbstractJsonAssertingCondition {
 
 					assertField(assistanceServices,
 						new StringField
-							.Builder("assistanceServicesDetail")
+							.Builder("complementaryAssistanceServicesDetail")
 							.setMaxLength(1000)
 							.setOptional()
 							.build());

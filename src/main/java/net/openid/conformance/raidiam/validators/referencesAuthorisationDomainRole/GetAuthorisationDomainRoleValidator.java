@@ -23,14 +23,14 @@ public class GetAuthorisationDomainRoleValidator extends PostAuthorisationDomain
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		parts.assertDefaultResponseFields(body);
+
 		assertField(body,
 			new ObjectArrayField
 				.Builder("content")
 				.setValidator(this::assertAuthorisationDomainRole)
 				.setOptional()
 				.build());
-
+		parts.assertDefaultResponseFields(body);
 		return environment;
 	}
 }

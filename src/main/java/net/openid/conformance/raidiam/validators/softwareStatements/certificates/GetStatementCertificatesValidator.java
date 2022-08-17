@@ -25,7 +25,7 @@ public class GetStatementCertificatesValidator extends AbstractJsonAssertingCond
 
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(parts::assertCertificates)
 				.setOptional()
 				.build());

@@ -17,7 +17,7 @@ public class GetAuthorityClaimsAuthorisationsValidator extends PostAuthorityClai
 		JsonElement body = bodyFrom(environment);
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(this::assertAuthorityClaims)
 				.setOptional()
 				.build());
