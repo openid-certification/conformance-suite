@@ -24,6 +24,7 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 
 		Boolean forceConsentsResponse = env.getBoolean("force_consents_response");
 		if(forceConsentsResponse != null && forceConsentsResponse){
+			env.putBoolean("force_consents_response", false);
 			apiResponse = getConsentJsonObject(env);
 		}else {
 			if (env.getObject("resource_endpoint_response_full") != null) {
@@ -35,6 +36,10 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 			} else {
 				apiResponse = getConsentJsonObject(env);
 			}
+		}
+
+		if(apiResponse == null){
+			throw error("Could not find the response object");
 		}
 
 
@@ -68,10 +73,6 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				.setValidator(this::assertMeta)
 				.setOptional()
 				.build());
-
-		if(forceConsentsResponse != null){
-			env.putBoolean("force_consents_response", false);
-		}
 
 		return env;
 	}
