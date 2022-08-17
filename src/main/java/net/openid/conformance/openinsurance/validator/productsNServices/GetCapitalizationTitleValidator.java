@@ -316,6 +316,12 @@ public class GetCapitalizationTitleValidator extends AbstractJsonAssertingCondit
 
 		assertField(capitalizationPeriod,
 			new StringArrayField
+				.Builder("updateIndexOthers")
+				.setOptional()
+				.build());
+
+		assertField(capitalizationPeriod,
+			new StringArrayField
 				.Builder("others")
 				.setOptional()
 				.build());

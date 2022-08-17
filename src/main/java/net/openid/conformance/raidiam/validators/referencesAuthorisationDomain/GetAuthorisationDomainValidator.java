@@ -24,14 +24,13 @@ public class GetAuthorisationDomainValidator extends GetAuthorisationDomainByDom
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		parts.assertDefaultResponseFields(body);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("content")
 				.setValidator(this::assertAuthorisationDomain)
 				.setOptional()
 				.build());
-
+		parts.assertDefaultResponseFields(body);
 		return environment;
 	}
 }
