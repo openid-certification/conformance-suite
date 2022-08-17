@@ -22,7 +22,6 @@ import static net.openid.conformance.openbanking_brasil.productsNServices.Produc
  * Api version: 1.0.2
  * Git Hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
-
 @ApiName("ProductsNServices PensionPlan")
 public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 
@@ -67,6 +66,11 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 				.setPattern("[\\w\\W\\s]*")
 				.setMaxLength(2048)
 				.setOptional()
+				.build());
+
+		assertField(body,
+			new ObjectField
+				.Builder("data")
 				.build());
 
 		assertField(body, new ObjectField
@@ -150,7 +154,7 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 
 		assertField(products,
 			new ObjectArrayField
-				.Builder("termsAndCondition")
+				.Builder("termAndCondition")
 				.setValidator(termsAndConditions -> {
 					assertField(termsAndConditions,
 						new StringField
@@ -328,7 +332,7 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 
 		assertField(coverages,
 			new ObjectField
-				.Builder("coverageAttributes")
+				.Builder("coveragesAttributes")
 				.setValidator(this::assertCoverageAttributes)
 				.setOptional()
 				.build());
@@ -343,8 +347,8 @@ public class GetPensionPlanValidator extends AbstractJsonAssertingCondition {
 
 	private void assertCoverageAttributes(JsonObject coverageAttributes) {
 		assertField(coverageAttributes,
-			new StringArrayField
-				.Builder("indemnityPaymentMethod")
+			new StringField
+				.Builder("indenizationPaymentMethod")
 				.setEnums(INDEMNITY_PAYMENT_METHOD)
 				.build());
 

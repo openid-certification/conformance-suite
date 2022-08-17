@@ -1,6 +1,5 @@
 {
     "SuperUser": true,
-    "SystemUser": true,
     "BasicInformation": {
         "UserEmail": "string",
         "Status": "Active"

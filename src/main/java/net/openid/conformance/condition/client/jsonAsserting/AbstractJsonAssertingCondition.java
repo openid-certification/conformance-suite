@@ -11,8 +11,10 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -20,6 +22,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 
 	public static final String ROOT_PATH = "$.data";
 	private static final Gson GSON = JsonUtils.createBigDecimalAwareGson();
+	private final JsonKeysKeeper namesKeeper = new JsonKeysKeeper();
 	private int errorCount;
 	private boolean dontStopOnFailure;
 
@@ -29,7 +32,9 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 	protected JsonElement bodyFrom(Environment environment) {
 		initAdditionalProperties(environment);
 		String resource = environment.getString("resource_endpoint_response");
-		return GSON.fromJson(resource, JsonElement.class);
+		JsonElement jsonResource = GSON.fromJson(resource, JsonElement.class);
+		namesKeeper.createListOfKeys(jsonResource);
+		return jsonResource;
 	}
 
 	public void assertField(JsonElement jsonObject, Field field) {
@@ -40,10 +45,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 		} else {
 			assertElement(jsonObject, field);
 		}
+		if (!namesKeeper.hasNext()) {
+			List<String> finalResult = namesKeeper.getFinalResult();
+			if (!finalResult.isEmpty()) {
+				throw error(String.format("This fields are not validated on the %s API response: %s", getApiName(), StringUtils.join(finalResult, ", ")));
+			}
+		}
 	}
 
 	private void assertElement(JsonElement jsonObject, Field field) {
 		currentField = field.getPath();
+
 		if (!ifExists(jsonObject, field.getPath())) {
 			if (field.isOptional()) {
 				return;
@@ -52,6 +64,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 					args("currentElement", jsonObject));
 			}
 		}
+		namesKeeper.remove(field.getPath());
 
 		JsonElement elementByPath = findByPath(jsonObject, field.getPath());
 		if (field.isNullable() && elementByPath.isJsonNull()) {

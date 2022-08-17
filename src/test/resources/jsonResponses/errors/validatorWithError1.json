@@ -1,0 +1,13 @@
+{
+    "data": {
+        "someField1": {
+            "innerField1" : "inner1",
+            "innerField2" : "inner2"
+        },
+        "someField2": "2",
+        "someField3" : {
+
+        },
+        "someField4" : "4"
+    }
+}

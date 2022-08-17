@@ -164,21 +164,21 @@ public class SurvivalCoveragesValidator extends AbstractJsonAssertingCondition {
 
 		assertField(data,
 			new ObjectField
-				.Builder("minimumRequirements")
-				.setValidator(minimumRequirements -> {
-					assertField(minimumRequirements,
+				.Builder("minimumRequirement")
+				.setValidator(minimumRequirement -> {
+					assertField(minimumRequirement,
 						new StringField
 							.Builder("contractType")
 							.setEnums(CONTRACT_TYPE)
 							.setMaxLength(27)
 							.build());
 
-					assertField(minimumRequirements,
+					assertField(minimumRequirement,
 						new BooleanField
 							.Builder("participantQualified")
 							.build());
 
-					assertField(minimumRequirements,
+					assertField(minimumRequirement,
 						new StringField
 							.Builder("contractingMinRequirement")
 							.setMaxLength(1024)

@@ -119,7 +119,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 		assertField(data,
 			new StringArrayField
-				.Builder("assistanceAdditionalInfos")
+				.Builder("assistanceTypesAdditionalInfos")
 				.setOptional()
 				.build());
 
@@ -561,7 +561,7 @@ public class RiskCoveragesValidator extends AbstractJsonAssertingCondition {
 
 		assertField(reclaim,
 			new StringField
-				.Builder("differentiatedPercentage")
+				.Builder("differenciatedPercentage")
 				.setMaxLength(1024)
 				.setOptional()
 				.build());
