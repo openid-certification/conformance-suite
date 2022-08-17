@@ -3,7 +3,7 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description:
     API de informações de Planos de Previdência e Seguros de Pessoas ambos com cobertura por sobrevivência (excluindo seguros Dotais). Os recursos que podem ser consumidos pelos participantes conforme a regra 3.1.1 do manual de escopo de dados.
-  version: 1.0.3
+  version: 1.2.0
   contact:
     url: 'https://openinsurance.susep.gov.br'
 servers:
@@ -339,8 +339,13 @@ components:
                 minimumContributionAmount:
                   type: number
                   description: Valor Mínimo de Contribuição. Regra de Elegibilidade. Caso a Regra de Elegibilidade SIM.
-                  example: 1000
-                  maxLength: 5
+                  example: 1000000000
+                  maxLength: 15
+                minimumContributionValue:
+                  type: number
+                  description: Valor Mínimo de Aporte de Portabilidade. Caso a Regra de Elegibilidade SIM.
+                  example: 1000000000
+                  maxLength: 15
                 minimumMathematicalProvisionAmount:
                   type: number
                   description: Valor Mínimo Provisão Matemática. Caso a Regra de Elegibilidade SIM.

@@ -473,6 +473,7 @@ public class PersonalIdentificationResponseValidatorV2 extends AbstractJsonAsser
 			new StringField
 				.Builder("countryCallingCode")
 				.setMaxLength(4)
+				.setOptional()
 				.setPattern("^\\d{1,4}$")
 				.build());
 

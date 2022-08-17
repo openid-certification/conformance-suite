@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.field.StringField;
 
 /**
  * Api url: ****
@@ -17,7 +18,10 @@ public class PutSuperUsersResponseValidator extends AbstractJsonAssertingConditi
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
-		assertField(body, CommonFields.getUserEmail());
+		assertField(body, new StringField
+			.Builder("Email")
+			.setOptional()
+			.build());
 		assertField(body, CommonFields.getStatus());
 
 		return environment;

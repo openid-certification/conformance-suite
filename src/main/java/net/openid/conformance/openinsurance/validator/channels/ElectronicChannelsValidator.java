@@ -21,6 +21,9 @@ import java.util.Set;
  * Api version: 1.0.2
  * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
+
+//TODO: the problem meet of swagger schema
+//data, brand, name, companies, name, cnpjNumber, urlComplementaryList, electronicChannels, identification, type, urls, services, name, code, links, self, first, prev, next, last, meta, totalRecords, totalPages
 @ApiName("Electronic Channels")
 public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition {
 
@@ -37,21 +40,26 @@ public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition 
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
+		assertField(body, new ObjectField
+			.Builder("data").setValidator(data -> {
+				assertField(data,
+					new ObjectField
+						.Builder("brand").setValidator(
+							brand -> {
+								assertField(brand, Fields.name().build());
+								assertField(brand,
+									new ObjectArrayField
+										.Builder("companies")
+										.setMinItems(1)
+										.setValidator(this::assertCompanies)
+										.build());
+							})
+						.setOptional()
+						.build());
+			})
+			.build());
 
-		assertField(body,
-			new ObjectField
-				.Builder("brand").setValidator(
-					brand -> {
-						assertField(brand, Fields.name().build());
-						assertField(brand,
-							new ObjectArrayField
-								.Builder("companies")
-								.setMinItems(1)
-								.setValidator(this::assertCompanies)
-								.build());
-					})
-				.setOptional()
-				.build());
+
 
 		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();

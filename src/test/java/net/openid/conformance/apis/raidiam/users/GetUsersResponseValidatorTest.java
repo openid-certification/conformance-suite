@@ -13,5 +13,4 @@ public class GetUsersResponseValidatorTest extends AbstractJsonResponseCondition
 		GetUsersResponseValidator condition = new GetUsersResponseValidator();
 		run(condition);
 	}
-
 }

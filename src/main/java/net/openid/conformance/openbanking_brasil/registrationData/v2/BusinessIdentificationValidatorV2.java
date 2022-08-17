@@ -330,6 +330,7 @@ public class BusinessIdentificationValidatorV2 extends AbstractJsonAssertingCond
 		assertField(body,
 			new StringField
 				.Builder("countryCallingCode")
+				.setOptional()
 				.setPattern("^\\d{1,4}$")
 				.setMaxLength(4)
 				.build());

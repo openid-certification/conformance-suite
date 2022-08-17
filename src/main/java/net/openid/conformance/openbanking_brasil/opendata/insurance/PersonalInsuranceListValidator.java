@@ -120,7 +120,7 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 
 		assertField(data,
 			new StringArrayField
-				.Builder("assistanceAdittionalInfos")
+				.Builder("assistanceTypesAdditionalInfos")
 				.setOptional()
 				.build());
 
@@ -388,7 +388,7 @@ public class PersonalInsuranceListValidator extends AbstractJsonAssertingConditi
 
 		assertField(coverages,
 			new StringArrayField
-				.Builder("typeAdditionalInfo")
+				.Builder("typeAdditionalInfos")
 				.setMaxLength(100)
 				.setOptional()
 				.build());

@@ -17,7 +17,7 @@ public class GetDiscoveryEndpointsValidator extends PostDiscoveryEndpointsValida
 		JsonElement body = bodyFrom(environment);
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(this::assertEndpoints)
 				.setOptional()
 				.build());

@@ -3,9 +3,9 @@ info:
   title: APIs Open Data do Open Insurance Brasil
   description: 
     API de informações de Seguro de Automóveis. Os recursos que podem ser consumidos pelos participantes conforme a regra 3.2.2 do manual de escopo de dados.
-  version: 1.0.2
+  version: 1.2.0
   contact:
-    url: 'https://http://novosite.susep.gov.br'
+    url: 'https://openinsurance.susep.gov.br/'
 servers:
   - url: 'https://api.organizacao.com.br/open-insurance/products-services/v1'
     description: Servidor de Produção
@@ -52,12 +52,18 @@ paths:
           $ref: '#/components/responses/MethodNotAllowed'
         '406':
           $ref: '#/components/responses/NotAcceptable'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
         default:
-          $ref: '#/components/schemas/ResponseAutoInsuranceList'               
+          description: Dados dos Seguros de Automóveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseAutoInsuranceList'           
 components:
   schemas:
     ResponseAutoInsuranceList:
@@ -70,7 +76,7 @@ components:
         data:
           type: object
           required:
-            - AutoInsuranceBrand
+            - brand
           properties:
             brand:
               $ref: '#/components/schemas/AutoInsuranceBrand'
@@ -82,12 +88,12 @@ components:
       type: object
       required:
         - name
-        - company
+        - companies
       properties:
         name:
           type: string
           description: Nome da marca reportada pelo participante do Open Insurance. O conceito a que se refere a marca é em essência uma promessa das sociedades sob ela em fornecer uma série específica de atributos, benefícios e serviços uniformes aos clientes.
-        company:
+        companies:
           $ref: '#/components/schemas/AutoInsuranceCompany'  
     AutoInsuranceCompany:
       type: array
@@ -104,9 +110,7 @@ components:
           cnpjNumber:
             type: string
             description: CNPJ da sociedade pertencente à marca.
-          products:  
-            type: object
-            description: Lista de Dependências de uma Instituição.
+          products:
             $ref: '#/components/schemas/AutoInsuranceProduct'
     AutoInsuranceProduct:
       type: array
@@ -145,13 +149,13 @@ components:
             type: string
             description: Área de comercialização do seguro do automóvel.
             maxLength: 8
-            example: 1311000
+            example: '01311000'
           additional:
             type: array
             items:
               type: string
               description: Adicionais
-              example: SORTEIO GRATUITO
+              example: SORTEIO_GRATUITO
               enum: [SORTEIO_GRATUITO , CLUBE_BENEFICIOS , CASHBACK, DESCONTOS, OUTROS]
           additionalOthers:
             type: string
@@ -174,7 +178,7 @@ components:
             description: Rede de atendimento do seguro contratado.
             items:
                 type: string
-                example: REDE REFERECIADA
+                example: REDE_REFERENCIADA
                 enum: [REDE_REFERENCIADA , LIVRE_ESCOLHA , REDE_REFERENCIADA_LIVRE_ESCOLHA]  
           premiumPayment:
             $ref: '#/components/schemas/AutoInsurancePremiumPayment'      
@@ -223,7 +227,6 @@ components:
                       RESPONSABILIDADE_CIVIL_CARTA_VERDE,
                       VOUCHER_MOBILIDADE,
                       DESPESAS_EXTRAORDINARIAS,
-                      PEQUENOS_REPAROS,
                       GARANTIA_MECANICA,
                       OUTRAS]
             coverageDetail:
@@ -268,7 +271,7 @@ components:
             contractBaseType:
               type: string
               description: Incidência ao capital segurado da cobertura de casco.
-              example: VALOR DETERMINADO
+              example: VALOR_DETERMINADO
               enum: [VALOR_DETERMINADO, VALOR_MERCADO, AMBOS]
             contractBaseMinValue:
               description: Valor Base de Contratação Mínimo.
@@ -312,8 +315,6 @@ components:
         fullIndemnityPercentage:
           $ref: '#/components/schemas/AutoInsuranceCovaregeAttibutesDetails'
           description: Percentual do Limite Máximo de Indenização para caracterização de indenização integral.
-          maxLength: 6
-          example: 10.20
         deductibleType:
           type: array
           description: Listagem de tipo de franquia para cada tipo de cobertura do produto.
@@ -389,14 +390,14 @@ components:
       description: Informações de pagamento de prêmio.
       required:
         - paymentMethod
-        - paymentTypee
+        - paymentType
       properties:
         paymentMethod:
             type: array
             description: Meio de pagamento escolhido pelo segurado.
             items:
               type: string
-              example: CARTÃO DE CRÉDITO
+              example: CARTAO_CREDITO
               enum: [CARTAO_CREDITO, CARTAO_DEBITO, DEBITO_CONTA_CORRENTE , DEBITO_CONTA_POUPANCA , BOLETO_BANCARIO , PIX, CONSIGINACAO_FOLHA_PAGAMENTO, PONTOS_PROGRAMA_BENEFICIO, OUTROS]
         paymentType:
             type: array
@@ -468,7 +469,7 @@ components:
             model:
                 type: string
                 description: Modelo
-                maxLength: 20
+                maxLength: 80
                 example: KA 
             year:
                 type: integer
@@ -684,6 +685,12 @@ components:
             $ref: '#/components/schemas/ResponseError'
     NotFound:
       description: O recurso solicitado não existe ou não foi implementado
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+    UnprocessableEntity:
+      description: O servidor entende o tipo de conteúdo da entidade da requisição, e a sintaxe da requisição esta correta, mas não foi possível processar as instruções presentes.
       content:
         application/json; charset=utf-8:
           schema:
