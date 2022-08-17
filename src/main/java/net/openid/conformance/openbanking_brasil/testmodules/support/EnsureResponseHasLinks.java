@@ -1,19 +1,23 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.StringField;
 
 public class EnsureResponseHasLinks extends AbstractJsonAssertingCondition {
 
     @Override
 	public Environment evaluate(Environment environment) {
-
+		Gson gson = JsonUtils.createBigDecimalAwareGson();
 		JsonObject body;
     	try {
-    		body = bodyFrom(environment).getAsJsonObject();
+			String resource = environment.getString("resource_endpoint_response");
+			body = gson.fromJson(resource, JsonElement.class).getAsJsonObject();
 		} catch(JsonSyntaxException e) {
     		body = environment.getObject("resource_endpoint_response");
 		}

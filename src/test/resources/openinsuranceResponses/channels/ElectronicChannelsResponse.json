@@ -6,7 +6,6 @@
                 {
                     "name": "Empresa A1",
                     "cnpjNumber": "45086338000178",
-                    "urlComplementaryList": "https://empresaa1.com/branches-insurance",
                     "electronicChannels": [
                         {
                             "identification": {
@@ -17,8 +16,8 @@
                             },
                             "services": [
                                 {
-                                    "name": "SEGUROS",
-                                    "code": "SEGUROS"
+                                    "name": "SUGESTOES_ELOGIOS",
+                                    "code": "01"
                                 }
                             ]
                         }

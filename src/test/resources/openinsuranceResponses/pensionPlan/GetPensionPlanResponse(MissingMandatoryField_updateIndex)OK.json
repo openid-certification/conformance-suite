@@ -15,7 +15,7 @@
             {
               "coverage": "INVALIDEZ",
               "coveragesAttributes": {
-                "indenizationPaymentMethod": "Pagamento Único",
+                "indenizationPaymentMethod": "PAGAMENTO_UNICO",
                 "minValue": {
                   "amount": 0,
                   "unit": {
@@ -30,7 +30,7 @@
                     "description": "string"
                   }
                 },
-                "indemnifiablePeriod": "Prazo",
+                "indemnifiablePeriod": "PRAZO",
                 "indemnifiableDeadline": 48,
                 "currency": "BRL",
                 "gracePeriod": {

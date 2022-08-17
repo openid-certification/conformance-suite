@@ -25,7 +25,6 @@ import java.util.Set;
  * Api version: 1.0.2
  * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
  */
-
 @ApiName("ProductsNServices Auto Insurance")
 public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 
@@ -360,7 +359,7 @@ public class GetAutoInsuranceValidator extends AbstractJsonAssertingCondition {
 
 		assertField(coverageAttributes,
 			new ObjectArrayField
-				.Builder("newCardContractBase")
+				.Builder("newCarContractBase")
 				.setValidator(this::assertContractBase)
 				.setOptional()
 				.build());

@@ -19,18 +19,16 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @PublishTestModule(
 	testName = "consents-api-delete-test-v2",
 	displayName = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token ",
-	summary = "Makes sure that after consent has been deleted no more tokens can be issued with the related refresh token \n" +
+	summary = "Make sure that after consent has been deleted, no more tokens can be used or issued using a refresh token \n" +
 		"\u2022 Creates a Consent with all of the existing permissions \n" +
 		"\u2022 Redirects the user\n" +
 		"\u2022 Calls the Token endpoint using the authorization code flow\n" +
 		"\u2022 Makes sure a valid access token has been created\n" +
 		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
-		"\u2022 Calls the DELETE Consents API\n" +
-		"\u2022 Calls the Token endpoint to issue a new access token\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n" +
-		"\u2022 Calls the Consents API with the initially authorized Consent \n" +
-		"\u2022 Expects a 200 - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure " +
-		"		Reason is set to \"CUSTOMER_MANUALLY_REVOKED”\n",
+		"\u2022 Calls the DELETE Consents API Calls the Consents API with the initially authorized Consent - Expects a 204\n" +
+		"\u2022 Calls the Consents API - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure Reason is set to \"CUSTOMER_MANUALLY_REVOKED\"\n"+
+		"\u2022 Call the protected resource with the access token previously issued - expects a 401\n" +
+		"\u2022 Call the token endpoint to issue a new access token using the refresh token - expects a 401\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -89,30 +87,23 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		callAndContinueOnFailure(LoadConsentsAccessToken.class);
 		callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureConsentResponseWas204.class);
+
 		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
 		callAndStopOnFailure(IgnoreResponseError.class);
 		callAndStopOnFailure(SetResponseBodyOptional.class);
 		callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(EnsureConsentResponseWas200.class);
+		callAndContinueOnFailure(EnsureConsentAspspRevoked.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(LoadProtectedResourceAccessToken.class);
 
 		eventLog.startBlock("Try calling protected resource after consent is deleted");
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
-
-		eventLog.startBlock("Validating get consent response");
-		callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-		callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
-		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-		preCallProtectedResource("Fetch consent");
-
-		callAndStopOnFailure(EnsureConsentAspspRevoked.class);
-
 	}
 
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {
@@ -126,7 +117,9 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
 			condition(CallTokenEndpointAndReturnFullResponse.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
+			condition(EnsureTokenResponseWas401.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure(),
 			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
+
 		);
 
 		if (clientAuthType == ClientAuthType.MTLS) {

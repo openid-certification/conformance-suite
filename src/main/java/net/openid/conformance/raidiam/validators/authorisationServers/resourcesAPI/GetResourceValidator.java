@@ -24,7 +24,7 @@ public class GetResourceValidator extends AbstractJsonAssertingCondition {
 
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(parts::assertApiResources)
 				.setOptional()
 				.build());

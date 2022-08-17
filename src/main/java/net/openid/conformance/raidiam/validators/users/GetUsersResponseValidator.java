@@ -5,12 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.logging.ApiName;
-import net.openid.conformance.raidiam.validators.Utils;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.raidiam.validators.CommonParts;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.BooleanField;
-import net.openid.conformance.util.field.ObjectArrayField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
@@ -56,10 +54,8 @@ public class GetUsersResponseValidator extends AbstractJsonAssertingCondition {
 				.setOptional()
 				.build());
 
-		//TODO check this solution
-		Utils.convertJsonMapToJsonArray(body, "OrgAccessDetails");
 		assertField(body,
-			new ObjectArrayField
+			new ObjectField
 				.Builder("OrgAccessDetails")
 				.setValidator(this::assertOrgAccessDetails)
 				.setOptional()
@@ -97,25 +93,34 @@ public class GetUsersResponseValidator extends AbstractJsonAssertingCondition {
 	}
 
 	private void assertOrgAccessDetails(JsonObject orgAccessDetails) {
-		assertField(orgAccessDetails,
-			new StringField
-				.Builder("OrgRegistrationNumber")
-				.setOptional()
-				.build());
+		for (String key : orgAccessDetails.keySet()) {
+			assertField(orgAccessDetails,
+				new ObjectField
+					.Builder(key)
+					.setValidator(data -> {
+						assertField(data,
+							new StringField
+								.Builder("OrgRegistrationNumber")
+								.setOptional()
+								.build());
 
-		assertField(orgAccessDetails,
-			new BooleanField
-				.Builder("OrgAdmin")
-				.setOptional()
-				.build());
+						assertField(data,
+							new BooleanField
+								.Builder("OrgAdmin")
+								.setOptional()
+								.build());
 
-		parts.assertDomainRoleDetails(orgAccessDetails);
+						parts.assertDomainRoleDetails(data);
+					})
+					.setOptional()
+					.build());
+		}
 	}
 
 	private void assertBasicInfo(JsonObject basicInfo) {
 		assertField(basicInfo,
 			new StringField
-				.Builder("BasicInformation")
+				.Builder("UserEmail")
 				.setOptional()
 				.build());
 
