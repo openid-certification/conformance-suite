@@ -452,6 +452,9 @@
                                         variant = null;
                                     }
                                     var thisModuleIndex = _.findIndex(planData.modules, function (module) {
+                                        if (_.isEmpty(module.variant)) {
+                                            module.variant = null;
+                                        }
                                         return module.testModule == data.testName && _.isEqual(module.variant, variant);
                                     });
 
