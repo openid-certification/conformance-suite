@@ -21,18 +21,23 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 	public Environment evaluate(Environment env) {
 
 		JsonObject apiResponse;
-		if (env.getObject("resource_endpoint_response_full") != null) {
-			apiResponse = env.getObject("resource_endpoint_response_full");
-			errorCodes = Sets.newHashSet(
-				"SALDO_INSUFICIENTE", "BENEFICIARIO_INCOMPATIVEL", "VALOR_INCOMPATIVEL", "VALOR_ACIMA_LIMITE", "VALOR_INVALIDO",
-				"COBRANCA_INVALIDA", "CONSENTIMENTO_INVALIDO", "JANELA_OPER_INVALIDA", "NAO_INFORMADO", "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO"
-			);
-		} else {
-			apiResponse = env.getObject("consent_endpoint_response_full");
-			errorCodes = Sets.newHashSet(
-				"FORMA_PGTO_INVALIDA", "DATA_PGTO_INVALIDA", "DETALHE_PGTO_INVALIDO", "NAO_INFORMADO"
-			);
+
+		Boolean forceConsentsResponse = env.getBoolean("force_consents_response");
+		if(forceConsentsResponse != null && forceConsentsResponse){
+			apiResponse = getConsentJsonObject(env);
+		}else {
+			if (env.getObject("resource_endpoint_response_full") != null) {
+				apiResponse = env.getObject("resource_endpoint_response_full");
+				errorCodes = Sets.newHashSet(
+					"SALDO_INSUFICIENTE", "BENEFICIARIO_INCOMPATIVEL", "VALOR_INCOMPATIVEL", "VALOR_ACIMA_LIMITE", "VALOR_INVALIDO",
+					"COBRANCA_INVALIDA", "CONSENTIMENTO_INVALIDO", "JANELA_OPER_INVALIDA", "NAO_INFORMADO", "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO"
+				);
+			} else {
+				apiResponse = getConsentJsonObject(env);
+			}
 		}
+
+
 
 		JsonObject decodedJwt;
 		try {
@@ -63,7 +68,21 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				.setValidator(this::assertMeta)
 				.setOptional()
 				.build());
+
+		if(forceConsentsResponse != null){
+			env.putBoolean("force_consents_response", false);
+		}
+
 		return env;
+	}
+
+	private JsonObject getConsentJsonObject(Environment env) {
+		JsonObject apiResponse;
+		apiResponse = env.getObject("consent_endpoint_response_full");
+		errorCodes = Sets.newHashSet(
+			"FORMA_PGTO_INVALIDA", "DATA_PGTO_INVALIDA", "DETALHE_PGTO_INVALIDO", "NAO_INFORMADO"
+		);
+		return apiResponse;
 	}
 
 	private void assertError(JsonObject error) {

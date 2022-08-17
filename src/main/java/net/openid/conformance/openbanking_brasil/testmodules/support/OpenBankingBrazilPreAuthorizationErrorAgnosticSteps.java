@@ -86,7 +86,7 @@ public class OpenBankingBrazilPreAuthorizationErrorAgnosticSteps extends Abstrac
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
 
 		callAndStopOnFailure(OptionallyAllow201Or422.class, Condition.ConditionResult.SUCCESS);
-
+		call(condition(ForceToValidateConsentErrorAndMetaFieldNames.class));
 		call(condition(ValidateErrorAndMetaFieldNames.class)
 			.onFail(Condition.ConditionResult.FAILURE)
 			.skipIfStringMissing("validate_errors"));
