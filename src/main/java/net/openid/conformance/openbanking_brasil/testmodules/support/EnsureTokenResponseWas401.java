@@ -10,9 +10,12 @@ import org.apache.http.HttpStatus;
 public class EnsureTokenResponseWas401 extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(strings = "token_endpoint_response_http_status")
 	public Environment evaluate(Environment env) {
-		int statusCode = env.getInteger("token_endpoint_response_http_status");
+		Integer statusCode = env.getInteger("token_endpoint_response_http_status");
+		statusCode = null;
+		if(statusCode == null) {
+			throw error("token_endpoint_response_http_status was not found");
+		}
 
 		if(statusCode != HttpStatus.SC_UNAUTHORIZED) {
 			throw error("Was expecting a 401 in the token response" , args("status", statusCode));
