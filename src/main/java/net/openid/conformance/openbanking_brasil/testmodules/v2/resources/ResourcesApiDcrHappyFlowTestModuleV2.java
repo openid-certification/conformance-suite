@@ -66,8 +66,9 @@ public class ResourcesApiDcrHappyFlowTestModuleV2 extends AbstractApiDcrTestModu
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests v2");
 
-//		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(getId());
-//		call(pollingSteps);
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		call(pollingSteps);
 
 		String responseError = env.getString("resource_endpoint_error_code");
 		if (!Strings.isNullOrEmpty(responseError)) {
