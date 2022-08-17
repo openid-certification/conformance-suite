@@ -32,11 +32,6 @@ import net.openid.conformance.util.JsonUtils;
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
-		"client2.client_id",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"consent.productType",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
@@ -56,8 +51,8 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 	}
 
 	@Override
-	protected void validateFirstClient() {
-		// Only OL client is used in this test
+	protected void validateSecondClient() {
+		// Only normal client is used in this test
 	}
 
 	@Override
@@ -77,7 +72,8 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 
 	@Override
 	protected void performPreAuthorizationSteps() {
-		super.performPreAuthorizationSteps();
+
+		call(createOBBPreauthSteps());
 
 		callAndContinueOnFailure(EnsureResourceEndpointResponseStatusWas201.class, Condition.ConditionResult.WARNING);
 

@@ -24,7 +24,7 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 	}
 
 	protected void validateSecondClient() {
-		eventLog.startBlock("Verify configuration of second client");
+		eventLog.startBlock("Verify configuration of Operational Limits client");
 
 		// extract second client
 		switchToSecondClient();
