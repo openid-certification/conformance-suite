@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.SetUtils;
 import net.openid.conformance.util.field.DatetimeField;
 import net.openid.conformance.util.field.ObjectArrayField;
@@ -177,12 +178,22 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 				.setEnums(AMORTIZATION_SCHEDULED)
 				.build());
 
-		assertField(body,
-			new StringField
-				.Builder("amortizationScheduledAdditionalInfo")
-				.setMaxLength(200)
-				.setPattern("[\\w\\W\\s]*")
-				.build());
+		if(body.has("amortizationScheduled") && OIDFJSON.getString(body.get("amortizationScheduled")).equals("OUTROS")) {
+			assertField(body,
+				new StringField
+					.Builder("amortizationScheduledAdditionalInfo")
+					.setMaxLength(200)
+					.setPattern("[\\w\\W\\s]*")
+					.build());
+		} else {
+			assertField(body,
+				new StringField
+					.Builder("amortizationScheduledAdditionalInfo")
+					.setMaxLength(200)
+					.setOptional()
+					.setPattern("[\\w\\W\\s]*")
+					.build());
+		}
 
 		assertField(body,
 			new StringField
