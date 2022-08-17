@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
 import net.openid.conformance.AbstractFunctionalTestModule;
+import net.openid.conformance.ConditionSequenceRepeater;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v1.ConsentDetailsIdentifiedByConsentIdValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
@@ -66,15 +67,18 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 	protected void requestProtectedResource(){
 		call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
 
-		repeatSequence(() -> getPreConsentWithBearerTokenSequence()
+		ConditionSequenceRepeater repeatSequence = repeatSequence(() -> getPreConsentWithBearerTokenSequence()
 			.then(getValidateConsentResponsePollingSequence()))
 			.untilTrue("code_returned")
 			.times(10)
 			.trailingPause(60)
 			.onTimeout(sequenceOf(
 				condition(TestTimedOut.class),
-				condition(ChuckWarning.class)))
-			.run();
+				condition(ChuckWarning.class)));
+
+		repeatSequence.setProperties(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		repeatSequence.run();
 	}
 
 	@Override
