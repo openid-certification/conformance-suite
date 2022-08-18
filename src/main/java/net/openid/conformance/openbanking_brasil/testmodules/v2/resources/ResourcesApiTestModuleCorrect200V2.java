@@ -3,15 +3,13 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
-	testName = "resources-api-test-404-customer-data-v2",
+	testName = "resources-api-test-200-customer-data-v2",
 	displayName = "Validate correct response when only request customer data permissions",
 	summary = "Validates correct response when only requesting customer data permissions\n" +
 		"\u2022 Creates a Consent with either the customer personal or business permissions (\"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ\", \"CUSTOMERS_PERSONAL_ADITTIONALINFO_READ\", \"RESOURCES_READ\") or (\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\", \"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\", \"RESOURCES_READ\")\n" +
@@ -34,7 +32,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks"
 })
-public class ResourcesApiTestModuleCorrect404V2 extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
+public class ResourcesApiTestModuleCorrect200V2 extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
 	@Override
 	protected void configureClient(){
@@ -61,7 +59,7 @@ public class ResourcesApiTestModuleCorrect404V2 extends AbstractOBBrasilFunction
 		String logMessage = "Validate correct 200 api response with empty data object";
 		runInBlock(logMessage, () -> {
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureDataArrayIsEmpty.class);
+			callAndContinueOnFailure(EnsureDataArrayIsEmpty.class, Condition.ConditionResult.FAILURE);
 		});
 	}
 }
