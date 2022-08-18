@@ -91,7 +91,7 @@
                     <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                     <button class="btn btn-default btn-block" id="removeImmutableFlagBtn" data-immutable="false"><span class="glyphicon glyphicon-edit"></span> Make plan Mutable</button>
                     <% } %>
-                    <% if (!plan.immutable) { %>
+                    <% if (!plan.immutable && !public) { %>
                     <button class="btn btn-danger btn-block" id="deleteMutablePlanBtn"><span class="glyphicon glyphicon-trash"></span> Delete plan</button>
                     <% } %>
                 </div>
