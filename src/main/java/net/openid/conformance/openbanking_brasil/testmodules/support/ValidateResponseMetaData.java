@@ -29,11 +29,14 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
     @Override
 	@PostEnvironment(strings = "metaOnlyRequestDateTime")
 	public Environment evaluate(Environment env) {
+		JsonElement apiResponse;
 
-		JsonElement apiResponse = bodyFrom(env);
+		JsonObject resourceEndpointResponse = env.getObject("resource_endpoint_response");
+		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response");
+		apiResponse = resourceEndpointResponse != null ? bodyFrom(env) : consentEndpointResponse;
 
-        if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response");
+		if (apiResponse == null){
+			throw error("Could not find API response in the environment");
 		}
 
         JsonElement dataElement = findByPath(apiResponse, "$.data");
