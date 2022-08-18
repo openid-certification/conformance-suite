@@ -43,7 +43,7 @@ public class CallConsentEndpointWithBearerTokenAnyHttpMethod extends CallConsent
 	}
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" })
+	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" }, strings = "http_method")
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response", "consent_endpoint_response_full" })
 	public Environment evaluate(Environment env) { return callProtectedResource(env); }
 }
