@@ -52,6 +52,12 @@ public class ResourcesApiTestModuleCorrect404V2 extends AbstractOBBrasilFunction
 	@Override
 	protected void validateResponse() {
 
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		runInBlock("Polling Resources API", () -> {
+			call(pollingSteps);
+		});
+
 		String logMessage = "Validate correct 200 api response with empty data object";
 		runInBlock(logMessage, () -> {
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
