@@ -73,6 +73,13 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 
 	@Override
 	protected void validateResponse() {
+
+		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		runInBlock("Polling Resources API", () -> {
+			call(pollingSteps);
+		});
+
 		callAndContinueOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(SaveUnavailableResourceData.class);
 
