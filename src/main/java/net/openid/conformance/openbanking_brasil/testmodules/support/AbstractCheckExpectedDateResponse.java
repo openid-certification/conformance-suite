@@ -34,6 +34,10 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 			throw error("Could not find data JSON array in the full range response", args("fullRangeResponse", fullRangeResponse));
 		}
 
+		if(fullRangeData.isEmpty()){
+			throw error("Full Range data response cannot be empty");
+		}
+
 		if (actualData == null) {
 			throw error("Could not find data JSON array in the actual response", args("actualResponse", actualResponse));
 
@@ -54,7 +58,7 @@ public abstract class AbstractCheckExpectedDateResponse extends AbstractConditio
 		});
 
 
-		if(expectedData.isEmpty() && !actualData.isEmpty()){
+		if(!expectedData.isEmpty() && actualData.isEmpty()){
 			throw error("The returned data array is not what was expected", args("Returned", actualData, "Expected", expectedData));
 		}
 

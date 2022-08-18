@@ -89,8 +89,7 @@ public class AbstractCheckExpectedDateResponseTest extends AbstractJsonResponseC
 		environment.putString("fromTransactionDateMaxLimited", "2021-06-01");
 		environment.putString("toTransactionDateMaxLimited", "2021-07-01");
 		copyAndAddFullRangeResponseToEnvironment("jsonResponses/creditCard/creditCardV2/cardTransactionsCurrentV2/cardTransactionsCurrentFullRangeResponse2.json");
-		ConditionError conditionError = runAndFail(condition);
-		assertThat(conditionError.getMessage(), containsString("The returned data array is not what was expected"));
+		run(condition);
 	}
 
 
