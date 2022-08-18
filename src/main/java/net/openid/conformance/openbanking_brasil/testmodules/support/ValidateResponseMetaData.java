@@ -26,30 +26,38 @@ import java.util.regex.Pattern;
 
 public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
-    @Override
+	@Override
 	@PostEnvironment(strings = "metaOnlyRequestDateTime")
 	public Environment evaluate(Environment env) {
+		JsonElement apiResponse;
 
-		JsonElement apiResponse = bodyFrom(env);
+		String resourceEndpointResponse = env.getString("resource_endpoint_response");
+		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response");
 
-        if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response");
+		if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
+			apiResponse = bodyFrom(env);
+		} else {
+			apiResponse = consentEndpointResponse;
 		}
 
-        JsonElement dataElement = findByPath(apiResponse, "$.data");
-        int metaTotalRecords = 1;
-        int metaTotalPages = 1;
+		if (apiResponse == null) {
+			throw error("Could not find API response in the environment");
+		}
 
-		if(JsonHelper.ifExists(apiResponse, "$.meta")){
+		JsonElement dataElement = findByPath(apiResponse, "$.data");
+		int metaTotalRecords = 1;
+		int metaTotalPages = 1;
+
+		if (JsonHelper.ifExists(apiResponse, "$.meta")) {
 			if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
 				metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
-			}else {
+			} else {
 				throw error("totalRecords field is missing in meta");
 			}
 
 			if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
 				metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
-			}else {
+			} else {
 				throw error("totalPages field is missing in meta");
 			}
 
@@ -68,18 +76,18 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 					throw error("requestDateTime is not in valid RFC 3339 format.");
 				}
 				validateMetaDateTimeFormat(metaRequestDateTime);
-			}else {
+			} else {
 				throw error("requestDateTime field is missing in meta");
 			}
 		}
 
 
-        Boolean isConsentRequest = false;
-        Boolean isPaymentConsent = false;
-        Boolean isPayment = false;
-        if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
-            isConsentRequest = true;
-        }
+		Boolean isConsentRequest = false;
+		Boolean isPaymentConsent = false;
+		Boolean isPayment = false;
+		if (JsonHelper.ifExists(apiResponse, "$.data.consentId")) {
+			isConsentRequest = true;
+		}
 
 		if (JsonHelper.ifExists(apiResponse, "$.data.payment")) {
 			isPaymentConsent = true;
@@ -89,150 +97,151 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 			isPayment = true;
 		}
 
-        String selfLink = "";
-        String nextLink = "";
-        String prevLink = "";
+		String selfLink = "";
+		String nextLink = "";
+		String prevLink = "";
 
-        if (JsonHelper.ifExists(apiResponse, "$.links.self")) {
-            selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
-            log("Validating self link: " + selfLink);
-            if(isConsentRequest && !isPaymentConsent && !isPayment) {
+		if (JsonHelper.ifExists(apiResponse, "$.links.self")) {
+			selfLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.self"));
+			log("Validating self link: " + selfLink);
+			if (isConsentRequest && !isPaymentConsent && !isPayment) {
 				validateSelfLink(selfLink,
 					OIDFJSON.getString(apiResponse.getAsJsonObject().getAsJsonObject("data").get("consentId")));
 			}
-        } else {
-            //  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
-            if (isConsentRequest == false) {
-                throw error("There should be a 'self' link.");
-            } else {
-                if (isPaymentConsent) {
-                    throw error("Payment consent requires a 'self' link.");
-                }
-            }
-        }
+		} else {
+			//  self link is mandatory for all resources except dados Consents (payment consents do require a self link)
+			if (isConsentRequest == false) {
+				throw error("There should be a 'self' link.");
+			} else {
+				if (isPaymentConsent) {
+					throw error("Payment consent requires a 'self' link.");
+				}
+			}
+		}
 
-        if (JsonHelper.ifExists(apiResponse, "$.links.next")) {
-            nextLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.next"));
-        }
+		if (JsonHelper.ifExists(apiResponse, "$.links.next")) {
+			nextLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.next"));
+		}
 
-        if (JsonHelper.ifExists(apiResponse, "$.links.prev")) {
-            prevLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.prev"));
-        }
+		if (JsonHelper.ifExists(apiResponse, "$.links.prev")) {
+			prevLink = OIDFJSON.getString(findByPath(apiResponse, "$.links.prev"));
+		}
 
-        // Check if the record count in meta tallies with the actual data.
-        // i.e. if record count > 1, then we should find an array in the data element.
+		// Check if the record count in meta tallies with the actual data.
+		// i.e. if record count > 1, then we should find an array in the data element.
 
-        int arrayCount = 1; // We'll assume there is at least one data element.
+		int arrayCount = 1; // We'll assume there is at least one data element.
 		if (dataElement.isJsonArray()) {
-            arrayCount = dataElement.getAsJsonArray().size();
-        }
+			arrayCount = dataElement.getAsJsonArray().size();
+		}
 
-        if (arrayCount > metaTotalRecords) {
-            throw error("Data contains more items than the metadata totalRecords.");
-        }
+		if (arrayCount > metaTotalRecords) {
+			throw error("Data contains more items than the metadata totalRecords.");
+		}
 
 		// check if there is a next or prev link - if so, totalPages should be different than one.
-		if (!Strings.isNullOrEmpty(prevLink) || !Strings.isNullOrEmpty(nextLink)){
-			if(metaTotalPages == 1 ){
+		if (!Strings.isNullOrEmpty(prevLink) || !Strings.isNullOrEmpty(nextLink)) {
+			if (metaTotalPages == 1) {
 				throw error("totalPages field should not be 1.");
 			}
 		}
-        // check if there is 1 page - if so, there should not be a next and prev link.
-        if (metaTotalPages == 1) {
+		// check if there is 1 page - if so, there should not be a next and prev link.
+		if (metaTotalPages == 1) {
 
-            // Make sure we don't have a next or prev link
-            if (!Strings.isNullOrEmpty(nextLink) || !Strings.isNullOrEmpty(prevLink) ) {
+			// Make sure we don't have a next or prev link
+			if (!Strings.isNullOrEmpty(nextLink) || !Strings.isNullOrEmpty(prevLink)) {
 
-                throw error("There should not be a 'next' or 'prev' link.");
-            }
-        } else {
+				throw error("There should not be a 'next' or 'prev' link.");
+			}
+		} else {
 
-            // There is more than one page. Parse the self link
-            URI selfLinkURI;
-            try {
-                selfLinkURI = new URI(selfLink);
-            } catch (URISyntaxException e) {
-                throw error("Invalid 'self' link URI.");
-            }
+			// There is more than one page. Parse the self link
+			URI selfLinkURI;
+			try {
+				selfLinkURI = new URI(selfLink);
+			} catch (URISyntaxException e) {
+				throw error("Invalid 'self' link URI.");
+			}
 
-            List<NameValuePair> selfLinkParamList = URLEncodedUtils.parse(selfLinkURI, StandardCharsets.UTF_8);
-            MultiValueMap<String, String> selfLinkQueryStringParams = convertQueryStringParamsToMap(selfLinkParamList);
+			List<NameValuePair> selfLinkParamList = URLEncodedUtils.parse(selfLinkURI, StandardCharsets.UTF_8);
+			MultiValueMap<String, String> selfLinkQueryStringParams = convertQueryStringParamsToMap(selfLinkParamList);
 
-            // if Self is page=1, then we should not see a prev link
-            int selfLinkPageNum = 1;
-            try {
-                selfLinkPageNum  = Integer.parseInt(selfLinkQueryStringParams.getFirst("page"));
-            } catch (NumberFormatException e) {}
+			// if Self is page=1, then we should not see a prev link
+			int selfLinkPageNum = 1;
+			try {
+				selfLinkPageNum = Integer.parseInt(selfLinkQueryStringParams.getFirst("page"));
+			} catch (NumberFormatException e) {
+			}
 
-            if ( selfLinkPageNum == 1) {
+			if (selfLinkPageNum == 1) {
 
-                if (!Strings.isNullOrEmpty(prevLink) ) {
+				if (!Strings.isNullOrEmpty(prevLink)) {
 
-                    throw error("There should not be a 'prev' link.");
-                }
+					throw error("There should not be a 'prev' link.");
+				}
 
-                // self link page = 1, total page > 1 - we need a next link.
-                if (Strings.isNullOrEmpty(nextLink) ) {
-                    throw error("There should be a 'next' link.");
-                }
-            }
+				// self link page = 1, total page > 1 - we need a next link.
+				if (Strings.isNullOrEmpty(nextLink)) {
+					throw error("There should be a 'next' link.");
+				}
+			}
 
-            if ( selfLinkPageNum > 1 && selfLinkPageNum < metaTotalPages) {
-                // Total pages > 1 and self page > 1 and self page < total pages - so we should see a next & prev link
-                if (Strings.isNullOrEmpty(nextLink) ) {
-                    throw error("There should be a 'next' link.");
-                }
+			if (selfLinkPageNum > 1 && selfLinkPageNum < metaTotalPages) {
+				// Total pages > 1 and self page > 1 and self page < total pages - so we should see a next & prev link
+				if (Strings.isNullOrEmpty(nextLink)) {
+					throw error("There should be a 'next' link.");
+				}
 
-                if (Strings.isNullOrEmpty(prevLink) ) {
-                    throw error("There should be a 'prev' link.");
-                }
-            }
+				if (Strings.isNullOrEmpty(prevLink)) {
+					throw error("There should be a 'prev' link.");
+				}
+			}
 
-            // if Self page= metaTotalPages (i.e. we are on the last page), then we should not find a next link.
-            if (selfLinkPageNum == metaTotalPages) {
+			// if Self page= metaTotalPages (i.e. we are on the last page), then we should not find a next link.
+			if (selfLinkPageNum == metaTotalPages) {
 
-                if (!Strings.isNullOrEmpty(nextLink) ) {
+				if (!Strings.isNullOrEmpty(nextLink)) {
 
-                    String errorMsg = "There should not be a 'next' link.";
-                    throw error(errorMsg);
-                }
+					String errorMsg = "There should not be a 'next' link.";
+					throw error(errorMsg);
+				}
 
-                if (Strings.isNullOrEmpty(prevLink) ) {
+				if (Strings.isNullOrEmpty(prevLink)) {
 
-                    String errorMsg = "There should be a 'prev' link.";
-                    throw error(errorMsg);
-                }
-            }
-        }
+					String errorMsg = "There should be a 'prev' link.";
+					throw error(errorMsg);
+				}
+			}
+		}
 
 		env.putString("metaOnlyRequestDateTime", "false");
-        return env;
+		return env;
 	}
 
 
-	protected void validateMetaDateTimeFormat(String requestDateTime){
-			if(!requestDateTime.matches(DatetimeField.ALTERNATIVE_PATTERN)){
-				throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
-			}
-			logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
+	protected void validateMetaDateTimeFormat(String requestDateTime) {
+		if (!requestDateTime.matches(DatetimeField.ALTERNATIVE_PATTERN)) {
+			throw error("requestDateTime field is not compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
+		}
+		logSuccess("requestDateTime field is compliant with the swagger format", Map.of("requestedDateTime", requestDateTime));
 	}
 
-    protected MultiValueMap<String, String> convertQueryStringParamsToMap(List<NameValuePair> parameters) {
+	protected MultiValueMap<String, String> convertQueryStringParamsToMap(List<NameValuePair> parameters) {
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 		for (NameValuePair pair : parameters) {
 			queryParams.add(pair.getName(), pair.getValue());
 		}
 		return queryParams;
-    }
+	}
 
-    protected void validateSelfLink(String selfLink, String consentIdField){
+	protected void validateSelfLink(String selfLink, String consentIdField) {
 		final Pattern consentRegex = Pattern.compile(String.format("^(https://)(.*?)(consents|payments)(/v\\d/consents/%s)", consentIdField), Pattern.CASE_INSENSITIVE);
 		Matcher matcher = consentRegex.matcher(selfLink);
-    	if (matcher.find()){
+		if (matcher.find()) {
 			logSuccess("Consent ID in self link matches the consent ID in the returned object");
 		} else {
-    		throw error("Invalid 'self' link URI. URI: " + selfLink);
+			throw error("Invalid 'self' link URI. URI: " + selfLink);
 		}
 	}
 }

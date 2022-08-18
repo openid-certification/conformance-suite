@@ -21,7 +21,7 @@
         "pixPaymentAmount": "20422.00"
     },
     "payments-api-proxy-test-incorrect-cpf": {
-        "pixPaymentAmount": "10422.00"
+        "pixPaymentAmount": "10422.01"
     },
     "payments-api-qrdn-good-proxy-test": {
         "pixPaymentAmount": "1333",
