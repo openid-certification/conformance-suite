@@ -18,7 +18,7 @@ public class Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDOConsent extends Abstra
 		JsonElement apiResponse;
 
 		String resourceEndpointResponse = env.getString("resource_endpoint_response");
-		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response");
+		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response_full");
 
 		if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
 			apiResponse = bodyFrom(env);

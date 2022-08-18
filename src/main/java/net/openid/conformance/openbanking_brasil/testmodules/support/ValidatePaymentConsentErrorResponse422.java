@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -27,9 +28,15 @@ public class ValidatePaymentConsentErrorResponse422 extends AbstractJsonAssertin
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement apiResponse = bodyFrom(env);
-		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response_full");
+		JsonElement apiResponse;
+
+		String resourceEndpointResponse = env.getString("resource_endpoint_response");
+		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response_full");
+
+		if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
+			apiResponse = bodyFrom(env);
+		} else {
+			apiResponse = consentEndpointResponse;
 		}
 
 		JsonObject decodedJwt;
