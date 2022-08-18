@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testplan;
+package net.openid.conformance.openinsurance.testplan.utils;
 
 public class PlanNames {
 	/** VERSION 1 **/
@@ -10,7 +10,7 @@ public class PlanNames {
 	public static final String CONSENTS_API_TEST_PLAN = "Functional Tests for Consents API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String RESOURCES_API_TEST_PLAN = "Functional Tests for Resources API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String CUSTOMERS_API_TEST_PLAN = "Functional Tests for Customers API - based on Swagger Version 1.0.0 (WIP)";
-    public static final String PATRIMONIAL_CR_API_TEST_PLAN = "Functional Tests for Patrimonial (Compreensivo Residencial) API - based on Swagger Version 1.0.0 (WIP)";
+    public static final String PATRIMONIAL_CR_API_TEST_PLAN = "Functional Tests for Patrimonial API - based on Swagger Version 1.0.0 (WIP)";
 
 
 	/* Phase 3 - Payment Initiation */
@@ -24,7 +24,6 @@ public class PlanNames {
 	public static final String OPIN_ELECTRONIC_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Electronic Channels API - based on Swagger version: 1.0.2"; // OPIN Electronic Channel
 	public static final String OPIN_PHONE_CHANNELS_API_TEST_PLAN = "Functional tests for Channels - Phone Channels API - based on Swagger version: 1.0.2"; // OPIN Phone Channels
 	public static final String OPIN_ADMIN_API_TEST_PLAN = "Functional tests for Admin API - based on Swagger version: 1.0.2"; // OPIN Admin
-	public static final String OPIN_DISCOVERY_TEST_PLAN = "Functional tests for Discovery API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_STATUS_TEST_PLAN = "Functional tests for Discovery Status API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String OPIN_DISCOVERY_OUTAGES_TEST_PLAN = "Functional tests for Discovery  Outages API - based on Swagger version: 1.0.0"; // OPIN Discovery
 	public static final String BUSINESS_API_TEST_PLAN = "Functional tests for ProductsServices - Business API - based on Swagger version: 1.0.0";

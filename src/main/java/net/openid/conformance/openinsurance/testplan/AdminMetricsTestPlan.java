@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openbanking_brasil.testmodules.support.LogOnlyFailure;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance Admin API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.OPIN_ADMIN_API_TEST_PLAN,
 	summary = "Structural and logical tests for Admin API"
 )
@@ -36,7 +36,7 @@ public class AdminMetricsTestPlan implements TestPlan {
 		testName = "Open Insurance - Admin Metrics API test",
 		displayName = "Validate structure of Admin Metrics response",
 		summary = "Validate structure of Admin Metrics response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class AdminMetricsTestModule extends AbstractNoAuthFunctionalTestModule {
 
