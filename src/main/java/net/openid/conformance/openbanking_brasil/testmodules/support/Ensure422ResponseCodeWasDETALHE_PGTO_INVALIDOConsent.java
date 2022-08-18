@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,9 +14,20 @@ import java.text.ParseException;
 public class Ensure422ResponseCodeWasDETALHE_PGTO_INVALIDOConsent extends AbstractJsonAssertingCondition {
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonElement apiResponse = bodyFrom(env);
-		if (!JsonHelper.ifExists(apiResponse, "$.data")) {
-			apiResponse = env.getObject("consent_endpoint_response_full");
+
+		JsonElement apiResponse;
+
+		String resourceEndpointResponse = env.getString("resource_endpoint_response");
+		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response_full");
+
+		if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
+			apiResponse = bodyFrom(env);
+		} else {
+			apiResponse = consentEndpointResponse;
+		}
+
+		if (apiResponse == null) {
+			throw error("Could not find API response in the environment");
 		}
 
 		JsonObject decodedJwt;
