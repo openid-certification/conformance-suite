@@ -37,7 +37,7 @@ import javax.servlet.http.HttpSession;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk", "consumerdataright_au"
+	"openbanking_uk", "consumerdataright_au", "openinsurance_brazil"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
@@ -110,9 +110,13 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected abstract void createBackchannelResponse();
 
+	protected abstract void backchannelEndpointCallComplete();
+
 	protected abstract void createIntermediateTokenResponse();
 
 	protected abstract void createFinalTokenResponse();
+
+	protected abstract void sendPingRequestAndVerifyResponse();
 
 	protected void addCustomSignatureOfIdToken() { }
 
@@ -418,6 +422,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			// Just end it here, the auth_req_id is forever expired.
 			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
+
+			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
+
 			createIntermediateTokenResponse();
 			int tokenPollCount = env.getInteger("token_poll_count");
 
@@ -480,6 +487,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(sequence(VerifyPostedFormData.class));
 
+		if(clientAuthType == ClientAuthType.MTLS || isBrazil()) {
+			env.mapKey("token_endpoint_request", requestId);
+			checkMtlsCertificate();
+			env.unmapKey("token_endpoint_request");
+		}
 		call(sequence(validateBackchannelClientAuthenticationSteps));
 
 		JsonObject httpRequestObj = env.getObject("backchannel_endpoint_http_request");
@@ -509,7 +521,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		}
 
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
-		setStatus(Status.WAITING);
+		backchannelEndpointCallComplete();
 
 		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), HttpStatus.OK);
 	}
@@ -522,9 +534,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
 
-			callAndStopOnFailure(PingClientNotificationEndpoint.class, ConditionResult.FAILURE, "CIBA");
-			callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, ConditionResult.FAILURE, "CIBA-10.2");
-			callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, ConditionResult.WARNING, "CIBA-10.2");
+			sendPingRequestAndVerifyResponse();
 
 			call(exec().endBlock());
 			setStatus(Status.WAITING);

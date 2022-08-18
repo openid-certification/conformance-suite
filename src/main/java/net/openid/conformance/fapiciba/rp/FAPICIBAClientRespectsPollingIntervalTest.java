@@ -4,11 +4,11 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-test",
-	displayName = "FAPI-CIBA-ID1: Client test",
-	summary = "Tests a 'happy path' flow; the client should perform OpenID discovery from the displayed discoveryUrl, " +
-		"call the backchannel endpoint and either poll the token endpoint or wait to get pinged " +
-		"and then use the access token from the token endpoint response in a resource endpoint request.",
+	testName = "fapi-ciba-id1-client-respects-interval-test",
+	displayName = "FAPI-CIBA-ID1: Client test - the backchannel response sets the polling interval to 31 seconds",
+	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
+		"call the backchannel endpoint. The response will set the interval property to 31 seconds and fail " +
+		"if it receives a token request before that.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.jwks",
@@ -19,17 +19,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.jwks"
 	}
 )
-
-public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
+public class FAPICIBAClientRespectsPollingIntervalTest extends AbstractFAPICIBAClientTest {
 
 	@Override
-	protected void addCustomValuesToIdToken(){
-		//Do nothing
-	}
+	protected void addCustomValuesToIdToken() {	}
 
 	@Override
 	protected void createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
+		callAndStopOnFailure(CreateBackchannelEndpointResponseWithLongInterval.class);
 	}
 
 	@Override
@@ -43,9 +40,7 @@ public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 	}
 
 	@Override
-	protected void createFinalTokenResponse() {
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
-	}
+	protected void createFinalTokenResponse() {	}
 
 	@Override
 	protected void sendPingRequestAndVerifyResponse() {
@@ -53,4 +48,5 @@ public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
 	}
+
 }
