@@ -28,7 +28,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Calls the DELETE Consents API Calls the Consents API with the initially authorized Consent - Expects a 204\n" +
 		"\u2022 Calls the Consents API - Make sure Status is set to REJECTED. Make Sure RejectedBy is set to USER. Make sure Reason is set to \"CUSTOMER_MANUALLY_REVOKED\"\n"+
 		"\u2022 Call the protected resource with the access token previously issued - expects a 401\n" +
-		"\u2022 Call the token endpoint to issue a new access token using the refresh token - expects a 401\n",
+		"\u2022 Call the token endpoint to issue a new access token using the refresh token - expects a 400\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
