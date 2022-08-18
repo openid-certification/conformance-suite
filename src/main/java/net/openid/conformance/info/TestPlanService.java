@@ -1,7 +1,6 @@
 package net.openid.conformance.info;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.variant.VariantSelection;
@@ -69,4 +68,10 @@ public interface TestPlanService {
 	VariantSelection getTestPlanVariant(String planId);
 
 	void createIndexes();
+
+	/**
+	 * Delete a mutable plan
+	 * @param id Plan ID
+	 */
+	void deleteMutableTestPlan(String id);
 }

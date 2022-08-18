@@ -13,12 +13,7 @@ import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
 import net.openid.conformance.export.TestHelper;
-import net.openid.conformance.info.Plan;
-import net.openid.conformance.info.PublicPlan;
-import net.openid.conformance.info.PublicTestInfo;
-import net.openid.conformance.info.TestInfo;
-import net.openid.conformance.info.TestInfoRepository;
-import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.info.*;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -38,11 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -54,12 +45,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -689,6 +675,30 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	@DeleteMapping(value = "/plan/{id}")
+	@ApiOperation(value = "Delete a test plan and related configuration. Requires the plan to be mutable.")
+	@ApiResponses(value = {
+		@ApiResponse(code = 204,  message = "Deleted successfully"),
+		@ApiResponse(code = 404, message = "Could not find a plan with the given id, belonging to the client"),
+		@ApiResponse(code = 405, message = "The plan is immutable and cannot be deleted")
+	})
+	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
+		@ApiParam(value = "Id of test plan") @PathVariable("id") String id
+	) {
+		Plan testPlan = planService.getTestPlan(id);
+		if(testPlan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		if(testPlan.getImmutable() != null && testPlan.getImmutable()) {
+			return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+		}
+
+		planService.deleteMutableTestPlan(id);
+
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	private static class SignatureOutputStream extends OutputStream {

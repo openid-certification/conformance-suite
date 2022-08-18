@@ -1,25 +1,82 @@
 package net.openid.conformance.logging;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.openid.conformance.info.Plan;
+import net.openid.conformance.info.TestPlanService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 @RunWith(MockitoJUnitRunner.class)
 public class LogApi_UnitTest {
 
+	TestPlanService planService;
+	Plan plan;
+	LogApi api;
+
     @Before
     public void setUp() throws Exception {
-    }
+		planService = Mockito.mock(TestPlanService.class);
+		plan = Mockito.mock(Plan.class);
+		api = new LogApi();
+		ReflectionTestUtils.setField(api, "planService", planService);
+	}
 
-    @Test
+	@Test
+	public void api_returns_not_found_if_the_test_plan_id_cannot_be_found() {
+		Mockito.when(planService.getTestPlan(anyString())).thenReturn(null);
+
+		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+	}
+
+	@Test
+	public void if_the_test_plan_is_immutable_then_it_cannot_be_deleted() {
+		Mockito.when(plan.getImmutable()).thenReturn(true);
+		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
+
+		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+
+		assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+	}
+
+	@Test
+	public void if_the_test_plan_immutability_property_is_null_then_it_is_not_mutable_and_can_be_deleted() {
+		Mockito.when(plan.getImmutable()).thenReturn(null);
+		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
+
+		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+
+		verify(planService, times(1)).deleteMutableTestPlan("abc");
+		assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+	}
+
+	@Test
+	public void if_the_test_plan_immutability_property_is_null_then_it_is_deleted() {
+		Mockito.when(plan.getImmutable()).thenReturn(null);
+		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
+
+		api.deleteMutableTestPlan("abc");
+
+		verify(planService, times(1)).deleteMutableTestPlan("abc");
+	}
+
+	@Test
     public void createHtmlForTestLogs() {
     	String jsonExport = "{\"testInfo\":{\"_id\":\"BeDwk5rd8H\",\"testId\":\"BeDwk5rd8H\",\"testName\":\"oidcc-client-t"+
 			"est\",\"variant\":{\"client_auth_type\":\"tls_client_auth\",\"request_type\":\"plain_http_"+
