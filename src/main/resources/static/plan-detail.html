@@ -414,8 +414,10 @@
                                   $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
                                   $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
                                   FAPI_UI.activeTooltip();
-                                  if(data.status === 'FINISHED' && data.result === 'PASSED' && document.querySelector('#certificationPackageBtn')) {
-                                      document.querySelector('#certificationPackageBtn').removeAttribute('disabled');
+                                  if(data.status === 'FINISHED'
+                                      && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
+                                      && document.querySelector('#certificationPackageBtn')) {
+                                          document.querySelector('#certificationPackageBtn').removeAttribute('disabled');
                                   }
                               },
                               error: function(jqxhr, status, error) {
