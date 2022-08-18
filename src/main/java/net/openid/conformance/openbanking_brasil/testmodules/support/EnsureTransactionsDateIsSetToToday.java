@@ -11,6 +11,6 @@ public class EnsureTransactionsDateIsSetToToday extends ValidateTransactionsDate
 
 	@Override
 	protected String getErrorMessage() {
-		return "The date of the first transaction is not today's date";
+		return "The dates of the transactions are not today's date";
 	}
 }
