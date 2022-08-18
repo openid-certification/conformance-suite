@@ -27,7 +27,7 @@ public class JsonKeysKeeper {
 
 	public void remove(String name) {
 		if (this.jsonKeys.contains(name)) {
-			this.hasNext = this.jsonKeys.contains(name) && this.jsonKeys.size() > 1;
+			this.hasNext = this.jsonKeys.indexOf(name) < this.jsonKeys.size() - 1;
 		}
 		if (name.equals(ROOT_PATH) || name.equals("data")) {
 			this.jsonKeys.remove("data");
