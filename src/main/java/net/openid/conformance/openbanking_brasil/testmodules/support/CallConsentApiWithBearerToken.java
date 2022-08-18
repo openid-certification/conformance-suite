@@ -28,7 +28,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 import java.util.Optional;
 
-
+@Deprecated
 public class CallConsentApiWithBearerToken extends AbstractCondition {
 	private static final Logger logger = LoggerFactory.getLogger(net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken.class);
 
