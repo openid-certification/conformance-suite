@@ -46,4 +46,17 @@ public class ContractResponseValidatorTestV2 extends AbstractJsonResponseConditi
 		ConditionError error = runAndFail(new ContractResponseValidatorV2());
 		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("settlementDate", new ContractResponseValidatorV2().getApiName())));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseAmortizationScheduleAddOK.json")
+	public void validateStructureAmortizationScheduleAddOK() {
+		run(new ContractResponseValidatorV2());
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseAmortizationScheduleAddWrong.json")
+	public void validateStructureAmortizationScheduleAddWrong() {
+		ConditionError error = runAndFail(new ContractResponseValidatorV2());
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("amortizationScheduledAdditionalInfo", new ContractResponseValidatorV2().getApiName())));
+	}
 }
