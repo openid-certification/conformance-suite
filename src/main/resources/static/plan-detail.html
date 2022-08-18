@@ -191,7 +191,7 @@
                     <div class="modal-footer">
                         <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-primary" disabled>Create Certification Package</button>
-                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-success" disabled>Close</button>
+                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-default hidden">Close</button>
                     </div>
                 </form>
             </div>
@@ -414,8 +414,10 @@
                                   $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
                                   $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
                                   FAPI_UI.activeTooltip();
-                                  if(data.status === 'FINISHED' && data.result === 'PASSED' && document.querySelector('#certificationPackageBtn')) {
-                                      document.querySelector('#certificationPackageBtn').removeAttribute('disabled');
+                                  if(data.status === 'FINISHED'
+                                      && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
+                                      && document.querySelector('#certificationPackageBtn')) {
+                                          document.querySelector('#certificationPackageBtn').removeAttribute('disabled');
                                   }
                               },
                               error: function(jqxhr, status, error) {
@@ -555,7 +557,7 @@
            return -1;
        }
 
-       $('#certificationPackageForm').on('submit', e => {
+       document.querySelector('#certificationPackageForm').addEventListener('submit', e => {
 
             const filesToCheck = [ "certificationOfConformancePdfBtn", "clientSideDataBtn" ];
             const maxFileSize = 1024000;
@@ -565,10 +567,15 @@
                 showDialogError('certificationPackageFormErrors', $('#' + filesToCheck[fileNum])[0].files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
                 return false;
             } else {
-                $('#certificationPackageFormModalBody').css({ opacity: 0.5 });
-                $('#cancelCertificationPackageFormModal').attr('disabled', 'disabled');
-                $('#certificationPackageFormSubmitBtn').attr('disabled', 'disabled');
-                $('#closeCertificationPackageFormModal').removeAttr('disabled');
+                // Hide previous modal content and the cancel and certification package buttons
+                document.querySelector('#certificationPackageFormModalBody').classList.add('hidden');
+                document.querySelector('#cancelCertificationPackageFormModal').classList.add('hidden');
+                document.querySelector('#certificationPackageFormSubmitBtn').classList.add('hidden');
+
+                // Show the file download info content in the modal and the close button
+                document.querySelector('#certificationPackageDownloaded').classList.remove('hidden');
+                document.querySelector('#closeCertificationPackageFormModal').classList.remove('hidden');
+
                 return true;
             }
         });
@@ -607,14 +614,6 @@
                 if (evt.target.files && evt.target.files.length > 0) {
                     document.querySelector('#certificationPackageFormSubmitBtn').removeAttribute('disabled');
                 }
-            });
-
-            document.querySelector('#certificationPackageForm').addEventListener('submit', evt => {
-                console.log('wtf');
-                document.querySelector('#certificationPackageFormModalBody').classList.add('hidden');
-                document.querySelector('#certificationPackageDownloaded').classList.remove('hidden');
-                document.querySelector('#cancelCertificationPackageFormModal').setAttribute('disabled', 'true');
-                document.querySelector('#certificationPackageFormSubmitBtn').setAttribute('disabled', 'true');
             });
 
         });
