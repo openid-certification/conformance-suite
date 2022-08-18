@@ -37,7 +37,12 @@ public abstract class AbstractConsentRejectionValidation extends AbstractConditi
 			throw error("Reason object is not a json object, it should have the mandatory field code");
 		}
 
-		String code = OIDFJSON.getString(rejectionReasonElem.getAsJsonObject().get("code"));
+		JsonObject rejectionReason = rejectionReasonElem.getAsJsonObject();
+		String code = null;
+		if(rejectionReason.has("code")) {
+			code = OIDFJSON.getString(rejectionReason.get("code"));
+		}
+
 		if (Strings.isNullOrEmpty(code)){
 			throw error("Unable to find rejection code in rejection object");
 		}
