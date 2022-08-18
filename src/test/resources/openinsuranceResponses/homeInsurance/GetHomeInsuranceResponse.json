@@ -62,6 +62,7 @@
                                     "chargeTypeSignaling": "GRATUITA"
                                 }
                             ],
+                            "microInsurance": true,
                             "termsAndConditions": [
                                 {
                                     "susepProcessNumber": "XXXXX.XXXXXX/XXXX-XX",
@@ -84,7 +85,7 @@
                                 {
                                     "paymentMethod": "CARTAO_CREDITO",
                                     "paymentMethodDetail": "string",
-                                    "paymentType": "PARCELADO"
+                                    "paymentType": "PAGAMENTO_UNICO"
                                 }
                             ],
                             "minimumRequirements": [

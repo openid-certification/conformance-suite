@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.channels;
+package net.openid.conformance.openinsurance.validator.channels.v1;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -13,13 +13,13 @@ import net.openid.conformance.util.field.*;
 import java.util.Set;
 
 /**
- * Api source: swagger/openinsurance/swagger-channels.yaml
+ * Api source: swagger/openinsurance/channels/v1/swagger-channels.yaml
  * Api endpoint: /branches
- * Api version: 1.0.2
- * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.2.0
+ * Api git hash: a0cf93fb358df175adea537178f1980078014836
  */
 
-@ApiName("Branches Channels")
+@ApiName("Branches")
 public class BranchesValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> WEEKDAY_ENUM = Sets.newHashSet("DOMINGO", "SEGUNDA_FEIRA", "TERCA_FEIRA", "QUARTA_FEIRA", "QUINTA_FEIRA", "SEXTA_FEIRA", "SABADO");
 	public static final Set<String> IDENTIFICATION_TYPES = Sets.newHashSet("POSTO_ATENDIMENTO", "UNIDADE_ADMINISTRATIVA_DESMEMBRADA");
@@ -27,48 +27,31 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 	public static final Set<String> NAMES_ENUM = Sets.newHashSet("ALTERACOES_FORMA_PAGAMENTO", "AVISO_SINISTRO", "CANCELAMENTO_SUSPENSAO_PAGAMENTO_PREMIOS_CONTRIBUICAO", "EFETIVACAO_APORTE", "ENDOSSO", "ENVIO_DOCUMENTOS", "INFORMACOES_GERAIS_DUVIDAS", "INFORMACOES_INTERMEDIARIOS", "INFORMACOES_SOBRE_SERVICOS_ASSISTENCIAS", "INFORMACOES_SOBRE_SORTEIOS", "OUVIDORIA_RECEPCAO_SUGESTOES_ELOGIOS", "OUVIDORIA_SOLUCAO_EVENTUAIS_DIVERGENCIAS_SOBRE_CONTRATO_SEGURO_CAPITALIZAÇÃO_PREVIDÊNCIA_APOS_ESGOTADOS_CANAIS_REGULARES_ATENDIMENTO_AQUELAS_ORIUNDAS_ORGAOS_REGULADORES_OU_INTEGRANTES_SISTEMA_NACIONAL_DEFESA_CONSUMIDOR", "OUVIDORIA_TRATAMENTO_INSATISFACAO_CONSUMIDOR_RELACAO_ATENDIMENTO_RECEBIDO_CANAIS_REGULARES_ATENDIMENTO", "OUVIDORIA_TRATAMENTO_RECLAMACOES_SOBRE_IRREGULARDADES_CONDUTA_COMPANHIA", "PORTABILIDADE", "RECLAMACAO", "RESGATE", "SEGUNDA_VIA_DOCUMENTOS_CONTRATUAIS", "SUGESTOES_ELOGIOS");
 	public static final Set<String> CODES_ENUM = Sets.newHashSet("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19");
 
-	private static class Fields extends CommonFields { }
-	private final OpenInsuranceLinksAndMetaValidator linksAndMetaValidator = new OpenInsuranceLinksAndMetaValidator(this);
+	private static class Fields extends CommonFields {
+	}
+
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
-			data -> { assertField(data, new ObjectField.Builder("brand").setValidator(
+			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
 				brand -> {
 					assertField(brand, Fields.name().build());
 					assertField(brand,
 						new ObjectArrayField.Builder("companies")
 							.setMinItems(1)
 							.setValidator(this::assertCompanies)
-							.build());}
-
-			).build());
-
-				assertField(data,
-						new ObjectField
-								.Builder("links")
-								.setValidator(linksAndMetaValidator::assertLinks)
-								.setOptional()
-								.build());
-
-				assertField(data,
-						new ObjectField
-								.Builder("meta")
-								.setValidator(linksAndMetaValidator::assertMeta)
-								.setOptional()
-								.build());
-
-			}
-		).build());
-
+							.build());
+				}).build())).build());
+		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;
 	}
 
 	private void assertCompanies(JsonObject companies) {
 		assertField(companies, Fields.name().build());
-		assertField(companies, Fields.cnpjNumber().setMinLength(14).setMaxLength(14).build());
+		assertField(companies, Fields.cnpjNumber().setMinLength(14).build());
 
 		assertField(companies,
 			new ObjectArrayField
@@ -166,7 +149,6 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("townName")
 				.setMaxLength(50)
-				.setPattern("[\\w\\W\\s]*")
 				.build());
 
 		assertField(postalAddress,
@@ -201,7 +183,28 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 				.setOptional()
 				.build());
 
-		assertGeographicCoordinates(postalAddress);
+		assertField(postalAddress,
+			new ObjectField
+				.Builder("geographicCoordinates")
+				.setValidator(geographicCoordinates -> {
+					assertField(geographicCoordinates,
+						new StringField
+							.Builder("latitude")
+							.setMaxLength(13)
+							.setPattern("^-?\\d{1,2}\\.\\d{1,9}$")
+							.setOptional()
+							.build());
+
+					assertField(geographicCoordinates,
+						new StringField
+							.Builder("longitude")
+							.setMaxLength(13)
+							.setPattern("^-?\\d{1,3}\\.\\d{1,8}$")
+							.setOptional()
+							.build());
+				})
+				.setOptional()
+				.build());
 	}
 
 	public void assertStandards(JsonObject standards) {
@@ -260,6 +263,7 @@ public class BranchesValidator extends AbstractJsonAssertingCondition {
 			new StringField
 				.Builder("type")
 				.setEnums(PHONES_ENUM)
+				.setOptional()
 				.build());
 
 		assertField(phones,

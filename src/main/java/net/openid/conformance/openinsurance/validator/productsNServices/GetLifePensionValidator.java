@@ -17,8 +17,8 @@ import java.util.Set;
 /**
  * Api Source: swagger/openinsurance/swagger-productsnservices-lifepension.yaml
  * Api endpoint: /life-pension/
- * Api version: 1.0.3
- * Api Git Hash: b62c9f60c0df42cb67387ec0dd0b6d0fd986478a
+ * Api version: 1.2.0
+ * Api Git Hash: a0cf93fb358df175adea537178f1980078014836
  */
 
 @ApiName("ProductsNServices Life Pension")
@@ -152,7 +152,6 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 							.setMaxLength(1024)
 							.build());
 				})
-				.setOptional()
 				.build());
 
 		assertField(products,
@@ -313,6 +312,7 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		assertField(defferalPeriod,
 			new StringArrayField
 				.Builder("premiumPaymentMethod")
+				.setMaxLength(20)
 				.setEnums(PREMIUM_PAYMENT_METHOD)
 				.setOptional()
 				.build());
@@ -414,7 +414,14 @@ public class GetLifePensionValidator extends AbstractJsonAssertingCondition {
 		assertField(investimentFunds,
 			new NumberField
 				.Builder("minimumContributionAmount")
-				.setMaxLength(5)
+				.setMaxLength(15)
+				.setOptional()
+				.build());
+
+		assertField(investimentFunds,
+			new NumberField
+				.Builder("minimumContributionValue")
+				.setMaxLength(15)
 				.setOptional()
 				.build());
 

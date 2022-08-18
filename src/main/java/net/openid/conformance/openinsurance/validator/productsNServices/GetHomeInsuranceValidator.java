@@ -20,10 +20,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api Swagger URL: https://gitlab.com/obb1/certification/-/blob/master/src/main/resources/swagger/openinsurance/swagger-productsnservices-homeinsurance.yaml
+ * Api Swagger: swagger/openinsurance/swagger-productsnservices-homeinsurance.yaml
  * Api endpoint: /home-insurance/commercializationArea/{commercializationArea}
- * Api version: 1.0.0
- * Git Hash: 17d932e0fac28570a0bf2a8b8e292a65b816f278
+ * Api version: 1.1.0
+ * Git Hash: a0cf93fb358df175adea537178f1980078014836
  */
 
 @ApiName("ProductsNServices Home Insurance")
@@ -60,7 +60,7 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 			.setValidator(data -> assertField(data, new ObjectField
 				.Builder("brand")
 				.setValidator(brand -> {
-					assertField(brand, Fields.name().build());
+					assertField(brand, Fields.name().setMaxLength(80).build());
 					assertField(brand, new ObjectArrayField
 						.Builder("company")
 						.setValidator(this::assertCompany)
@@ -147,6 +147,11 @@ public class GetHomeInsuranceValidator extends AbstractJsonAssertingCondition {
 							.setEnums(CHARGE_TYPE_SIGNALING)
 							.build());
 				})
+				.build());
+
+		assertField(products,
+			new BooleanField
+				.Builder("microInsurance")
 				.build());
 
 		assertField(products,
