@@ -335,10 +335,15 @@
                 </div>
                 <div id="deleteMutablePlanModalBody" class="modal-body">
 
-                    <p><strong>Clicking the "Delete plan" button will permanently and irrevocably delete this test plan
-                    as well as the test plan configuration.</strong></p>
-                    <p class="top10">This action cannot be undone.</p>
-                    <p class="top10">After deletion, this page will be reloaded and you will see a HTTP 404 Not Found
+                    <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
+                        <ul>
+                            <li>Delete the test plan.</li>
+                            <li>Delete the test plan configuration.</li>
+                            <li>Delete the individual tests and logs belonging to the plan.</li>
+                        </ul>
+                    </p>
+                    <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
+                    <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
                     error, confirming that the deletion was successful.</p>
 
                 </div>

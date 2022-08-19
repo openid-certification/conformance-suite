@@ -677,30 +677,6 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
-	@DeleteMapping(value = "/plan/{id}")
-	@ApiOperation(value = "Delete a test plan and related configuration. Requires the plan to be mutable.")
-	@ApiResponses(value = {
-		@ApiResponse(code = 204,  message = "Deleted successfully"),
-		@ApiResponse(code = 404, message = "Could not find a plan with the given id, belonging to the user"),
-		@ApiResponse(code = 405, message = "The plan is immutable and cannot be deleted")
-	})
-	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
-		@ApiParam(value = "Id of test plan") @PathVariable("id") String id
-	) {
-		Plan testPlan = planService.getTestPlan(id);
-		if(testPlan == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-
-		if(testPlan.getImmutable() != null && testPlan.getImmutable()) {
-			return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-		}
-
-		planService.deleteMutableTestPlan(id);
-
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
-
 	private static class SignatureOutputStream extends OutputStream {
 
 		private OutputStream target;

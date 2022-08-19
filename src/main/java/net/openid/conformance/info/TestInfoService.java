@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.time.Instant;
+import java.util.List;
 
 public interface TestInfoService {
 
@@ -49,4 +50,6 @@ public interface TestInfoService {
 	boolean publishTest(String id, String publish);
 
 	void createIndexes();
+
+    boolean deleteTests(List<String> id);
 }

@@ -1,9 +1,11 @@
 package net.openid.conformance.info;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import com.mongodb.client.result.DeleteResult;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
@@ -202,5 +204,20 @@ public class DBTestInfoService implements TestInfoService {
 	public void createIndexes(){
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
 		collection.createIndex(new Document("$**", "text"));
+	}
+
+	@Override
+	public boolean deleteTests(List<String> ids) {
+
+		Criteria criteria = Criteria.where("testId").in(ids);
+
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("owner").is(authenticationFacade.getPrincipal());
+		}
+
+		Query query = new Query(criteria);
+		DeleteResult result = mongoTemplate.remove(query, COLLECTION);
+
+		return result.wasAcknowledged();
 	}
 }
