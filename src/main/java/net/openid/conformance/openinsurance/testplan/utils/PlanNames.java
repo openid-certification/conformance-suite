@@ -12,7 +12,7 @@ public class PlanNames {
 	public static final String CUSTOMERS_BUSINESS_API_TEST_PLAN = "Functional Tests for Customers Business API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String CUSTOMERS_PERSONAL_API_TEST_PLAN = "Functional Tests for Customers Personal API - based on Swagger Version 1.0.0 (WIP)";
 
-	public static final String PATRIMONIAL_CR_API_TEST_PLAN = "Functional Tests for Patrimonial API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String PATRIMONIAL_API_TEST_PLAN = "Functional Tests for Patrimonial API - based on Swagger Version 1.0.0 (WIP)";
 
 
 	/* Phase 3 - Payment Initiation */

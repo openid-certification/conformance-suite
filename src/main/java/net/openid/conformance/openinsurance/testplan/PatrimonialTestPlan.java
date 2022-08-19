@@ -10,8 +10,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Insurance patrimonial api test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.PATRIMONIAL_CR_API_TEST_PLAN,
-	summary = "Structural and logical tests for OpenInsurance Brasil-patrimonial (Compreensivo Residencial) customer API"
+	displayName = PlanNames.PATRIMONIAL_API_TEST_PLAN,
+	summary = "Structural and logical tests for OpenInsurance Brasil-patrimonial customer API"
 )
 
 public class PatrimonialTestPlan implements TestPlan {
