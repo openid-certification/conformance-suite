@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -26,21 +27,33 @@ public abstract class AbstractConsentRejectionValidation extends AbstractConditi
 			}
 			return false;
 		}
-		JsonObject rejectionReason = rejection.getAsJsonObject("reason");
+		JsonElement rejectionReasonElem = rejection.get("reason");
 
-		if (rejectionReason == null){
+		if (rejectionReasonElem == null){
 			throw error("Rejection object did not contain reason object");
 		}
 
-		String code = OIDFJSON.getString(rejectionReason.get("code"));
-		if (code == null || code.isEmpty()){
+		if(!rejectionReasonElem.isJsonObject()) {
+			throw error("Reason object is not a json object, it should have the mandatory field code");
+		}
+
+		JsonObject rejectionReason = rejectionReasonElem.getAsJsonObject();
+		String code = null;
+		if(rejectionReason.has("code")) {
+			code = OIDFJSON.getString(rejectionReason.get("code"));
+		}
+
+		if (Strings.isNullOrEmpty(code)){
 			throw error("Unable to find rejection code in rejection object");
 		}
 		logSuccess(code);
 
-		String rejectedBy = OIDFJSON.getString(rejection.get("rejectedBy"));
-		if (rejectedBy == null || rejectedBy.isEmpty()){
+		if (!rejection.has("rejectedBy")) {
 			throw error("Unable to find rejectedBy inside rejection object");
+		}
+		String rejectedBy = OIDFJSON.getString(rejection.get("rejectedBy"));
+		if (Strings.isNullOrEmpty(rejectedBy)){
+			throw error("RejectedBy is not a string inside rejection object");
 		}
 		logSuccess(rejectedBy);
 
