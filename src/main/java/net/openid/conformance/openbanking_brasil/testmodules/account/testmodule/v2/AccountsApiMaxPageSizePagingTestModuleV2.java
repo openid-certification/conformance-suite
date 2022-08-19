@@ -77,6 +77,12 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Account Transactions V2");
@@ -89,6 +95,12 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}

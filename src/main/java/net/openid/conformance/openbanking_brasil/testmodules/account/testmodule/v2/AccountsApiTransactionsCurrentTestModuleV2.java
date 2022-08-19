@@ -125,7 +125,11 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		return sequenceOf(
 			condition(AccountTransactionsValidatorV2.class),
 			condition(EnsureResponseHasLinks.class),
-			condition(ValidateMetaOnlyRequestDateTime.class)
+			condition(ValidateMetaOnlyRequestDateTime.class),
+			condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+				.dontStopOnFailure()
+				.onFail(Condition.ConditionResult.WARNING)
+				.skipIfStringMissing("metaOnlyRequestDateTime")
 		);
 	}
 

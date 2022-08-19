@@ -103,6 +103,12 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		call(sequence(ValidateSelfEndpoint.class));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
@@ -120,6 +126,11 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(CreditCardAccountsTransactionBillResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
 
 		call(sequence(ValidateSelfEndpoint.class));
 	}

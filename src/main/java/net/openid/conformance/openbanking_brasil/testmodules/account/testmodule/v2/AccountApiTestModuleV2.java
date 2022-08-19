@@ -74,6 +74,12 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 		callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+					.dontStopOnFailure()
+					.onFail(Condition.ConditionResult.WARNING)
+					.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		call(sequence(ValidateSelfEndpoint.class));
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits V2");

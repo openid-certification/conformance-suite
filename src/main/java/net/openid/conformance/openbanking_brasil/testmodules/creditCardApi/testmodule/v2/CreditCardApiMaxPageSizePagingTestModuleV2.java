@@ -74,6 +74,12 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
 		preCallProtectedResource("Prepare to Fetch page 2 of Credit Card Tansactions V2");
@@ -86,6 +92,12 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.WARNING);
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING)
+			.skipIfStringMissing("metaOnlyRequestDateTime"));
+
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 
 	}
