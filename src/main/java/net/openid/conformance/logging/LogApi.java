@@ -681,7 +681,7 @@ public class LogApi {
 	@ApiOperation(value = "Delete a test plan and related configuration. Requires the plan to be mutable.")
 	@ApiResponses(value = {
 		@ApiResponse(code = 204,  message = "Deleted successfully"),
-		@ApiResponse(code = 404, message = "Could not find a plan with the given id, belonging to the client"),
+		@ApiResponse(code = 404, message = "Could not find a plan with the given id, belonging to the user"),
 		@ApiResponse(code = 405, message = "The plan is immutable and cannot be deleted")
 	})
 	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
