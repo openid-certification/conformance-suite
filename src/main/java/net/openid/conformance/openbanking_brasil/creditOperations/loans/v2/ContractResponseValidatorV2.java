@@ -195,12 +195,22 @@ public class ContractResponseValidatorV2 extends AbstractJsonAssertingCondition 
 					.build());
 		}
 
-		assertField(body,
-			new StringField
-				.Builder("cnpjConsignee")
-				.setMaxLength(14)
-				.setPattern("^\\d{14}$")
-				.build());
+		if (OIDFJSON.getString(body.get("productSubType")).equals("CREDITO_PESSOAL_COM_CONSIGNACAO")) {
+			assertField(body,
+				new StringField
+					.Builder("cnpjConsignee")
+					.setMaxLength(14)
+					.setPattern("^\\d{14}$")
+					.build());
+		} else {
+			assertField(body,
+				new StringField
+					.Builder("cnpjConsignee")
+					.setMaxLength(14)
+					.setPattern("^\\d{14}$")
+					.setOptional()
+					.build());
+		}
 
 		assertField(body,
 			new ObjectArrayField
