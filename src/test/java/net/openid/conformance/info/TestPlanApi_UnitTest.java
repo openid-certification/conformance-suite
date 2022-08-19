@@ -61,7 +61,7 @@ public class TestPlanApi_UnitTest {
 	}
 
 	@Test
-	public void if_the_test_plan_immutability_property_is_null_then_it_is_not_mutable_and_can_be_deleted() {
+	public void if_the_test_plan_immutability_property_is_null_then_it_is_mutable_and_can_be_deleted() {
 		Mockito.when(plan.getImmutable()).thenReturn(null);
 		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
 
