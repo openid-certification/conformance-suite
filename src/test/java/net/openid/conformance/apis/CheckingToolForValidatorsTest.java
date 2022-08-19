@@ -3,7 +3,7 @@ package net.openid.conformance.apis;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
-import net.openid.conformance.openinsurance.validator.channels.ElectronicChannelsValidator;
+import net.openid.conformance.openinsurance.validator.channels.v1.ElectronicChannelsValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.UseResurce;
 import net.openid.conformance.util.field.ObjectField;

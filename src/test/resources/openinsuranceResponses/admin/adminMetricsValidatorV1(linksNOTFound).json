@@ -1,0 +1,106 @@
+{
+    "data": {
+        "requestTime": "2022-04-18T19:24:40.842Z",
+        "availability": {
+            "uptime": {
+                "generalUptimeRate": "9.07657066382140",
+                "endpoints": [
+                    {
+                        "url": "string",
+                        "uptimeRate": "5.5"
+                    }
+                ]
+            },
+            "downtime": {
+                "generalDowntime": 0,
+                "scheduledOutage": 0,
+                "endpoints": [
+                    {
+                        "url": "string",
+                        "partialDowntime": 0
+                    }
+                ]
+            }
+        },
+        "invocations": {
+            "unauthenticated": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "highPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "mediumPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "unattended": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            }
+        },
+        "averageResponse": {
+            "unauthenticated": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "highPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "mediumPriority": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            },
+            "unattended": {
+                "currentDay": 0,
+                "previousDays": [
+                    0
+                ]
+            }
+        },
+        "averageTps": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "peakTps": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "errors": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        },
+        "rejections": {
+            "currentDay": 0,
+            "previousDays": [
+                0
+            ]
+        }
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
+    }
+}
