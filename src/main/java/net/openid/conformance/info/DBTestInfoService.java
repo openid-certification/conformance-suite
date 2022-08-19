@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import com.mongodb.client.result.DeleteResult;
+import net.openid.conformance.logging.DBEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
@@ -216,8 +217,9 @@ public class DBTestInfoService implements TestInfoService {
 		}
 
 		Query query = new Query(criteria);
-		DeleteResult result = mongoTemplate.remove(query, COLLECTION);
+		DeleteResult testInfoDeleteResult = mongoTemplate.remove(query, COLLECTION);
+		DeleteResult logDeleteResult = mongoTemplate.remove(query, DBEventLog.COLLECTION);
 
-		return result.wasAcknowledged();
+		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
 	}
 }
