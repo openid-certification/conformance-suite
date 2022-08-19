@@ -25,6 +25,7 @@ public class VerifyAdditionalFieldsWhenMetaOnlyRequestDateTimeTest extends Abstr
 	@UseResurce("jsonResponses/account/accountV2/transactionsV2/accountTransactionsResponseWrongMetaOnlyRequestDateTimeTest.json")
 	public void validateStructureWrongMeta() {
 		environment.putString("metaOnlyRequestDateTime", "true");
-		run(new VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime());
+		ConditionError conditionError = runAndFail(new VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime());
+		assertThat(conditionError.getMessage(), containsString("In the MetaOnlyRequestDateTime object there should be no totalRecords or totalPages field"));
 	}
 }
