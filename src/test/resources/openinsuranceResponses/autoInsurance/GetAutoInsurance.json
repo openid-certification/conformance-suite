@@ -2,7 +2,7 @@
     "data": {
         "brand": {
             "name": "string",
-            "company": [
+            "companies": [
                 {
                     "name": "string",
                     "cnpjNumber": "string",
@@ -110,7 +110,7 @@
                                     "fipeCode": "string"
                                 }
                             ],
-                            "vehicleOvernightZipCode": "1311000",
+                            "vehicleOvernightZipCode": "01311000",
                             "additional": [
                                 "SORTEIO_GRATUITO"
                             ],

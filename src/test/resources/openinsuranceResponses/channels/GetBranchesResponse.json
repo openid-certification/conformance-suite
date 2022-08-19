@@ -21,12 +21,12 @@
                                 "townName": "São Paulo",
                                 "ibgeCode": "3550308",
                                 "countrySubDivision": "SP",
-                                "postCode": "17500001",
+                                "postCode": "1750-001",
                                 "country": "Brasil",
                                 "countryCode": "BRA",
                                 "geographicCoordinates": {
-                                    "latitude": "-90.0",
-                                    "longitude": "-180.0"
+                                    "latitude": "-90.8365180",
+                                    "longitude": "-180.836519"
                                 }
                             },
                             "availability": {
@@ -50,24 +50,24 @@
                             "services": [
                                 {
                                     "name": "ENDOSSO",
-                                    "code": "01"
+                                    "code": "05"
                                 }
                             ]
                         }
                     ]
                 }
             ]
-        },
-        "links": {
-            "self": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
-            "first": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
-            "prev": "string",
-            "next": "string",
-            "last": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>"
-        },
-        "meta": {
-            "totalRecords": 1,
-            "totalPages": 1
         }
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
+        "first": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.organizacao.com.br/open-insurance/channels/v1/<resource>"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1
     }
 }

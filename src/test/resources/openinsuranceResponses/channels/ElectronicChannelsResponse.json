@@ -16,7 +16,7 @@
                             },
                             "services": [
                                 {
-                                    "name": "SUGESTOES_ELOGIOS",
+                                    "name": "ALTERACOES_FORMA_PAGAMENTO",
                                     "code": "01"
                                 }
                             ]

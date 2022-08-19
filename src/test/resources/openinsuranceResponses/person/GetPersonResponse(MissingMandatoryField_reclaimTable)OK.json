@@ -1,146 +1,150 @@
 {
-  "data": {
-    "brand": {
-      "name": "Marca",
-      "companies": [
-        {
-          "name": "Seguradora",
-          "cnpjNumber": "45086338000178",
-          "products": [
-            {
-              "name": "Seguro Pessoal",
-              "code": "123456789_cap",
-              "category": "TRADICIONAL",
-              "insuranceModality": "FUNERAL",
-              "coverages": [
+    "data": {
+        "brand": {
+            "name": "Marca",
+            "companies": [
                 {
-                  "coverage": "AUXILIO_CESTA_BASICA",
-                  "coverageOthers": [
-                    "string"
-                  ],
-                  "coverageAttributes": {
-                    "indemnityPaymentMethod": [
-                      "PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO"
-                    ],
-                    "indemnityPaymentFrequency": [
-                      "INDENIZACAO_UNICA"
-                    ],
-                    "minValue": {
-                      "amount": 60,
-                      "unit": {
-                        "code": "R$",
-                        "description": "description"
-                      }
-                    },
-                    "maxValue": {
-                      "amount": 60,
-                      "unit": {
-                        "code": "R$",
-                        "description": "description"
-                      }
-                    },
-                    "indemnifiablePeriod": [
-                      "ATE_FIM_CICLO_DETERMINADO"
-                    ],
-                    "maximumQtyIndemnifiableInstallments": 0,
-                    "currency": "BRL",
-                    "gracePeriod": {
-                      "amount": 60,
-                      "unit": "DIAS"
-                    },
-                    "differentiatedGracePeriod": {
-                      "amount": 60,
-                      "unit": "DIAS"
-                    },
-                    "deductibleDays": 0,
-                    "differentiatedDeductibleDays": 0,
-                    "deductibleBRL": 0,
-                    "differentiatedDeductibleBRL": "string",
-                    "excludedRisks": [
-                      "ATO_RECONHECIMENTO_PERIGOSO"
-                    ],
-                    "excludedRisksURL": "string",
-                    "allowApartPurchase": true
-                  }
+                    "name": "Seguradora",
+                    "cnpjNumber": "45086338000178",
+                    "products": [
+                        {
+                            "name": "Seguro Pessoal",
+                            "code": "123456789_cap",
+                            "category": "TRADICIONAL",
+                            "insuranceModality": "FUNERAL",
+                            "coverages": [
+                                {
+                                    "coverage": "AUXILIO_CESTA_BASICA",
+                                    "coverageOthers": [
+                                        "string"
+                                    ],
+                                    "coverageAttributes": {
+                                        "indemnityPaymentMethod": [
+                                            "PAGAMENTO_CAPITAL_SEGURADO_VALOR_MONETARIO"
+                                        ],
+                                        "indemnityPaymentFrequency": [
+                                            "INDENIZACAO_UNICA"
+                                        ],
+                                        "minValue": [
+                                            {
+                                                "amount": 60,
+                                                "unit": {
+                                                    "code": "R$",
+                                                    "description": "description"
+                                                }
+                                            }
+                                        ],
+                                        "maxValue": [
+                                            {
+                                                "amount": 60,
+                                                "unit": {
+                                                    "code": "R$",
+                                                    "description": "description"
+                                                }
+                                            }
+                                        ],
+                                        "indemnifiablePeriod": [
+                                            "ATE_FIM_CICLO_DETERMINADO"
+                                        ],
+                                        "maximumQtyIndemnifiableInstallments": 0,
+                                        "currency": "BRL",
+                                        "gracePeriod": {
+                                            "amount": 60,
+                                            "unit": "DIAS"
+                                        },
+                                        "differentiatedGracePeriod": {
+                                            "amount": 60,
+                                            "unit": "DIAS"
+                                        },
+                                        "deductibleDays": 0,
+                                        "differentiatedDeductibleDays": 0,
+                                        "deductibleBRL": 0,
+                                        "differentiatedDeductibleBRL": "string",
+                                        "excludedRisks": [
+                                            "ATO_RECONHECIMENTO_PERIGOSO"
+                                        ],
+                                        "excludedRisksURL": "string",
+                                        "allowApartPurchase": true
+                                    }
+                                }
+                            ],
+                            "assistanceType": [
+                                "ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA"
+                            ],
+                            "additional": [
+                                "SORTEIO"
+                            ],
+                            "assistanceTypeOthers": [
+                                "string"
+                            ],
+                            "termsAndConditions": [
+                                {
+                                    "susepProcessNumber": "string",
+                                    "definition": "string"
+                                }
+                            ],
+                            "globalCapital": true,
+                            "validity": [
+                                "VITALICIA"
+                            ],
+                            "pmbacRemuneration": {
+                                "interestRate": 0,
+                                "pmbacUpdateIndex": "IPCA"
+                            },
+                            "benefitRecalculation": {
+                                "benefitRecalculationCriteria": "INDICE",
+                                "benefitUpdateIndex": "IPCA"
+                            },
+                            "ageAdjustment": {
+                                "criterion": "APOS_PERIODO_EM_ANOS",
+                                "frequency": 0
+                            },
+                            "contractType": "REPARTICAO_CAPITAIS",
+                            "reclaim": {
+                                "differentiatedPercentage": "string",
+                                "gracePeriod": {
+                                    "amount": 60,
+                                    "unit": "DIAS"
+                                }
+                            },
+                            "otherGuaranteedValues": "SALDAMENTO",
+                            "allowPortability": true,
+                            "portabilityGraceTime": 0,
+                            "indemnityPaymentMethod": [
+                                "UNICO"
+                            ],
+                            "indemnityPaymentIncome": [
+                                "CERTA"
+                            ],
+                            "premiumPayment": {
+                                "paymentMethod": [
+                                    "CARTAO_CREDITO"
+                                ],
+                                "frequency": [
+                                    "DIARIA"
+                                ],
+                                "premiumTax": "string"
+                            },
+                            "minimunRequirements": {
+                                "contractingType": "COLETIVO",
+                                "contractingMinRequirement": "string"
+                            },
+                            "targetAudience": "PESSOA_NATURAL"
+                        }
+                    ]
                 }
-              ],
-              "assistanceType": [
-                "ACOMPANHANTE_CASO_HOSPITALIZACAO_PROLONGADA"
-              ],
-              "additional": [
-                "SORTEIO"
-              ],
-              "assistanceTypeOthers": [
-                "string"
-              ],
-              "termsAndConditions": [
-                {
-                  "susepProcessNumber": "string",
-                  "definition": "string"
-                }
-              ],
-              "globalCapital": true,
-              "validity": [
-                "VITALICIA"
-              ],
-              "pmbacRemuneration": {
-                "interestRate": 0,
-                "pmbacUpdateIndex": "IPCA"
-              },
-              "benefitRecalculation": {
-                "benefitRecalculationCriteria": "INDICE",
-                "benefitUpdateIndex": "IPCA"
-              },
-              "ageAdjustment": {
-                "criterion": "APOS_PERIODO_EM_ANOS",
-                "frequency": 0
-              },
-              "contractType": "REPARTICAO_CAPITAIS",
-              "reclaim": {
-                "differentiatedPercentage": "string",
-                "gracePeriod": {
-                  "amount": 60,
-                  "unit": "DIAS"
-                }
-              },
-              "otherGuaranteedValues": "SALDAMENTO",
-              "allowPortability": true,
-              "portabilityGraceTime": 0,
-              "indemnityPaymentMethod": [
-                "UNICO"
-              ],
-              "indemnityPaymentIncome": [
-                "CERTA"
-              ],
-              "premiumPayment": {
-                "paymentMethod": [
-                  "CARTAO_CREDITO"
-                ],
-                "frequency": [
-                  "DIARIA"
-                ],
-                "premiumTax": "string"
-              },
-              "minimunRequirements": {
-                "contractingType": "COLETIVO",
-                "contractingMinRequirement": "string"
-              },
-              "targetAudience": "PESSOA_NATURAL"
-            }
-          ]
+            ]
         }
-      ]
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/products-services/v1",
+        "prev": "string",
+        "next": "string",
+        "last": "https://api.organizacao.com.br/open-insurance/products-services/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
     }
-  },
-  "links": {
-    "self": "https://api.organizacao.com.br/open-insurance/products-services/v1",
-    "first": "https://api.organizacao.com.br/open-insurance/products-services/v1",
-    "prev": "string",
-    "next": "string",
-    "last": "https://api.organizacao.com.br/open-insurance/products-services/v1"
-  },
-  "meta": {
-    "totalRecords": 10,
-    "totalPages": 1
-  }
 }

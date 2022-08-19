@@ -49,12 +49,13 @@ public class CustomerBusinessWrongPermissionsTestModuleV2 extends AbstractPermis
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		//Simple UI fix
 		callAndStopOnFailure(AddDummyPersonalProductTypeToConfig.class);
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		super.onConfigure(config, baseUrl);
 	}
 
 	@Override
 	protected void preFetchResources() {
-		callAndStopOnFailure(AddScopesForCustomerApi.class);
+		//Not needed for this test
 	}
 
 	@Override

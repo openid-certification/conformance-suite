@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.channels;
+package net.openid.conformance.openinsurance.validator.channels.v1;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -16,10 +16,10 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api source: swagger/openinsurance/swagger-channels.yaml
+ * Api source: swagger/openinsurance/channels/v1/swagger-channels.yaml
  * Api endpoint: /phone-channels
- * Api version: 1.0.2
- * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.2.0
+ * Api git hash: a0cf93fb358df175adea537178f1980078014836
  */
 
 @ApiName("Phone Channels")
@@ -56,7 +56,7 @@ public class PhoneChannelsValidator extends AbstractJsonAssertingCondition {
 
 	private void assertCompanies(JsonObject companies) {
 		assertField(companies, Fields.name().build());
-		assertField(companies, Fields.cnpjNumber().build());
+		assertField(companies, Fields.cnpjNumber().setMinLength(14).build());
 
 		assertField(companies,
 			new ObjectArrayField

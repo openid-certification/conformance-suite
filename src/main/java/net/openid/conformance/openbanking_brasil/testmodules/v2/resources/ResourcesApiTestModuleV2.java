@@ -60,7 +60,9 @@ public class ResourcesApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModu
 
 		ResourceApiV2PollingSteps pollingSteps = new ResourceApiV2PollingSteps(env, getId(),
 			eventLog,testInfo, getTestExecutionManager());
-		call(pollingSteps);
+		runInBlock("Polling Resources API", () -> {
+			call(pollingSteps);
+		});
 
 		String responseError = env.getString("resource_endpoint_error_code");
 		if (Strings.isNullOrEmpty(responseError)) {

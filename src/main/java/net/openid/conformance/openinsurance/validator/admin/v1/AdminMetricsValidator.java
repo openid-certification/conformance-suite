@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.admin;
+package net.openid.conformance.openinsurance.validator.admin.v1;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,10 +10,10 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.*;
 
 /**
- * Api source: swagger/openinsurance/swagger-admin-metrics.yaml
+ * Api source: swagger/openinsurance/admin/v1/swagger-admin-metrics.yaml
  * Api endpoint: /metrics
- * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
- * Api version: 1.02
+ * Api git hash: a0cf93fb358df175adea537178f1980078014836
+ * Api version: 1.2.0
  */
 @ApiName("Admin Metrics")
 public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
@@ -27,7 +27,7 @@ public class AdminMetricsValidator extends AbstractJsonAssertingCondition {
 
 		assertField(body, new ObjectField.Builder("data").setValidator(data -> {
 
-			assertField(data, new StringField.Builder("requestTime").build());
+			assertField(data, new StringField.Builder("requestTime").setPattern("^((?:(\\d{4}-\\d{2}-\\d{2})T(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?))(Z|[\\+-]\\d{2}:\\d{2})?)$").build());
 
 			assertField(data, new ObjectField.Builder("availability")
 				.setValidator(this::assertAvailabilityMetrics).build());
