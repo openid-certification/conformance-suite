@@ -2,7 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v1.PrepareUrlForResourcesCall;
@@ -11,9 +11,12 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.AddScopesForFinancingsApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+
+import java.util.Optional;
 
 @PublishTestModule(
 	testName = "resources-api-test-unavailable-v2",
@@ -71,6 +74,28 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 		super.onConfigure(config, baseUrl);
 	}
 
+	@Override
+	protected void requestProtectedResource() {
+		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
+		preCallProtectedResource();
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class);
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndStopOnFailure(CheckForDateHeaderInResourceResponse.class);
+		callAndStopOnFailure(CheckForFAPIInteractionIdInResourceResponse.class);
+		callAndStopOnFailure(EnsureMatchingFAPIInteractionId.class);
+		callAndStopOnFailure(EnsureResourceResponseReturnedJsonContentType.class);
+
+		eventLog.endBlock();
+
+		eventLog.startBlock(currentClientString() + "Validate response");
+		validateResponse();
+		eventLog.endBlock();
+	}
 	@Override
 	protected void validateResponse() {
 
