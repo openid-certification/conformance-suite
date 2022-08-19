@@ -23,7 +23,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test makes sure that if businessEntity is sent on the consent creation together with personal customer data permission the server will reject the request\n" +
 		"\u2022 Make sure that the user has sent a data Payload that contains a BusinessEntity \n" +
 		"\u2022 Make a consent request with all the permissions but the Customer Business ones \n",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

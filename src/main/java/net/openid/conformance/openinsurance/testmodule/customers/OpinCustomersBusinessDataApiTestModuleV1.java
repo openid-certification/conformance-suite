@@ -26,7 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
 		"\u2022 Calls GET Personal Qualifications resources V1\n" +
 		"\u2022 Expects a success 200",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
