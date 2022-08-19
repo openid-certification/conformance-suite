@@ -21,14 +21,13 @@ public class GetContactsValidator extends AbstractJsonAssertingCondition {
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		parts.assertDefaultResponseFields(body);
 		assertField(body,
 			new ObjectArrayField
 				.Builder("content")
 				.setValidator(parts::assertExportContacts)
 				.setOptional()
 				.build());
-
+		parts.assertDefaultResponseFields(body);
 		return environment;
 	}
 }

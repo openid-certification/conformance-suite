@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 		"\u2022 Call the GET Accounts API V2\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Fetch the first returned account ids to be used on the transactions API Call\n" +
 		"\u2022 Call the GET Current Accounts Transactions API V2\n" +
-		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if one transaction is found it has today’s date on it\n" +
+		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure that any transaction returned have today’s date on it - Test can also expect an empty list\n" +
 		"\u2022 Call the GET Current Accounts Transactions API V2, send query parameters fromBookingDate and toBookingDate using the max 7 day period\n" +
 		"\u2022 Expect OK 200 - Validate all fields of the API - Make sure if transactions are found that none of them are more than 1 week older\n" +
 		"\u2022 Call the GET Current Accounts Transactions API V2, send query parameters fromBookingDate and toBookingDate using a period that is not over the expected valid period\n" +
@@ -79,8 +79,10 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
 		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(6).format(FORMATTER));
 		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
+
+		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
-		runInBlock("Fetch Credit Card Account Current transactions with full range date parameters",
+		runInBlock("Fetch Account Current transactions with full range date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.then(condition(CopyResourceEndpointResponse.class)))
 		);
@@ -90,6 +92,7 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(5).format(FORMATTER));
 		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
 
+		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
 		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",

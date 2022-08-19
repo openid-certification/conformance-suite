@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules.pixscheduling;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
+import net.openid.conformance.ConditionSequenceRepeater;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -121,14 +122,17 @@ public class PixScheduledPaymentTestModule extends AbstractFunctionalTestModule 
 
 	@Override
 	protected void validateResponse() {
-		repeatSequence(() -> new PollForScheduledPaymentChangeSequence())
+		ConditionSequenceRepeater repeatSequence = repeatSequence(() -> new PollForScheduledPaymentChangeSequence())
 			.untilTrue("payment_accepted")
 			.trailingPause(30)
 			.times(10)
 			.onTimeout(sequenceOf(
 					condition(TestTimedOut.class),
-					condition(ChuckWarning.class)))
-			.run();
+					condition(ChuckWarning.class)));
+
+		repeatSequence.setProperties(env, getId(),
+			eventLog,testInfo, getTestExecutionManager());
+		repeatSequence.run();
 
 		fireTestFinished();
 	}

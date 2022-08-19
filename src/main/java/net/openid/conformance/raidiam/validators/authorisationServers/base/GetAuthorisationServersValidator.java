@@ -24,7 +24,7 @@ public class GetAuthorisationServersValidator extends AbstractJsonAssertingCondi
 
 		assertField(body,
 			new ObjectArrayField
-				.Builder("data")
+				.Builder("$")
 				.setValidator(parts::assertAuthorisationServers)
 				.setOptional()
 				.build());

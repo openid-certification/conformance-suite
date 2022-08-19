@@ -68,6 +68,7 @@ upload_dev:
    - docker build -t conformance-suite .
    - upload_dev
    - sleep 120 # wait for deployment to happen
+   - verify_deployed_version
    - run_dev_tests # runs as part of upload jobs - combined with resource_group, this makes sure no other pipeline deploys before/whilst the tests run
  allow_failure:
    exit_codes:
@@ -546,6 +547,21 @@ upload:
     docker push $DEV_DOCKER_REGISTRY:dev
   }
 
+  function verify_deployed_version() {
+    export CONFORMANCE_SERVER="https://dev.conformance.directory.openbankingbrasil.org.br/"
+    apk add jq
+    DEPLOYED_SHA=$(wget -qO- $CONFORMANCE_SERVER/api/server | jq -r ".version" | sed  's/[^,:]*: //g' | xargs)
+    echo "Git commit deployed to dev: '${DEPLOYED_SHA}'"
+    echo "Git commit of this pipeline: '${CI_COMMIT_SHA}'"
+    if [ "${DEPLOYED_SHA}" != "${CI_COMMIT_SHA}" ] ; then
+      echo "Image deployed to dev env is not the image built from this commit - failing"
+      exit -1
+    fi
+
+     echo "Deployed image is the one built from this commit - testing"
+
+  }
+
   function run_dev_tests() {
     apk add bash
     export CONFORMANCE_SERVER="https://dev.conformance.directory.openbankingbrasil.org.br/"
@@ -608,7 +624,7 @@ upload:
   }
 
   function set_app_version() {
-    echo "Set application version to GitLab $CI_PIPELINE_ID"
+    echo "Set application version to GitLab $CI_COMMIT_SHA"
 
     pwd
 
@@ -617,7 +633,7 @@ upload:
     echo "Before"
     cat src/main/resources/application.properties
 
-    sed -i "/fintechlabs.version=.*/ s/$/ build: $CI_PIPELINE_ID/" src/main/resources/application.properties
+    sed -i "/fintechlabs.version=.*/ s/$/ build: $CI_COMMIT_SHA	/" src/main/resources/application.properties
 
     echo "After"
     cat src/main/resources/application.properties

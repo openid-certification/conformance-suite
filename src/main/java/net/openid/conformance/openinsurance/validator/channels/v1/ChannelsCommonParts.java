@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.channels;
+package net.openid.conformance.openinsurance.validator.channels.v1;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;

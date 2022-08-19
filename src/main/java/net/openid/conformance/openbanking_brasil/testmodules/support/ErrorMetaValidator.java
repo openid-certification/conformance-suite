@@ -14,12 +14,6 @@ public abstract class ErrorMetaValidator extends AbstractJsonAssertingCondition 
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
-		assertField(body,
-			new ObjectField
-				.Builder("meta")
-				.setValidator(this::assertMeta)
-				.setOptional()
-				.build());
 
 		assertField(body,
 			new ObjectArrayField
@@ -27,6 +21,14 @@ public abstract class ErrorMetaValidator extends AbstractJsonAssertingCondition 
 				.setValidator(this::assertError)
 				.setMinItems(1)
 				.setMaxItems(13)
+				.build());
+
+
+		assertField(body,
+			new ObjectField
+				.Builder("meta")
+				.setValidator(this::assertMeta)
+				.setOptional()
 				.build());
 
 		return environment;

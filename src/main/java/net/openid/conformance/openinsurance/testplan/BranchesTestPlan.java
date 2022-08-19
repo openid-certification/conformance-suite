@@ -7,7 +7,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunct
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
-import net.openid.conformance.openinsurance.validator.channels.BranchesValidator;
+import net.openid.conformance.openinsurance.validator.channels.v1.BranchesValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.PublishTestModule;

@@ -10,23 +10,30 @@ import net.openid.conformance.openbanking_brasil.productsNServices.CommonValidat
 import net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields;
 import net.openid.conformance.openinsurance.validator.OpenInsuranceLinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.field.*;
+import net.openid.conformance.util.SetUtils;
+import net.openid.conformance.util.field.BooleanField;
+import net.openid.conformance.util.field.IntField;
+import net.openid.conformance.util.field.NumberField;
+import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.ObjectField;
+import net.openid.conformance.util.field.StringArrayField;
+import net.openid.conformance.util.field.StringField;
 
 import java.util.Set;
 
-import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.CURRENCY;
 import static net.openid.conformance.openbanking_brasil.productsNServices.ProductNServicesCommonFields.EXCLUDED_RISKS;
 
 /**
  * Api Source: swagger/openinsurance/swagger-productsnservices-person.yaml
  * Api endpoint: /person/
- * Api version: 1.0.3
- * Git hash: b62c9f60c0df42cb67387ec0dd0b6d0fd986478a
+ * Api version: 1.2.0
+ * Git hash: a0cf93fb358df175adea537178f1980078014836
  */
 
 @ApiName("ProductsNServices Person")
 public class GetPersonValidator extends AbstractJsonAssertingCondition {
 
+	public static final Set<String> CURRENCY = SetUtils.createSet("AED, AFN, ALL, AMD, ANG, AOA, ARS, AUD, AWG, AZN, BAM, BBD, BDT, BGN, BHD, BIF, BMD, BND, BOB, BOV, BRL, BSD, BTN, BWP, BYN, BZD, CAD, CDF, CHE, CHF, CHW, CLF, CLP, CNY, COP, COU, CRC, CUC, CUP, CVE, CZK, DJF, DKK, DOP, DZD, EGP, ERN, ETB, EUR, FJD, FKP, GBP, GEL, GHS, GIP, GMD, GNF, GTQ, GYD, HKD, HNL, HRK, HTG, HUF, IDR, ILS, INR, IQD, IRR, ISK, JMD, JOD, JPY, KES, KGS, KHR, KMF, KPW, KRW, KWD, KYD, KZT, LAK, LBP, LKR, LRD, LSL, LYD, MAD, MDL, MGA, MKD, MMK, MNT, MOP, MRU, MUR, MVR, MWK, MXN, MXV, MYR, MZN, NAD, NGN, NIO, NOK, NPR, NZD, OMR, PAB, PEN, PGK, PHP, PKR, PLN, PYG, QAR, RON, RSD, RUB, RWF, SAR, SBD, SCR, SDG, SEK, SGD, SHP, SLL, SOS, SRD, SSP, STN, SVC, SYP, SZL, THB, TJS, TMT, TND, TOP, TRY, TTD, TWD, TZS, UAH, UGX, USD, USN, UYI, UYU, UZS, VEF, VND, VUV, WST, XAF, XCD, XDR, XOF, XPF, XSU, XUA, YER, ZAR, ZMW, ZWL");
 	public static final Set<String> CATEGORY = Sets.newHashSet("TRADICIONAL", "MICROSEGURO");
 	public static final Set<String> OTHER_GUARANTEED_VALUES = Sets.newHashSet("SALDAMENTO", "BENEFICIO_PROLONGADO", "NAO_SE_APLICA");
 	public static final Set<String> CONTRACT_TYPE = Sets.newHashSet("REPARTICAO_SIMPLES", "REPARTICAO_CAPITAIS", "CAPITALIZACAO");
@@ -49,7 +56,8 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 
 	private final CommonValidatorParts parts;
 
-	private static class Fields extends ProductNServicesCommonFields {}
+	private static class Fields extends ProductNServicesCommonFields {
+	}
 
 	public GetPersonValidator() {
 		parts = new CommonValidatorParts(this);
@@ -87,7 +95,6 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 			new ObjectArrayField
 				.Builder("products")
 				.setValidator(this::assertProducts)
-				.setOptional()
 				.build());
 	}
 
@@ -172,7 +179,7 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 						new StringField
 							.Builder("pmbacUpdateIndex")
 							.setEnums(PMBAC_UPDATE_INDEX)
-							.setOptional(parts.isOptionalFieldByFlag(products,"contractType","CAPITALIZACAO"))
+							.setOptional(parts.isOptionalFieldByFlag(products, "contractType", "CAPITALIZACAO"))
 							.build());
 				})
 				.setOptional()
@@ -382,13 +389,13 @@ public class GetPersonValidator extends AbstractJsonAssertingCondition {
 				.build());
 
 		assertField(coverageAttributes,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("minValue")
 				.setValidator(parts::assertValue)
 				.build());
 
 		assertField(coverageAttributes,
-			new ObjectField
+			new ObjectArrayField
 				.Builder("maxValue")
 				.setValidator(parts::assertValue)
 				.build());

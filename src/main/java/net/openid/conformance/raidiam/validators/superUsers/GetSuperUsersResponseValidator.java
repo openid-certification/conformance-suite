@@ -6,6 +6,7 @@ import net.openid.conformance.logging.ApiName;
 import net.openid.conformance.raidiam.validators.CommonFields;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.ObjectArrayField;
+import net.openid.conformance.util.field.StringField;
 
 /**
  * Api url: ****
@@ -22,8 +23,11 @@ public class GetSuperUsersResponseValidator extends AbstractJsonAssertingConditi
 				new ObjectArrayField
 						.Builder("$")
 						.setValidator(array -> {
+							assertField(array, new StringField
+								.Builder("Email")
+								.setOptional()
+								.build());
 							assertField(array, CommonFields.getStatus());
-							assertField(array, CommonFields.getUserEmail());
 						})
 						.build());
 		return environment;

@@ -2,7 +2,6 @@ package net.openid.conformance.openbanking_brasil.plans.v2;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
-import net.openid.conformance.openbanking_brasil.testmodules.*;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.PreFlightCheckV2Module;
 import net.openid.conformance.openbanking_brasil.testmodules.v2.resources.*;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -24,7 +23,7 @@ public class ResourcesApiTestPlanV2 implements TestPlan {
 				List.of(
 					PreFlightCheckV2Module.class,
 					ResourcesApiTestModuleV2.class,
-					ResourcesApiTestModuleCorrect404V2.class,
+					ResourcesApiTestModuleCorrect200V2.class,
 					ResourcesApiDcrHappyFlowTestModuleV2.class,
 					ResourcesApiDcrTestModuleUnauthorizedClientV2.class,
 					ResourcesApiDcrTestModuleAttemptClientTakeoverV2.class,

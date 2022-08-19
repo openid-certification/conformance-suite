@@ -28,7 +28,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 import java.util.Optional;
 
-
+@Deprecated
 public class CallConsentApiWithBearerToken extends AbstractCondition {
 	private static final Logger logger = LoggerFactory.getLogger(net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken.class);
 
@@ -127,6 +127,7 @@ public class CallConsentApiWithBearerToken extends AbstractCondition {
 				} else {
 					JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true); // lowercase incoming headers
 					env.putObject("resource_endpoint_response_headers", responseHeaders);
+					env.putInteger("resource_endpoint_response_status", response.getStatusCodeValue());
 
 					logSuccess("No response body, as expected", args( "headers", responseHeaders));
 					return env;

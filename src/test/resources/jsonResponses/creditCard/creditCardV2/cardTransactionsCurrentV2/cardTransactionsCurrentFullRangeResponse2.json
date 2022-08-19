@@ -1,0 +1,67 @@
+{
+    "data": [
+        {
+            "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+            "identificationNumber": "4453",
+            "transactionName": "PGTO",
+            "billId": "MTU0OTU1NjI2NTk4OTRmc2ZhZDRmc2Q1NmZkM",
+            "creditDebitType": "DEBITO",
+            "transactionType": "CASHBACK",
+            "transactionalAdditionalInfo": "W!BV j48KD'p*yR",
+            "paymentType": "A_VISTA",
+            "feeType": "ANUIDADE",
+            "feeTypeAdditionalInfo": "wBkw@?Bl!~% p@)Vit!C'wlplEG\"zv_Dzl4JOOp?Y",
+            "otherCreditsType": "CREDITO_ROTATIVO",
+            "otherCreditsAdditionalInfo": ")#kKTKUm,VhJ?a8X(8YLp'AT2HX'J<H4-:C72p!=",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 12,
+            "brazilianAmount": {
+                "amount": "1000.0400",
+                "currency": "BRL"
+            },
+            "amount": {
+                "amount": "1000.0400",
+                "currency": "BRL"
+            },
+            "transactionDate": "2021-05-21",
+            "billPostDate": "2021-05-21",
+            "payeeMCC": 5137
+        },
+        {
+            "transactionId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
+            "identificationNumber": "4453",
+            "transactionName": "PGTO",
+            "billId": "MTU0OTU1NjI2NTk4OTRmc2ZhZDRmc2Q1NmZkM",
+            "creditDebitType": "DEBITO",
+            "transactionType": "CASHBACK",
+            "transactionalAdditionalInfo": "W!BV j48KD'p*yR",
+            "paymentType": "A_VISTA",
+            "feeType": "ANUIDADE",
+            "feeTypeAdditionalInfo": "wBkw@?Bl!~% p@)Vit!C'wlplEG\"zv_Dzl4JOOp?Y",
+            "otherCreditsType": "CREDITO_ROTATIVO",
+            "otherCreditsAdditionalInfo": ")#kKTKUm,VhJ?a8X(8YLp'AT2HX'J<H4-:C72p!=",
+            "chargeIdentificator": "PARCELA_1",
+            "chargeNumber": 12,
+            "brazilianAmount": {
+                "amount": "1000.0400",
+                "currency": "BRL"
+            },
+            "amount": {
+                "amount": "1000.0400",
+                "currency": "BRL"
+            },
+            "transactionDate": "2021-07-21",
+            "billPostDate": "2021-07-21",
+            "payeeMCC": 5137
+        }
+    ],
+    "links": {
+        "self": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "first": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "prev": "https://api.banco.com.br/open-banking/api/v1/resource",
+        "next": "https://api.banco.com.br/open-banking/api/v1/resource"
+    },
+    "meta": {
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}

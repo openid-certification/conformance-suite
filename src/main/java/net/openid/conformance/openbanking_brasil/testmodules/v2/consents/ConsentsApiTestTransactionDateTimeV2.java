@@ -1,14 +1,18 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
 import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -43,15 +47,15 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 		runInBlock("Check create consent request v2", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(AddConsentScope.class);
-			callAndStopOnFailure(CreateConsentWithInvalidFields.class);
+			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class);
 
 			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
-			callAndStopOnFailure(EnsureResponseCodeWas201.class);
+			callAndStopOnFailure(ResourceEndpointResponseFromFullResponse.class);
+			callAndStopOnFailure(EnsureConsentResponseCodeWas201.class);
 
-			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
 			callAndContinueOnFailure(CreateNewConsentValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
@@ -61,17 +65,16 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 		runInBlock("Validating get consent response v2", () -> {
 			callAndStopOnFailure(ConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-			callAndContinueOnFailure(CallConsentEndpointWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class, Condition.ConditionResult.FAILURE);
 
 			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
+			callAndStopOnFailure(ResourceEndpointResponseFromFullResponse.class);
 			callAndStopOnFailure(EnsureResponseCodeWas200.class);
 
-			call(exec().mapKey("resource_endpoint_response", "consent_endpoint_response"));
 			callAndContinueOnFailure(ConsentDetailsIdentifiedByConsentIdValidatorV2.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(EnsureConsentHasNoTransactionFromToDateTime.class);
 		});
 	}
-
 }

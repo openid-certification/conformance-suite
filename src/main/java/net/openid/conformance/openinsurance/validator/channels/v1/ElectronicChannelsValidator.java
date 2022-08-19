@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.validator.channels;
+package net.openid.conformance.openinsurance.validator.channels.v1;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -16,11 +16,12 @@ import net.openid.conformance.util.field.StringField;
 import java.util.Set;
 
 /**
- * Api source: swagger/openinsurance/swagger-channels.yaml
+ * Api source: swagger/openinsurance/channels/v1/swagger-channels.yaml
  * Api endpoint: /electronic-channels
- * Api version: 1.0.2
- * Api git hash: b5dcb30363a2103b9d412bc3c79040696d2947d2
+ * Api version: 1.2.0
+ * Api git hash: a0cf93fb358df175adea537178f1980078014836
  */
+
 @ApiName("Electronic Channels")
 public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition {
 
@@ -38,21 +39,18 @@ public class ElectronicChannelsValidator extends AbstractJsonAssertingCondition 
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
-		assertField(body,
-			new ObjectField
-				.Builder("brand").setValidator(
-					brand -> {
-						assertField(brand, Fields.name().build());
-						assertField(brand,
-							new ObjectArrayField
-								.Builder("companies")
-								.setMinItems(1)
-								.setValidator(this::assertCompanies)
-								.build());
-					})
-				.setOptional()
-				.build());
-
+		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(
+			data -> assertField(data, new ObjectField.Builder("brand").setValidator(
+				brand -> {
+					assertField(brand, Fields.name().build());
+					assertField(brand,
+						new ObjectArrayField
+							.Builder("companies")
+							.setMinItems(1)
+							.setValidator(this::assertCompanies)
+							.build());
+				}).build())
+		).build());
 		new OpenInsuranceLinksAndMetaValidator(this).assertMetaAndLinks(body);
 		logFinalStatus();
 		return environment;

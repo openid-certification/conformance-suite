@@ -25,20 +25,24 @@
                                         "indemnityPaymentFrequency": [
                                             "INDENIZACAO_UNICA"
                                         ],
-                                        "minValue": {
-                                            "amount": 60,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "description"
+                                        "minValue": [
+                                            {
+                                                "amount": 60,
+                                                "unit": {
+                                                    "code": "R$",
+                                                    "description": "description"
+                                                }
                                             }
-                                        },
-                                        "maxValue": {
-                                            "amount": 60,
-                                            "unit": {
-                                                "code": "R$",
-                                                "description": "description"
+                                        ],
+                                        "maxValue": [
+                                            {
+                                                "amount": 60,
+                                                "unit": {
+                                                    "code": "R$",
+                                                    "description": "description"
+                                                }
                                             }
-                                        },
+                                        ],
                                         "indemnifiablePeriod": [
                                             "ATE_FIM_CICLO_DETERMINADO"
                                         ],

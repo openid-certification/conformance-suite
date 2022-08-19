@@ -1,13 +1,13 @@
 {
     "data": {
-        "requestTime": "2022-04-19T08:44:31.794Z",
+        "requestTime": "2022-04-18T19:24:40.842Z",
         "availability": {
             "uptime": {
-                "generalUptimeRate": "1.5469111857654",
+                "generalUptimeRate": "9.07657066382140",
                 "endpoints": [
                     {
                         "url": "string",
-                        "uptimeRate": "6.23"
+                        "uptimeRate": "5.5"
                     }
                 ]
             },
@@ -107,7 +107,6 @@
         "last": "https://api.organizacao.com.br/open-insurance/admin/v1/<resource>"
     },
     "meta": {
-        "totalRecords": 1,
         "totalPages": 1
     }
 }

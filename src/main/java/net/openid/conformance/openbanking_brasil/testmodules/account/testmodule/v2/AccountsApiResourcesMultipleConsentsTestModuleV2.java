@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.account.testmodule.v2;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.ConditionSequenceRepeater;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -117,15 +118,18 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 
 			env.putString("resource_status", EnumResourcesStatus.AVAILABLE.name());
 			env.putString("resource_id", env.getString("accountId"));
-			repeatSequence(() -> getPreCallProtectedResourceSequence()
+			ConditionSequenceRepeater repeatSequence = repeatSequence(() -> getPreCallProtectedResourceSequence()
 				.then(getPollingSequence()))
 				.untilTrue("resource_found")
 				.times(10)
 				.trailingPause(30)
 				.onTimeout(sequenceOf(
 					condition(TestTimedOut.class),
-					condition(ChuckWarning.class)))
-				.run();
+					condition(ChuckWarning.class)));
+
+			repeatSequence.setProperties(env, getId(),
+				eventLog,testInfo, getTestExecutionManager());
+			repeatSequence.run();
 
 		});
 
