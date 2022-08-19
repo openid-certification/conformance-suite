@@ -25,6 +25,8 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	private final Supplier<ConditionSequence> sequenceSupplier;
 	private final String TIMEOUT_COUNTER_KEY = String.format("LOOPING_COUNTER_%s", getId());
 	private int timeout = 5;
+
+	private int traillingPause = 1;
 	private Optional<Class<? extends Condition>> onTimeoutCondtion = Optional.empty();
 	private Optional<Class<? extends Condition>> preSequencePause = Optional.empty();
 	private Optional<Class<? extends Condition>> postSequencePause = Optional.of(WaitForConfiguredSeconds.class);
@@ -47,8 +49,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 		this.env = env;
 		env.putInteger("loopSequencePauseTime", 0);
 		env.putInteger("preSequencePauseTime", 0);
-		env.putInteger("postSequencePauseTime", 1);
-
+		env.putInteger("postSequencePauseTime", traillingPause);
 	}
 
 	/**
@@ -103,7 +104,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	 * @return
 	 */
 	public ConditionSequenceRepeater trailingPause(int pause) {
-		env.putInteger("postSequencePauseTime", pause);
+		traillingPause = pause;
 		return this;
 	}
 
