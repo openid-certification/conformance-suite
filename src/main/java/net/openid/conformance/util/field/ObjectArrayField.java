@@ -7,9 +7,11 @@ import java.util.function.Consumer;
 public class ObjectArrayField extends Field {
 
 	private ObjectArrayField(boolean optional, boolean nullable, String path,
-							 Consumer<JsonObject> validator, int minItems, int maxItems, boolean mustNotBeEmpty) {
+							 Consumer<JsonObject> validator, int minItems, int maxItems,
+							 boolean mustNotBeEmpty, int minProperties) {
 		super(optional, nullable, path, validator, minItems, maxItems);
 		super.mustNotBeEmpty = mustNotBeEmpty;
+		super.minProperties = minProperties;
 	}
 
 	public static class Builder {
@@ -20,6 +22,7 @@ public class ObjectArrayField extends Field {
 		private Consumer<JsonObject> validator;
 		private int maxItems;
 		private int minItems;
+		private int minProperties;
 		private boolean mustNotBeEmpty;
 
 		public Builder(String path) {
@@ -51,6 +54,11 @@ public class ObjectArrayField extends Field {
 			return this;
 		}
 
+		public Builder setMinProperties(int minProperties) {
+			this.minProperties = minProperties;
+			return this;
+		}
+
 		public Builder setMinItems(int minItems) {
 			this.minItems = minItems;
 			return this;
@@ -63,7 +71,7 @@ public class ObjectArrayField extends Field {
 
 		public ObjectArrayField build() {
 			return new ObjectArrayField(this.optional, this.nullable, this.path, this.validator,
-				this.minItems, this.maxItems, mustNotBeEmpty);
+				this.minItems, this.maxItems, mustNotBeEmpty, minProperties);
 		}
 	}
 }

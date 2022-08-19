@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "brand": "string",
+            "companies": [
+                {
+                    "companyName": "string",
+                    "cnpjNumber": "12345678901234",
+                    "policies": [
+                        "42"
+                    ]
+                }
+            ]
+        }
+    ],
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

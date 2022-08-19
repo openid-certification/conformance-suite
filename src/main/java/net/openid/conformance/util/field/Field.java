@@ -22,6 +22,7 @@ public abstract class Field {
 	protected int minLength;
 	protected int maxItems;
 	protected int minItems;
+	protected int minProperties;
 	protected boolean mustNotBeEmpty;
 	protected BigDecimal maxValue;
 	protected BigDecimal minValue;
@@ -132,5 +133,9 @@ public abstract class Field {
 
 	public boolean mustNotBeEmpty() {
 		return mustNotBeEmpty;
+	}
+
+	public int getMinProperties() {
+		return minProperties;
 	}
 }

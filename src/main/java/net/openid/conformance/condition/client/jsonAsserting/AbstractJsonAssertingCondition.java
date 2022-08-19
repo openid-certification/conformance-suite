@@ -160,12 +160,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			parentPath = ".";
 			return;
 		}
-		assertJsonObject(baseObj, field.getPath(), ((ObjectField) field).getValidator());
+
+		assertJsonObject(baseObj, field, ((ObjectField) field).getValidator());
 		parentPath = ".";
 	}
 
-	private void assertJsonObject(JsonElement body, String pathToJsonObject, Consumer<JsonObject> consumer) {
-		JsonObject object = (JsonObject) findByPath(body, pathToJsonObject);
+	private void assertJsonObject(JsonElement body, Field field, Consumer<JsonObject> consumer) {
+		JsonObject object = (JsonObject) findByPath(body, field.getPath());
+		if (field.getMinProperties() != 0 && object.size() < field.getMinProperties()) {
+			throw error(ErrorMessagesUtils.createObjectLessRequiredMinProperties(field.getPath(), getApiName()),
+				args("requiredValue", field.getMinProperties(), "currentValue", object.getAsJsonObject().size()));
+		}
 		consumer.accept(object.getAsJsonObject());
 	}
 
@@ -186,6 +191,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			parentPath = ".";
 			return;
 		}
+		array.forEach(object -> {
+			if (field.getMinProperties() != 0 && object.isJsonObject()
+				&& object.getAsJsonObject().size() < field.getMinProperties()) {
+				throw error(ErrorMessagesUtils.createObjectLessRequiredMinProperties(field.getPath(), getApiName()),
+					args("requiredValue", field.getMinProperties(), "currentValue", object.getAsJsonObject().size()));
+			}
+		});
 		array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
 		parentPath = ".";
 	}

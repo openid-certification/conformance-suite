@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "updateDateTime": "2021-05-21T08:30:00Z",
+            "businessId": "578-psd-71md6971kjh-2d414",
+            "brandName": "Organização A",
+            "companyInfo": {
+                "cnpjNumber": "01773247000563",
+                "name": "Empresa da Organização A"
+            },
+            "businessName": "Luiza e Benjamin Assessoria Jurídica Ltda",
+            "businessTradeName": "Organização B",
+            "incorporationDate": "2012-05-21",
+            "document": {
+                "businesscnpjNumber": "50685362006773",
+                "businessRegisterNumberOriginCountry": "string",
+                "country": "BRA",
+                "expirationDate": "2023-05-21"
+            },
+            "type": "PRIVADO",
+            "contact": {
+                "postalAddresses": [
+                    {
+                        "address": "Av Naburo Ykesaki, 1270",
+                        "additionalInfo": "Fundos",
+                        "districtName": "Centro",
+                        "townName": "Marília",
+                        "countrySubDivision": "SP",
+                        "postCode": "17500001",
+                        "ibgeTownCode": "17500001",
+                        "country": "Brasil",
+                        "countryCode": "BRA",
+                        "geographicCoordinates": {
+                            "latitude": "-90.54750AB",
+                            "longitude": "-46.6361100"
+                        }
+                    }
+                ],
+                "phones": [
+                    {
+                        "countryCallingCode": "55",
+                        "areaCode": "19",
+                        "number": "29875132",
+                        "phoneExtension": "932"
+                    }
+                ],
+                "emails": [
+                    {
+                        "email": "nome@br.net"
+                    }
+                ]
+            },
+            "parties": [
+                {
+                    "type": "SOCIO",
+                    "civilName": "Juan Kaique Cláudio Fernandes",
+                    "socialName": "string",
+                    "startDate": "2014-05-21",
+                    "shareholding": "0.510000",
+                    "documentType": "CPF",
+                    "documentNumber": "73677831148",
+                    "documentCountry": "BRA",
+                    "documentExpirationDate": "2021-05-21"
+                }
+            ]
+        }
+    ],
+    "links": {
+        "self": "https://api.seguro.com.br/open-insurance/customer/v1",
+        "first": "https://api.seguro.com.br/open-insurance/customer/v1",
+        "prev": "https://api.seguro.com.br/open-insurance/customer/v1",
+        "next": "https://api.seguro.com.br/open-insurance/customer/v1",
+        "last": "https://api.seguro.com.br/open-insurance/customer/v1"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}
