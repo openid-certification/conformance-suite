@@ -80,11 +80,9 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 					.onFail(Condition.ConditionResult.WARNING)
 					.skipIfStringMissing("metaOnlyRequestDateTime"));
 
-		call(sequence(ValidateSelfEndpoint.class));
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits V2");
 		callAndContinueOnFailure(AccountLimitsValidatorV2.class, Condition.ConditionResult.FAILURE);
-
 	}
 
 }
