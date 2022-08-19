@@ -10,6 +10,7 @@ public class EnsureConsentAspspRevoked extends AbstractConsentRejectionValidatio
 		if (validateResponse(env.getString("resource_endpoint_response"),"CUSTOMER_MANUALLY_REVOKED","USER")){
 			env.putBoolean("code_returned", true);
 		}
+		env.putBoolean("code_returned", false);
 		return env;
 	}
 }

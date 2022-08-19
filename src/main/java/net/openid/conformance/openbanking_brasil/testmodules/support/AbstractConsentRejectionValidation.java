@@ -24,6 +24,7 @@ public abstract class AbstractConsentRejectionValidation extends AbstractConditi
 					throw error("consent status is REJECTED but no rejection object found", args("body", body));
 				}
 			}
+			log("Status is not REJECTED");
 			return false;
 		}
 		JsonObject rejectionReason = rejection.getAsJsonObject("reason");
