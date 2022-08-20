@@ -11,14 +11,20 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.Ed25519Signer;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.AsymmetricJWK;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.SecretJWK;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSKeySelector;
@@ -29,10 +35,13 @@ import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+import org.bouncycastle.jcajce.interfaces.EdDSAKey;
 
 import java.security.Key;
+import java.security.KeyPair;
 import java.text.ParseException;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -68,6 +77,19 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 				if (checkPrivatePart) {
 					verifyPrivatePart(jwks, keyObject);
 				}
+			} else if("OKP".equals(kty)) {
+				checkMissingKey(keyObject, "x", "crv");
+				String crv = OIDFJSON.getString(keyObject.getAsJsonPrimitive("crv"));
+				if(!Curve.Ed25519.getName().equals(crv)) {
+					throw error("Jwks contains an unsupported curve", args("jwks", keyJsonElement));
+				}
+
+				verifyKeysIsBase64UrlEncoded(keyObject, "x");
+
+				if (checkPrivatePart) {
+					verifyPrivatePart(jwks, keyObject);
+				}
+
 			}
 			parseJWKWithNimbus(keyObject);
 		});
@@ -141,6 +163,13 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			signer = new RSASSASigner((RSAKey) jwk);
 		} else if (jwk.getKeyType().equals(KeyType.EC)) {
 			signer = new ECDSASigner((ECKey) jwk);
+		} else if (jwk.getKeyType().equals(KeyType.OKP)) {
+			OctetKeyPair octetKeyPair = (OctetKeyPair) jwk;
+			if(Curve.Ed25519.equals(octetKeyPair.getCurve())) {
+				signer = new Ed25519Signer((OctetKeyPair) jwk);
+			} else {
+				throw error("Unsupported curve for EdDSA alg", args("jwk", jwk));
+			}
 		}
 
 		if (signer == null) {
@@ -165,17 +194,45 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 
 		JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
-		JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
+//		JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
+		AlternateJWSVerificationKeySelector<SecurityContext> selector = new AlternateJWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
 
-		List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
-		for (Key key : keys) {
-			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
-			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
+//		List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
+//		for (Key key : keys) {
+//			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
+//			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
+//
+//			if (!jwt.verify(verifier)) {
+//				throw error("Invalid JWKs supplied in configuration. Private and public exponent don't match (test JWS could not be verified)",
+//					args("jws", jwt.serialize(),
+//						"jwks", JWKUtil.getPrivateJwksAsJsonObject(jwkSet)));
+//			}
+//		}
+		List<JWK> jwkKeys = selector.selectJWSJwks(jwt.getHeader(), context);
+		JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
+		for(JWK jwkKey : jwkKeys) {
+			JWSVerifier verifier = null;
+			try {
+				if (jwkKey instanceof OctetKeyPair) {
+					OctetKeyPair publicKey = OctetKeyPair.parse(jwkKey.toPublicJWK().toString());
+					if (Curve.Ed25519.equals(publicKey.getCurve())) {
+						verifier = new Ed25519Verifier(publicKey);
+					}  // else Unsupported Curve, throw exception?
+				} else if (jwkKey instanceof AsymmetricJWK) {
+					KeyPair keyPair = ((AsymmetricJWK) jwkKey).toKeyPair();
+					verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
+				} else if (jwkKey instanceof SecretJWK) {
+					verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
+				}
+			} catch (JOSEException | ParseException e) {
 
-			if (!jwt.verify(verifier)) {
+			}
+			if (verifier != null) {
+				if (!jwt.verify(verifier)) {
 				throw error("Invalid JWKs supplied in configuration. Private and public exponent don't match (test JWS could not be verified)",
 					args("jws", jwt.serialize(),
 						"jwks", JWKUtil.getPrivateJwksAsJsonObject(jwkSet)));
+				}
 			}
 		}
 	}
