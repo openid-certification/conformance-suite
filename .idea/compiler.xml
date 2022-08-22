@@ -2,10 +2,10 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="$DEV_MACHINE$">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
+        <outputRelativeToContentRoot value="$DEV_MACHINE$" />
         <module name="conformance-suite" />
         <module name="fapi-conformance-suite" />
       </profile>
