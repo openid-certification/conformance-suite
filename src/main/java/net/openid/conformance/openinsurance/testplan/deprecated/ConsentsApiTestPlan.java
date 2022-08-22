@@ -1,3 +1,4 @@
+
 package net.openid.conformance.openinsurance.testplan.deprecated;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -16,6 +17,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
 import java.util.List;
+/*
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance Consents api test v1",
@@ -24,6 +26,7 @@ import java.util.List;
 	summary = "Structural and logical tests for Open Insurance Brasil Phase 2 - Consents API V1"
 )
 
+*/
 public class ConsentsApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
@@ -47,3 +50,5 @@ public class ConsentsApiTestPlan implements TestPlan {
 		);
 	}
 }
+
+

@@ -18,12 +18,12 @@ import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
 
-@PublishTestPlan(
-	testPlanName = "OpenInsurance Brasil - Rural API - Phase 2 test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.INSURANCE_RURAL_API_TEST_PLAN_PHASE2,
-	summary = "Structural and logical tests for Rural API"
-)
+//@PublishTestPlan(
+//	testPlanName = "OpenInsurance Brasil - Rural API - Phase 2 test plan",
+//	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
+//	displayName = PlanNames.INSURANCE_RURAL_API_TEST_PLAN_PHASE2,
+//	summary = "Structural and logical tests for Rural API"
+//)
 public class OpinInsuranceRuralTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(

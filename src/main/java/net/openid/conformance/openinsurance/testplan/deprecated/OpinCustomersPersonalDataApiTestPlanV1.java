@@ -11,12 +11,12 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
 import java.util.List;
 
-@PublishTestPlan(
-	testPlanName = "Open Insurance Customers Personal Data api test " + PlanNames.LATEST_VERSION_OPIN_PHASE2,
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.CUSTOMER_PERSONAL_DATA_API_PLAN_NAME_PHASE2,
-	summary = "Structural and logical tests for Open Insurance Brasil Phase 2 - Customers Personal Data API V1"
-)
+//@PublishTestPlan(
+//	testPlanName = "Open Insurance Customers Personal Data api test " + PlanNames.LATEST_VERSION_OPIN_PHASE2,
+//	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
+//	displayName = PlanNames.CUSTOMER_PERSONAL_DATA_API_PLAN_NAME_PHASE2,
+//	summary = "Structural and logical tests for Open Insurance Brasil Phase 2 - Customers Personal Data API V1"
+//)
 public class OpinCustomersPersonalDataApiTestPlanV1 implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
