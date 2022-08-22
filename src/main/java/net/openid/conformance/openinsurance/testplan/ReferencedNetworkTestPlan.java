@@ -2,10 +2,9 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
-import net.openid.conformance.openbanking_brasil.testmodules.support.LogOnlyFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
 import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.openinsurance.validator.channels.GetReferencedNetworkValidator;
@@ -18,7 +17,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - Channels - Referenced Network API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.REFERENCED_NETWORK_API_TEST_PLAN,
 	summary = "Structural and logical tests for Channels - Referenced Network API"
 )
@@ -36,7 +35,7 @@ public class ReferencedNetworkTestPlan implements TestPlan {
 		testName = "Open Insurance - Channels - Referenced Network API test",
 		displayName = "Validate structure of Channels - Referenced Network response",
 		summary = "Validate structure of Channels - Referenced Network response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class ReferencedNetworkTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override

@@ -3,11 +3,10 @@ package net.openid.conformance.openinsurance.testplan;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
-import net.openid.conformance.openinsurance.testplan.utils.PrepareToGetOpenInsuranceApi;
 import net.openid.conformance.openinsurance.validator.productsNServices.GetAutoInsuranceValidator;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -20,7 +19,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsNServices - Auto Insurance API test",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.AUTO_INSURANCE_PLAN_API_TEST_PLAN,
 	summary = "Structural and logical tests for ProductsNServices - Auto Insurance API"
 )
@@ -42,7 +41,7 @@ public class AutoInsuranceApiTestPlan implements TestPlan {
 		testName = "Open Insurance - ProductsNServices - Auto Insurance API test",
 		displayName = "Validate structure of ProductsNServices - Auto Insurance API Api resources",
 		summary = "Validate structure of ProductsNServices - Auto Insurance Api resources",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 		configurationFields = {
 			"resource.commercializationArea",
 			"resource.fipeCode",

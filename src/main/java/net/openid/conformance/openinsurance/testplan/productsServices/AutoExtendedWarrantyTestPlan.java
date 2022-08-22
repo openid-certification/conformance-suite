@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 	import net.openid.conformance.condition.Condition;
 	import net.openid.conformance.openbanking_brasil.OBBProfile;
-	import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+	import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 	import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 	import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 	import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -17,7 +17,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsServices - Auto Extended Warranty API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.AUTO_EXTENDED_WARRANTY_API_TEST_PLAN,
 	summary = "Structural and logical tests for Auto Extended Warranty API"
 )
@@ -35,7 +35,7 @@ public class AutoExtendedWarrantyTestPlan implements TestPlan {
 		testName = "Open Insurance - Auto Extended Warranty API test",
 		displayName = "Validate structure of Auto Extended Warranty response",
 		summary = "Validate structure of Auto Extended Warranty response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class AutoExtendedWarrantyTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override

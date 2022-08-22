@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testplan.rural.v1;
+package net.openid.conformance.openinsurance.testplan.deprecated;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -18,12 +18,12 @@ import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.List;
 
-@PublishTestPlan(
-	testPlanName = "OpenInsurance Brasil - Rural API - Phase 2 test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.INSURANCE_RURAL_API_TEST_PLAN_PHASE2,
-	summary = "Structural and logical tests for Rural API"
-)
+//@PublishTestPlan(
+//	testPlanName = "OpenInsurance Brasil - Rural API - Phase 2 test plan",
+//	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
+//	displayName = PlanNames.INSURANCE_RURAL_API_TEST_PLAN_PHASE2,
+//	summary = "Structural and logical tests for Rural API"
+//)
 public class OpinInsuranceRuralTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
@@ -34,12 +34,12 @@ public class OpinInsuranceRuralTestPlan implements TestPlan {
 		);
 	}
 
-	@PublishTestModule(
-		testName = "OpenInsurance Brasil - Rural API test",
-		displayName = "Validate structure of Rural API",
-		summary = "Validate structure of Rural API",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2
-	)
+//	@PublishTestModule(
+//		testName = "OpenInsurance Brasil - Rural API test",
+//		displayName = "Validate structure of Rural API",
+//		summary = "Validate structure of Rural API",
+//		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2
+//	)
 	public static class OpenInsuranceRuralTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override
 		protected void runTests() {

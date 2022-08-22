@@ -24,7 +24,8 @@ public class ConfigurablePlanSurfacingTests {
 		Collection<VariantService.TestPlanHolder> testPlans = variantService().getTestPlans();
 
 		List<String> profilesToSurface = List.of(RaidiamProfile.RAIDIAM_PROFILE, OBBProfile.DEV_ONLY,
-			OBBProfile.OBB_PROFILE_OPEN_INSURANCE, OBBProfile.OBB_PROFIlE_PHASE1,
+			OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1, OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
+			OBBProfile.OBB_PROFIlE_PHASE1,
 			OBBProfile.OBB_PROFIlE_PHASE2, OBBProfile.OBB_PROFIlE_PHASE2_VERSION2,
 			OBBProfile.OBB_PROFIlE_PHASE3, OBBProfile.OBB_PROFIlE_PHASE4,
 			TestPlan.ProfileNames.optest, OBBProfile.OBB_PROFILE_DCR,

@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.customers;
+package net.openid.conformance.openinsurance.testmodule.deprecated.customers;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
