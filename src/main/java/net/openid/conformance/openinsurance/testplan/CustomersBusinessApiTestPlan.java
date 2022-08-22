@@ -8,13 +8,13 @@ import net.openid.conformance.plan.TestPlan;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Insurance customer personal api test",
+	testPlanName = "Insurance customer business api test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.CUSTOMERS_PERSONAL_API_TEST_PLAN,
-	summary = "Structural and logical tests for OpenInsurance Brasil-conformant customer personal API"
+	displayName = PlanNames.CUSTOMERS_BUSINESS_API_TEST_PLAN,
+	summary = "Structural and logical tests for OpenInsurance Brasil-conformant customer business API"
 )
 
-public class CustomerPersonalApiTestPlan implements TestPlan {
+public class CustomersBusinessApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(

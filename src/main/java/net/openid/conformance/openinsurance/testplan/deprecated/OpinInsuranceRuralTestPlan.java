@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testplan.rural.v1;
+package net.openid.conformance.openinsurance.testplan.deprecated;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;

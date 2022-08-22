@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.customers;
+package net.openid.conformance.openinsurance.testmodule.deprecated.customers;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;

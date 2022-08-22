@@ -1,11 +1,11 @@
-package net.openid.conformance.openinsurance.testplan;
+package net.openid.conformance.openinsurance.testplan.deprecated;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.plans.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.PreFlightCertCheckModule;
-import net.openid.conformance.openinsurance.testmodule.customers.OpinCustomersBusinessEntityWithPersonalPermissionsTestModuleV1;
-import net.openid.conformance.openinsurance.testmodule.customers.OpinCustomersBusinessDataApiTestModuleV1;
-import net.openid.conformance.openinsurance.testmodule.customers.OpinCustomersBusinessWrongPermissionsTestModuleV1;
+import net.openid.conformance.openinsurance.testmodule.deprecated.customers.OpinCustomersBusinessEntityWithPersonalPermissionsTestModuleV1;
+import net.openid.conformance.openinsurance.testmodule.deprecated.customers.OpinCustomersBusinessDataApiTestModuleV1;
+import net.openid.conformance.openinsurance.testmodule.deprecated.customers.OpinCustomersBusinessWrongPermissionsTestModuleV1;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;

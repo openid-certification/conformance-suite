@@ -5,6 +5,7 @@ bin
 *.iml
 *.eml
 .project
+.idea
 .settings
 .classpath
 /target

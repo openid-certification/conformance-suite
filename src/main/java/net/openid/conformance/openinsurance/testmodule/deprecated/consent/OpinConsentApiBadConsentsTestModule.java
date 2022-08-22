@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.consent;
+package net.openid.conformance.openinsurance.testmodule.deprecated.consent;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
