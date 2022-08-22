@@ -40,7 +40,7 @@ mongodb:
    - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
   livenessProbe:
     initialDelaySeconds: 30
-    periodSeconds: 10
+    periodSeconds: 60
     failureThreshold: 60
   readinessProbe:
     enabled: false
