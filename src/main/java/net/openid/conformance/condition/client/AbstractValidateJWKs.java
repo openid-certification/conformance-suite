@@ -81,7 +81,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 				checkMissingKey(keyObject, "x", "crv");
 				String crv = OIDFJSON.getString(keyObject.getAsJsonPrimitive("crv"));
 				if(!Curve.Ed25519.getName().equals(crv)) {
-					throw error("Jwks contains an unsupported curve", args("jwks", keyJsonElement));
+					log("Jwks contains an unsupported curve", args("jwks", keyJsonElement, "result", ConditionResult.WARNING));
 				}
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "x");
@@ -225,7 +225,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 					verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
 				}
 			} catch (JOSEException | ParseException e) {
-
+				log("Unable to verifyJWTAfterSigned", args("exception", e));
 			}
 			if (verifier != null) {
 				if (!jwt.verify(verifier)) {
