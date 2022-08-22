@@ -6,7 +6,6 @@ public class PlanNames {
 
 
 	/* Phase 2 - Customer Data */
-
 	public static final String CONSENTS_API_TEST_PLAN = "Functional Tests for Consents API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String RESOURCES_API_TEST_PLAN = "Functional Tests for Resources API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String CUSTOMERS_BUSINESS_API_TEST_PLAN = "Functional Tests for Customers Business API - based on Swagger Version 1.0.0 (WIP)";

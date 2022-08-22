@@ -34,12 +34,12 @@ public class OpinInsuranceRuralTestPlan implements TestPlan {
 		);
 	}
 
-	@PublishTestModule(
-		testName = "OpenInsurance Brasil - Rural API test",
-		displayName = "Validate structure of Rural API",
-		summary = "Validate structure of Rural API",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2
-	)
+//	@PublishTestModule(
+//		testName = "OpenInsurance Brasil - Rural API test",
+//		displayName = "Validate structure of Rural API",
+//		summary = "Validate structure of Rural API",
+//		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2
+//	)
 	public static class OpenInsuranceRuralTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override
 		protected void runTests() {

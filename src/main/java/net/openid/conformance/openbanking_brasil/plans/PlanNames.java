@@ -69,14 +69,4 @@ public class PlanNames {
 
 	public static final String OPERATIONAL_LIMITS_PLAN_NAME_V2 = "Functional tests for operational limits - based on Swagger version: " + LATEST_VERSION_2;
 
-
-
-	/**
-	 * Open Insurance Brasil - Phase 2
-	 */
-	public static  final String LATEST_VERSION_OPIN_PHASE2 = "1.05";
-	public static final String OPIN_CONSENTS_API_NAME = "Functional tests for consents API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
-	public static final String CUSTOMER_PERSONAL_DATA_API_PLAN_NAME_PHASE2 = "Functional tests for personal customer data API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
-	public static final String CUSTOMER_BUSINESS_DATA_API_PLAN_NAME_PHASE2 = "Functional tests for business customer data API - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
-	public static final String INSURANCE_RURAL_API_TEST_PLAN_PHASE2 = "Functional tests for OpenInsurance Brasil Rural API - Phase 2 - based on Swagger version: " + LATEST_VERSION_OPIN_PHASE2;
 }
