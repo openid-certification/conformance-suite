@@ -225,7 +225,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 					verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
 				}
 			} catch (JOSEException | ParseException e) {
-				log("Unable to verifyJWTAfterSigned", args("exception", e));
+//				log("Unable to verifyJWTAfterSigned", args("exception", e));
 			}
 			if (verifier != null) {
 				if (!jwt.verify(verifier)) {
