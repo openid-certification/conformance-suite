@@ -224,7 +224,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected void validateClientConfiguration() {
-		callAndStopOnFailure(AddOpenIdScope.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
