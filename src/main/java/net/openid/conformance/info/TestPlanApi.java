@@ -1,11 +1,7 @@
 package net.openid.conformance.info;
 
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -24,17 +20,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -43,6 +32,9 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private TestPlanService planService;
+
+	@Autowired
+	private TestInfoService infoService;
 
 	@Autowired
 	private SavedConfigurationService savedConfigurationService;
@@ -255,6 +247,32 @@ public class TestPlanApi implements DataUtils {
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
+	}
+
+	@DeleteMapping(value = "/plan/{id}")
+	@ApiOperation(value = "Delete a test plan and related configuration. Requires the plan to be mutable.")
+	@ApiResponses(value = {
+		@ApiResponse(code = 204,  message = "Deleted successfully"),
+		@ApiResponse(code = 404, message = "Could not find a plan with the given id, belonging to the user"),
+		@ApiResponse(code = 405, message = "The plan is immutable and cannot be deleted")
+	})
+	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
+		@ApiParam(value = "Id of test plan") @PathVariable("id") String id
+	) {
+		Plan testPlan = planService.getTestPlan(id);
+		if(testPlan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		if(testPlan.getImmutable() != null && testPlan.getImmutable()) {
+			return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+		}
+
+		List<String> testIds = testPlan.getModules().stream().map(Plan.Module::getInstances).collect(ArrayList::new, List::addAll, List::addAll);
+		infoService.deleteTests(testIds);
+		planService.deleteMutableTestPlan(id);
+
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 }

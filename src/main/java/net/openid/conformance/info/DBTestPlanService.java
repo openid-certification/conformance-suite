@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class DBTestPlanService implements TestPlanService {
@@ -313,5 +314,26 @@ public class DBTestPlanService implements TestPlanService {
 	public void createIndexes(){
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
 		collection.createIndex(new Document("$**", "text"));
+	}
+
+	@Override
+	public void deleteMutableTestPlan(String id) {
+		Optional<Plan> maybePlan;
+		if (!authenticationFacade.isAdmin()) {
+			maybePlan = plans.findByIdAndOwner(id, authenticationFacade.getPrincipal());
+		} else {
+			maybePlan = plans.findById(id);
+		}
+
+		if(maybePlan.isEmpty()) {
+			return;
+		}
+
+		Plan plan = maybePlan.get();
+		if(plan.getImmutable() != null && plan.getImmutable()) {
+			return;
+		}
+
+		plans.deleteById(id);
 	}
 }

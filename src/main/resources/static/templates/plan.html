@@ -71,25 +71,28 @@
                     <% } %>
                     <% if (!public || plan.publish == "everything") { %>
                         <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                        <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download all Logs</button>
+                            <button class="btn btn-default btn-block" id="downloadAllBtn"><span class="glyphicon glyphicon-save-file"></span> Download all Logs</button>
                         <% } %>
                     <% } %>
                     <% if (!public) { %>
                         <% if (!plan.publish) { %>
                             <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                        <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
-                        <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
+                                <button class="btn btn-default btn-block" data-publish="summary"><span class="glyphicon glyphicon-book"></span> Publish summary</button>
+                                <button class="btn btn-default btn-block" id="publishBtn"><span class="glyphicon glyphicon-book"></span> Publish everything</button>
                             <% } %>
                         <% } else { %>
                             <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
+                                <button class="btn btn-default btn-block" id="unpublishBtn" data-publish=""><span class="glyphicon glyphicon-ban-circle"></span> Unpublish</button>
                             <% } %>
                         <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-info btn-block"><span class="glyphicon glyphicon-book"></span> Public link</a>
                         <% } %>
                         <button class="btn btn-default btn-block" id="certificationPackageBtn" title="Publish and prepare certification submission package" disabled><span class="glyphicon glyphicon-save-file"></span> Publish for certification</button>
                     <% } %>
                     <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                    <button class="btn btn-default btn-block" id="removeImmutableFlagBtn" data-immutable="false"><span class="glyphicon glyphicon-edit"></span> Make Plan Mutable</button>
+                    <button class="btn btn-default btn-block" id="removeImmutableFlagBtn" data-immutable="false"><span class="glyphicon glyphicon-edit"></span> Make plan Mutable</button>
+                    <% } %>
+                    <% if (!plan.immutable && !public) { %>
+                    <button class="btn btn-danger btn-block" id="deleteMutablePlanBtn"><span class="glyphicon glyphicon-trash"></span> Delete plan</button>
                     <% } %>
                 </div>
             </div>
