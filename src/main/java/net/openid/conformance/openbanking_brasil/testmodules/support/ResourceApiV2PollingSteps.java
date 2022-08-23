@@ -40,7 +40,8 @@ public class ResourceApiV2PollingSteps extends AbstractConditionSequence {
 	public void evaluate() {
 
 		ConditionSequenceRepeater repeatSequence;
-		repeatSequence = new ConditionSequenceRepeater(() -> getPreCallProtectedResourceSequence()
+		repeatSequence = new ConditionSequenceRepeater(env, id, eventLog, testInfo, executionManager,
+			() -> getPreCallProtectedResourceSequence()
 			.then(getPollingSequence()))
 			.untilTrue("200Ok_or_differentCode_found")
 			.times(4)
@@ -48,7 +49,7 @@ public class ResourceApiV2PollingSteps extends AbstractConditionSequence {
 			.onTimeout(sequenceOf(
 				condition(EnsureResponseCodeWas202.class),
 					condition(ResourcesApiPollingTimeout.class)));
-		repeatSequence.setProperties(env,id,eventLog,testInfo,executionManager);
+
 		repeatSequence.run();
 	}
 

@@ -127,8 +127,6 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 					condition(TestTimedOut.class),
 					condition(ChuckWarning.class)));
 
-			repeatSequence.setProperties(env, getId(),
-				eventLog,testInfo, getTestExecutionManager());
 			repeatSequence.run();
 
 		});

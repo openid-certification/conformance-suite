@@ -26,9 +26,8 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	private final String TIMEOUT_COUNTER_KEY = String.format("LOOPING_COUNTER_%s", getId());
 	private int timeout = 5;
 
-	private int traillingPause = 1;
 	private Optional<Class<? extends Condition>> onTimeoutCondtion = Optional.empty();
-	private Optional<Class<? extends Condition>> preSequencePause = Optional.empty();
+	private Optional<Class<? extends Condition>> preSequencePause = Optional.of(WaitForConfiguredSeconds.class);
 	private Optional<Class<? extends Condition>> postSequencePause = Optional.of(WaitForConfiguredSeconds.class);
 	private Optional<ConditionSequence> onTimeoutCondtionSequence = Optional.empty();
 
@@ -40,16 +39,18 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 
 	private Predicate<Environment> endPredicate = timeoutPredicate;
 
-	public ConditionSequenceRepeater(Supplier<ConditionSequence> conditionSequenceSupplier) {
-		this.sequenceSupplier = conditionSequenceSupplier;
-	}
+	public ConditionSequenceRepeater(Environment env, String id,TestInstanceEventLog eventLog,TestInfoService testInfo,
+									 TestExecutionManager executionManager,
+									 Supplier<ConditionSequence> conditionSequenceSupplier) {
 
-	public void setProperties(Environment env, String id,TestInstanceEventLog eventLog,TestInfoService testInfo, TestExecutionManager executionManager) {
 		super.setProperties(id, null, eventLog , null, testInfo, executionManager, null);
-		this.env = env;
+
 		env.putInteger("loopSequencePauseTime", 0);
 		env.putInteger("preSequencePauseTime", 0);
-		env.putInteger("postSequencePauseTime", traillingPause);
+		env.putInteger("postSequencePauseTime", 0);
+
+		this.env = env;
+		this.sequenceSupplier = conditionSequenceSupplier;
 	}
 
 	/**
@@ -104,7 +105,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	 * @return
 	 */
 	public ConditionSequenceRepeater trailingPause(int pause) {
-		traillingPause = pause;
+		env.putInteger("postSequencePauseTime", pause);
 		return this;
 	}
 
