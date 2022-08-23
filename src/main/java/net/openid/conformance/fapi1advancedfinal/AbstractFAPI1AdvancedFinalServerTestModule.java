@@ -16,6 +16,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -223,6 +224,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected void validateClientConfiguration() {
+		callAndStopOnFailure(AddOpenIdScope.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
