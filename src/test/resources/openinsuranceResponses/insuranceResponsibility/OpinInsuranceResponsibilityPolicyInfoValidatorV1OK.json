@@ -1,0 +1,210 @@
+{
+    "data": {
+        "documentType": "APOLICE_INDIVIDUAL",
+        "policyId": "111111",
+        "susepProcessNumber": "string",
+        "groupCertificateId": "string",
+        "issuanceType": "EMISSAO_PROPRIA",
+        "issuanceDate": "AAAA-MM-DD",
+        "termStartDate": "AAAA-MM-DD",
+        "termEndDate": "AAAA-MM-DD",
+        "leadInsurerCode": "string",
+        "leadInsurerPolicyId": "string",
+        "maxLMG": {
+            "amount": 2000.00,
+            "currency": "BRL"
+        },
+        "proposalId": "string",
+        "insureds": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "beneficiaries": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "principals": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "intermediaries": [
+            {
+                "type": "REPRESENTANTE",
+                "identification": "12345678900",
+                "brokerId": "string",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "insuredObjects": [
+            {
+                "identification": "string",
+                "type": "CONTRATO",
+                "typeAdditionalInfo": "string",
+                "description": "string",
+                "amount": {
+                    "amount": 2000.00,
+                    "currency": "BRL"
+                },
+                "coverages": [
+                    {
+                        "branch": "111",
+                        "code": "DANOS_CAUSADOS_A_TERCEIROS",
+                        "description": "string",
+                        "internalCode": "string",
+                        "susepProcessNumber": "string",
+                        "LMI": {
+                            "amount": 2000.00,
+                            "currency": "BRL"
+                        },
+                        "isLMISublimit": true,
+                        "termStartDate": "AAAA-MM-DD",
+                        "termEndDate": "AAAA-MM-DD",
+                        "isMainCoverage": true,
+                        "feature": "MASSIFICADOS",
+                        "type": "PARAMETRICO",
+                        "gracePeriod": 0,
+                        "gracePeriodicity": "DIA",
+                        "gracePeriodCountingMethod": "DIAS_UTEIS",
+                        "gracePeriodStartDate": "AAAA-MM-DD",
+                        "gracePeriodEndDate": "AAAA-MM-DD"
+                    }
+                ]
+            }
+        ],
+        "coverages": [
+            {
+                "branch": "111",
+                "code": "DANOS_CAUSADOS_A_TERCEIROS",
+                "description": "string",
+                "deductible": {
+                    "type": "DEDUTIVEL",
+                    "typeAdditionalInfo": "string",
+                    "amount": {
+                        "amount": 2000.00,
+                        "currency": "BRL"
+                    },
+                    "period": 10,
+                    "periodicity": "DIA",
+                    "periodCountingMethod": "DIAS_UTEIS",
+                    "periodStartDate": "2022-05-16",
+                    "periodEndDate": "2022-05-17",
+                    "description": "Franquia de exemplo"
+                },
+                "POS": {
+                    "applicationType": "VALOR",
+                    "description": "Descrição de exemplo",
+                    "minValue": {
+                        "amount": 2000.00,
+                        "currency": "BRL"
+                    },
+                    "maxValue": {
+                        "amount": 2000.00,
+                        "currency": "BRL"
+                    },
+                    "percentage": 10.0
+                }
+            }
+        ],
+        "coinsuranceRetainedPercentage": 10.0,
+        "coinsurers": [
+            {
+                "identification": "string",
+                "cededPercentage": 10.0
+            }
+        ],
+        "branchInfo": {
+            "coverages": [
+                {
+                    "branch": "111",
+                    "code": "DANOS_CAUSADOS_A_TERCEIROS",
+                    "description": "string",
+                    "type": "POR_OCORRENCIA",
+                    "typeDescription": "string",
+                    "retroactivityDate": "AAAA-MM-DD",
+                    "retroactivityPeriod": "string",
+                    "retroactivityTimeUnit": "DIA",
+                    "retroactivityWorkingDaysIndex": "DIAS_UTEIS",
+                    "complementaryTermStartDate": "AAAA-MM-DD",
+                    "complementaryTermEndDate": "AAAA-MM-DD",
+                    "complementaryTerm": "string",
+                    "complementaryTermTimeUnit": "DIA",
+                    "complementaryTermWorkingDaysIndex": "DIAS_UTEIS",
+                    "supplementaryTermStartDate": "AAAA-MM-DD",
+                    "supplementaryTermEndDate": "AAAA-MM-DD",
+                    "supplementaryTerm": "string",
+                    "supplementaryTermTimeUnit": "DIA",
+                    "supplementaryTermWorkingDaysIndex": "DIAS_UTEIS",
+                    "lawyerRecommendation": "ESCOLHIDO_PELO_SEGURADO",
+                    "lawyerRecommendationDescription": "string"
+                }
+            ],
+            "insuredObjects": [
+                {
+                    "identification": "string",
+                    "hasComplementaryContract": true,
+                    "complementaryContractAmount": {
+                        "amount": 2000.00,
+                        "currency": "BRL"
+                    },
+                    "coveragesMaxAmount": {
+                        "amount": 2000.00,
+                        "currency": "BRL"
+                    },
+                    "coveragesTermStartDate": "AAAA-MM-DD",
+                    "coveragesTermEndDate": "AAAA-MM-DD",
+                    "coveragesTerm": 100,
+                    "coveragesUnit": "DIA",
+                    "coveragesWorkingDaysIndex": "DIAS_UTEIS",
+                    "hasTransportationPollutionDamage": true,
+                    "hasThirdPatyDamage": true,
+                    "professionalClass": "ADMINISTRADOR_IMOBILIARIO",
+                    "hasRetroactivityApplication": true
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-responsibility/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-responsibility/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-responsibility/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-responsibility/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-responsibility/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

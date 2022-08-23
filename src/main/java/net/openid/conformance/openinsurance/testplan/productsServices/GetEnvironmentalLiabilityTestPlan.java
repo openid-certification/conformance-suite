@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsServices - Environmental Liability API test",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.ENVIRONMENT_VARIABLE_API_TEST_PLAN,
 	summary = "Structural and logical tests for ProductsServices - Environmental Liability API"
 )
@@ -38,7 +38,7 @@ public class GetEnvironmentalLiabilityTestPlan implements TestPlan {
 		testName = "Open Insurance - ProductsServices - Environmental Liability API test",
 		displayName = "Validate structure of ProductsServices - Environmental Liability API Api resources",
 		summary = "Validate structure of ProductsServices - Environmental Liability Api resources",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE)
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1)
 
 	public static class EnvironmentalLiabilityApiTestModule extends AbstractNoAuthFunctionalTestModule {
 

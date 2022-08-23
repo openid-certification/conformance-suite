@@ -59,4 +59,22 @@ public class ContractResponseValidatorTestV2 extends AbstractJsonResponseConditi
 		ConditionError error = runAndFail(new ContractResponseValidatorV2());
 		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("amortizationScheduledAdditionalInfo", new ContractResponseValidatorV2().getApiName())));
 	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseOK.json")
+	public void validateStructureCnpjConsigneeOK() {
+		run(new ContractResponseValidatorV2());
+	}
+
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseCnpjConsigneeNotNeeded.json")
+	public void validateStructureCnpjConsigneeNotNeeded() {
+		run(new ContractResponseValidatorV2());
+	}
+	@Test
+	@UseResurce("jsonResponses/creditOperations/loans/loansV2/contract/contractResponseCnpjConsigneeMissing.json")
+	public void validateStructureCnpjConsigneeMissing() {
+		ConditionError error = runAndFail(new ContractResponseValidatorV2());
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createElementNotFoundMessage("cnpjConsignee", new ContractResponseValidatorV2().getApiName())));
+	}
 }

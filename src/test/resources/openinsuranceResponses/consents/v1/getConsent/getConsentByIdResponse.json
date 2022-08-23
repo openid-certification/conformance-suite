@@ -1,0 +1,28 @@
+{
+    "data": {
+        "consentId": "urn:prudential:C1DD93123",
+        "creationDateTime": "2021-05-21T08:30:00Z",
+        "status": "AWAITING_AUTHORISATION",
+        "statusUpdateDateTime": "2021-05-21T08:30:00Z",
+        "permissions": [
+            "PENSION_RISK_READ",
+            "CAPITALIZATION_TITLES_READ",
+            "RESOURCES_READ"
+        ],
+        "expirationDateTime": "2021-05-21T08:30:00Z",
+        "transactionFromDateTime": "2021-01-01T00:00:00Z",
+        "transactionToDateTime": "2021-02-01T23:59:59Z"
+    },
+    "links": {
+        "self": "https://api.seguro.com.br/open-insurance/consents/v1",
+        "first": "https://api.seguro.com.br/open-insurance/consents/v1",
+        "prev": "https://api.seguro.com.br/open-insurance/consents/v1",
+        "next": "https://api.seguro.com.br/open-insurance/consents/v1",
+        "last": "https://api.seguro.com.br/open-insurance/consents/v1"
+    },
+    "meta": {
+        "totalRecords": 1,
+        "totalPages": 1,
+        "requestDateTime": "2021-05-21T08:30:00Z"
+    }
+}
