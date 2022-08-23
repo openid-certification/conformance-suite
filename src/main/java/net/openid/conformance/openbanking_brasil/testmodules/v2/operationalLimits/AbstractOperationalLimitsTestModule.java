@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseHasLinksForConsents;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -51,6 +52,12 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 
 		validateClientConfiguration();
+	}
+
+	@Override
+	protected void validateClientConfiguration() {
+		callAndStopOnFailure(AddOpenIdScope.class);
+		super.validateClientConfiguration();
 	}
 
 	@Override
