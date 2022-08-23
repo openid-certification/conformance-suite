@@ -81,7 +81,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 				checkMissingKey(keyObject, "x", "crv");
 				String crv = OIDFJSON.getString(keyObject.getAsJsonPrimitive("crv"));
 				if(!Curve.Ed25519.getName().equals(crv)) {
-					log("Jwks contains an unsupported curve", args("jwks", keyJsonElement, "result", ConditionResult.WARNING));
+//					log("Jwks contains an unsupported curve", args("jwks", keyJsonElement, "result", ConditionResult.WARNING));
 				}
 
 				verifyKeysIsBase64UrlEncoded(keyObject, "x");
