@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -16,7 +16,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.List;
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsNServices - Pension Plan API test",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.PERSON_PENSION_PLAN_API_TEST_PLAN,
 	summary = "Structural and logical tests for ProductsNServices - Pension Plan API"
 )
@@ -38,7 +38,7 @@ public class PensionPlanApiTestPlan implements TestPlan {
 		testName = "Open Insurance - ProductsNServices - Pension Plan API test",
 		displayName = "Validate structure of ProductsNServices - Pension Plan API Api resources",
 		summary = "Validate structure of ProductsNServices - Pension Plan Api resources",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE)
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1)
 	public static class PensionPlanApiTestModule extends AbstractNoAuthFunctionalTestModule {
 
 		@Override

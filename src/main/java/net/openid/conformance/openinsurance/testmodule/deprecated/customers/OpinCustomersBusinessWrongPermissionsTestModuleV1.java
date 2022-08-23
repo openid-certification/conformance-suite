@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.customers;
+package net.openid.conformance.openinsurance.testmodule.deprecated.customers;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
@@ -30,7 +30,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Expects a 403\n" +
 		"\u2022 Calls the GET Customer Business Complimentary-Information Resource V1\n" +
 		"\u2022 Expects a 403",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

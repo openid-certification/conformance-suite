@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.validator.discovery.OutagesListValidator;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - Discovery Outages API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.OPIN_DISCOVERY_OUTAGES_TEST_PLAN,
 	summary = "Structural and logical tests for Discovery API"
 )
@@ -36,7 +36,7 @@ public class DiscoveryOutagesTestPlan implements TestPlan {
 		testName = "Discovery - Outages API test module",
 		displayName = "Validate structure of Discovery - Outages response",
 		summary = "Validate structure of Discovery - Outages response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class DiscoveryOutagesTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override

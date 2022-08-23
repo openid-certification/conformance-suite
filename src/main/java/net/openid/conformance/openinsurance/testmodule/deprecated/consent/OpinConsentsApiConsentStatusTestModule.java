@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.consent;
+package net.openid.conformance.openinsurance.testmodule.deprecated.consent;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
