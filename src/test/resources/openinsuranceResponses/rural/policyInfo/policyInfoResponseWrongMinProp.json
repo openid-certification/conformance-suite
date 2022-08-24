@@ -1,0 +1,163 @@
+{
+    "data": {
+        "documentType": "APOLICE_INDIVIDUAL",
+        "policyId": "111111",
+        "susepProcessNumber": "string",
+        "groupCertificateId": "string",
+        "issuanceType": "EMISSAO_PROPRIA",
+        "issuanceDate": "AAAA-MM-DD",
+        "termStartDate": "AAAA-MM-DD",
+        "termEndDate": "AAAA-MM-DD",
+        "leadInsurerCode": "string",
+        "leadInsurerPolicyId": "string",
+        "maxLMG": {
+            "amount": 2000.22,
+            "currency": "BRL"
+        },
+        "proposalId": "string",
+        "insureds": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "beneficiaries": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "principals": [
+            {
+                "identification": "12345678900",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "email": "string",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "intermediaries": [
+            {
+                "type": "REPRESENTANTE",
+                "identification": "12345678900",
+                "brokerId": "string",
+                "identificationType": "CPF",
+                "name": "Nome Sobrenome",
+                "postCode": "10000000",
+                "city": "string",
+                "state": "string",
+                "country": "BRA",
+                "address": "string"
+            }
+        ],
+        "insuredObjects": [
+            {
+                "identification": "string",
+                "type": "CONTRATO",
+                "typeAdditionalInfo": "string",
+                "description": "string",
+                "amount": {
+                    "amount": 2000.22,
+                    "currency": "BRL"
+                },
+                "coverages": [
+                    {
+                        "branch": "111",
+                        "code": "GRANIZO",
+                        "description": "string",
+                        "internalCode": "string",
+                        "susepProcessNumber": "string",
+                        "LMI": {
+                            "amount": 2000.22,
+                            "currency": "BRL"
+                        },
+                        "isLMISublimit": true,
+                        "termStartDate": "AAAA-MM-DD",
+                        "termEndDate": "AAAA-MM-DD",
+                        "isMainCoverage": true,
+                        "feature": "MASSIFICADOS",
+                        "type": "PARAMETRICO",
+                        "gracePeriod": 0,
+                        "gracePeriodicity": "DIA",
+                        "gracePeriodCountingMethod": "DIAS_UTEIS",
+                        "gracePeriodStartDate": "AAAA-MM-DD",
+                        "gracePeriodEndDate": "AAAA-MM-DD"
+                    }
+                ]
+            }
+        ],
+        "coverages": [
+            {
+                "branch": "111",
+                "code": "GRANIZO"
+
+            }
+        ],
+        "coinsuranceRetainedPercentage": 10.22,
+        "coinsurers": [
+            {
+                "identification": "string",
+                "cededPercentage": 10.22
+            }
+        ],
+        "branchInfo": {
+            "insuredObjects": [
+                {
+                    "identification": "string",
+                    "isFESRParticipant": true,
+                    "subventionAmount": {
+                        "amount": 2000.22,
+                        "currency": "BRL"
+                    },
+                    "subventionType": "AC",
+                    "safeArea": 2000.22,
+                    "unitMeasure": "HECTAR",
+                    "cultureCode": 11111111,
+                    "flockCode": "BOVINOS",
+                    "forestCode": "PINUS",
+                    "surveyDate": "AAAA-MM-DD",
+                    "surveyAddress": "string",
+                    "surveyCountrySubDivision": "SP",
+                    "surveyPostCode": "10000000",
+                    "surveyCountryCode": "BRA",
+                    "surveyorIdType": "CPF",
+                    "surveyorId": "40",
+                    "surveyorName": "string",
+                    "modelType": "CLIMATICOS",
+                    "areAssetsCovered": true,
+                    "coveredAnimalDestination": "CONSUMO",
+                    "animalType": "ELITE"
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}

@@ -11,10 +11,8 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.*;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -22,7 +20,6 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 
 	public static final String ROOT_PATH = "$.data";
 	private static final Gson GSON = JsonUtils.createBigDecimalAwareGson();
-	private final JsonKeysKeeper namesKeeper = new JsonKeysKeeper();
 	private int errorCount;
 	private boolean dontStopOnFailure;
 
@@ -32,9 +29,7 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 	protected JsonElement bodyFrom(Environment environment) {
 		initAdditionalProperties(environment);
 		String resource = environment.getString("resource_endpoint_response");
-		JsonElement jsonResource = GSON.fromJson(resource, JsonElement.class);
-		namesKeeper.createListOfKeys(jsonResource);
-		return jsonResource;
+		return GSON.fromJson(resource, JsonElement.class);
 	}
 
 	public void assertField(JsonElement jsonObject, Field field) {
@@ -44,12 +39,6 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			} catch (ConditionError ignored) {errorCount++;}
 		} else {
 			assertElement(jsonObject, field);
-		}
-		if (!namesKeeper.hasNext()) {
-			List<String> finalResult = namesKeeper.getFinalResult();
-			if (!finalResult.isEmpty()) {
-				throw error(String.format("This fields are not validated on the %s API response: %s", getApiName(), StringUtils.join(finalResult, ", ")));
-			}
 		}
 	}
 
@@ -64,7 +53,6 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 					args("currentElement", jsonObject));
 			}
 		}
-		namesKeeper.remove(field.getPath());
 
 		JsonElement elementByPath = findByPath(jsonObject, field.getPath());
 		if (field.isNullable() && elementByPath.isJsonNull()) {
@@ -160,12 +148,17 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			parentPath = ".";
 			return;
 		}
-		assertJsonObject(baseObj, field.getPath(), ((ObjectField) field).getValidator());
+
+		assertJsonObject(baseObj, field, ((ObjectField) field).getValidator());
 		parentPath = ".";
 	}
 
-	private void assertJsonObject(JsonElement body, String pathToJsonObject, Consumer<JsonObject> consumer) {
-		JsonObject object = (JsonObject) findByPath(body, pathToJsonObject);
+	private void assertJsonObject(JsonElement body, Field field, Consumer<JsonObject> consumer) {
+		JsonObject object = (JsonObject) findByPath(body, field.getPath());
+		if (field.getMinProperties() != 0 && object.size() < field.getMinProperties()) {
+			throw error(ErrorMessagesUtils.createObjectLessRequiredMinProperties(field.getPath(), getApiName()),
+				args("requiredValue", field.getMinProperties(), "currentValue", object.getAsJsonObject().size()));
+		}
 		consumer.accept(object.getAsJsonObject());
 	}
 
@@ -186,6 +179,13 @@ public abstract class AbstractJsonAssertingCondition extends AbstractJsonAsserti
 			parentPath = ".";
 			return;
 		}
+		array.forEach(object -> {
+			if (field.getMinProperties() != 0 && object.isJsonObject()
+				&& object.getAsJsonObject().size() < field.getMinProperties()) {
+				throw error(ErrorMessagesUtils.createObjectLessRequiredMinProperties(field.getPath(), getApiName()),
+					args("requiredValue", field.getMinProperties(), "currentValue", object.getAsJsonObject().size()));
+			}
+		});
 		array.forEach(json -> ((ObjectArrayField) field).getValidator().accept(json.getAsJsonObject()));
 		parentPath = ".";
 	}

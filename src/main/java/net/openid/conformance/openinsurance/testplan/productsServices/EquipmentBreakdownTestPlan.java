@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 	import net.openid.conformance.condition.Condition;
 	import net.openid.conformance.openbanking_brasil.OBBProfile;
-	import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+	import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 	import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 	import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 	import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -17,7 +17,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsServices - Equipment Breakdown API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.EQUIPMENT_BREAKDOWN_API_TEST_PLAN,
 	summary = "Structural and logical tests for Equipment Breakdown API"
 )
@@ -35,7 +35,7 @@ public class EquipmentBreakdownTestPlan implements TestPlan {
 		testName = "Open Insurance - Equipment Breakdown API test",
 		displayName = "Validate structure of Equipment Breakdown response",
 		summary = "Validate structure of Equipment Breakdown response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class EquipmentBreakdownTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override

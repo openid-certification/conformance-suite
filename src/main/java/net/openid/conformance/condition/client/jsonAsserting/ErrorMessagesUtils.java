@@ -17,6 +17,10 @@ public class ErrorMessagesUtils {
 				"Field: %s on the %s API response",	elementName, apiName);
 	}
 
+	public static String createObjectLessRequiredMinProperties(String elementName, String apiName) {
+		return String.format("Json Object: %s has less properties then required minProperties on the %s API response",	elementName, apiName);
+	}
+
 	public static String createQueryMessage(String elementName, String apiName) {
 		return String.format("Looking up %s on the %s API response", elementName, apiName);
 	}

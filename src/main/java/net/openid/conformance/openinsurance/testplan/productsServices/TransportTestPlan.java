@@ -2,7 +2,7 @@ package net.openid.conformance.openinsurance.testplan.productsServices;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.plans.PlanNames;
+import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractNoAuthFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.DoNotStopOnFailure;
 import net.openid.conformance.openinsurance.testplan.utils.CallNoCacheResource;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "Open Insurance - ProductsServices - Transport API test plan",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
 	displayName = PlanNames.TRANSPORT_API_TEST_PLAN,
 	summary = "Structural and logical tests for Transport API"
 )
@@ -35,7 +35,7 @@ public class TransportTestPlan implements TestPlan {
 		testName = "Open Insurance - Transport API test",
 		displayName = "Validate structure of Transport response",
 		summary = "Validate structure of Transport response",
-		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1
 	)
 	public static class TransportTestModule extends AbstractNoAuthFunctionalTestModule {
 		@Override

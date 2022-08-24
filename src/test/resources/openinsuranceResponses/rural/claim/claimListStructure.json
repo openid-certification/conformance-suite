@@ -1,0 +1,50 @@
+{
+    "data": [
+        {
+            "identification": "string",
+            "documentationDeliveryDate": "AAAA-MM-DD",
+            "status": "ABERTO",
+            "statusAlterationDate": "AAAA-MM-DD",
+            "occurrenceDate": "AAAA-MM-DD",
+            "warningDate": "AAAA-MM-DD",
+            "thirdPartyClaimDate": "AAAA-MM-DD",
+            "amount": {
+                "amount": 2000.22,
+                "currency": "BRL"
+            },
+            "denialJustification": "RISCO_EXCLUIDO",
+            "denialJustificationDescription": "string",
+            "coverages": [
+                {
+                    "insuredObjectId": "string",
+                    "branch": "111",
+                    "code": "GRANIZO",
+                    "description": "string",
+                    "warningDate": "2022-05-01",
+                    "thirdPartyClaimDate": "2022-05-01"
+                }
+            ],
+            "branchInfo": {
+                "surveyDate": "AAAA-MM-DD",
+                "surveyAddress": "string",
+                "surveyCountrySubDivision": "SP",
+                "surveyPostCode": "10000000",
+                "surveyCountryCode": "BRA",
+                "surveyorIdType": "CPF",
+                "surveyorId": "40",
+                "surveyorName": "string"
+            }
+        }
+    ],
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-rural/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}
