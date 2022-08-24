@@ -103,7 +103,14 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(CreditCardAccountsTransactionResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
-		call(sequence(ValidateSelfEndpoint.class));
+
+		call(new ValidateSelfEndpoint()
+			.replace(ValidateResponseMetaData.class, condition(ValidateMetaOnlyRequestDateTime.class)
+			));
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCardBills.class);
 		callAndStopOnFailure(AddToAndFromDueDateParametersToProtectedResourceUrl.class);
@@ -121,7 +128,14 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 
-		call(sequence(ValidateSelfEndpoint.class));
+		call(new ValidateSelfEndpoint()
+			.replace(ValidateResponseMetaData.class, condition(ValidateMetaOnlyRequestDateTime.class)
+			));
+
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING));
+
 	}
 
 }

@@ -165,6 +165,11 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 				runInBlock("Validate Account Transactions Response", () -> {
 					callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 					callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
+
+					call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+						.dontStopOnFailure()
+						.onFail(Condition.ConditionResult.WARNING));
+
 					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
 				});
 			}
@@ -209,6 +214,11 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			if (i == 0) {
 				callAndContinueOnFailure(AccountTransactionsCurrentValidatorV2.class, Condition.ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
+
+				call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+					.dontStopOnFailure()
+					.onFail(Condition.ConditionResult.WARNING));
+
 			}
 			callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);
 			callAndStopOnFailure(EnsureOnlyOneRecordWasReturned.class);
