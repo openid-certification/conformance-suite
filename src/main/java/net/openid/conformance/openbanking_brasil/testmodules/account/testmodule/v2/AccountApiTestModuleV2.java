@@ -75,6 +75,10 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
 
+		call(new ValidateSelfEndpoint()
+			.replace(ValidateResponseMetaData.class, condition(ValidateMetaOnlyRequestDateTime.class)
+			));
+
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 					.dontStopOnFailure()
 					.onFail(Condition.ConditionResult.WARNING));

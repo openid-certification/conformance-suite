@@ -104,13 +104,16 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 
 	private ConditionSequence accountTransactionsValidationSequence(){
 		return sequenceOf(
-			condition(AccountTransactionsValidatorV2.class),
+			condition(AccountTransactionsValidatorV2.class).dontStopOnFailure(),
 			condition(EnsureResponseHasLinks.class),
 			condition(ValidateMetaOnlyRequestDateTime.class),
+			new ValidateSelfEndpoint()
+				.replace(ValidateResponseMetaData.class, condition(ValidateMetaOnlyRequestDateTime.class)
+				),
 			condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 				.dontStopOnFailure()
-				.onFail(Condition.ConditionResult.WARNING),
-			sequence(ValidateSelfEndpoint.class)
+				.onFail(Condition.ConditionResult.WARNING)
+
 		);
 	}
 }
