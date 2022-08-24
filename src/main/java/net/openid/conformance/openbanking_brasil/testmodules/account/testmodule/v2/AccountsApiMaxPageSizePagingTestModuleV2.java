@@ -80,8 +80,7 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.WARNING)
-			.skipIfStringMissing("metaOnlyRequestDateTime"));
+			.onFail(Condition.ConditionResult.WARNING));
 
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage1.class, Condition.ConditionResult.FAILURE);
 
@@ -98,8 +97,7 @@ public class AccountsApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasilFu
 
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.WARNING)
-			.skipIfStringMissing("metaOnlyRequestDateTime"));
+			.onFail(Condition.ConditionResult.WARNING));
 
 		callAndContinueOnFailure(ValidateNumberOfRecordsPage2.class, Condition.ConditionResult.FAILURE);
 

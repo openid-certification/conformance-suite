@@ -77,19 +77,5 @@ public class LinksAndMetaOnlyRequestDateTimeValidator {
 				.Builder("requestDateTime")
 				.setMaxLength(20)
 				.build());
-
-		if(meta.has("totalPages")) {
-			validator.assertField(meta,
-				new IntField
-					.Builder("totalPages")
-					.build());
-		}
-
-		if(meta.has("totalRecords")) {
-			validator.assertField(meta,
-				new IntField
-					.Builder("totalRecords")
-					.build());
-		}
 	}
 }

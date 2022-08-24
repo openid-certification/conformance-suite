@@ -168,8 +168,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 					call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 						.dontStopOnFailure()
-						.onFail(Condition.ConditionResult.WARNING)
-						.skipIfStringMissing("metaOnlyRequestDateTime"));
+						.onFail(Condition.ConditionResult.WARNING));
 
 					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
 				});
@@ -218,8 +217,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 				call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 					.dontStopOnFailure()
-					.onFail(Condition.ConditionResult.WARNING)
-					.skipIfStringMissing("metaOnlyRequestDateTime"));
+					.onFail(Condition.ConditionResult.WARNING));
 
 			}
 			callAndStopOnFailure(ValidateNumberOfRecordsPage1.class);

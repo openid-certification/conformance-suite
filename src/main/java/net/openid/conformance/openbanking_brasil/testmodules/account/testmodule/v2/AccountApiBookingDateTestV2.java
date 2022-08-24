@@ -109,8 +109,7 @@ public class AccountApiBookingDateTestV2 extends AbstractOBBrasilFunctionalTestM
 			condition(ValidateMetaOnlyRequestDateTime.class),
 			condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 				.dontStopOnFailure()
-				.onFail(Condition.ConditionResult.WARNING)
-				.skipIfStringMissing("metaOnlyRequestDateTime"),
+				.onFail(Condition.ConditionResult.WARNING),
 			sequence(ValidateSelfEndpoint.class)
 		);
 	}

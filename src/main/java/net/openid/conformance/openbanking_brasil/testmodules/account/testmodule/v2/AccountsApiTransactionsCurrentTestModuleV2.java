@@ -129,7 +129,6 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 			condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 				.dontStopOnFailure()
 				.onFail(Condition.ConditionResult.WARNING)
-				.skipIfStringMissing("metaOnlyRequestDateTime")
 		);
 	}
 

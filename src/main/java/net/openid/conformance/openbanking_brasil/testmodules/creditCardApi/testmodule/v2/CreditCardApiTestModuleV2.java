@@ -106,8 +106,7 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.WARNING)
-			.skipIfStringMissing("metaOnlyRequestDateTime"));
+			.onFail(Condition.ConditionResult.WARNING));
 
 		call(sequence(ValidateSelfEndpoint.class));
 
@@ -129,8 +128,7 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.WARNING)
-			.skipIfStringMissing("metaOnlyRequestDateTime"));
+			.onFail(Condition.ConditionResult.WARNING));
 
 		call(sequence(ValidateSelfEndpoint.class));
 	}

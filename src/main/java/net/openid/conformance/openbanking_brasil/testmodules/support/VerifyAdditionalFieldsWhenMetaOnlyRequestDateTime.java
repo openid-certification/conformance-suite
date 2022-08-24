@@ -25,7 +25,7 @@ public class VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime extends AbstractC
 			}
 
 		} else {
-			log("No additional field detected");
+			throw error ("VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime has been used where metaOnlyRequestDateTime is false");
 		}
 
 		return env;

@@ -77,8 +77,7 @@ public class AccountApiTestModuleV2 extends AbstractOBBrasilFunctionalTestModule
 
 		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 					.dontStopOnFailure()
-					.onFail(Condition.ConditionResult.WARNING)
-					.skipIfStringMissing("metaOnlyRequestDateTime"));
+					.onFail(Condition.ConditionResult.WARNING));
 
 		callAndStopOnFailure(PrepareUrlForFetchingAccountLimits.class);
 		preCallProtectedResource("Fetch Account limits V2");

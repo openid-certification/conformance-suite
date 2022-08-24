@@ -128,7 +128,6 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 			condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 				.dontStopOnFailure()
 				.onFail(Condition.ConditionResult.WARNING)
-				.skipIfStringMissing("metaOnlyRequestDateTime")
 		);
 	}
 
