@@ -44,7 +44,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestModule {
 
-	private ClientAuthType clientAuthType;
 	@Override
 	protected void configureClient(){
 		//Arbitrary resource
