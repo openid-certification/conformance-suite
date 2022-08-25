@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.ConditionSequenceRepeater;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -8,8 +9,10 @@ import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccoun
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -41,6 +44,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestModule {
 
+	private ClientAuthType clientAuthType;
 	@Override
 	protected void configureClient(){
 		//Arbitrary resource
@@ -48,6 +52,11 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 		super.configureClient();
 	}
 
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		clientAuthType = getVariant(ClientAuthType.class);
+		super.onConfigure(config, baseUrl);
+	}
 
 	@Override
 	protected void validateClientConfiguration() {
@@ -70,6 +79,7 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 		ConditionSequenceRepeater repeatSequence = repeatSequence(() -> getPreConsentWithBearerTokenSequence()
 			.then(getValidateConsentResponsePollingSequence()))
 			.untilTrue("code_returned")
+			.refreshSequence(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication), 3)
 			.times(10)
 			.trailingPause(60)
 			.onTimeout(sequenceOf(
@@ -99,4 +109,5 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 			condition(CallConsentApiWithBearerToken.class)
 		);
 	}
+
 }
