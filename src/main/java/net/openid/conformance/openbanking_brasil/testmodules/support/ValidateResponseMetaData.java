@@ -33,11 +33,17 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 
 		String resourceEndpointResponse = env.getString("resource_endpoint_response");
 		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response");
+		Boolean isConsentsForced = env.getBoolean("force_consents_response");
 
-		if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
-			apiResponse = bodyFrom(env);
-		} else {
+		if(isConsentsForced != null && isConsentsForced){
 			apiResponse = consentEndpointResponse;
+			env.putBoolean("force_consents_response", false);
+		}else {
+			if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
+				apiResponse = bodyFrom(env);
+			} else {
+				apiResponse = consentEndpointResponse;
+			}
 		}
 
 		if (apiResponse == null) {

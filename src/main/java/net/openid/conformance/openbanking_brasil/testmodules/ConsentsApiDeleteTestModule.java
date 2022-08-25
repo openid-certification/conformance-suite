@@ -27,7 +27,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Calls the Protected Resource endpoint to make sure a valid access token has been created\n" +
 		"\u2022 Call the DELETE Consents API\n" +
 		"\u2022 Calls the Token endpoint to issue a new access token\n" +
-		"\u2022 Expects the test to return a 403 - Forbidden\n",
+		"\u2022 Expects the test to return a 400\n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
 		"server.discoveryUrl",
@@ -104,7 +104,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 
 		eventLog.startBlock("Try calling protected resource after consent is deleted");
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403or400.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
@@ -117,6 +117,7 @@ public class ConsentsApiDeleteTestModule extends AbstractFunctionalTestModule {
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
 			condition(CallTokenEndpointAndReturnFullResponse.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
+			condition(EnsureTokenResponseWas400.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure(),
 			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
 		);
 

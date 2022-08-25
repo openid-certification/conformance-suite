@@ -21,8 +21,6 @@ import java.util.Set;
  **/
 @ApiName("Account Transactions V2")
 public class AccountTransactionsValidatorV2 extends AbstractJsonAssertingCondition {
-	private final LinksAndMetaValidatorTransactions linksAndMetaValidator = new LinksAndMetaValidatorTransactions(this);
-
 	public static final Set<String> ENUM_COMPLETED_AUTHORISED_PAYMENT_INDICATOR = SetUtils.createSet("TRANSACAO_EFETIVADA, LANCAMENTO_FUTURO");
 	public static final Set<String> ENUM_TRANSACTION_TYPES = SetUtils.createSet("TED, DOC, PIX, TRANSFERENCIA_MESMA_INSTITUICAO, BOLETO, CONVENIO_ARRECADACAO, PACOTE_TARIFA_SERVICOS, TARIFA_SERVICOS_AVULSOS, FOLHA_PAGAMENTO, DEPOSITO, SAQUE, CARTAO, ENCARGOS_JUROS_CHEQUE_ESPECIAL, RENDIMENTO_APLIC_FINANCEIRA, PORTABILIDADE_SALARIO, RESGATE_APLIC_FINANCEIRA, OPERACAO_CREDITO, OUTROS");
 	public static final Set<String> ENUM_CREDIT_DEBIT_INDICATOR = SetUtils.createSet("CREDITO, DEBITO");
@@ -39,7 +37,7 @@ public class AccountTransactionsValidatorV2 extends AbstractJsonAssertingConditi
 				.setValidator(this::assertData)
 				.setMinItems(0)
 				.build());
-		linksAndMetaValidator.assertMetaAndLinks(body);
+
 		logFinalStatus();
 		return environment;
 	}
