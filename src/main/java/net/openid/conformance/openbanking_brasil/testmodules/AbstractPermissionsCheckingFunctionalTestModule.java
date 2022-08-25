@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ForceToValidateConsentResponse;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -47,6 +48,13 @@ public abstract class AbstractPermissionsCheckingFunctionalTestModule extends Ab
 		fireTestFinished();
 
 	}
+
+	@Override
+	protected void performPreAuthorizationSteps() {
+		callAndStopOnFailure(ForceToValidateConsentResponse.class);
+		super.performPreAuthorizationSteps();
+	}
+
 
 	protected abstract void preFetchResources();
 	protected abstract void prepareCorrectConsents();
