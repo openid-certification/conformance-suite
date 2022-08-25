@@ -120,9 +120,11 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 	protected void requestProtectedResource() {
 		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
 			if (i % 100 == 0) {
+				enableLogging();
 				eventLog.startBlock(currentClientString() + "Refreshing access token.");
 				call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
 				eventLog.endBlock();
+				disableLogging();
 			}
 
 			eventLog.startBlock(currentClientString() + String.format("[%d] Calling consent endpoint.", i + 1));
@@ -131,6 +133,7 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 
 			if (i == 0) {
 				call(getValidateConsentResponsePollingSequence());
+				disableLogging();
 			}
 		}
 	}

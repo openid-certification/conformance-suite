@@ -3,20 +3,49 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
+import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.logging.TestInstanceEventLogOnlyErrors;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddOpenIdScope;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseHasLinksForConsents;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateResponseMetaData;
+import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 
+import java.util.Map;
+
 public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBrasilFunctionalTestModule {
+
+	private TestInstanceEventLog originalLogger;
+	private TestInstanceEventLog errorsOnlyLogger;
+
+	@Override
+	public void setProperties(String id, Map<String, String> owner, TestInstanceEventLog eventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService) {
+		this.errorsOnlyLogger = new TestInstanceEventLogOnlyErrors(eventLog);
+		this.originalLogger = eventLog;
+		super.setProperties(id, owner, eventLog, browser, testInfo, executionManager, imageService);
+	}
 
 	@Override
 	protected void configureClient() {
 		// Everything below is taken from super
 		validateFirstClient();
 		validateSecondClient();
+	}
+
+	protected void disableLogging() {
+		eventLog.log(getName(), "Logging is reduced. Only errors and warnings will be displayed");
+		eventLog = errorsOnlyLogger;
+	}
+
+	protected void enableLogging() {
+		eventLog = originalLogger;
+		eventLog.log(getName(), "Full logging is enabled");
+
 	}
 
 	@Override
@@ -69,14 +98,14 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 
 		if (getResult() == Result.WARNING) {
 			fireTestFinished();
-		}else {
+		} else {
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 			call(exec().unmapKey("endpoint_response"));
 			validatePermissions();
 
 			if (getResult() == Result.WARNING) {
 				fireTestFinished();
-			}else {
+			} else {
 				callAndContinueOnFailure(EnsureResponseHasLinksForConsents.class, Condition.ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 				callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
@@ -100,7 +129,7 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-		eventLog.log(getName(),"Switched to second client");
+		eventLog.log(getName(), "Switched to second client");
 		JsonObject client = env.getObject("client");
 		if (client != null) {
 			eventLog.log(getName(), client);
@@ -113,14 +142,13 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		env.unmapKey("mutual_tls_authentication");
-		eventLog.log(getName(),"Switched to first client");
+		eventLog.log(getName(), "Switched to first client");
 		JsonObject client = env.getObject("client");
 		if (client != null) {
 			eventLog.log(getName(), client);
 
 		}
 	}
-
 
 
 }
