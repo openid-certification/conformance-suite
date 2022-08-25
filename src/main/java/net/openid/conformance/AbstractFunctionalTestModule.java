@@ -102,6 +102,6 @@ public abstract class AbstractFunctionalTestModule extends AbstractFAPI1Advanced
 	 * @return
 	 */
 	protected ConditionSequenceRepeater repeatSequence(Supplier<ConditionSequence> conditionSequenceSupplier) {
-		return new ConditionSequenceRepeater(conditionSequenceSupplier);
+		return new ConditionSequenceRepeater(env, getId(), eventLog, testInfo, executionManager, conditionSequenceSupplier);
 	}
 }

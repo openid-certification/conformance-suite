@@ -135,6 +135,7 @@ public class AdvancesContractResponseValidatorV2 extends AbstractJsonAssertingCo
 			new DatetimeField
 				.Builder("dueDate")
 				.setPattern("^(\\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$")
+				.setOptional()
 				.setMaxLength(10)
 				.setMinLength(2)
 				.build());

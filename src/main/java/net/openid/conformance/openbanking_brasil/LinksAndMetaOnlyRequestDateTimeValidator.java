@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
 import net.openid.conformance.util.field.DatetimeField;
+import net.openid.conformance.util.field.IntField;
 import net.openid.conformance.util.field.ObjectField;
 import net.openid.conformance.util.field.StringField;
 
