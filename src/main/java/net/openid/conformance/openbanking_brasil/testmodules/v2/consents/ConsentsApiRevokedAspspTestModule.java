@@ -53,12 +53,6 @@ public class ConsentsApiRevokedAspspTestModule extends AbstractFunctionalTestMod
 	}
 
 	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		clientAuthType = getVariant(ClientAuthType.class);
-		super.onConfigure(config, baseUrl);
-	}
-
-	@Override
 	protected void validateClientConfiguration() {
 		super.validateClientConfiguration();
 		callAndStopOnFailure(AddConsentScope.class);

@@ -23,7 +23,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	private final Logger logger = LoggerFactory.getLogger(ConditionSequenceRepeater.class);
 
 	private final Supplier<ConditionSequence> sequenceSupplier;
-	private final String TIMEOUT_COUNTER_KEY = String.format("LOOPING_COUNTER_0");
+	private final String TIMEOUT_COUNTER_KEY = String.format("LOOPING_COUNTER_%s", getId());
 	private int timeout = 5;
 
 	private Optional<Class<? extends Condition>> onTimeoutCondtion = Optional.empty();
