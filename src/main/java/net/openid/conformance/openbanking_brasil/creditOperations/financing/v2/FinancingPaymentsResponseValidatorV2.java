@@ -179,6 +179,7 @@ public class FinancingPaymentsResponseValidatorV2 extends AbstractJsonAssertingC
 		assertField(body,
 			new StringField
 				.Builder("chargeAdditionalInfo")
+				.setOptional()
 				.setMaxLength(140)
 				.setPattern("[\\w\\W\\s]*")
 				.build());
