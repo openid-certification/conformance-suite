@@ -43,7 +43,7 @@ dev_build:
   except:
    - master
   stage: build
-  before_script:
+  script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$GIT_SSH_PRIVATE_KEY" | base64 -d)
@@ -51,7 +51,6 @@ dev_build:
     - git config --global user.name "ReleaseBot"
     - mkdir -p ~/.ssh
     - ssh-keyscan $CI_SERVER_HOST > ~/.ssh/known_hosts
-  script:
     - set_app_version
     - mvn -B clean package
   artifacts:
