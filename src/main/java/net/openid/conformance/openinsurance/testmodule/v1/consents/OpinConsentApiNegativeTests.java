@@ -5,6 +5,8 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermissionsBuilder;
+import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -49,33 +51,51 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class OpinConsentApiNegativeTests extends AbstractClientCredentialsGrantFunctionalTestModule {
 
+	private OpinConsentPermissionsBuilder permissionsBuilder;
 	@Override
 	protected void runTests() {
+		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
 
-		validateBadPermission(SetUpResourceReadOnlyPermissions.class, "Resource read only");
-		validateBadPermission(SetUpCustomerPersonalIdOnlyPermissions.class, "Customers personal identification permissions only");
-		validateBadPermission(SetUpIncompleteCreditCardPermissions.class, "incomplete credit card permission group");
-		validateBadPermission(SetUpIncompleteAccountPermissions.class, "incomplete account permission group");
-		validateBadPermission(SetUpSlightlyLessIncompleteAccountPermissions.class, "less incomplete account permission group");
-		//validateBadPermission(SetUpIncompleteCreditOperationsPermissions.class, "incomplete Credit Operations Contract Data permission group");
-		validateBadPermission(SetUpIncompleteComboPermissions.class, "incomplete combination of Limits & Credit Operations Contract Data permission groups");
-		validateBadPermission(SetUpNonExistentPermissions.class,"non-existent permission group");
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.RESOURCES).build();
+		validateBadPermission("Resource read only");
 
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.PENSION_RISK)
+				.removePermission("PENSION_RISK_READ").build();
+		validateBadPermission("incomplete Pension Risk  permission group");
+
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.CAPITALIZATION_TITLES)
+				.removePermission("CAPITALIZATION_TITLES_CLAIM_READ").build();
+		validateBadPermission("incomplete Capitalization Titles permission group");
+
+
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.DAMAGES_AND_PEOPLE_PATRIMONIAL)
+				.removePermission("DAMAGES_AND_PEOPLE_PATRIMONIAL_PREMIUM_READ").build();
+		validateBadPermission( "incomplete Damages and People Patrimonial permission group");
+
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.DAMAGES_AND_PEOPLE_NUCLEAR)
+			.removePermission("DAMAGES_AND_PEOPLE_NUCLEAR_POLICYINFO_READ").build();
+		validateBadPermission( "incomplete Damages and People Nuclear permission group");
+
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.DAMAGES_AND_PEOPLE_PERSON)
+			.removePermission("DAMAGES_AND_PEOPLE_PERSON_POLICYINFO_READ").build();
+		validateBadPermission( "incomplete Damages and People Person permission group");
+
+		permissionsBuilder.resetPermissions().set("BAD_PERMISSION").build();
+		validateBadPermission("non-existent permission group");
+
+		permissionsBuilder.resetPermissions().addPermissionsGroup(PermissionsGroup.ALL).build();
 		validateBadExpiration(ConsentExpiryDateTimeGreaterThanAYear.class, "DateTime greater than 1 year from now");
 		validateBadExpiration(ConsentExpiryDateTimeInThePast.class, "DateTime in the past");
 		validateBadExpiration(ConsentExpiryDateTimePoorlyFormed.class, "DateTime poorly formed");
 
 	}
 
-	private void validateBadPermission(Class<? extends Condition> setupClass, String description) {
+	private void validateBadPermission(String description) {
 		String logMessage = String.format("Check for HTTP 400 response from consent api request for %s", description);
 		runInBlock(logMessage, () -> {
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndStopOnFailure(AddConsentScope.class);
-			call(sequenceOf(
-				condition(setupClass),
-				sequence(PostConsentWithBadRequestSequence.class)
-			));
+			call(sequence(PostConsentWithBadRequestSequence.class));
 		});
 	}
 
@@ -83,7 +103,6 @@ public class OpinConsentApiNegativeTests extends AbstractClientCredentialsGrantF
 		String logMessage = String.format("Check for HTTP 400 response from consent api request for %s.", description);
 		runInBlock(logMessage, () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
-			callAndStopOnFailure(PrepareAllCreditOperationsPermissionsForHappyPath.class);
 			callAndStopOnFailure(setupClass);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class);
 			callAndStopOnFailure(EnsureResponseCodeWas400.class);
