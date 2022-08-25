@@ -1,17 +1,20 @@
 package net.openid.conformance.openinsurance.testmodule.consents.v1;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.CheckItemCountHasMin1;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.payments.EnsureConsentResponseCodeWas201;
+import net.openid.conformance.openinsurance.validator.consents.v1.OpinConsentDetailsIdentifiedByConsentIdValidatorV1;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinCreateNewConsentValidatorV1;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "opin-consent-api-test-v1",
+	testName = "opin-consent-api-test",
 	displayName = "Validate the structure of all consent API resources V1",
 	summary = "Validates the structure of all consent API resources V1\n" +
 		"\u2022 Creates a Consent with all of the existing permissions.\n" +
@@ -49,11 +52,23 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 
 
 		runInBlock("Validating get consent response", () -> {
-
+			callAndStopOnFailure(ConsentIdExtractor.class);
+			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(OpinConsentDetailsIdentifiedByConsentIdValidatorV1.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 		});
 
 		runInBlock("Deleting consent", () -> {
-
+			callAndContinueOnFailure(PrepareToDeleteConsent.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
+			callAndStopOnFailure(IgnoreResponseError.class);
+			callAndStopOnFailure(SetResponseBodyOptional.class);
+			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
 		});
 
 	}
