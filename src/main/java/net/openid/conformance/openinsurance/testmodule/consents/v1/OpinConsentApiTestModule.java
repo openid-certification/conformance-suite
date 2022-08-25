@@ -3,12 +3,15 @@ package net.openid.conformance.openinsurance.testmodule.consents.v1;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckItemCountHasMin1;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinConsentDetailsIdentifiedByConsentIdValidatorV1;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinCreateNewConsentValidatorV1;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermissionsBuilder;
 
 @PublishTestModule(
 	testName = "opin-consent-api-test",
@@ -32,12 +35,20 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
+	private OpinConsentPermissionsBuilder permissionsBuilder;
+
 	@Override
 	protected void runTests() {
+
+		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL).build();
+
 		runInBlock("Validating create consent response", () -> {
+
+
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(AddConsentScope.class);
-			callAndStopOnFailure(OPINBrazilCreateConsentRequest.class);
+			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
