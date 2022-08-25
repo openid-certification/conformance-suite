@@ -11,16 +11,11 @@ public class CallConsentEndpointWithBearerTokenAnyHttpMethod extends CallConsent
 
 	@Override
 	protected String getUri(Environment env) {
-		HttpMethod httpMethod = getMethod(env);
-		if (!httpMethod.equals(HttpMethod.POST)) {
-			String consentUrl = env.getString("consent_url");
-			if (Strings.isNullOrEmpty(consentUrl)) {
-				throw error("consent url missing from configuration");
-			}
-			return consentUrl;
+		String consentUrl = env.getString("consent_url");
+		if (Strings.isNullOrEmpty(consentUrl)) {
+			throw error("consent url missing from configuration");
 		}
-
-		return super.getUri(env);
+		return consentUrl;
 	}
 
 	@Override
@@ -43,7 +38,9 @@ public class CallConsentEndpointWithBearerTokenAnyHttpMethod extends CallConsent
 	}
 
 	@Override
-	@PreEnvironment(required = { "access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers" }, strings = "http_method")
-	@PostEnvironment(required = { "resource_endpoint_response_headers", "consent_endpoint_response", "consent_endpoint_response_full" })
-	public Environment evaluate(Environment env) { return callProtectedResource(env); }
+	@PreEnvironment(required = {"access_token", "resource", "consent_endpoint_request", "resource_endpoint_request_headers"}, strings = {"http_method", "consent_url"})
+	@PostEnvironment(required = {"resource_endpoint_response_headers", "consent_endpoint_response", "consent_endpoint_response_full"})
+	public Environment evaluate(Environment env) {
+		return callProtectedResource(env);
+	}
 }
