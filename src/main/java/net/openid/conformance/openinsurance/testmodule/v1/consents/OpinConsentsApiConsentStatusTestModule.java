@@ -3,6 +3,7 @@ package net.openid.conformance.openinsurance.testmodule.v1.consents;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
@@ -10,6 +11,9 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScop
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.OpinAddScopesForAll;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openinsurance.testmodule.support.EnsureStatusAuthorised;
+import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermissionsBuilder;
+import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinConsentDetailsIdentifiedByConsentIdValidatorV1;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinCreateNewConsentValidatorV1;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -48,24 +52,33 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 })
 public class OpinConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunctionalTestModuleOptionalErrors {
 
-//	@Override
-//	protected void configureClient() {
-//		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
-//		super.configureClient();
-//	}
+	private OpinConsentPermissionsBuilder permissionsBuilder;
+	@Override
+	protected void configureClient() {
+		callAndStopOnFailure(BuildCustomCustomersConfigResourceUrlFromConsentUrl.class);
+		super.configureClient();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
 		callAndStopOnFailure(OpinAddScopesForAll.class);
-//		callAndStopOnFailure(PrepareAllCustomerRelatedConsentsForResource404HappyPathTest.class);
-//		callAndStopOnFailure(PrepareToGetCustomCustomerIdentifications.class);
+
+		String productType = env.getString("config", "consent.productType");
+		if (productType.equals("business")) {
+			permissionsBuilder.addPermissionsGroup(PermissionsGroup.CUSTOMERS_BUSINESS).build();
+		} else {
+			permissionsBuilder.addPermissionsGroup(PermissionsGroup.CUSTOMERS_PERSONAL).build();
+		}
 	}
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(false,
 			false, addTokenEndpointClientAuthentication, false, false);
-		steps.then(condition(OpinCreateNewConsentValidatorV1.class).dontStopOnFailure());
+		steps.then(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"),
+			condition(ResourceEndpointResponseFromFullResponse.class),
+			condition(OpinCreateNewConsentValidatorV1.class).dontStopOnFailure());
 		return steps;
 	}
 	@Override
@@ -73,34 +86,17 @@ public class OpinConsentsApiConsentStatusTestModule extends AbstractOBBrasilFunc
 		runInBlock("Validating get consent response V1", () -> {
 			callAndStopOnFailure(ConsentIdExtractor.class);
 			callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class, Condition.ConditionResult.FAILURE);
+
+			exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full");
+			callAndStopOnFailure(ResourceEndpointResponseFromFullResponse.class);
+
 			callAndContinueOnFailure(OpinConsentDetailsIdentifiedByConsentIdValidatorV1.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
+			callAndContinueOnFailure(EnsureStatusAuthorised.class);
 		});
 	}
-//	@Override
-//	protected void validateResponse() {
-//		String responseError = env.getString("resource_endpoint_error_code");
-//		if (Strings.isNullOrEmpty(responseError)) {
-//			runInBlock("Validating get consent response", () -> {
-//				callAndStopOnFailure(PrepareToFetchConsentRequest.class);
-//				callAndStopOnFailure(TransformConsentRequestForProtectedResource.class);
-//				call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-//				preCallProtectedResource("Fetch consent");
-//				callAndStopOnFailure(EnsureConsentWasAuthorised.class);
-//			});
-//		} else {
-//			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
-//			callAndStopOnFailure(EnsureResponseCodeWas404.class);
-//			String logMessage = String.format("Call personal endpoint");
-//			runInBlock(logMessage, () -> {
-//				callAndStopOnFailure(PrepareToCallCustomerDataEndpoint.class);
-//				callAndStopOnFailure(CallProtectedResource.class);
-//				callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.WARNING);
-//			});
-//		}
-//	}
 
 	@Override
 	protected void validateResponse() {
