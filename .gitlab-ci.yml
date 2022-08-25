@@ -51,6 +51,7 @@ dev_build:
     - git config --global user.name "ReleaseBot"
     - mkdir -p ~/.ssh
     - ssh-keyscan $CI_SERVER_HOST > ~/.ssh/known_hosts
+    - ssh git@gitlab.com
     - set_app_version
     - mvn -B clean package
   artifacts:
