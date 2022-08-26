@@ -2,18 +2,14 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.HeaderParameterNames;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
-import java.time.Instant;
 
 public class CreateDpopHeader extends AbstractCondition {
 
@@ -40,7 +36,7 @@ public class CreateDpopHeader extends AbstractCondition {
 
 		JsonObject header = new JsonObject();
 
-		header.addProperty("alg", "PS256");
+		header.addProperty("alg", OIDFJSON.getString(jwk.get("alg"))); // use alg in jwk
 		header.addProperty("typ", "dpop+jwt");
 		header.add("jwk", pubObj);
 
