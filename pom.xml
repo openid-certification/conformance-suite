@@ -324,8 +324,6 @@
 						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
-						<arg>--add-exports</arg>
-						<arg>java.base/sun.security.x509=ALL-UNNAMED</arg>
 					</compilerArgs>
 				</configuration>
 			</plugin>
