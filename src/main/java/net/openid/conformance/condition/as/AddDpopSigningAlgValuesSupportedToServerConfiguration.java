@@ -17,6 +17,7 @@ public class AddDpopSigningAlgValuesSupportedToServerConfiguration extends Abstr
 		JsonArray data = new JsonArray();
 		data.add("PS256");
 		data.add("ES256");
+		data.add("EdDSA");
 
 		JsonObject server = env.getObject("server");
 		server.add("dpop_signing_alg_values_supported", data);
