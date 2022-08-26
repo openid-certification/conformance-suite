@@ -27,7 +27,7 @@ import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermis
 		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n"+
 		"\u2022 Calls the DELETE Consents with the Consent ID created\n" +
 		"\u2022 Expects the test to return a 204 - No Content\n" +
-		"\u2022 Calls the GET Consents with the 1st Consent ID created\n" +
+		"\u2022 Calls the GET Consents with the Consent ID created\n" +
 		"\u2022 Confirms that the Consent has been sent to a Rejected state",
 
 
