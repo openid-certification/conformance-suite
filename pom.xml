@@ -27,6 +27,13 @@
 		<logback.version>1.2.8</logback.version>
 	</properties>
 
+	<scm>
+		<connection>scm:git:git@gitlab.com:obb1/certification.git</connection>
+		<developerConnection>scm:git:git@gitlab.com:obb1/certification.git</developerConnection>
+		<tag>master</tag>
+		<url>https://gitlab.com/obb1/certification/-/wikis/home</url>
+	</scm>
+
 	<repositories>
 		<repository>
 			<id>gitlab-maven</id>
