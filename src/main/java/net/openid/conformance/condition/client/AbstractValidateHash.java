@@ -7,12 +7,11 @@ import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWAUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public abstract class AbstractValidateHash extends AbstractCondition {
 
@@ -58,15 +57,12 @@ public abstract class AbstractValidateHash extends AbstractCondition {
 		MessageDigest digester;
 
 		try {
-			Matcher matcher = Pattern.compile("^(HS|RS|ES|PS)(256|384|512)$").matcher(alg);
-			if (!matcher.matches()) {
-				throw error("Invalid algorithm", args("alg", alg));
-			}
-
-			String digestAlgorithm = "SHA-" + matcher.group(2);
+			String digestAlgorithm = JWAUtil.getDigestAlgorithmForSigAlg(alg);
 			digester = MessageDigest.getInstance(digestAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
 			throw error("Unsupported digest for algorithm", e, args("alg", alg));
+		} catch (JWAUtil.InvalidAlgorithmException e) {
+			throw error("Invalid algorithm", args("alg", alg));
 		}
 
 		byte[] stateDigest = digester.digest(baseString.getBytes(StandardCharsets.US_ASCII));
