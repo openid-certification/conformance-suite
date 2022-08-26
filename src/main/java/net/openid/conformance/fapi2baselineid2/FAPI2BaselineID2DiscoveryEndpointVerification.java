@@ -16,13 +16,13 @@ import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupp
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
-import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
@@ -125,7 +125,7 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 		callAndContinueOnFailure(CheckDiscRequirePushedAuthorizationRequestsIsABoolean.class, Condition.ConditionResult.FAILURE, "PAR-5");
 
 		if (signedRequest) {
-			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPI2CheckDiscEndpointRequestObjectSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE);
 		}
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
